@@ -7,7 +7,7 @@
 # Tool ID: spades
 # Version policy: pinned_or_registry_locked
 # Upstream source: see org.opencontainers.image.source label
-# Build date policy: org.opencontainers.image.created set by release pipeline
+# Build date policy: captured by immutable build evidence
 # Network source policy: NETWORK_SOURCE_VERIFIED_BY_LOCK
 # Runtime UID policy: RUNTIME_UID_SAFE
 
@@ -20,13 +20,11 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
     VERSION spades-4.2.0
     org.opencontainers.image.source https://github.com/ablab/spades
     org.opencontainers.image.title SPAdes
-    org.opencontainers.image.licenses Apache-2.0
-
-    org.opencontainers.image.source https://github.com/bijux/bijux-genomics
-    org.opencontainers.image.revision unknown
-    org.opencontainers.image.created unknown
-    org.opencontainers.image.licenses GPL-3.0
+    org.opencontainers.image.revision 7fee3c1050a732faef8a0d93d70861015a96f44e
+    org.opencontainers.image.created governed-by-build-evidence
+    org.opencontainers.image.licenses GPL-2.0-only
     org.opencontainers.image.version 4.2.0
+    io.bijux.tool.version 4.2.0
     org.opencontainers.image.tool spades
 %environment
     export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
@@ -45,6 +43,7 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
     apt-get install -y --no-install-recommends \
         wget \
         python3 \
+        libgomp1 \
         ca-certificates \
         grep
 
@@ -96,8 +95,15 @@ EOF
         exec spades.py "$@"
     fi
 
+%test
+    spades.py --version | grep -Fx 'SPAdes genome assembler v4.2.0'
+    spades.py --help >/dev/null
+    spades.py --test >/dev/null
+    if spades.py --definitely-invalid-option >/dev/null 2>&1; then exit 1; fi
+
 %help
-    This Apptainer image provides SPAdes v4.2.0 built from source on Ubuntu 24.04.
+    This Apptainer image provides the checksummed upstream SPAdes v4.2.0
+    Linux release on Ubuntu 24.04, including its OpenMP runtime dependency.
 
     Main entry:
       - spades.py  (also symlinked as 'spades')

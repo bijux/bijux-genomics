@@ -2,8 +2,8 @@
 # owner = bijux-genomics
 tool_id = "musket"
 container_kind = "bijux"
-spdx = "NOASSERTION"
-upstream_license_id = "NOASSERTION"
+spdx = "GPL-3.0"
+upstream_license_id = "GPL-3.0"
 upstream_url = "https://sourceforge.net/projects/musket/"
 upstream_version = "1.1"
 upstream_checksum = "sha256:306772803ef72e6a7dfdfdf382d0fafa77de0eaa226500b0525940f6b5497aba"

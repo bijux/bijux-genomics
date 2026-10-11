@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+: "${LIGHTER_VERSION:?LIGHTER_VERSION must identify the pinned release}"
+: "${LIGHTER_SOURCE_SHA256:?LIGHTER_SOURCE_SHA256 must identify the pinned archive}"
+
+work_dir="$(mktemp -d)"
+trap 'rm -rf "$work_dir"' EXIT
+archive="$work_dir/lighter.tar.gz"
+source_dir="$work_dir/source"
+
+curl \
+  --fail \
+  --location \
+  --proto '=https' \
+  --tlsv1.2 \
+  --silent \
+  --show-error \
+  --output "$archive" \
+  "https://github.com/mourisl/Lighter/archive/refs/tags/v${LIGHTER_VERSION}.tar.gz"
+printf '%s  %s\n' "$LIGHTER_SOURCE_SHA256" "$archive" | sha256sum --check --strict
+
+mkdir -p "$source_dir"
+tar --extract --gzip --file "$archive" --directory "$source_dir" --strip-components=1
+
+# Upstream still targets pre-GCC-12 C++; these narrow source adaptations preserve
+# its nucleotide lookup semantics while making initialization explicit.
+sed -i '1i#include <string.h>' "$source_dir/main.cpp"
+sed -r -i '/char[[:space:]]+code\[128\]/,/};/d' "$source_dir/main.cpp"
+sed -i '/code\[65\]/i static char code[128]; memset(code,(signed char)-1,sizeof(code));' "$source_dir/main.cpp"
+
+make \
+  --directory "$source_dir" \
+  --jobs "${BIJUX_BUILD_JOBS:-2}" \
+  CXXFLAGS='-Wall -O3 -std=c++03 -Wno-narrowing'
+install -d -m 0755 /usr/local/libexec
+install -m 0755 "$source_dir/lighter" /usr/local/libexec/lighter-bin

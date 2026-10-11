@@ -1,7 +1,7 @@
 {
   "schema_version": "bijux.domain.registry.release_bundle.v1",
-  "source_commit": "49f670f4bfd6ac79fdadfc69456c693bf9d168e3",
-  "bundle_checksum_sha256": "37917bcef0ce8ed9b5c4b59f78b2c8a9087e5e789df1a1bc5580c5743c509a11",
+  "source_commit": "ec348cec5dc7c4054849f3a5e178dbba6bf9738a",
+  "bundle_checksum_sha256": "80d61488849bd5b8f702f4ef983bd6b2d4b33731c4584ca10c8b9b9c9d1e55d5",
   "domains": [
     {
       "domain_id": "bam",
@@ -3105,8 +3105,8 @@
           "pin_strategy": "pinned",
           "license": "GPL-3.0",
           "citation": "paper:https://www.nature.com/articles/nmeth.2375",
-          "version_cmd": "preseq --version",
-          "help_cmd": "preseq --help",
+          "version_cmd": "preseq",
+          "help_cmd": "preseq",
           "stage_ids": [
             "bam.complexity"
           ],
@@ -4358,7 +4358,7 @@
         }
       ],
       "deprecations": [],
-      "checksum_sha256": "0ba831eb44a805dad899e6b2b1dbc3bdd37c4ee7378457b4c11f23bff03faea7"
+      "checksum_sha256": "6b8e157a34ff8dec2c4b6c6553454aea2a23e34a74b17448da58c15b006caeb7"
     },
     {
       "domain_id": "fastq",
@@ -10743,7 +10743,7 @@
           "status": "supported",
           "scope": "pre_hpc_pre_vcf",
           "role": "",
-          "default_version": "1.1.2",
+          "default_version": "1.1.3",
           "upstream": "https://github.com/mourisl/Lighter",
           "pin_strategy": "pinned",
           "license": "GPL-3.0",
@@ -10767,7 +10767,7 @@
           "comparability_notes": "Comparable only within same stage contract and input constraints.",
           "container": {
             "image": "bijuxdna/lighter",
-            "digest": "sha256:e65d145062ddedd1e584f7aec7db45c13ddf33f849888e61d6c3b91e89730085"
+            "digest": "sha256:4daa759e5a917db8c6111002b923549c5858892a2f53d63bdb38788f1d714125"
           }
         },
         {
@@ -11261,9 +11261,9 @@
           "scope": "pre_hpc_pre_vcf",
           "role": "",
           "default_version": "0.39",
-          "upstream": "http://www.usadellab.org/cms/?page=trimmomatic",
+          "upstream": "https://github.com/usadellab/Trimmomatic",
           "pin_strategy": "pinned",
-          "license": "GPL-3.0",
+          "license": "GPL-3.0-only",
           "citation": "paper:https://pmc.ncbi.nlm.nih.gov/articles/PMC4103590/",
           "version_cmd": "trimmomatic --version",
           "help_cmd": "trimmomatic --help",
@@ -13502,7 +13502,7 @@
         }
       ],
       "deprecations": [],
-      "checksum_sha256": "236702f6d5d02c159695f2a2e432de6c6cc23983c5163a13f608696b4b230659"
+      "checksum_sha256": "eabf1f3221e583b770b99dc9e896d281c966d560770a31f0df486c001fab6dff"
     },
     {
       "domain_id": "vcf",
@@ -16662,7 +16662,7 @@
         }
       ],
       "deprecations": [],
-      "checksum_sha256": "8173b3c643ad17c13a31693f537feccc4502d46f192c025b6a1d1e9e395ce298"
+      "checksum_sha256": "5d77c23982dc0d54f2fabf1830a61b0230b7ba91fb991435e27f43d0907b8ab3"
     }
   ]
 }

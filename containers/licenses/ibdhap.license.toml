@@ -1,7 +1,7 @@
 # schema_version = 1
 # owner = bijux-genomics
 tool_id = "ibdhap"
-container_kind = "non-bijux"
+container_kind = "bijux"
 spdx = "LicenseRef-MORGAN-2006"
 upstream_license_id = "LicenseRef-MORGAN-2006"
 upstream_url = "https://sites.stat.washington.edu/thompson/Genepi/MORGAN/Morgan.shtml"

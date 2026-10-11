@@ -18,6 +18,24 @@ fn docs_graph_exempt(rel: &str) -> bool {
         )
 }
 
+fn is_container_evidence_snippet_page(rel: &str, raw: &str) -> bool {
+    if !rel.starts_with("docs/30-operations/container-evidence/") {
+        return false;
+    }
+    let trimmed = raw.trim();
+    if trimmed.lines().count() != 1 {
+        return false;
+    }
+    let Some(target) = trimmed.strip_prefix("--8<-- \"").and_then(|value| value.strip_suffix('"'))
+    else {
+        return false;
+    };
+    !target.is_empty()
+        && !target.contains('"')
+        && target.starts_with("containers/reports/")
+        && target.ends_with(".md")
+}
+
 pub(super) fn docs_check_doc_assets(
     workspace: &Workspace,
     args: &[String],
@@ -77,6 +95,9 @@ pub(super) fn docs_check_doc_depth(
             continue;
         }
         let raw = read_utf8(path)?;
+        if is_container_evidence_snippet_page(&rel, &raw) {
+            continue;
+        }
         let mut missing = Vec::new();
         if !purpose.is_match(&raw) {
             missing.push("purpose");
@@ -690,4 +711,29 @@ pub(super) fn docs_check_doc_major_depth(
         return success_line("doc-major-depth: OK");
     }
     failure_lines("doc-major-depth: FAILED", &errors)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::is_container_evidence_snippet_page;
+
+    #[test]
+    fn recognizes_container_evidence_publication_wrappers() {
+        assert!(is_container_evidence_snippet_page(
+            "docs/30-operations/container-evidence/IMAGE_STORAGE.md",
+            "--8<-- \"containers/reports/image-storage.md\"\n",
+        ));
+    }
+
+    #[test]
+    fn rejects_snippet_shortcuts_outside_the_evidence_surface() {
+        assert!(!is_container_evidence_snippet_page(
+            "docs/10-architecture/ARCHITECTURE.md",
+            "--8<-- \"containers/reports/image-storage.md\"\n",
+        ));
+        assert!(!is_container_evidence_snippet_page(
+            "docs/30-operations/container-evidence/IMAGE_STORAGE.md",
+            "--8<-- \"docs/unreviewed.md\"\n",
+        ));
+    }
 }

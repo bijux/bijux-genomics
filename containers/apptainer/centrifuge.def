@@ -20,10 +20,12 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
     org.opencontainers.image.created governed-by-build-evidence
     org.opencontainers.image.licenses GPL-3.0-or-later
     org.opencontainers.image.version 1.0.4
+    io.bijux.tool.version 1.0.4
     org.opencontainers.image.tool centrifuge
     org.opencontainers.image.title Centrifuge
 
 %files
+    containers/contracts/configure-apt-snapshot /usr/local/sbin/bijux-configure-apt-snapshot
     containers/tools/centrifuge/install /opt/centrifuge-build/install
     containers/tools/centrifuge/centrifuge /usr/local/bin/centrifuge
 
@@ -38,9 +40,8 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
     set -eux
     umask 022
     export DEBIAN_FRONTEND=noninteractive
-    sed -i 's#http://archive.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubuntu/20260802T000000Z/#g; s#http://security.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubuntu/20260802T000000Z/#g' /etc/apt/sources.list.d/ubuntu.sources
-    apt-get -o Acquire::https::Verify-Peer=false -o Acquire::Check-Valid-Until=false update
-    apt-get -o Acquire::https::Verify-Peer=false install -y --no-install-recommends ca-certificates
+    /bin/sh /usr/local/sbin/bijux-configure-apt-snapshot
+    apt-get install -y --no-install-recommends ca-certificates
     apt-get -o Acquire::Check-Valid-Until=false update
     apt-get install -y --no-install-recommends build-essential curl zlib1g-dev libbz2-dev liblzma-dev perl python3 python-is-python3 gzip bzip2
     /opt/centrifuge-build/install

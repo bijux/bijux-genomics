@@ -2,8 +2,8 @@
 # owner = bijux-genomics
 tool_id = "qualimap"
 container_kind = "bijux"
-spdx = "NOASSERTION"
-upstream_license_id = "NOASSERTION"
+spdx = "GPL-2.0-only"
+upstream_license_id = "GPL-2.0-only"
 upstream_url = "https://bitbucket.org/kokonech/qualimap"
 upstream_version = "2.3"
 upstream_checksum = "sha256:2a04dd864b712da30923cce3bc8dfc6ea59612118e8b0ff1a246fe43b8d34c40"

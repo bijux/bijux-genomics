@@ -1,7 +1,7 @@
 # schema_version = 1
 # owner = bijux-genomics
 tool_id = "impute5"
-container_kind = "non-bijux"
+container_kind = "bijux"
 spdx = "LicenseRef-Oxford-Academic-Use"
 upstream_license_id = "LicenseRef-Oxford-Academic-Use"
 upstream_url = "https://jmarchini.org/software/#impute-5"

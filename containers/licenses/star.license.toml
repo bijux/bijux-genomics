@@ -2,8 +2,8 @@
 # owner = bijux-genomics
 tool_id = "star"
 container_kind = "bijux"
-spdx = "NOASSERTION"
-upstream_license_id = "NOASSERTION"
+spdx = "GPL-3.0"
+upstream_license_id = "GPL-3.0"
 upstream_url = "https://github.com/alexdobin/STAR"
 upstream_version = "2.7.11b"
 upstream_checksum = "sha256:756c7904006c87a84da81d04bb2f9b3a760601f697606fd23dc687cd7ec9da7e"

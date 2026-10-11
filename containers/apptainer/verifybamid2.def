@@ -7,7 +7,7 @@
 # Tool ID: verifybamid2
 # Version policy: pinned_or_registry_locked
 # Upstream source: see org.opencontainers.image.source label
-# Build date policy: org.opencontainers.image.created set by release pipeline
+# Build date policy: captured by immutable build evidence
 # Network source policy: NETWORK_SOURCE_VERIFIED_BY_LOCK
 # Runtime UID policy: RUNTIME_UID_SAFE
 
@@ -16,12 +16,13 @@ Bootstrap: docker
 From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
 
 %labels
-    VERSION unknown
-    org.opencontainers.image.source https://github.com/bijux/bijux-genomics
-    org.opencontainers.image.revision unknown
-    org.opencontainers.image.created unknown
+    VERSION 2.0.1
+    org.opencontainers.image.source https://github.com/Griffan/VerifyBamID
+    org.opencontainers.image.revision 83a1c936ef2e1a8c9e78ed2d2e2d328adf0c6447
+    org.opencontainers.image.created governed-by-build-evidence
     org.opencontainers.image.licenses GPL-3.0
     org.opencontainers.image.version 2.0.1
+    io.bijux.tool.version 2.0.1
     org.opencontainers.image.tool verifybamid2
     org.opencontainers.image.title verifybamid2
 
@@ -52,9 +53,28 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
 #!/usr/bin/env sh
 set -eu
 case "${1:-}" in
-  --version) echo "verifybamid2 2.0.1"; exit 0 ;;
+  --version)
+    set +e
+    version_output="$(/usr/local/bin/verifybamid2-bin --version 2>&1)"
+    version_status=$?
+    set -e
+    if [ "$version_status" -ne 255 ] || ! printf '%s\n' "$version_output" | grep -Fq 'Version:2.0.1'; then
+      printf 'error: unexpected VerifyBamID2 version probe (status=%s)\n' "$version_status" >&2
+      exit 70
+    fi
+    printf 'verifybamid2 2.0.1\n'
+    exit 0
+    ;;
   --help|-h|"")
-    /usr/local/bin/verifybamid2-bin --help 2>&1 || true
+    set +e
+    help_output="$(/usr/local/bin/verifybamid2-bin --help 2>&1)"
+    help_status=$?
+    set -e
+    if [ "$help_status" -ne 1 ] || ! printf '%s\n' "$help_output" | grep -Fq 'Detailed instructions of parameters'; then
+      printf 'error: unexpected VerifyBamID2 help probe (status=%s)\n' "$help_status" >&2
+      exit 70
+    fi
+    printf '%s\n' "$help_output"
     exit 0
     ;;
   --__bijux_invalid_flag__*)
@@ -65,8 +85,14 @@ esac
 exec /usr/local/bin/verifybamid2-bin "$@"
 EOS
     chmod +x /usr/local/bin/verifybamid2
+    verifybamid2 --version | grep -Fx 'verifybamid2 2.0.1'
+    verifybamid2 --help | grep -Fq 'Detailed instructions of parameters'
 %runscript
     exec /usr/local/bin/verifybamid2 "$@"
+
+%test
+    verifybamid2 --version | grep -Fx 'verifybamid2 2.0.1'
+    verifybamid2 --help | grep -Fq 'Detailed instructions of parameters'
 
 %help
     Apptainer image for verifybamid2.

@@ -1,7 +1,7 @@
 # LUNARC ancient-DNA damage validation
 
 This report records runtime and stage qualification of the ngsBriggs,
-mapDamage 2, AuthentiCT, AdDeam, contamMix, and DamageProfiler containers on public ancient-horse run
+mapDamage 2, AuthentiCT, AdDeam, contamMix, DamageProfiler, and PMDtools containers on public ancient-horse run
 `ERR2112767`
 (`Borly4_PAVH8_4978`, BioSample `SAMEA104233654`) against EquCab3.0. The source
 alignment and reference were admitted by checksum. Every execution used an
@@ -38,6 +38,7 @@ from `containers/contracts/sites/lunarc.yml` and archived with each run.
 | expose absent Java text shaping | DamageProfiler 1.1 | `run-1113` | `3458155` | failed | 7s | native tables passed before SVG rendering rejected absent HarfBuzz |
 | expose absent font configuration | DamageProfiler 1.1 | `run-1114` | `3458159` | failed | 7s | native tables passed before Java rejected the empty font catalog |
 | profile terminal damage and read lengths | DamageProfiler 1.1 | `run-1115` | `3458162` | passed | 9s | native tables, JSON, log, and SVG damage plots |
+| score reads under the postmortem-damage likelihood model | PMDtools 0.60 | `run-1137` | `3458721` | passed | 30s | 235,311 read scores with explicit unsupported-record diagnostics |
 
 The preparation command used `samtools view -b -F 5`: bit `0x1` removes paired
 records and bit `0x4` removes unmapped records. This is an explicit adapter to
@@ -160,6 +161,17 @@ terminal rates were `C→T (5′) = 0.003997039230199852` and
 not establish equivalence with, rates produced by other profilers because
 their input transformations and counting models differ.
 
+PMDtools consumes SAM text with an `MD` tag rather than BAM directly. The
+container therefore includes Samtools and the governed command streams the
+checksum-admitted BAM through `samtools view -h`; it does not materialize a
+second untracked input. PMDtools scored 235,311 alignments, of which 21,273
+had a positive likelihood-ratio score, for an observed positive-score fraction
+of `0.090403763530` and a mean score of `-0.547863980654`. The native
+diagnostics also reported 822 records without an `MD` tag and emitted warnings
+for hard-clipped CIGAR operations, which PMDtools 0.60 does not support. These
+losses are retained in the result evidence and prevent the score fraction from
+being interpreted as a sample-level authenticity estimate.
+
 The terminal rates in this deliberately small admitted slice were
 `C→T (5′) = 0.0` and `G→A (3′) = 0.0`. Those values demonstrate parsing and
 contract closure only. They are not evidence that the sample lacks ancient-DNA
@@ -173,7 +185,7 @@ reproduced those values. Reference merging did not change either rate.
 ## Claim boundary
 
 This evidence closes the ngsBriggs, mapDamage, AuthentiCT, AdDeam, contamMix,
-and DamageProfiler runtime and real-stage contracts on LUNARC. It verifies immutable inputs,
+DamageProfiler, and PMDtools runtime and real-stage contracts on LUNARC. It verifies immutable inputs,
 negative-input behavior, native output retention, governed projection,
 independently recalculated rates, and Slurm provenance. AuthentiCT's qualified
 command measures its native
@@ -195,3 +207,7 @@ candidate panel prohibit an authenticity or contamination conclusion.
 DamageProfiler's qualified command establishes its table, JSON, and plotting
 interfaces on the governed tagged-SAM derivative; it does not establish
 damage-detection sensitivity or interchangeable rates across profilers.
+PMDtools' qualified command establishes real input streaming and native PMD
+score generation. It does not establish that the default likelihood parameters
+match this library preparation, that hard-clipped records are ignorable, or
+that a positive score alone proves ancient-DNA authenticity.

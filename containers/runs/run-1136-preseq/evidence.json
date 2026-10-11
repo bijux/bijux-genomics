@@ -1,0 +1,162 @@
+{
+  "checks": {
+    "help": {
+      "argv": [
+        "preseq"
+      ],
+      "exit_code": 0,
+      "stderr_sha256": "d0256159eba1465cc38725cf21b3b9631b599805255a7e985c9a95e61922a630",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "negative": {
+      "argv": [
+        "preseq",
+        "c_curve",
+        "-B",
+        "-P",
+        "/input/not-present.bam"
+      ],
+      "exit_code": 1,
+      "stderr_sha256": "14eeeee1f2ed896f91243cb5ea10fb340065313f276caf693ef1c395fb2f84a4",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "real": {
+      "argv": [
+        "bash",
+        "-c",
+        "set -euo pipefail; preseq c_curve -B -P -r 408 -s 25000 -o /result/complexity-curve.tsv /input/ERR2112767.sorted.bam; awk 'BEGIN {points=0; total=0; distinct=0} NR>1 && NF>=2 {points++; total=$1+0; distinct=$2+0} END {if (points < 1) exit 2; ratio=(total > 0 ? distinct/total : 0); printf \"{\\\"projection_points\\\":%d,\\\"maximum_total_reads\\\":%.0f,\\\"maximum_expected_distinct\\\":%.6f,\\\"final_distinct_fraction\\\":%.12f}\\n\", points, total, distinct, ratio}' /result/complexity-curve.tsv > /result/metrics.json"
+      ],
+      "exit_code": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "version": {
+      "argv": [
+        "preseq"
+      ],
+      "exit_code": 0,
+      "stderr_sha256": "d0256159eba1465cc38725cf21b3b9631b599805255a7e985c9a95e61922a630",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  },
+  "credential_reference_sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+  "dependencies": [],
+  "execution": {
+    "cache_policy": "cold",
+    "determinism": "deterministic",
+    "locale": "C",
+    "random_seed": 408,
+    "runtime_network": false,
+    "threads": 1,
+    "timezone": "UTC"
+  },
+  "failure_class": null,
+  "failures": [],
+  "governance_sha256": "5a48351cddde8a0251584de4bbbf01a524bf5a2ecb2a0c2034b6553a554ec37a",
+  "image": {
+    "path": "/lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/preseq-3.2.0-linux-amd64-6ef1786da19b.sif",
+    "sha256": "6ef1786da19b8447539a1b04ab3f6801c116618308639873d6c6de6b321651b8",
+    "size_bytes": 141492224
+  },
+  "inputs": [
+    {
+      "id": "err2112767_alignment",
+      "kind": "data",
+      "mount_path": "/input/ERR2112767.sorted.bam",
+      "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb22390-err2112767/ERR2112767.sorted.bam",
+      "sha256": "1d9ca843614c66209de4618ba69ecfae236731f9999a1daa48622f061127fe87"
+    },
+    {
+      "id": "err2112767_alignment_index",
+      "kind": "data",
+      "mount_path": "/input/ERR2112767.sorted.bam.bai",
+      "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb22390-err2112767/ERR2112767.sorted.bam.bai",
+      "sha256": "ab5d07b513a4a3f421a9a82aff5fc5767d41a7333693b67c9258b40a337276a3"
+    }
+  ],
+  "metrics": [
+    {
+      "expected": 2,
+      "id": "projection_points",
+      "json_pointer": "/projection_points",
+      "observed": 10,
+      "operator": "ge",
+      "path": "metrics.json",
+      "status": "passed",
+      "unit": "curve-points"
+    },
+    {
+      "expected": 25000,
+      "id": "maximum_total_reads",
+      "json_pointer": "/maximum_total_reads",
+      "observed": 225000,
+      "operator": "ge",
+      "path": "metrics.json",
+      "status": "passed",
+      "unit": "reads"
+    },
+    {
+      "expected": 1,
+      "id": "maximum_expected_distinct",
+      "json_pointer": "/maximum_expected_distinct",
+      "observed": 224989.0,
+      "operator": "ge",
+      "path": "metrics.json",
+      "status": "passed",
+      "unit": "distinct-fragments"
+    },
+    {
+      "expected": 0,
+      "id": "final_distinct_fraction_lower_bound",
+      "json_pointer": "/final_distinct_fraction",
+      "observed": 0.999951111111,
+      "operator": "ge",
+      "path": "metrics.json",
+      "status": "passed",
+      "unit": "fraction"
+    },
+    {
+      "expected": 1,
+      "id": "final_distinct_fraction_upper_bound",
+      "json_pointer": "/final_distinct_fraction",
+      "observed": 0.999951111111,
+      "operator": "le",
+      "path": "metrics.json",
+      "status": "passed",
+      "unit": "fraction"
+    }
+  ],
+  "outputs": [
+    {
+      "path": "outputs/complexity-curve.tsv",
+      "sha256": "df42f89ab42953bbcec54b0237d9cfee8bc271ed138500fcea3c152bc797ed90",
+      "size_bytes": 150
+    },
+    {
+      "path": "outputs/metrics.json",
+      "sha256": "49ee7a0924144fe84b52638b5c89c6cfde1d260bd9ca2b0f02570509b2733923",
+      "size_bytes": 137
+    }
+  ],
+  "pipeline_schema_version": "bijux.container.pipeline.v2",
+  "pipeline_sha256": "79462932c274fb2760ca6cfa3f7b6c3a8f9c814f2f948c796c317ef7086086e7",
+  "repository_clean": true,
+  "repository_commit": "6a3f66c7ed49410bd60e3db901e09e73fb2d9a51",
+  "repository_path": "/home/bijan/bijux/bijux-genomics-runs/6a3f66c7ed49410bd60e3db901e09e73fb2d9a51",
+  "run_id": "run-1136",
+  "runtime": {
+    "apptainer_version": "apptainer version 1.5.2-1.el9",
+    "cpus": "1",
+    "finished_at_utc": "2026-08-03T06:55:31.629870+00:00",
+    "host": "cn091",
+    "scratch_path": "/tmp/bijux-genomics-3458719-MwaIqk",
+    "slurm_job_id": "3458719",
+    "started_at_utc": "2026-08-03T06:55:30.673729+00:00"
+  },
+  "schema_version": "bijux.container.evidence.v2",
+  "site": {
+    "host": "cn091",
+    "id": "lunarc"
+  },
+  "status": "passed"
+}

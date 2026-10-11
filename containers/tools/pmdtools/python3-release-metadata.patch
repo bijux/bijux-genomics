@@ -1,0 +1,11 @@
+--- a/pmdtools.0.60.py
++++ b/pmdtools.0.60.py
+@@ -1,1 +1,1 @@
+-#!/usr/bin/env python
++#!/usr/bin/env python3
+@@ -28,1 +28,1 @@
+-parser = OptionParser(usage=usage, version="%prog v0.50")
++parser = OptionParser(usage=usage, version="%prog v0.60")
+@@ -373,1 +373,1 @@
+-		MDlist=re.findall('(\d+|\D+)',MD)
++		MDlist=re.findall(r'(\d+|\D+)',MD)

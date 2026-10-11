@@ -357,8 +357,8 @@ fn render_executable_resolution_tsv(rows: &[ExecutableResolutionRow]) -> String 
         "tool_id\tdomains\tactive_stage_ids\tinstall_kind\tresolution_kind\tresolution_target\tcommand_entrypoint\truntime_probe_paths\tunavailable_reason\n",
     );
     for row in rows {
-        rendered.push_str(&format!(
-            "{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\n",
+        let fields = format!(
+            "{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}\t{}",
             row.tool_id,
             row.domains.join(","),
             row.active_stage_ids.join(","),
@@ -368,7 +368,9 @@ fn render_executable_resolution_tsv(rows: &[ExecutableResolutionRow]) -> String 
             row.command_entrypoint.clone().unwrap_or_default(),
             row.runtime_probe_paths.join(","),
             row.unavailable_reason.clone().unwrap_or_default(),
-        ));
+        );
+        rendered.push_str(fields.trim_end_matches('\t'));
+        rendered.push('\n');
     }
     rendered
 }
@@ -383,4 +385,26 @@ fn repo_relative_path(repo_root: &Path, path: &Path) -> PathBuf {
 
 fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
     path.strip_prefix(repo_root).unwrap_or(path).to_string_lossy().replace('\\', "/")
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{render_executable_resolution_tsv, ExecutableResolutionRow};
+
+    #[test]
+    fn executable_resolution_rows_do_not_end_in_empty_tsv_fields() {
+        let rendered = render_executable_resolution_tsv(&[ExecutableResolutionRow {
+            tool_id: "lighter".to_string(),
+            domains: vec!["fastq".to_string()],
+            active_stage_ids: vec!["fastq.correct_errors".to_string()],
+            install_kind: "container".to_string(),
+            resolution_kind: "docker_image".to_string(),
+            resolution_target: "bijuxdna/lighter@sha256:verified".to_string(),
+            command_entrypoint: Some("lighter".to_string()),
+            runtime_probe_paths: vec!["domain/fastq/tools/lighter.yaml".to_string()],
+            unavailable_reason: None,
+        }]);
+
+        assert!(rendered.lines().all(|line| !line.ends_with('\t')));
+    }
 }

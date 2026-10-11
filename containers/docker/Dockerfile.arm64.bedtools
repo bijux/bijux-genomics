@@ -5,6 +5,7 @@
 # Bijux Genomics source code is licensed under Apache-2.0.
 # VERSION_SOURCE: containers/versions/versions.toml
 FROM ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
+COPY --chmod=0555 containers/contracts/configure-apt-snapshot /usr/local/sbin/bijux-configure-apt-snapshot
 ARG OCI_REVISION=unknown
 ARG OCI_CREATED=unknown
 ARG TOOL_VERSION=2.31.1
@@ -19,6 +20,8 @@ LABEL org.opencontainers.image.base.name="ubuntu:24.04@sha256:cd1dba651b3080c368
 LABEL org.opencontainers.image.base.digest="sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b"
 ARG TOOL_VERSION
 ENV DEBIAN_FRONTEND=noninteractive
-RUN apt-get update -qq && apt-get install -y --no-install-recommends bedtools ca-certificates && rm -rf /var/lib/apt/lists/*
+RUN /usr/local/sbin/bijux-configure-apt-snapshot && \
+    apt-get install -y --no-install-recommends bedtools ca-certificates && \
+    rm -rf /var/lib/apt/lists/*
 ENTRYPOINT ["/usr/bin/bedtools"]
 CMD ["--help"]

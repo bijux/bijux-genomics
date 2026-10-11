@@ -6,7 +6,7 @@ support container admission and review.
 ## Purpose
 
 - keep license and source assertions adjacent to the governed container surface
-- give science and promotion review one stable directory for per-tool license
+- give science and qualification review one stable directory for per-tool license
   records
 - keep legal review inputs separate from generated locks, smoke outputs, and
   runtime artifacts

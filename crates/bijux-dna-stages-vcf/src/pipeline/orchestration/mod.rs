@@ -339,7 +339,7 @@ fn run_phasing_stage_inner(
     if matches!(resolved_backend, PhasingBackend::Eagle)
         && !license_metadata_for_tool_exists("eagle")
     {
-        bail!("eagle requires non-bijux license metadata before execution");
+        bail!("eagle requires governed upstream license metadata before execution");
     }
     if matches!(resolved_backend, PhasingBackend::Eagle)
         && !eagle_acceptance_allowed(&params.species_id, &params.build_id)

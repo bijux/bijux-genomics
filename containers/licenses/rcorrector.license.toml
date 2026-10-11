@@ -2,8 +2,8 @@
 # owner = bijux-genomics
 tool_id = "rcorrector"
 container_kind = "bijux"
-spdx = "NOASSERTION"
-upstream_license_id = "NOASSERTION"
+spdx = "GPL-3.0"
+upstream_license_id = "GPL-3.0"
 upstream_url = "https://github.com/mourisl/Rcorrector"
 upstream_version = "1.0.7"
 upstream_checksum = "sha256:33274474f6215e3b78829a2b7f86b5a0f6f191d1da7a2da96cba67f1fb4605a8"

@@ -411,6 +411,35 @@
         "median_read_length": 101.0,
         "read_length_standard_deviation": 14.44743005770224
       }
+    },
+    {
+      "tool": "pmdtools",
+      "run_id": "run-1137",
+      "repository_commit": "b78cd27c0109b3ab996122fd843662c5cb129ded",
+      "slurm_job_id": "3458721",
+      "status": "passed",
+      "elapsed_seconds": 30,
+      "image_sha256": "634782e108fe1384642b7f5da026b8a628f5f61d35b438333eb64ae688bbb8be",
+      "image_size_bytes": 46628864,
+      "build_evidence_sha256": "b880b2234c06e17ba218ae3e16ff75c1b9fa9f417fe320f56f095812baa50c55",
+      "input_bam_sha256": "1d9ca843614c66209de4618ba69ecfae236731f9999a1daa48622f061127fe87",
+      "input_index_sha256": "ab5d07b513a4a3f421a9a82aff5fc5767d41a7333693b67c9258b40a337276a3",
+      "evidence_sha256": "2fb29c4342061ba2434b8607c6bfe4ac94c9139746e43577ab7fad33a78d00c4",
+      "accounting_sha256": "e453372220d67b5cdc5cefdb07ae739cfc1a707da7fe77a26e927583fffc75f8",
+      "outputs": {
+        "pmd_scores_sha256": "2e3652f136663b14d8753466b0af9dcc98dc257853acf091c52dae552e67a331",
+        "pmd_stats_sha256": "8ddbaa1af1c6ed7788f9099bcf93c3efb6f347429eeaf8d5224edc8e74cc3a36",
+        "metrics_sha256": "9cb8931b358b42d6b8ba3c7f509420593a9a1780cd73e1e312f39dfee8ce1fcc"
+      },
+      "observations": {
+        "scored_reads": 235311,
+        "positive_pmd_reads": 21273,
+        "positive_pmd_fraction": 0.09040376353,
+        "mean_pmd_score": -0.547863980654,
+        "records_without_md_tag": 822,
+        "hard_clipped_cigar_warning_present": true
+      },
+      "scientific_status": "not_assessed"
     }
   ]
 }

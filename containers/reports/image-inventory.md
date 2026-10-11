@@ -11,7 +11,8 @@ qualification remain independent requirements.
 
 - Catalog tools: **89**
 - States: **current 87**, **unsupported 2**
-- Unknown immutable images: **1**
+- Historical run dependencies: **1**
+- Unknown immutable images: **0**
 - Interrupted staged images: **0**
 - Unreferenced obsolete images: **0**
 
@@ -19,50 +20,50 @@ qualification remain independent requirements.
 
 | Tool | Version | Catalog disposition | Image state | Real-run references |
 |---|---|---|---|---:|
-| `adapterremoval` | `2.3.4` | retained | **current** | 2 |
-| `addeam` | `1.0.0` | retained | **current** | 2 |
-| `alientrimmer` | `3.2` | retained | **current** | 2 |
+| `adapterremoval` | `2.3.4` | retained | **current** | 1 |
+| `addeam` | `1.0.0` | retained | **current** | 1 |
+| `alientrimmer` | `3.2` | retained | **current** | 1 |
 | `angsd` | `0.941` | retained | **current** | 1 |
-| `atropos` | `1.1.31` | retained | **current** | 2 |
+| `atropos` | `1.1.31` | retained | **current** | 1 |
 | `authenticct` | `1.0.0` | retained | **current** | 1 |
 | `bamtools` | `2.5.2` | retained | **current** | 1 |
 | `bamutil` | `1.0.15` | retained | **current** | 1 |
 | `bayeshammer` | `4.2.0` | retained | **current** | 1 |
 | `bbduk` | `39.06` | retained | **current** | 1 |
 | `bbmerge` | `39.06` | retained | **current** | 1 |
-| `bcftools` | `1.20` | retained | **current** | 3 |
+| `bcftools` | `1.20` | retained | **current** | 1 |
 | `beagle` | `5.4` | retained | **current** | 1 |
 | `bedtools` | `2.31.1` | retained | **current** | 1 |
 | `bijux_dna` | `0.1.0` | retained | **current** | 0 |
 | `bowtie2` | `2.5.4` | retained | **current** | 1 |
 | `bowtie2_build` | `2.5.4` | retained | **current** | 1 |
-| `bracken` | `2.9` | retained | **current** | 2 |
-| `bwa` | `0.7.17` | retained | **current** | 2 |
-| `centrifuge` | `1.0.4` | retained | **current** | 2 |
+| `bracken` | `2.9` | retained | **current** | 1 |
+| `bwa` | `0.7.17` | retained | **current** | 1 |
+| `centrifuge` | `1.0.4` | retained | **current** | 1 |
 | `clumpify` | `39.06` | retained | **current** | 1 |
 | `contammix` | `1.0.11` | retained | **current** | 1 |
 | `cutadapt` | `4.9` | retained | **current** | 1 |
-| `dada2` | `1.30.0` | retained | **current** | 5 |
-| `damageprofiler` | `1.1` | retained | **current** | 4 |
-| `diamond` | `2.1.10` | retained | **current** | 2 |
+| `dada2` | `1.30.0` | retained | **current** | 1 |
+| `damageprofiler` | `1.1` | retained | **current** | 1 |
+| `diamond` | `2.1.10` | retained | **current** | 1 |
 | `dustmasker` | `2.15.0` | retained | **current** | 1 |
-| `eagle` | `2.4.1` | retained | **current** | 2 |
+| `eagle` | `2.4.1` | retained | **current** | 1 |
 | `eigensoft` | `8.0.0` | retained | **current** | 1 |
 | `fastp` | `0.23.4` | retained | **current** | 1 |
-| `fastq_scan` | `1.0.1` | retained | **current** | 2 |
+| `fastq_scan` | `1.0.1` | retained | **current** | 1 |
 | `fastq_screen` | `0.15.3` | retained | **current** | 0 |
 | `fastqc` | `0.12.1` | retained | **current** | 1 |
 | `fastqvalidator` | `0.1.1` | retained | **current** | 1 |
 | `fastuniq` | `1.1` | unsupported | **unsupported** | 0 |
-| `fastx_clipper` | `0.0.14` | retained | **current** | 3 |
-| `flash2` | `2.2.00` | retained | **current** | 2 |
-| `fqtools` | `2.3` | retained | **current** | 6 |
+| `fastx_clipper` | `0.0.14` | retained | **current** | 1 |
+| `flash2` | `2.2.00` | retained | **current** | 1 |
+| `fqtools` | `2.3` | retained | **current** | 1 |
 | `gatk` | `4.6.2.0` | retained | **current** | 0 |
-| `germline` | `1.5.3` | retained | **current** | 3 |
+| `germline` | `1.5.3` | retained | **current** | 1 |
 | `glimpse` | `1.1.1` | retained | **current** | 0 |
-| `ibdhap` | `3.4` | retained | **current** | 2 |
-| `ibdne` | `23Apr20.ae9` | retained | **current** | 4 |
-| `ibdseq` | `r1206` | retained | **current** | 2 |
+| `ibdhap` | `3.4` | retained | **current** | 1 |
+| `ibdne` | `23Apr20.ae9` | retained | **current** | 1 |
+| `ibdseq` | `r1206` | retained | **current** | 1 |
 | `impute5` | `1.2.0` | unsupported | **unsupported** | 0 |
 | `kaiju` | `1.10.0` | retained | **current** | 0 |
 | `king` | `2.3.0` | retained | **current** | 0 |
@@ -70,25 +71,25 @@ qualification remain independent requirements.
 | `krakenuniq` | `1.0.4` | retained | **current** | 0 |
 | `leehom` | `1.2.18` | retained | **current** | 1 |
 | `lighter` | `1.1.2` | retained | **current** | 0 |
-| `mapdamage2` | `2.2.2` | retained | **current** | 4 |
+| `mapdamage2` | `2.2.2` | retained | **current** | 1 |
 | `metaphlan` | `4.1.1` | retained | **current** | 0 |
 | `minimac4` | `4.1.6` | retained | **current** | 0 |
 | `mosdepth` | `0.3.11` | retained | **current** | 1 |
-| `multiqc` | `1.24` | retained | **current** | 0 |
+| `multiqc` | `1.24` | retained | **current** | 1 |
 | `musket` | `1.1` | retained | **current** | 1 |
-| `ngsbriggs` | `0.01` | retained | **current** | 2 |
-| `pear` | `0.9.6` | retained | **current** | 2 |
-| `picard` | `3.3.0` | retained | **current** | 0 |
+| `ngsbriggs` | `0.01` | retained | **current** | 1 |
+| `pear` | `0.9.6` | retained | **current** | 1 |
+| `picard` | `3.3.0` | retained | **current** | 1 |
 | `plink` | `1.90b7.2` | retained | **current** | 1 |
-| `plink2` | `2.00a6` | retained | **current** | 2 |
-| `pmdtools` | `0.60` | retained | **current** | 0 |
-| `preseq` | `3.2.0` | retained | **current** | 0 |
+| `plink2` | `2.00a6` | retained | **current** | 1 |
+| `pmdtools` | `0.60` | retained | **current** | 1 |
+| `preseq` | `3.2.0` | retained | **current** | 1 |
 | `prinseq` | `1.2.4` | retained | **current** | 1 |
-| `pydamage` | `1.0` | retained | **current** | 0 |
-| `qualimap` | `2.3` | retained | **current** | 3 |
+| `pydamage` | `1.0` | retained | **current** | 1 |
+| `qualimap` | `2.3` | retained | **current** | 1 |
 | `rcorrector` | `1.0.7` | retained | **current** | 0 |
-| `rxy` | `1.0.0` | retained | **current** | 0 |
-| `samtools` | `1.20` | retained | **current** | 14 |
+| `rxy` | `2.0.0` | retained | **current** | 0 |
+| `samtools` | `1.20` | retained | **current** | 1 |
 | `schmutzi` | `1.5.4` | retained | **current** | 0 |
 | `seqfu` | `1.26.0` | retained | **current** | 1 |
 | `seqkit` | `2.8.2` | retained | **current** | 1 |
@@ -100,7 +101,7 @@ qualification remain independent requirements.
 | `shapeit5` | `5.1.1` | retained | **current** | 1 |
 | `skewer` | `0.2.2` | retained | **current** | 1 |
 | `sortmerna` | `4.3.7` | retained | **current** | 0 |
-| `spades` | `4.2.0` | retained | **current** | 0 |
+| `spades` | `4.2.0` | retained | **current** | 1 |
 | `star` | `2.7.11b` | retained | **current** | 0 |
 | `trim_galore` | `0.6.10` | retained | **current** | 1 |
 | `trimmomatic` | `0.39` | retained | **current** | 1 |
@@ -112,5 +113,7 @@ qualification remain independent requirements.
 `missing` means no admitted SIF exists for the catalog version. `stale_recipe`
 means an admitted historical image exists but does not represent the active
 recipe. `unsupported` is an explicit catalog decision, not a failed build.
+A historical run dependency is preserved because a final governed run records
+its immutable path and digest; it is not current support or release evidence.
 
-The machine-readable companion is [image-inventory.json](image-inventory.json).
+The machine-readable companion is [image-inventory.json](https://github.com/bijux/bijux-genomics/blob/main/containers/reports/image-inventory.json).

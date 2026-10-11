@@ -11,7 +11,8 @@ that this workflow enforces.
 1. Edit [containers/versions/versions.toml](../versions/versions.toml).
 2. Generate lock: `cargo run -p bijux-dna-dev -- containers run generate-version-lock`.
 3. Validate lock schema and drift checks.
-4. Use lock for promotion and release gating.
+4. Use the lock as immutable version/provenance input to release gating;
+   qualification remains derived from the evidence report.
 
 ## Generated-Only Rule
 - [containers/versions/lock.json](../versions/lock.json) must be generated.

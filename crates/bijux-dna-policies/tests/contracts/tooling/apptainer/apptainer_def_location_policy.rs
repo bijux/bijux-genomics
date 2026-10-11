@@ -5,7 +5,7 @@ mod support;
 use walkdir::WalkDir;
 
 #[test]
-fn policy__contracts__apptainer_def_location_policy__defs_only_exist_in_bijux_or_non_bijux_dirs() {
+fn policy__contracts__apptainer_def_location_policy__defs_use_the_canonical_recipe_directory() {
     let root = support::workspace_root();
     let mut offenders = Vec::new();
 

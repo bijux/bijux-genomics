@@ -5,8 +5,8 @@ Purpose: explicit allowlist for container definition files that remain in-repo b
 Authority surfaces:
 - [../README.md](../README.md)
 - [../index.md](../index.md)
-- [TOOL_LIFECYCLE.md](TOOL_LIFECYCLE.md)
-- [PLANNED.md](PLANNED.md)
+- [EVIDENCE_QUALIFICATION.md](EVIDENCE_QUALIFICATION.md)
+- [../contracts/catalog.toml](../contracts/catalog.toml)
 - [../../configs/ci/registry/tool_registry.toml](../../configs/ci/registry/tool_registry.toml)
 
 Contract:

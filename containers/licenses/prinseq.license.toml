@@ -2,8 +2,8 @@
 # owner = bijux-genomics
 tool_id = "prinseq"
 container_kind = "bijux"
-spdx = "NOASSERTION"
-upstream_license_id = "NOASSERTION"
+spdx = "GPL-3.0"
+upstream_license_id = "GPL-3.0"
 upstream_url = "https://github.com/Adrian-Cantu/PRINSEQ-plus-plus"
 upstream_version = "1.2.4"
 upstream_checksum = "sha256:957fd45f035ef94e5b8a478f4de82e2f2099d490a69a5acd73a4bdad4dd0eea3"

@@ -7,12 +7,21 @@ becomes runtime-verified after its real version and help entry points pass; and
 it gains real-data evidence only through an archived Slurm run. None of those
 steps alone establishes scientific validity or release readiness.
 
-## What is verified now
+## Evidence available now
 
-- [Image inventory](reports/image-inventory.md): every supported Apptainer
-  recipe has a current, immutable amd64 SIF. Unsupported tools remain explicit.
-- [Runtime verification](reports/runtime-verification.md): version and help
-  commands are checked inside every admitted image with network access disabled.
+- [Current qualification](reports/qualification.md): the published inventory
+  and runtime campaign are stale relative to the present catalog, so they
+  contribute zero current build, runtime, or freshness passes.
+- [Canonical image storage](reports/image-storage.md): a previous governed
+  campaign moved 14 unreferenced obsolete SIFs into a checksummed, reversible
+  quarantine. Its counts describe that campaign commit, not the current tree.
+- [Complete-roster rebuild](reports/lunarc-image-rebuild.md): a previous frozen
+  commit rebuilt 87 then-retained Apptainer images. This remains historical
+  build evidence while the current 85-image roster is rebuilt and published.
+- [Image inventory](reports/image-inventory.md) and [runtime
+  verification](reports/runtime-verification.md): the previous campaign's
+  admitted-image and version/help records remain auditable, but cannot support
+  current qualification until regenerated from the current catalog.
 - [Real executions](reports/run-evidence.md): successful, failed, and incomplete
   LUNARC attempts are all retained; scientific assessment remains separate.
 - [Scientific reports](reports/README.md): reviewed cross-tool reports state the
@@ -43,4 +52,6 @@ record their identities and checksums.
   scratch, submission, collection, and recovery behavior.
 - [Evidence boundaries](docs/SCIENCE_EVIDENCE_BOUNDARY.md): what runtime, stage,
   science, benchmark, security, and release claims mean.
+- [Evidence qualification](docs/EVIDENCE_QUALIFICATION.md): how catalog support
+  and independently derived production evidence remain separate.
 - [Detailed documentation index](docs/index.md): policies and operator reference.

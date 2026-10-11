@@ -1,0 +1,84 @@
+schema_version: bijux.container.pipeline.v2
+run:
+  id: run-1134
+  campaign: public-ancient-horse-damage-estimation
+  corpus: ena-prjeb22390-err2112767
+  sample: ERR2112767
+  domain: bam
+  stage: bam.damage
+  tool: pydamage
+  operator: bijan
+  submitted_at_utc: '2026-08-03T05:55:38Z'
+repository:
+  path: /home/bijan/bijux/bijux-genomics-runs/cba3cd2cba2258845fca9471a660febd39490830
+  commit: cba3cd2cba2258845fca9471a660febd39490830
+  clean: true
+image:
+  path: /home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/pydamage-1.0-linux-amd64-482276fbaa17.sif
+  sha256: 482276fbaa177ec7bcf7249dcd82e52d02f8de6c284b4f83e8ab6c27d67ca8bd
+data:
+  inputs:
+    - id: err2112767_alignment
+      kind: data
+      path: /home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb22390-err2112767/ERR2112767.sorted.bam
+      mount_path: /input/ERR2112767.sorted.bam
+      sha256: 1d9ca843614c66209de4618ba69ecfae236731f9999a1daa48622f061127fe87
+    - id: err2112767_alignment_index
+      kind: data
+      path: /home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb22390-err2112767/ERR2112767.sorted.bam.bai
+      mount_path: /input/ERR2112767.sorted.bam.bai
+      sha256: ab5d07b513a4a3f421a9a82aff5fc5767d41a7333693b67c9258b40a337276a3
+commands:
+  version: [pydamage, --version]
+  help: [pydamage, --help]
+  real:
+    - bash
+    - -c
+    - >-
+      set -euo pipefail;
+      pydamage --outdir /result/pydamage analyze --group --process 2 /input/ERR2112767.sorted.bam;
+      python3 -c 'import csv,json; rows=list(csv.DictReader(open("/result/pydamage/pydamage_results.csv", encoding="utf-8"))); aligned=sum(int(float(row["nb_reads_aligned"])) for row in rows); json.dump({"analyzed_references": len(rows), "aligned_reads": aligned}, open("/result/metrics.json", "w", encoding="utf-8"))'
+  negative: [pydamage, analyze, /input/not-present.bam]
+outputs:
+  result_root: /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/run-1134-pydamage
+  mount_path: /result
+  required_files:
+    - pydamage/pydamage_results.csv
+    - metrics.json
+  collection_rule: required_files_and_metrics
+resources:
+  account: lu2026-2-20
+  partition: lu48
+  cpus: 2
+  memory_mb: 8192
+  walltime: '00:30:00'
+  scratch_mb: 4096
+  retry:
+    max_attempts: 1
+    backoff_seconds: 0
+    retryable_exit_codes: []
+execution:
+  locale: C
+  timezone: UTC
+  runtime_network: false
+  threads: 2
+  random_seed: null
+  cache_policy: cold
+  determinism: deterministic
+dependencies: []
+acceptance:
+  version_regex: '^pydamage, version 1[.]0$'
+  negative_exit_nonzero: true
+  metrics:
+    - id: analyzed_references
+      path: metrics.json
+      json_pointer: /analyzed_references
+      operator: ge
+      expected: 1
+      unit: references
+    - id: aligned_reads
+      path: metrics.json
+      json_pointer: /aligned_reads
+      operator: ge
+      expected: 1
+      unit: reads

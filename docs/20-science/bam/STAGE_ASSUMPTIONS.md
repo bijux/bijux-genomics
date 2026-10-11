@@ -33,7 +33,11 @@ instead of merely syntactically valid.
 - `bam.overlap_correction`: overlap clipping is only interpretable when template pairing metadata remains consistent before and after correction.
 - `bam.damage`: deamination/misincorporation signatures are interpretable for authenticity context.
 - `bam.contamination`: contamination-model inputs, references, and mixture assumptions must be appropriate for the cohort.
-- `bam.sex`: sex inference assumptions require sufficient chrX/chrY informative coverage.
+- `bam.sex`: R_y interpretation requires both declared sex chromosomes in the
+  alignment reference, sufficient informative coverage, and thresholds
+  validated for the organism and reference build. The published Skoglund et
+  al. thresholds are a human profile; non-human data must use an independently
+  justified custom profile or remain an unclassified ratio observation.
 - `bam.bias_mitigation`: mitigation reports are only interpretable when the preserved damage evidence still matches the declared bias-remediation policy.
 - `bam.recalibration`: recalibration outputs are only comparable when known-sites identity and skip-policy rationale remain explicit.
 - `bam.haplogroups`: haplogroup inference requires a compatible Y-panel reference, adequate coverage, and contamination context.

@@ -201,17 +201,35 @@ def validate_governance(config: dict[str, Any]) -> dict[str, Any]:
         )
 
     paths = require_mapping(config, "paths")
-    require_keys(
-        paths,
-        {"study_root", "active_repository", "frozen_repositories"},
-        "governance paths",
-    )
+    required_paths = {"study_root", "active_repository", "frozen_repositories"}
+    allowed_paths = required_paths | {"containers_root", "data_root", "results_root"}
+    missing_paths = required_paths.difference(paths)
+    unknown_paths = set(paths).difference(allowed_paths)
+    if missing_paths:
+        raise ContractError(
+            f"governance paths is missing required fields: {sorted(missing_paths)}"
+        )
+    if unknown_paths:
+        raise ContractError(
+            f"governance paths contains unknown fields: {sorted(unknown_paths)}"
+        )
     resolved_paths = {}
-    for key in ("study_root", "active_repository", "frozen_repositories"):
+    for key in required_paths:
         declared = Path(require_text(paths, key))
         if not declared.is_absolute():
             raise ContractError(f"paths.{key} must be absolute")
         resolved_paths[key] = declared.resolve()
+    derived_roots = {
+        "containers_root": resolved_paths["study_root"] / "containers",
+        "data_root": resolved_paths["study_root"] / "data",
+        "results_root": resolved_paths["study_root"] / "results",
+    }
+    for key, default in derived_roots.items():
+        declared = Path(str(paths.get(key, default)))
+        if not declared.is_absolute():
+            raise ContractError(f"paths.{key} must be absolute")
+        resolved_paths[key] = declared.resolve()
+        require_under(resolved_paths[key], resolved_paths["study_root"], f"paths.{key}")
     if resolved_paths["active_repository"] == resolved_paths["frozen_repositories"]:
         raise ContractError("active and frozen repository roots must differ")
     if not resolved_paths["study_root"].is_dir():
@@ -230,15 +248,45 @@ def validate_governance(config: dict[str, Any]) -> dict[str, Any]:
         raise ContractError(f"unsupported Apptainer architecture: {architecture}")
 
     slurm = require_mapping(config, "slurm")
-    require_keys(
-        slurm,
-        {"account", "partitions", "scratch_root"},
-        "governance Slurm policy",
-    )
+    required_slurm_fields = {"account", "partitions"}
+    allowed_slurm_fields = {
+        *required_slurm_fields,
+        "scratch_environment",
+        "scratch_root",
+    }
+    missing_slurm_fields = required_slurm_fields.difference(slurm)
+    unknown_slurm_fields = set(slurm).difference(allowed_slurm_fields)
+    if missing_slurm_fields:
+        raise ContractError(
+            "governance Slurm policy is missing required fields: "
+            f"{sorted(missing_slurm_fields)}"
+        )
+    if unknown_slurm_fields:
+        raise ContractError(
+            "governance Slurm policy contains unknown fields: "
+            f"{sorted(unknown_slurm_fields)}"
+        )
     account = require_text(slurm, "account")
-    scratch_root = Path(require_text(slurm, "scratch_root"))
-    if not scratch_root.is_absolute() or not scratch_root.is_dir():
-        raise ContractError("slurm.scratch_root must be an existing absolute directory")
+    scratch_fields = {"scratch_environment", "scratch_root"}.intersection(slurm)
+    if len(scratch_fields) != 1:
+        raise ContractError(
+            "governance Slurm policy must declare exactly one of "
+            "scratch_environment or scratch_root"
+        )
+    scratch_environment: str | None = None
+    scratch_root: Path | None = None
+    if "scratch_environment" in scratch_fields:
+        scratch_environment = require_text(slurm, "scratch_environment")
+        if re.fullmatch(r"[A-Z][A-Z0-9_]*", scratch_environment) is None:
+            raise ContractError(
+                "slurm.scratch_environment must be an uppercase environment name"
+            )
+    else:
+        scratch_root = Path(require_text(slurm, "scratch_root"))
+        if not scratch_root.is_absolute() or not scratch_root.is_dir():
+            raise ContractError(
+                "slurm.scratch_root must be an existing absolute directory"
+            )
     partitions = slurm.get("partitions")
     if (
         not isinstance(partitions, list)
@@ -254,12 +302,16 @@ def validate_governance(config: dict[str, Any]) -> dict[str, Any]:
         "site_id": site["id"],
         "hostname": hostname,
         "study_root": resolved_paths["study_root"],
+        "containers_root": resolved_paths["containers_root"],
+        "data_root": resolved_paths["data_root"],
+        "results_root": resolved_paths["results_root"],
         "active_repository": resolved_paths["active_repository"],
         "frozen_repositories": resolved_paths["frozen_repositories"],
         "apptainer_architecture": architecture,
         "slurm_account": account,
         "slurm_partitions": partitions,
-        "slurm_scratch_root": scratch_root.resolve(),
+        "slurm_scratch_environment": scratch_environment,
+        "slurm_scratch_root": scratch_root.resolve() if scratch_root else None,
     }
 
 
@@ -414,10 +466,10 @@ def validate_credentials(config: dict[str, Any]) -> None:
 def validate_completed_dependencies(
     dependencies: list[dict[str, Any]],
     inputs: list[dict[str, Any]],
-    study_root: Path,
+    results_root: Path,
 ) -> list[dict[str, Any]]:
     """Bind upstream results to passed immutable evidence before submission."""
-    result_root = (study_root / "results" / "container-validation").resolve()
+    result_root = (results_root / "container-validation").resolve()
     records = []
     for dependency in dependencies:
         run_id = dependency["run_id"]
@@ -579,7 +631,6 @@ def validate_pipeline(
         raise ContractError("repository.commit must be a full Git commit")
     active_repository: Path = governance["active_repository"]
     frozen_repositories: Path = governance["frozen_repositories"]
-    study_root: Path = governance["study_root"]
     is_active_checkout = repository_path == active_repository
     is_frozen_checkout = (
         repository_path.parent == frozen_repositories
@@ -599,7 +650,7 @@ def validate_pipeline(
     image = require_mapping(config, "image")
     require_keys(image, {"path", "sha256"}, "image")
     image_path = resolved(require_text(image, "path"))
-    require_under(image_path, study_root / "containers" / "apptainer", "image.path")
+    require_under(image_path, governance["containers_root"] / "apptainer", "image.path")
     if not image_path.is_file() or image_path.suffix != ".sif":
         raise ContractError(
             f"image.path must be an existing immutable SIF: {image_path}"
@@ -649,9 +700,9 @@ def validate_pipeline(
             raise ContractError(f"data input {index} path must be absolute")
         input_path = resolved(str(declared_input_path))
         input_root = (
-            study_root / "results"
+            governance["results_root"]
             if input_kind == "upstream_result"
-            else study_root / "data"
+            else governance["data_root"]
         )
         require_under(input_path, input_root, f"data.inputs[{index}].path")
         if not input_path.is_file():
@@ -693,7 +744,7 @@ def validate_pipeline(
         dependencies = validate_completed_dependencies(
             dependencies,
             inputs,
-            study_root,
+            governance["results_root"],
         )
 
     commands = require_mapping(config, "commands")
@@ -712,7 +763,7 @@ def validate_pipeline(
     result_root = resolved(str(declared_result_root))
     require_under(
         result_root,
-        study_root / "results" / "container-validation",
+        governance["results_root"] / "container-validation",
         "outputs.result_root",
     )
     expected_result_name = f"{run_id}-{run['tool']}" if is_current else run_id
@@ -1050,6 +1101,22 @@ def tool_output_root(contract: dict[str, Any]) -> Path:
     return result_root
 
 
+def governed_scratch_root(governance: dict[str, Any]) -> Path:
+    environment = governance["slurm_scratch_environment"]
+    if environment is not None:
+        value = os.environ.get(environment)
+        if not value:
+            raise ContractError(
+                f"{environment} is absent from the Slurm execution environment"
+            )
+        root = Path(value)
+    else:
+        root = governance["slurm_scratch_root"]
+    if not isinstance(root, Path) or not root.is_absolute() or not root.is_dir():
+        raise ContractError("governed Slurm scratch must be an existing absolute path")
+    return root.resolve()
+
+
 def execute(governance_path: Path, pipeline_path: Path, credential_path: Path) -> int:
     contract = validate_contracts(governance_path, pipeline_path, credential_path)
     started_at = dt.datetime.now(dt.timezone.utc)
@@ -1068,9 +1135,10 @@ def execute(governance_path: Path, pipeline_path: Path, credential_path: Path) -
     if not scratch_value:
         raise ContractError("TMPDIR is absent from the Slurm execution environment")
     scratch_path = Path(scratch_value).resolve()
+    scratch_root = governed_scratch_root(contract["governance"])
     require_under(
         scratch_path,
-        contract["governance"]["slurm_scratch_root"],
+        scratch_root,
         "Slurm scratch",
     )
     if not scratch_path.is_dir():
@@ -1188,8 +1256,13 @@ def render_slurm(
     pipeline_path: Path,
     credential_path: Path,
     output_path: Path,
+    validated_contract: dict[str, Any] | None = None,
 ) -> None:
-    contract = validate_contracts(governance_path, pipeline_path, credential_path)
+    contract = validated_contract or validate_contracts(
+        governance_path,
+        pipeline_path,
+        credential_path,
+    )
     resources = contract["resources"]
     run = contract["pipeline"]["run"]
     output_path.parent.mkdir(parents=True, exist_ok=True)
@@ -1201,15 +1274,32 @@ def render_slurm(
     scratch_preflight = ""
     if contract["pipeline_schema"] == PIPELINE_SCHEMA_V2:
         required_scratch_kib = resources["scratch_mb"] * 1024
-        scratch_root = contract["governance"]["slurm_scratch_root"]
-        scratch_root_shell = shlex.quote(str(scratch_root))
+        scratch_environment = contract["governance"]["slurm_scratch_environment"]
+        if scratch_environment is None:
+            scratch_root = contract["governance"]["slurm_scratch_root"]
+            scratch_setup = (
+                "readonly GOVERNED_SCRATCH_ROOT=" + shlex.quote(str(scratch_root))
+            )
+        else:
+            scratch_setup = (
+                f'if [[ -z "${{{scratch_environment}:-}}" ]]; then\n'
+                f'  echo "{scratch_environment} is unavailable on the allocated node" >&2\n'
+                "  exit 72\n"
+                "fi\n"
+                f'readonly GOVERNED_SCRATCH_ROOT="${{{scratch_environment}}}"'
+            )
         scratch_preflight = f"""if [[ ! "${{SLURM_JOB_ID:-}}" =~ ^[0-9]+$ ]]; then
   echo "Slurm job identity is unavailable" >&2
   exit 72
 fi
-readonly JOB_SCRATCH=$(mktemp -d {scratch_root_shell}/bijux-genomics-${{SLURM_JOB_ID}}-XXXXXX)
+{scratch_setup}
+if [[ "$GOVERNED_SCRATCH_ROOT" != /* || ! -d "$GOVERNED_SCRATCH_ROOT" ]]; then
+  echo "governed Slurm scratch is not an existing absolute directory" >&2
+  exit 72
+fi
+readonly JOB_SCRATCH=$(mktemp -d "${{GOVERNED_SCRATCH_ROOT%/}}/bijux-genomics-${{SLURM_JOB_ID}}-XXXXXX")
 cleanup_scratch() {{
-  if [[ "$JOB_SCRATCH" != {scratch_root_shell}/bijux-genomics-${{SLURM_JOB_ID}}-* ]]; then
+  if [[ "$JOB_SCRATCH" != "${{GOVERNED_SCRATCH_ROOT%/}}"/bijux-genomics-"${{SLURM_JOB_ID}}"-* ]]; then
     echo "refusing to remove unexpected scratch path: $JOB_SCRATCH" >&2
     return 73
   fi
@@ -1264,8 +1354,7 @@ def operational_submission_root(
     if contract["pipeline_schema"] == PIPELINE_SCHEMA_V1:
         return manifest_path
     return (
-        contract["governance"]["study_root"]
-        / "containers"
+        contract["governance"]["containers_root"]
         / "evidence"
         / "submissions"
         / f"{contract['run_id']}-{contract['pipeline']['run']['tool']}"
@@ -1275,11 +1364,11 @@ def operational_submission_root(
 def require_current_manifest_path(
     manifest_path: Path,
     active_repository: Path,
-    study_root: Path,
+    containers_root: Path,
 ) -> None:
     allowed_roots = (
         active_repository / "containers" / "runs",
-        study_root / "containers" / "evidence" / "specifications",
+        containers_root / "evidence" / "specifications",
     )
     for root in allowed_roots:
         try:
@@ -1333,7 +1422,7 @@ def submit_manifest(
     if contract["pipeline_schema"] == PIPELINE_SCHEMA_V1:
         require_under(
             manifest_path,
-            governance["study_root"] / "containers" / "manifests",
+            governance["containers_root"] / "manifests",
             "historical manifest",
         )
         expected_name = contract["run_id"]
@@ -1341,7 +1430,7 @@ def submit_manifest(
         require_current_manifest_path(
             manifest_path,
             governance["active_repository"],
-            governance["study_root"],
+            governance["containers_root"],
         )
         expected_name = f"{contract['run_id']}-{contract['pipeline']['run']['tool']}"
     if manifest_path.name != expected_name:
@@ -1366,7 +1455,13 @@ def submit_manifest(
     job_id_path = submission_root / "slurm-job-id.txt"
     if submit_path.exists() or job_id_path.exists():
         raise ContractError("refusing to overwrite an existing submission record")
-    render_slurm(governance_path, pipeline_path, credential_path, submit_path)
+    render_slurm(
+        governance_path,
+        pipeline_path,
+        credential_path,
+        submit_path,
+        validated_contract=contract,
+    )
     syntax = subprocess.run(
         ["bash", "-n", str(submit_path)],
         check=False,
@@ -1578,6 +1673,114 @@ def collect_accounting(
     return accounting_path
 
 
+def archive_file_records(root: Path, scope: str) -> list[dict[str, Any]]:
+    records = []
+    for path in sorted(root.rglob("*")):
+        if path.is_symlink():
+            raise ContractError(f"failure evidence must not contain symlinks: {path}")
+        if not path.is_file():
+            continue
+        records.append(
+            {
+                "path": f"{scope}/{path.relative_to(root).as_posix()}",
+                "size_bytes": path.stat().st_size,
+                "sha256": sha256_file(path),
+            }
+        )
+    return records
+
+
+def archive_failed_run(
+    manifest_path: Path,
+    governance_override: Path | None = None,
+) -> Path:
+    manifest_path = manifest_path.resolve()
+    governance_path, pipeline_path, credential_path = manifest_contract_paths(
+        manifest_path, governance_override
+    )
+    contract = validate_contracts(governance_path, pipeline_path, credential_path)
+    submission_root = operational_submission_root(manifest_path, contract)
+    result_root: Path = contract["result_root"]
+    if not submission_root.is_dir() or not result_root.is_dir():
+        raise ContractError(
+            "failure archival requires both submission and result evidence"
+        )
+    job_id_path = submission_root / "slurm-job-id.txt"
+    try:
+        job_id = job_id_path.read_text(encoding="utf-8").strip()
+    except OSError as exc:
+        raise ContractError(f"cannot read failed Slurm job identity: {exc}") from exc
+    if not job_id.isdigit():
+        raise ContractError("failed Slurm job identity must be numeric")
+    evidence_path = result_root / "evidence.json"
+    accounting_path = result_root / "slurm-accounting.json"
+    evidence = load_json(evidence_path)
+    accounting = load_json(accounting_path)
+    if (
+        evidence.get("schema_version") not in {EVIDENCE_SCHEMA_V1, EVIDENCE_SCHEMA_V2}
+        or evidence.get("run_id") != contract["run_id"]
+        or evidence.get("status") != "failed"
+    ):
+        raise ContractError("only terminal failed run evidence can be archived")
+    if (
+        accounting.get("schema_version") != "bijux.slurm.accounting.v1"
+        or accounting.get("run_id") != contract["run_id"]
+        or accounting.get("slurm_job_id") != job_id
+    ):
+        raise ContractError("Slurm accounting does not identify the failed run")
+    tool_id = str(contract["pipeline"]["run"]["tool"])
+    bundle_name = f"{contract['run_id']}-{tool_id}-slurm-{job_id}"
+    failure_root = (
+        contract["governance"]["containers_root"] / "evidence" / "failures"
+    )
+    failure_root.mkdir(parents=True, mode=0o750, exist_ok=True)
+    target = failure_root / bundle_name
+    staging = failure_root / f".{bundle_name}.partial"
+    if target.exists() or staging.exists():
+        raise ContractError(f"refusing to replace failure evidence: {target}")
+    if len({submission_root.stat().st_dev, result_root.stat().st_dev, failure_root.stat().st_dev}) != 1:
+        raise ContractError("failure evidence must remain on one filesystem")
+    files = [
+        *archive_file_records(submission_root, "submission"),
+        *archive_file_records(result_root, "result"),
+    ]
+    staging.mkdir(mode=0o750)
+    try:
+        submission_root.rename(staging / "submission")
+        result_root.rename(staging / "result")
+        write_json(
+            staging / "archive.json",
+            {
+                "schema_version": "bijux.container.failed_run_archive.v1",
+                "run_id": contract["run_id"],
+                "tool": tool_id,
+                "slurm_job_id": job_id,
+                "archived_at_utc": dt.datetime.now(dt.timezone.utc).isoformat(),
+                "source_paths": {
+                    "submission": (
+                        f"study://containers/evidence/submissions/"
+                        f"{contract['run_id']}-{tool_id}"
+                    ),
+                    "result": (
+                        f"study://results/container-validation/"
+                        f"{contract['run_id']}-{tool_id}"
+                    ),
+                },
+                "evidence_sha256": sha256_file(staging / "result/evidence.json"),
+                "accounting_sha256": sha256_file(
+                    staging / "result/slurm-accounting.json"
+                ),
+                "files": files,
+            },
+        )
+        staging.rename(target)
+    except OSError as exc:
+        raise ContractError(
+            f"failure archival stopped; inspect the recoverable staging path {staging}: {exc}"
+        ) from exc
+    return target
+
+
 def parser() -> argparse.ArgumentParser:
     root = argparse.ArgumentParser(description=__doc__)
     commands = root.add_subparsers(dest="command", required=True)
@@ -1597,6 +1800,9 @@ def parser() -> argparse.ArgumentParser:
     collect = commands.add_parser("collect-accounting")
     collect.add_argument("--manifest", type=Path, required=True)
     collect.add_argument("--governance", type=Path)
+    archive = commands.add_parser("archive-failure")
+    archive.add_argument("--manifest", type=Path, required=True)
+    archive.add_argument("--governance", type=Path)
     submit = commands.add_parser("submit")
     submit.add_argument("--manifest", type=Path, required=True)
     submit.add_argument("--governance", type=Path)
@@ -1617,6 +1823,9 @@ def main() -> int:
             return 0
         if args.command == "collect-accounting":
             print(collect_accounting(args.manifest, args.governance))
+            return 0
+        if args.command == "archive-failure":
+            print(archive_failed_run(args.manifest, args.governance))
             return 0
         if args.command == "submit":
             print(submit_manifest(args.manifest, args.governance))

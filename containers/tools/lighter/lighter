@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+case "${1:-}" in
+  --version)
+    exec /usr/local/libexec/lighter-bin -v
+    ;;
+  --help)
+    shift
+    if /usr/local/libexec/lighter-bin -h "$@"; then
+      exit 0
+    else
+      status=$?
+    fi
+    if [[ "$status" -eq 1 ]]; then
+      exit 0
+    fi
+    exit "$status"
+    ;;
+  "")
+    if /usr/local/libexec/lighter-bin -h; then
+      exit 0
+    else
+      status=$?
+    fi
+    if [[ "$status" -eq 1 ]]; then
+      exit 0
+    fi
+    exit "$status"
+    ;;
+  *)
+    exec /usr/local/libexec/lighter-bin "$@"
+    ;;
+esac

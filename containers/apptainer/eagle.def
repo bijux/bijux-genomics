@@ -20,6 +20,7 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
     org.opencontainers.image.created governed-by-build-evidence
     org.opencontainers.image.licenses GPL-3.0-or-later
     org.opencontainers.image.version 2.4.1
+    io.bijux.tool.version 2.4.1
     org.opencontainers.image.tool eagle
 
 %environment
@@ -28,6 +29,7 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
     export TZ=UTC
 
 %files
+    containers/contracts/configure-apt-snapshot /usr/local/sbin/bijux-configure-apt-snapshot
     containers/tools/eagle/eagle /usr/local/bin/eagle
     containers/tools/eagle/portable-aligned-memory.patch /opt/portable-aligned-memory.patch
 
@@ -35,9 +37,8 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
     set -eux
     umask 022
     export DEBIAN_FRONTEND=noninteractive
-    sed -i 's#http://archive.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubuntu/20260802T000000Z/#g; s#http://security.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubuntu/20260802T000000Z/#g' /etc/apt/sources.list.d/ubuntu.sources
-    apt-get -o Acquire::https::Verify-Peer=false -o Acquire::Check-Valid-Until=false update
-    apt-get -o Acquire::https::Verify-Peer=false install -y --no-install-recommends ca-certificates
+    /bin/sh /usr/local/sbin/bijux-configure-apt-snapshot
+    apt-get install -y --no-install-recommends ca-certificates
     apt-get -o Acquire::Check-Valid-Until=false update
     apt-get install -y --no-install-recommends build-essential curl libboost-iostreams-dev libboost-program-options-dev libbz2-dev libcurl4-gnutls-dev libhts-dev liblzma-dev libopenblas-dev patch zlib1g-dev
     curl --fail --location --silent --show-error --output /opt/eagle.tar.gz https://github.com/poruloh/Eagle/archive/dec140eefc0eda3b7f02233a3c02361eaeb8227c.tar.gz

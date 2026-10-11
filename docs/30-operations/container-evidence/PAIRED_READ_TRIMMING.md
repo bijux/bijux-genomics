@@ -1,0 +1,1 @@
+--8<-- "containers/reports/lunarc-paired-read-trimming.md"

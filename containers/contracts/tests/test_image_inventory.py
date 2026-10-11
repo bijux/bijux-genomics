@@ -91,8 +91,7 @@ class ImageInventoryTests(unittest.TestCase):
             previous_bytes = b"previous-immutable-sif"
             previous_digest = __import__("hashlib").sha256(previous_bytes).hexdigest()
             previous = (
-                image_root
-                / f"samtools-1.19-linux-amd64-{previous_digest[:12]}.sif"
+                image_root / f"samtools-1.19-linux-amd64-{previous_digest[:12]}.sif"
             )
             previous.write_bytes(previous_bytes)
             (evidence_root / "samtools.build.json").write_text(
@@ -124,6 +123,9 @@ class ImageInventoryTests(unittest.TestCase):
             )
 
         self.assertEqual(result["summary"]["states"], {"current": 1})
+        self.assertEqual(result["image_root"], str(image_root.resolve()))
+        self.assertEqual(result["evidence_root"], str(evidence_root.resolve()))
+        self.assertEqual(result["runs_root"], str(runs_root.resolve()))
         self.assertEqual(
             result["tools"][0]["candidates"][0]["disposition"], "canonical"
         )
@@ -173,6 +175,137 @@ class ImageInventoryTests(unittest.TestCase):
         self.assertIn("not a release certificate", report)
         self.assertIn("Scientific and security", report)
         self.assertIn("**missing**", report)
+
+    def test_publication_replaces_governed_roots_with_stable_schemes(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            study_root = root / "study"
+            repository = root / "repository"
+            image = study_root / "containers" / "apptainer" / "samtools.sif"
+            catalog = repository / "containers" / "contracts" / "catalog.toml"
+            image.parent.mkdir(parents=True)
+            catalog.parent.mkdir(parents=True)
+            source = root / "inventory.json"
+            source.write_text(
+                json.dumps(
+                    {
+                        "schema_version": inventory.INVENTORY_SCHEMA,
+                        "image_root": str(image.parent),
+                        "catalog": str(catalog),
+                        "summary": {"tool_count": 1},
+                        "tools": [{"tool": "samtools", "selected_image": str(image)}],
+                    }
+                ),
+                encoding="utf-8",
+            )
+            source_sha256 = inventory.sha256_file(source)
+            output = root / "published.json"
+
+            result = inventory.publish_inventory(
+                source, study_root, repository, output
+            )
+
+        self.assertEqual(result["schema_version"], inventory.PUBLICATION_SCHEMA)
+        self.assertEqual(
+            result["image_root"], "study://containers/apptainer"
+        )
+        self.assertEqual(
+            result["catalog"], "repository://containers/contracts/catalog.toml"
+        )
+        self.assertEqual(
+            result["tools"][0]["selected_image"],
+            "study://containers/apptainer/samtools.sif",
+        )
+        self.assertEqual(
+            result["publication"]["raw_sha256"], source_sha256
+        )
+
+    def test_publication_rejects_absolute_paths_outside_governed_roots(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            source = root / "inventory.json"
+            source.write_text(
+                json.dumps(
+                    {
+                        "schema_version": inventory.INVENTORY_SCHEMA,
+                        "summary": {"tool_count": 0},
+                        "tools": [],
+                        "untrusted": "/unmanaged/evidence.json",
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+            with self.assertRaisesRegex(
+                inventory.ImageInventoryError, "outside governed roots"
+            ):
+                inventory.publish_inventory(
+                    source,
+                    root / "study",
+                    root / "repository",
+                    root / "published.json",
+                )
+
+    def test_referenced_unsupported_image_is_a_historical_dependency(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            repository, _, _ = self.make_repository(root)
+            catalog = repository / "containers" / "contracts" / "catalog.toml"
+            catalog.parent.mkdir()
+            catalog.write_text(
+                "[[tools]]\n"
+                'id = "fastuniq"\n'
+                'version = "1.1"\n'
+                'support_disposition = "unsupported"\n'
+                "apptainer_supported = false\n",
+                encoding="utf-8",
+            )
+            subprocess.run(["git", "-C", repository, "add", catalog], check=True)
+            subprocess.run(
+                [
+                    "git",
+                    "-C",
+                    repository,
+                    "-c",
+                    "user.name=Bijux Test",
+                    "-c",
+                    "user.email=test@bijux.io",
+                    "commit",
+                    "-qm",
+                    "add unsupported catalog entry",
+                ],
+                check=True,
+            )
+            images = root / "images"
+            evidence = root / "evidence"
+            runs = root / "runs" / "run-1023-fastuniq"
+            images.mkdir()
+            evidence.mkdir()
+            runs.mkdir(parents=True)
+            image_bytes = b"historical-fastuniq-image"
+            digest = __import__("hashlib").sha256(image_bytes).hexdigest()
+            image = images / f"fastuniq-1.1-linux-amd64-{digest[:12]}.sif"
+            image.write_bytes(image_bytes)
+            (runs / "evidence.lock.json").write_text(
+                json.dumps({"image": {"sha256": digest}}), encoding="utf-8"
+            )
+
+            result = inventory.audit_images(
+                catalog,
+                images,
+                evidence,
+                root / "runs",
+                repository,
+                root / "inventory.json",
+            )
+
+        self.assertEqual(result["summary"]["historical_dependency_count"], 1)
+        self.assertEqual(result["summary"]["unknown_image_count"], 0)
+        self.assertEqual(result["historical_images"][0]["catalog_tool"], "fastuniq")
+        self.assertEqual(
+            result["historical_images"][0]["disposition"],
+            "historical_run_dependency",
+        )
 
     def test_audit_refuses_to_replace_immutable_inventory(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

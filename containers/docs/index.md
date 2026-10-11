@@ -4,22 +4,24 @@
 <!-- source: cargo run -p bijux-dna-dev -- containers run generate-index -->
 
 This page routes operators and reviewers to the evidence that supports each
-container claim. Recipe presence and planner lifecycle labels are not proof that
+container claim. Recipe presence and registry maturity labels are not proof that
 an image builds, starts, processes real data, or produces scientifically useful
 output.
 
-## Current evidence
+## Published evidence and current qualification
 
-- Image inventory: **current 87, unsupported 2** ([details](../reports/image-inventory.md)).
-- Version/help runtime campaign: **passed**, **87 images passed** ([details](../reports/runtime-verification.md)).
-- Governed real executions: **123 attempts**, **88 passed**; scientific status is tracked independently ([details](../reports/run-evidence.md)).
+- Qualification evidence chain: **stale**; the current catalog recognizes **0 build**, **0 runtime**, and **0 freshness** passes ([details](../reports/qualification.md)).
+- Published image inventory records **current 87, unsupported 2**; these counts are historical when the qualification chain is stale ([details](../reports/image-inventory.md)).
+- Published canonical storage report: **passed**, **14 obsolete images quarantined reversibly** ([details](../reports/image-storage.md)).
+- Published isolated rebuild: **passed**, **87 retained images at that campaign commit** ([details](../reports/lunarc-image-rebuild.md)).
+- Published version/help campaign: **passed**, **87 images passed at that campaign commit** ([details](../reports/runtime-verification.md)).
+- Final run records: **70 tools**, **70 execution passes**; **46** retained tools pass their declared real-data stage and **0** have scientific acceptance ([runs](../reports/run-evidence.md), [qualification](../reports/qualification.md)).
 - Build, runtime, real execution, science, benchmark, security, and release are independent evidence dimensions.
 
 ## Strict TOC
 - Root contract: [containers/README.md](../README.md)
 - Entry point: [containers/index.md](../index.md)
-- Policy: [containers/docs/PROMOTION_POLICY.md](PROMOTION_POLICY.md)
-- Lifecycle: [containers/docs/TOOL_LIFECYCLE.md](TOOL_LIFECYCLE.md)
+- Evidence qualification: [containers/docs/EVIDENCE_QUALIFICATION.md](EVIDENCE_QUALIFICATION.md)
 - Version authority: [containers/docs/VERSION_AUTHORITY.md](VERSION_AUTHORITY.md)
 - Lock lifecycle: [containers/docs/LOCK_LIFECYCLE.md](LOCK_LIFECYCLE.md)
 - HPC frontend build authority: [containers/docs/FRONTEND_BUILD_AUTHORITY.md](FRONTEND_BUILD_AUTHORITY.md)
@@ -33,112 +35,116 @@ output.
 - GHCR packages view: `https://github.com/bijux?tab=packages&repo_name=bijux-genomics`
 - Licenses: [containers/licenses/README.md](../licenses/README.md)
 - SBOM + vulnerability hooks: `cargo run -p bijux-dna-dev -- containers run check-sbom-artifacts`, `cargo run -p bijux-dna-dev -- containers run check-vuln-hook`
-- Exceptions: [containers/docker/NONROOT_EXCEPTIONS.md](../docker/NONROOT_EXCEPTIONS.md), [containers/docker/ENTRYPOINT_EXCEPTIONS.md](../docker/ENTRYPOINT_EXCEPTIONS.md), [containers/docs/PLANNED.md](PLANNED.md)
+- Runtime exceptions: [containers/docker/NONROOT_EXCEPTIONS.md](../docker/NONROOT_EXCEPTIONS.md), [containers/docker/ENTRYPOINT_EXCEPTIONS.md](../docker/ENTRYPOINT_EXCEPTIONS.md)
 - Tool ID contract: [containers/docs/TOOL_IDS_CONTRACT.md](TOOL_IDS_CONTRACT.md)
 
 ## Authority
 - Canonical container identity, support disposition, ownership, runtime support, and evidence requirements: [container catalog](../contracts/catalog.toml).
 - Immutable admitted images: [image inventory](../reports/image-inventory.md).
-- Planner registry labels: [containers/TOOL_IDS.txt](../TOOL_IDS.txt); these labels describe planner compatibility, not production qualification.
+- Canonical image-root reconciliation: [reversible storage evidence](../reports/image-storage.md).
+- Rebuild reproducibility: [complete LUNARC image rebuild](../reports/lunarc-image-rebuild.md).
+- Support disposition manifest: [containers/TOOL_IDS.txt](../TOOL_IDS.txt); qualification is derived separately from immutable evidence.
 - Container version metadata: [versions.toml](../versions/versions.toml) and its generated [lock.json](../versions/lock.json).
 - GHCR Docker arm64 matrix: `cargo run -q -p bijux-dna-dev -- containers run generate-ghcr-publish-matrix -- artifacts/containers/ghcr/docker-arm64-publish-matrix.json`.
 - GHCR Apptainer matrix: `cargo run -q -p bijux-dna-dev -- containers run generate-ghcr-apptainer-publish-matrix -- artifacts/containers/ghcr/apptainer-publish-matrix.json`.
-- Non-bijux provenance: [containers/docs/UPSTREAM_SOURCES.md](UPSTREAM_SOURCES.md).
+- Upstream provenance: [containers/docs/UPSTREAM_SOURCES.md](UPSTREAM_SOURCES.md).
 
-## Planner compatibility surface
+## Container implementation surface
 
-This compatibility table is retained for workflow planning and build-matrix
-validation. Its `status` column is not a production or scientific claim; use the
-catalog and evidence reports above for those decisions.
+This table identifies retained and unsupported container implementations.
+Disposition is not production qualification; use the evidence reports above
+for scientific or release decisions.
+`apptainer_recipe_owner` describes recipe maintenance, not upstream tool
+authorship. Upstream source and license remain catalog-owned facts.
 
-| tool_id | status | apptainer_source | docker_source |
+| tool_id | disposition | apptainer_recipe_owner | docker_source |
 |---|---|---|---|
-| `adapterremoval` | `production` | `bijux` | `arm64` |
-| `addeam` | `production` | `bijux` | `arm64` |
-| `alientrimmer` | `production` | `bijux` | `arm64` |
-| `angsd` | `planned` | `bijux` | `arm64` |
-| `atropos` | `production` | `bijux` | `arm64` |
-| `authenticct` | `production` | `bijux` | `arm64` |
-| `bamtools` | `production` | `bijux` | `arm64` |
-| `bamutil` | `experimental` | `bijux` | `arm64` |
-| `bayeshammer` | `production` | `bijux` | `arm64` |
-| `bbduk` | `production` | `bijux` | `arm64` |
-| `bbmerge` | `production` | `bijux` | `arm64` |
-| `bcftools` | `production` | `non-bijux` | `arm64` |
-| `beagle` | `experimental` | `non-bijux` | `arm64` |
-| `bedtools` | `production` | `bijux` | `arm64` |
-| `bijux_dna` | `production` | `bijux` | `arm64` |
-| `bowtie2` | `production` | `bijux` | `arm64` |
-| `bowtie2_build` | `production` | `bijux` | `arm64` |
-| `bracken` | `experimental` | `bijux` | `arm64` |
-| `bwa` | `production` | `bijux` | `arm64` |
-| `centrifuge` | `production` | `bijux` | `arm64` |
-| `clumpify` | `production` | `bijux` | `arm64` |
-| `contammix` | `production` | `bijux` | `arm64` |
-| `cutadapt` | `production` | `bijux` | `arm64` |
-| `dada2` | `production` | `bijux` | `arm64` |
-| `damageprofiler` | `production` | `bijux` | `arm64` |
-| `diamond` | `experimental` | `bijux` | `arm64` |
-| `dustmasker` | `experimental` | `bijux` | `arm64` |
-| `eagle` | `experimental` | `non-bijux` | `arm64` |
-| `eigensoft` | `experimental` | `non-bijux` | `arm64` |
-| `fastp` | `production` | `bijux` | `arm64` |
-| `fastq_scan` | `production` | `bijux` | `arm64` |
-| `fastq_screen` | `experimental` | `bijux` | `arm64` |
-| `fastqc` | `production` | `bijux` | `arm64` |
-| `fastqvalidator` | `production` | `bijux` | `arm64` |
+| `adapterremoval` | `retained` | `bijux-genomics` | `arm64` |
+| `addeam` | `retained` | `bijux-genomics` | `arm64` |
+| `alientrimmer` | `retained` | `bijux-genomics` | `arm64` |
+| `angsd` | `unsupported` | `none` | `none` |
+| `atropos` | `retained` | `bijux-genomics` | `arm64` |
+| `authenticct` | `retained` | `bijux-genomics` | `arm64` |
+| `bamtools` | `retained` | `bijux-genomics` | `arm64` |
+| `bamutil` | `retained` | `bijux-genomics` | `arm64` |
+| `bayeshammer` | `retained` | `bijux-genomics` | `arm64` |
+| `bbduk` | `retained` | `bijux-genomics` | `arm64` |
+| `bbmerge` | `retained` | `bijux-genomics` | `arm64` |
+| `bcftools` | `retained` | `bijux-genomics` | `arm64` |
+| `beagle` | `retained` | `bijux-genomics` | `arm64` |
+| `bedtools` | `retained` | `bijux-genomics` | `arm64` |
+| `bijux_dna` | `retained` | `bijux-genomics` | `arm64` |
+| `bowtie2` | `retained` | `bijux-genomics` | `arm64` |
+| `bowtie2_build` | `retained` | `bijux-genomics` | `arm64` |
+| `bracken` | `retained` | `bijux-genomics` | `arm64` |
+| `bwa` | `retained` | `bijux-genomics` | `arm64` |
+| `centrifuge` | `retained` | `bijux-genomics` | `arm64` |
+| `clumpify` | `retained` | `bijux-genomics` | `arm64` |
+| `contammix` | `retained` | `bijux-genomics` | `arm64` |
+| `cutadapt` | `retained` | `bijux-genomics` | `arm64` |
+| `dada2` | `retained` | `bijux-genomics` | `arm64` |
+| `damageprofiler` | `retained` | `bijux-genomics` | `arm64` |
+| `diamond` | `retained` | `bijux-genomics` | `arm64` |
+| `dustmasker` | `retained` | `bijux-genomics` | `arm64` |
+| `eagle` | `retained` | `bijux-genomics` | `arm64` |
+| `eigensoft` | `retained` | `bijux-genomics` | `arm64` |
+| `fastp` | `retained` | `bijux-genomics` | `arm64` |
+| `fastq_scan` | `retained` | `bijux-genomics` | `arm64` |
+| `fastq_screen` | `retained` | `bijux-genomics` | `arm64` |
+| `fastqc` | `retained` | `bijux-genomics` | `arm64` |
+| `fastqvalidator` | `retained` | `bijux-genomics` | `arm64` |
 | `fastuniq` | `unsupported` | `none` | `none` |
-| `fastx_clipper` | `production` | `bijux` | `arm64` |
-| `flash2` | `production` | `bijux` | `arm64` |
-| `fqtools` | `production` | `bijux` | `arm64` |
-| `gatk` | `experimental` | `bijux` | `arm64` |
-| `germline` | `experimental` | `non-bijux` | `arm64` |
-| `glimpse` | `planned` | `non-bijux` | `arm64` |
-| `ibdhap` | `experimental` | `non-bijux` | `arm64` |
-| `ibdne` | `planned` | `non-bijux` | `arm64` |
-| `ibdseq` | `planned` | `bijux` | `arm64` |
+| `fastx_clipper` | `retained` | `bijux-genomics` | `arm64` |
+| `flash2` | `retained` | `bijux-genomics` | `arm64` |
+| `fqtools` | `retained` | `bijux-genomics` | `arm64` |
+| `gatk` | `retained` | `bijux-genomics` | `arm64` |
+| `germline` | `retained` | `bijux-genomics` | `arm64` |
+| `glimpse` | `retained` | `bijux-genomics` | `arm64` |
+| `ibdhap` | `retained` | `bijux-genomics` | `arm64` |
+| `ibdne` | `retained` | `bijux-genomics` | `arm64` |
+| `ibdseq` | `retained` | `bijux-genomics` | `arm64` |
 | `impute5` | `unsupported` | `none` | `none` |
-| `kaiju` | `production` | `bijux` | `arm64` |
-| `king` | `production` | `bijux` | `arm64` |
-| `kraken2` | `production` | `bijux` | `arm64` |
-| `krakenuniq` | `production` | `bijux` | `arm64` |
-| `leehom` | `production` | `bijux` | `arm64` |
-| `lighter` | `production` | `bijux` | `arm64` |
-| `mapdamage2` | `production` | `bijux` | `arm64` |
-| `metaphlan` | `experimental` | `bijux` | `arm64` |
-| `minimac4` | `planned` | `non-bijux` | `arm64` |
-| `mosdepth` | `production` | `bijux` | `none` |
-| `multiqc` | `production` | `bijux` | `arm64` |
-| `musket` | `production` | `bijux` | `arm64` |
-| `ngsbriggs` | `experimental` | `bijux` | `arm64` |
-| `pear` | `production` | `bijux` | `arm64` |
-| `picard` | `experimental` | `bijux` | `arm64` |
-| `plink` | `experimental` | `bijux` | `arm64` |
-| `plink2` | `experimental` | `bijux` | `arm64` |
-| `pmdtools` | `production` | `bijux` | `arm64` |
-| `preseq` | `experimental` | `bijux` | `arm64` |
-| `prinseq` | `production` | `bijux` | `arm64` |
-| `pydamage` | `production` | `bijux` | `arm64` |
-| `qualimap` | `experimental` | `bijux` | `arm64` |
-| `rcorrector` | `production` | `bijux` | `arm64` |
-| `rxy` | `production` | `bijux` | `arm64` |
-| `samtools` | `production` | `bijux` | `arm64` |
-| `schmutzi` | `production` | `bijux` | `arm64` |
-| `seqfu` | `production` | `bijux` | `arm64` |
-| `seqkit` | `production` | `bijux` | `arm64` |
-| `seqkit_stats` | `production` | `bijux` | `arm64` |
-| `seqprep` | `experimental` | `bijux` | `arm64` |
-| `seqpurge` | `experimental` | `bijux` | `arm64` |
-| `seqtk` | `production` | `bijux` | `arm64` |
-| `shapeit` | `planned` | `bijux` | `none` |
-| `shapeit5` | `production` | `non-bijux` | `none` |
-| `skewer` | `production` | `bijux` | `arm64` |
-| `sortmerna` | `production` | `bijux` | `arm64` |
-| `spades` | `experimental` | `bijux` | `arm64` |
-| `star` | `production` | `bijux` | `arm64` |
-| `trim_galore` | `production` | `bijux` | `arm64` |
-| `trimmomatic` | `production` | `bijux` | `arm64` |
-| `umi_tools` | `production` | `bijux` | `arm64` |
-| `verifybamid2` | `production` | `bijux` | `arm64` |
-| `vsearch` | `production` | `bijux` | `arm64` |
-| `yleaf` | `production` | `bijux` | `arm64` |
+| `kaiju` | `retained` | `bijux-genomics` | `arm64` |
+| `king` | `retained` | `bijux-genomics` | `arm64` |
+| `kraken2` | `retained` | `bijux-genomics` | `arm64` |
+| `krakenuniq` | `retained` | `bijux-genomics` | `arm64` |
+| `leehom` | `retained` | `bijux-genomics` | `arm64` |
+| `lighter` | `retained` | `bijux-genomics` | `arm64` |
+| `mapdamage2` | `retained` | `bijux-genomics` | `arm64` |
+| `metaphlan` | `retained` | `bijux-genomics` | `arm64` |
+| `minimac4` | `retained` | `bijux-genomics` | `arm64` |
+| `mosdepth` | `retained` | `bijux-genomics` | `none` |
+| `multiqc` | `retained` | `bijux-genomics` | `arm64` |
+| `musket` | `retained` | `bijux-genomics` | `arm64` |
+| `ngsbriggs` | `unsupported` | `none` | `none` |
+| `pear` | `retained` | `bijux-genomics` | `arm64` |
+| `picard` | `retained` | `bijux-genomics` | `arm64` |
+| `plink` | `retained` | `bijux-genomics` | `arm64` |
+| `plink2` | `retained` | `bijux-genomics` | `arm64` |
+| `pmdtools` | `retained` | `bijux-genomics` | `arm64` |
+| `preseq` | `retained` | `bijux-genomics` | `arm64` |
+| `prinseq` | `retained` | `bijux-genomics` | `arm64` |
+| `pydamage` | `retained` | `bijux-genomics` | `arm64` |
+| `qualimap` | `retained` | `bijux-genomics` | `arm64` |
+| `rcorrector` | `retained` | `bijux-genomics` | `arm64` |
+| `rxy` | `retained` | `bijux-genomics` | `arm64` |
+| `samtools` | `retained` | `bijux-genomics` | `arm64` |
+| `schmutzi` | `retained` | `bijux-genomics` | `arm64` |
+| `seqfu` | `retained` | `bijux-genomics` | `arm64` |
+| `seqkit` | `retained` | `bijux-genomics` | `arm64` |
+| `seqkit_stats` | `retained` | `bijux-genomics` | `arm64` |
+| `seqprep` | `retained` | `bijux-genomics` | `arm64` |
+| `seqpurge` | `retained` | `bijux-genomics` | `arm64` |
+| `seqtk` | `retained` | `bijux-genomics` | `arm64` |
+| `shapeit` | `retained` | `bijux-genomics` | `none` |
+| `shapeit5` | `retained` | `bijux-genomics` | `none` |
+| `skewer` | `retained` | `bijux-genomics` | `arm64` |
+| `sortmerna` | `retained` | `bijux-genomics` | `none` |
+| `spades` | `retained` | `bijux-genomics` | `arm64` |
+| `star` | `retained` | `bijux-genomics` | `arm64` |
+| `trim_galore` | `retained` | `bijux-genomics` | `arm64` |
+| `trimmomatic` | `retained` | `bijux-genomics` | `arm64` |
+| `umi_tools` | `retained` | `bijux-genomics` | `arm64` |
+| `verifybamid2` | `retained` | `bijux-genomics` | `arm64` |
+| `vsearch` | `retained` | `bijux-genomics` | `arm64` |
+| `yleaf` | `retained` | `bijux-genomics` | `arm64` |

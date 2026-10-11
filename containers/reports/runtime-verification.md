@@ -8,18 +8,18 @@ benchmark, security, or release qualification.
 
 ## Evidence boundary
 
-- Repository commit: `224ef1de713444b4646a60e30ce930833be73777`
+- Repository commit: `9f1fbb22d6a49a8fa40c755e15eb11db3c2d7c24`
 - Site: `lunarc` on `cosmos3.int.lunarc`
 - Overall status: **passed**
 - Tool results: **passed 87**, **failed 0**
-- Catalog SHA-256: `b97340aa9eba6892ec3e068aecf60be8c79661d13dc17a605f482498b015e580`
-- Image inventory SHA-256: `0018c0780e42f1318cb823ffc1ae283dc7c70fc6ab0f1ed8bd462b0bb361ea65`
+- Catalog SHA-256: `91c7ab8334edf43a730d721f8020377347b88cfe1cc1f3b6ff2114065bb26440`
+- Image inventory SHA-256: `4741130daad86a745745753adfe7652ebec3c0a54eb681325e4feb97578f2c1f`
 - Per-command timeout: **30 seconds**
 - Runtime network: **disabled**
 
 Stdout and stderr remain in the execution-site evidence tree. Their exact
 paths and SHA-256 digests are retained in the machine-readable companion
-[runtime-verification.json](runtime-verification.json).
+[runtime-verification.json](https://github.com/bijux/bijux-genomics/blob/main/containers/reports/runtime-verification.json).
 
 ## Tool results
 
@@ -91,7 +91,7 @@ paths and SHA-256 digests are retained in the machine-readable companion
 | `pydamage` | `1.0` | passed | passed | **passed** |
 | `qualimap` | `2.3` | passed | passed | **passed** |
 | `rcorrector` | `1.0.7` | passed | passed | **passed** |
-| `rxy` | `1.0.0` | passed | passed | **passed** |
+| `rxy` | `2.0.0` | passed | passed | **passed** |
 | `samtools` | `1.20` | passed | passed | **passed** |
 | `schmutzi` | `1.5.4` | passed | passed | **passed** |
 | `seqfu` | `1.26.0` | passed | passed | **passed** |

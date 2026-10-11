@@ -81,7 +81,7 @@ Must export deterministic runtime env:
 
 ## Floating Versions
 - Production tools must not use floating values (`latest`, `main`, `master`, `head`, `unknown`) for `org.opencontainers.image.version`.
-- Experimental/planned tools may use transitional values only when lock/provenance policy is still satisfied.
+- Registry maturity labels must not stand in for container support or qualification; use the catalog disposition and evidence report.
 
 ## Base Image Policy (Apptainer)
 - `From:` must be digest-pinned (`@sha256:`).
@@ -89,7 +89,7 @@ Must export deterministic runtime env:
 
 ## Download/Provenance Policy
 - Network downloads in `%post` require checksum verification or explicit lock-policy marker.
-- Non-bijux definitions must have provenance rows in `containers/docs/UPSTREAM_SOURCES.md`.
+- Every definition must resolve upstream source, license, and immutable identity through the canonical catalog.
 
 ## Runtime UID Safety
 - Definitions must avoid broad write permissions (`chmod 777` forbidden).

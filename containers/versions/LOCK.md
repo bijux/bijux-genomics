@@ -15,19 +15,22 @@ define the broader control surfaces this lock artifact must satisfy.
 - Lock generator: `cargo run -p bijux-dna-dev -- containers run generate-version-lock`.
 
 ## What `lock.json` Pins
-- `schema_version`: lock schema contract version (`bijux.container.version_lock.v3`).
+- `schema_version`: lock schema contract version (`bijux.container.version_lock.v4`).
 - `source`: canonical source path (`containers/versions/versions.toml`).
 - `source_sha256`: full-file hash of `versions.toml`.
 - `items[].tool`: tool ID.
 - `items[].version`: canonical declared version extracted from `versions.toml`.
-- `items[].status`: lifecycle status.
 - `items[].entry_sha256`: hash of canonicalized per-tool version entry.
 - `items[].frontend_resolved_sif_sha256`: authoritative SIF digest built on HPC frontend (`artifacts/containers/hpc/frontend-sif-digests.json`).
 - `items[].frontend_smoke_version_output_sha256`: hash of normalized frontend smoke `--version` output (`artifacts/containers/hpc/frontend-smoke/summary.json`).
 
 ## Pin Meaning
 - A pin is a reviewed version/provenance entry in `versions.toml`.
+- Support disposition belongs to the container catalog; qualification belongs
+  to the generated evidence report. Neither is duplicated in the version lock.
 - Floating references are forbidden (`latest`, branch names, empty version fields).
+- Commit pins must be hexadecimal Git identities; all-zero placeholders are
+  forbidden even when an archive checksum is also present.
 - Any edit to `versions.toml` must regenerate and commit `lock.json`.
 
 ## Update Workflow

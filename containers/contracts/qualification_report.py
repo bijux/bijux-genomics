@@ -4,11 +4,11 @@
 from __future__ import annotations
 
 import argparse
-from collections import Counter, defaultdict
 import hashlib
 import json
-from pathlib import Path
 import sys
+from collections import Counter, defaultdict
+from pathlib import Path
 from typing import Any
 
 try:
@@ -18,6 +18,8 @@ except ModuleNotFoundError:  # Python 3.9 on the governed LUNARC frontend
 
 
 REPORT_SCHEMA = "bijux.container.qualification_report.v1"
+INVENTORY_PUBLICATION_SCHEMA = "bijux.container.image_inventory_publication.v1"
+RUNTIME_PUBLICATION_SCHEMA = "bijux.container.runtime_verification_publication.v1"
 DIMENSIONS = (
     "catalog",
     "source",
@@ -77,6 +79,19 @@ def source_identity_is_resolved(tool: dict[str, Any]) -> bool:
     )
 
 
+def catalog_identity_is_resolved(tool: dict[str, Any]) -> bool:
+    """Return whether public catalog identity and licensing are release-auditable."""
+    license_id = str(tool.get("license", ""))
+    return (
+        bool(str(tool.get("id", "")))
+        and bool(str(tool.get("version", "")))
+        and str(tool.get("upstream", "")).startswith("https://")
+        and str(tool.get("documentation", "")).startswith("https://")
+        and bool(str(tool.get("real_test_stage", "")))
+        and license_id not in {"", "NOASSERTION"}
+    )
+
+
 def derive_report(
     catalog_path: Path,
     inventory_path: Path,
@@ -87,12 +102,44 @@ def derive_report(
     inventory = load_json(inventory_path)
     runtime = load_json(runtime_path)
     runs = load_json(runs_path)
+    if inventory.get("schema_version") != INVENTORY_PUBLICATION_SCHEMA:
+        raise QualificationError(
+            "qualification requires a published image inventory without operator paths"
+        )
+    if runtime.get("schema_version") != RUNTIME_PUBLICATION_SCHEMA:
+        raise QualificationError(
+            "qualification requires published runtime evidence without operator paths"
+        )
     inventory_tools = {
         row["tool"]: row for row in inventory.get("tools", []) if isinstance(row, dict)
     }
     runtime_tools = runtime.get("tools", {})
     if not isinstance(runtime_tools, dict):
         raise QualificationError("runtime evidence lacks a tool mapping")
+    catalog_sha256 = sha256_file(catalog_path)
+    inventory_publication = inventory.get("publication", {})
+    runtime_catalog = runtime.get("catalog", {})
+    runtime_inventory = runtime.get("inventory", {})
+    inventory_catalog_matches = inventory.get("catalog_sha256") == catalog_sha256
+    runtime_catalog_matches = (
+        isinstance(runtime_catalog, dict)
+        and runtime_catalog.get("sha256") == catalog_sha256
+    )
+    inventory_raw_sha256 = (
+        inventory_publication.get("raw_sha256")
+        if isinstance(inventory_publication, dict)
+        else None
+    )
+    runtime_inventory_matches = (
+        isinstance(runtime_inventory, dict)
+        and isinstance(inventory_raw_sha256, str)
+        and runtime_inventory.get("sha256") == inventory_raw_sha256
+    )
+    evidence_commit_agrees = (
+        isinstance(inventory.get("repository_commit"), str)
+        and bool(inventory.get("repository_commit"))
+        and inventory.get("repository_commit") == runtime.get("repository_commit")
+    )
     run_records: dict[str, list[dict[str, Any]]] = defaultdict(list)
     for record in runs.get("runs", []):
         if isinstance(record, dict) and isinstance(record.get("tool"), str):
@@ -104,6 +151,7 @@ def derive_report(
     for tool in catalog["tools"]:
         tool_id = str(tool["id"])
         disposition = str(tool["support_disposition"])
+        declared_stage = str(tool.get("real_test_stage", ""))
         if disposition != "retained":
             dimensions = {name: "not_applicable" for name in DIMENSIONS}
             qualification = "unsupported"
@@ -111,26 +159,62 @@ def derive_report(
         else:
             image = inventory_tools.get(tool_id, {})
             runtime_record = runtime_tools.get(tool_id, {})
+            image_identity_matches = (
+                image.get("version") == str(tool["version"])
+                and image.get("support_disposition") == disposition
+                and image.get("apptainer_supported") is True
+            )
+            runtime_identity_matches = (
+                runtime_record.get("version") == str(tool["version"])
+                and isinstance(image.get("selected_image_sha256"), str)
+                and bool(image.get("selected_image_sha256"))
+                and runtime_record.get("image_sha256")
+                == image.get("selected_image_sha256")
+            )
+            build_evidence_current = (
+                inventory_catalog_matches
+                and image_identity_matches
+                and image.get("state") == "current"
+            )
+            runtime_evidence_current = (
+                runtime_catalog_matches
+                and runtime_inventory_matches
+                and runtime_identity_matches
+                and runtime_record.get("status") == "passed"
+            )
             attempts = run_records.get(tool_id, [])
-            real_passed = any(
-                record.get("execution_status") == "passed" for record in attempts
+            stage_attempts = [
+                record
+                for record in attempts
+                if record.get("execution_status") == "passed"
+                and record.get("stage") == declared_stage
+                and bool(record.get("corpus"))
+                and bool(record.get("sample"))
+                and bool(record.get("domain"))
+            ]
+            real_passed = bool(stage_attempts)
+            mismatched_stages = sorted(
+                {
+                    str(record.get("stage"))
+                    for record in attempts
+                    if record.get("execution_status") == "passed"
+                    and record.get("stage") != declared_stage
+                }
             )
             science_passed = any(
-                record.get("scientific_status") == "passed" for record in attempts
-            )
-            evidence_commit_agrees = (
-                inventory.get("repository_commit") == runtime.get("repository_commit")
+                record.get("scientific_status") == "passed"
+                for record in stage_attempts
             )
             dimensions = {
-                "catalog": "passed",
+                "catalog": (
+                    "passed" if catalog_identity_is_resolved(tool) else "missing"
+                ),
                 "source": (
                     "passed" if source_identity_is_resolved(tool) else "missing"
                 ),
-                "build": "passed" if image.get("state") == "current" else "missing",
+                "build": "passed" if build_evidence_current else "missing",
                 "runtime": (
-                    "passed"
-                    if runtime_record.get("status") == "passed"
-                    else "missing"
+                    "passed" if runtime_evidence_current else "missing"
                 ),
                 "stage": "passed" if real_passed else "missing",
                 "real_data": "passed" if real_passed else "missing",
@@ -140,12 +224,23 @@ def derive_report(
                 "release": "missing",
                 "freshness": (
                     "passed"
-                    if image.get("state") == "current"
-                    and runtime_record.get("status") == "passed"
+                    if build_evidence_current
+                    and runtime_evidence_current
                     and evidence_commit_agrees
                     else "missing"
                 ),
             }
+            evidence_mismatches = []
+            for matches, label in (
+                (inventory_catalog_matches, "inventory_catalog"),
+                (runtime_catalog_matches, "runtime_catalog"),
+                (runtime_inventory_matches, "runtime_inventory"),
+                (evidence_commit_agrees, "repository_commit"),
+                (image_identity_matches, "inventory_tool_identity"),
+                (runtime_identity_matches, "runtime_tool_identity"),
+            ):
+                if not matches:
+                    evidence_mismatches.append(label)
             missing = [name for name, state in dimensions.items() if state != "passed"]
             qualification = "qualified" if not missing else "unverified"
             for name, state in dimensions.items():
@@ -165,10 +260,24 @@ def derive_report(
                     record.get("execution_status") == "passed"
                     for record in run_records.get(tool_id, [])
                 ),
+                "declared_real_test_stage": declared_stage,
+                "passing_real_test_runs": [
+                    str(record["run_id"]) for record in stage_attempts
+                ],
+                "mismatched_passing_stages": mismatched_stages,
+                "evidence_mismatches": (
+                    evidence_mismatches if disposition == "retained" else []
+                ),
             }
         )
     return {
         "schema_version": REPORT_SCHEMA,
+        "evidence_compatibility": {
+            "inventory_catalog": inventory_catalog_matches,
+            "runtime_catalog": runtime_catalog_matches,
+            "runtime_inventory": runtime_inventory_matches,
+            "repository_commit": evidence_commit_agrees,
+        },
         "sources": {
             "catalog": {"path": str(catalog_path), "sha256": sha256_file(catalog_path)},
             "inventory": {
@@ -192,6 +301,8 @@ def derive_report(
 def render_markdown(report: dict[str, Any]) -> str:
     summary = report["summary"]
     qualification = summary["qualification"]
+    compatibility = report["evidence_compatibility"]
+    evidence_chain_current = all(compatibility.values())
     lines = [
         "<!-- GENERATED FILE - DO NOT EDIT -->",
         "<!-- source: containers/contracts/qualification_report.py -->",
@@ -206,8 +317,26 @@ def render_markdown(report: dict[str, Any]) -> str:
         f"- Qualified: **{qualification.get('qualified', 0)}**",
         f"- Retained but unverified: **{qualification.get('unverified', 0)}**",
         f"- Unsupported: **{qualification.get('unsupported', 0)}**",
+        f"- Build/runtime evidence chain: **{'current' if evidence_chain_current else 'stale'}**",
         "- Scientific, benchmark, security, and release evidence remain mandatory",
         "  even after build, runtime, and real-data execution pass.",
+        "",
+        "## Evidence compatibility",
+        "",
+        "Build, runtime, and freshness pass only when the published image inventory",
+        "and runtime campaign match the current catalog, each other, and the same",
+        "repository commit. A stale source remains auditable but contributes no pass.",
+        "",
+        "| Evidence link | Current |",
+        "|---|---|",
+        "| Inventory → current catalog | "
+        f"{'yes' if compatibility['inventory_catalog'] else 'no'} |",
+        "| Runtime → current catalog | "
+        f"{'yes' if compatibility['runtime_catalog'] else 'no'} |",
+        "| Runtime → published inventory | "
+        f"{'yes' if compatibility['runtime_inventory'] else 'no'} |",
+        "| Inventory/runtime repository commit | "
+        f"{'yes' if compatibility['repository_commit'] else 'no'} |",
         "",
         "## Dimension coverage",
         "",
@@ -224,7 +353,9 @@ def render_markdown(report: dict[str, Any]) -> str:
             "## Tool matrix",
             "",
             "`pass` means evidence exists for that dimension; `missing` means no claim is",
-            "permitted. Unsupported tools use `n/a`.",
+            "permitted. Stage and real-data evidence require a successful run whose stage",
+            "exactly matches the catalog's declared real-test stage. Unsupported tools use",
+            "`n/a`.",
             "",
             "| Tool | Version | Disposition | Build | Runtime | Real data | Science | Benchmark | Security | Release | Qualification |",
             "|---|---|---|---|---|---|---|---|---|---|---|",
@@ -251,8 +382,8 @@ def render_markdown(report: dict[str, Any]) -> str:
         [
             "",
             "The machine-readable companion is",
-            "[qualification.json](qualification.json). Real-run details and failures are in",
-            "the [run evidence report](run-evidence.md).",
+            "[qualification.json](https://github.com/bijux/bijux-genomics/blob/main/containers/reports/qualification.json). Real-run details and failures are in",
+            "the [run evidence report](https://github.com/bijux/bijux-genomics/blob/main/containers/reports/run-evidence.md).",
         ]
     )
     return "\n".join(lines) + "\n"

@@ -7,6 +7,7 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from typing import Any
 from unittest import mock
 
 EXECUTOR = Path(__file__).parents[1] / "container_validation.py"
@@ -58,10 +59,83 @@ class GovernanceContractTests(unittest.TestCase):
         self.assertEqual(resolved["site_id"], "test-cluster")
         self.assertEqual(resolved["study_root"], (root / "study").resolve())
         self.assertEqual(
+            resolved["containers_root"], (root / "study" / "containers").resolve()
+        )
+        self.assertEqual(resolved["data_root"], (root / "study" / "data").resolve())
+        self.assertEqual(
+            resolved["results_root"], (root / "study" / "results").resolve()
+        )
+        self.assertEqual(
             resolved["active_repository"], (root / "active-repository").resolve()
         )
         self.assertEqual(resolved["slurm_account"], "science")
         self.assertEqual(resolved["slurm_partitions"], ["compute"])
+
+    def test_compute_local_scratch_can_be_declared_by_environment(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            governance = self.governance(root)
+            slurm = governance["slurm"]
+            assert isinstance(slurm, dict)
+            slurm.pop("scratch_root")
+            slurm["scratch_environment"] = "SNIC_TMP"
+            with mock.patch.object(
+                container_validation.socket, "gethostname", return_value="worker-7"
+            ):
+                resolved = container_validation.validate_governance(governance)
+
+        self.assertEqual(resolved["slurm_scratch_environment"], "SNIC_TMP")
+        self.assertIsNone(resolved["slurm_scratch_root"])
+
+    def test_scratch_authority_must_be_unambiguous(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            governance = self.governance(root)
+            slurm = governance["slurm"]
+            assert isinstance(slurm, dict)
+            slurm["scratch_environment"] = "SNIC_TMP"
+            with (
+                mock.patch.object(
+                    container_validation.socket, "gethostname", return_value="worker-7"
+                ),
+                self.assertRaisesRegex(
+                    container_validation.ContractError, "exactly one"
+                ),
+            ):
+                container_validation.validate_governance(governance)
+
+    def test_compute_environment_resolves_to_existing_absolute_scratch(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            scratch = Path(directory).resolve()
+            governance = {
+                "slurm_scratch_environment": "SNIC_TMP",
+                "slurm_scratch_root": None,
+            }
+            with mock.patch.dict(
+                container_validation.os.environ,
+                {"SNIC_TMP": str(scratch)},
+                clear=False,
+            ):
+                resolved = container_validation.governed_scratch_root(governance)
+
+        self.assertEqual(resolved, scratch)
+
+    def test_relative_compute_scratch_is_rejected(self) -> None:
+        governance = {
+            "slurm_scratch_environment": "SNIC_TMP",
+            "slurm_scratch_root": None,
+        }
+        with (
+            mock.patch.dict(
+                container_validation.os.environ,
+                {"SNIC_TMP": "relative-scratch"},
+                clear=False,
+            ),
+            self.assertRaisesRegex(
+                container_validation.ContractError, "existing absolute"
+            ),
+        ):
+            container_validation.governed_scratch_root(governance)
 
     def test_execution_outside_the_declared_site_is_rejected(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -76,6 +150,47 @@ class GovernanceContractTests(unittest.TestCase):
                 ),
             ):
                 container_validation.validate_governance(self.governance(root))
+
+    def test_explicit_product_roots_remain_within_the_study(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            governance = self.governance(root)
+            paths = governance["paths"]
+            assert isinstance(paths, dict)
+            paths.update(
+                {
+                    "containers_root": str(root / "study" / "container-products"),
+                    "data_root": str(root / "study" / "scientific-inputs"),
+                    "results_root": str(root / "study" / "scientific-results"),
+                }
+            )
+            with mock.patch.object(
+                container_validation.socket, "gethostname", return_value="worker-7"
+            ):
+                resolved = container_validation.validate_governance(governance)
+
+        self.assertEqual(
+            resolved["containers_root"],
+            (root / "study" / "container-products").resolve(),
+        )
+
+    def test_product_root_outside_the_study_is_rejected(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            governance = self.governance(root)
+            paths = governance["paths"]
+            assert isinstance(paths, dict)
+            paths["results_root"] = str(root / "outside-results")
+            with (
+                mock.patch.object(
+                    container_validation.socket, "gethostname", return_value="worker-7"
+                ),
+                self.assertRaisesRegex(
+                    container_validation.ContractError,
+                    "paths.results_root must remain under",
+                ),
+            ):
+                container_validation.validate_governance(governance)
 
     def test_sbatch_cluster_suffix_is_removed_from_numeric_identity(self) -> None:
         self.assertEqual(
@@ -197,7 +312,12 @@ class GovernanceContractTests(unittest.TestCase):
 
 
 class CurrentPipelineContractTests(unittest.TestCase):
-    def make_contracts(self, root: Path) -> tuple[Path, Path, Path]:
+    def make_contracts(
+        self,
+        root: Path,
+        *,
+        scratch_environment: str | None = None,
+    ) -> tuple[Path, Path, Path]:
         study = root / "study"
         image_root = study / "containers" / "apptainer"
         data_root = study / "data" / "corpora" / "sample"
@@ -224,7 +344,11 @@ class CurrentPipelineContractTests(unittest.TestCase):
             "slurm": {
                 "account": "science",
                 "partitions": ["compute"],
-                "scratch_root": str(root),
+                **(
+                    {"scratch_environment": scratch_environment}
+                    if scratch_environment
+                    else {"scratch_root": str(root)}
+                ),
             },
         }
         governance_path.write_text(
@@ -452,7 +576,7 @@ class CurrentPipelineContractTests(unittest.TestCase):
                 study
                 / "containers/evidence/specifications/run-2000-tool",
                 active,
-                study,
+                study / "containers",
             )
 
     def test_current_manifest_rejects_operator_scratch_paths(self) -> None:
@@ -516,6 +640,48 @@ class CurrentPipelineContractTests(unittest.TestCase):
         self.assertIn("refusing to remove unexpected scratch path", rendered)
         self.assertIn("available_scratch_kib < 1048576", rendered)
         self.assertIn("umask 027", rendered)
+
+    def test_slurm_script_uses_the_site_compute_local_scratch(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            paths = self.make_contracts(root, scratch_environment="SNIC_TMP")
+            script = root / "submit.sh"
+            with mock.patch.object(
+                container_validation.socket, "gethostname", return_value="worker-7"
+            ):
+                container_validation.render_slurm(*paths, script)
+            rendered = script.read_text(encoding="utf-8")
+            syntax = subprocess.run(
+                ["bash", "-n", str(script)],
+                check=False,
+                capture_output=True,
+                text=True,
+            )
+
+        self.assertEqual(syntax.returncode, 0, syntax.stderr)
+        self.assertIn('readonly GOVERNED_SCRATCH_ROOT="${SNIC_TMP}"', rendered)
+        self.assertIn("SNIC_TMP is unavailable on the allocated node", rendered)
+
+    def test_slurm_render_reuses_the_submission_contract(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            paths = self.make_contracts(root)
+            script = root / "submit.sh"
+            with mock.patch.object(
+                container_validation.socket, "gethostname", return_value="worker-7"
+            ):
+                contract = container_validation.validate_contracts(*paths)
+            with mock.patch.object(
+                container_validation,
+                "validate_contracts",
+                side_effect=AssertionError("contract was revalidated"),
+            ):
+                container_validation.render_slurm(
+                    *paths,
+                    script,
+                    validated_contract=contract,
+                )
+                self.assertTrue(script.is_file())
 
     def test_completed_dependency_uses_evidence_without_stale_scheduler_wait(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -660,8 +826,171 @@ class CurrentPipelineContractTests(unittest.TestCase):
             "slurm-3458665.stderr.log",
         )
 
+    def test_failed_run_archive_frees_only_canonical_execution_paths(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            study = root / "study"
+            containers_root = study / "containers"
+            submission = (
+                containers_root / "evidence/submissions/run-2000-tool"
+            )
+            result = study / "results/container-validation/run-2000-tool"
+            manifest = containers_root / "evidence/specifications/run-2000-tool"
+            submission.mkdir(parents=True)
+            result.mkdir(parents=True)
+            manifest.mkdir(parents=True)
+            (submission / "slurm-job-id.txt").write_text("3458665\n")
+            (submission / "submit.sh").write_text("#!/bin/bash\nexit 72\n")
+            container_validation.write_json(
+                result / "evidence.json",
+                {
+                    "schema_version": container_validation.EVIDENCE_SCHEMA_V2,
+                    "run_id": "run-2000",
+                    "status": "failed",
+                },
+            )
+            container_validation.write_json(
+                result / "slurm-accounting.json",
+                {
+                    "schema_version": "bijux.slurm.accounting.v1",
+                    "run_id": "run-2000",
+                    "slurm_job_id": "3458665",
+                },
+            )
+            contract = {
+                "pipeline_schema": container_validation.PIPELINE_SCHEMA_V2,
+                "run_id": "run-2000",
+                "pipeline": {"run": {"tool": "tool"}},
+                "result_root": result,
+                "governance": {"containers_root": containers_root},
+            }
+            with mock.patch.object(
+                container_validation,
+                "validate_contracts",
+                return_value=contract,
+            ):
+                archived = container_validation.archive_failed_run(manifest)
+
+            archive = json.loads((archived / "archive.json").read_text())
+            submission_removed = not submission.exists()
+            result_removed = not result.exists()
+            archived_submission = (archived / "submission/submit.sh").is_file()
+            archived_result = (archived / "result/evidence.json").is_file()
+
+        self.assertTrue(submission_removed)
+        self.assertTrue(result_removed)
+        self.assertEqual(archive["run_id"], "run-2000")
+        self.assertEqual(archive["slurm_job_id"], "3458665")
+        self.assertEqual(
+            {record["path"] for record in archive["files"]},
+            {
+                "result/evidence.json",
+                "result/slurm-accounting.json",
+                "submission/slurm-job-id.txt",
+                "submission/submit.sh",
+            },
+        )
+        self.assertTrue(archived_submission)
+        self.assertTrue(archived_result)
+
+    def test_nonfailed_run_cannot_be_archived(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            containers_root = root / "study/containers"
+            submission = (
+                containers_root / "evidence/submissions/run-2000-tool"
+            )
+            result = root / "study/results/container-validation/run-2000-tool"
+            manifest = containers_root / "evidence/specifications/run-2000-tool"
+            submission.mkdir(parents=True)
+            result.mkdir(parents=True)
+            manifest.mkdir(parents=True)
+            (submission / "slurm-job-id.txt").write_text("3458665\n")
+            container_validation.write_json(
+                result / "evidence.json",
+                {
+                    "schema_version": container_validation.EVIDENCE_SCHEMA_V2,
+                    "run_id": "run-2000",
+                    "status": "passed",
+                },
+            )
+            container_validation.write_json(
+                result / "slurm-accounting.json",
+                {
+                    "schema_version": "bijux.slurm.accounting.v1",
+                    "run_id": "run-2000",
+                    "slurm_job_id": "3458665",
+                },
+            )
+            contract = {
+                "pipeline_schema": container_validation.PIPELINE_SCHEMA_V2,
+                "run_id": "run-2000",
+                "pipeline": {"run": {"tool": "tool"}},
+                "result_root": result,
+                "governance": {"containers_root": containers_root},
+            }
+            with (
+                mock.patch.object(
+                    container_validation,
+                    "validate_contracts",
+                    return_value=contract,
+                ),
+                self.assertRaisesRegex(
+                    container_validation.ContractError, "only terminal failed"
+                ),
+            ):
+                container_validation.archive_failed_run(manifest)
+            submission_preserved = submission.is_dir()
+            result_preserved = result.is_dir()
+
+        self.assertTrue(submission_preserved)
+        self.assertTrue(result_preserved)
+
 
 class BuildAdmissionTests(unittest.TestCase):
+    def inspection(
+        self,
+        tool: str = "adapterremoval",
+        version: str = "2.3.4",
+    ) -> dict[str, Any]:
+        return {
+            "data": {
+                "attributes": {
+                    "labels": {
+                        "org.opencontainers.image.tool": tool,
+                        "io.bijux.tool.version": version,
+                        "org.opencontainers.image.created": "governed-by-build-evidence",
+                        "org.opencontainers.image.revision": "a" * 40,
+                        "org.opencontainers.image.source": (
+                            "https://github.com/MikkelSchubert/adapterremoval"
+                        ),
+                        "org.opencontainers.image.version": "24.04",
+                    }
+                }
+            }
+        }
+
+    def test_image_identity_uses_tool_version_instead_of_base_version(self) -> None:
+        container_build.validate_inspection_identity(
+            self.inspection(),
+            "adapterremoval",
+            "2.3.4",
+        )
+
+    def test_image_identity_rejects_missing_tool_version(self) -> None:
+        inspection = self.inspection()
+        labels = inspection["data"]["attributes"]["labels"]
+        del labels["io.bijux.tool.version"]
+        with self.assertRaisesRegex(
+            container_build.ContractError,
+            "io.bijux.tool.version",
+        ):
+            container_build.validate_inspection_identity(
+                inspection,
+                "adapterremoval",
+                "2.3.4",
+            )
+
     def test_immutable_name_carries_runtime_and_content_identity(self) -> None:
         name = container_build.immutable_image_name(
             "adapterremoval",

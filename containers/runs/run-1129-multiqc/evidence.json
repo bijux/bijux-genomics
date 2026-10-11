@@ -1,0 +1,128 @@
+{
+  "checks": {
+    "help": {
+      "argv": [
+        "multiqc",
+        "--help"
+      ],
+      "exit_code": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "4e8489847a9a7e1ed1404c9de6710e32973062e394149011a8864379cc52ba0b"
+    },
+    "negative": {
+      "argv": [
+        "multiqc",
+        "--definitely-invalid-option"
+      ],
+      "exit_code": 2,
+      "stderr_sha256": "9c632f867d01a21e820396980335ea4a914d34299b33a3749046f4fb849e6575",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "real": {
+      "argv": [
+        "bash",
+        "-c",
+        "set -euo pipefail; multiqc --module fastqc --outdir /result --filename multiqc-report.html /input; python3 -c 'import json; source=json.load(open(\"/result/multiqc-report_data/multiqc_data.json\", encoding=\"utf-8\")); count=sum(len(group) for group in source.get(\"report_general_stats_data\", [])); json.dump({\"reported_samples\": count}, open(\"/result/metrics.json\", \"w\", encoding=\"utf-8\"))'"
+      ],
+      "exit_code": 0,
+      "stderr_sha256": "9ea0daec6a96c85d1d17515e35df7b857ec097478e567a1250fb1fc9df1a7dc8",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "version": {
+      "argv": [
+        "multiqc",
+        "--version"
+      ],
+      "exit_code": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "846d2ee233d32a10ec08ff8373c3f07027153d710a709e64d079c64ac3e0e54a"
+    }
+  },
+  "credential_reference_sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+  "dependencies": [
+    {
+      "evidence_sha256": "384cffa7d65084cf7d20cff82b5121e4a4c267c942ec3bd52c23c6c8cd39260c",
+      "required_outputs": [
+        "dc3359da945e8171a0a921d6da6f220de3ea0176278554da2022be715d8acee4"
+      ],
+      "run_id": "run-1076",
+      "slurm_job_id": "3458057"
+    }
+  ],
+  "execution": {
+    "cache_policy": "disabled",
+    "determinism": "deterministic",
+    "locale": "C",
+    "random_seed": null,
+    "runtime_network": false,
+    "threads": 1,
+    "timezone": "UTC"
+  },
+  "failure_class": null,
+  "failures": [],
+  "governance_sha256": "5a48351cddde8a0251584de4bbbf01a524bf5a2ecb2a0c2034b6553a554ec37a",
+  "image": {
+    "path": "/lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/multiqc-1.24-linux-amd64-72668c0158ad.sif",
+    "sha256": "72668c0158ad9355aad107338ac3de92fa2c53fa66190cea2d267e2f77c8132a",
+    "size_bytes": 133935104
+  },
+  "inputs": [
+    {
+      "id": "fastqc_archive",
+      "kind": "upstream_result",
+      "mount_path": "/input/ERR1021817.read-prefix-100000_1_fastqc.zip",
+      "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/run-1076-fastqc/ERR1021817.read-prefix-100000_1_fastqc.zip",
+      "sha256": "dc3359da945e8171a0a921d6da6f220de3ea0176278554da2022be715d8acee4"
+    }
+  ],
+  "metrics": [
+    {
+      "expected": 1,
+      "id": "reported_samples",
+      "json_pointer": "/reported_samples",
+      "observed": 1,
+      "operator": "ge",
+      "path": "metrics.json",
+      "status": "passed",
+      "unit": "samples"
+    }
+  ],
+  "outputs": [
+    {
+      "path": "multiqc-report.html",
+      "sha256": "ba2c1d491a569d6aa75f16222c052775945c4cd83c7ef8b9fc0dd39e0d0ef141",
+      "size_bytes": 4683304
+    },
+    {
+      "path": "multiqc-report_data/multiqc_data.json",
+      "sha256": "93d6450ae8516eaca21300b71ff675aa35876957cceeb714ca38f9cb69f4f41b",
+      "size_bytes": 229174
+    },
+    {
+      "path": "metrics.json",
+      "sha256": "028dc91f007fb541c745fa20cb24e407d88d83b326f00d3f0b6f58af0dbab70c",
+      "size_bytes": 23
+    }
+  ],
+  "pipeline_schema_version": "bijux.container.pipeline.v2",
+  "pipeline_sha256": "d6e7e1741bd8479ce812d09ae864f745f10ebf9c2fb439bba3ab185f23073cdc",
+  "repository_clean": true,
+  "repository_commit": "07f6e82d85d9495bcb6089f6e8afefc1f061b796",
+  "repository_path": "/home/bijan/bijux/bijux-genomics-runs/07f6e82d85d9495bcb6089f6e8afefc1f061b796",
+  "run_id": "run-1129",
+  "runtime": {
+    "apptainer_version": "apptainer version 1.5.2-1.el9",
+    "cpus": "1",
+    "finished_at_utc": "2026-08-03T05:47:07.254428+00:00",
+    "host": "cn091",
+    "scratch_path": "/tmp/bijux-genomics-3458680-2vJ3Oj",
+    "slurm_job_id": "3458680",
+    "started_at_utc": "2026-08-03T05:47:01.605385+00:00"
+  },
+  "schema_version": "bijux.container.evidence.v2",
+  "site": {
+    "host": "cn091",
+    "id": "lunarc"
+  },
+  "status": "passed"
+}

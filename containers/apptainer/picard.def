@@ -2,27 +2,28 @@
 # This container recipe is maintained by Bijux Genomics.
 # Bijux Genomics source code is licensed under Apache-2.0.
 # Copyright (C) 2026 Bijan Mousavi
-# BIJUX_TEMPLATE: v1
-
 # Tool ID: picard
-# Version policy: pinned_or_registry_locked
-# Upstream source: see org.opencontainers.image.source label
-# Build date policy: org.opencontainers.image.created set by release pipeline
-# Network source policy: NETWORK_SOURCE_VERIFIED_BY_LOCK
-# Runtime UID policy: RUNTIME_UID_SAFE
-
-# VERSION_SOURCE: containers/versions/versions.toml
+# Version policy: catalog-locked release artifact and Git tag commit
+# Upstream source: https://github.com/broadinstitute/picard
+# Build date policy: captured by immutable build evidence
+# Network source policy: build-only access to locked Ubuntu snapshot and release asset
+# Runtime UID policy: non-root runtime with caller-owned output paths
+# VERSION_SOURCE: containers/contracts/catalog.toml
 Bootstrap: docker
 From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
 
 %labels
     org.opencontainers.image.source https://github.com/broadinstitute/picard
     org.opencontainers.image.title picard
-    org.opencontainers.image.revision unknown
-    org.opencontainers.image.created unknown
-    org.opencontainers.image.licenses GPL-3.0
+    org.opencontainers.image.revision 63138fc8b7ae33eb0490a8ef707b61befa2f51d4
+    org.opencontainers.image.created governed-by-build-evidence
+    org.opencontainers.image.licenses MIT
     org.opencontainers.image.version 3.3.0
+    io.bijux.tool.version 3.3.0
     org.opencontainers.image.tool picard
+%files
+    containers/contracts/configure-apt-snapshot /usr/local/sbin/bijux-configure-apt-snapshot
+
 %environment
     export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
     export LC_ALL=C
@@ -30,24 +31,55 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
     export VERSION_PICARD=3.3.0
 %post
     set -eux
-    # NETWORK_SOURCE_VERIFIED_BY_LOCK
     umask 022
     VERSION_PICARD=3.3.0
     export VERSION_PICARD
     export DEBIAN_FRONTEND=noninteractive
-    apt-get update
-    apt-get install -y --no-install-recommends ca-certificates wget openjdk-21-jre-headless
+    /bin/sh /usr/local/sbin/bijux-configure-apt-snapshot
+    apt-get install -y --no-install-recommends ca-certificates=20260601~24.04.1
+    apt-get -o Acquire::Check-Valid-Until=false update
+    apt-get install -y --no-install-recommends wget=1.21.4-1ubuntu4.4 openjdk-21-jre-headless=21.0.11+10-1~24.04.2
     wget -q -O /opt/picard.jar "https://github.com/broadinstitute/picard/releases/download/${VERSION_PICARD}/picard.jar"
+    echo '58819a7660646b74b34e282f5d4d21c8dbaea22ddeff96e3258755dafa0f86dc  /opt/picard.jar' | sha256sum -c -
     cat > /usr/local/bin/picard <<'EOS'
 #!/usr/bin/env sh
 set -eu
+picard_version_output() {
+  set +e
+  version_output="$(java -jar /opt/picard.jar MarkDuplicates --version 2>&1)"
+  version_status=$?
+  set -e
+  if [ "$version_status" -ne 1 ] || [ "$version_output" != 'Version:3.3.0' ]; then
+    printf 'error: unexpected Picard version probe (status=%s): %s\n' \
+      "$version_status" "$version_output" >&2
+    exit 70
+  fi
+}
+
 case "${1:-}" in
-  --version) echo "picard ${VERSION_PICARD}"; exit 0 ;;
-  --help|-h|"") echo "picard ${VERSION_PICARD}"; echo "usage: picard <Command> [options]"; exit 0 ;;
+  --version)
+    picard_version_output
+    printf 'picard %s\n' "${version_output#Version:}"
+    exit 0
+    ;;
+  --help|-h|"")
+    set +e
+    help_output="$(java -jar /opt/picard.jar MarkDuplicates --help 2>&1)"
+    help_status=$?
+    set -e
+    if [ "$help_status" -ne 1 ] || ! printf '%s\n' "$help_output" | grep -Fq 'USAGE: MarkDuplicates'; then
+      printf 'error: unexpected Picard help probe (status=%s)\n' "$help_status" >&2
+      exit 70
+    fi
+    printf '%s\n' "$help_output"
+    exit 0
+    ;;
 esac
 exec java -jar /opt/picard.jar "$@"
 EOS
     chmod 0755 /usr/local/bin/picard
+    picard --version | grep -Fx 'picard 3.3.0'
+    picard --help | grep -Fq 'USAGE: MarkDuplicates'
     rm -rf /var/lib/apt/lists/*
 %runscript
     if [ $# -eq 0 ]; then
@@ -55,5 +87,8 @@ EOS
     else
         exec picard "$@"
     fi
+%test
+    picard --version | grep -Fx 'picard 3.3.0'
+    picard --help | grep -Fq 'USAGE: MarkDuplicates'
 %help
-    Picard image.
+    Picard 3.3.0 from the checksummed upstream release JAR.

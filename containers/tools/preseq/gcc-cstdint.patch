@@ -1,0 +1,7 @@
+--- a/src/smithlab_cpp/sam_record.hpp
++++ b/src/smithlab_cpp/sam_record.hpp
+@@ -22,3 +22,4 @@
+ #include <string>
++#include <cstdint>
+ #include <vector>
+ #include <iostream>

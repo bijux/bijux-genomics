@@ -48,9 +48,12 @@ Common manual inputs:
 
 - `enabled`: required safety gate for actual publication
 - `tool_ids`: optional comma or space separated subset
-- `status_filter`: optional comma or space separated lifecycle filter
 - `package_prefix`: defaults to `ghcr.io/bijux/bijux-genomics`
-- `push_latest`: applies only to production tools
+- `push_latest`: applies only to evidence-qualified tools
+
+The matrix generator always excludes retained-but-unverified and unsupported
+tools. A manual workflow cannot override this boundary with a registry status
+or support-disposition filter.
 
 ## Published Tags
 
@@ -58,12 +61,17 @@ Each package gets:
 
 - `<tool_version>`
 - `sha-<git-sha-prefix>`
-- `latest` only when both of these are true:
+- `latest` only when all of these are true:
   - the workflow input `push_latest` is enabled
-  - the governed tool status is `production`
+  - the tool is retained
+  - every required evidence dimension is qualified
 
 ## Authority
 
+- Qualification model:
+  [containers/docs/EVIDENCE_QUALIFICATION.md](EVIDENCE_QUALIFICATION.md)
+- Machine-readable qualification evidence:
+  [containers/reports/qualification.json](../reports/qualification.json)
 - Docker arm64 matrix:
   `cargo run -q -p bijux-dna-dev -- containers run generate-ghcr-publish-matrix -- artifacts/containers/ghcr/docker-arm64-publish-matrix.json`
 - Apptainer matrix:
@@ -76,7 +84,7 @@ Each package gets:
   [containers/docker/](../docker/)
 - Apptainer build surface:
   [containers/apptainer/](../apptainer/)
-- Non-bijux provenance:
+- Upstream provenance:
   [containers/docs/UPSTREAM_SOURCES.md](UPSTREAM_SOURCES.md)
 
 ## Pull Contract

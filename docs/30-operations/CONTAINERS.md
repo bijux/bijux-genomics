@@ -51,11 +51,26 @@ failed runs and collects terminal accounting separately.
 
 ## Real evidence
 
+The [qualification matrix](container-evidence/QUALIFICATION.md) is the current
+cross-tool truth surface. It derives readiness dimension by dimension and keeps
+missing scientific, benchmark, security, or release evidence visible. The
+[canonical image storage reconciliation](container-evidence/IMAGE_STORAGE.md),
+[complete Apptainer rebuild](container-evidence/IMAGE_REBUILD.md),
+[image inventory](container-evidence/IMAGE_INVENTORY.md), and
+[runtime verification report](container-evidence/RUNTIME_VERIFICATION.md)
+record the admitted SIFs and their version/help checks without overstating
+those checks as real-data or scientific validation.
+
 The [LUNARC FASTQ-to-BAM report](container-evidence/FASTQ_BAM.md)
 records a real horse WGS trimming, alignment, sorting, indexing, and QC chain.
+The [paired-read trimming report](container-evidence/PAIRED_READ_TRIMMING.md)
+compares two governed trimming executions while stating why the single runs do
+not yet form a fair benchmark.
 The [LUNARC ancient-DNA damage report](container-evidence/ANCIENT_DAMAGE.md)
 records ngsBriggs input-contract correction and real Slurm execution on a
 public ancient-horse alignment.
+The [ancient-DNA genotype-likelihood report](container-evidence/ANCIENT_GENOTYPE_LIKELIHOODS.md)
+records the governed ANGSD execution and its interpretation boundary.
 The [LUNARC reference-complexity report](container-evidence/REFERENCE_COMPLEXITY.md)
 records real EquCab3.0 interval extraction and DustMasker execution.
 The [LUNARC amplicon ASV report](container-evidence/AMPLICON_ASV.md) records
@@ -73,7 +88,7 @@ accuracy or release claim.
 
 ## Failure modes
 
-- Missing digest blocks promotion to production.
+- A missing required evidence dimension blocks release qualification.
 - A path outside the configured root blocks submission.
 - An existing result directory blocks overwrite and requires a new run ID.
 - Missing input normalization is recorded as a failed run and corrected by an
@@ -86,8 +101,8 @@ accuracy or release claim.
 
 ## References
 
-- [Container implementation](https://github.com/bijux/bijux-genomics/tree/main/containers)
-- [Container contract documentation](https://github.com/bijux/bijux-genomics/tree/main/containers/docs)
-- [Release checklist](https://github.com/bijux/bijux-genomics/blob/main/containers/docs/RELEASE_CHECKLIST.md)
-- [LUNARC execution contract](https://github.com/bijux/bijux-genomics/blob/main/containers/docs/LUNARC_EXECUTION_CONTRACT.md)
-- [Evidence report index](https://github.com/bijux/bijux-genomics/blob/main/containers/reports/README.md)
+- [Container implementation](../../containers/index.md)
+- [Container contract documentation](../../containers/docs/index.md)
+- [Container operating guide](../../containers/README.md)
+- [Release checklist](../../containers/docs/RELEASE_CHECKLIST.md)
+- [Tool admission reference](../50-reference/TOOL_ADMISSION.md)

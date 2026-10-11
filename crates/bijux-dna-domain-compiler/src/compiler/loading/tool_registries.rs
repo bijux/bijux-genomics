@@ -56,6 +56,7 @@ pub(super) fn build_tool_registries_toml(
         let apptainer_def_rel = contract.apptainer_definition.clone();
         let runtimes = contract.runtimes();
         let has_container_defs = !runtimes.is_empty();
+        let is_not_retained = contract.support_disposition != "retained";
         let is_planned = tool.status == "planned"
             || tool.default_version == "planned"
             || tool_is_planned_out_of_scope(tool, stage_planned);
@@ -76,7 +77,9 @@ pub(super) fn build_tool_registries_toml(
             || (upstream == "unknown" && !required_tool_set.contains(&tool.id))
             || (upstream_pin == "unresolved" && !required_tool_set.contains(&tool.id));
 
-        let emitted_status = if is_planned {
+        let emitted_status = if is_not_retained {
+            contract.support_disposition.as_str()
+        } else if is_planned {
             "planned"
         } else if is_experimental {
             "experimental"
@@ -84,7 +87,7 @@ pub(super) fn build_tool_registries_toml(
             "production"
         };
 
-        let out = if is_planned || is_experimental {
+        let out = if is_not_retained || is_planned || is_experimental {
             experimental_tool_count += 1;
             &mut experimental_toml
         } else {
@@ -143,6 +146,9 @@ pub(super) fn build_tool_registries_toml(
                 && tool_supports_stage_domain(tools, tool_id, stage_domain)
         });
         all.sort();
+        if all.is_empty() {
+            continue;
+        }
         let mut primary = stage_defaults
             .get(stage_id)
             .cloned()
@@ -154,13 +160,6 @@ pub(super) fn build_tool_registries_toml(
             .collect::<Vec<_>>();
         if primary.is_empty() {
             primary = all.first().cloned().into_iter().collect::<Vec<_>>();
-        }
-        if primary.is_empty() {
-            primary.push(if stage_domain == "bam" {
-                "samtools".to_string()
-            } else {
-                "fastp".to_string()
-            });
         }
         let optional = all
             .iter()

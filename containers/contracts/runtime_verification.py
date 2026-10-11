@@ -4,15 +4,15 @@
 from __future__ import annotations
 
 import argparse
-from collections import Counter
-from concurrent.futures import ThreadPoolExecutor, as_completed
 import datetime as dt
-from pathlib import Path
 import re
 import shlex
 import socket
 import subprocess
 import threading
+from collections import Counter
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from pathlib import Path
 from typing import Any
 
 try:
@@ -27,9 +27,16 @@ from container_validation import (
     require_under,
     write_json,
 )
-from image_inventory import INVENTORY_SCHEMA, load_json, sha256_file
+from image_inventory import (
+    INVENTORY_SCHEMA,
+    ImageInventoryError,
+    load_json,
+    sha256_file,
+    stable_paths,
+)
 
 EXECUTION_SCHEMA = "bijux.container.runtime_verification.v1"
+PUBLICATION_SCHEMA = "bijux.container.runtime_verification_publication.v1"
 
 
 def catalog_contracts(path: Path) -> dict[str, dict[str, Any]]:
@@ -102,7 +109,7 @@ def prepare_execution(
         image = Path(str(row.get("selected_image", ""))).resolve()
         require_under(
             image,
-            governance["study_root"] / "containers" / "apptainer",
+            governance["containers_root"] / "apptainer",
             f"{tool_id} image",
         )
         image_sha256 = str(row.get("selected_image_sha256", ""))
@@ -234,7 +241,7 @@ def execute_verification(
     if execution.get("status") != "prepared":
         raise ContractError("runtime execution must be in prepared state")
     governance = load_governance(governance_path)
-    log_root = governance["study_root"] / "containers" / "evidence" / "runtime-logs"
+    log_root = governance["containers_root"] / "evidence" / "runtime-logs"
     execution["status"] = "running"
     execution["started_at_utc"] = dt.datetime.now(dt.timezone.utc).isoformat()
     execution["worker_count"] = jobs
@@ -257,7 +264,7 @@ def execute_verification(
             tool_id = futures[future]
             try:
                 result = future.result()
-            except Exception as exc:
+            except (OSError, subprocess.SubprocessError, ContractError) as exc:
                 result = {
                     **execution["tools"][tool_id],
                     "status": "failed",
@@ -275,9 +282,45 @@ def execute_verification(
     return execution
 
 
-def render_report(execution_path: Path, output: Path) -> int:
+def publish_execution(
+    execution_path: Path,
+    study_root: Path,
+    repository: Path,
+    output: Path,
+) -> dict[str, Any]:
+    if output.exists() or output.is_symlink():
+        raise ContractError(f"refusing to replace published execution: {output}")
     execution = load_json(execution_path)
     if execution.get("schema_version") != EXECUTION_SCHEMA:
+        raise ContractError("only raw runtime executions can be published")
+    if execution.get("status") not in {"passed", "failed"}:
+        raise ContractError("runtime execution must be terminal before publication")
+    try:
+        published = stable_paths(
+            execution,
+            {"study": study_root, "repository": repository},
+        )
+    except ImageInventoryError as exc:
+        raise ContractError(str(exc)) from exc
+    published["schema_version"] = PUBLICATION_SCHEMA
+    published["publication"] = {
+        "raw_schema_version": EXECUTION_SCHEMA,
+        "raw_sha256": sha256_file(execution_path),
+        "path_schemes": {
+            "study": "governed execution-site study root",
+            "repository": "frozen repository root",
+        },
+    }
+    write_json(output, published)
+    return published
+
+
+def render_report(execution_path: Path, output: Path) -> int:
+    execution = load_json(execution_path)
+    if execution.get("schema_version") not in {
+        EXECUTION_SCHEMA,
+        PUBLICATION_SCHEMA,
+    }:
         raise ContractError("runtime execution schema is not supported")
     if execution.get("status") not in {"passed", "failed"}:
         raise ContractError("runtime execution must be terminal before publication")
@@ -308,7 +351,7 @@ def render_report(execution_path: Path, output: Path) -> int:
         "",
         "Stdout and stderr remain in the execution-site evidence tree. Their exact",
         "paths and SHA-256 digests are retained in the machine-readable companion",
-        "[runtime-verification.json](runtime-verification.json).",
+        "[runtime-verification.json](https://github.com/bijux/bijux-genomics/blob/main/containers/reports/runtime-verification.json).",
         "",
         "## Tool results",
         "",
@@ -366,6 +409,11 @@ def parser() -> argparse.ArgumentParser:
     execute.add_argument("--governance", type=Path, required=True)
     execute.add_argument("--jobs", type=int, default=8)
     execute.add_argument("--timeout-seconds", type=int, default=30)
+    publish = commands.add_parser("publish")
+    publish.add_argument("--execution", type=Path, required=True)
+    publish.add_argument("--study-root", type=Path, required=True)
+    publish.add_argument("--repository", type=Path, required=True)
+    publish.add_argument("--output", type=Path, required=True)
     report = commands.add_parser("render-report")
     report.add_argument("--execution", type=Path, required=True)
     report.add_argument("--output", type=Path, required=True)
@@ -384,6 +432,15 @@ def main() -> int:
         if args.command == "render-report":
             count = render_report(args.execution, args.output)
             print(f"reported runtime verification for {count} images")
+            return 0
+        if args.command == "publish":
+            execution = publish_execution(
+                args.execution,
+                args.study_root,
+                args.repository,
+                args.output,
+            )
+            print(f"published runtime verification for {len(execution['tools'])} images")
             return 0
         execution = execute_verification(
             args.execution, args.governance, args.jobs, args.timeout_seconds

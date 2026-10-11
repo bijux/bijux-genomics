@@ -13,15 +13,21 @@ must close before a publish run.
 - Version metadata and lock are updated
   ([containers/versions/versions.toml](../versions/versions.toml),
   [containers/versions/LOCK.md](../versions/LOCK.md)).
-- Planned/production status transitions are tracked via promotion/demotion scripts.
+- The generated qualification report is current and every selected tool is
+  `qualified`, not merely `retained`.
 
 ## Required Commands
 1. `cargo run -p bijux-dna-dev -- containers run ensure-images -- --plan`
 2. `cargo run -q -p bijux-dna-dev -- containers run lint`
 3. `cargo run -p bijux-dna-dev -- containers run container-doctor -- --strict`
 4. `cargo run -p bijux-dna-dev -- containers run release-gate`
-5. `cargo run -q -p bijux-dna-dev -- containers run generate-ghcr-publish-matrix -- artifacts/containers/ghcr/docker-arm64-publish-matrix.json --status production`
-6. `cargo run -q -p bijux-dna-dev -- containers run generate-ghcr-apptainer-publish-matrix -- artifacts/containers/ghcr/apptainer-publish-matrix.json --status production`
+5. `cargo run -q -p bijux-dna-dev -- containers run check-evidence-qualification`
+6. `cargo run -q -p bijux-dna-dev -- containers run generate-ghcr-publish-matrix -- artifacts/containers/ghcr/docker-arm64-publish-matrix.json`
+7. `cargo run -q -p bijux-dna-dev -- containers run generate-ghcr-apptainer-publish-matrix -- artifacts/containers/ghcr/apptainer-publish-matrix.json`
+
+Both matrix generators admit only tool IDs reported as `qualified` by
+[the evidence policy](EVIDENCE_QUALIFICATION.md). A support-disposition filter
+is not a release-qualification filter.
 
 ## Required Artifacts
 - `artifacts/containers/ensure-images/report.json`

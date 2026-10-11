@@ -1,7 +1,7 @@
 # schema_version = 1
 # owner = bijux-genomics
 tool_id = "germline"
-container_kind = "non-bijux"
+container_kind = "bijux"
 spdx = "Apache-2.0"
 upstream_license_id = "Apache-2.0"
 upstream_url = "https://github.com/gusevlab/germline"
