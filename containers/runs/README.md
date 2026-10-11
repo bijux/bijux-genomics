@@ -17,9 +17,10 @@ Absolute paths remain site configuration or immutable historical pipeline
 evidence; generated indexes do not expose LUNARC backend mount aliases.
 
 Execution success, scientific acceptance, benchmark qualification, and release
-qualification are separate claims. Importing an old run never upgrades its
-claim: historical records default to `scientific_status: not_assessed`, and
-failed attempts remain visible.
+qualification are separate claims. This directory publishes one final passing
+execution per represented tool. Superseded and failed attempts remain in the
+checksummed [`attempt-ledger.json`](attempt-ledger.json) and in raw LUNARC
+results; they are not presented as current evidence.
 
 The site-specific filesystem and Slurm settings remain in
 [`../contracts/sites/lunarc.yml`](../contracts/sites/lunarc.yml). Secret values
@@ -47,7 +48,7 @@ python3 containers/runs/manage.py render-report \
   --output containers/reports/run-evidence.md
 ```
 
-## Admit execution-site history
+## Admit final execution evidence
 
 Run the importer only against the governed LUNARC result root. Use a bounded
 range so one reviewable scientific or operational group is admitted per
@@ -63,8 +64,24 @@ python3 containers/runs/manage.py import-evidence \
 
 The importer refuses to replace an existing tracked run, rejects embedded
 credential-value fields, checks run/tool identity across paths and contracts,
-and records hashes for the complete remote result. Raw outputs, SIFs, and logs
-remain in the study tree.
+and records hashes for the complete remote result. Before rendering reports,
+preview and then publish the latest successful execution per tool:
+
+```console
+python3 containers/runs/manage.py publish-final-evidence \
+  --runs-root containers/runs \
+  --ledger containers/runs/attempt-ledger.json
+
+python3 containers/runs/manage.py publish-final-evidence \
+  --runs-root containers/runs \
+  --ledger containers/runs/attempt-ledger.json \
+  --apply
+```
+
+Preview reports the exact final and superseded counts without changing files.
+Apply writes the ledger before removing superseded tracked copies. Raw outputs,
+SIFs, and logs remain in the study tree. Repeated publication extends the
+ledger and repoints a tool's earlier attempts to its newly admitted final run.
 
 The historical nested result layout (`<tool>/run-<id>`) is accepted for
 admission only. New results use the flat `run-<id>-<tool>` identity so a run is

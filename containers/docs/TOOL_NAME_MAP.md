@@ -9,94 +9,94 @@
 - Tool ID contract: [containers/docs/TOOL_IDS_CONTRACT.md](TOOL_IDS_CONTRACT.md)
 - Tool docs index: [containers/docs/tools/index.md](tools/index.md)
 
-| Tool ID | Expected Binary | Status |
-|---|---|---|
-| `adapterremoval` | `adapterremoval` | `production` |
-| `addeam` | `addeam` | `production` |
-| `alientrimmer` | `alientrimmer` | `production` |
-| `angsd` | `angsd` | `planned` |
-| `atropos` | `atropos` | `production` |
-| `authenticct` | `authenticct` | `production` |
-| `bamtools` | `bamtools` | `production` |
-| `bamutil` | `bamutil` | `experimental` |
-| `bayeshammer` | `bayeshammer` | `production` |
-| `bbduk` | `bbduk` | `production` |
-| `bbmerge` | `bbmerge` | `production` |
-| `bcftools` | `bcftools` | `production` |
-| `beagle` | `beagle` | `experimental` |
-| `bedtools` | `bedtools` | `production` |
-| `bijux_dna` | `bijux-dna` | `production` |
-| `bowtie2` | `bowtie2` | `production` |
-| `bowtie2_build` | `bowtie2-build` | `production` |
-| `bracken` | `bracken` | `experimental` |
-| `bwa` | `bwa` | `production` |
-| `centrifuge` | `centrifuge` | `production` |
-| `clumpify` | `clumpify` | `production` |
-| `contammix` | `contammix` | `production` |
-| `cutadapt` | `cutadapt` | `production` |
-| `dada2` | `dada2` | `production` |
-| `damageprofiler` | `damageprofiler` | `production` |
-| `diamond` | `diamond` | `experimental` |
-| `dustmasker` | `dustmasker` | `experimental` |
-| `eagle` | `eagle` | `experimental` |
-| `eigensoft` | `smartpca` | `experimental` |
-| `fastp` | `fastp` | `production` |
-| `fastq_scan` | `fastq_scan` | `production` |
-| `fastq_screen` | `fastq_screen` | `experimental` |
-| `fastqc` | `fastqc` | `production` |
-| `fastqvalidator` | `fastqvalidator` | `production` |
-| `fastuniq` | `fastuniq` | `unsupported` |
-| `fastx_clipper` | `fastx_clipper` | `production` |
-| `flash2` | `flash2` | `production` |
-| `fqtools` | `fqtools` | `production` |
-| `gatk` | `gatk` | `experimental` |
-| `germline` | `germline` | `experimental` |
-| `glimpse` | `glimpse` | `planned` |
-| `ibdhap` | `ibdhap` | `experimental` |
-| `ibdne` | `ibdne` | `planned` |
-| `ibdseq` | `ibdseq` | `planned` |
-| `impute5` | `impute5` | `unsupported` |
-| `kaiju` | `kaiju` | `production` |
-| `king` | `king` | `production` |
-| `kraken2` | `kraken2` | `production` |
-| `krakenuniq` | `krakenuniq` | `production` |
-| `leehom` | `leehom` | `production` |
-| `lighter` | `lighter` | `production` |
-| `mapdamage2` | `mapdamage2` | `production` |
-| `metaphlan` | `metaphlan` | `experimental` |
-| `minimac4` | `minimac4` | `planned` |
-| `mosdepth` | `mosdepth` | `production` |
-| `multiqc` | `multiqc` | `production` |
-| `musket` | `musket` | `production` |
-| `ngsbriggs` | `ngsbriggs` | `experimental` |
-| `pear` | `pear` | `production` |
-| `picard` | `picard` | `experimental` |
-| `plink` | `plink` | `experimental` |
-| `plink2` | `plink2` | `experimental` |
-| `pmdtools` | `pmdtools` | `production` |
-| `preseq` | `preseq` | `experimental` |
-| `prinseq` | `prinseq++` | `production` |
-| `pydamage` | `pydamage` | `production` |
-| `qualimap` | `qualimap` | `experimental` |
-| `rcorrector` | `rcorrector` | `production` |
-| `rxy` | `rxy` | `production` |
-| `samtools` | `samtools` | `production` |
-| `schmutzi` | `schmutzi` | `production` |
-| `seqfu` | `seqfu` | `production` |
-| `seqkit` | `seqkit` | `production` |
-| `seqkit_stats` | `seqkit_stats` | `production` |
-| `seqprep` | `seqprep` | `experimental` |
-| `seqpurge` | `seqpurge` | `experimental` |
-| `seqtk` | `seqtk` | `production` |
-| `shapeit` | `shapeit` | `planned` |
-| `shapeit5` | `shapeit5` | `production` |
-| `skewer` | `skewer` | `production` |
-| `sortmerna` | `sortmerna` | `production` |
-| `spades` | `spades.py` | `experimental` |
-| `star` | `star` | `production` |
-| `trim_galore` | `trim_galore` | `production` |
-| `trimmomatic` | `trimmomatic` | `production` |
-| `umi_tools` | `umi_tools` | `production` |
-| `verifybamid2` | `verifybamid2` | `production` |
-| `vsearch` | `vsearch` | `production` |
-| `yleaf` | `yleaf` | `production` |
+| Tool ID | Expected Binary | Support disposition | Qualification |
+|---|---|---|---|
+| `adapterremoval` | `adapterremoval` | `retained` | `unverified` |
+| `addeam` | `addeam` | `retained` | `unverified` |
+| `alientrimmer` | `alientrimmer` | `retained` | `unverified` |
+| `angsd` | `angsd` | `unsupported` | `unsupported` |
+| `atropos` | `atropos` | `retained` | `unverified` |
+| `authenticct` | `authenticct` | `retained` | `unverified` |
+| `bamtools` | `bamtools` | `retained` | `unverified` |
+| `bamutil` | `bamutil` | `retained` | `unverified` |
+| `bayeshammer` | `bayeshammer` | `retained` | `unverified` |
+| `bbduk` | `bbduk` | `retained` | `unverified` |
+| `bbmerge` | `bbmerge` | `retained` | `unverified` |
+| `bcftools` | `bcftools` | `retained` | `unverified` |
+| `beagle` | `beagle` | `retained` | `unverified` |
+| `bedtools` | `bedtools` | `retained` | `unverified` |
+| `bijux_dna` | `bijux-dna` | `retained` | `unverified` |
+| `bowtie2` | `bowtie2` | `retained` | `unverified` |
+| `bowtie2_build` | `bowtie2-build` | `retained` | `unverified` |
+| `bracken` | `bracken` | `retained` | `unverified` |
+| `bwa` | `bwa` | `retained` | `unverified` |
+| `centrifuge` | `centrifuge` | `retained` | `unverified` |
+| `clumpify` | `clumpify` | `retained` | `unverified` |
+| `contammix` | `contammix` | `retained` | `unverified` |
+| `cutadapt` | `cutadapt` | `retained` | `unverified` |
+| `dada2` | `dada2` | `retained` | `unverified` |
+| `damageprofiler` | `damageprofiler` | `retained` | `unverified` |
+| `diamond` | `diamond` | `retained` | `unverified` |
+| `dustmasker` | `dustmasker` | `retained` | `unverified` |
+| `eagle` | `eagle` | `retained` | `unverified` |
+| `eigensoft` | `smartpca` | `retained` | `unverified` |
+| `fastp` | `fastp` | `retained` | `unverified` |
+| `fastq_scan` | `fastq_scan` | `retained` | `unverified` |
+| `fastq_screen` | `fastq_screen` | `retained` | `unverified` |
+| `fastqc` | `fastqc` | `retained` | `unverified` |
+| `fastqvalidator` | `fastqvalidator` | `retained` | `unverified` |
+| `fastuniq` | `fastuniq` | `unsupported` | `unsupported` |
+| `fastx_clipper` | `fastx_clipper` | `retained` | `unverified` |
+| `flash2` | `flash2` | `retained` | `unverified` |
+| `fqtools` | `fqtools` | `retained` | `unverified` |
+| `gatk` | `gatk` | `retained` | `unverified` |
+| `germline` | `germline` | `retained` | `unverified` |
+| `glimpse` | `glimpse` | `retained` | `unverified` |
+| `ibdhap` | `ibdhap` | `retained` | `unverified` |
+| `ibdne` | `ibdne` | `retained` | `unverified` |
+| `ibdseq` | `ibdseq` | `retained` | `unverified` |
+| `impute5` | `impute5` | `unsupported` | `unsupported` |
+| `kaiju` | `kaiju` | `retained` | `unverified` |
+| `king` | `king` | `retained` | `unverified` |
+| `kraken2` | `kraken2` | `retained` | `unverified` |
+| `krakenuniq` | `krakenuniq` | `retained` | `unverified` |
+| `leehom` | `leehom` | `retained` | `unverified` |
+| `lighter` | `lighter` | `retained` | `unverified` |
+| `mapdamage2` | `mapdamage2` | `retained` | `unverified` |
+| `metaphlan` | `metaphlan` | `retained` | `unverified` |
+| `minimac4` | `minimac4` | `retained` | `unverified` |
+| `mosdepth` | `mosdepth` | `retained` | `unverified` |
+| `multiqc` | `multiqc` | `retained` | `unverified` |
+| `musket` | `musket` | `retained` | `unverified` |
+| `ngsbriggs` | `ngsbriggs` | `unsupported` | `unsupported` |
+| `pear` | `pear` | `retained` | `unverified` |
+| `picard` | `picard` | `retained` | `unverified` |
+| `plink` | `plink` | `retained` | `unverified` |
+| `plink2` | `plink2` | `retained` | `unverified` |
+| `pmdtools` | `pmdtools` | `retained` | `unverified` |
+| `preseq` | `preseq` | `retained` | `unverified` |
+| `prinseq` | `prinseq++` | `retained` | `unverified` |
+| `pydamage` | `pydamage` | `retained` | `unverified` |
+| `qualimap` | `qualimap` | `retained` | `unverified` |
+| `rcorrector` | `rcorrector` | `retained` | `unverified` |
+| `rxy` | `rxy` | `retained` | `unverified` |
+| `samtools` | `samtools` | `retained` | `unverified` |
+| `schmutzi` | `schmutzi` | `retained` | `unverified` |
+| `seqfu` | `seqfu` | `retained` | `unverified` |
+| `seqkit` | `seqkit` | `retained` | `unverified` |
+| `seqkit_stats` | `seqkit_stats` | `retained` | `unverified` |
+| `seqprep` | `seqprep` | `retained` | `unverified` |
+| `seqpurge` | `seqpurge` | `retained` | `unverified` |
+| `seqtk` | `seqtk` | `retained` | `unverified` |
+| `shapeit` | `shapeit` | `retained` | `unverified` |
+| `shapeit5` | `shapeit5` | `retained` | `unverified` |
+| `skewer` | `skewer` | `retained` | `unverified` |
+| `sortmerna` | `sortmerna` | `retained` | `unverified` |
+| `spades` | `spades.py` | `retained` | `unverified` |
+| `star` | `star` | `retained` | `unverified` |
+| `trim_galore` | `trim_galore` | `retained` | `unverified` |
+| `trimmomatic` | `trimmomatic` | `retained` | `unverified` |
+| `umi_tools` | `umi_tools` | `retained` | `unverified` |
+| `verifybamid2` | `verifybamid2` | `retained` | `unverified` |
+| `vsearch` | `vsearch` | `retained` | `unverified` |
+| `yleaf` | `yleaf` | `retained` | `unverified` |

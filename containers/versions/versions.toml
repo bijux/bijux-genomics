@@ -53,22 +53,24 @@ source_sha256 = "4d8b84bd07b673d0ed41031348f10ca98dd6fa6a4460f9b9668d6f1d4084dfc
 upstream_license = "MIT"
 
 [bayeshammer]
-version = "3.15.5"
+version = "4.2.0"
 source = "https://github.com/ablab/spades"
-date_pinned = "2026-02-12"
-pinned_commit = "896694ce5c7a9050a6ffa9fccc950a4cd9f04363"
+date_pinned = "2026-08-03"
+pinned_commit = "7fee3c1050a732faef8a0d93d70861015a96f44e"
+source_sha256 = "b449f5fa8ba8369981a7ff7a5e266ab4746d9f72abb863ebae1df38c02fb5985"
+upstream_license = "GPL-2.0-only"
 
 [bbduk]
 version = "39.06"
 source = "https://sourceforge.net/projects/bbmap/"
 date_pinned = "2026-02-12"
-pinned_commit = "0000000000000000000000000000000000000000"
+source_sha256 = "61d45bd59a543b90a143c5c7dbfec0ff6163dce54194b8c4b648fb6aac67d42e"
 
 [bbmerge]
 version = "39.06"
 source = "https://sourceforge.net/projects/bbmap/"
 date_pinned = "2026-02-12"
-pinned_commit = "0000000000000000000000000000000000000000"
+source_sha256 = "61d45bd59a543b90a143c5c7dbfec0ff6163dce54194b8c4b648fb6aac67d42e"
 
 [bcftools]
 version = "1.20"
@@ -80,7 +82,6 @@ pinned_commit = "02ee548d77916357dcd3699eab88273acd8f9f7c"
 version = "5.4"
 source = "https://faculty.washington.edu/browning/beagle/beagle.html"
 date_pinned = "2026-02-13"
-status = "experimental"
 upstream_license = "GPL-3.0"
 source_sha256 = "938f0b1ab12385e0686790cef52d7b9491c96c0c1837af5c0d62c9a6576a8956"
 
@@ -152,7 +153,6 @@ pinned_commit = "3be52404124ae294f0eaf2fa622fe8af548bb6ed"
 version = "2.4.1"
 source = "https://github.com/poruloh/Eagle/archive/dec140eefc0eda3b7f02233a3c02361eaeb8227c.tar.gz"
 date_pinned = "2026-08-02"
-status = "production"
 upstream_license = "GPL-3.0-or-later"
 pinned_commit = "dec140eefc0eda3b7f02233a3c02361eaeb8227c"
 source_sha256 = "6ea8f16fb17ca92ebec9cf4ae6b16cccc0ab63f1ca445e6a83b4c16bf4e50255"
@@ -161,7 +161,6 @@ source_sha256 = "6ea8f16fb17ca92ebec9cf4ae6b16cccc0ab63f1ca445e6a83b4c16bf4e5025
 version = "8.0.0"
 source = "https://github.com/DReichLab/EIG"
 date_pinned = "2026-02-13"
-status = "experimental"
 upstream_license = "GPL-2.0"
 pinned_commit = "09ed563fdec05648a66c206ba1fc37a198395cd7"
 source_sha256 = "83207df20d658142c8d3d93db8d2d668b06812a90cc474454d18b62b973ca4c2"
@@ -224,7 +223,6 @@ upstream_license = "GPL-3.0-only"
 version = "1.5.3"
 source = "https://github.com/gusevlab/germline"
 date_pinned = "2026-02-13"
-status = "experimental"
 upstream_license = "Apache-2.0"
 pinned_commit = "f8029fcf469a09a83aa1e0d1fb45769f6dcb3c6d"
 source_sha256 = "42a6e14e003ac6aa5cc5c3b14db4ba355d748c014b0d0a10f0f734dca2bfb991"
@@ -241,7 +239,6 @@ pinned_commit = "c27e90d0f8df6b64c0ecf26af13ad6f112c94a9a"
 version = "3.4"
 source = "https://sites.stat.washington.edu/thompson/Genepi/MORGAN/Morgan.shtml"
 date_pinned = "2026-08-02"
-status = "experimental"
 upstream_license = "LicenseRef-MORGAN-2006"
 source_sha256 = "195a84d877413a83de15a20da45d92d2441303b8373b47727ed2e3ab92dc2e6a"
 
@@ -249,7 +246,6 @@ source_sha256 = "195a84d877413a83de15a20da45d92d2441303b8373b47727ed2e3ab92dc2e6
 version = "23Apr20.ae9"
 source = "https://faculty.washington.edu/browning/ibdne.html"
 date_pinned = "2026-08-02"
-status = "production"
 upstream_license = "Apache-2.0"
 source_sha256 = "b3324ebd74ed69477067e0aec1dd22be56b1bcedbbe72d8757cda28746312665"
 
@@ -257,7 +253,6 @@ source_sha256 = "b3324ebd74ed69477067e0aec1dd22be56b1bcedbbe72d8757cda2874631266
 version = "r1206"
 source = "https://faculty.washington.edu/browning/ibdseq.html"
 date_pinned = "2026-08-02"
-status = "production"
 upstream_license = "Apache-2.0"
 source_sha256 = "a835c7282444d8920109362ca012f9a9ac1eb54665d34fb0ca0380a3e0fed8ec"
 
@@ -265,7 +260,6 @@ source_sha256 = "a835c7282444d8920109362ca012f9a9ac1eb54665d34fb0ca0380a3e0fed8e
 version = "1.2.0"
 source = "https://jmarchini.org/software/#impute-5"
 date_pinned = "2026-02-13"
-status = "unsupported"
 upstream_license = "LicenseRef-Oxford-Academic-Use"
 
 [kaiju]
@@ -300,16 +294,17 @@ source_sha256 = "87cbc83c04b51264b7d986aaf9bf7abaedaa827d1a72f783d4c43b63b3cc95c
 pinned_commit = "fea84b803aefb00b05386d802b5382d7d268f3be"
 
 [lighter]
-version = "1.1.2"
+version = "1.1.3"
 source = "https://github.com/mourisl/Lighter"
-date_pinned = "2026-02-12"
-pinned_commit = "fecf71152ee923033358306264aaed0a693622cd"
+date_pinned = "2026-08-03"
+pinned_commit = "d8621db12352895662404b38a4b61862eaf60f6a"
+source_sha256 = "c8a251c410805f82dad77e40661f0faf14ec82dedb3ff717094ba8ff4ef94465"
+upstream_license = "GPL-3.0"
 
 [mapdamage2]
 version = "2.2.2"
 source = "https://github.com/ginolhac/mapDamage/archive/55518aa83141d8f885ce10751c22113f674e95de.tar.gz"
 date_pinned = "2026-08-02"
-status = "production"
 upstream_license = "MIT"
 pinned_commit = "55518aa83141d8f885ce10751c22113f674e95de"
 source_sha256 = "a7dd300489674eeb72e28c5e99627f73840dd7a74c6efce76c1eaee8e7898c54"
@@ -324,7 +319,6 @@ pinned_commit = "66d5a7ebd21c64c5b6fd6db6a35ff44b820dfbd2"
 version = "4.1.6"
 source = "https://github.com/statgen/Minimac4"
 date_pinned = "2026-08-02"
-status = "production"
 upstream_license = "GPL-3.0-only"
 pinned_commit = "0c4a8d894338809eb257be2a9f4bf37ced0e2a6c"
 source_sha256 = "5f03dc946ae6f98b1116778bfc550872b86e47dceae6bf169d07137a8de5efe3"
@@ -348,21 +342,18 @@ source_sha256 = "991755ce91462b20aaa72fb78daa8b477b9c920ac099d434cef1b96394d099c
 version = "1.1"
 source = "https://sourceforge.net/projects/musket/"
 date_pinned = "2026-08-02"
-pinned_commit = "0000000000000000000000000000000000000000"
 source_sha256 = "306772803ef72e6a7dfdfdf382d0fafa77de0eaa226500b0525940f6b5497aba"
 
 [pear]
 version = "0.9.6"
 source = "https://cme.h-its.org/exelixis/web/software/pear/"
 date_pinned = "2026-08-02"
-pinned_commit = "0000000000000000000000000000000000000000"
 source_sha256 = "f7728371e26a5b46fa928b0f7ae1b552ed6a78815b117ba48ef1af98e96c8e2b"
 
 [plink]
 version = "1.90b7.2"
 source = "https://www.cog-genomics.org/plink/"
 date_pinned = "2026-02-13"
-status = "experimental"
 upstream_license = "GPL-3.0"
 source_sha256 = "1162eca207ecec12b03397a3a9be5eed0527f5d21c173dc24335340ddd191bc3"
 
@@ -370,7 +361,6 @@ source_sha256 = "1162eca207ecec12b03397a3a9be5eed0527f5d21c173dc24335340ddd191bc
 version = "2.00a6"
 source = "https://www.cog-genomics.org/plink/2.0/"
 date_pinned = "2026-02-13"
-status = "experimental"
 upstream_license = "GPL-3.0"
 source_sha256 = "e73d87c395f6eb0f0b2f513f67d55bdb37f8f948d26554f9e4537806e96ca2ec"
 
@@ -379,6 +369,8 @@ version = "0.60"
 source = "https://github.com/pontussk/PMDtools"
 date_pinned = "2026-02-12"
 pinned_commit = "18b5901e93d417ea91fd675b499e401deadfe3c5"
+source_sha256 = "47d49d8ed5c655a95002969677d9b36f068ebc07a9c1d8ebc57d8d72eff98405"
+upstream_license = "GPL-3.0-only"
 
 [prinseq]
 version = "1.2.4"
@@ -398,7 +390,6 @@ source_sha256 = "f049fad925e8418f5ba31e78429fde6cc62ad0ccb9a6ff0a8b739ba894d15d9
 version = "2.3"
 source = "https://bitbucket.org/kokonech/qualimap"
 date_pinned = "2026-08-02"
-pinned_commit = "0000000000000000000000000000000000000000"
 source_sha256 = "2a04dd864b712da30923cce3bc8dfc6ea59612118e8b0ff1a246fe43b8d34c40"
 
 [rcorrector]
@@ -408,10 +399,10 @@ date_pinned = "2026-02-12"
 pinned_commit = "f8915b79363e896409bd9ca56819f56c3f77a47e"
 
 [rxy]
-version = "1.0.0"
+version = "2.0.0"
 source = "https://github.com/bijux/bijux-genomics"
 date_pinned = "2026-08-02"
-source_sha256 = "c241ef8c284b9c8eb764f3be75a63cb433a769d40b3411535e677fbbda32095b"
+source_sha256 = "b22c2db8536eaf7cee68898323c0d58e99b52c89e956b56c0a66568edc37a5e8"
 pinned_commit = ""
 
 [samtools]
@@ -458,7 +449,6 @@ source_sha256 = "2ee4e369ada23e58d6d3bbb4e0ac7a252b2769f24d63fc635ffbbace0f2b3ce
 version = "5.1.1"
 source = "https://github.com/odelaneau/shapeit/archive/c34d4db3e99a2f7e23deb727671ae260901a5886.tar.gz"
 date_pinned = "2026-08-02"
-status = "production"
 upstream_license = "MIT"
 pinned_commit = "c34d4db3e99a2f7e23deb727671ae260901a5886"
 source_sha256 = "dcdad851e86ba01d8ddbf330e426f97c16e40cf64950dfd25d0641f1cd5f61f8"
@@ -473,9 +463,11 @@ upstream_license = "MIT"
 
 [sortmerna]
 version = "4.3.7"
-source = "https://github.com/biocore/sortmerna"
-date_pinned = "2026-02-12"
+source = "https://github.com/sortmerna/sortmerna"
+date_pinned = "2026-08-03"
 pinned_commit = "307e84021ab3561c38fbee2854bef3eba8e6cfda"
+source_sha256 = "1add6d30e2ce3cffd8bc022e5cf359882aa50dcae647bfaef3937132e46a0ab3"
+upstream_license = "GPL-3.0"
 
 [spades]
 version = "4.2.0"
@@ -483,6 +475,7 @@ source = "https://github.com/ablab/spades"
 date_pinned = "2026-08-03"
 pinned_commit = "7fee3c1050a732faef8a0d93d70861015a96f44e"
 source_sha256 = "b449f5fa8ba8369981a7ff7a5e266ab4746d9f72abb863ebae1df38c02fb5985"
+upstream_license = "GPL-2.0-only"
 
 [star]
 version = "2.7.11b"
@@ -498,9 +491,10 @@ pinned_commit = "4edff97d22f3837d42a29e4afbfaeb6e07ffb11b"
 
 [trimmomatic]
 version = "0.39"
-source = "http://www.usadellab.org/cms/uploads/supplementary/Trimmomatic/Trimmomatic-${VERSION_TRIMMOMATIC}.zip"
+source = "https://github.com/usadellab/Trimmomatic/releases/download/v${VERSION_TRIMMOMATIC}/Trimmomatic-${VERSION_TRIMMOMATIC}.zip"
 date_pinned = "2026-02-12"
-source_sha256 = "2f97e3a237378d55c221abfc38e4b11ea232c8a41d511b8b4871f00c0476abca"
+source_sha256 = "2f7a5de11416899e5b38d3131019bc655946f770f9b7df5355d6a36acbcc488c"
+pinned_commit = "e77bb89c70f60cb139393a22e89af47c5c1c69e8"
 
 [umi_tools]
 version = "1.1.6"
@@ -541,13 +535,12 @@ upstream_license = "GPL-3.0-or-later"
 version = "39.06"
 source = "https://sourceforge.net/projects/bbmap/"
 date_pinned = "2026-02-16"
-pinned_commit = "0000000000000000000000000000000000000000"
+source_sha256 = "61d45bd59a543b90a143c5c7dbfec0ff6163dce54194b8c4b648fb6aac67d42e"
 
 [dada2]
 version = "1.30.0"
 source = "https://bioconductor.org/packages/3.18/bioc/html/dada2.html"
 date_pinned = "2026-08-02"
-status = "production"
 upstream_license = "LGPL-2.0-only"
 pinned_commit = "ec87892"
 source_sha256 = "c6653fe77c3d62dd91207bbbf6641ec143fb8a498967e240a97af26de7e27667"
@@ -556,7 +549,6 @@ source_sha256 = "c6653fe77c3d62dd91207bbbf6641ec143fb8a498967e240a97af26de7e2766
 version = "2.1.10"
 source = "https://github.com/bbuchfink/diamond"
 date_pinned = "2026-08-03"
-status = "production"
 upstream_license = "GPL-3.0-or-later"
 pinned_commit = "1130513e06223ffd12c74a11e8e2c967e108a825"
 source_sha256 = "f89f765d5a144546356c167304406b9abdfad46396421cd2d3c74044416afe53"
@@ -565,7 +557,6 @@ source_sha256 = "f89f765d5a144546356c167304406b9abdfad46396421cd2d3c74044416afe5
 version = "2.15.0"
 source = "https://www.ncbi.nlm.nih.gov/books/NBK279690/"
 date_pinned = "2026-08-02"
-status = "production"
 upstream_license = "LicenseRef-NCBI-Public-Domain"
 source_sha256 = "6918c370524c8d44e028bf491e8f245a895e07c66c77b261ce3b38d6058216e0"
 
@@ -573,7 +564,6 @@ source_sha256 = "6918c370524c8d44e028bf491e8f245a895e07c66c77b261ce3b38d6058216e
 version = "1.0.1"
 source = "https://github.com/rpetit3/fastq-scan"
 date_pinned = "2026-08-03"
-status = "production"
 upstream_license = "MIT"
 pinned_commit = "966991c58bd44cbf7644851b7118f7d06146f3c5"
 source_sha256 = "74a665f4550a98bb0565de47cc17772d8372a9777c4dc845b959090363fe778e"
@@ -582,21 +572,20 @@ source_sha256 = "74a665f4550a98bb0565de47cc17772d8372a9777c4dc845b959090363fe778
 version = "1.1"
 source = "https://sourceforge.net/projects/fastuniq/"
 date_pinned = "2026-08-03"
-status = "unsupported"
 upstream_license = "NOASSERTION"
 source_sha256 = "9ebf251566d097226393fb5aa9db30a827e60c7a4bd9f6e06022b4af4cee0eae"
 
 [gatk]
 version = "4.6.2.0"
-source = "https://github.com/broadinstitute/gatk"
-date_pinned = "2026-02-16"
+source = "https://github.com/broadinstitute/gatk/releases/download/4.6.2.0/gatk-4.6.2.0.zip"
+date_pinned = "2026-08-03"
 pinned_commit = "76edc75c26504da94bbaee66584e107e76ee15de"
+source_sha256 = "32d2f90bf13fcb3a8ac765bb2cb8ec1fc9a6cc447055d0156bd1db2092d4e3e8"
 
 [ngsbriggs]
 version = "0.01"
 source = "https://github.com/RAHenriksen/ngsBriggs/archive/ab3b5ae8a388b9b1874dd2854fdec32bd9195f22.tar.gz"
 date_pinned = "2026-08-02"
-status = "production"
 upstream_license = "NOASSERTION"
 pinned_commit = "ab3b5ae8a388b9b1874dd2854fdec32bd9195f22"
 source_sha256 = "afa0d40a8ab85074363cbb6415461504888bb707f04a40ee31b4f632ce629cf7"
@@ -606,12 +595,16 @@ version = "3.3.0"
 source = "https://github.com/broadinstitute/picard"
 date_pinned = "2026-02-16"
 pinned_commit = "63138fc8b7ae33eb0490a8ef707b61befa2f51d4"
+source_sha256 = "58819a7660646b74b34e282f5d4d21c8dbaea22ddeff96e3258755dafa0f86dc"
+upstream_license = "MIT"
 
 [preseq]
 version = "3.2.0"
-source = "https://github.com/smithlabcode/preseq"
-date_pinned = "2026-02-16"
+source = "https://github.com/smithlabcode/preseq/releases/download/v3.2.0/preseq-3.2.0.tar.gz"
+date_pinned = "2026-08-03"
 pinned_commit = "3dc2a7b1a2d3fdadedaeffebdceb29ea88dbd8bb"
+source_sha256 = "95b81c9054e0d651de398585c7e96b807ad98f0bdc541b3e46665febbe2134d9"
+upstream_license = "GPL-3.0-or-later"
 
 [seqfu]
 version = "1.26.0"

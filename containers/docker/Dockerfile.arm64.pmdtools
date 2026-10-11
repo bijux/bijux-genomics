@@ -3,43 +3,48 @@
 #
 # Container definition license: GPL-3.0.
 # Bijux Genomics source code is licensed under Apache-2.0.
-# VERSION_SOURCE: containers/versions/versions.toml
+# VERSION_SOURCE: containers/contracts/catalog.toml
+FROM ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b AS source
+COPY --chmod=0555 containers/contracts/configure-apt-snapshot /usr/local/sbin/bijux-configure-apt-snapshot
+ARG PMDTOOLS_COMMIT=18b5901e93d417ea91fd675b499e401deadfe3c5
+ARG PMDTOOLS_SHA256=47d49d8ed5c655a95002969677d9b36f068ebc07a9c1d8ebc57d8d72eff98405
+RUN /usr/local/sbin/bijux-configure-apt-snapshot && \
+    apt-get install -y --no-install-recommends ca-certificates curl patch && \
+    curl --fail --location --proto '=https' --tlsv1.2 \
+      "https://codeload.github.com/pontussk/PMDtools/tar.gz/${PMDTOOLS_COMMIT}" \
+      --output /opt/pmdtools.tar.gz && \
+    echo "${PMDTOOLS_SHA256}  /opt/pmdtools.tar.gz" | sha256sum --check --strict && \
+    tar --extract --gzip --file /opt/pmdtools.tar.gz --directory /opt
+COPY containers/tools/pmdtools/python3-release-metadata.patch /opt/pmdtools-python3-release-metadata.patch
+RUN patch --directory "/opt/PMDtools-${PMDTOOLS_COMMIT}" --strip=1 \
+      --input /opt/pmdtools-python3-release-metadata.patch && \
+    install -m 0755 "/opt/PMDtools-${PMDTOOLS_COMMIT}/pmdtools.0.60.py" /opt/pmdtools
+
 FROM ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
-ARG OCI_REVISION=unknown
-ARG OCI_CREATED=unknown
+COPY --chmod=0555 containers/contracts/configure-apt-snapshot /usr/local/sbin/bijux-configure-apt-snapshot
+ARG OCI_CREATED=governed-by-build-evidence
 ARG TOOL_VERSION=0.60
-LABEL org.opencontainers.image.source="https://github.com/bijux/bijux-genomics" \
-      org.opencontainers.image.revision="${OCI_REVISION}" \
+LABEL org.opencontainers.image.source="https://github.com/pontussk/PMDtools" \
+      org.opencontainers.image.revision="18b5901e93d417ea91fd675b499e401deadfe3c5" \
       org.opencontainers.image.created="${OCI_CREATED}" \
       org.opencontainers.image.licenses="GPL-3.0" \
       org.opencontainers.image.version="${TOOL_VERSION}"
 LABEL org.opencontainers.image.tool="pmdtools"
-LABEL org.opencontainers.image.title="pmdtools"
+LABEL org.opencontainers.image.title="PMDtools"
 LABEL org.opencontainers.image.base.name="ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b"
 LABEL org.opencontainers.image.base.digest="sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b"
 ENV DEBIAN_FRONTEND=noninteractive
 
-RUN apt-get update -qq && apt-get install -y --no-install-recommends \
-    git python3 python3-lib2to3 ca-certificates && \
-    rm -rf /var/lib/apt/lists/*
+RUN /usr/local/sbin/bijux-configure-apt-snapshot && \
+    apt-get install -y --no-install-recommends python3 samtools && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/* && \
+    useradd --system --uid 65532 --home-dir /work --create-home bijux
+COPY --from=source /opt/pmdtools /usr/local/bin/pmdtools
+RUN pmdtools --version | grep -Fx 'pmdtools v0.60' && \
+    pmdtools --help >/dev/null
 
-RUN git clone --depth 1 https://github.com/pontussk/PMDtools.git /opt/pmdtools && \
-    cd /opt/pmdtools && \
-    git checkout cc91fb8d870eadc4566d0bb3fbbc92fa96cd1363 && \
-    python3 -m lib2to3 -w /opt/pmdtools/pmdtools.0.60.py
-
-RUN cat > /usr/local/bin/pmdtools <<'SH' && chmod +x /usr/local/bin/pmdtools
-#!/bin/sh
-set -eu
-if [ "${1:-}" = "--version" ]; then
-  echo "0.60"
-  exit 0
-fi
-if [ "${1:-}" = "--help" ] || [ $# -eq 0 ]; then
-  exec python3 /opt/pmdtools/pmdtools.0.60.py --help
-fi
-exec python3 /opt/pmdtools/pmdtools.0.60.py "$@"
-SH
-
-ENTRYPOINT ["/usr/local/bin/pmdtools"]
+USER 65532:65532
+WORKDIR /work
+ENTRYPOINT ["pmdtools"]
 CMD ["--help"]

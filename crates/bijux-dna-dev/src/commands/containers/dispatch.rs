@@ -170,20 +170,13 @@ pub(super) fn run_native_container_command(
             ensure_no_args("check-version-deprecations", args)?;
             versioning::check_version_deprecations(workspace)
         }
-        NativeContainerCommandKey::CheckPromotionPolicy => {
-            ensure_no_args("check-promotion-policy", args)?;
-            versioning::check_promotion_policy(workspace)
+        NativeContainerCommandKey::CheckEvidenceQualification => {
+            ensure_no_args("check-evidence-qualification", args)?;
+            contracts::check_evidence_qualification(workspace)
         }
-        NativeContainerCommandKey::CheckPromotionLockIntegrity => {
-            ensure_no_args("check-promotion-lock-integrity", args)?;
-            versioning::check_promotion_lock_integrity(workspace)
-        }
-        NativeContainerCommandKey::Promote => versioning::promote_tool(workspace, args),
-        NativeContainerCommandKey::Demote => versioning::demote_tool(workspace, args),
         NativeContainerCommandKey::DeprecateVersion => {
             versioning::deprecate_version(workspace, args)
         }
-        NativeContainerCommandKey::ToolLifecycle => versioning::tool_lifecycle(workspace, args),
         NativeContainerCommandKey::CheckApptainerCachePolicy => {
             ensure_no_args("check-apptainer-cache-policy", args)?;
             check_apptainer_cache_policy(workspace)
@@ -227,9 +220,9 @@ pub(super) fn run_native_container_command(
             ensure_no_args("check-missing-images", args)?;
             check_missing_images(workspace)
         }
-        NativeContainerCommandKey::CheckNonBijuxSources => {
-            ensure_no_args("check-non-bijux-sources", args)?;
-            check_non_bijux_sources(workspace)
+        NativeContainerCommandKey::CheckUpstreamProvenance => {
+            ensure_no_args("check-upstream-provenance", args)?;
+            check_upstream_provenance(workspace)
         }
         NativeContainerCommandKey::CheckOwners => {
             ensure_no_args("check-owners", args)?;
@@ -253,10 +246,6 @@ pub(super) fn run_native_container_command(
         }
         NativeContainerCommandKey::CheckHpcImageNaming => {
             validation::check_hpc_image_naming(workspace, args)
-        }
-        NativeContainerCommandKey::CheckPlannedActionability => {
-            ensure_no_args("check-planned-actionability", args)?;
-            validation::check_planned_actionability(workspace)
         }
         NativeContainerCommandKey::CheckBijuxTemplateMarkers => {
             ensure_no_args("check-bijux-template-markers", args)?;

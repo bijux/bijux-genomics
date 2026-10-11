@@ -5,9 +5,10 @@
 # Bijux Genomics source code is licensed under Apache-2.0.
 # VERSION_SOURCE: containers/versions/versions.toml
 FROM ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
+COPY --chmod=0555 containers/contracts/configure-apt-snapshot /usr/local/sbin/bijux-configure-apt-snapshot
 ARG OCI_REVISION=unknown
 ARG OCI_CREATED=unknown
-ARG TOOL_VERSION=unknown
+ARG TOOL_VERSION=2.7.11b
 LABEL org.opencontainers.image.source="https://github.com/bijux/bijux-genomics" \
       org.opencontainers.image.revision="${OCI_REVISION}" \
       org.opencontainers.image.created="${OCI_CREATED}" \
@@ -22,7 +23,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 ARG VERSION_STAR=2.7.11b
 ENV VERSION_STAR=${VERSION_STAR}
 
-RUN apt-get update && \
+RUN /usr/local/sbin/bijux-configure-apt-snapshot && \
     apt-get install -y --no-install-recommends \
         wget ca-certificates build-essential \
         zlib1g-dev libbz2-dev xxd && \

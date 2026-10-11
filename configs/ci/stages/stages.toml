@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/**
-# source_commit: 49f670f4bfd6ac79fdadfc69456c693bf9d168e3
+# source_commit: ec348cec5dc7c4054849f3a5e178dbba6bf9738a
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -140,7 +140,7 @@ authenticity_thresholds = ["authenticity_score|warn=<0.2|fail=<0.1"]
 duplication_thresholds = ["duplication_rate|warn=>=0.6|fail=>=0.8"]
 coverage_sufficiency = ["coverage_at_damage_sites>=0.2"]
 sex_kinship_sufficiency = ["not_applicable"]
-tools = ["addeam", "damageprofiler", "mapdamage2", "ngsbriggs", "pmdtools", "pydamage"]
+tools = ["addeam", "damageprofiler", "mapdamage2", "pmdtools", "pydamage"]
 
 [[stages]]
 id = "bam.duplication_metrics"
@@ -200,25 +200,6 @@ sex_kinship_sufficiency = ["not_applicable"]
 tools = ["bamtools", "bedtools", "samtools"]
 
 [[stages]]
-id = "bam.genotyping"
-status = "supported"
-output_kinds = ["json", "tsv"]
-ordering_after = ["bam.recalibration"]
-prerequisites = ["bam.recalibration"]
-resource_memory_gb = 20
-resource_time_minutes = 180
-resource_threads = 12
-sanity_metrics = ["genotype_call_rate"]
-output_size_estimates_mb = ["genotype_report:40"]
-qc_thresholds = ["genotype_call_rate|warn=<0.7|fail=<0.4"]
-contamination_thresholds = ["contamination_estimate|warn=>0.05|fail=>0.2"]
-authenticity_thresholds = ["authenticity_score|warn=<0.2|fail=<0.1"]
-duplication_thresholds = ["duplication_rate|warn=>=0.6|fail=>=0.8"]
-coverage_sufficiency = ["callable_sites>=1000"]
-sex_kinship_sufficiency = ["genotype_loci_covered>=1000"]
-tools = ["angsd"]
-
-[[stages]]
 id = "bam.haplogroups"
 status = "supported"
 output_kinds = ["json"]
@@ -254,7 +235,7 @@ authenticity_thresholds = ["authenticity_score|warn=<0.2|fail=<0.1"]
 duplication_thresholds = ["duplication_rate|warn=>=0.6|fail=>=0.8"]
 coverage_sufficiency = ["shared_markers>=5000"]
 sex_kinship_sufficiency = ["kinship_informative_markers>=5000", "panel_match=true"]
-tools = ["angsd", "king"]
+tools = ["king"]
 
 [[stages]]
 id = "bam.length_filter"
@@ -387,7 +368,7 @@ authenticity_thresholds = ["authenticity_score|warn=<0.2|fail=<0.1"]
 duplication_thresholds = ["duplication_rate|warn=>=0.6|fail=>=0.8"]
 coverage_sufficiency = ["chrX_chrY_covered_sites>=1000"]
 sex_kinship_sufficiency = ["chrY_observed_sites>=100", "chrX_coverage_stable=true"]
-tools = ["angsd", "rxy", "yleaf"]
+tools = ["rxy", "yleaf"]
 
 [[stages]]
 id = "bam.validate"

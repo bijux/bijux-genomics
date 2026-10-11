@@ -7,7 +7,7 @@
 # Tool ID: bijux_dna
 # Version policy: registry_locked
 # Upstream source: https://github.com/bijux/bijux-genomics
-# Build date policy: org.opencontainers.image.created set by release pipeline
+# Build date policy: captured by immutable build evidence
 # Network source policy: NETWORK_SOURCE_VERIFIED_BY_LOCK
 # Runtime UID policy: RUNTIME_UID_SAFE
 #
@@ -18,10 +18,11 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
 %labels
     org.opencontainers.image.source https://github.com/bijux/bijux-genomics
     org.opencontainers.image.title bijux_dna
-    org.opencontainers.image.revision unknown
-    org.opencontainers.image.created unknown
+    org.opencontainers.image.revision governed-by-build-evidence
+    org.opencontainers.image.created governed-by-build-evidence
     org.opencontainers.image.licenses Apache-2.0
     org.opencontainers.image.version 0.1.0
+    io.bijux.tool.version 0.1.0
     org.opencontainers.image.tool bijux_dna
 
 %files

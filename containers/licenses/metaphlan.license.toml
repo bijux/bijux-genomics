@@ -2,8 +2,8 @@
 # owner = bijux-genomics
 tool_id = "metaphlan"
 container_kind = "bijux"
-spdx = "NOASSERTION"
-upstream_license_id = "NOASSERTION"
+spdx = "MIT"
+upstream_license_id = "MIT"
 upstream_url = "https://github.com/biobakery/MetaPhlAn"
 upstream_version = "4.1.1"
 upstream_checksum = "sha256:db3f6105a8466aa493be0acc3a11f0d205a8c8b6b1f6778e95b700ac262dff92"

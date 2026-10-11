@@ -1,0 +1,91 @@
+schema_version: bijux.container.pipeline.v2
+run:
+  id: run-1137
+  campaign: public-ancient-horse-pmd-scoring
+  corpus: ena-prjeb22390-err2112767
+  sample: ERR2112767
+  domain: bam
+  stage: bam.authenticity
+  tool: pmdtools
+  operator: bijan
+  submitted_at_utc: '2026-08-03T07:11:02Z'
+repository:
+  path: /home/bijan/bijux/bijux-genomics-runs/b78cd27c0109b3ab996122fd843662c5cb129ded
+  commit: b78cd27c0109b3ab996122fd843662c5cb129ded
+  clean: true
+image:
+  path: /home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/pmdtools-0.60-linux-amd64-634782e108fe.sif
+  sha256: 634782e108fe1384642b7f5da026b8a628f5f61d35b438333eb64ae688bbb8be
+data:
+  inputs:
+    - id: err2112767_alignment
+      kind: data
+      path: /home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb22390-err2112767/ERR2112767.sorted.bam
+      mount_path: /input/ERR2112767.sorted.bam
+      sha256: 1d9ca843614c66209de4618ba69ecfae236731f9999a1daa48622f061127fe87
+    - id: err2112767_alignment_index
+      kind: data
+      path: /home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb22390-err2112767/ERR2112767.sorted.bam.bai
+      mount_path: /input/ERR2112767.sorted.bam.bai
+      sha256: ab5d07b513a4a3f421a9a82aff5fc5767d41a7333693b67c9258b40a337276a3
+commands:
+  version: [pmdtools, --version]
+  help: [pmdtools, --help]
+  real:
+    - bash
+    - -c
+    - >-
+      set -euo pipefail;
+      samtools view -h /input/ERR2112767.sorted.bam | pmdtools --printDS --stats > /result/pmd-scores.tsv 2> /result/pmd-stats.txt;
+      awk 'NF>=4 {count++; score=$4+0; sum+=score; if (score>0) positive++} END {if (count < 1) exit 2; fraction=positive/count; printf "{\"scored_reads\":%d,\"positive_pmd_reads\":%d,\"positive_pmd_fraction\":%.12f,\"mean_pmd_score\":%.12f}\n", count, positive, fraction, sum/count}' /result/pmd-scores.tsv > /result/metrics.json
+  negative: [pmdtools, --definitely-invalid-option]
+outputs:
+  result_root: /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/run-1137-pmdtools
+  mount_path: /result
+  required_files:
+    - pmd-scores.tsv
+    - pmd-stats.txt
+    - metrics.json
+  collection_rule: required_files_and_metrics
+resources:
+  account: lu2026-2-20
+  partition: lu48
+  cpus: 1
+  memory_mb: 4096
+  walltime: '00:30:00'
+  scratch_mb: 2048
+  retry:
+    max_attempts: 1
+    backoff_seconds: 0
+    retryable_exit_codes: []
+execution:
+  locale: C
+  timezone: UTC
+  runtime_network: false
+  threads: 1
+  random_seed: null
+  cache_policy: cold
+  determinism: deterministic
+dependencies: []
+acceptance:
+  version_regex: '^pmdtools v0[.]60$'
+  negative_exit_nonzero: true
+  metrics:
+    - id: scored_reads
+      path: metrics.json
+      json_pointer: /scored_reads
+      operator: ge
+      expected: 1000
+      unit: reads
+    - id: positive_pmd_fraction_lower_bound
+      path: metrics.json
+      json_pointer: /positive_pmd_fraction
+      operator: ge
+      expected: 0
+      unit: fraction
+    - id: positive_pmd_fraction_upper_bound
+      path: metrics.json
+      json_pointer: /positive_pmd_fraction
+      operator: le
+      expected: 1
+      unit: fraction

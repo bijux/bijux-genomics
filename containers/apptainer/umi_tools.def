@@ -7,7 +7,7 @@
 # Tool ID: umi_tools
 # Version policy: pinned_or_registry_locked
 # Upstream source: see org.opencontainers.image.source label
-# Build date policy: org.opencontainers.image.created set by release pipeline
+# Build date policy: captured by immutable build evidence
 # Network source policy: NETWORK_SOURCE_VERIFIED_BY_LOCK
 # Runtime UID policy: RUNTIME_UID_SAFE
 
@@ -22,11 +22,11 @@ From: python@sha256:dad5b29e3506c35e0fd222736f4d4ef25d21b219acdd73f7bb41d59996ca
     org.opencontainers.image.title UMI-tools
     org.opencontainers.image.licenses Apache-2.0
 
-    org.opencontainers.image.source https://github.com/bijux/bijux-genomics
-    org.opencontainers.image.revision unknown
-    org.opencontainers.image.created unknown
+    org.opencontainers.image.revision 3f2cb4f41e07fe4a6cea3b3389f534bee957176b
+    org.opencontainers.image.created governed-by-build-evidence
     org.opencontainers.image.licenses GPL-3.0
     org.opencontainers.image.version 1.1.6
+    io.bijux.tool.version 1.1.6
     org.opencontainers.image.tool umi_tools
 %environment
     export LC_ALL=C
@@ -72,28 +72,12 @@ From: python@sha256:dad5b29e3506c35e0fd222736f4d4ef25d21b219acdd73f7bb41d59996ca
         pysam
     /opt/umi-tools-venv/bin/pip install --no-cache-dir --no-build-isolation \
         /tmp/umi-tools-src
-    install -m 0755 /opt/umi-tools-venv/bin/umi_tools /usr/local/bin/umi_tools-bin
-
-    # Create a wrapper for stable --version and --help behavior.
-    cat > /usr/local/bin/umi_tools <<'EOF'
-#!/usr/bin/env sh
-set -eu
-
-case "${1:-}" in
-  --version)
-    echo "${VERSION_UMI_TOOLS}"
-    exit 0
-    ;;
-  --help|-h|"")
-    echo "UMI-tools ${VERSION_UMI_TOOLS}"
-    echo "wrapper help: invoke umi_tools subcommands for full functionality"
-    exit 0
-    ;;
-esac
-
-exec /usr/local/bin/umi_tools-bin "$@"
-EOF
-    chmod 0755 /usr/local/bin/umi_tools
+    ln -s /opt/umi-tools-venv/bin/umi_tools /usr/local/bin/umi_tools
+    umi_tools --version > /tmp/umi-tools.version
+    grep -Fx 'UMI-tools version: 1.1.6' /tmp/umi-tools.version
+    umi_tools --help > /tmp/umi-tools.help
+    grep -Fq 'Tools for UMI analyses' /tmp/umi-tools.help
+    rm -f /tmp/umi-tools.version /tmp/umi-tools.help
 
     rm -rf /tmp/umi-tools-src
     rm -rf /var/lib/apt/lists/*
@@ -104,8 +88,14 @@ EOF
         exec umi_tools "$@"
     fi
 
+%test
+    umi_tools --version > /tmp/umi-tools.version
+    grep -Fx 'UMI-tools version: 1.1.6' /tmp/umi-tools.version
+    umi_tools --help > /tmp/umi-tools.help
+    grep -Fq 'Tools for UMI analyses' /tmp/umi-tools.help
+    rm -f /tmp/umi-tools.version /tmp/umi-tools.help
+
 %help
     UMI-tools v1.1.6 installed into /opt/umi-tools-venv (Python 3.9).
     This image clones the upstream Git tag, removes the legacy ez_setup bootstrap from setup.py, preinstalls the governed Python dependencies, and installs the patched source without build isolation.
-    Wrapper: umi_tools
-    Real binary: umi_tools-bin
+    Version and help are provided directly by the upstream executable.

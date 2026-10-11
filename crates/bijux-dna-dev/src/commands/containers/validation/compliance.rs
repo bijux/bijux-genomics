@@ -2,12 +2,12 @@
 
 use super::{
     anyhow, apptainer_def_paths, apptainer_tool_ids, canonical_container_label_keys,
-    docker_tool_ids, dockerfile_paths, env_or_default, env_or_empty, failure_lines, fs,
-    images_metadata, iso_root_path, load_toml, lock_items_by_tool, read_json, read_utf8,
-    registry_tool_rows, success_line, table_array_strings, table_bool, table_string,
-    tool_status_manifest, tool_versions, toolkit_bundles, write_ensure_images_plan_report,
-    write_vuln_hook_report, BTreeMap, BTreeSet, ContainerCommandOutcome, Context, PathBuf, Regex,
-    Result, Utc, WalkDir, Workspace,
+    container_support_summary, docker_tool_ids, dockerfile_paths, env_or_default, env_or_empty,
+    failure_lines, fs, images_metadata, iso_root_path, load_toml, read_json, read_utf8,
+    registry_tool_rows, success_line, table_array_strings, table_string, tool_status_manifest,
+    tool_versions, toolkit_bundles, write_ensure_images_plan_report, write_vuln_hook_report,
+    BTreeMap, BTreeSet, ContainerCommandOutcome, Context, PathBuf, Regex, Result, Utc, WalkDir,
+    Workspace,
 };
 
 pub(in super::super) fn check_tool_name_collision(
@@ -167,12 +167,9 @@ pub(in super::super) fn check_tool_container_coverage(
                 }),
         )
         .collect::<BTreeSet<_>>();
+    let support = container_support_summary(workspace)?;
     let mut errors = Vec::new();
     for row in registry_tool_rows(workspace)? {
-        let status = table_string(&row, "status");
-        if status != "production" || !table_bool(&row, "container") {
-            continue;
-        }
         let tool_id = {
             let id = table_string(&row, "id");
             if id.is_empty() {
@@ -181,6 +178,9 @@ pub(in super::super) fn check_tool_container_coverage(
                 id
             }
         };
+        if support.get(&tool_id).is_none_or(|(disposition, _)| disposition != "retained") {
+            continue;
+        }
         let runtimes = table_array_strings(&row, "runtimes").into_iter().collect::<BTreeSet<_>>();
         let dockerfile = table_string(&row, "dockerfile");
         let apptainer_def = table_string(&row, "apptainer_def");
@@ -248,20 +248,7 @@ pub(in super::super) fn check_toolkit_bundles(
     let images = images_metadata(workspace)?;
     let docker_ids = docker_tool_ids(workspace)?;
     let apptainer_ids = apptainer_tool_ids(workspace);
-    let mut registry = BTreeMap::new();
-    for row in registry_tool_rows(workspace)? {
-        let tool = {
-            let id = table_string(&row, "id");
-            if id.is_empty() {
-                table_string(&row, "tool_id")
-            } else {
-                id
-            }
-        };
-        if !tool.is_empty() {
-            registry.insert(tool, row);
-        }
-    }
+    let support = container_support_summary(workspace)?;
     let mut errors = Vec::new();
     for (bundle_id, spec) in bundles {
         let tools = table_array_strings(&spec, "tools");
@@ -270,10 +257,16 @@ pub(in super::super) fn check_toolkit_bundles(
             continue;
         }
         for tool in tools {
-            let Some(registry_row) = registry.get(&tool) else {
-                errors.push(format!("{bundle_id}: tool '{tool}' missing from registry"));
+            let Some((disposition, _)) = support.get(&tool) else {
+                errors.push(format!("{bundle_id}: tool '{tool}' missing from container catalog"));
                 continue;
             };
+            if disposition != "retained" {
+                errors.push(format!(
+                    "{bundle_id}: tool '{tool}' has unsupported catalog disposition '{disposition}'"
+                ));
+                continue;
+            }
             let Some(image_meta) = images.get(&tool).and_then(toml::Value::as_table) else {
                 errors.push(format!("{bundle_id}: tool '{tool}' missing images.toml metadata"));
                 continue;
@@ -281,20 +274,6 @@ pub(in super::super) fn check_toolkit_bundles(
             if table_string(image_meta, "version").is_empty() {
                 errors
                     .push(format!("{bundle_id}: tool '{tool}' images.toml entry missing version"));
-            }
-            let status = table_string(registry_row, "status");
-            if !matches!(status.as_str(), "production" | "experimental" | "planned") {
-                errors
-                    .push(format!("{bundle_id}: tool '{tool}' has unsupported status '{status}'"));
-                continue;
-            }
-            if status == "planned" {
-                if image_meta.get("enabled").and_then(toml::Value::as_bool) != Some(false) {
-                    errors.push(format!(
-                        "{bundle_id}: planned tool '{tool}' must be enabled=false in images.toml"
-                    ));
-                }
-                continue;
             }
             let mut policy = table_string(image_meta, "shipping_policy");
             let has_apptainer = apptainer_ids.contains(&tool);
@@ -313,22 +292,22 @@ pub(in super::super) fn check_toolkit_bundles(
             match policy.as_str() {
                 "apptainer_only" if !has_apptainer => {
                     errors.push(format!(
-                        "{bundle_id}: production tool '{tool}' requires apptainer container"
+                        "{bundle_id}: retained tool '{tool}' requires apptainer container"
                     ));
                 }
                 "docker_only" if !has_docker => {
                     errors.push(format!(
-                        "{bundle_id}: production tool '{tool}' requires docker container"
+                        "{bundle_id}: retained tool '{tool}' requires docker container"
                     ));
                 }
                 "docker_apptainer" if !(has_apptainer && has_docker) => {
                     errors.push(format!(
-                        "{bundle_id}: production tool '{tool}' requires both docker and apptainer containers"
+                        "{bundle_id}: retained tool '{tool}' requires both docker and apptainer containers"
                     ));
                 }
                 "none" if !(has_apptainer || has_docker) => {
                     errors.push(format!(
-                        "{bundle_id}: production tool '{tool}' has no container definition"
+                        "{bundle_id}: retained tool '{tool}' has no container definition"
                     ));
                 }
                 _ => {}
@@ -445,180 +424,6 @@ pub(in super::super) fn check_hpc_image_naming(
     failure_lines("hpc image naming: FAILED", &errors)
 }
 
-pub(in super::super) fn check_planned_actionability(
-    workspace: &Workspace,
-) -> Result<ContainerCommandOutcome> {
-    let registry =
-        load_toml(&workspace.path("configs/ci/registry/tool_registry_vcf_downstream.toml"))?;
-    let planned_registry_tools = registry
-        .get("tools")
-        .and_then(toml::Value::as_array)
-        .cloned()
-        .unwrap_or_default()
-        .into_iter()
-        .filter_map(|value| value.as_table().cloned())
-        .filter(|row| table_string(row, "status") == "planned")
-        .map(|row| {
-            let tool = table_string(&row, "id");
-            if tool.is_empty() {
-                table_string(&row, "tool_id")
-            } else {
-                tool
-            }
-        })
-        .filter(|tool| !tool.is_empty())
-        .collect::<BTreeSet<_>>();
-    let planned = workspace.path("containers/docs/PLANNED.md");
-    if !planned.exists() {
-        return Ok(ContainerCommandOutcome::failure(
-            "planned actionability: missing containers/docs/PLANNED.md\n",
-        ));
-    }
-    let text = read_utf8(&planned)?;
-    let mut errors = Vec::new();
-    for header in ["| Tool |", "Owner"] {
-        if !text.contains(header) {
-            errors.push(format!("PLANNED.md missing required column/header marker: {header}"));
-        }
-    }
-    let rows = markdown_table_rows(
-        &text,
-        "| Tool | Primary Stage(s) | Shipping Policy | Justification | Owner |",
-    );
-    if rows.is_empty() {
-        errors.push("PLANNED.md has no actionable planned tool rows".to_string());
-    }
-    let mut documented_tools = BTreeSet::new();
-    for row in rows {
-        let cols = row.trim_matches('|').split('|').map(str::trim).collect::<Vec<_>>();
-        if cols.len() < 5 {
-            errors.push(format!("PLANNED.md malformed row: {row}"));
-            continue;
-        }
-        let tool = cols[0].trim_matches('`');
-        let owner = cols[4];
-        documented_tools.insert(tool.to_string());
-        if matches!(owner, "" | "-" | "`-`" | "`\"") {
-            errors.push(format!("{tool}: missing owner"));
-        }
-    }
-    for tool in planned_registry_tools.difference(&documented_tools) {
-        errors.push(format!(
-            "{tool}: planned in configs/ci/registry/tool_registry_vcf_downstream.toml but missing from containers/docs/PLANNED.md"
-        ));
-    }
-    for tool in documented_tools.difference(&planned_registry_tools) {
-        errors.push(format!(
-            "{tool}: documented in containers/docs/PLANNED.md but not planned in configs/ci/registry/tool_registry_vcf_downstream.toml"
-        ));
-    }
-
-    let coverage_rows =
-        markdown_table_rows(&text, "| Tool | Current Container Coverage | Open Gap |");
-    if coverage_rows.is_empty() {
-        errors.push("PLANNED.md has no current container coverage rows".to_string());
-    }
-    let mut coverage_tools = BTreeSet::new();
-    let index_rows =
-        container_index_rows_by_tool(&read_utf8(&workspace.path("containers/docs/index.md"))?);
-    for row in coverage_rows {
-        let cols = row.trim_matches('|').split('|').map(str::trim).collect::<Vec<_>>();
-        if cols.len() < 3 {
-            errors.push(format!("PLANNED.md malformed coverage row: {row}"));
-            continue;
-        }
-        let tool = cols[0].trim_matches('`');
-        let documented_coverage = cols[1];
-        coverage_tools.insert(tool.to_string());
-        let Some((status, apptainer_source, docker_source)) = index_rows.get(tool) else {
-            errors.push(format!(
-                "{tool}: documented in PLANNED.md coverage table but missing from containers/docs/index.md"
-            ));
-            continue;
-        };
-        if status != "planned" {
-            errors.push(format!(
-                "{tool}: PLANNED.md coverage table expects status planned but containers/docs/index.md reports {status}"
-            ));
-        }
-        let expected_coverage =
-            planned_coverage_label(apptainer_source.as_str(), docker_source.as_str());
-        if documented_coverage != expected_coverage {
-            errors.push(format!(
-                "{tool}: PLANNED.md coverage '{documented_coverage}' does not match containers/docs/index.md derived coverage '{expected_coverage}'"
-            ));
-        }
-    }
-    for tool in planned_registry_tools.difference(&coverage_tools) {
-        errors.push(format!(
-            "{tool}: planned in configs/ci/registry/tool_registry_vcf_downstream.toml but missing from PLANNED.md coverage table"
-        ));
-    }
-    for tool in coverage_tools.difference(&planned_registry_tools) {
-        errors.push(format!(
-            "{tool}: documented in PLANNED.md coverage table but not planned in configs/ci/registry/tool_registry_vcf_downstream.toml"
-        ));
-    }
-    if errors.is_empty() {
-        return success_line(format!("planned actionability: OK ({})", documented_tools.len()));
-    }
-    failure_lines("planned actionability: FAILED", &errors)
-}
-
-fn markdown_table_rows(text: &str, header: &str) -> Vec<String> {
-    let mut rows = Vec::new();
-    let mut in_table = false;
-    for line in text.lines() {
-        let trimmed = line.trim();
-        if trimmed == header {
-            in_table = true;
-            continue;
-        }
-        if in_table && trimmed.starts_with("|---") {
-            continue;
-        }
-        if in_table && trimmed.starts_with('|') {
-            rows.push(trimmed.to_string());
-        } else if in_table && trimmed.is_empty() {
-            break;
-        }
-    }
-    rows
-}
-
-fn container_index_rows_by_tool(text: &str) -> BTreeMap<String, (String, String, String)> {
-    let mut rows = BTreeMap::new();
-    for row in markdown_table_rows(text, "| tool_id | status | apptainer_source | docker_source |")
-    {
-        let cols = row.trim_matches('|').split('|').map(str::trim).collect::<Vec<_>>();
-        if cols.len() < 4 {
-            continue;
-        }
-        rows.insert(
-            cols[0].trim_matches('`').to_string(),
-            (
-                cols[1].trim_matches('`').to_string(),
-                cols[2].trim_matches('`').to_string(),
-                cols[3].trim_matches('`').to_string(),
-            ),
-        );
-    }
-    rows
-}
-
-fn planned_coverage_label(apptainer_source: &str, docker_source: &str) -> String {
-    match (apptainer_source, docker_source) {
-        ("bijux", "none") => "bijux apptainer wrapper".to_string(),
-        ("bijux", "arm64" | "arm64+amd64") => "bijux apptainer + docker arm64".to_string(),
-        ("non-bijux", "arm64" | "arm64+amd64") => "non-bijux apptainer + docker arm64".to_string(),
-        ("non-bijux", "none") => "non-bijux apptainer wrapper".to_string(),
-        ("none", "arm64" | "arm64+amd64") => "docker arm64 only".to_string(),
-        _ => {
-            format!("apptainer={apptainer_source}, docker={docker_source}")
-        }
-    }
-}
-
 pub(in super::super) fn check_bijux_template_markers(
     workspace: &Workspace,
 ) -> Result<ContainerCommandOutcome> {
@@ -661,10 +466,10 @@ pub(in super::super) fn check_tool_id_contract(
     let required_headers = [
         "# GENERATED FILE - DO NOT EDIT",
         "# Regenerate with: cargo run -p bijux-dna-dev -- containers run generate-tool-ids",
-        "# format: <tool_id><TAB><status>",
+        "# format: <tool_id><TAB><support_disposition>",
     ];
     let allowed_status =
-        ["production", "experimental", "planned"].into_iter().collect::<BTreeSet<_>>();
+        ["retained", "unsupported", "retired", "excluded"].into_iter().collect::<BTreeSet<_>>();
     let tool_re = Regex::new(r"^[a-z][a-z0-9_]*$")?;
     let docker_ids = docker_tool_ids(workspace)?;
     let apptainer_ids = apptainer_tool_ids(workspace);
@@ -702,15 +507,15 @@ pub(in super::super) fn check_tool_id_contract(
     for (tool_id, status) in status_by_id {
         let ap_count = usize::from(apptainer_ids.contains(&tool_id));
         let docker_count = usize::from(docker_ids.contains(&tool_id));
-        if matches!(status.as_str(), "production" | "experimental") {
+        if status == "retained" {
             if ap_count != 1 {
                 errors.push(format!(
                     "tool '{tool_id}' ({status}) must map to exactly one apptainer def (found {ap_count})"
                 ));
             }
-            if docker_count != 1 {
+            if docker_count > 1 {
                 errors.push(format!(
-                    "tool '{tool_id}' ({status}) must map to exactly one dockerfile (found {docker_count})"
+                    "tool '{tool_id}' ({status}) has ambiguous dockerfiles (found {docker_count})"
                 ));
             }
         } else {
@@ -747,7 +552,7 @@ pub(in super::super) fn check_docker_arch_policy(
     if !text.contains("arm64") {
         errors.push("policy doc must mention arm64 support contract".to_string());
     }
-    for marker in ["build strategy", "publish strategy", "promotion criteria"] {
+    for marker in ["build strategy", "publish strategy", "qualification criteria"] {
         if !text.to_ascii_lowercase().contains(marker) {
             errors.push(format!("policy doc missing required multiarch marker: {marker}"));
         }
@@ -989,6 +794,11 @@ pub(in super::super) fn check_docker_hardening(
         if pipe_shell_re.is_match(&text) {
             errors.push(format!("{rel}: forbidden curl|bash or wget|sh pattern"));
         }
+        if recipe_ignores_build_failure(&text) {
+            errors.push(format!(
+                "{rel}: build commands must not convert failures into successful images"
+            ));
+        }
         let first_from = text
             .lines()
             .find(|line| line.trim().starts_with("FROM "))
@@ -1057,6 +867,16 @@ pub(in super::super) fn check_docker_hardening(
         return success_line("docker hardening: OK");
     }
     failure_lines("docker hardening: failed", &errors)
+}
+
+fn recipe_ignores_build_failure(recipe: &str) -> bool {
+    recipe.lines().any(|line| {
+        let command = line.split('#').next().unwrap_or_default();
+        command.contains("|| true")
+            && ["make ", "make -", "make --", "cmake --build", "cargo build"]
+                .iter()
+                .any(|build| command.contains(build))
+    })
 }
 
 pub(in super::super) fn check_docker_labels(
@@ -1135,57 +955,102 @@ pub(in super::super) fn check_docker_unpinned_apt(
     workspace: &Workspace,
 ) -> Result<ContainerCommandOutcome> {
     let mut errors = Vec::new();
-    let option_re = Regex::new(r"--[a-zA-Z0-9-]+(?:=[^\s]+)?")?;
     for dockerfile in dockerfile_paths(workspace)? {
         let rel = workspace.rel(&dockerfile).display().to_string();
-        for line in read_utf8(&dockerfile)?.lines() {
-            if !line.contains("apt-get install") && !line.contains("apt install") {
-                continue;
-            }
-            let mut segment = if let Some((_, tail)) = line.split_once("apt-get install") {
-                tail.to_string()
-            } else if let Some((_, tail)) = line.split_once("apt install") {
-                tail.to_string()
-            } else {
-                continue;
-            };
-            segment = option_re.replace_all(&segment, " ").into_owned();
-            segment = segment.replace("&&", " ").replace('\\', " ");
-            for token in segment.split_whitespace().filter(|token| !token.is_empty()) {
-                if matches!(
-                    token,
-                    "install"
-                        | "apt-get"
-                        | "apt"
-                        | "update"
-                        | "rm"
-                        | "-rf"
-                        | "/var/lib/apt/lists/*"
-                        | ";"
-                        | "|"
-                ) {
-                    continue;
-                }
-                if token.starts_with('-')
-                    || token.starts_with('$')
-                    || token.starts_with('"')
-                    || token.starts_with('/')
-                {
-                    continue;
-                }
-                if !token.contains('=') {
-                    errors.push(format!("{rel}: unpinned apt package '{token}'"));
-                }
-            }
-        }
+        errors.extend(docker_apt_policy_violations(&rel, &read_utf8(&dockerfile)?)?);
     }
     if errors.is_empty() {
         return success_line("docker apt pin check: OK");
     }
-    Ok(ContainerCommandOutcome::success(format!(
-        "docker apt pin check: WARN\n{}\n",
-        errors.into_iter().map(|error| format!("- {error}")).collect::<Vec<_>>().join("\n")
-    )))
+    failure_lines("docker apt pin check: FAILED", &errors)
+}
+
+fn docker_apt_policy_violations(rel: &str, dockerfile: &str) -> Result<Vec<String>> {
+    let immutable_snapshot_re = Regex::new(
+        r"https://snapshot\.(?:ubuntu\.com/ubuntu|debian\.org/archive/(?:debian|debian-security))/[0-9]{8}T[0-9]{6}Z/?",
+    )?;
+    let apt_install_re = Regex::new(r"\bapt(?:-get)?\b[^;&|]*?\binstall\b")?;
+    let option_re = Regex::new(r"--[a-zA-Z0-9-]+(?:=[^\s]+)?")?;
+    let logical_lines =
+        dockerfile.lines().map(str::trim).fold(Vec::<String>::new(), |mut lines, line| {
+            if let Some(previous) = lines.last_mut().filter(|previous| previous.ends_with('\\')) {
+                previous.pop();
+                previous.push(' ');
+                previous.push_str(line);
+            } else {
+                lines.push(line.to_string());
+            }
+            lines
+        });
+    let governed_helper_source = "containers/contracts/configure-apt-snapshot";
+    let governed_helper_target = "/usr/local/sbin/bijux-configure-apt-snapshot";
+    let mut snapshot_active = false;
+    let mut governed_helper_available = false;
+    let mut errors = Vec::new();
+    if dockerfile.contains("Acquire::https::Verify-Peer=false") {
+        errors.push(format!(
+            "{rel}: disabling apt TLS peer verification is forbidden; use the governed snapshot bootstrap"
+        ));
+    }
+    for instruction in logical_lines {
+        if instruction.starts_with("FROM ") {
+            snapshot_active = false;
+            governed_helper_available = false;
+            continue;
+        }
+        if instruction.starts_with("COPY ")
+            && instruction.contains(governed_helper_source)
+            && instruction.contains(governed_helper_target)
+        {
+            governed_helper_available = true;
+        }
+        let helper_offset = instruction.find(governed_helper_target);
+        if helper_offset.is_some() && !governed_helper_available {
+            errors.push(format!(
+                "{rel}: governed apt snapshot helper is invoked before its canonical source is copied into the build stage"
+            ));
+        }
+        let snapshot_offsets = immutable_snapshot_re
+            .find_iter(&instruction)
+            .map(|matched| matched.start())
+            .collect::<Vec<_>>();
+        for command in apt_install_re.find_iter(&instruction) {
+            let governed_helper_precedes_command = governed_helper_available
+                && helper_offset.is_some_and(|offset| offset < command.start());
+            let snapshot_precedes_command = snapshot_active
+                || governed_helper_precedes_command
+                || snapshot_offsets.iter().any(|offset| *offset < command.start());
+            let tail = &instruction[command.end()..];
+            let end = tail.find("&&").or_else(|| tail.find("||")).or_else(|| tail.find(';'));
+            let package_segment = end.map_or(tail, |index| &tail[..index]);
+            let package_segment = option_re.replace_all(package_segment, " ");
+            let unpinned = package_segment
+                .split_whitespace()
+                .filter(|token| {
+                    !token.is_empty()
+                        && !token.starts_with('-')
+                        && !token.starts_with('$')
+                        && !token.starts_with('"')
+                        && !token.starts_with('/')
+                        && !token.contains('=')
+                })
+                .collect::<Vec<_>>();
+            if !snapshot_precedes_command {
+                errors.extend(unpinned.into_iter().map(|package| {
+                    format!(
+                        "{rel}: apt package '{package}' requires an exact version or an immutable snapshot configured earlier in its build stage"
+                    )
+                }));
+            }
+        }
+        if !snapshot_offsets.is_empty() {
+            snapshot_active = true;
+        }
+        if governed_helper_available && helper_offset.is_some() {
+            snapshot_active = true;
+        }
+    }
+    Ok(errors)
 }
 
 pub(in super::super) fn check_docker_version_sync(
@@ -1223,10 +1088,7 @@ pub(in super::super) fn check_docker_version_sync(
             continue;
         };
         let registry_version = table_string(registry_row, "version");
-        let placeholder =
-            matches!(docker_version.as_str(), "unknown" | "planned" | "latest-pinned")
-                || docker_version.ends_with("-planned");
-        if !placeholder && docker_version != registry_version {
+        if docker_version != registry_version {
             errors.push(format!(
                 "{}: TOOL_VERSION '{docker_version}' != versions.toml '{registry_version}'",
                 workspace.rel(&dockerfile).display()
@@ -1504,7 +1366,7 @@ pub(in super::super) fn check_vuln_hook(workspace: &Workspace) -> Result<Contain
         &workspace.path("artifacts/containers/sbom"),
         &out,
         &env_or_default("TOOLKIT", "fastq_core"),
-        env_or_default("PROMOTED_ONLY", "1") == "1",
+        env_or_default("RETAINED_ONLY", "1") == "1",
     )?;
     if !out.is_file() {
         return Ok(ContainerCommandOutcome::failure(format!(
@@ -1525,25 +1387,22 @@ pub(in super::super) fn check_vuln_hook(workspace: &Workspace) -> Result<Contain
             Some((tool, row))
         })
         .collect::<BTreeMap<_, _>>();
-    let promoted = lock_items_by_tool(workspace)?
+    let retained = container_support_summary(workspace)?
         .into_iter()
-        .filter_map(|(tool, row)| {
-            (row.get("status").and_then(serde_json::Value::as_str) == Some("production"))
-                .then_some(tool)
-        })
+        .filter_map(|(tool, (disposition, _))| (disposition == "retained").then_some(tool))
         .collect::<Vec<_>>();
     if rows.is_empty() && env_or_empty("CI").is_empty() {
         return success_line("vuln hook: SKIP (no local vuln scan items)");
     }
-    let promoted_only = matches!(
-        env_or_default("PROMOTED_ONLY", "1").trim().to_ascii_lowercase().as_str(),
+    let retained_only = matches!(
+        env_or_default("RETAINED_ONLY", "1").trim().to_ascii_lowercase().as_str(),
         "1" | "true" | "yes"
     );
     let mut errors = Vec::new();
-    if promoted_only && !promoted.is_empty() {
-        for tool in promoted {
+    if retained_only && !retained.is_empty() {
+        for tool in retained {
             let Some(row) = rows.get(&tool) else {
-                errors.push(format!("{tool}: missing vuln scan item for promoted tool"));
+                errors.push(format!("{tool}: missing vuln scan item for retained tool"));
                 continue;
             };
             let status = row.get("status").and_then(serde_json::Value::as_str).unwrap_or_default();
@@ -1575,14 +1434,11 @@ pub(in super::super) fn check_sbom_artifacts(
         }
         return success_line("sbom artifacts: SKIP (no artifacts/containers)");
     }
-    let strict_promoted =
-        !env_or_empty("CI").is_empty() || env_or_default("REQUIRE_PROMOTED_SBOM", "0") == "1";
-    let promoted = lock_items_by_tool(workspace)?
+    let strict_retained =
+        !env_or_empty("CI").is_empty() || env_or_default("REQUIRE_RETAINED_SBOM", "0") == "1";
+    let retained = container_support_summary(workspace)?
         .into_iter()
-        .filter_map(|(tool, row)| {
-            (row.get("status").and_then(serde_json::Value::as_str) == Some("production"))
-                .then_some(tool)
-        })
+        .filter_map(|(tool, (disposition, _))| (disposition == "retained").then_some(tool))
         .collect::<BTreeSet<_>>();
     let mut manifests = BTreeMap::<String, Vec<(PathBuf, serde_json::Value)>>::new();
     for path in fs::read_dir(&manifest_root)
@@ -1608,17 +1464,20 @@ pub(in super::super) fn check_sbom_artifacts(
             manifests.entry(tool).or_default().push((path, data));
         }
     }
-    let tools_to_check = if strict_promoted {
-        promoted.iter().cloned().collect::<Vec<_>>()
+    let tools_to_check = if strict_retained {
+        retained.iter().cloned().collect::<Vec<_>>()
     } else {
         let shared =
-            manifests.keys().filter(|tool| promoted.contains(*tool)).cloned().collect::<Vec<_>>();
+            manifests.keys().filter(|tool| retained.contains(*tool)).cloned().collect::<Vec<_>>();
         if shared.is_empty() {
             manifests.keys().cloned().collect::<Vec<_>>()
         } else {
             shared
         }
     };
+    if tools_to_check.is_empty() && !strict_retained {
+        return success_line("sbom artifacts: SKIP (no local build manifests)");
+    }
     let mut seen = 0;
     let mut errors = Vec::new();
     for tool in tools_to_check {
@@ -1692,6 +1551,9 @@ pub(in super::super) fn check_sbom_artifacts(
                 ));
             }
         }
+    }
+    if errors.is_empty() && seen == 0 {
+        return success_line("sbom artifacts: SKIP (no successful local build manifests)");
     }
     if errors.is_empty() {
         return success_line(format!("sbom artifacts: OK ({seen} manifests)"));
@@ -1813,4 +1675,118 @@ pub(in super::super) fn check_smoke_inputs_policy(
         return success_line(format!("smoke-inputs policy: OK ({})", entries.len()));
     }
     failure_lines("smoke-inputs policy: FAILED", &errors)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{docker_apt_policy_violations, recipe_ignores_build_failure};
+
+    #[test]
+    fn hardening_policy_rejects_ignored_build_failures() {
+        assert!(recipe_ignores_build_failure("RUN make -j2 || true"));
+        assert!(recipe_ignores_build_failure("RUN cmake --build build || true"));
+        assert!(!recipe_ignores_build_failure("RUN make -j2"));
+        assert!(!recipe_ignores_build_failure("RUN tool --help >/dev/null 2>&1 || true"));
+    }
+
+    #[test]
+    fn apt_policy_accepts_exact_bootstrap_before_snapshot_activation() {
+        let dockerfile = r"
+FROM ubuntu:24.04
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends ca-certificates=20240203 && \
+    sed -i 's#archive.ubuntu.com#https://snapshot.ubuntu.com/ubuntu/20260802T000000Z/#' /etc/apt/sources.list && \
+    apt-get update && \
+    apt-get install -y curl zlib1g
+";
+
+        let violations = docker_apt_policy_violations("Dockerfile", dockerfile).unwrap();
+
+        assert!(violations.is_empty(), "{violations:?}");
+    }
+
+    #[test]
+    fn apt_policy_accepts_debian_snapshot_packages() {
+        let dockerfile = r"
+FROM debian:bookworm
+RUN sed -i 's#deb.debian.org/debian#https://snapshot.debian.org/archive/debian/20260802T000000Z#' /etc/apt/sources.list && \
+    apt-get update && \
+    apt-get install -y curl zlib1g
+";
+
+        let violations = docker_apt_policy_violations("Dockerfile", dockerfile).unwrap();
+
+        assert!(violations.is_empty(), "{violations:?}");
+    }
+
+    #[test]
+    fn apt_policy_accepts_canonical_snapshot_helper_per_stage() {
+        let dockerfile = r"
+FROM ubuntu:24.04
+COPY --chmod=0555 containers/contracts/configure-apt-snapshot /usr/local/sbin/bijux-configure-apt-snapshot
+RUN /usr/local/sbin/bijux-configure-apt-snapshot && apt-get install -y curl zlib1g
+";
+
+        let violations = docker_apt_policy_violations("Dockerfile", dockerfile).unwrap();
+
+        assert!(violations.is_empty(), "{violations:?}");
+    }
+
+    #[test]
+    fn apt_policy_rejects_uncopied_snapshot_helper() {
+        let dockerfile = r"
+FROM ubuntu:24.04
+RUN /usr/local/sbin/bijux-configure-apt-snapshot && apt-get install -y curl
+";
+
+        let violations = docker_apt_policy_violations("Dockerfile", dockerfile).unwrap();
+
+        assert_eq!(violations.len(), 2);
+        assert!(violations.iter().any(|row| row.contains("before its canonical source")));
+        assert!(violations.iter().any(|row| row.contains("'curl'")));
+    }
+
+    #[test]
+    fn apt_policy_rejects_mutable_unversioned_packages() {
+        let dockerfile = r"
+FROM ubuntu:24.04
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends curl zlib1g
+";
+
+        let violations = docker_apt_policy_violations("Dockerfile", dockerfile).unwrap();
+
+        assert_eq!(violations.len(), 2);
+        assert!(violations.iter().any(|row| row.contains("'curl'")));
+        assert!(violations.iter().any(|row| row.contains("'zlib1g'")));
+    }
+
+    #[test]
+    fn apt_policy_rejects_disabled_tls_verification() {
+        let dockerfile = r"
+FROM ubuntu:24.04
+RUN apt-get -o Acquire::https::Verify-Peer=false update
+";
+
+        let violations = docker_apt_policy_violations("Dockerfile", dockerfile).unwrap();
+
+        assert_eq!(violations.len(), 1);
+        assert!(violations[0].contains("TLS peer verification"));
+    }
+
+    #[test]
+    fn apt_policy_resets_snapshot_authority_between_build_stages() {
+        let dockerfile = r"
+FROM ubuntu:24.04 AS builder
+RUN sed -i 's#archive.ubuntu.com#https://snapshot.ubuntu.com/ubuntu/20260802T000000Z/#' /etc/apt/sources.list && \
+    apt-get update && apt-get install -y build-essential
+FROM ubuntu:24.04
+RUN apt-get update && apt-get install -y zlib1g
+";
+
+        let violations = docker_apt_policy_violations("Dockerfile", dockerfile).unwrap();
+
+        assert_eq!(violations.len(), 1);
+        assert!(violations[0].contains("'zlib1g'"));
+    }
 }

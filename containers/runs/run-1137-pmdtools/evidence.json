@@ -1,0 +1,146 @@
+{
+  "checks": {
+    "help": {
+      "argv": [
+        "pmdtools",
+        "--help"
+      ],
+      "exit_code": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "71d8643bf4980a72d37bca19cb22f228d5656aa469016d673a8753f6284d99ab"
+    },
+    "negative": {
+      "argv": [
+        "pmdtools",
+        "--definitely-invalid-option"
+      ],
+      "exit_code": 2,
+      "stderr_sha256": "88d9d0139ad1e02708424aa51720af36aed00625bd6c07bb9cf3f4942859b7d3",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "real": {
+      "argv": [
+        "bash",
+        "-c",
+        "set -euo pipefail; samtools view -h /input/ERR2112767.sorted.bam | pmdtools --printDS --stats > /result/pmd-scores.tsv 2> /result/pmd-stats.txt; awk 'NF>=4 {count++; score=$4+0; sum+=score; if (score>0) positive++} END {if (count < 1) exit 2; fraction=positive/count; printf \"{\\\"scored_reads\\\":%d,\\\"positive_pmd_reads\\\":%d,\\\"positive_pmd_fraction\\\":%.12f,\\\"mean_pmd_score\\\":%.12f}\\n\", count, positive, fraction, sum/count}' /result/pmd-scores.tsv > /result/metrics.json"
+      ],
+      "exit_code": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "version": {
+      "argv": [
+        "pmdtools",
+        "--version"
+      ],
+      "exit_code": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "b016bbbd706164b41e3343a0834ece218810d5477daf96a0a248fd89fc9f15e8"
+    }
+  },
+  "credential_reference_sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+  "dependencies": [],
+  "execution": {
+    "cache_policy": "cold",
+    "determinism": "deterministic",
+    "locale": "C",
+    "random_seed": null,
+    "runtime_network": false,
+    "threads": 1,
+    "timezone": "UTC"
+  },
+  "failure_class": null,
+  "failures": [],
+  "governance_sha256": "5a48351cddde8a0251584de4bbbf01a524bf5a2ecb2a0c2034b6553a554ec37a",
+  "image": {
+    "path": "/lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/pmdtools-0.60-linux-amd64-634782e108fe.sif",
+    "sha256": "634782e108fe1384642b7f5da026b8a628f5f61d35b438333eb64ae688bbb8be",
+    "size_bytes": 46628864
+  },
+  "inputs": [
+    {
+      "id": "err2112767_alignment",
+      "kind": "data",
+      "mount_path": "/input/ERR2112767.sorted.bam",
+      "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb22390-err2112767/ERR2112767.sorted.bam",
+      "sha256": "1d9ca843614c66209de4618ba69ecfae236731f9999a1daa48622f061127fe87"
+    },
+    {
+      "id": "err2112767_alignment_index",
+      "kind": "data",
+      "mount_path": "/input/ERR2112767.sorted.bam.bai",
+      "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb22390-err2112767/ERR2112767.sorted.bam.bai",
+      "sha256": "ab5d07b513a4a3f421a9a82aff5fc5767d41a7333693b67c9258b40a337276a3"
+    }
+  ],
+  "metrics": [
+    {
+      "expected": 1000,
+      "id": "scored_reads",
+      "json_pointer": "/scored_reads",
+      "observed": 235311,
+      "operator": "ge",
+      "path": "metrics.json",
+      "status": "passed",
+      "unit": "reads"
+    },
+    {
+      "expected": 0,
+      "id": "positive_pmd_fraction_lower_bound",
+      "json_pointer": "/positive_pmd_fraction",
+      "observed": 0.09040376353,
+      "operator": "ge",
+      "path": "metrics.json",
+      "status": "passed",
+      "unit": "fraction"
+    },
+    {
+      "expected": 1,
+      "id": "positive_pmd_fraction_upper_bound",
+      "json_pointer": "/positive_pmd_fraction",
+      "observed": 0.09040376353,
+      "operator": "le",
+      "path": "metrics.json",
+      "status": "passed",
+      "unit": "fraction"
+    }
+  ],
+  "outputs": [
+    {
+      "path": "outputs/pmd-scores.tsv",
+      "sha256": "2e3652f136663b14d8753466b0af9dcc98dc257853acf091c52dae552e67a331",
+      "size_bytes": 19651512
+    },
+    {
+      "path": "outputs/pmd-stats.txt",
+      "sha256": "8ddbaa1af1c6ed7788f9099bcf93c3efb6f347429eeaf8d5224edc8e74cc3a36",
+      "size_bytes": 1000023
+    },
+    {
+      "path": "outputs/metrics.json",
+      "sha256": "9cb8931b358b42d6b8ba3c7f509420593a9a1780cd73e1e312f39dfee8ce1fcc",
+      "size_bytes": 123
+    }
+  ],
+  "pipeline_schema_version": "bijux.container.pipeline.v2",
+  "pipeline_sha256": "84e563806842e1d559020717470628db81e7cc5266a97400e8fdb357ef5a9a3e",
+  "repository_clean": true,
+  "repository_commit": "b78cd27c0109b3ab996122fd843662c5cb129ded",
+  "repository_path": "/home/bijan/bijux/bijux-genomics-runs/b78cd27c0109b3ab996122fd843662c5cb129ded",
+  "run_id": "run-1137",
+  "runtime": {
+    "apptainer_version": "apptainer version 1.5.2-1.el9",
+    "cpus": "1",
+    "finished_at_utc": "2026-08-03T07:12:14.220367+00:00",
+    "host": "cn091",
+    "scratch_path": "/tmp/bijux-genomics-3458721-bPij7T",
+    "slurm_job_id": "3458721",
+    "started_at_utc": "2026-08-03T07:11:44.662598+00:00"
+  },
+  "schema_version": "bijux.container.evidence.v2",
+  "site": {
+    "host": "cn091",
+    "id": "lunarc"
+  },
+  "status": "passed"
+}

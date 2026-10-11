@@ -1,0 +1,951 @@
+{
+  "attempts": [
+    {
+      "evidence_lock_sha256": "605e1b064d8959370d575add48ffff1d8f981af590dfa265cff5330e23f0987b",
+      "execution_status": "failed",
+      "failures": [
+        "real one-sample command failed",
+        "required output is absent or empty: reads.settings",
+        "required output is absent or empty: reads.pair1.truncated.gz",
+        "required output is absent or empty: reads.pair2.truncated.gz"
+      ],
+      "repository_commit": "9a0627180295c5149850a76a5a2e8a72fa0b497d",
+      "run_id": "run-1001",
+      "slurm_job_id": "3457165",
+      "source_file_count": 11,
+      "source_result": "results/container-validation/adapterremoval/run-1001",
+      "superseded_by": "run-1002",
+      "tool": "adapterremoval"
+    },
+    {
+      "evidence_lock_sha256": "727199a349eb85e1866bf4d42cce06686df2b3040a856ba4276c7b6928bbf728",
+      "execution_status": "passed",
+      "failures": [],
+      "repository_commit": "8c93c770b8b1fe41c23f2ee6a47686c9722c16f7",
+      "run_id": "run-1003",
+      "slurm_job_id": "3457577",
+      "source_file_count": 20,
+      "source_result": "results/container-validation/bwa/run-1003",
+      "superseded_by": "run-1004",
+      "tool": "bwa"
+    },
+    {
+      "evidence_lock_sha256": "a89d9b3e31a91e8c1a3f1cd22d3e2c92e77a56a7a5a2c0e36ae2193e2ea8eec3",
+      "execution_status": "failed",
+      "failures": [
+        "version output did not match the catalog contract"
+      ],
+      "repository_commit": "8f34c94a3a9306720d80e02939e2d081f9de6197",
+      "run_id": "run-1005",
+      "slurm_job_id": "3457597",
+      "source_file_count": 16,
+      "source_result": "results/container-validation/samtools/run-1005",
+      "superseded_by": "run-1112",
+      "tool": "samtools"
+    },
+    {
+      "evidence_lock_sha256": "389628cd330cc62700fa4b266205cc25f075f5e6010662a4300d082069a6eca0",
+      "execution_status": "passed",
+      "failures": [],
+      "repository_commit": "a7690273fbf58648d4adf485d7d4037e0f983132",
+      "run_id": "run-1009",
+      "slurm_job_id": "3457603",
+      "source_file_count": 15,
+      "source_result": "results/container-validation/fqtools/run-1009",
+      "superseded_by": "run-1121",
+      "tool": "fqtools"
+    },
+    {
+      "evidence_lock_sha256": "4a2f309945b702dd9ee5ea872e44e065b65873a62863a3e1a7ff44113b811b4b",
+      "execution_status": "passed",
+      "failures": [],
+      "repository_commit": "a7690273fbf58648d4adf485d7d4037e0f983132",
+      "run_id": "run-1010",
+      "slurm_job_id": "3457604",
+      "source_file_count": 15,
+      "source_result": "results/container-validation/fastq_scan/run-1010",
+      "superseded_by": "run-1118",
+      "tool": "fastq_scan"
+    },
+    {
+      "evidence_lock_sha256": "323911c3e31f12438bfad471a6723eca872282de441b38c79cdb6feb76035dbc",
+      "execution_status": "passed",
+      "failures": [],
+      "repository_commit": "a7690273fbf58648d4adf485d7d4037e0f983132",
+      "run_id": "run-1011",
+      "slurm_job_id": "3457606",
+      "source_file_count": 16,
+      "source_result": "results/container-validation/samtools/run-1011",
+      "superseded_by": "run-1112",
+      "tool": "samtools"
+    },
+    {
+      "evidence_lock_sha256": "f88f8b348f634cb3de3b4560eab5f6ee36a3d5c11b994f034dc56fae93250a15",
+      "execution_status": "passed",
+      "failures": [],
+      "repository_commit": "58233a97a6ff6f4523cae1eb9d2b631f297d0520",
+      "run_id": "run-1013",
+      "slurm_job_id": "3457614",
+      "source_file_count": 16,
+      "source_result": "results/container-validation/samtools/run-1013",
+      "superseded_by": "run-1112",
+      "tool": "samtools"
+    },
+    {
+      "evidence_lock_sha256": "4db81effcea931d8fda3a6eeeb3aeff3409b2ac4084b6009676ccfde2a52c5dd",
+      "execution_status": "passed",
+      "failures": [],
+      "repository_commit": "58233a97a6ff6f4523cae1eb9d2b631f297d0520",
+      "run_id": "run-1014",
+      "slurm_job_id": "3457625",
+      "source_file_count": 16,
+      "source_result": "results/container-validation/samtools/run-1014",
+      "superseded_by": "run-1112",
+      "tool": "samtools"
+    },
+    {
+      "evidence_lock_sha256": "43064d22f40a445cf7f70e30b7dfe31d69ead243e66780bb909edcdaf7c64ea9",
+      "execution_status": "failed",
+      "failures": [
+        "real one-sample command failed",
+        "required output is absent or empty: unique_1.fastq",
+        "required output is absent or empty: unique_2.fastq"
+      ],
+      "repository_commit": "953e9a17bcc2ec15b82789a788f8b9301b5d9c56",
+      "run_id": "run-1015",
+      "slurm_job_id": "3457636",
+      "source_file_count": 15,
+      "source_result": "results/container-validation/fastuniq/run-1015",
+      "superseded_by": "run-1023",
+      "tool": "fastuniq"
+    },
+    {
+      "evidence_lock_sha256": "41e6e2ff839a66c6c0068b25310f053d7121d459e4eebdad1c60089f73cae85e",
+      "execution_status": "failed",
+      "failures": [
+        "help command failed"
+      ],
+      "repository_commit": "953e9a17bcc2ec15b82789a788f8b9301b5d9c56",
+      "run_id": "run-1017",
+      "slurm_job_id": "3457638",
+      "source_file_count": 19,
+      "source_result": "results/container-validation/pear/run-1017",
+      "superseded_by": "run-1024",
+      "tool": "pear"
+    },
+    {
+      "evidence_lock_sha256": "a06bf8ee837fa18fdf7101f2b18176fc79a100b5fda5bc8679c03d8d6dd34563",
+      "execution_status": "failed",
+      "failures": [
+        "required output is absent or empty: ERR1021817.read-prefix-100000_1.fastq"
+      ],
+      "repository_commit": "5bb65f0ebeba5f39ff026c0839bcb6e7e900b1f4",
+      "run_id": "run-1019",
+      "slurm_job_id": "3457645",
+      "source_file_count": 16,
+      "source_result": "results/container-validation/fqtools/run-1019",
+      "superseded_by": "run-1121",
+      "tool": "fqtools"
+    },
+    {
+      "evidence_lock_sha256": "d17b04228e2bd2a8458649542a23e39c779e417cf3fb22f68c9dba14ff791052",
+      "execution_status": "failed",
+      "failures": [
+        "required output is absent or empty: ERR1021817.read-prefix-100000_2.fastq"
+      ],
+      "repository_commit": "5bb65f0ebeba5f39ff026c0839bcb6e7e900b1f4",
+      "run_id": "run-1020",
+      "slurm_job_id": "3457646",
+      "source_file_count": 16,
+      "source_result": "results/container-validation/fqtools/run-1020",
+      "superseded_by": "run-1121",
+      "tool": "fqtools"
+    },
+    {
+      "evidence_lock_sha256": "58c2f90db323af824a419b54c11e167db2fcfbef296843025fdfe5c1739bf5dd",
+      "execution_status": "passed",
+      "failures": [],
+      "repository_commit": "5bb65f0ebeba5f39ff026c0839bcb6e7e900b1f4",
+      "run_id": "run-1021",
+      "slurm_job_id": "3457648",
+      "source_file_count": 16,
+      "source_result": "results/container-validation/fqtools/run-1021",
+      "superseded_by": "run-1121",
+      "tool": "fqtools"
+    },
+    {
+      "evidence_lock_sha256": "53fbd69ffdf8bbfbcb5bc759772b2cc119b0ebfaca53b8f8dc34c648c5104482",
+      "execution_status": "passed",
+      "failures": [],
+      "repository_commit": "5bb65f0ebeba5f39ff026c0839bcb6e7e900b1f4",
+      "run_id": "run-1022",
+      "slurm_job_id": "3457649",
+      "source_file_count": 16,
+      "source_result": "results/container-validation/fqtools/run-1022",
+      "superseded_by": "run-1121",
+      "tool": "fqtools"
+    },
+    {
+      "evidence_lock_sha256": "df4c91e64b9589ca997252d2e3d48df41b2c5b0575b4d41b614258436d596e97",
+      "execution_status": "failed",
+      "failures": [
+        "required output is absent or empty: aligned.sorted.bam.bai"
+      ],
+      "repository_commit": "cf74b5cf0843d9f4ffce2d0f7f6d646221756e03",
+      "run_id": "run-1026",
+      "slurm_job_id": "3457656",
+      "source_file_count": 17,
+      "source_result": "results/container-validation/samtools/run-1026",
+      "superseded_by": "run-1112",
+      "tool": "samtools"
+    },
+    {
+      "evidence_lock_sha256": "143e79f2040818bf12fbc2556f9d1c72e15f17c93cbc7674083b8a395ca51f8f",
+      "execution_status": "passed",
+      "failures": [],
+      "repository_commit": "cf74b5cf0843d9f4ffce2d0f7f6d646221756e03",
+      "run_id": "run-1027",
+      "slurm_job_id": "3457657",
+      "source_file_count": 17,
+      "source_result": "results/container-validation/samtools/run-1027",
+      "superseded_by": "run-1112",
+      "tool": "samtools"
+    },
+    {
+      "evidence_lock_sha256": "6d2a1fe2ed877aebcebe7debd0fe3e6df7e609bbd8a788a8a87a24d1d31752ce",
+      "execution_status": "failed",
+      "failures": [
+        "real one-sample command failed"
+      ],
+      "repository_commit": "cf74b5cf0843d9f4ffce2d0f7f6d646221756e03",
+      "run_id": "run-1028",
+      "slurm_job_id": "3457660",
+      "source_file_count": 17,
+      "source_result": "results/container-validation/qualimap/run-1028",
+      "superseded_by": "run-1030",
+      "tool": "qualimap"
+    },
+    {
+      "evidence_lock_sha256": "6dc4a447147ffc2467d0cc82e43696359d425ba305546d5b5059476d046862c9",
+      "execution_status": "failed",
+      "failures": [
+        "real one-sample command failed"
+      ],
+      "repository_commit": "d5592224389e4a41282c88b39afdb12ce1703988",
+      "run_id": "run-1029",
+      "slurm_job_id": "3457664",
+      "source_file_count": 17,
+      "source_result": "results/container-validation/qualimap/run-1029",
+      "superseded_by": "run-1030",
+      "tool": "qualimap"
+    },
+    {
+      "evidence_lock_sha256": "9f34122d64e77384ec85a171345ecdbaecf1c96552e7cb7b52cd014371fb4a26",
+      "execution_status": "incomplete",
+      "failures": [
+        "execution evidence is absent"
+      ],
+      "repository_commit": "c07932e6374fc0ef1511a6341223fd8e0baf226c",
+      "run_id": "run-1032",
+      "slurm_job_id": "",
+      "source_file_count": 3,
+      "source_result": "results/container-validation/eagle/run-1032",
+      "superseded_by": "run-1036",
+      "tool": "eagle"
+    },
+    {
+      "evidence_lock_sha256": "b906cd7e10b6a8bfce61f131cd59e58dc449eb269357b7d0bb2dec94fd59c4d5",
+      "execution_status": "failed",
+      "failures": [
+        "real one-sample command failed",
+        "required output is absent or empty: phased.vcf.gz"
+      ],
+      "repository_commit": "c07932e6374fc0ef1511a6341223fd8e0baf226c",
+      "run_id": "run-1034",
+      "slurm_job_id": "3457724",
+      "source_file_count": 15,
+      "source_result": "results/container-validation/eagle/run-1034",
+      "superseded_by": "run-1036",
+      "tool": "eagle"
+    },
+    {
+      "evidence_lock_sha256": "b524a70dc28ed40e46a37910464b5181c8fea487af87778f58b9cdf84bc9e883",
+      "execution_status": "passed",
+      "failures": [],
+      "repository_commit": "c07932e6374fc0ef1511a6341223fd8e0baf226c",
+      "run_id": "run-1035",
+      "slurm_job_id": "3457731",
+      "source_file_count": 17,
+      "source_result": "results/container-validation/bcftools/run-1035",
+      "superseded_by": "run-1051",
+      "tool": "bcftools"
+    },
+    {
+      "evidence_lock_sha256": "0d1a3b5a800792c7947a13cc3e90d4bc97188200bf6648991d67c012f459b72e",
+      "execution_status": "passed",
+      "failures": [],
+      "repository_commit": "c07932e6374fc0ef1511a6341223fd8e0baf226c",
+      "run_id": "run-1038",
+      "slurm_job_id": "3457765",
+      "source_file_count": 18,
+      "source_result": "results/container-validation/bcftools/run-1038",
+      "superseded_by": "run-1051",
+      "tool": "bcftools"
+    },
+    {
+      "evidence_lock_sha256": "11142298a3c0275b98e9d86ffd0885cb3f64c84e9021e265bd4093b5be8ed5ac",
+      "execution_status": "passed",
+      "failures": [],
+      "repository_commit": "c07932e6374fc0ef1511a6341223fd8e0baf226c",
+      "run_id": "run-1039",
+      "slurm_job_id": "3457774",
+      "source_file_count": 19,
+      "source_result": "results/container-validation/ibdseq/run-1039",
+      "superseded_by": "run-1052",
+      "tool": "ibdseq"
+    },
+    {
+      "evidence_lock_sha256": "736c250ba0b7a2e64fdac0778593da163802ee57a5fd2efb82ff91c0216e2eaf",
+      "execution_status": "failed",
+      "failures": [
+        "real one-sample command failed",
+        "required output is absent or empty: demography.ne",
+        "required output is absent or empty: demography.log"
+      ],
+      "repository_commit": "c07932e6374fc0ef1511a6341223fd8e0baf226c",
+      "run_id": "run-1040",
+      "slurm_job_id": "3457781",
+      "source_file_count": 17,
+      "source_result": "results/container-validation/ibdne/run-1040",
+      "superseded_by": "run-1053",
+      "tool": "ibdne"
+    },
+    {
+      "evidence_lock_sha256": "38bc761c271c88cc52b6da223278b377ec8b682cc3511b8916347a0c6fd8a36f",
+      "execution_status": "failed",
+      "failures": [
+        "real one-sample command failed",
+        "required output is absent or empty: demography.ne",
+        "required output is absent or empty: demography.log"
+      ],
+      "repository_commit": "c07932e6374fc0ef1511a6341223fd8e0baf226c",
+      "run_id": "run-1041",
+      "slurm_job_id": "3457787",
+      "source_file_count": 19,
+      "source_result": "results/container-validation/ibdne/run-1041",
+      "superseded_by": "run-1053",
+      "tool": "ibdne"
+    },
+    {
+      "evidence_lock_sha256": "833628db85bd49147fb3540122e6b1c8b48a1d537a7452e83f2134e03564a003",
+      "execution_status": "failed",
+      "failures": [
+        "real one-sample command failed",
+        "required output is absent or empty: demography.ne",
+        "required output is absent or empty: demography.log"
+      ],
+      "repository_commit": "c07932e6374fc0ef1511a6341223fd8e0baf226c",
+      "run_id": "run-1042",
+      "slurm_job_id": "3457791",
+      "source_file_count": 18,
+      "source_result": "results/container-validation/ibdne/run-1042",
+      "superseded_by": "run-1053",
+      "tool": "ibdne"
+    },
+    {
+      "evidence_lock_sha256": "84887b58ccb287edb0b3735a08af499d5029afb146f9928b912fe1c1358a7d73",
+      "execution_status": "failed",
+      "failures": [
+        "real one-sample command failed",
+        "negative command unexpectedly succeeded",
+        "required output is absent or empty: misincorporation.tsv.gz",
+        "required output is absent or empty: inferred-parameters.txt.gz",
+        "required output is absent or empty: read-lengths.txt.gz"
+      ],
+      "repository_commit": "1ec0802ac10350906532028677026783fe00f940",
+      "run_id": "run-1043",
+      "slurm_job_id": "3457815",
+      "source_file_count": 15,
+      "source_result": "results/container-validation/ngsbriggs/run-1043",
+      "superseded_by": "run-1046",
+      "tool": "ngsbriggs"
+    },
+    {
+      "evidence_lock_sha256": "20fe334cdcff0b292d90203faf6ce764d25d757d0371e80f7ef0a056c46ed6ee",
+      "execution_status": "failed",
+      "failures": [
+        "version output did not match the catalog contract"
+      ],
+      "repository_commit": "1ec0802ac10350906532028677026783fe00f940",
+      "run_id": "run-1044",
+      "slurm_job_id": "3457816",
+      "source_file_count": 16,
+      "source_result": "results/container-validation/samtools/run-1044",
+      "superseded_by": "run-1112",
+      "tool": "samtools"
+    },
+    {
+      "evidence_lock_sha256": "9f757ce4b0f5519aef7b24a8c0da195c1e48510473886a93534c98a9f4481a16",
+      "execution_status": "passed",
+      "failures": [],
+      "repository_commit": "1ec0802ac10350906532028677026783fe00f940",
+      "run_id": "run-1045",
+      "slurm_job_id": "3457817",
+      "source_file_count": 16,
+      "source_result": "results/container-validation/samtools/run-1045",
+      "superseded_by": "run-1112",
+      "tool": "samtools"
+    },
+    {
+      "evidence_lock_sha256": "233ed248041941ee47b0e47415e4d63bab64273b18c4fb997296a8d5ee5bcccd",
+      "execution_status": "failed",
+      "failures": [
+        "real one-sample command failed",
+        "required output is absent or empty: damage.mapdamage2.txt",
+        "required output is absent or empty: mapdamage2-native/5pCtoT_freq.txt",
+        "required output is absent or empty: mapdamage2-native/3pGtoA_freq.txt",
+        "required output is absent or empty: mapdamage2-native/misincorporation.txt"
+      ],
+      "repository_commit": "952aa80a41ce55297b54f290299c378fd9ef7e56",
+      "run_id": "run-1047",
+      "slurm_job_id": "3457852",
+      "source_file_count": 15,
+      "source_result": "results/container-validation/mapdamage2/run-1047",
+      "superseded_by": "run-1050",
+      "tool": "mapdamage2"
+    },
+    {
+      "evidence_lock_sha256": "b66eb6e41eba4054366319a8e98e207410d1c0f8bd80f447a82a34d7b8be44e8",
+      "execution_status": "failed",
+      "failures": [
+        "real one-sample command failed",
+        "required output is absent or empty: damage.mapdamage2.txt",
+        "required output is absent or empty: mapdamage2-native/5pCtoT_freq.txt",
+        "required output is absent or empty: mapdamage2-native/3pGtoA_freq.txt",
+        "required output is absent or empty: mapdamage2-native/misincorporation.txt"
+      ],
+      "repository_commit": "b738b7ea18c6b58e7ff05f03453e20fa89163162",
+      "run_id": "run-1048",
+      "slurm_job_id": "3457858",
+      "source_file_count": 15,
+      "source_result": "results/container-validation/mapdamage2/run-1048",
+      "superseded_by": "run-1050",
+      "tool": "mapdamage2"
+    },
+    {
+      "evidence_lock_sha256": "2a778fdafe6752d7754ed8818f0f871c7e03a3e92dc91b53885fe8c91359cb25",
+      "execution_status": "passed",
+      "failures": [],
+      "repository_commit": "f8db1d4c07f050720797a662b64f202cb52dd933",
+      "run_id": "run-1049",
+      "slurm_job_id": "3457866",
+      "source_file_count": 20,
+      "source_result": "results/container-validation/mapdamage2/run-1049",
+      "superseded_by": "run-1050",
+      "tool": "mapdamage2"
+    },
+    {
+      "evidence_lock_sha256": "f06fb44bfb4fb5ec719549ae7bea2769691a24118ffbbbbacba504cda81bad6f",
+      "execution_status": "passed",
+      "failures": [],
+      "repository_commit": "3151d5ae8139baf2035914c59d3830da3cadf62b",
+      "run_id": "run-1054",
+      "slurm_job_id": "3457877",
+      "source_file_count": 16,
+      "source_result": "results/container-validation/samtools/run-1054",
+      "superseded_by": "run-1112",
+      "tool": "samtools"
+    },
+    {
+      "evidence_lock_sha256": "5e8e781adce46831d113780ece0fc8128d515939b71119c22e6efd1f28720951",
+      "execution_status": "failed",
+      "failures": [
+        "real one-sample command failed",
+        "required output is absent or empty: asv-table.tsv",
+        "required output is absent or empty: asv-sequences.fasta",
+        "required output is absent or empty: taxonomy-ready.fasta",
+        "required output is absent or empty: taxonomy-ready.fastq.gz",
+        "required output is absent or empty: report.json"
+      ],
+      "repository_commit": "0ceb5ad9a96d0852d9fb30933e811b06248d1910",
+      "run_id": "run-1056",
+      "slurm_job_id": "3457890",
+      "source_file_count": 15,
+      "source_result": "results/container-validation/dada2/run-1056",
+      "superseded_by": "run-1060",
+      "tool": "dada2"
+    },
+    {
+      "evidence_lock_sha256": "87f5cc63a654f37f9c944570f258fcbfdd535cefd29214a005d4632d5d02275c",
+      "execution_status": "failed",
+      "failures": [
+        "real one-sample command failed",
+        "required output is absent or empty: asv-table.tsv",
+        "required output is absent or empty: asv-sequences.fasta",
+        "required output is absent or empty: taxonomy-ready.fasta",
+        "required output is absent or empty: taxonomy-ready.fastq.gz",
+        "required output is absent or empty: report.json"
+      ],
+      "repository_commit": "0ceb5ad9a96d0852d9fb30933e811b06248d1910",
+      "run_id": "run-1057",
+      "slurm_job_id": "3457889",
+      "source_file_count": 15,
+      "source_result": "results/container-validation/dada2/run-1057",
+      "superseded_by": "run-1060",
+      "tool": "dada2"
+    },
+    {
+      "evidence_lock_sha256": "1fbc1dce804d570e4ae26d513c242fb62fc769d99fb28c5475dff31b18568fef",
+      "execution_status": "passed",
+      "failures": [],
+      "repository_commit": "0402016c18e5c932e6af6338094bf250cd3ba97b",
+      "run_id": "run-1058",
+      "slurm_job_id": "3457911",
+      "source_file_count": 20,
+      "source_result": "results/container-validation/dada2/run-1058",
+      "superseded_by": "run-1060",
+      "tool": "dada2"
+    },
+    {
+      "evidence_lock_sha256": "965ca0887aad2e4d892c74a93dddb8a0e5ef82f02bd92b52f6e7f3c1607185d2",
+      "execution_status": "failed",
+      "failures": [
+        "real one-sample command failed",
+        "required output is absent or empty: asv-table.tsv",
+        "required output is absent or empty: asv-sequences.fasta",
+        "required output is absent or empty: taxonomy-ready.fasta",
+        "required output is absent or empty: taxonomy-ready.fastq.gz",
+        "required output is absent or empty: report.json"
+      ],
+      "repository_commit": "0402016c18e5c932e6af6338094bf250cd3ba97b",
+      "run_id": "run-1059",
+      "slurm_job_id": "3457912",
+      "source_file_count": 17,
+      "source_result": "results/container-validation/dada2/run-1059",
+      "superseded_by": "run-1060",
+      "tool": "dada2"
+    },
+    {
+      "evidence_lock_sha256": "922d43921ecc9ff2e7fc7875feb80fed7e168846615570990ef1b114578c23ae",
+      "execution_status": "failed",
+      "failures": [
+        "real one-sample command failed",
+        "required output is absent or empty: ibd-state-probabilities.tsv",
+        "required output is absent or empty: haplotype-identifiers.tsv",
+        "required output is absent or empty: metrics.json",
+        "required output is absent or empty: work/analysis.par",
+        "required output is absent or empty: work/markers.dat"
+      ],
+      "repository_commit": "1c4c3ee70a622a6363762f38f5d27a90bbf8d511",
+      "run_id": "run-1061",
+      "slurm_job_id": "3457969",
+      "source_file_count": 15,
+      "source_result": "results/container-validation/ibdhap/run-1061",
+      "superseded_by": "run-1067",
+      "tool": "ibdhap"
+    },
+    {
+      "evidence_lock_sha256": "2e79543b0c412efd58034d421efa5cd33d59f6f52f5ccb5bb87332d79f265ea6",
+      "execution_status": "passed",
+      "failures": [],
+      "repository_commit": "7950bde13673acbf12afd252b278ed185234274c",
+      "run_id": "run-1063",
+      "slurm_job_id": "3457946",
+      "source_file_count": 17,
+      "source_result": "results/container-validation/plink2/run-1063",
+      "superseded_by": "run-1064",
+      "tool": "plink2"
+    },
+    {
+      "evidence_lock_sha256": "04a346f5312daa771bffa1f2140c6bfee667a69c9f8e0185ebf25462ddec5485",
+      "execution_status": "failed",
+      "failures": [
+        "negative command unexpectedly succeeded"
+      ],
+      "repository_commit": "1c4c3ee70a622a6363762f38f5d27a90bbf8d511",
+      "run_id": "run-1065",
+      "slurm_job_id": "3457970",
+      "source_file_count": 17,
+      "source_result": "results/container-validation/germline/run-1065",
+      "superseded_by": "run-1069",
+      "tool": "germline"
+    },
+    {
+      "evidence_lock_sha256": "95f174f13f30ab2a5139754053ad83b106ebefd0e612f0f3f666a047b472d14e",
+      "execution_status": "passed",
+      "failures": [],
+      "repository_commit": "17a6ee7ab1163f07b34a5619cc44b3679e9ccd03",
+      "run_id": "run-1068",
+      "slurm_job_id": "3457993",
+      "source_file_count": 17,
+      "source_result": "results/container-validation/germline/run-1068",
+      "superseded_by": "run-1069",
+      "tool": "germline"
+    },
+    {
+      "evidence_lock_sha256": "138249243cec8e1ee9a5d745f96705812d001bcb9a0f6d431f9f041195a31b6d",
+      "execution_status": "passed",
+      "failures": [],
+      "repository_commit": "db43a6f9c6b724685a5dbaaf4e58c04abef62b9e",
+      "run_id": "run-1078",
+      "slurm_job_id": "3458063",
+      "source_file_count": 20,
+      "source_result": "results/container-validation/flash2/run-1078",
+      "superseded_by": "run-1120",
+      "tool": "flash2"
+    },
+    {
+      "evidence_lock_sha256": "f51b38db13c4bc6017cdd17de96b6e8ef807a37c08f2a17036a15d36e009ed84",
+      "execution_status": "failed",
+      "failures": [
+        "real one-sample command failed",
+        "required output is absent or empty: trimmed.fastq"
+      ],
+      "repository_commit": "2b0acb2c14e60801cd7e94b13dbec2f39799bc82",
+      "run_id": "run-1080",
+      "slurm_job_id": "3458065",
+      "source_file_count": 15,
+      "source_result": "results/container-validation/fastx_clipper/run-1080",
+      "superseded_by": "run-1119",
+      "tool": "fastx_clipper"
+    },
+    {
+      "evidence_lock_sha256": "a7b938b4a3b8cf016e4d8493750dde5b78039d03c77e5aa2dc91508d32e846b8",
+      "execution_status": "passed",
+      "failures": [],
+      "repository_commit": "2b0acb2c14e60801cd7e94b13dbec2f39799bc82",
+      "run_id": "run-1083",
+      "slurm_job_id": "3458067",
+      "source_file_count": 16,
+      "source_result": "results/container-validation/fastx_clipper/run-1083",
+      "superseded_by": "run-1119",
+      "tool": "fastx_clipper"
+    },
+    {
+      "evidence_lock_sha256": "8c57a9672bebe7206dca67800d20654216d68a33c75d2a00e2688decc31c8d14",
+      "execution_status": "failed",
+      "failures": [
+        "negative command unexpectedly succeeded"
+      ],
+      "repository_commit": "d5f7a6cb43a31d13ba77c6582c70512caa051bed",
+      "run_id": "run-1089",
+      "slurm_job_id": "3458074",
+      "source_file_count": 18,
+      "source_result": "results/container-validation/alientrimmer/run-1089",
+      "superseded_by": "run-1091",
+      "tool": "alientrimmer"
+    },
+    {
+      "evidence_lock_sha256": "f536d7381f46ce705d95b56bb25cda03c8afba7d621bb6676b05098059f51c12",
+      "execution_status": "failed",
+      "failures": [
+        "version output did not match the catalog contract"
+      ],
+      "repository_commit": "00f23822e64a47d42396f6c9dc0c567746aa5ba8",
+      "run_id": "run-1090",
+      "slurm_job_id": "3458076",
+      "source_file_count": 16,
+      "source_result": "results/container-validation/samtools/run-1090",
+      "superseded_by": "run-1112",
+      "tool": "samtools"
+    },
+    {
+      "evidence_lock_sha256": "39ffef5947638ba28bb30da1be9a8f5cc6869d6f05ec2ff478d30561b88ae9f1",
+      "execution_status": "passed",
+      "failures": [],
+      "repository_commit": "00f23822e64a47d42396f6c9dc0c567746aa5ba8",
+      "run_id": "run-1092",
+      "slurm_job_id": "3458078",
+      "source_file_count": 16,
+      "source_result": "results/container-validation/samtools/run-1092",
+      "superseded_by": "run-1112",
+      "tool": "samtools"
+    },
+    {
+      "evidence_lock_sha256": "f4fd15f852c18136da2e1880bfef925f16237959fd6ed897838502ef3565139b",
+      "execution_status": "failed",
+      "failures": [
+        "real one-sample command failed",
+        "required output is absent or empty: profile-5p.prof",
+        "required output is absent or empty: profile-3p.prof"
+      ],
+      "repository_commit": "555e96c43b87ad12b9eb057d43cca6a1c08ad4d6",
+      "run_id": "run-1095",
+      "slurm_job_id": "3458116",
+      "source_file_count": 15,
+      "source_result": "results/container-validation/addeam/run-1095",
+      "superseded_by": "run-1096",
+      "tool": "addeam"
+    },
+    {
+      "evidence_lock_sha256": "9ff5a7b6786fcb6f23a9dfb487b3aea91c6cc53ea5c439d1a22b7e1655dc0763",
+      "execution_status": "failed",
+      "failures": [
+        "real one-sample command failed",
+        "required output is absent or empty: trimmed.1.fastq.gz",
+        "required output is absent or empty: trimmed.2.fastq.gz"
+      ],
+      "repository_commit": "e3cd013e0ac489cab7f78dd7d15cb83bb4469086",
+      "run_id": "run-1097",
+      "slurm_job_id": "3458118",
+      "source_file_count": 15,
+      "source_result": "results/container-validation/atropos/run-1097",
+      "superseded_by": "run-1098",
+      "tool": "atropos"
+    },
+    {
+      "evidence_lock_sha256": "f471993fb185243f5bed6cb681dfd7c59095ca53bb61793758d40c05be9e127f",
+      "execution_status": "failed",
+      "failures": [
+        "real one-sample command failed",
+        "required output is absent or empty: viral.abundance.tsv",
+        "required output is absent or empty: viral.bracken-report.tsv"
+      ],
+      "repository_commit": "85cac66cc13746a64b5cdea7d54e411851112cb7",
+      "run_id": "run-1103",
+      "slurm_job_id": "3458125",
+      "source_file_count": 15,
+      "source_result": "results/container-validation/bracken/run-1103",
+      "superseded_by": "run-1104",
+      "tool": "bracken"
+    },
+    {
+      "evidence_lock_sha256": "6c0badcd8a9e6d662810e2c66fa3da219cbfb13168ac414c915db3a38b5b1f02",
+      "execution_status": "passed",
+      "failures": [],
+      "repository_commit": "71bc19ce7b89a7abe7aff3a2ac2058c3067c8468",
+      "run_id": "run-1105",
+      "slurm_job_id": "3458127",
+      "source_file_count": 19,
+      "source_result": "results/container-validation/centrifuge/run-1105",
+      "superseded_by": "run-1106",
+      "tool": "centrifuge"
+    },
+    {
+      "evidence_lock_sha256": "8812bab95b14e14308020c74e93c063841e1b1b95863eec92470337f0e5c16ac",
+      "execution_status": "passed",
+      "failures": [],
+      "repository_commit": "84651657741bfebe8ab25874e95139dcafd3c962",
+      "run_id": "run-1107",
+      "slurm_job_id": "3458129",
+      "source_file_count": 16,
+      "source_result": "results/container-validation/samtools/run-1107",
+      "superseded_by": "run-1112",
+      "tool": "samtools"
+    },
+    {
+      "evidence_lock_sha256": "31e47857af921a6cac607bcbb8468c59482cc9bdf34879123669af2e527a9bf0",
+      "execution_status": "failed",
+      "failures": [
+        "real one-sample command failed",
+        "negative command unexpectedly succeeded",
+        "required output is absent or empty: dmgprof.json"
+      ],
+      "repository_commit": "692c078e4a08607d98bce357900477fcbd3a260d",
+      "run_id": "run-1110",
+      "slurm_job_id": "3458152",
+      "source_file_count": 22,
+      "source_result": "results/container-validation/damageprofiler/run-1110",
+      "superseded_by": "run-1115",
+      "tool": "damageprofiler"
+    },
+    {
+      "evidence_lock_sha256": "a4d5cd451385cb69f2279f577e159955fbd401ee693ea6569fdac88c79b0a63c",
+      "execution_status": "failed",
+      "failures": [
+        "help command failed"
+      ],
+      "repository_commit": "12514022891a719e82c87c8535fc9c40bc56eb6c",
+      "run_id": "run-1111",
+      "slurm_job_id": "3458153",
+      "source_file_count": 16,
+      "source_result": "results/container-validation/samtools/run-1111",
+      "superseded_by": "run-1112",
+      "tool": "samtools"
+    },
+    {
+      "evidence_lock_sha256": "6bf74fb4131ae9ba0b3dd689b5c898b670dc439076ed62489d87f30a1c404a81",
+      "execution_status": "failed",
+      "failures": [
+        "real one-sample command failed"
+      ],
+      "repository_commit": "12514022891a719e82c87c8535fc9c40bc56eb6c",
+      "run_id": "run-1113",
+      "slurm_job_id": "3458155",
+      "source_file_count": 25,
+      "source_result": "results/container-validation/damageprofiler/run-1113",
+      "superseded_by": "run-1115",
+      "tool": "damageprofiler"
+    },
+    {
+      "evidence_lock_sha256": "cffdd9793899a3cb2d0f091c7a811fb03c8b49b77234f52f29c985b205fbf59f",
+      "execution_status": "failed",
+      "failures": [
+        "real one-sample command failed",
+        "required output is absent or empty: DamagePlot_five_prime.svg",
+        "required output is absent or empty: DamagePlot_three_prime.svg"
+      ],
+      "repository_commit": "cb582d90ed023a6cd54d1ee309e0ac404e8927f2",
+      "run_id": "run-1114",
+      "slurm_job_id": "3458159",
+      "source_file_count": 25,
+      "source_result": "results/container-validation/damageprofiler/run-1114",
+      "superseded_by": "run-1115",
+      "tool": "damageprofiler"
+    },
+    {
+      "evidence_lock_sha256": "eaf9abc36d3d9040281220de3dd3cf57b73938517a43aa9de762458a9da70b85",
+      "execution_status": "passed",
+      "failures": [],
+      "repository_commit": "18b311fb90881e765510bcb81dcc7319546997b6",
+      "run_id": "run-1116",
+      "slurm_job_id": "3458166",
+      "source_file_count": 16,
+      "source_result": "results/container-validation/diamond/run-1116",
+      "superseded_by": "run-1117",
+      "tool": "diamond"
+    },
+    {
+      "evidence_lock_sha256": "5a292f1a9c594455d870b8ee9496bd89e1fe859b37bddb7aa0c06a61013c86d5",
+      "execution_status": "failed",
+      "failures": [
+        "Slurm job ended in FAILED with exit code 1:0 before the executor created the run result"
+      ],
+      "repository_commit": "9467d8db6d609815c4ffe1b5c8e4719b2be58b71",
+      "run_id": "run-1122",
+      "slurm_job_id": "3458665",
+      "source_file_count": 9,
+      "source_result": "results/container-validation/run-1122-trim_galore",
+      "superseded_by": "run-1124",
+      "tool": "trim_galore"
+    },
+    {
+      "evidence_lock_sha256": "f63f717bd250775606d022aa47e3c117c77e9d01e342f1904f926e20d8d89140",
+      "execution_status": "failed",
+      "failures": [
+        "Slurm job ended in FAILED with exit code 1:0 before the executor created the run result"
+      ],
+      "repository_commit": "9467d8db6d609815c4ffe1b5c8e4719b2be58b71",
+      "run_id": "run-1123",
+      "slurm_job_id": "3458666",
+      "source_file_count": 9,
+      "source_result": "results/container-validation/run-1123-trimmomatic",
+      "superseded_by": "run-1125",
+      "tool": "trimmomatic"
+    },
+    {
+      "evidence_lock_sha256": "5fe2ecb51554f9038fbe8ecf7a0bd79ee390a7af875a05f22028d094b3d59d43",
+      "execution_status": "failed",
+      "failures": [
+        "real one-sample command failed",
+        "required output is absent or empty: assembly/contigs.fasta",
+        "required output is absent or empty: assembly/scaffolds.fasta",
+        "required output is absent or empty: metrics.json",
+        "metric contig_count cannot be evaluated: metric source is unavailable: /lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/results/container-validation/run-1127-spades/metrics.json: [Errno 2] No such file or directory: '/lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/results/container-validation/run-1127-spades/metrics.json'",
+        "metric assembled_bases cannot be evaluated: metric source is unavailable: /lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/results/container-validation/run-1127-spades/metrics.json: [Errno 2] No such file or directory: '/lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/results/container-validation/run-1127-spades/metrics.json'"
+      ],
+      "repository_commit": "a4c6da8cc4d48e11242c9cdfc8cff80fc5b7c07e",
+      "run_id": "run-1127",
+      "slurm_job_id": "3458678",
+      "source_file_count": 107,
+      "source_result": "results/container-validation/run-1127-spades",
+      "superseded_by": "run-1135",
+      "tool": "spades"
+    },
+    {
+      "evidence_lock_sha256": "c943e5836611589e84f7946f45a2ac4f6c9a38a42e944c106f78db6bd2222f4a",
+      "execution_status": "failed",
+      "failures": [
+        "real one-sample command failed",
+        "required output is absent or empty: multiqc_data/multiqc_data.json",
+        "required output is absent or empty: metrics.json",
+        "metric reported_samples cannot be evaluated: metric source is unavailable: /lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/results/container-validation/run-1128-multiqc/metrics.json: [Errno 2] No such file or directory: '/lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/results/container-validation/run-1128-multiqc/metrics.json'"
+      ],
+      "repository_commit": "07f6e82d85d9495bcb6089f6e8afefc1f061b796",
+      "run_id": "run-1128",
+      "slurm_job_id": "3458677",
+      "source_file_count": 33,
+      "source_result": "results/container-validation/run-1128-multiqc",
+      "superseded_by": "run-1129",
+      "tool": "multiqc"
+    },
+    {
+      "evidence_lock_sha256": "aa16f4dfe73d15f2e3774dd4a95fe506526bbae0b796e7cd2d0b095949793bcd",
+      "execution_status": "failed",
+      "failures": [
+        "real one-sample command failed",
+        "required output is absent or empty: pydamage_results.csv",
+        "required output is absent or empty: metrics.json",
+        "metric analyzed_references cannot be evaluated: metric source is unavailable: /lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/results/container-validation/run-1130-pydamage/metrics.json: [Errno 2] No such file or directory: '/lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/results/container-validation/run-1130-pydamage/metrics.json'",
+        "metric aligned_reads cannot be evaluated: metric source is unavailable: /lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/results/container-validation/run-1130-pydamage/metrics.json: [Errno 2] No such file or directory: '/lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/results/container-validation/run-1130-pydamage/metrics.json'"
+      ],
+      "repository_commit": "07f6e82d85d9495bcb6089f6e8afefc1f061b796",
+      "run_id": "run-1130",
+      "slurm_job_id": "3458683",
+      "source_file_count": 15,
+      "source_result": "results/container-validation/run-1130-pydamage",
+      "superseded_by": "run-1134",
+      "tool": "pydamage"
+    },
+    {
+      "evidence_lock_sha256": "f89053dc937840b207628382355f9fc660666413df9b3368b697a338dde49756",
+      "execution_status": "failed",
+      "failures": [
+        "Slurm job ended in FAILED with exit code 1:0 without completing execution evidence"
+      ],
+      "repository_commit": "07f6e82d85d9495bcb6089f6e8afefc1f061b796",
+      "run_id": "run-1131",
+      "slurm_job_id": "3458689",
+      "source_file_count": 9,
+      "source_result": "results/container-validation/run-1131-pydamage",
+      "superseded_by": "run-1134",
+      "tool": "pydamage"
+    },
+    {
+      "evidence_lock_sha256": "63493057d9171d63bcc27dc626b10c158fb9430b05517a1e2ce065c58776a3dc",
+      "execution_status": "failed",
+      "failures": [
+        "real one-sample command failed",
+        "required output is absent or empty: pydamage_results.csv",
+        "required output is absent or empty: metrics.json",
+        "metric analyzed_references cannot be evaluated: metric source is unavailable: /lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/results/container-validation/run-1132-pydamage/outputs/metrics.json: [Errno 2] No such file or directory: '/lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/results/container-validation/run-1132-pydamage/outputs/metrics.json'",
+        "metric aligned_reads cannot be evaluated: metric source is unavailable: /lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/results/container-validation/run-1132-pydamage/outputs/metrics.json: [Errno 2] No such file or directory: '/lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/results/container-validation/run-1132-pydamage/outputs/metrics.json'"
+      ],
+      "repository_commit": "cba3cd2cba2258845fca9471a660febd39490830",
+      "run_id": "run-1132",
+      "slurm_job_id": "3458694",
+      "source_file_count": 15,
+      "source_result": "results/container-validation/run-1132-pydamage",
+      "superseded_by": "run-1134",
+      "tool": "pydamage"
+    },
+    {
+      "evidence_lock_sha256": "ce5d5169d44de76f01f96951fe6f0610094d48a4034d5a4ef44f5b6e068ea765",
+      "execution_status": "failed",
+      "failures": [
+        "real one-sample command failed",
+        "required output is absent or empty: pydamage/pydamage_results.csv",
+        "required output is absent or empty: metrics.json",
+        "metric analyzed_references cannot be evaluated: metric source is unavailable: /lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/results/container-validation/run-1133-pydamage/outputs/metrics.json: [Errno 2] No such file or directory: '/lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/results/container-validation/run-1133-pydamage/outputs/metrics.json'",
+        "metric aligned_reads cannot be evaluated: metric source is unavailable: /lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/results/container-validation/run-1133-pydamage/outputs/metrics.json: [Errno 2] No such file or directory: '/lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/results/container-validation/run-1133-pydamage/outputs/metrics.json'"
+      ],
+      "repository_commit": "cba3cd2cba2258845fca9471a660febd39490830",
+      "run_id": "run-1133",
+      "slurm_job_id": "3458695",
+      "source_file_count": 15,
+      "source_result": "results/container-validation/run-1133-pydamage",
+      "superseded_by": "run-1134",
+      "tool": "pydamage"
+    }
+  ],
+  "schema_version": "bijux.container.run_attempt_ledger.v1",
+  "summary": {
+    "execution_status": {
+      "failed": 40,
+      "incomplete": 1,
+      "passed": 24
+    },
+    "published_run_count": 70,
+    "superseded_attempt_count": 65
+  }
+}

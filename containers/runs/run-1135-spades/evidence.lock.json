@@ -1,0 +1,690 @@
+{
+  "execution_status": "passed",
+  "failures": [],
+  "image": {
+    "path": "/lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/spades-4.2.0-linux-amd64-1ac426328807.sif",
+    "sha256": "1ac4263288074952b2123c2a85ff84d5b12bc93d4247ebe63e7551f0f9defda8",
+    "size_bytes": 227045376
+  },
+  "repository_commit": "bd9bb1b7244adf096cbc56c23ccba288af21e832",
+  "run_id": "run-1135",
+  "schema_version": "bijux.container.run_evidence_lock.v1",
+  "scientific_status": "not_assessed",
+  "slurm_job_id": "3458698",
+  "source_files": [
+    {
+      "path": "config-credential.yml",
+      "sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+      "size_bytes": 134
+    },
+    {
+      "path": "config-governance.yml",
+      "sha256": "5a48351cddde8a0251584de4bbbf01a524bf5a2ecb2a0c2034b6553a554ec37a",
+      "size_bytes": 424
+    },
+    {
+      "path": "config-pipeline.yml",
+      "sha256": "421be4f8ae22795df48a95fe773754c8502bdc76b05a0ba40a883416b537ac3a",
+      "size_bytes": 2756
+    },
+    {
+      "path": "evidence.json",
+      "sha256": "33d5e97152a371301c59c2c07ba446bf6ba04081063d032911b733e769ac5dd9",
+      "size_bytes": 4739
+    },
+    {
+      "path": "help.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "help.stdout.log",
+      "sha256": "035619d889e93becf56c999b7e8ac0384a25ef79a3458140203afe06fa04d9e3",
+      "size_bytes": 7299
+    },
+    {
+      "path": "negative.stderr.log",
+      "sha256": "210657eb808698361adc08540d36089c02bb40f84d7b3b8d0d0a151339a909bb",
+      "size_bytes": 192
+    },
+    {
+      "path": "negative.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "outputs/assembly/K21/configs/careful_mda_mode.info",
+      "sha256": "483f2c4aa4ae3802f2ded934aade83f9d04b3c5f6aa960ae3bc12010074c2c20",
+      "size_bytes": 564
+    },
+    {
+      "path": "outputs/assembly/K21/configs/careful_mode.info",
+      "sha256": "3cd0b587997f9fcdce311f6790f6fd4a77c51cf9e55cb530226275487c8df1c0",
+      "size_bytes": 633
+    },
+    {
+      "path": "outputs/assembly/K21/configs/config.info",
+      "sha256": "fed4d563cf188b5797a80844fd5e73e1368ac11c4a02a7e4b8ed404c8d0db8a9",
+      "size_bytes": 4935
+    },
+    {
+      "path": "outputs/assembly/K21/configs/construction.info",
+      "sha256": "69aa648ed2022af38e2164bdc84683b6d64ebcc2ff8ce5b4231adfa3b9e5a56b",
+      "size_bytes": 645
+    },
+    {
+      "path": "outputs/assembly/K21/configs/detail_info_printer.info",
+      "sha256": "57d7c4b6af003e8b7f344479e9cf2c45e46cd918ca2b4471a4f29f5fea7b13bd",
+      "size_bytes": 1019
+    },
+    {
+      "path": "outputs/assembly/K21/configs/distance_estimation.info",
+      "sha256": "33061954a588cb3f6305a636c10fd38ee230ac3701452281be959b0b193cfcbf",
+      "size_bytes": 1392
+    },
+    {
+      "path": "outputs/assembly/K21/configs/hmm_mode.info",
+      "sha256": "9701b8baa14340c9a2b13d6637862ca78254eda94600c13a0e243e97157d9aed",
+      "size_bytes": 110
+    },
+    {
+      "path": "outputs/assembly/K21/configs/isolate_mode.info",
+      "sha256": "38f1c362de9b29f7129cb35b751c078b4015a2d90669699815646a7a96ed3b6f",
+      "size_bytes": 44
+    },
+    {
+      "path": "outputs/assembly/K21/configs/large_genome_mode.info",
+      "sha256": "5178e680f7d6ad171f37264b5145dd4181d84d7e504261fbdf7f9c594fd8a780",
+      "size_bytes": 126
+    },
+    {
+      "path": "outputs/assembly/K21/configs/mda_mode.info",
+      "sha256": "b7f8e5f0b7b8bcdb52acfe550ec985dbf8d9a8aeaded91f4fc9ac1a733dec19b",
+      "size_bytes": 1978
+    },
+    {
+      "path": "outputs/assembly/K21/configs/meta_mode.info",
+      "sha256": "acabe1e1ef72f04b42314b103e3ef17fc1903eb55f69d7c22a39490afa02ec10",
+      "size_bytes": 4852
+    },
+    {
+      "path": "outputs/assembly/K21/configs/metaplasmid_mode.info",
+      "sha256": "e6de56fdb9c7914b5bf0101c4b1b8b4ce86c2cc02ecb7407fef3b4c83fd90504",
+      "size_bytes": 45
+    },
+    {
+      "path": "outputs/assembly/K21/configs/metaviral_mode.info",
+      "sha256": "44a1d60a7a13bdc857c32b458fc92ec73faa554c6acddb2f1d3581e9264bc88c",
+      "size_bytes": 1028
+    },
+    {
+      "path": "outputs/assembly/K21/configs/pe_params.info",
+      "sha256": "6e454d8cfa53f4c5e095cbb3f8c56383465dd4c650ed2d3b7c59af6a3f2f89e7",
+      "size_bytes": 4336
+    },
+    {
+      "path": "outputs/assembly/K21/configs/plasmid_mode.info",
+      "sha256": "34e73308a4099e7fa093c2f49460f680cdb4eecfd1b13284581d3261701803b1",
+      "size_bytes": 551
+    },
+    {
+      "path": "outputs/assembly/K21/configs/rna_mode.info",
+      "sha256": "21d5c5e8f14487d0b034137e9ddda0806899a43f6c4a28156e7c00c88db3fa44",
+      "size_bytes": 5063
+    },
+    {
+      "path": "outputs/assembly/K21/configs/rnaviral_mode.info",
+      "sha256": "f2d5067ce64d02e6e7a2e2a9ce3845a4538c6c2976f4652e0b2bb4d5e85c4587",
+      "size_bytes": 636
+    },
+    {
+      "path": "outputs/assembly/K21/configs/sewage_mode.info",
+      "sha256": "8eb926a28cabdeebc08c25ff9718803d35f32bb50e3cc59b7a80f925e3ad0eb2",
+      "size_bytes": 1343
+    },
+    {
+      "path": "outputs/assembly/K21/configs/simplification.info",
+      "sha256": "59891b05e1768584a59ffb6c7e30a4680fdfe953977662576355d6cdd7c89cc5",
+      "size_bytes": 7030
+    },
+    {
+      "path": "outputs/assembly/K21/configs/toy.info",
+      "sha256": "e30674b51b1f31f5873bed0973cde82b010c81ceab0287789be92d11cd847b67",
+      "size_bytes": 43
+    },
+    {
+      "path": "outputs/assembly/K21/final.lib_data",
+      "sha256": "100f0c124a3a391437652581513b47408385157189a5c361560bc789d5c6bd86",
+      "size_bytes": 1277
+    },
+    {
+      "path": "outputs/assembly/K21/simplified_contigs/contigs.off",
+      "sha256": "6f29c052e8a8070fec7b98e1d47c42cdf9bbb8e3b761171ea3cde9d8d91e999f",
+      "size_bytes": 64
+    },
+    {
+      "path": "outputs/assembly/K21/simplified_contigs/contigs.seq",
+      "sha256": "a119f27338dfb5e92df82453e63daa238719a377a219dca53b041646475bdad1",
+      "size_bytes": 21684
+    },
+    {
+      "path": "outputs/assembly/K21/simplified_contigs/contigs_info",
+      "sha256": "3cd28f31abf89755ef4c24ba0ea1575c293d4508adf9cf3b9fe2556348be2b9e",
+      "size_bytes": 40
+    },
+    {
+      "path": "outputs/assembly/K33/configs/careful_mda_mode.info",
+      "sha256": "483f2c4aa4ae3802f2ded934aade83f9d04b3c5f6aa960ae3bc12010074c2c20",
+      "size_bytes": 564
+    },
+    {
+      "path": "outputs/assembly/K33/configs/careful_mode.info",
+      "sha256": "3cd0b587997f9fcdce311f6790f6fd4a77c51cf9e55cb530226275487c8df1c0",
+      "size_bytes": 633
+    },
+    {
+      "path": "outputs/assembly/K33/configs/config.info",
+      "sha256": "700ece296907d9b52264a90b851c8218b93538cf6f105f1b8dc9f5643f982e5c",
+      "size_bytes": 4956
+    },
+    {
+      "path": "outputs/assembly/K33/configs/construction.info",
+      "sha256": "69aa648ed2022af38e2164bdc84683b6d64ebcc2ff8ce5b4231adfa3b9e5a56b",
+      "size_bytes": 645
+    },
+    {
+      "path": "outputs/assembly/K33/configs/detail_info_printer.info",
+      "sha256": "57d7c4b6af003e8b7f344479e9cf2c45e46cd918ca2b4471a4f29f5fea7b13bd",
+      "size_bytes": 1019
+    },
+    {
+      "path": "outputs/assembly/K33/configs/distance_estimation.info",
+      "sha256": "33061954a588cb3f6305a636c10fd38ee230ac3701452281be959b0b193cfcbf",
+      "size_bytes": 1392
+    },
+    {
+      "path": "outputs/assembly/K33/configs/hmm_mode.info",
+      "sha256": "9701b8baa14340c9a2b13d6637862ca78254eda94600c13a0e243e97157d9aed",
+      "size_bytes": 110
+    },
+    {
+      "path": "outputs/assembly/K33/configs/isolate_mode.info",
+      "sha256": "38f1c362de9b29f7129cb35b751c078b4015a2d90669699815646a7a96ed3b6f",
+      "size_bytes": 44
+    },
+    {
+      "path": "outputs/assembly/K33/configs/large_genome_mode.info",
+      "sha256": "5178e680f7d6ad171f37264b5145dd4181d84d7e504261fbdf7f9c594fd8a780",
+      "size_bytes": 126
+    },
+    {
+      "path": "outputs/assembly/K33/configs/mda_mode.info",
+      "sha256": "b7f8e5f0b7b8bcdb52acfe550ec985dbf8d9a8aeaded91f4fc9ac1a733dec19b",
+      "size_bytes": 1978
+    },
+    {
+      "path": "outputs/assembly/K33/configs/meta_mode.info",
+      "sha256": "acabe1e1ef72f04b42314b103e3ef17fc1903eb55f69d7c22a39490afa02ec10",
+      "size_bytes": 4852
+    },
+    {
+      "path": "outputs/assembly/K33/configs/metaplasmid_mode.info",
+      "sha256": "e6de56fdb9c7914b5bf0101c4b1b8b4ce86c2cc02ecb7407fef3b4c83fd90504",
+      "size_bytes": 45
+    },
+    {
+      "path": "outputs/assembly/K33/configs/metaviral_mode.info",
+      "sha256": "44a1d60a7a13bdc857c32b458fc92ec73faa554c6acddb2f1d3581e9264bc88c",
+      "size_bytes": 1028
+    },
+    {
+      "path": "outputs/assembly/K33/configs/pe_params.info",
+      "sha256": "6e454d8cfa53f4c5e095cbb3f8c56383465dd4c650ed2d3b7c59af6a3f2f89e7",
+      "size_bytes": 4336
+    },
+    {
+      "path": "outputs/assembly/K33/configs/plasmid_mode.info",
+      "sha256": "34e73308a4099e7fa093c2f49460f680cdb4eecfd1b13284581d3261701803b1",
+      "size_bytes": 551
+    },
+    {
+      "path": "outputs/assembly/K33/configs/rna_mode.info",
+      "sha256": "21d5c5e8f14487d0b034137e9ddda0806899a43f6c4a28156e7c00c88db3fa44",
+      "size_bytes": 5063
+    },
+    {
+      "path": "outputs/assembly/K33/configs/rnaviral_mode.info",
+      "sha256": "f2d5067ce64d02e6e7a2e2a9ce3845a4538c6c2976f4652e0b2bb4d5e85c4587",
+      "size_bytes": 636
+    },
+    {
+      "path": "outputs/assembly/K33/configs/sewage_mode.info",
+      "sha256": "8eb926a28cabdeebc08c25ff9718803d35f32bb50e3cc59b7a80f925e3ad0eb2",
+      "size_bytes": 1343
+    },
+    {
+      "path": "outputs/assembly/K33/configs/simplification.info",
+      "sha256": "59891b05e1768584a59ffb6c7e30a4680fdfe953977662576355d6cdd7c89cc5",
+      "size_bytes": 7030
+    },
+    {
+      "path": "outputs/assembly/K33/configs/toy.info",
+      "sha256": "e30674b51b1f31f5873bed0973cde82b010c81ceab0287789be92d11cd847b67",
+      "size_bytes": 43
+    },
+    {
+      "path": "outputs/assembly/K33/final.lib_data",
+      "sha256": "fb20ee0af0406e4d216fcb40ea044f05f9ead30bc262888428fcdec7fd053702",
+      "size_bytes": 1277
+    },
+    {
+      "path": "outputs/assembly/K33/simplified_contigs/contigs.off",
+      "sha256": "feb95e18f174524ab5cef3d6f4366e8a10a522793f1254aecaa89329a7a7afc0",
+      "size_bytes": 24
+    },
+    {
+      "path": "outputs/assembly/K33/simplified_contigs/contigs.seq",
+      "sha256": "b5ba3e8037822b70be44c2ee95e9c1719525cc65c5d81898d1fe799349295769",
+      "size_bytes": 10044
+    },
+    {
+      "path": "outputs/assembly/K33/simplified_contigs/contigs_info",
+      "sha256": "8f52769f0a47641e53ada476dbaeb2416ccd60771670a7fdac322c875a2280de",
+      "size_bytes": 40
+    },
+    {
+      "path": "outputs/assembly/K55/assembly_graph.fastg",
+      "sha256": "b7f206cf586bb3ab7828287f58408a40bf6a1f51cf10590cfa6ca3b4c6ce7fcf",
+      "size_bytes": 59379
+    },
+    {
+      "path": "outputs/assembly/K55/assembly_graph_after_simplification.gfa",
+      "sha256": "72cf26a1447d541212f75d0c22f42181bac83e2ba87ff9b9efaf40ebca02ce71",
+      "size_bytes": 24954
+    },
+    {
+      "path": "outputs/assembly/K55/assembly_graph_with_scaffolds.gfa",
+      "sha256": "37b68949afc2697a072e2284286d5e9eaf905e426f66b641725c85dfd23140bb",
+      "size_bytes": 31880
+    },
+    {
+      "path": "outputs/assembly/K55/before_rr.fasta",
+      "sha256": "00a2fc60c686eaa0dc6664f1a05e96c46ebefb6029ca974dc9ae23e9a9c3d2ab",
+      "size_bytes": 22063
+    },
+    {
+      "path": "outputs/assembly/K55/configs/careful_mda_mode.info",
+      "sha256": "483f2c4aa4ae3802f2ded934aade83f9d04b3c5f6aa960ae3bc12010074c2c20",
+      "size_bytes": 564
+    },
+    {
+      "path": "outputs/assembly/K55/configs/careful_mode.info",
+      "sha256": "3cd0b587997f9fcdce311f6790f6fd4a77c51cf9e55cb530226275487c8df1c0",
+      "size_bytes": 633
+    },
+    {
+      "path": "outputs/assembly/K55/configs/config.info",
+      "sha256": "d74fb741013232c821745427dc6f502cd003fe5c88e718f26332cf6f8e9809a9",
+      "size_bytes": 4961
+    },
+    {
+      "path": "outputs/assembly/K55/configs/construction.info",
+      "sha256": "69aa648ed2022af38e2164bdc84683b6d64ebcc2ff8ce5b4231adfa3b9e5a56b",
+      "size_bytes": 645
+    },
+    {
+      "path": "outputs/assembly/K55/configs/detail_info_printer.info",
+      "sha256": "57d7c4b6af003e8b7f344479e9cf2c45e46cd918ca2b4471a4f29f5fea7b13bd",
+      "size_bytes": 1019
+    },
+    {
+      "path": "outputs/assembly/K55/configs/distance_estimation.info",
+      "sha256": "33061954a588cb3f6305a636c10fd38ee230ac3701452281be959b0b193cfcbf",
+      "size_bytes": 1392
+    },
+    {
+      "path": "outputs/assembly/K55/configs/hmm_mode.info",
+      "sha256": "9701b8baa14340c9a2b13d6637862ca78254eda94600c13a0e243e97157d9aed",
+      "size_bytes": 110
+    },
+    {
+      "path": "outputs/assembly/K55/configs/isolate_mode.info",
+      "sha256": "38f1c362de9b29f7129cb35b751c078b4015a2d90669699815646a7a96ed3b6f",
+      "size_bytes": 44
+    },
+    {
+      "path": "outputs/assembly/K55/configs/large_genome_mode.info",
+      "sha256": "5178e680f7d6ad171f37264b5145dd4181d84d7e504261fbdf7f9c594fd8a780",
+      "size_bytes": 126
+    },
+    {
+      "path": "outputs/assembly/K55/configs/mda_mode.info",
+      "sha256": "b7f8e5f0b7b8bcdb52acfe550ec985dbf8d9a8aeaded91f4fc9ac1a733dec19b",
+      "size_bytes": 1978
+    },
+    {
+      "path": "outputs/assembly/K55/configs/meta_mode.info",
+      "sha256": "acabe1e1ef72f04b42314b103e3ef17fc1903eb55f69d7c22a39490afa02ec10",
+      "size_bytes": 4852
+    },
+    {
+      "path": "outputs/assembly/K55/configs/metaplasmid_mode.info",
+      "sha256": "e6de56fdb9c7914b5bf0101c4b1b8b4ce86c2cc02ecb7407fef3b4c83fd90504",
+      "size_bytes": 45
+    },
+    {
+      "path": "outputs/assembly/K55/configs/metaviral_mode.info",
+      "sha256": "44a1d60a7a13bdc857c32b458fc92ec73faa554c6acddb2f1d3581e9264bc88c",
+      "size_bytes": 1028
+    },
+    {
+      "path": "outputs/assembly/K55/configs/pe_params.info",
+      "sha256": "6e454d8cfa53f4c5e095cbb3f8c56383465dd4c650ed2d3b7c59af6a3f2f89e7",
+      "size_bytes": 4336
+    },
+    {
+      "path": "outputs/assembly/K55/configs/plasmid_mode.info",
+      "sha256": "34e73308a4099e7fa093c2f49460f680cdb4eecfd1b13284581d3261701803b1",
+      "size_bytes": 551
+    },
+    {
+      "path": "outputs/assembly/K55/configs/rna_mode.info",
+      "sha256": "21d5c5e8f14487d0b034137e9ddda0806899a43f6c4a28156e7c00c88db3fa44",
+      "size_bytes": 5063
+    },
+    {
+      "path": "outputs/assembly/K55/configs/rnaviral_mode.info",
+      "sha256": "f2d5067ce64d02e6e7a2e2a9ce3845a4538c6c2976f4652e0b2bb4d5e85c4587",
+      "size_bytes": 636
+    },
+    {
+      "path": "outputs/assembly/K55/configs/sewage_mode.info",
+      "sha256": "8eb926a28cabdeebc08c25ff9718803d35f32bb50e3cc59b7a80f925e3ad0eb2",
+      "size_bytes": 1343
+    },
+    {
+      "path": "outputs/assembly/K55/configs/simplification.info",
+      "sha256": "59891b05e1768584a59ffb6c7e30a4680fdfe953977662576355d6cdd7c89cc5",
+      "size_bytes": 7030
+    },
+    {
+      "path": "outputs/assembly/K55/configs/toy.info",
+      "sha256": "e30674b51b1f31f5873bed0973cde82b010c81ceab0287789be92d11cd847b67",
+      "size_bytes": 43
+    },
+    {
+      "path": "outputs/assembly/K55/final.lib_data",
+      "sha256": "f951ce17bf91ba007a904ac964388d46754fc3464172f6bbd3d698ca9cca8622",
+      "size_bytes": 2019
+    },
+    {
+      "path": "outputs/assembly/K55/final_contigs.fasta",
+      "sha256": "fe751fca08ad042a7056d9a244d17c81a93a6f568656f3c7ae2ac9f046e5a405",
+      "size_bytes": 22063
+    },
+    {
+      "path": "outputs/assembly/K55/final_contigs.paths",
+      "sha256": "d5f4912086672c6c92fc76e79f7c5e901627cbcd76881f2cf8ba7ded3c6e0b0f",
+      "size_bytes": 12725
+    },
+    {
+      "path": "outputs/assembly/K55/first_pe_contigs.fasta",
+      "sha256": "73f69a098ea64ccb203473058e4434b133e32d8582efc39abfc8adbda61053c6",
+      "size_bytes": 200261
+    },
+    {
+      "path": "outputs/assembly/K55/scaffolds.fasta",
+      "sha256": "fe751fca08ad042a7056d9a244d17c81a93a6f568656f3c7ae2ac9f046e5a405",
+      "size_bytes": 22063
+    },
+    {
+      "path": "outputs/assembly/K55/scaffolds.paths",
+      "sha256": "d5f4912086672c6c92fc76e79f7c5e901627cbcd76881f2cf8ba7ded3c6e0b0f",
+      "size_bytes": 12725
+    },
+    {
+      "path": "outputs/assembly/K55/strain_graph.gfa",
+      "sha256": "337ab88779487abf3a5e1f32c4ac35c6881ed1b962f9f65b07a8de4f9954bcc0",
+      "size_bytes": 234035
+    },
+    {
+      "path": "outputs/assembly/assembly_graph.fastg",
+      "sha256": "b7f206cf586bb3ab7828287f58408a40bf6a1f51cf10590cfa6ca3b4c6ce7fcf",
+      "size_bytes": 59379
+    },
+    {
+      "path": "outputs/assembly/assembly_graph_after_simplification.gfa",
+      "sha256": "72cf26a1447d541212f75d0c22f42181bac83e2ba87ff9b9efaf40ebca02ce71",
+      "size_bytes": 24954
+    },
+    {
+      "path": "outputs/assembly/assembly_graph_with_scaffolds.gfa",
+      "sha256": "37b68949afc2697a072e2284286d5e9eaf905e426f66b641725c85dfd23140bb",
+      "size_bytes": 31880
+    },
+    {
+      "path": "outputs/assembly/before_rr.fasta",
+      "sha256": "00a2fc60c686eaa0dc6664f1a05e96c46ebefb6029ca974dc9ae23e9a9c3d2ab",
+      "size_bytes": 22063
+    },
+    {
+      "path": "outputs/assembly/contigs.fasta",
+      "sha256": "fe751fca08ad042a7056d9a244d17c81a93a6f568656f3c7ae2ac9f046e5a405",
+      "size_bytes": 22063
+    },
+    {
+      "path": "outputs/assembly/contigs.paths",
+      "sha256": "d5f4912086672c6c92fc76e79f7c5e901627cbcd76881f2cf8ba7ded3c6e0b0f",
+      "size_bytes": 12725
+    },
+    {
+      "path": "outputs/assembly/corrected/F3D0_S188_L001_R1_00100.0_0.cor.fastq.gz",
+      "sha256": "74549b7335ef5568a4d0142364691e8612a22d7a6ef2f9b455d45d70fcebaa0b",
+      "size_bytes": 821959
+    },
+    {
+      "path": "outputs/assembly/corrected/F3D0_S188_L001_R2_00100.0_0.cor.fastq.gz",
+      "sha256": "052f02b76d86909d0da0f395d730c45df1c34a3ab6e7f1264dc0522202672658",
+      "size_bytes": 1074378
+    },
+    {
+      "path": "outputs/assembly/corrected/F3D0_S188_L001_R_unpaired00.0_0.cor.fastq.gz",
+      "sha256": "463dc044357629357fc6aace33f9599cf54a9874cfc6d7df24002e6ab3fc8b63",
+      "size_bytes": 4552
+    },
+    {
+      "path": "outputs/assembly/corrected/configs/config.info",
+      "sha256": "28ae0d951dc99d752403855b1d072b08ab023582819a6396b225f506e26b503c",
+      "size_bytes": 1341
+    },
+    {
+      "path": "outputs/assembly/corrected/corrected.yaml",
+      "sha256": "76bb63ccc04deb4b162e99a6e312a1de15138f41111176ccda92dd9227250718",
+      "size_bytes": 344
+    },
+    {
+      "path": "outputs/assembly/dataset.info",
+      "sha256": "5a73f41aee9c58e3e22d2cb30f37f0a6fade69930868553142db3ae1a935eb91",
+      "size_bytes": 48
+    },
+    {
+      "path": "outputs/assembly/first_pe_contigs.fasta",
+      "sha256": "73f69a098ea64ccb203473058e4434b133e32d8582efc39abfc8adbda61053c6",
+      "size_bytes": 200261
+    },
+    {
+      "path": "outputs/assembly/input_dataset.yaml",
+      "sha256": "fe6674bd92ec983aea8002c39385ed4f141bdb3d7cfa214e18f80e52a3c113ce",
+      "size_bytes": 182
+    },
+    {
+      "path": "outputs/assembly/params.txt",
+      "sha256": "a4e48e1355846ca564d7d873adee5bd967661bdfaa759f1b3217b56b5eaf362e",
+      "size_bytes": 1176
+    },
+    {
+      "path": "outputs/assembly/pipeline_state/stage_0_before_start",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "outputs/assembly/pipeline_state/stage_10_as_finish",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "outputs/assembly/pipeline_state/stage_11_bs",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "outputs/assembly/pipeline_state/stage_12_terminate",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "outputs/assembly/pipeline_state/stage_1_ec_start",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "outputs/assembly/pipeline_state/stage_2_ec_runtool",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "outputs/assembly/pipeline_state/stage_3_ec_compress",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "outputs/assembly/pipeline_state/stage_4_ec_finish",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "outputs/assembly/pipeline_state/stage_5_as_start",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "outputs/assembly/pipeline_state/stage_6_k21",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "outputs/assembly/pipeline_state/stage_7_k33",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "outputs/assembly/pipeline_state/stage_8_k55",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "outputs/assembly/pipeline_state/stage_9_copy_files",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "outputs/assembly/run_spades.sh",
+      "sha256": "91be68220dc699e4ccccf5f3435448586997025098ff57924f544fb84ecc1d82",
+      "size_bytes": 1952
+    },
+    {
+      "path": "outputs/assembly/run_spades.yaml",
+      "sha256": "5777701126b38bdface80419325292d2bff4c94e5f3fa43eef302fe08a5d3ce1",
+      "size_bytes": 4906
+    },
+    {
+      "path": "outputs/assembly/scaffolds.fasta",
+      "sha256": "fe751fca08ad042a7056d9a244d17c81a93a6f568656f3c7ae2ac9f046e5a405",
+      "size_bytes": 22063
+    },
+    {
+      "path": "outputs/assembly/scaffolds.paths",
+      "sha256": "d5f4912086672c6c92fc76e79f7c5e901627cbcd76881f2cf8ba7ded3c6e0b0f",
+      "size_bytes": 12725
+    },
+    {
+      "path": "outputs/assembly/spades.log",
+      "sha256": "c7266f556a379cb6916a2fd1858d4093fdd587ddcbe337506510a04949da43dd",
+      "size_bytes": 122328
+    },
+    {
+      "path": "outputs/assembly/strain_graph.gfa",
+      "sha256": "337ab88779487abf3a5e1f32c4ac35c6881ed1b962f9f65b07a8de4f9954bcc0",
+      "size_bytes": 234035
+    },
+    {
+      "path": "outputs/assembly/warnings.log",
+      "sha256": "4a76cfe6d0847a42da79731a0625f75813459df80ab4231c56aed2114773f698",
+      "size_bytes": 781
+    },
+    {
+      "path": "outputs/metrics.json",
+      "sha256": "7275beb21cd28b8e1c02ac45778aa99d668454dd9fd05e79795377f614c04fc2",
+      "size_bytes": 45
+    },
+    {
+      "path": "real.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "real.stdout.log",
+      "sha256": "c7266f556a379cb6916a2fd1858d4093fdd587ddcbe337506510a04949da43dd",
+      "size_bytes": 122328
+    },
+    {
+      "path": "slurm-accounting.json",
+      "sha256": "88797077416ba665892462d416c514105f6859310baca182fa9b8056300713bc",
+      "size_bytes": 915
+    },
+    {
+      "path": "slurm-job-id.txt",
+      "sha256": "adad11e2d47d0d47d90e0a994ed79543d3700737f275645675f3380fba7b09d8",
+      "size_bytes": 8
+    },
+    {
+      "path": "submit.sh",
+      "sha256": "94c9d72b51d8edf983a093222f9fd23041d7f92bd3da07fdb24a6aa9b9219d9e",
+      "size_bytes": 1770
+    },
+    {
+      "path": "version.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "version.stdout.log",
+      "sha256": "8d101f01ae2086fe5c4f09f0c7dd3ddb25be995728225d26763a36176a6e24a6",
+      "size_bytes": 31
+    }
+  ],
+  "source_result": "results/container-validation/run-1135-spades",
+  "tool": "spades",
+  "tracked_files": {
+    "config-credential.yml": {
+      "sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+      "size_bytes": 134
+    },
+    "config-governance.yml": {
+      "sha256": "5a48351cddde8a0251584de4bbbf01a524bf5a2ecb2a0c2034b6553a554ec37a",
+      "size_bytes": 424
+    },
+    "config-pipeline.yml": {
+      "sha256": "421be4f8ae22795df48a95fe773754c8502bdc76b05a0ba40a883416b537ac3a",
+      "size_bytes": 2756
+    },
+    "evidence.json": {
+      "sha256": "33d5e97152a371301c59c2c07ba446bf6ba04081063d032911b733e769ac5dd9",
+      "size_bytes": 4739
+    },
+    "slurm-accounting.json": {
+      "sha256": "88797077416ba665892462d416c514105f6859310baca182fa9b8056300713bc",
+      "size_bytes": 915
+    }
+  }
+}

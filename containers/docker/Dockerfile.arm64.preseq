@@ -5,13 +5,14 @@
 # Bijux Genomics source code is licensed under Apache-2.0.
 # VERSION_SOURCE: containers/versions/versions.toml
 FROM ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
+COPY --chmod=0555 containers/contracts/configure-apt-snapshot /usr/local/sbin/bijux-configure-apt-snapshot
 ARG OCI_REVISION=unknown
 ARG OCI_CREATED=unknown
-ARG TOOL_VERSION=unknown
-LABEL org.opencontainers.image.source="https://github.com/bijux/bijux-genomics" \
+ARG TOOL_VERSION=3.2.0
+LABEL org.opencontainers.image.source="https://github.com/smithlabcode/preseq" \
       org.opencontainers.image.revision="${OCI_REVISION}" \
       org.opencontainers.image.created="${OCI_CREATED}" \
-      org.opencontainers.image.licenses="GPL-3.0" \
+      org.opencontainers.image.licenses="GPL-3.0-or-later" \
       org.opencontainers.image.version="${TOOL_VERSION}"
 LABEL org.opencontainers.image.tool="preseq"
 LABEL org.opencontainers.image.title="preseq"
@@ -21,17 +22,34 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 ARG VERSION_PRESEQ=3.2.0
 ENV VERSION_PRESEQ=${VERSION_PRESEQ}
+ARG PRESEQ_SHA256=95b81c9054e0d651de398585c7e96b807ad98f0bdc541b3e46665febbe2134d9
 
-RUN apt-get update && \
+RUN /usr/local/sbin/bijux-configure-apt-snapshot && \
     apt-get install -y --no-install-recommends \
-      samtools && \
-    printf '#!/bin/sh\n' > /usr/local/bin/preseq && \
-    printf 'if [ "$1" = "--version" ]; then echo "$VERSION_PRESEQ"; exit 0; fi\n' >> /usr/local/bin/preseq && \
-    printf 'if [ "$1" = "-h" ] || [ "$1" = "--help" ] || [ "$#" -eq 0 ]; then echo "preseq compatibility wrapper"; exit 0; fi\n' >> /usr/local/bin/preseq && \
-    printf 'exec samtools stats "$@"\n' >> /usr/local/bin/preseq && \
-    chmod +x /usr/local/bin/preseq && \
+      build-essential \
+      ca-certificates \
+      curl \
+      libhts-dev \
+      patch && \
+    curl --fail --location --silent --show-error \
+      "https://github.com/smithlabcode/preseq/releases/download/v${VERSION_PRESEQ}/preseq-${VERSION_PRESEQ}.tar.gz" \
+      --output /tmp/preseq.tar.gz && \
+    echo "${PRESEQ_SHA256}  /tmp/preseq.tar.gz" | sha256sum --check --strict && \
+    tar --extract --gzip --file /tmp/preseq.tar.gz --directory /tmp
+COPY containers/tools/preseq/gcc-cstdint.patch /opt/preseq-gcc-cstdint.patch
+RUN cd "/tmp/preseq-${VERSION_PRESEQ}" && \
+    patch --strip=1 --input /opt/preseq-gcc-cstdint.patch && \
+    cd "/tmp/preseq-${VERSION_PRESEQ}" && \
+    ./configure --prefix=/usr/local --enable-hts && \
+    make -j2 && \
+    make install && \
+    install -d -m 0755 /opt/preseq/test-data && \
+    install -m 0644 data/SRR1301329_1M_hist.txt /opt/preseq/test-data/counts.hist && \
+    preseq c_curve -H -o /tmp/preseq-self-test.txt /opt/preseq/test-data/counts.hist && \
+    test -s /tmp/preseq-self-test.txt && \
+    rm -rf "/tmp/preseq-${VERSION_PRESEQ}" /tmp/preseq.tar.gz /tmp/preseq-self-test.txt /opt/preseq-gcc-cstdint.patch && \
     rm -rf /var/lib/apt/lists/*
 
 WORKDIR /data
 ENTRYPOINT ["preseq"]
-CMD ["-h"]
+CMD []

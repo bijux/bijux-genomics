@@ -1,33 +1,35 @@
 #![allow(clippy::too_many_lines)]
 
 use super::{
-    all_registry_paths, anyhow, append_toml_table, container_version_deprecations_path,
-    env_or_empty, failure_lines, fs, git_is_shallow_repository, git_last_modified_timestamp,
-    governed_container_file_ids, load_toml, lock_items_by_tool, out_path_arg, parse_date,
-    production_registry_paths, read_lock_json, read_utf8, registry_deprecations_path, run_argv,
-    run_argv_with_env, set_registry_status, set_versions_status, sha256_hex, success_line,
-    table_string, tool_versions, write_utf8, BTreeMap, BTreeSet, ContainerCommandOutcome, Context,
-    Local, PathBuf, Result, Utc, VersionMapItem, Workspace,
+    anyhow, append_toml_table, container_support_summary, container_version_deprecations_path,
+    env_or_empty, failure_lines, fs, git_last_modified_timestamp, governed_container_file_ids,
+    load_toml, lock_items_by_tool, out_path_arg, parse_date, read_lock_json, read_utf8, run_argv,
+    sha256_hex, success_line, table_string, tool_versions, write_utf8, BTreeMap, BTreeSet,
+    ContainerCommandOutcome, Context, Local, PathBuf, Result, Utc, VersionMapItem, Workspace,
 };
+
+const VERSION_LOCK_GENERATOR_PATH: &str =
+    "crates/bijux-dna-dev/src/commands/containers/versioning.rs";
 
 fn choose_lock_build_date_utc(
     git_timestamp: &str,
-    is_shallow_repository: bool,
     existing_lock: Option<&serde_json::Value>,
     current_source_sha256: &str,
 ) -> String {
-    if !is_shallow_repository {
-        return git_timestamp.to_string();
-    }
-    let Some(lock) = existing_lock else {
-        return git_timestamp.to_string();
-    };
-    let existing_source_sha256 =
-        lock.get("source_sha256").and_then(serde_json::Value::as_str).unwrap_or_default().trim();
-    let existing_build_date_utc =
-        lock.get("build_date_utc").and_then(serde_json::Value::as_str).unwrap_or_default().trim();
-    if existing_source_sha256 == current_source_sha256 && !existing_build_date_utc.is_empty() {
-        return existing_build_date_utc.to_string();
+    if let Some(lock) = existing_lock {
+        let existing_source_sha256 = lock
+            .get("source_sha256")
+            .and_then(serde_json::Value::as_str)
+            .unwrap_or_default()
+            .trim();
+        let existing_build_date_utc = lock
+            .get("build_date_utc")
+            .and_then(serde_json::Value::as_str)
+            .unwrap_or_default()
+            .trim();
+        if existing_source_sha256 == current_source_sha256 && !existing_build_date_utc.is_empty() {
+            return existing_build_date_utc.to_string();
+        }
     }
     git_timestamp.to_string()
 }
@@ -41,7 +43,6 @@ fn lock_build_date_utc(workspace: &Workspace, versions_path: &std::path::Path) -
         .and_then(|payload| serde_json::from_str::<serde_json::Value>(&payload).ok());
     Ok(choose_lock_build_date_utc(
         &git_last_modified_timestamp(workspace, "containers/versions/versions.toml"),
-        git_is_shallow_repository(workspace),
         existing_lock.as_ref(),
         &source_sha256,
     ))
@@ -57,11 +58,6 @@ pub(super) fn extract_version_map_content(workspace: &Workspace) -> Result<Strin
                 .get("version")
                 .and_then(toml::Value::as_str)
                 .unwrap_or_default()
-                .to_string(),
-            status: row
-                .get("status")
-                .and_then(toml::Value::as_str)
-                .unwrap_or("production")
                 .to_string(),
             source: row.get("source").and_then(toml::Value::as_str).unwrap_or_default().to_string(),
             source_sha256: row
@@ -84,7 +80,7 @@ pub(super) fn extract_version_map_content(workspace: &Workspace) -> Result<Strin
     Ok(format!(
         "{}\n",
         serde_json::to_string_pretty(&serde_json::json!({
-            "schema_version": "bijux.container.version_map.v1",
+            "schema_version": "bijux.container.version_map.v2",
             "source": "containers/versions/versions.toml",
             "items": items,
         }))?
@@ -182,6 +178,7 @@ pub(super) fn check_lock_change_discipline(
             "--",
             "containers/versions/versions.toml",
             "containers/versions/lock.json",
+            VERSION_LOCK_GENERATOR_PATH,
         ])
         .output()
         .with_context(|| "inspect lock discipline diff".to_string())?;
@@ -189,14 +186,15 @@ pub(super) fn check_lock_change_discipline(
     let has_versions =
         changed.lines().any(|line| line.trim() == "containers/versions/versions.toml");
     let has_lock = changed.lines().any(|line| line.trim() == "containers/versions/lock.json");
-    if has_versions && !has_lock {
+    let has_generator = changed.lines().any(|line| line.trim() == VERSION_LOCK_GENERATOR_PATH);
+    if (has_versions || has_generator) && !has_lock {
         return Ok(ContainerCommandOutcome::failure(
-            "lock change discipline: versions.toml changed but lock.json did not\n",
+            "lock change discipline: version source or generator changed but lock.json did not\n",
         ));
     }
-    if !has_versions && has_lock {
+    if !has_versions && !has_generator && has_lock {
         return Ok(ContainerCommandOutcome::failure(
-            "lock change discipline: lock.json changed without versions.toml change\n",
+            "lock change discipline: lock.json changed without version source or generator change\n",
         ));
     }
     success_line("lock change discipline: OK")
@@ -220,9 +218,9 @@ pub(super) fn check_lock_schema(workspace: &Workspace) -> Result<ContainerComman
         }
     }
     if lock.get("schema_version").and_then(serde_json::Value::as_str)
-        != Some("bijux.container.version_lock.v3")
+        != Some("bijux.container.version_lock.v4")
     {
-        errors.push("schema_version must be bijux.container.version_lock.v3".to_string());
+        errors.push("schema_version must be bijux.container.version_lock.v4".to_string());
     }
     match lock.get("items").and_then(serde_json::Value::as_array) {
         Some(items) if !items.is_empty() => {
@@ -235,7 +233,6 @@ pub(super) fn check_lock_schema(workspace: &Workspace) -> Result<ContainerComman
                 for key in [
                     "tool",
                     "version",
-                    "status",
                     "source",
                     "entry_sha256",
                     "resolved_image_digest",
@@ -281,6 +278,7 @@ pub(super) fn check_version_completeness(workspace: &Workspace) -> Result<Contai
 }
 
 pub(super) fn check_version_hash_pin(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
+    let support = container_support_summary(workspace)?;
     let mut errors = Vec::new();
     for (tool, row) in tool_versions(workspace)? {
         let source = table_string(&row, "source");
@@ -299,8 +297,9 @@ pub(super) fn check_version_hash_pin(workspace: &Workspace) -> Result<ContainerC
         }
         let source_sha = table_string(&row, "source_sha256");
         let pin = table_string(&row, "pinned_commit");
-        let status = table_string(&row, "status");
-        if source_sha.is_empty() && pin.is_empty() && status != "unsupported" {
+        let unsupported =
+            support.get(&tool).is_some_and(|(disposition, _)| disposition == "unsupported");
+        if source_sha.is_empty() && pin.is_empty() && !unsupported {
             errors.push(format!("{tool}: missing source_sha256 or pinned_commit"));
         }
         if !source_sha.is_empty()
@@ -311,8 +310,12 @@ pub(super) fn check_version_hash_pin(workspace: &Workspace) -> Result<ContainerC
         if !pin.is_empty() {
             if matches!(pin.to_ascii_lowercase().as_str(), "pending" | "unknown") {
                 errors.push(format!("{tool}: pinned_commit must not be pending/unknown"));
+            } else if pin.chars().all(|ch| ch == '0') {
+                errors.push(format!("{tool}: pinned_commit must not be an all-zero placeholder"));
             } else if !matches!(pin.len(), 7 | 40) {
                 errors.push(format!("{tool}: pinned_commit must be short(7) or full(40) git hash"));
+            } else if !pin.chars().all(|ch| ch.is_ascii_hexdigit()) {
+                errors.push(format!("{tool}: pinned_commit must contain only hexadecimal digits"));
             }
         }
     }
@@ -362,26 +365,18 @@ pub(super) fn check_version_immutability(workspace: &Workspace) -> Result<Contai
         let Some(current_row) = current_rows.get(&tool) else {
             continue;
         };
-        let previous_status = table_string(&previous_row, "status");
-        let current_status = {
-            let value = table_string(current_row, "status");
-            if value.is_empty() {
-                previous_status.clone()
-            } else {
-                value
-            }
-        };
         let previous_version = table_string(&previous_row, "version");
         let current_version = table_string(current_row, "version");
-        if previous_status == "production"
-            && current_status == "production"
-            && !previous_version.is_empty()
-            && !current_version.is_empty()
-            && previous_version != current_version
-        {
-            errors.push(format!(
-                "{tool}: production version is immutable ({previous_version} -> {current_version})"
-            ));
+        if previous_version == current_version && !current_version.is_empty() {
+            for field in ["source", "source_sha256", "pinned_commit"] {
+                let previous_value = table_string(&previous_row, field);
+                let current_value = table_string(current_row, field);
+                if previous_value != current_value {
+                    errors.push(format!(
+                        "{tool}: {field} changed without a version change ({previous_value} -> {current_value})"
+                    ));
+                }
+            }
         }
     }
     if errors.is_empty() {
@@ -481,108 +476,10 @@ pub(super) fn check_version_deprecations(workspace: &Workspace) -> Result<Contai
     failure_lines("version deprecations: failed", &errors)
 }
 
-pub(super) fn check_promotion_policy(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
-    let policy = workspace.path("containers/docs/PROMOTION_POLICY.md");
-    if !policy.is_file() {
-        return Ok(ContainerCommandOutcome::failure(
-            "missing containers/docs/PROMOTION_POLICY.md\n",
-        ));
-    }
-    let text = read_utf8(&policy)?;
-    let mut errors = Vec::new();
-    for marker in [
-        "License clarity",
-        "Provenance",
-        "Reproducibility",
-        "Smoke quality",
-        "cargo run -p bijux-dna-dev -- containers run tool-lifecycle",
-        "cargo run -p bijux-dna-dev -- containers run demote",
-    ] {
-        if !text.contains(marker) {
-            errors.push(format!("promotion policy missing marker: {marker}"));
-        }
-    }
-    if errors.is_empty() {
-        return success_line("promotion policy: OK");
-    }
-    failure_lines("promotion policy: failed", &errors)
-}
-
-pub(super) fn check_promotion_lock_integrity(
-    workspace: &Workspace,
-) -> Result<ContainerCommandOutcome> {
-    if env_or_empty("CI").is_empty() {
-        return success_line("promotion lock integrity: SKIP (CI-only gate)");
-    }
-    let lock_rows = lock_items_by_tool(workspace)?;
-    let versions = tool_versions(workspace)?;
-    let mut production_tools = BTreeSet::new();
-    for path in production_registry_paths(workspace) {
-        if !path.exists() {
-            continue;
-        }
-        let value = load_toml(&path)?;
-        for row in value.get("tools").and_then(toml::Value::as_array).cloned().unwrap_or_default() {
-            let Some(row) = row.as_table() else {
-                continue;
-            };
-            if table_string(row, "status") != "production" {
-                continue;
-            }
-            let tool = table_string(row, "id");
-            let tool = if tool.is_empty() { table_string(row, "tool_id") } else { tool };
-            if !tool.is_empty() {
-                production_tools.insert(tool);
-            }
-        }
-    }
-    let mut errors = Vec::new();
-    for tool in production_tools {
-        let Some(lock_row) = lock_rows.get(&tool) else {
-            errors.push(format!("{tool}: production tool missing from lock.json"));
-            continue;
-        };
-        let lock_version = lock_row
-            .get("version")
-            .and_then(serde_json::Value::as_str)
-            .unwrap_or_default()
-            .trim()
-            .to_string();
-        let version =
-            versions.get(&tool).map(|row| table_string(row, "version")).unwrap_or_default();
-        if lock_version != version {
-            errors.push(format!(
-                "{tool}: lock version '{lock_version}' != versions.toml '{version}'"
-            ));
-        }
-        let docker_digest = lock_row
-            .get("resolved_image_digest")
-            .and_then(serde_json::Value::as_str)
-            .unwrap_or_default()
-            .trim()
-            .to_string();
-        let sif_digest = lock_row
-            .get("resolved_sif_sha256")
-            .and_then(serde_json::Value::as_str)
-            .unwrap_or_default()
-            .trim()
-            .to_string();
-        if docker_digest.is_empty() && sif_digest.is_empty() {
-            errors.push(format!(
-                "{tool}: promotion requires at least one locked artifact digest (docker/apptainer)"
-            ));
-        }
-    }
-    if errors.is_empty() {
-        return success_line("promotion lock integrity: OK");
-    }
-    failure_lines("promotion lock integrity: failed", &errors)
-}
-
 pub(super) fn generate_version_lock_content(workspace: &Workspace) -> Result<String> {
     let version_map: serde_json::Value =
         serde_json::from_str(&extract_version_map_content(workspace)?)?;
-    let generator_path = workspace.path("crates/bijux-dna-dev/src/commands/containers/mod.rs");
+    let generator_path = workspace.path(VERSION_LOCK_GENERATOR_PATH);
     let versions_path = workspace.path("containers/versions/versions.toml");
     let build_date_utc = lock_build_date_utc(workspace, &versions_path)?;
 
@@ -714,7 +611,6 @@ pub(super) fn generate_version_lock_content(workspace: &Workspace) -> Result<Str
         items.push(serde_json::json!({
             "tool": tool,
             "version": row.get("version").and_then(serde_json::Value::as_str).unwrap_or_default(),
-            "status": row.get("status").and_then(serde_json::Value::as_str).unwrap_or_default(),
             "source": row.get("source").and_then(serde_json::Value::as_str).unwrap_or_default(),
             "source_sha256": row.get("source_sha256").and_then(serde_json::Value::as_str).unwrap_or_default(),
             "pinned_commit": row.get("pinned_commit").and_then(serde_json::Value::as_str).unwrap_or_default(),
@@ -730,7 +626,7 @@ pub(super) fn generate_version_lock_content(workspace: &Workspace) -> Result<Str
     }
 
     let output = serde_json::json!({
-        "schema_version": "bijux.container.version_lock.v3",
+        "schema_version": "bijux.container.version_lock.v4",
         "source": "containers/versions/versions.toml",
         "version_map_source": "artifacts/containers/version_map.json",
         "build_manifests_source": "artifacts/containers/manifests/*.json",
@@ -814,15 +710,15 @@ pub(super) fn check_version_authority(workspace: &Workspace) -> Result<Container
     let lock: serde_json::Value =
         serde_json::from_str(&read_utf8(&workspace.path("containers/versions/lock.json"))?)?;
     let versions_path = workspace.path("containers/versions/versions.toml");
-    let generator_path = workspace.path("crates/bijux-dna-dev/src/commands/containers/mod.rs");
+    let generator_path = workspace.path(VERSION_LOCK_GENERATOR_PATH);
     let mut errors = Vec::new();
     if lock
         .get("schema_version")
         .and_then(serde_json::Value::as_str)
-        .is_none_or(|value| value != "bijux.container.version_lock.v3")
+        .is_none_or(|value| value != "bijux.container.version_lock.v4")
     {
         errors
-            .push("- lock.json schema_version must be bijux.container.version_lock.v3".to_string());
+            .push("- lock.json schema_version must be bijux.container.version_lock.v4".to_string());
     }
     if lock.get("source").and_then(serde_json::Value::as_str)
         != Some("containers/versions/versions.toml")
@@ -938,7 +834,7 @@ pub(super) fn parse_named_options(
     Ok(options)
 }
 
-pub(super) fn regenerate_lifecycle_outputs(workspace: &Workspace) -> Result<()> {
+pub(super) fn regenerate_version_outputs(workspace: &Workspace) -> Result<()> {
     let commands = [
         ["containers", "run", "generate-version-lock"].as_slice(),
         ["containers", "run", "generate-index"].as_slice(),
@@ -960,7 +856,7 @@ pub(super) fn regenerate_lifecycle_outputs(workspace: &Workspace) -> Result<()> 
         let outcome = run_argv(workspace, &argv)?;
         if !outcome.is_success() {
             return Err(anyhow!(
-                "failed to regenerate lifecycle output with `{}`: {}",
+                "failed to regenerate version output with `{}`: {}",
                 argv.join(" "),
                 outcome.stderr.trim()
             ));
@@ -987,150 +883,6 @@ pub(super) fn regenerate_lifecycle_outputs(workspace: &Workspace) -> Result<()> 
         ));
     }
     Ok(())
-}
-
-pub(super) fn promote_tool(
-    workspace: &Workspace,
-    args: &[String],
-) -> Result<ContainerCommandOutcome> {
-    let usage =
-        "Usage: cargo run -p bijux-dna-dev -- containers run promote -- --tool <id> --to <experimental|production>";
-    if matches!(args, [single] if single == "--help" || single == "-h") {
-        return success_line(usage);
-    }
-    let options = match parse_named_options("promote", args) {
-        Ok(options) => options,
-        Err(error) if error.to_string() == "help" => return success_line(usage),
-        Err(error) => {
-            return Ok(ContainerCommandOutcome::failure(format!("{error}\n")));
-        }
-    };
-    let tool = parse_required_option("promote", &options, "tool")
-        .map_err(|error| anyhow!("{usage}\n{error}"))?;
-    let to_status = parse_required_option("promote", &options, "to")
-        .map_err(|error| anyhow!("{usage}\n{error}"))?;
-    if to_status != "experimental" && to_status != "production" {
-        return Ok(ContainerCommandOutcome::failure(
-            "--to must be experimental|production\n".to_string(),
-        ));
-    }
-    let lock_rows = lock_items_by_tool(workspace)?;
-    let Some(lock_row) = lock_rows.get(&tool) else {
-        return Ok(ContainerCommandOutcome::failure(format!(
-            "tool '{tool}' not present in containers/versions/lock.json; ad-hoc promotion is forbidden\n"
-        )));
-    };
-    let versions = tool_versions(workspace)?;
-    let Some(version_row) = versions.get(&tool) else {
-        return Ok(ContainerCommandOutcome::failure(format!(
-            "tool '{tool}' missing in containers/versions/versions.toml\n"
-        )));
-    };
-    let lock_version = lock_row
-        .get("version")
-        .and_then(serde_json::Value::as_str)
-        .unwrap_or_default()
-        .trim()
-        .to_string();
-    let version = table_string(version_row, "version");
-    if lock_version != version {
-        return Ok(ContainerCommandOutcome::failure(format!(
-            "tool '{tool}' version mismatch lock='{lock_version}' versions.toml='{version}'\n"
-        )));
-    }
-    if to_status == "production" {
-        let docker_digest = lock_row
-            .get("resolved_image_digest")
-            .and_then(serde_json::Value::as_str)
-            .unwrap_or_default()
-            .trim()
-            .to_string();
-        let sif_digest = lock_row
-            .get("resolved_sif_sha256")
-            .and_then(serde_json::Value::as_str)
-            .unwrap_or_default()
-            .trim()
-            .to_string();
-        if docker_digest.is_empty() && sif_digest.is_empty() {
-            return Ok(ContainerCommandOutcome::failure(format!(
-                "tool '{tool}' cannot be promoted to production without locked artifact digest\n"
-            )));
-        }
-        let sbom_path = workspace.path(&format!("artifacts/containers/sbom/{tool}"));
-        if !sbom_path.exists() {
-            return Ok(ContainerCommandOutcome::failure(format!(
-                "tool '{tool}' cannot be promoted to production without sbom artifacts at {}\n",
-                sbom_path.display()
-            )));
-        }
-    }
-    set_registry_status(&all_registry_paths(workspace), &tool, &to_status)?;
-    set_versions_status(workspace, &tool, &to_status)?;
-    regenerate_lifecycle_outputs(workspace)?;
-    if to_status == "production" {
-        let sbom_check = run_argv_with_env(
-            workspace,
-            &[
-                "cargo".to_string(),
-                "run".to_string(),
-                "-q".to_string(),
-                "-p".to_string(),
-                "bijux-dna-dev".to_string(),
-                "--".to_string(),
-                "containers".to_string(),
-                "run".to_string(),
-                "check-sbom-artifacts".to_string(),
-            ],
-            &[("REQUIRE_PROMOTED_SBOM".to_string(), "1".to_string())],
-        )?;
-        if !sbom_check.is_success() {
-            return Ok(sbom_check);
-        }
-    }
-    success_line(format!("promoted {tool} -> {to_status}"))
-}
-
-pub(super) fn demote_tool(
-    workspace: &Workspace,
-    args: &[String],
-) -> Result<ContainerCommandOutcome> {
-    let usage =
-        "Usage: cargo run -p bijux-dna-dev -- containers run demote -- --tool <id> --stage <domain.stage> --reason <text> --removal-after <YYYY-MM-DD>";
-    if matches!(args, [single] if single == "--help" || single == "-h") {
-        return success_line(usage);
-    }
-    let options = match parse_named_options("demote", args) {
-        Ok(options) => options,
-        Err(error) if error.to_string() == "help" => return success_line(usage),
-        Err(error) => return Ok(ContainerCommandOutcome::failure(format!("{error}\n"))),
-    };
-    let tool = parse_required_option("demote", &options, "tool")
-        .map_err(|error| anyhow!("{usage}\n{error}"))?;
-    let stage = parse_required_option("demote", &options, "stage")
-        .map_err(|error| anyhow!("{usage}\n{error}"))?;
-    let reason = parse_required_option("demote", &options, "reason")
-        .map_err(|error| anyhow!("{usage}\n{error}"))?;
-    let removal_after = parse_required_option("demote", &options, "removal-after")
-        .map_err(|error| anyhow!("{usage}\n{error}"))?;
-    parse_date(&removal_after, "removal-after")?;
-    if !lock_items_by_tool(workspace)?.contains_key(&tool) {
-        return Ok(ContainerCommandOutcome::failure(format!(
-            "tool '{tool}' not present in containers/versions/lock.json; ad-hoc demotion is forbidden\n"
-        )));
-    }
-    set_registry_status(&production_registry_paths(workspace), &tool, "experimental")?;
-    set_versions_status(workspace, &tool, "experimental")?;
-    append_toml_table(
-        &registry_deprecations_path(workspace),
-        &format!(
-            "[[deprecations]]\ntool_id = \"{tool}\"\nstage = \"{stage}\"\ndeprecated_since = \"{}\"\nremoval_after = \"{removal_after}\"\nrationale = \"{}\"\n",
-            Utc::now().date_naive().format("%Y-%m-%d"),
-            reason.replace('"', "\\\""),
-        ),
-        "# schema_version = 1\n# owner = bijux-dna-policies\n# purpose = Contract config for configs/ci/registry/deprecations.toml\n# authority = bijux-dna-policies\n# stability = stable\n\n",
-    )?;
-    regenerate_lifecycle_outputs(workspace)?;
-    success_line(format!("demoted {tool} -> experimental and appended deprecation entry"))
 }
 
 pub(super) fn deprecate_version(
@@ -1203,37 +955,8 @@ pub(super) fn deprecate_version(
         ),
         "# schema_version = 1\n# owner = bijux-genomics\n\n",
     )?;
-    regenerate_lifecycle_outputs(workspace)?;
+    regenerate_version_outputs(workspace)?;
     success_line(format!("deprecated {tool}@{version} (compatibility_mode={compatibility_mode})"))
-}
-
-pub(super) fn tool_lifecycle(
-    workspace: &Workspace,
-    args: &[String],
-) -> Result<ContainerCommandOutcome> {
-    let usage = "Usage:\n  cargo run -p bijux-dna-dev -- containers run tool-lifecycle -- --tool <id> --to experimental\n  cargo run -p bijux-dna-dev -- containers run tool-lifecycle -- --tool <id> --to stable\n\nNotes:\n- `stable` is the lifecycle alias for production container status.\n- Status changes must be done through this command (no manual edits).\n";
-    if matches!(args, [single] if single == "--help" || single == "-h") {
-        return success_line(usage);
-    }
-    let options = match parse_named_options("tool-lifecycle", args) {
-        Ok(options) => options,
-        Err(error) if error.to_string() == "help" => return success_line(usage),
-        Err(error) => return Ok(ContainerCommandOutcome::failure(format!("{error}\n"))),
-    };
-    let tool = parse_required_option("tool-lifecycle", &options, "tool")
-        .map_err(|error| anyhow!("{usage}{error}"))?;
-    let to = parse_required_option("tool-lifecycle", &options, "to")
-        .map_err(|error| anyhow!("{usage}{error}"))?;
-    let resolved = match to.as_str() {
-        "experimental" => "experimental",
-        "stable" => "production",
-        _ => {
-            return Ok(ContainerCommandOutcome::failure(
-                "--to must be experimental|stable\n".to_string(),
-            ))
-        }
-    };
-    promote_tool(workspace, &["--tool".to_string(), tool, "--to".to_string(), resolved.to_string()])
 }
 
 #[cfg(test)]
@@ -1251,7 +974,7 @@ mod tests {
     }
 
     #[test]
-    fn prefers_git_timestamp_when_repository_is_not_shallow() {
+    fn preserves_existing_lock_date_when_source_is_unchanged() {
         let current_source_sha256 = "abc123";
         let existing_lock = serde_json::json!({
             "source_sha256": current_source_sha256,
@@ -1260,25 +983,6 @@ mod tests {
 
         let chosen = choose_lock_build_date_utc(
             "2026-04-29T15:35:57+02:00",
-            false,
-            Some(&existing_lock),
-            current_source_sha256,
-        );
-
-        assert_eq!(chosen, "2026-04-29T15:35:57+02:00");
-    }
-
-    #[test]
-    fn preserves_existing_lock_date_when_shallow_and_source_is_unchanged() {
-        let current_source_sha256 = "abc123";
-        let existing_lock = serde_json::json!({
-            "source_sha256": current_source_sha256,
-            "build_date_utc": "2026-04-25T23:10:27+02:00"
-        });
-
-        let chosen = choose_lock_build_date_utc(
-            "2026-04-29T15:35:57+02:00",
-            true,
             Some(&existing_lock),
             current_source_sha256,
         );
@@ -1287,7 +991,7 @@ mod tests {
     }
 
     #[test]
-    fn falls_back_to_git_timestamp_when_shallow_lock_is_stale() {
+    fn falls_back_to_git_timestamp_when_lock_is_stale() {
         let existing_lock = serde_json::json!({
             "source_sha256": "old-source",
             "build_date_utc": "2026-04-25T23:10:27+02:00"
@@ -1295,7 +999,6 @@ mod tests {
 
         let chosen = choose_lock_build_date_utc(
             "2026-04-29T15:35:57+02:00",
-            true,
             Some(&existing_lock),
             "new-source",
         );

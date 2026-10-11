@@ -2,96 +2,70 @@
 # This container recipe is maintained by Bijux Genomics.
 # Bijux Genomics source code is licensed under Apache-2.0.
 # Copyright (C) 2026 Bijan Mousavi
-# BIJUX_TEMPLATE: v1
-
 # Tool ID: trimmomatic
-# Version policy: pinned_or_registry_locked
-# Upstream source: see org.opencontainers.image.source label
-# Build date policy: org.opencontainers.image.created set by release pipeline
-# Network source policy: NETWORK_SOURCE_VERIFIED_BY_LOCK
-# Runtime UID policy: RUNTIME_UID_SAFE
-
-# VERSION_SOURCE: containers/versions/versions.toml
+# Version policy: exact checksummed upstream release archive
+# Upstream source: https://github.com/usadellab/Trimmomatic/releases/tag/v0.39
+# Build date policy: captured by immutable build evidence
+# Network source policy: build-only access to locked snapshots and release archive
+# Runtime UID policy: caller identity with caller-owned output paths
+# VERSION_SOURCE: containers/contracts/catalog.toml
 Bootstrap: docker
 From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
 
 %labels
-    MAINTAINER Bijan Mousavi <bijan@bijux.io>
-    VERSION trimmomatic-0.39
-    org.opencontainers.image.source http://www.usadellab.org/cms/?page=trimmomatic
-    org.opencontainers.image.title Trimmomatic
-    org.opencontainers.image.licenses Apache-2.0
-
-    org.opencontainers.image.source https://github.com/bijux/bijux-genomics
-    org.opencontainers.image.revision unknown
-    org.opencontainers.image.created unknown
-    org.opencontainers.image.licenses GPL-3.0
+    org.opencontainers.image.source https://github.com/usadellab/Trimmomatic
+    org.opencontainers.image.revision e77bb89c70f60cb139393a22e89af47c5c1c69e8
+    org.opencontainers.image.created governed-by-build-evidence
+    org.opencontainers.image.licenses GPL-3.0-only
     org.opencontainers.image.version 0.39
+    io.bijux.tool.version 0.39
     org.opencontainers.image.tool trimmomatic
+    org.opencontainers.image.title Trimmomatic
+
 %environment
-    export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+    export PATH=/usr/local/bin:/usr/bin:/bin
+    export LANG=C
     export LC_ALL=C
-    DEBIAN_FRONTEND=noninteractive
-    TZ=UTC
-    export VERSION_TRIMMOMATIC=0.39
+    export TZ=UTC
+    export TRIMMOMATIC_ROOT=/opt/trimmomatic
+
+%files
+    containers/contracts/configure-apt-snapshot /usr/local/sbin/bijux-configure-apt-snapshot
+    containers/tools/trimmomatic/trimmomatic /usr/local/bin/trimmomatic
 
 %post
     set -eux
     umask 022
     export DEBIAN_FRONTEND=noninteractive
-
-    apt-get update
+    /bin/sh /usr/local/sbin/bijux-configure-apt-snapshot
     apt-get install -y --no-install-recommends \
-        wget \
-        ca-certificates \
-        unzip \
-        openjdk-11-jre-headless
-
-    # Fetch + install jar
-    cd /tmp
-    wget -q -O trimmomatic.zip \
-      "http://www.usadellab.org/cms/uploads/supplementary/Trimmomatic/Trimmomatic-0.39.zip"
-
-    mkdir -p /opt
-    unzip -q trimmomatic.zip -d /opt
-
-    # Normalize jar path
-    mv "/opt/Trimmomatic-0.39/trimmomatic-0.39.jar" /opt/trimmomatic.jar
-
-    rm -f /tmp/trimmomatic.zip
-
-    # Wrapper: unified execution; map --version to -version; normalize --help exit
-    cat > /usr/local/bin/trimmomatic <<'EOF'
-#!/usr/bin/env sh
-set -eu
-
-case "${1:-}" in
-  --version)
-    exec java -jar /opt/trimmomatic.jar -version
-    ;;
-  --help|-h|"")
-    # Trimmomatic prints help via different modes depending on args; keep it stable.
-    java -jar /opt/trimmomatic.jar --help || true
-    exit 0
-    ;;
-esac
-
-exec java -jar /opt/trimmomatic.jar "$@"
-EOF
-    chmod 0755 /usr/local/bin/trimmomatic
-
-    # Clean up.
-    rm -rf /opt/Trimmomatic-0.39
+        ca-certificates curl openjdk-11-jre-headless unzip
+    curl --fail --location --proto '=https' --tlsv1.2 \
+        --output /opt/trimmomatic.zip \
+        https://github.com/usadellab/Trimmomatic/releases/download/v0.39/Trimmomatic-0.39.zip
+    echo '2f7a5de11416899e5b38d3131019bc655946f770f9b7df5355d6a36acbcc488c  /opt/trimmomatic.zip' \
+        | sha256sum --check --strict
+    unzip -q /opt/trimmomatic.zip -d /opt
+    mv /opt/Trimmomatic-0.39 /opt/trimmomatic
+    test -f /opt/trimmomatic/trimmomatic-0.39.jar
+    test -f /opt/trimmomatic/adapters/TruSeq3-PE.fa
+    rm -f /opt/trimmomatic.zip
+    apt-get purge -y --auto-remove curl unzip
+    apt-get clean
     rm -rf /var/lib/apt/lists/*
+    chmod 0555 /usr/local/bin/trimmomatic
+    trimmomatic --version | grep -Fx '0.39'
+    trimmomatic --help >/dev/null
+
 %runscript
-    if [ $# -eq 0 ]; then
-        exec trimmomatic --help
-    else
-        exec trimmomatic "$@"
-    fi
+    exec /usr/local/bin/trimmomatic "$@"
+
+%test
+    trimmomatic --version | grep -Fx '0.39'
+    trimmomatic --help >/dev/null
+    test -f /opt/trimmomatic/trimmomatic-0.39.jar
+    test -f /opt/trimmomatic/adapters/TruSeq3-PE.fa
 
 %help
-    This Apptainer image provides Trimmomatic v0.39 (Java jar).
-    Executable: trimmomatic
-    Jar path: /opt/trimmomatic.jar
-    --version is mapped to: java -jar /opt/trimmomatic.jar -version
+    Trimmomatic 0.39 for adapter clipping and quality trimming of FASTQ reads.
+    Bundled adapter FASTA files are available under /opt/trimmomatic/adapters.

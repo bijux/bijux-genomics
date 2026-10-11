@@ -20,8 +20,12 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
     org.opencontainers.image.created governed-by-build-evidence
     org.opencontainers.image.licenses GPL-3.0
     org.opencontainers.image.version 2.3.4
+    io.bijux.tool.version 2.3.4
     org.opencontainers.image.tool adapterremoval
     org.opencontainers.image.title AdapterRemoval
+
+%files
+    containers/contracts/configure-apt-snapshot /usr/local/sbin/bijux-configure-apt-snapshot
 
 %environment
     export PATH=/usr/local/bin:/usr/bin:/bin
@@ -33,11 +37,8 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
     set -eux
     umask 022
     export DEBIAN_FRONTEND=noninteractive
-    sed -i 's#http://archive.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubuntu/20260802T000000Z/#g; s#http://security.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubuntu/20260802T000000Z/#g' /etc/apt/sources.list.d/ubuntu.sources
-    # The digest-pinned Ubuntu root has archive keys but no TLS trust store. The
-    # signed snapshot index authenticates this one-time CA bootstrap package.
-    apt-get -o Acquire::https::Verify-Peer=false -o Acquire::Check-Valid-Until=false update
-    apt-get -o Acquire::https::Verify-Peer=false install -y --no-install-recommends ca-certificates
+    /bin/sh /usr/local/sbin/bijux-configure-apt-snapshot
+    apt-get install -y --no-install-recommends ca-certificates
     apt-get -o Acquire::Check-Valid-Until=false update
     apt-get install -y --no-install-recommends curl g++ make zlib1g-dev libbz2-dev
     curl --fail --location --silent --show-error \

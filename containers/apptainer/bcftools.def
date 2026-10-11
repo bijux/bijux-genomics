@@ -6,7 +6,7 @@
 # Tool ID: bcftools
 # Version policy: pinned_or_registry_locked
 # Upstream source: see org.opencontainers.image.source label
-# Build date policy: org.opencontainers.image.created set by release pipeline
+# Build date policy: captured by immutable build evidence
 # Network source policy: NETWORK_SOURCE_VERIFIED_BY_LOCK
 # Runtime UID policy: RUNTIME_UID_SAFE
 
@@ -15,12 +15,13 @@ Bootstrap: docker
 From: quay.io/biocontainers/bcftools@sha256:badc3a0c7af72a83e5761ab0e881aa84204694bdead003b47552cb283958f78d
 
 %labels
-    VERSION unknown
-    org.opencontainers.image.source https://github.com/bijux/bijux-genomics
-    org.opencontainers.image.revision unknown
-    org.opencontainers.image.created unknown
+    VERSION 1.20
+    org.opencontainers.image.source https://github.com/samtools/bcftools
+    org.opencontainers.image.revision 02ee548d77916357dcd3699eab88273acd8f9f7c
+    org.opencontainers.image.created governed-by-build-evidence
     org.opencontainers.image.licenses MIT
     org.opencontainers.image.version 1.20
+    io.bijux.tool.version 1.20
     org.opencontainers.image.tool bcftools
     org.opencontainers.image.title bcftools
 
@@ -33,10 +34,14 @@ From: quay.io/biocontainers/bcftools@sha256:badc3a0c7af72a83e5761ab0e881aa842046
 %post
     set -eux
     umask 022
-    set -eu
-    bcftools --version >/dev/null 2>&1 || true
+    bcftools --version | grep -F 'bcftools 1.20'
+    bcftools --help >/dev/null
 %runscript
     exec bcftools "$@"
+
+%test
+    bcftools --version | grep -F 'bcftools 1.20'
+    bcftools --help >/dev/null
 
 %help
     Apptainer image for bcftools.

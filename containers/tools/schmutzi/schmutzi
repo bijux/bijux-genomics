@@ -1,0 +1,35 @@
+#!/bin/sh
+set -eu
+
+readonly SCHMUTZI_ROOT=/opt/schmutzi
+
+case "${1:-}" in
+    --version)
+        printf '%s\n' 'schmutzi 1.5.4'
+        exit 0
+        ;;
+    --help|-h|'')
+        cat <<'EOF'
+Usage: schmutzi [OPTIONS] CONTDEAM_PREFIX FREQUENCY_DIRECTORY INPUT.bam
+       schmutzi cont-deam [OPTIONS] INPUT.bam
+
+Estimate mitochondrial contamination and reconstruct the endogenous consensus.
+
+Commands:
+  cont-deam   estimate contamination from deamination patterns first
+
+The default command runs the upstream schmutzi.pl iterative estimator. Prepare
+a mitochondrial-only, sorted, indexed BAM with corrected MD fields and run the
+cont-deam command before the default estimator. See the upstream Schmutzi manual
+for input preparation, contaminant-frequency data, and scientific assumptions.
+EOF
+        exit 0
+        ;;
+    cont-deam)
+        shift
+        exec perl "${SCHMUTZI_ROOT}/contDeam.pl" "$@"
+        ;;
+    *)
+        exec perl "${SCHMUTZI_ROOT}/schmutzi.pl" "$@"
+        ;;
+esac

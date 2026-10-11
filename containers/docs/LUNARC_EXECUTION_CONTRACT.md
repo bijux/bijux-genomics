@@ -37,12 +37,20 @@ python3 containers/contracts/container_validation.py submit \
 
 python3 containers/contracts/container_validation.py collect-accounting \
   --manifest MANIFEST
+
+python3 containers/contracts/container_validation.py archive-failure \
+  --manifest MANIFEST
 ```
 
 The executor validates the current hostname against the site contract, rejects
 paths outside the configured study roots, restricts Slurm resources to the
 configured account and partitions, checks every immutable digest, and refuses
 to overwrite an existing result or accounting record.
+
+`archive-failure` is the only supported way to free canonical submission and
+result paths for a corrected attempt with the same stable run identity. It
+requires failed terminal evidence and matching accounting, hashes the complete
+attempt, and performs same-filesystem moves into the governed failure root.
 
 Current pipeline contracts separate host storage from paths visible inside the
 contained runtime. Governed input files mount as unique, safe filenames beneath
@@ -52,11 +60,15 @@ must use those stable mount paths. This prevents a successful host-side
 preflight followed by a missing file inside `--containall`, and makes commands
 independent of LUNARC backend mount aliases.
 
-Slurm scratch is also site policy. The renderer creates a job-unique directory
-beneath `slurm.scratch_root`, verifies the declared capacity, binds it at
+Slurm scratch is also site policy. LUNARC supplies node-local storage through
+`SNIC_TMP` (and sets `TMPDIR` to the same filesystem), so the site contract
+declares `slurm.scratch_environment: SNIC_TMP` instead of encoding a frontend
+`/tmp` path. The renderer requires an absolute existing value on the allocated
+node, creates a job-unique child, verifies the requested capacity, binds it at
 `/scratch`, exports container `TMPDIR=/scratch`, and removes only that exact
-`mktemp` directory when the job exits. It does not assume that LUNARC exports a
-non-standard `SLURM_TMPDIR` variable.
+`mktemp` child when the job exits. A different site may instead declare one
+fixed absolute `slurm.scratch_root`; declaring both authorities is invalid.
+See the official [LUNARC local-disk guidance](https://lunarc-documentation.readthedocs.io/en/latest/manual/submitting_jobs/manual_local_disk/).
 
 Frontend builds remain in `containers/apptainer/.building` until the admission
 command verifies the recipe at the declared Git commit, the completed build

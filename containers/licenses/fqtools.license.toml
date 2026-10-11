@@ -2,8 +2,8 @@
 # owner = bijux-genomics
 tool_id = "fqtools"
 container_kind = "bijux"
-spdx = "GPL-3.0-only"
-upstream_license_id = "GPL-3.0-only"
+spdx = "GPL-3.0"
+upstream_license_id = "GPL-3.0"
 upstream_url = "https://github.com/alastair-droop/fqtools"
 upstream_version = "2.3"
 upstream_checksum = "sha256:209020076fcc0e7beee4e86ca2579242799536ba47f4fdd2411dc5a0f86aa3f6"

@@ -23,7 +23,7 @@ Purpose: define what container evidence can and cannot prove for scientific revi
 - Generated evidence status:
   [science/generated/current/evidence/README.md](../../science/generated/current/evidence/README.md).
 - Container smoke behavior: [containers/docs/SMOKE_CONTRACT.md](SMOKE_CONTRACT.md).
-- Container promotion requirements: [containers/docs/PROMOTION_POLICY.md](PROMOTION_POLICY.md).
+- Container qualification requirements: [containers/docs/EVIDENCE_QUALIFICATION.md](EVIDENCE_QUALIFICATION.md).
 
 ## Review Rule
 When a container change touches a scientific tool, reviewers should verify two independent paths:

@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/vcf/** + containers/contracts/catalog.toml
-# source_commit: 49f670f4bfd6ac79fdadfc69456c693bf9d168e3
+# source_commit: ec348cec5dc7c4054849f3a5e178dbba6bf9738a
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -13,7 +13,7 @@
 id = "angsd"
 tool_id = "angsd"
 domain = "vcf"
-status = "planned"
+status = "unsupported"
 stage_ids = ["vcf.call_gl", "vcf.call_pseudohaploid", "vcf.damage_filter", "vcf.gl_propagation"]
 version = "0.941"
 default_version = "0.941"
@@ -23,9 +23,9 @@ license = "NOASSERTION"
 citation = "paper:https://bmcbioinformatics.biomedcentral.com/articles/10.1186/s12859-014-0356-4"
 pinned_commit = "sha256:e3da076b523e7d1fc32450019ff9d99f5cd2db722d260ce236bb775bc163fdc7"
 pin_strategy = "source_sha256"
-container_ref = "bijuxdna/angsd:0.941"
-runtimes = ["docker", "apptainer"]
-container = true
+container_ref = "external@licensed-installation"
+runtimes = []
+container = false
 version_cmd = "angsd --version"
 help_cmd = "angsd --help"
 smoke_version_cmd = "angsd --version"
@@ -35,10 +35,10 @@ healthcheck_cmd = "angsd --help"
 expected_bin = "angsd"
 expected_artifacts = ["gl_vcf", "damage_report", "gl_provenance", "pseudohaploid_sampling_log", "gl_propagation_report", "damage_bias_audit_report"]
 metrics_schema = "bijux.vcf.gl.v1"
-comparability_notes = "Comparable only when GL model, PMD filters, and reference build are identical."
-dockerfile = "containers/docker/Dockerfile.arm64.angsd"
-apptainer_def = "containers/apptainer/angsd.def"
-require_labels = true
+comparability_notes = "Upstream publishes no license grant, so Bijux Genomics cannot lawfully redistribute ANGSD in a container; scientific integration remains available for operator-provided installations."
+dockerfile = ""
+apptainer_def = ""
+require_labels = false
 
 [[tools]]
 id = "bcftools"

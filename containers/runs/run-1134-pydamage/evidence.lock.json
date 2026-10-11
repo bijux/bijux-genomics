@@ -1,0 +1,125 @@
+{
+  "execution_status": "passed",
+  "failures": [],
+  "image": {
+    "path": "/lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/pydamage-1.0-linux-amd64-482276fbaa17.sif",
+    "sha256": "482276fbaa177ec7bcf7249dcd82e52d02f8de6c284b4f83e8ab6c27d67ca8bd",
+    "size_bytes": 291561472
+  },
+  "repository_commit": "cba3cd2cba2258845fca9471a660febd39490830",
+  "run_id": "run-1134",
+  "schema_version": "bijux.container.run_evidence_lock.v1",
+  "scientific_status": "not_assessed",
+  "slurm_job_id": "3458696",
+  "source_files": [
+    {
+      "path": "config-credential.yml",
+      "sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+      "size_bytes": 134
+    },
+    {
+      "path": "config-governance.yml",
+      "sha256": "5a48351cddde8a0251584de4bbbf01a524bf5a2ecb2a0c2034b6553a554ec37a",
+      "size_bytes": 424
+    },
+    {
+      "path": "config-pipeline.yml",
+      "sha256": "c87270539b3bc6d9472cd4a878d9feef88212258bb98e7d29043efd66904463b",
+      "size_bytes": 2855
+    },
+    {
+      "path": "evidence.json",
+      "sha256": "249018c5464e1f20764075fa07e880d650071a2e11e205b8e86a2f3bca80aab6",
+      "size_bytes": 4714
+    },
+    {
+      "path": "help.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "help.stdout.log",
+      "sha256": "40343490695397aeff2746d85baf34ce8ec2738ce8298eadda5bd637d50b4ddd",
+      "size_bytes": 782
+    },
+    {
+      "path": "negative.stderr.log",
+      "sha256": "517fec06dc78e27f5991936b076509b850f098e3bb8d11cfe708a7d036083a71",
+      "size_bytes": 786
+    },
+    {
+      "path": "negative.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "outputs/metrics.json",
+      "sha256": "fd6f7e388273a79a43f14187ba3b17e67b81a28f7e31afc64e669d1db2a09305",
+      "size_bytes": 51
+    },
+    {
+      "path": "outputs/pydamage/pydamage_results.csv",
+      "sha256": "c5d0e76cde31ef9bba09fe8c0c4fd849d7391298ced4cde197c7141b90329452",
+      "size_bytes": 674
+    },
+    {
+      "path": "real.stderr.log",
+      "sha256": "2ec183c6283782a8c9ab28fba633a25622194563db26d41a4432c258cc517af5",
+      "size_bytes": 1370
+    },
+    {
+      "path": "real.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "slurm-accounting.json",
+      "sha256": "7a975b1f74cc300d51cdc675cae17b87e727fcf8678b2085caffcc57d9351532",
+      "size_bytes": 920
+    },
+    {
+      "path": "slurm-job-id.txt",
+      "sha256": "ae4b9717dcc10c855182133ab6ab7e7df36f40e19afa4825dfdf0e39d6397508",
+      "size_bytes": 8
+    },
+    {
+      "path": "submit.sh",
+      "sha256": "5b821dee355ee66f14765cdb29a27a5e6917885c1e7e17781b669d9f044efbaf",
+      "size_bytes": 1784
+    },
+    {
+      "path": "version.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "version.stdout.log",
+      "sha256": "e442c28fa674f249424909be4176816a383d40700ec56c3de5e0d3efb0f67962",
+      "size_bytes": 22
+    }
+  ],
+  "source_result": "results/container-validation/run-1134-pydamage",
+  "tool": "pydamage",
+  "tracked_files": {
+    "config-credential.yml": {
+      "sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+      "size_bytes": 134
+    },
+    "config-governance.yml": {
+      "sha256": "5a48351cddde8a0251584de4bbbf01a524bf5a2ecb2a0c2034b6553a554ec37a",
+      "size_bytes": 424
+    },
+    "config-pipeline.yml": {
+      "sha256": "c87270539b3bc6d9472cd4a878d9feef88212258bb98e7d29043efd66904463b",
+      "size_bytes": 2855
+    },
+    "evidence.json": {
+      "sha256": "249018c5464e1f20764075fa07e880d650071a2e11e205b8e86a2f3bca80aab6",
+      "size_bytes": 4714
+    },
+    "slurm-accounting.json": {
+      "sha256": "7a975b1f74cc300d51cdc675cae17b87e727fcf8678b2085caffcc57d9351532",
+      "size_bytes": 920
+    }
+  }
+}

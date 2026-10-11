@@ -80,6 +80,72 @@ class ImageStorageTests(unittest.TestCase):
             self.assertEqual(interrupted.read_bytes(), b"partial")
             self.assertEqual(superseded.read_bytes(), b"superseded")
 
+    def test_storage_report_proves_reversible_canonical_state(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            governed = root / "STUDY" / "containers"
+            plan = governed / "evidence" / "inventory" / ("a" * 40) / "plan.json"
+            after = plan.parent / "after-storage.json"
+            plan.parent.mkdir(parents=True)
+            quarantined = (
+                governed
+                / "apptainer"
+                / ".quarantine"
+                / ("a" * 40)
+                / "obsolete"
+                / "old.sif"
+            )
+            plan.write_text(
+                json.dumps(
+                    {
+                        "schema_version": storage.PLAN_SCHEMA,
+                        "state": "applied",
+                        "file_count": 1,
+                        "size_bytes": 3,
+                        "moves": [
+                            {
+                                "category": "obsolete",
+                                "source": str(governed / "apptainer" / "old.sif"),
+                                "target": str(quarantined),
+                                "size_bytes": 3,
+                                "sha256": "0123456789abcdef" * 4,
+                                "applied": True,
+                            }
+                        ],
+                    }
+                ),
+                encoding="utf-8",
+            )
+            after.write_text(
+                json.dumps(
+                    {
+                        "schema_version": storage.INVENTORY_SCHEMA,
+                        "repository_commit": "a" * 40,
+                        "evidence_root": str(governed / "evidence"),
+                        "summary": {
+                            "tool_count": 2,
+                            "states": {"current": 1, "unsupported": 1},
+                            "historical_dependency_count": 1,
+                            "unknown_image_count": 0,
+                            "staged_image_count": 0,
+                            "unreferenced_obsolete_count": 0,
+                        },
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+            report, markdown = storage.storage_report(plan, after)
+
+        self.assertEqual(report["verdict"], "passed")
+        self.assertEqual(report["moved_file_count"], 1)
+        self.assertEqual(report["historical_dependencies_preserved"], 1)
+        self.assertEqual(
+            report["moved_images"][0]["quarantine_path"],
+            "containers/apptainer/.quarantine/" + "a" * 40 + "/obsolete/old.sif",
+        )
+        self.assertIn("No SIF was deleted", markdown)
+
 
 if __name__ == "__main__":
     unittest.main()

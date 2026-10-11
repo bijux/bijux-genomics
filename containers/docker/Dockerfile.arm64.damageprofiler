@@ -5,12 +5,14 @@
 # Bijux Genomics source code is licensed under Apache-2.0.
 # VERSION_SOURCE: containers/contracts/catalog.toml
 FROM ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b AS builder
-RUN apt-get update && \
+COPY --chmod=0555 containers/contracts/configure-apt-snapshot /usr/local/sbin/bijux-configure-apt-snapshot
+RUN /usr/local/sbin/bijux-configure-apt-snapshot && \
     apt-get install -y --no-install-recommends ca-certificates curl
 COPY containers/tools/damageprofiler/install /opt/damageprofiler-build/install
 RUN chmod 0755 /opt/damageprofiler-build/install && /opt/damageprofiler-build/install
 
 FROM ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
+COPY --chmod=0555 containers/contracts/configure-apt-snapshot /usr/local/sbin/bijux-configure-apt-snapshot
 ARG OCI_CREATED=governed-by-build-evidence
 ARG TOOL_VERSION=1.1
 LABEL org.opencontainers.image.source="https://github.com/Integrative-Transcriptomics/DamageProfiler" \
@@ -23,7 +25,7 @@ LABEL org.opencontainers.image.title="damageprofiler"
 LABEL org.opencontainers.image.base.name="ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b"
 LABEL org.opencontainers.image.base.digest="sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b"
 ENV DEBIAN_FRONTEND=noninteractive
-RUN apt-get update && \
+RUN /usr/local/sbin/bijux-configure-apt-snapshot && \
     apt-get install -y --no-install-recommends openjdk-17-jre-headless libharfbuzz0b fontconfig fonts-dejavu-core && \
     rm -rf /var/lib/apt/lists/* && \
     useradd --system --uid 65532 --home-dir /work --create-home bijux

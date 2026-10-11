@@ -5,15 +5,15 @@ use std::fmt::Write as _;
 #[allow(clippy::wildcard_imports)]
 use super::*;
 
-type SummaryStatus = (BTreeMap<String, String>, BTreeMap<String, String>, BTreeMap<String, String>);
+type SummaryDigests = (BTreeMap<String, String>, BTreeMap<String, String>);
 
 fn generate_tool_ids_content(workspace: &Workspace) -> Result<String> {
-    let statuses = governed_container_statuses(workspace)?;
+    let support = container_support_summary(workspace)?;
     let mut out = String::from(
-        "# GENERATED FILE - DO NOT EDIT\n# Regenerate with: cargo run -p bijux-dna-dev -- containers run generate-tool-ids\n# format: <tool_id><TAB><status>\n",
+        "# GENERATED FILE - DO NOT EDIT\n# Regenerate with: cargo run -p bijux-dna-dev -- containers run generate-tool-ids\n# format: <tool_id><TAB><support_disposition>\n",
     );
-    for (tool_id, status) in statuses {
-        let _ = writeln!(out, "{tool_id}\t{status}");
+    for (tool_id, (disposition, _)) in support {
+        let _ = writeln!(out, "{tool_id}\t{disposition}");
     }
     Ok(out)
 }
@@ -68,7 +68,7 @@ pub(super) fn check_tool_id_manifest(workspace: &Workspace) -> Result<ContainerC
 
 fn generate_tool_name_map_content(workspace: &Workspace) -> Result<String> {
     let rows = registry_tool_map(workspace)?;
-    let statuses = governed_container_statuses(workspace)?;
+    let support = container_support_summary(workspace)?;
     let mut lines = vec![
         "<!-- GENERATED FILE - DO NOT EDIT -->".to_string(),
         "<!-- Regenerate with: cargo run -p bijux-dna-dev -- containers run generate-tool-name-map -->".to_string(),
@@ -82,14 +82,17 @@ fn generate_tool_name_map_content(workspace: &Workspace) -> Result<String> {
             .to_string(),
         "- Tool docs index: [containers/docs/tools/index.md](tools/index.md)".to_string(),
         String::new(),
-        "| Tool ID | Expected Binary | Status |".to_string(),
-        "|---|---|---|".to_string(),
+        "| Tool ID | Expected Binary | Support disposition | Qualification |".to_string(),
+        "|---|---|---|---|".to_string(),
     ];
-    for (tool_id, status) in statuses {
+    for (tool_id, (disposition, qualification)) in support {
         let row = rows.get(&tool_id).cloned().unwrap_or_default();
         let expected_bin =
             row.get("expected_bin").and_then(toml::Value::as_str).unwrap_or(&tool_id);
-        lines.push(format!("| `{tool_id}` | `{}` | `{status}` |", expected_bin.trim()));
+        lines.push(format!(
+            "| `{tool_id}` | `{}` | `{disposition}` | `{qualification}` |",
+            expected_bin.trim()
+        ));
     }
     Ok(format!("{}\n", lines.join("\n")))
 }
@@ -137,27 +140,7 @@ fn generate_container_index_content(workspace: &Workspace) -> Result<String> {
         let apptainer = workspace.path(&format!("containers/apptainer/{tool_id}.def"));
         let docker_arm64 = workspace.path(&format!("containers/docker/Dockerfile.arm64.{tool_id}"));
         let docker_amd64 = workspace.path(&format!("containers/docker/amd64/Dockerfile.{tool_id}"));
-        let apptainer_source = if apptainer.exists() {
-            if read_utf8(&apptainer).unwrap_or_default().contains("NON_BIJUX_SOURCES.md")
-                || tool_id == "bcftools"
-                || tool_id == "beagle"
-                || tool_id == "eagle"
-                || tool_id == "eigensoft"
-                || tool_id == "germline"
-                || tool_id == "glimpse"
-                || tool_id == "ibdhap"
-                || tool_id == "ibdne"
-                || tool_id == "impute5"
-                || tool_id == "minimac4"
-                || tool_id == "shapeit5"
-            {
-                "non-bijux"
-            } else {
-                "bijux"
-            }
-        } else {
-            "none"
-        };
+        let apptainer_recipe_owner = if apptainer.exists() { "bijux-genomics" } else { "none" };
         let docker_source = match (docker_arm64.exists(), docker_amd64.exists()) {
             (true, true) => "arm64+amd64",
             (true, false) => "arm64",
@@ -167,13 +150,16 @@ fn generate_container_index_content(workspace: &Workspace) -> Result<String> {
         rows.push((
             tool_id.to_string(),
             status.to_string(),
-            apptainer_source.to_string(),
+            apptainer_recipe_owner.to_string(),
             docker_source.to_string(),
         ));
     }
     let inventory = read_json(&workspace.path("containers/reports/image-inventory.json"))?;
+    let storage = read_json(&workspace.path("containers/reports/image-storage.json"))?;
+    let rebuild = read_json(&workspace.path("containers/reports/lunarc-image-rebuild.json"))?;
     let runtime = read_json(&workspace.path("containers/reports/runtime-verification.json"))?;
     let runs = read_json(&workspace.path("containers/reports/run-evidence.json"))?;
+    let qualification = read_json(&workspace.path("containers/reports/qualification.json"))?;
     let inventory_states = inventory
         .pointer("/summary/states")
         .and_then(serde_json::Value::as_object)
@@ -187,6 +173,14 @@ fn generate_container_index_content(workspace: &Workspace) -> Result<String> {
         .unwrap_or_else(|| "unavailable".to_string());
     let runtime_status =
         runtime.get("status").and_then(serde_json::Value::as_str).unwrap_or("unavailable");
+    let storage_verdict =
+        storage.get("verdict").and_then(serde_json::Value::as_str).unwrap_or("unavailable");
+    let storage_moved =
+        storage.get("moved_file_count").and_then(serde_json::Value::as_u64).unwrap_or(0);
+    let rebuild_verdict =
+        rebuild.get("verdict").and_then(serde_json::Value::as_str).unwrap_or("unavailable");
+    let rebuild_tools =
+        rebuild.get("selected_tool_count").and_then(serde_json::Value::as_u64).unwrap_or(0);
     let runtime_passed =
         runtime.pointer("/summary/passed").and_then(serde_json::Value::as_u64).unwrap_or(0);
     let governed_runs =
@@ -195,6 +189,35 @@ fn generate_container_index_content(workspace: &Workspace) -> Result<String> {
         .pointer("/summary/execution_status/passed")
         .and_then(serde_json::Value::as_u64)
         .unwrap_or(0);
+    let declared_stage_passes = qualification
+        .pointer("/summary/dimension_passes/real_data")
+        .and_then(serde_json::Value::as_u64)
+        .unwrap_or(0);
+    let scientific_passes = qualification
+        .pointer("/summary/dimension_passes/science")
+        .and_then(serde_json::Value::as_u64)
+        .unwrap_or(0);
+    let qualified_builds = qualification
+        .pointer("/summary/dimension_passes/build")
+        .and_then(serde_json::Value::as_u64)
+        .unwrap_or(0);
+    let qualified_runtimes = qualification
+        .pointer("/summary/dimension_passes/runtime")
+        .and_then(serde_json::Value::as_u64)
+        .unwrap_or(0);
+    let qualified_freshness = qualification
+        .pointer("/summary/dimension_passes/freshness")
+        .and_then(serde_json::Value::as_u64)
+        .unwrap_or(0);
+    let evidence_chain_current = qualification
+        .get("evidence_compatibility")
+        .and_then(serde_json::Value::as_object)
+        .is_some_and(|links| {
+            ["inventory_catalog", "runtime_catalog", "runtime_inventory", "repository_commit"]
+                .iter()
+                .all(|link| links.get(*link).and_then(serde_json::Value::as_bool) == Some(true))
+        });
+    let evidence_chain_status = if evidence_chain_current { "current" } else { "stale" };
     let mut lines = vec![
         "# Containers Docs Index".to_string(),
         String::new(),
@@ -202,22 +225,24 @@ fn generate_container_index_content(workspace: &Workspace) -> Result<String> {
         "<!-- source: cargo run -p bijux-dna-dev -- containers run generate-index -->".to_string(),
         String::new(),
         "This page routes operators and reviewers to the evidence that supports each".to_string(),
-        "container claim. Recipe presence and planner lifecycle labels are not proof that".to_string(),
+        "container claim. Recipe presence and registry maturity labels are not proof that".to_string(),
         "an image builds, starts, processes real data, or produces scientifically useful".to_string(),
         "output.".to_string(),
         String::new(),
-        "## Current evidence".to_string(),
+        "## Published evidence and current qualification".to_string(),
         String::new(),
-        format!("- Image inventory: **{inventory_states}** ([details](../reports/image-inventory.md))."),
-        format!("- Version/help runtime campaign: **{runtime_status}**, **{runtime_passed} images passed** ([details](../reports/runtime-verification.md))."),
-        format!("- Governed real executions: **{governed_runs} attempts**, **{passed_runs} passed**; scientific status is tracked independently ([details](../reports/run-evidence.md))."),
+        format!("- Qualification evidence chain: **{evidence_chain_status}**; the current catalog recognizes **{qualified_builds} build**, **{qualified_runtimes} runtime**, and **{qualified_freshness} freshness** passes ([details](../reports/qualification.md))."),
+        format!("- Published image inventory records **{inventory_states}**; these counts are historical when the qualification chain is stale ([details](../reports/image-inventory.md))."),
+        format!("- Published canonical storage report: **{storage_verdict}**, **{storage_moved} obsolete images quarantined reversibly** ([details](../reports/image-storage.md))."),
+        format!("- Published isolated rebuild: **{rebuild_verdict}**, **{rebuild_tools} retained images at that campaign commit** ([details](../reports/lunarc-image-rebuild.md))."),
+        format!("- Published version/help campaign: **{runtime_status}**, **{runtime_passed} images passed at that campaign commit** ([details](../reports/runtime-verification.md))."),
+        format!("- Final run records: **{governed_runs} tools**, **{passed_runs} execution passes**; **{declared_stage_passes}** retained tools pass their declared real-data stage and **{scientific_passes}** have scientific acceptance ([runs](../reports/run-evidence.md), [qualification](../reports/qualification.md))."),
         "- Build, runtime, real execution, science, benchmark, security, and release are independent evidence dimensions.".to_string(),
         String::new(),
         "## Strict TOC".to_string(),
         "- Root contract: [containers/README.md](../README.md)".to_string(),
         "- Entry point: [containers/index.md](../index.md)".to_string(),
-        "- Policy: [containers/docs/PROMOTION_POLICY.md](PROMOTION_POLICY.md)".to_string(),
-        "- Lifecycle: [containers/docs/TOOL_LIFECYCLE.md](TOOL_LIFECYCLE.md)".to_string(),
+        "- Evidence qualification: [containers/docs/EVIDENCE_QUALIFICATION.md](EVIDENCE_QUALIFICATION.md)".to_string(),
         "- Version authority: [containers/docs/VERSION_AUTHORITY.md](VERSION_AUTHORITY.md)"
             .to_string(),
         "- Lock lifecycle: [containers/docs/LOCK_LIFECYCLE.md](LOCK_LIFECYCLE.md)".to_string(),
@@ -235,26 +260,30 @@ fn generate_container_index_content(workspace: &Workspace) -> Result<String> {
         "- GHCR packages view: `https://github.com/bijux?tab=packages&repo_name=bijux-genomics`".to_string(),
         "- Licenses: [containers/licenses/README.md](../licenses/README.md)".to_string(),
         "- SBOM + vulnerability hooks: `cargo run -p bijux-dna-dev -- containers run check-sbom-artifacts`, `cargo run -p bijux-dna-dev -- containers run check-vuln-hook`".to_string(),
-        "- Exceptions: [containers/docker/NONROOT_EXCEPTIONS.md](../docker/NONROOT_EXCEPTIONS.md), [containers/docker/ENTRYPOINT_EXCEPTIONS.md](../docker/ENTRYPOINT_EXCEPTIONS.md), [containers/docs/PLANNED.md](PLANNED.md)".to_string(),
+        "- Runtime exceptions: [containers/docker/NONROOT_EXCEPTIONS.md](../docker/NONROOT_EXCEPTIONS.md), [containers/docker/ENTRYPOINT_EXCEPTIONS.md](../docker/ENTRYPOINT_EXCEPTIONS.md)".to_string(),
         "- Tool ID contract: [containers/docs/TOOL_IDS_CONTRACT.md](TOOL_IDS_CONTRACT.md)"
             .to_string(),
         String::new(),
         "## Authority".to_string(),
         "- Canonical container identity, support disposition, ownership, runtime support, and evidence requirements: [container catalog](../contracts/catalog.toml).".to_string(),
         "- Immutable admitted images: [image inventory](../reports/image-inventory.md).".to_string(),
-        "- Planner registry labels: [containers/TOOL_IDS.txt](../TOOL_IDS.txt); these labels describe planner compatibility, not production qualification.".to_string(),
+        "- Canonical image-root reconciliation: [reversible storage evidence](../reports/image-storage.md).".to_string(),
+        "- Rebuild reproducibility: [complete LUNARC image rebuild](../reports/lunarc-image-rebuild.md).".to_string(),
+        "- Support disposition manifest: [containers/TOOL_IDS.txt](../TOOL_IDS.txt); qualification is derived separately from immutable evidence.".to_string(),
         "- Container version metadata: [versions.toml](../versions/versions.toml) and its generated [lock.json](../versions/lock.json).".to_string(),
         "- GHCR Docker arm64 matrix: `cargo run -q -p bijux-dna-dev -- containers run generate-ghcr-publish-matrix -- artifacts/containers/ghcr/docker-arm64-publish-matrix.json`.".to_string(),
         "- GHCR Apptainer matrix: `cargo run -q -p bijux-dna-dev -- containers run generate-ghcr-apptainer-publish-matrix -- artifacts/containers/ghcr/apptainer-publish-matrix.json`.".to_string(),
-        "- Non-bijux provenance: [containers/docs/UPSTREAM_SOURCES.md](UPSTREAM_SOURCES.md).".to_string(),
+        "- Upstream provenance: [containers/docs/UPSTREAM_SOURCES.md](UPSTREAM_SOURCES.md).".to_string(),
         String::new(),
-        "## Planner compatibility surface".to_string(),
+        "## Container implementation surface".to_string(),
         String::new(),
-        "This compatibility table is retained for workflow planning and build-matrix".to_string(),
-        "validation. Its `status` column is not a production or scientific claim; use the".to_string(),
-        "catalog and evidence reports above for those decisions.".to_string(),
+        "This table identifies retained and unsupported container implementations.".to_string(),
+        "Disposition is not production qualification; use the evidence reports above".to_string(),
+        "for scientific or release decisions.".to_string(),
+        "`apptainer_recipe_owner` describes recipe maintenance, not upstream tool".to_string(),
+        "authorship. Upstream source and license remain catalog-owned facts.".to_string(),
         String::new(),
-        "| tool_id | status | apptainer_source | docker_source |".to_string(),
+        "| tool_id | disposition | apptainer_recipe_owner | docker_source |".to_string(),
         "|---|---|---|---|".to_string(),
     ];
     for (tool_id, status, ap_src, docker_src) in rows {
@@ -324,7 +353,7 @@ impl GhcrRuntimeKind {
 
     fn usage(self) -> String {
         format!(
-            "Usage: cargo run -p bijux-dna-dev -- containers run {} -- [<output-path>] [--tool <tool-id>]... [--status <status>]... [--package-prefix <prefix>]",
+            "Usage: cargo run -p bijux-dna-dev -- containers run {} -- [<output-path>] [--tool <qualified-tool-id>]... [--package-prefix <prefix>]",
             self.command_id()
         )
     }
@@ -352,7 +381,7 @@ fn parse_ghcr_publish_matrix_args(
     workspace: &Workspace,
     runtime: GhcrRuntimeKind,
     args: &[String],
-) -> Result<(PathBuf, String, BTreeSet<String>, BTreeSet<String>)> {
+) -> Result<(PathBuf, String, BTreeSet<String>)> {
     let usage = runtime.usage();
     if matches!(args, [single] if single == "--help" || single == "-h") {
         return Err(anyhow!(usage));
@@ -361,7 +390,6 @@ fn parse_ghcr_publish_matrix_args(
     let mut output = workspace.path(runtime.default_output_path());
     let mut package_prefix = ghcr_package_prefix(workspace)?;
     let mut tools = BTreeSet::new();
-    let mut statuses = BTreeSet::new();
 
     let mut index = 0;
     if let Some(first) = args.first() {
@@ -380,13 +408,6 @@ fn parse_ghcr_publish_matrix_args(
                 tools.insert(tool.trim().to_string());
                 index += 2;
             }
-            "--status" => {
-                let Some(status) = args.get(index + 1) else {
-                    return Err(anyhow!(usage.clone()));
-                };
-                statuses.insert(status.trim().to_string());
-                index += 2;
-            }
             "--package-prefix" => {
                 let Some(prefix) = args.get(index + 1) else {
                     return Err(anyhow!(usage.clone()));
@@ -398,7 +419,7 @@ fn parse_ghcr_publish_matrix_args(
         }
     }
 
-    Ok((output, package_prefix, tools, statuses))
+    Ok((output, package_prefix, tools))
 }
 
 fn ghcr_publish_matrix_value(
@@ -406,12 +427,11 @@ fn ghcr_publish_matrix_value(
     runtime: GhcrRuntimeKind,
     package_prefix: &str,
     tools_filter: &BTreeSet<String>,
-    status_filter: &BTreeSet<String>,
 ) -> Result<serde_json::Value> {
     let repository = workspace_repo_name(workspace)?;
     let registry = registry_tool_map(workspace)?;
     let versions = tool_versions(workspace)?;
-    let statuses = governed_container_statuses(workspace)?;
+    let support = container_support_summary(workspace)?;
     let runtime_tools = match runtime {
         GhcrRuntimeKind::DockerArm64 => docker_tool_ids(workspace)?,
         GhcrRuntimeKind::Apptainer => apptainer_tool_ids(workspace),
@@ -422,8 +442,10 @@ fn ghcr_publish_matrix_value(
         if !tools_filter.is_empty() && !tools_filter.contains(&tool_id) {
             continue;
         }
-        let status = statuses.get(&tool_id).cloned().unwrap_or_else(|| "experimental".to_string());
-        if !status_filter.is_empty() && !status_filter.contains(&status) {
+        let Some((support_disposition, qualification)) = support.get(&tool_id).cloned() else {
+            return Err(anyhow!("container catalog missing runtime tool: {tool_id}"));
+        };
+        if support_disposition != "retained" || qualification != "qualified" {
             continue;
         }
 
@@ -442,7 +464,6 @@ fn ghcr_publish_matrix_value(
         };
         let package_slug = runtime.package_slug(&tool_id);
         let package_ref = format!("{package_prefix}/{package_slug}");
-        let registry_status = table_string(&registry_row, "status");
         let smoke_version_cmd = table_string(&registry_row, "smoke_version_cmd");
         let smoke_help_cmd = table_string(&registry_row, "smoke_help_cmd");
         let smoke_minimal_cmd = table_string(&registry_row, "smoke_minimal_cmd");
@@ -453,20 +474,16 @@ fn ghcr_publish_matrix_value(
             true
         };
         let smoke_probes = table_array_strings(&registry_row, "smoke_probes");
-        let push_latest = if registry_status.is_empty() {
-            statuses.get(&tool_id).is_some_and(|value| value == "production")
-        } else {
-            registry_status == "production"
-        };
         let mut item = serde_json::json!({
             "tool_id": tool_id.clone(),
             "runtime": runtime.id(),
-            "status": status,
+            "support_disposition": support_disposition,
+            "qualification": qualification,
             "tool_version": resolved_version,
             "package_slug": package_slug,
             "package_ref": package_ref,
             "package_url": ghcr_package_page_url(&repository, &runtime.package_slug(&tool_id)),
-            "push_latest": push_latest,
+            "push_latest": true,
         });
         if let Some(map) = item.as_object_mut() {
             match runtime {
@@ -546,14 +563,14 @@ fn ghcr_publish_matrix_value(
         let missing = tools_filter.difference(&resolved_tools).cloned().collect::<Vec<_>>();
         if !missing.is_empty() {
             return Err(anyhow!(
-                "unknown or non-docker tool ids in GHCR publish matrix request: {}",
+                "unknown, unsupported, or unqualified tool ids in GHCR publish matrix request: {}",
                 missing.join(", ")
             ));
         }
     }
 
     Ok(serde_json::json!({
-        "schema_version": "bijux.container.ghcr_publish_matrix.v2",
+        "schema_version": "bijux.container.ghcr_publish_matrix.v3",
         "runtime": runtime.id(),
         "package_prefix": package_prefix,
         "packages_view_url": ghcr_packages_view_url(&repository),
@@ -572,14 +589,13 @@ pub(super) fn generate_ghcr_publish_matrix(
         return success_line(usage);
     }
 
-    let (output, package_prefix, tools, statuses) =
+    let (output, package_prefix, tools) =
         parse_ghcr_publish_matrix_args(workspace, GhcrRuntimeKind::DockerArm64, args)?;
     let payload = ghcr_publish_matrix_value(
         workspace,
         GhcrRuntimeKind::DockerArm64,
         &package_prefix,
         &tools,
-        &statuses,
     )?;
     write_utf8(&output, &json_string_pretty(&payload)?)?;
     success_line(format!("generated {}", output.display()))
@@ -594,15 +610,10 @@ pub(super) fn generate_ghcr_apptainer_publish_matrix(
         return success_line(usage);
     }
 
-    let (output, package_prefix, tools, statuses) =
+    let (output, package_prefix, tools) =
         parse_ghcr_publish_matrix_args(workspace, GhcrRuntimeKind::Apptainer, args)?;
-    let payload = ghcr_publish_matrix_value(
-        workspace,
-        GhcrRuntimeKind::Apptainer,
-        &package_prefix,
-        &tools,
-        &statuses,
-    )?;
+    let payload =
+        ghcr_publish_matrix_value(workspace, GhcrRuntimeKind::Apptainer, &package_prefix, &tools)?;
     write_utf8(&output, &json_string_pretty(&payload)?)?;
     success_line(format!("generated {}", output.display()))
 }
@@ -619,20 +630,30 @@ struct LicenseMetadataEntry {
     file_content: String,
 }
 
+fn catalog_tool_rows(workspace: &Workspace) -> Result<BTreeMap<String, toml::value::Table>> {
+    let catalog = load_toml(&workspace.path("containers/contracts/catalog.toml"))?;
+    let rows = catalog
+        .get("tools")
+        .and_then(toml::Value::as_array)
+        .into_iter()
+        .flatten()
+        .filter_map(toml::Value::as_table)
+        .filter_map(|row| {
+            let tool_id = table_string(row, "id");
+            (!tool_id.is_empty()).then(|| (tool_id, row.clone()))
+        })
+        .collect();
+    Ok(rows)
+}
+
 fn license_metadata_entries(workspace: &Workspace) -> Result<Vec<LicenseMetadataEntry>> {
-    let registry = registry_tool_map(workspace)?;
+    let catalog = catalog_tool_rows(workspace)?;
     let versions = tool_versions(workspace)?;
     let mut entries = Vec::new();
-    for (tool, status) in governed_container_statuses(workspace)? {
-        let row = registry.get(&tool).cloned().unwrap_or_default();
+    for (tool, (support_disposition, _)) in container_support_summary(workspace)? {
+        let row = catalog.get(&tool).cloned().unwrap_or_default();
         let version_row = versions.get(&tool);
-        let kind = if is_non_bijux_apptainer_source(workspace, &tool)
-            || table_string(&row, "apptainer_def").contains("/non-bijux/")
-        {
-            "non-bijux".to_string()
-        } else {
-            "bijux".to_string()
-        };
+        let kind = "bijux".to_string();
         let source = version_row
             .map(|value| table_string(value, "source"))
             .filter(|value| !value.is_empty())
@@ -649,24 +670,28 @@ fn license_metadata_entries(workspace: &Workspace) -> Result<Vec<LicenseMetadata
                 (!registry_version.is_empty()).then_some(registry_version)
             })
             .unwrap_or_else(|| "unknown".to_string());
-        let source_sha =
-            version_row.map(|value| table_string(value, "source_sha256")).unwrap_or_default();
+        let source_sha = version_row
+            .map(|value| table_string(value, "source_sha256"))
+            .filter(|value| !value.is_empty())
+            .unwrap_or_else(|| table_string(&row, "source_sha256"));
         let checksum = if source_sha.len() == 64 {
             format!("sha256:{source_sha}")
-        } else if status == "unsupported" {
+        } else if support_disposition == "unsupported" {
             "not-distributed".to_string()
         } else {
             format!("sha256:{}", sha256_hex(format!("{tool}:{source}:{version}").as_bytes()))
         };
-        let spdx = version_row
-            .map(|value| table_string(value, "upstream_license"))
-            .filter(|value| !value.is_empty())
-            .or_else(|| {
-                let license = table_string(&row, "license_ref");
-                (!license.is_empty()).then_some(license)
-            })
-            .unwrap_or_else(|| "NOASSERTION".to_string());
-        let redistribution_note = if status == "unsupported" {
+        let spdx = {
+            let license = table_string(&row, "license");
+            (!license.is_empty()).then_some(license)
+        }
+        .or_else(|| {
+            version_row
+                .map(|value| table_string(value, "upstream_license"))
+                .filter(|value| !value.is_empty())
+        })
+        .unwrap_or_else(|| "NOASSERTION".to_string());
+        let redistribution_note = if support_disposition == "unsupported" {
             "Bijux Genomics does not redistribute this unsupported tool; consult the canonical container catalog for the support rationale."
         } else {
             "Redistribution follows upstream license obligations; verify notice/source requirements before release."
@@ -690,7 +715,7 @@ fn license_metadata_entries(workspace: &Workspace) -> Result<Vec<LicenseMetadata
         entries.push(LicenseMetadataEntry {
             tool,
             kind,
-            support_disposition: status,
+            support_disposition,
             spdx,
             upstream_url: source,
             upstream_version: version,
@@ -792,14 +817,12 @@ pub(super) fn generate_license_metadata(
 
 pub(super) fn check_license_metadata(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
     let license_dir = workspace.path("containers/licenses");
-    let registry = registry_tool_map(workspace)?;
+    let catalog = catalog_tool_rows(workspace)?;
     let versions = tool_versions(workspace)?;
     let mut errors = Vec::new();
-    let governed_statuses = governed_container_statuses(workspace)?;
-    let expected_files = governed_statuses
-        .keys()
-        .map(|tool| format!("{tool}.license.toml"))
-        .collect::<BTreeSet<_>>();
+    let catalog_support = container_support_summary(workspace)?;
+    let expected_files =
+        catalog_support.keys().map(|tool| format!("{tool}.license.toml")).collect::<BTreeSet<_>>();
     for path in fs::read_dir(&license_dir)
         .with_context(|| format!("read {}", license_dir.display()))?
         .filter_map(std::result::Result::ok)
@@ -816,8 +839,7 @@ pub(super) fn check_license_metadata(workspace: &Workspace) -> Result<ContainerC
             ));
         }
     }
-    for tool in governed_statuses.keys() {
-        let row = registry.get(tool).cloned().unwrap_or_default();
+    for tool in catalog_support.keys() {
         let meta = license_dir.join(format!("{tool}.license.toml"));
         if !meta.exists() {
             errors.push(format!("missing {}", workspace.rel(&meta).display()));
@@ -847,13 +869,31 @@ pub(super) fn check_license_metadata(workspace: &Workspace) -> Result<ContainerC
         if table_string(data, "tool_id") != *tool {
             errors.push(format!("{} tool_id mismatch", workspace.rel(&meta).display()));
         }
+        if table_string(data, "container_kind") != "bijux" {
+            errors.push(format!(
+                "{} container_kind must identify Bijux Genomics recipe ownership",
+                workspace.rel(&meta).display()
+            ));
+        }
+        let catalog_license =
+            catalog.get(tool).map(|row| table_string(row, "license")).unwrap_or_default();
+        if catalog_license.is_empty()
+            || table_string(data, "upstream_license_id") != catalog_license
+        {
+            errors.push(format!(
+                "{} upstream_license_id must match the canonical catalog",
+                workspace.rel(&meta).display()
+            ));
+        }
         let upstream_url = table_string(data, "upstream_url");
         if !(upstream_url.starts_with("http://") || upstream_url.starts_with("https://")) {
             errors.push(format!("{} upstream_url must be URL", workspace.rel(&meta).display()));
         }
         let checksum = table_string(data, "upstream_checksum");
         let checksum_ok = checksum == "not-distributed"
-            && governed_statuses.get(tool).is_some_and(|status| status == "unsupported")
+            && catalog_support
+                .get(tool)
+                .is_some_and(|(disposition, _)| disposition == "unsupported")
             || checksum.starts_with("sha256:")
                 && checksum.len() == "sha256:".len() + 64
                 && checksum["sha256:".len()..]
@@ -875,29 +915,26 @@ pub(super) fn check_license_metadata(workspace: &Workspace) -> Result<ContainerC
             ));
         }
 
-        let apptainer_def = table_string(&row, "apptainer_def");
-        if apptainer_def.contains("/non-bijux/") || is_non_bijux_apptainer_source(workspace, tool) {
-            let version_row = versions.get(tool).cloned().unwrap_or_default();
-            let source = table_string(&version_row, "source");
-            let version = table_string(&version_row, "version");
-            if source.is_empty() || source != upstream_url {
-                errors.push(format!(
-                    "{} non-bijux upstream_url must match versions.toml source",
-                    workspace.rel(&meta).display()
-                ));
-            }
-            if version.is_empty() || table_string(data, "upstream_version") != version {
-                errors.push(format!(
-                    "{} non-bijux upstream_version must match versions.toml version",
-                    workspace.rel(&meta).display()
-                ));
-            }
-            if checksum == format!("sha256:{}", "0".repeat(64)) {
-                errors.push(format!(
-                    "{} non-bijux upstream_checksum must not be placeholder zeros",
-                    workspace.rel(&meta).display()
-                ));
-            }
+        let version_row = versions.get(tool).cloned().unwrap_or_default();
+        let source = table_string(&version_row, "source");
+        let version = table_string(&version_row, "version");
+        if source.is_empty() || source != upstream_url {
+            errors.push(format!(
+                "{} upstream_url must match versions.toml source",
+                workspace.rel(&meta).display()
+            ));
+        }
+        if version.is_empty() || table_string(data, "upstream_version") != version {
+            errors.push(format!(
+                "{} upstream_version must match versions.toml version",
+                workspace.rel(&meta).display()
+            ));
+        }
+        if checksum == format!("sha256:{}", "0".repeat(64)) {
+            errors.push(format!(
+                "{} upstream_checksum must not be placeholder zeros",
+                workspace.rel(&meta).display()
+            ));
         }
     }
     if errors.is_empty() {
@@ -1191,16 +1228,21 @@ fn tool_docs_content(workspace: &Workspace) -> Result<BTreeMap<String, String>> 
         let upstream =
             catalog_row.get("upstream").and_then(toml::Value::as_str).unwrap_or_default();
         let license = {
-            let spdx = table_string(&license_row, "spdx");
-            if spdx.is_empty() {
-                let upstream = table_string(version_row, "upstream_license");
-                if upstream.is_empty() {
-                    "unknown".to_string()
+            let catalog_license = table_string(&catalog_row, "license");
+            if catalog_license.is_empty() {
+                let spdx = table_string(&license_row, "spdx");
+                if spdx.is_empty() {
+                    let upstream = table_string(version_row, "upstream_license");
+                    if upstream.is_empty() {
+                        "unknown".to_string()
+                    } else {
+                        upstream
+                    }
                 } else {
-                    upstream
+                    spdx
                 }
             } else {
-                spdx
+                catalog_license
             }
         };
         let mut runtimes = Vec::new();
@@ -1309,10 +1351,9 @@ pub(super) fn check_tool_docs_generated(workspace: &Workspace) -> Result<Contain
     success_line("tool docs generated: OK")
 }
 
-fn load_summary_status(workspace: &Workspace) -> SummaryStatus {
+fn load_summary_digests(workspace: &Workspace) -> SummaryDigests {
     let summary_json = workspace.path("artifacts/containers/summary.json");
     let lock_json = workspace.path("containers/versions/lock.json");
-    let mut status_from_summary = BTreeMap::new();
     let mut docker_digest_from_summary = BTreeMap::new();
     let mut apptainer_digest_from_summary = BTreeMap::new();
     if summary_json.exists() {
@@ -1331,12 +1372,6 @@ fn load_summary_status(workspace: &Workspace) -> SummaryStatus {
                         .unwrap_or_default()
                         .trim()
                         .to_string();
-                    let status = item
-                        .get("status")
-                        .and_then(serde_json::Value::as_str)
-                        .unwrap_or_default()
-                        .trim()
-                        .to_string();
                     let digest = item
                         .get("resolved_image_digest")
                         .and_then(serde_json::Value::as_str)
@@ -1347,9 +1382,6 @@ fn load_summary_status(workspace: &Workspace) -> SummaryStatus {
                         continue;
                     }
                     if runtime == "apptainer" {
-                        if !status.is_empty() {
-                            status_from_summary.insert(tool.clone(), status);
-                        }
                         if !digest.is_empty() {
                             apptainer_digest_from_summary.insert(tool.clone(), digest);
                         }
@@ -1403,18 +1435,29 @@ fn load_summary_status(workspace: &Workspace) -> SummaryStatus {
     for (tool, digest) in lock_apptainer_digest {
         apptainer_digest_from_summary.entry(tool).or_insert(digest);
     }
-    (status_from_summary, docker_digest_from_summary, apptainer_digest_from_summary)
+    (docker_digest_from_summary, apptainer_digest_from_summary)
 }
 
 fn generate_qa_matrix_content(workspace: &Workspace) -> Result<String> {
     let registry = registry_tool_map(workspace)?;
-    let (status_from_summary, docker_digest_from_summary, apptainer_digest_from_summary) =
-        load_summary_status(workspace);
+    let catalog = catalog_tool_rows(workspace)?;
+    let support = container_support_summary(workspace)?;
+    let (docker_digest_from_summary, apptainer_digest_from_summary) =
+        load_summary_digests(workspace);
     let mut rows = Vec::new();
     for (tool, row) in registry {
-        if !table_array_strings(&row, "runtimes").iter().any(|runtime| runtime == "apptainer") {
+        let contract = catalog
+            .get(&tool)
+            .ok_or_else(|| anyhow!("container catalog missing registry tool: {tool}"))?;
+        if table_string(contract, "support_disposition") != "retained"
+            || !table_bool(contract, "apptainer_supported")
+        {
             continue;
         }
+        let (support_disposition, qualification) = support
+            .get(&tool)
+            .cloned()
+            .ok_or_else(|| anyhow!("container catalog missing registry tool: {tool}"))?;
         rows.push((
             tool.clone(),
             table_string(&row, "apptainer_def"),
@@ -1437,14 +1480,8 @@ fn generate_qa_matrix_content(workspace: &Workspace) -> Result<String> {
                     rationale
                 }
             },
-            status_from_summary.get(&tool).cloned().unwrap_or_else(|| {
-                let status = table_string(&row, "status");
-                if status.is_empty() {
-                    "unknown".to_string()
-                } else {
-                    status
-                }
-            }),
+            support_disposition,
+            qualification,
             docker_digest_from_summary.get(&tool).cloned().unwrap_or_else(|| "-".to_string()),
             apptainer_digest_from_summary.get(&tool).cloned().unwrap_or_else(|| "-".to_string()),
         ));
@@ -1457,10 +1494,10 @@ fn generate_qa_matrix_content(workspace: &Workspace) -> Result<String> {
         "# APPTAINER_QA_MATRIX".to_string(),
         String::new(),
         "## Purpose".to_string(),
-        "Generated matrix for Apptainer-enabled tools and required QA gates.".to_string(),
+        "Generated matrix for Apptainer-enabled tools, runtime checks, and evidence qualification.".to_string(),
         String::new(),
         "## Scope".to_string(),
-        "Derived from tool registries and container metadata fields.".to_string(),
+        "The canonical catalog selects retained Apptainer distributions, runtime commands come from the tool registries, and qualification comes from the generated evidence report.".to_string(),
         String::new(),
         "## Non-goals".to_string(),
         "- Replacing full per-tool smoke manifests.".to_string(),
@@ -1474,14 +1511,16 @@ fn generate_qa_matrix_content(workspace: &Workspace) -> Result<String> {
             .to_string(),
         "- [containers/docs/NETWORK_USAGE.md](../../containers/docs/NETWORK_USAGE.md)"
             .to_string(),
-        "- [containers/docs/PLANNED.md](../../containers/docs/PLANNED.md)".to_string(),
+        "- [containers/reports/qualification.md](../../containers/reports/qualification.md)"
+            .to_string(),
         String::new(),
         "## Contracts".to_string(),
-        "- Tool row exists iff registry runtimes include `apptainer`.".to_string(),
+        "- Tool row exists iff the canonical catalog retains and enables its Apptainer distribution.".to_string(),
         "- `apptainer_def` and smoke command fields are surfaced for QA checks.".to_string(),
+        "- Support disposition describes whether Bijux retains the tool; qualification is derived independently from immutable evidence.".to_string(),
         String::new(),
-        "| Tool ID | Apptainer Def | Smoke Version | Smoke Help | Smoke Minimal | Minimal Exit | Docker Digest | Apptainer Digest | Minimal Rationale | QA Rule | Status |".to_string(),
-        "|---|---|---|---|---|---|---|---|---|---|---|".to_string(),
+        "| Tool ID | Apptainer Def | Smoke Version | Smoke Help | Smoke Minimal | Minimal Exit | Docker Digest | Apptainer Digest | Minimal Rationale | QA Rule | Support | Qualification |".to_string(),
+        "|---|---|---|---|---|---|---|---|---|---|---|---|".to_string(),
     ];
     for (
         tool,
@@ -1491,13 +1530,14 @@ fn generate_qa_matrix_content(workspace: &Workspace) -> Result<String> {
         smoke_minimal_cmd,
         smoke_minimal_exit_code,
         smoke_minimal_rationale,
-        status,
+        support_disposition,
+        qualification,
         docker_digest,
         apptainer_digest,
     ) in rows
     {
         lines.push(format!(
-            "| `{tool}` | `{}` | `{}` | `{}` | `{}` | `{}` | `{}` | `{}` | `{}` | `build+smoke required` | `{}` |",
+            "| `{tool}` | `{}` | `{}` | `{}` | `{}` | `{}` | `{}` | `{}` | `{}` | `build+smoke required` | `{support_disposition}` | `{qualification}` |",
             if apptainer_def.is_empty() { "-" } else { &apptainer_def },
             if smoke_version_cmd.is_empty() { "-".to_string() } else { markdown_code_value(&smoke_version_cmd) }.as_str(),
             if smoke_help_cmd.is_empty() { "-".to_string() } else { markdown_code_value(&smoke_help_cmd) }.as_str(),
@@ -1506,7 +1546,6 @@ fn generate_qa_matrix_content(workspace: &Workspace) -> Result<String> {
             docker_digest,
             apptainer_digest,
             markdown_code_value(&smoke_minimal_rationale),
-            status,
         ));
     }
     Ok(format!("{}\n", lines.join("\n")))
@@ -1554,13 +1593,8 @@ mod tests {
     #[test]
     fn parse_ghcr_publish_matrix_args_keeps_default_output_and_prefix() {
         let workspace = Workspace { root: PathBuf::from("/tmp/bijux-genomics") };
-        let args = vec![
-            "--tool".to_string(),
-            "fastp".to_string(),
-            "--status".to_string(),
-            "production".to_string(),
-        ];
-        let (output, prefix, tools, statuses) =
+        let args = vec!["--tool".to_string(), "fastp".to_string()];
+        let (output, prefix, tools) =
             parse_ghcr_publish_matrix_args(&workspace, GhcrRuntimeKind::DockerArm64, &args)
                 .unwrap_or_else(|err| panic!("parse args: {err}"));
         assert_eq!(
@@ -1571,7 +1605,6 @@ mod tests {
         );
         assert_eq!(prefix, "ghcr.io/bijux/bijux-genomics");
         assert_eq!(tools, BTreeSet::from([String::from("fastp")]));
-        assert_eq!(statuses, BTreeSet::from([String::from("production")]));
     }
 
     #[test]
@@ -1582,19 +1615,18 @@ mod tests {
             "--package-prefix".to_string(),
             "ghcr.io/example/private".to_string(),
         ];
-        let (output, prefix, tools, statuses) =
+        let (output, prefix, tools) =
             parse_ghcr_publish_matrix_args(&workspace, GhcrRuntimeKind::DockerArm64, &args)
                 .unwrap_or_else(|err| panic!("parse args: {err}"));
         assert_eq!(output, PathBuf::from("/tmp/bijux-genomics/reports/publish.json"));
         assert_eq!(prefix, "ghcr.io/example/private");
         assert!(tools.is_empty());
-        assert!(statuses.is_empty());
     }
 
     #[test]
     fn parse_ghcr_apptainer_publish_matrix_args_keeps_runtime_specific_default_output() {
         let workspace = Workspace { root: PathBuf::from("/tmp/bijux-genomics") };
-        let (output, prefix, tools, statuses) =
+        let (output, prefix, tools) =
             parse_ghcr_publish_matrix_args(&workspace, GhcrRuntimeKind::Apptainer, &[])
                 .unwrap_or_else(|err| panic!("parse args: {err}"));
         assert_eq!(
@@ -1605,7 +1637,6 @@ mod tests {
         );
         assert_eq!(prefix, "ghcr.io/bijux/bijux-genomics");
         assert!(tools.is_empty());
-        assert!(statuses.is_empty());
     }
 
     #[test]

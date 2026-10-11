@@ -1,7 +1,7 @@
 # schema_version = 1
 # owner = bijux-genomics
 tool_id = "glimpse"
-container_kind = "non-bijux"
+container_kind = "bijux"
 spdx = "MIT"
 upstream_license_id = "MIT"
 upstream_url = "https://github.com/odelaneau/GLIMPSE"

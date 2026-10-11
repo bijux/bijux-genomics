@@ -4,12 +4,12 @@ use std::fmt::Write as _;
 
 use super::{
     anyhow, apptainer_def_paths, apptainer_tool_ids, canonical_container_label_keys,
-    command_hostname, docker_tool_ids, failure_lines, fs, is_non_bijux_apptainer_source,
-    iso_root_path, iso_run_id, json_string_pretty, load_toml, lock_items_by_tool, lock_json_path,
-    out_path_arg, path_from_arg, policy_path, read_json, read_utf8, registry_tool_rows, sha256_hex,
-    success_line, table_bool, table_string, tool_status_manifest, tool_versions, validation,
-    write_utf8, BTreeMap, BTreeSet, ContainerCommandOutcome, Context, Path, PathBuf, ProcessRunner,
-    Regex, Result, WalkDir, Workspace,
+    command_hostname, container_support_summary, docker_tool_ids, failure_lines, fs, iso_root_path,
+    iso_run_id, json_string_pretty, load_toml, lock_items_by_tool, lock_json_path, out_path_arg,
+    path_from_arg, policy_path, read_json, read_utf8, registry_tool_rows, sha256_hex, success_line,
+    table_bool, table_string, tool_versions, validation, write_utf8, BTreeMap, BTreeSet,
+    ContainerCommandOutcome, Context, Path, PathBuf, ProcessRunner, Regex, Result, WalkDir,
+    Workspace,
 };
 
 mod frontend_proofs;
@@ -34,10 +34,41 @@ pub(super) fn check_apptainer_cache_policy(
 }
 
 pub(super) fn check_apptainer_hardening(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
-    let tool_status = tool_status_manifest(workspace)?;
     let required_labels = canonical_container_label_keys();
+    let catalog = load_toml(&workspace.path("containers/contracts/catalog.toml"))?;
+    let expected_sources = catalog
+        .get("tools")
+        .and_then(toml::Value::as_array)
+        .into_iter()
+        .flatten()
+        .filter_map(toml::Value::as_table)
+        .map(|tool| (table_string(tool, "id"), table_string(tool, "upstream")))
+        .collect::<BTreeMap<_, _>>();
+    let expected_revisions = catalog
+        .get("tools")
+        .and_then(toml::Value::as_array)
+        .into_iter()
+        .flatten()
+        .filter_map(toml::Value::as_table)
+        .map(|tool| {
+            (
+                table_string(tool, "id"),
+                (
+                    table_string(tool, "upstream"),
+                    table_string(tool, "pinned_commit"),
+                    table_string(tool, "source_sha256"),
+                ),
+            )
+        })
+        .collect::<BTreeMap<_, _>>();
+    let project_repository =
+        catalog.get("repository").and_then(toml::Value::as_str).unwrap_or_default();
     let mut errors = Vec::new();
-    let version_re = Regex::new(r"org\.opencontainers\.image\.version\s+([^\s]+)")?;
+    let version_re = Regex::new(r"io\.bijux\.tool\.version\s+([^\s]+)")?;
+    let source_re = Regex::new(r"(?m)^\s*org\.opencontainers\.image\.source\s+([^\s]+)\s*$")?;
+    let revision_re = Regex::new(r"(?m)^\s*org\.opencontainers\.image\.revision\s+([^\s]+)\s*$")?;
+    let created_re = Regex::new(r"(?m)^\s*org\.opencontainers\.image\.created\s+([^\s]+)\s*$")?;
+    let legacy_version_re = Regex::new(r"(?m)^\s*VERSION\s+([^\s]+)\s*$")?;
     let from_re = Regex::new(r"(?m)^\s*From:\s+(.+?)\s*$")?;
     let interactive_re = Regex::new(r"\b(read -p|select |dialog|whiptail)\b")?;
     let umask_re = Regex::new(r"(?m)^\s*umask\s+0?22\s*$")?;
@@ -45,7 +76,6 @@ pub(super) fn check_apptainer_hardening(workspace: &Workspace) -> Result<Contain
     for path in apptainer_def_paths(workspace) {
         let rel = workspace.rel(&path).display().to_string();
         let tool_id = path.file_stem().and_then(|name| name.to_str()).unwrap_or_default();
-        let status = tool_status.get(tool_id).cloned().unwrap_or_else(|| "unknown".to_string());
         let text = read_utf8(&path)?;
         let head = text.lines().take(24).collect::<Vec<_>>().join("\n");
         for marker in [
@@ -63,9 +93,48 @@ pub(super) fn check_apptainer_hardening(workspace: &Workspace) -> Result<Contain
                 errors.push(format!("{rel}: missing label {label}"));
             }
         }
+        let sources = source_re
+            .captures_iter(&text)
+            .filter_map(|captures| captures.get(1))
+            .map(|value| value.as_str().to_string())
+            .collect::<Vec<_>>();
+        let expected_source = expected_sources.get(tool_id).map(String::as_str).unwrap_or_default();
+        if sources.as_slice() != [expected_source] {
+            errors.push(format!(
+                "{rel}: image.source must occur once and equal catalog upstream {expected_source:?}; found {sources:?}"
+            ));
+        }
+        let revisions = revision_re
+            .captures_iter(&text)
+            .filter_map(|captures| captures.get(1))
+            .map(|value| value.as_str().to_string())
+            .collect::<Vec<_>>();
+        let (upstream, pinned_commit, source_sha256) = expected_revisions
+            .get(tool_id)
+            .map(|(upstream, commit, sha256)| (upstream.as_str(), commit.as_str(), sha256.as_str()))
+            .unwrap_or_default();
+        let mut allowed_revisions = [pinned_commit, source_sha256]
+            .into_iter()
+            .filter(|value| !value.is_empty())
+            .map(ToOwned::to_owned)
+            .collect::<Vec<_>>();
+        if !source_sha256.is_empty() {
+            allowed_revisions.push(format!("sha256:{source_sha256}"));
+        }
+        if upstream == project_repository {
+            allowed_revisions.push("governed-by-build-evidence".to_string());
+        }
+        if revisions.len() != 1 || !allowed_revisions.contains(&revisions[0]) {
+            errors.push(format!(
+                "{rel}: image.revision must equal a catalog source identity; found {revisions:?}, allowed {allowed_revisions:?}"
+            ));
+        }
         for (alias, keys) in [
             ("tool", vec!["org.opencontainers.image.tool", "tool"]),
-            ("version", vec!["org.opencontainers.image.version", "version"]),
+            (
+                "version",
+                vec!["io.bijux.tool.version", "org.opencontainers.image.version", "version"],
+            ),
             ("source", vec!["org.opencontainers.image.source", "source"]),
             ("license_ref", vec!["org.opencontainers.image.licenses", "license_ref"]),
             ("build_date", vec!["org.opencontainers.image.created", "build_date"]),
@@ -118,6 +187,16 @@ pub(super) fn check_apptainer_hardening(workspace: &Workspace) -> Result<Contain
             if post.contains("apt-get") && !post.contains("rm -rf /var/lib/apt/lists/*") {
                 errors.push(format!("{rel}: apt usage requires cleanup of /var/lib/apt/lists/*"));
             }
+            if apt_tls_peer_verification_disabled(post) {
+                errors.push(format!(
+                    "{rel}: disabling apt TLS peer verification is forbidden; use the governed snapshot bootstrap"
+                ));
+            }
+            if recipe_ignores_runtime_failure(&text) {
+                errors.push(format!(
+                    "{rel}: commands must not convert unchecked failures into successful images"
+                ));
+            }
             if post.contains("latest")
                 || post.contains("main")
                 || post.contains("master")
@@ -134,16 +213,40 @@ pub(super) fn check_apptainer_hardening(workspace: &Workspace) -> Result<Contain
                 .get(1)
                 .map(|value| value.as_str().trim().trim_matches('"').to_ascii_lowercase())
                 .unwrap_or_default();
-            if status == "production"
-                && matches!(
-                    value.as_str(),
-                    "latest" | "latest-pinned" | "main" | "master" | "head" | "unknown" | ""
-                )
-            {
+            if matches!(
+                value.as_str(),
+                "latest" | "latest-pinned" | "main" | "master" | "head" | "unknown" | ""
+            ) {
                 errors.push(format!(
-                    "{rel}: floating/unknown image.version '{value}' is forbidden for production tool"
+                    "{rel}: floating or unknown image.version '{value}' is forbidden"
                 ));
             }
+        }
+        for (label, captures) in [
+            ("revision", revision_re.captures(&text)),
+            ("created", created_re.captures(&text)),
+            ("VERSION", legacy_version_re.captures(&text)),
+        ] {
+            let Some(captures) = captures else {
+                continue;
+            };
+            let value = captures
+                .get(1)
+                .map(|value| value.as_str().trim().trim_matches('"').to_ascii_lowercase())
+                .unwrap_or_default();
+            if provenance_label_is_placeholder(&value) {
+                errors.push(format!(
+                    "{rel}: placeholder image provenance label {label}={value} is forbidden"
+                ));
+            }
+        }
+        if created_re
+            .captures(&text)
+            .and_then(|captures| captures.get(1))
+            .map(|value| value.as_str())
+            != Some("governed-by-build-evidence")
+        {
+            errors.push(format!("{rel}: image.created must defer to immutable build evidence"));
         }
         if let Some(captures) = from_re.captures(&text) {
             let from_line = captures.get(1).map(|value| value.as_str().trim()).unwrap_or_default();
@@ -195,6 +298,21 @@ pub(super) fn check_apptainer_hardening(workspace: &Workspace) -> Result<Contain
         return success_line("apptainer hardening: OK");
     }
     failure_lines("apptainer hardening: failed", &errors)
+}
+
+fn provenance_label_is_placeholder(value: &str) -> bool {
+    matches!(value.trim().to_ascii_lowercase().as_str(), "unknown" | "pending" | "latest" | "")
+}
+
+fn apt_tls_peer_verification_disabled(post: &str) -> bool {
+    post.contains("Acquire::https::Verify-Peer=false")
+}
+
+fn recipe_ignores_runtime_failure(recipe: &str) -> bool {
+    recipe.lines().any(|line| {
+        let command = line.split('#').next().unwrap_or_default();
+        command.contains("|| true")
+    })
 }
 
 pub(super) fn check_apptainer_post_pins(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
@@ -275,7 +393,7 @@ pub(super) fn check_apptainer_version_label_sync(
     }
     let versions = tool_versions(workspace)?;
     let mut errors = Vec::new();
-    let version_re = Regex::new(r"org\.opencontainers\.image\.version\s+([^\n\r]+)")?;
+    let version_re = Regex::new(r"io\.bijux\.tool\.version\s+([^\n\r]+)")?;
     for path in apptainer_def_paths(workspace) {
         let rel = workspace.rel(&path).display().to_string();
         let tool = path.file_stem().and_then(|name| name.to_str()).unwrap_or_default().to_string();
@@ -286,7 +404,7 @@ pub(super) fn check_apptainer_version_label_sync(
         };
         let expected = table_string(row, "version");
         let Some(captures) = version_re.captures(&text) else {
-            errors.push(format!("{rel}: missing org.opencontainers.image.version label"));
+            errors.push(format!("{rel}: missing io.bijux.tool.version label"));
             continue;
         };
         let label_value = captures
@@ -429,86 +547,62 @@ pub(super) fn check_missing_images(workspace: &Workspace) -> Result<ContainerCom
     success_line("missing images gate: OK")
 }
 
-pub(super) fn check_non_bijux_sources(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
-    let sources_doc = workspace.path("containers/docs/UPSTREAM_SOURCES.md");
-    if !sources_doc.exists() {
-        return Ok(ContainerCommandOutcome::failure(format!(
-            "missing required provenance index: {}\n",
-            sources_doc.display()
-        )));
-    }
-    let defs = apptainer_tool_ids(workspace)
-        .into_iter()
-        .filter(|tool_id| is_non_bijux_apptainer_source(workspace, tool_id))
-        .collect::<BTreeSet<_>>();
-    let text = read_utf8(&sources_doc)?;
-    let row_re = Regex::new(
-        r"\|\s*`([^`]+)`\s*\|\s*`([^`]+)`\s*\|\s*(.+?)\s*\|\s*(\S+)\s*\|\s*`([^`]+)`\s*\|\s*`([^`]+)`\s*\|\s*(.+?)\s*\|",
-    )?;
-    let mut rows = BTreeMap::new();
-    for line in text.lines() {
-        let Some(captures) = row_re.captures(line) else {
-            continue;
-        };
-        rows.insert(
-            captures.get(1).map(|value| value.as_str().to_string()).unwrap_or_default(),
-            (
-                captures.get(2).map(|value| value.as_str().to_string()).unwrap_or_default(),
-                captures.get(3).map(|value| value.as_str().to_string()).unwrap_or_default(),
-                captures.get(4).map(|value| value.as_str().to_string()).unwrap_or_default(),
-                captures.get(5).map(|value| value.as_str().to_string()).unwrap_or_default(),
-                captures.get(6).map(|value| value.as_str().to_string()).unwrap_or_default(),
-                captures.get(7).map(|value| value.as_str().to_string()).unwrap_or_default(),
-            ),
-        );
-    }
-    let checksum_re = Regex::new(r"^[0-9a-f]{64}$")?;
+pub(super) fn check_upstream_provenance(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
+    let catalog = load_toml(&workspace.path("containers/contracts/catalog.toml"))?;
+    let tools = catalog.get("tools").and_then(toml::Value::as_array).cloned().unwrap_or_default();
     let mut errors = Vec::new();
-    for tool_id in &defs {
-        let Some((def_path, why_non_bijux, upstream, license_field, checksum, patching_rules)) =
-            rows.get(tool_id)
-        else {
-            errors.push(format!("{tool_id}: missing row in NON_BIJUX_SOURCES.md"));
+    for tool in tools {
+        let Some(row) = tool.as_table() else {
+            errors.push("catalog tool entry must be a table".to_string());
             continue;
         };
-        let expected_path = format!("containers/apptainer/{tool_id}.def");
-        if def_path != &expected_path {
+        let tool_id = table_string(row, "id");
+        let upstream = table_string(row, "upstream");
+        let documentation = table_string(row, "documentation");
+        let license = table_string(row, "license");
+        let disposition = table_string(row, "support_disposition");
+        let support_reason = table_string(row, "support_reason");
+        let source_sha = table_string(row, "source_sha256");
+        let commit = table_string(row, "pinned_commit");
+        let resolved_sha = source_sha.len() == 64
+            && source_sha.chars().all(|ch| ch.is_ascii_hexdigit())
+            && source_sha.chars().any(|ch| ch != '0');
+        let resolved_commit = commit.len() == 40
+            && commit.chars().all(|ch| ch.is_ascii_hexdigit())
+            && commit.chars().any(|ch| ch != '0');
+        if tool_id.is_empty() {
+            errors.push("catalog tool entry lacks id".to_string());
+            continue;
+        }
+        if !upstream.starts_with("https://") {
+            errors.push(format!("{tool_id}: upstream must be an HTTPS URL"));
+        }
+        if !documentation.starts_with("https://") {
+            errors.push(format!("{tool_id}: documentation must be an HTTPS URL"));
+        }
+        if license.is_empty() {
+            errors.push(format!("{tool_id}: upstream license must be explicit"));
+        }
+        if disposition == "retained" && !resolved_sha && !resolved_commit {
+            errors.push(format!("{tool_id}: immutable upstream identity is unresolved"));
+        }
+        if disposition != "retained" && support_reason.is_empty() {
             errors.push(format!(
-                "{tool_id}: def path mismatch, expected {expected_path}, got {def_path}"
+                "{tool_id}: non-retained provenance requires an explicit support reason"
             ));
         }
-        if !upstream.starts_with("http://") && !upstream.starts_with("https://") {
-            errors.push(format!("{tool_id}: upstream_source must be URL"));
-        }
-        if why_non_bijux.trim().is_empty() {
-            errors.push(format!("{tool_id}: why_non_bijux must be non-empty"));
-        }
-        if license_field.trim().is_empty() {
-            errors.push(format!("{tool_id}: upstream_license must be non-empty"));
-        }
-        if patching_rules.trim().is_empty() {
-            errors.push(format!("{tool_id}: patching_rules must be non-empty"));
-        }
-        if checksum.starts_with("sha256:") {
-            let digest = checksum.trim_start_matches("sha256:");
-            if digest != "pending" && !checksum_re.is_match(digest) {
-                errors.push(format!(
-                    "{tool_id}: upstream_checksum must be sha256:<64hex> or sha256:pending"
-                ));
+        if table_bool(row, "apptainer_supported") {
+            let definition = table_string(row, "apptainer_definition");
+            let expected = format!("containers/apptainer/{tool_id}.def");
+            if definition != expected || !workspace.path(&definition).is_file() {
+                errors.push(format!("{tool_id}: Apptainer definition must resolve to {expected}"));
             }
-        } else {
-            errors.push(format!("{tool_id}: upstream_checksum must start with sha256:"));
-        }
-    }
-    for tool_id in rows.keys() {
-        if !defs.contains(tool_id) {
-            errors.push(format!("{tool_id}: listed in NON_BIJUX_SOURCES.md but no .def exists"));
         }
     }
     if errors.is_empty() {
-        return success_line("non-bijux source coverage: OK");
+        return success_line("upstream provenance: OK");
     }
-    failure_lines("non-bijux source coverage check failed:", &errors)
+    failure_lines("upstream provenance check failed:", &errors)
 }
 
 pub(super) fn check_owners(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
@@ -530,6 +624,7 @@ pub(super) fn check_owners(workspace: &Workspace) -> Result<ContainerCommandOutc
 }
 
 pub(super) fn check_registry_vs_defs(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
+    let support = container_support_summary(workspace)?;
     let mut registry_ids = BTreeSet::new();
     let mut registry_container_ids = BTreeSet::new();
     for row in registry_tool_rows(workspace)? {
@@ -539,8 +634,8 @@ pub(super) fn check_registry_vs_defs(workspace: &Workspace) -> Result<ContainerC
             continue;
         }
         registry_ids.insert(tool_id.clone());
-        let status = table_string(&row, "status");
-        if table_bool(&row, "container") && matches!(status.as_str(), "production" | "experimental")
+        if table_bool(&row, "container")
+            && support.get(&tool_id).is_some_and(|(disposition, _)| disposition == "retained")
         {
             registry_container_ids.insert(tool_id);
         }
@@ -1056,7 +1151,7 @@ pub(super) fn write_vuln_hook_report(
     sbom_root: &Path,
     out: &Path,
     toolkit: &str,
-    promoted_only: bool,
+    retained_only: bool,
 ) -> Result<()> {
     let scanner = if command_exists("grype") {
         Some("grype")
@@ -1066,9 +1161,9 @@ pub(super) fn write_vuln_hook_report(
         None
     };
     let mut allowed_tools = BTreeSet::new();
-    if promoted_only {
-        for (tool, row) in lock_items_by_tool(workspace)? {
-            if row.get("status").and_then(serde_json::Value::as_str) == Some("production") {
+    if retained_only {
+        for (tool, (disposition, _)) in container_support_summary(workspace)? {
+            if disposition == "retained" {
                 allowed_tools.insert(tool);
             }
         }
@@ -1168,7 +1263,7 @@ pub(super) fn write_vuln_hook_report(
                 "schema_version": "bijux.container.vuln_hook.v1",
                 "scanner": scanner.unwrap_or("none"),
                 "toolkit": if toolkit.trim().is_empty() { "all" } else { toolkit },
-                "promoted_only": promoted_only,
+                "retained_only": retained_only,
                 "items": rows,
             }))?
         ),
@@ -1201,7 +1296,10 @@ pub(super) fn merge_outcomes(
 #[cfg(test)]
 #[allow(clippy::expect_used)]
 mod tests {
-    use super::merge_bijux_command_env;
+    use super::{
+        apt_tls_peer_verification_disabled, merge_bijux_command_env,
+        provenance_label_is_placeholder, recipe_ignores_runtime_failure,
+    };
 
     #[test]
     fn merge_bijux_command_env_preserves_explicit_values() {
@@ -1213,5 +1311,33 @@ mod tests {
             .iter()
             .any(|(key, value)| key == "BIJUX_BIN" && value == "/tmp/custom-bijux"));
         assert!(merged.iter().any(|(key, value)| key == "OTHER" && value == "value"));
+    }
+
+    #[test]
+    fn apptainer_policy_rejects_disabled_apt_tls_verification() {
+        assert!(apt_tls_peer_verification_disabled(
+            "apt-get -o Acquire::https::Verify-Peer=false update"
+        ));
+        assert!(!apt_tls_peer_verification_disabled(
+            "/bin/sh /usr/local/sbin/bijux-configure-apt-snapshot"
+        ));
+    }
+
+    #[test]
+    fn apptainer_policy_rejects_ignored_runtime_failures() {
+        assert!(recipe_ignores_runtime_failure("make -j2 || true"));
+        assert!(recipe_ignores_runtime_failure("tool --help >/dev/null 2>&1 || true"));
+        assert!(!recipe_ignores_runtime_failure("make --directory /opt/tool -j2"));
+        assert!(!recipe_ignores_runtime_failure(
+            "set +e\ntool --help\nstatus=$?\nset -e\ntest $status -eq 1"
+        ));
+    }
+
+    #[test]
+    fn apptainer_policy_rejects_placeholder_provenance_labels() {
+        assert!(provenance_label_is_placeholder("unknown"));
+        assert!(provenance_label_is_placeholder(" PENDING "));
+        assert!(!provenance_label_is_placeholder("76edc75c26504da94bbaee66584e107e76ee15de"));
+        assert!(!provenance_label_is_placeholder("governed-by-build-evidence"));
     }
 }

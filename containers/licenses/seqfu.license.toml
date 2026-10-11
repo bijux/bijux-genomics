@@ -2,8 +2,8 @@
 # owner = bijux-genomics
 tool_id = "seqfu"
 container_kind = "bijux"
-spdx = "NOASSERTION"
-upstream_license_id = "NOASSERTION"
+spdx = "GPL-3.0-only"
+upstream_license_id = "GPL-3.0-only"
 upstream_url = "https://github.com/telatin/seqfu2/archive/refs/tags/v1.26.0.tar.gz"
 upstream_version = "1.26.0"
 upstream_checksum = "sha256:2b3aa5d6f983aed570d26b0cf48d910f847704d57401ef64e5b026de3dd0afff"

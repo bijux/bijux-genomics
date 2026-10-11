@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import importlib.util
+import json
 from pathlib import Path
 import re
 import sys
@@ -87,6 +88,91 @@ class RuntimeVerificationTests(unittest.TestCase):
         self.assertEqual(count, 1)
         self.assertIn("| `tool` | `1.0` | passed | passed | **passed** |", report)
         self.assertIn("does not establish real-data", report)
+
+    def test_publication_preserves_hashes_and_removes_operator_paths(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            study_root = root / "study"
+            repository = root / "repository"
+            execution_path = root / "runtime.json"
+            execution = {
+                "schema_version": runtime_verification.EXECUTION_SCHEMA,
+                "status": "passed",
+                "repository_commit": "a" * 40,
+                "catalog": {
+                    "path": str(repository / "containers/contracts/catalog.toml"),
+                    "sha256": "b" * 64,
+                },
+                "inventory": {
+                    "path": str(study_root / "containers/evidence/inventory.json"),
+                    "sha256": "c" * 64,
+                },
+                "tools": {
+                    "samtools": {
+                        "image": str(
+                            study_root / "containers/apptainer/samtools.sif"
+                        ),
+                        "checks": {
+                            "version": {
+                                "stdout": str(
+                                    study_root / "containers/evidence/version.log"
+                                )
+                            }
+                        },
+                    }
+                },
+            }
+            execution_path.write_text(json.dumps(execution), encoding="utf-8")
+            execution_sha256 = runtime_verification.sha256_file(execution_path)
+            output = root / "published.json"
+
+            result = runtime_verification.publish_execution(
+                execution_path, study_root, repository, output
+            )
+
+        self.assertEqual(
+            result["schema_version"], runtime_verification.PUBLICATION_SCHEMA
+        )
+        self.assertEqual(
+            result["catalog"]["path"],
+            "repository://containers/contracts/catalog.toml",
+        )
+        self.assertEqual(
+            result["tools"]["samtools"]["image"],
+            "study://containers/apptainer/samtools.sif",
+        )
+        self.assertEqual(
+            result["tools"]["samtools"]["checks"]["version"]["stdout"],
+            "study://containers/evidence/version.log",
+        )
+        self.assertEqual(
+            result["publication"]["raw_sha256"],
+            execution_sha256,
+        )
+
+    def test_publication_requires_terminal_execution(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            execution_path = root / "runtime.json"
+            execution_path.write_text(
+                json.dumps(
+                    {
+                        "schema_version": runtime_verification.EXECUTION_SCHEMA,
+                        "status": "running",
+                    }
+                ),
+                encoding="utf-8",
+            )
+
+            with self.assertRaisesRegex(
+                runtime_verification.ContractError, "must be terminal"
+            ):
+                runtime_verification.publish_execution(
+                    execution_path,
+                    root / "study",
+                    root / "repository",
+                    root / "published.json",
+                )
 
 
 if __name__ == "__main__":

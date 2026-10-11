@@ -1,0 +1,141 @@
+{
+  "checks": {
+    "help": {
+      "argv": [
+        "picard",
+        "--help"
+      ],
+      "exit_code": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "bc66ca70f4dd72af1bed1e2d401b204f9819859e53fc99581d90329d205b3f0c"
+    },
+    "negative": {
+      "argv": [
+        "picard",
+        "DefinitelyNotAPicardCommand"
+      ],
+      "exit_code": 1,
+      "stderr_sha256": "ed0eb6fc97a05680c19309c9e9a5f0f70e7332a7ecceab4eee11e8501ab9b032",
+      "stdout_sha256": "f63cb5cf8f09838dd15f08b8625274b5b46cb8bff836565ec6e81cb1f6e1af77"
+    },
+    "real": {
+      "argv": [
+        "sh",
+        "-c",
+        "set -eu; mkdir -p /result/work; picard CollectAlignmentSummaryMetrics I=/input/ERR2112767.sorted.bam O=/result/alignment-summary.txt VALIDATION_STRINGENCY=SILENT TMP_DIR=/result/work; awk 'BEGIN {FS=\"\\t\"} /^CATEGORY\\t/ {for (column=1; column<=NF; column++) field[$column]=column; next} $1==\"UNPAIRED\" || $1==\"PAIR\" {printf \"{\\\"category\\\":\\\"%s\\\",\\\"total_reads\\\":%d,\\\"pf_reads\\\":%d,\\\"pf_reads_aligned\\\":%d,\\\"pct_pf_reads_aligned\\\":%.12f,\\\"mean_read_length\\\":%.6f}\\n\", $1, $field[\"TOTAL_READS\"], $field[\"PF_READS\"], $field[\"PF_READS_ALIGNED\"], $field[\"PCT_PF_READS_ALIGNED\"], $field[\"MEAN_READ_LENGTH\"]; found=1; exit} END {if (!found) exit 2}' /result/alignment-summary.txt > /result/metrics.json; rm -rf /result/work"
+      ],
+      "exit_code": 0,
+      "stderr_sha256": "f82cf90b2722f8e4d7d594eb2261d652d464e08db4c4341c3e56ab3ed199636f",
+      "stdout_sha256": "f63cb5cf8f09838dd15f08b8625274b5b46cb8bff836565ec6e81cb1f6e1af77"
+    },
+    "version": {
+      "argv": [
+        "picard",
+        "--version"
+      ],
+      "exit_code": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "89e61bd278d809214a2d0fa8ff4ee4c6d2294f7ae3f471feb748119f1de65dc0"
+    }
+  },
+  "credential_reference_sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+  "dependencies": [],
+  "execution": {
+    "cache_policy": "cold",
+    "determinism": "deterministic",
+    "locale": "C",
+    "random_seed": null,
+    "runtime_network": false,
+    "threads": 2,
+    "timezone": "UTC"
+  },
+  "failure_class": null,
+  "failures": [],
+  "governance_sha256": "5a48351cddde8a0251584de4bbbf01a524bf5a2ecb2a0c2034b6553a554ec37a",
+  "image": {
+    "path": "/lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/picard-3.3.0-linux-amd64-25435fcde104.sif",
+    "sha256": "25435fcde1049d61aca61e59524268d1220dafa336d55c874cbef506cd811ce9",
+    "size_bytes": 160747520
+  },
+  "inputs": [
+    {
+      "id": "err2112767_alignment",
+      "kind": "data",
+      "mount_path": "/input/ERR2112767.sorted.bam",
+      "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb22390-err2112767/ERR2112767.sorted.bam",
+      "sha256": "1d9ca843614c66209de4618ba69ecfae236731f9999a1daa48622f061127fe87"
+    },
+    {
+      "id": "err2112767_alignment_index",
+      "kind": "data",
+      "mount_path": "/input/ERR2112767.sorted.bam.bai",
+      "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb22390-err2112767/ERR2112767.sorted.bam.bai",
+      "sha256": "ab5d07b513a4a3f421a9a82aff5fc5767d41a7333693b67c9258b40a337276a3"
+    }
+  ],
+  "metrics": [
+    {
+      "expected": 1000,
+      "id": "total_reads",
+      "json_pointer": "/total_reads",
+      "observed": 234450,
+      "operator": "ge",
+      "path": "metrics.json",
+      "status": "passed",
+      "unit": "reads"
+    },
+    {
+      "expected": 0,
+      "id": "aligned_fraction_lower_bound",
+      "json_pointer": "/pct_pf_reads_aligned",
+      "observed": 0.996571,
+      "operator": "ge",
+      "path": "metrics.json",
+      "status": "passed",
+      "unit": "fraction"
+    },
+    {
+      "expected": 1,
+      "id": "aligned_fraction_upper_bound",
+      "json_pointer": "/pct_pf_reads_aligned",
+      "observed": 0.996571,
+      "operator": "le",
+      "path": "metrics.json",
+      "status": "passed",
+      "unit": "fraction"
+    }
+  ],
+  "outputs": [
+    {
+      "path": "outputs/alignment-summary.txt",
+      "sha256": "7e342666b7be44ecbcf9c360e38af0120c1806d00b04e9568cbc93bb6c82cec6",
+      "size_bytes": 4621
+    },
+    {
+      "path": "outputs/metrics.json",
+      "sha256": "1c69ddc479657d740ade954c857042f1900784e0f8598fd4661ec336098353d9",
+      "size_bytes": 152
+    }
+  ],
+  "pipeline_schema_version": "bijux.container.pipeline.v2",
+  "pipeline_sha256": "88f70d9cf748766f08fc67fc6e87f7084f1cab989a1b896cb495e015a7ccefaf",
+  "repository_clean": true,
+  "repository_commit": "0bb2b07aa28edcc37f82e1a1824bc3690b0c9cd1",
+  "repository_path": "/home/bijan/bijux/bijux-genomics-runs/0bb2b07aa28edcc37f82e1a1824bc3690b0c9cd1",
+  "run_id": "run-1138",
+  "runtime": {
+    "apptainer_version": "apptainer version 1.5.2-1.el9",
+    "cpus": "2",
+    "finished_at_utc": "2026-08-03T07:45:43.317643+00:00",
+    "host": "cn091",
+    "scratch_path": "/tmp/bijux-genomics-3458734-lmH4Oe",
+    "slurm_job_id": "3458734",
+    "started_at_utc": "2026-08-03T07:45:39.709677+00:00"
+  },
+  "schema_version": "bijux.container.evidence.v2",
+  "site": {
+    "host": "cn091",
+    "id": "lunarc"
+  },
+  "status": "passed"
+}

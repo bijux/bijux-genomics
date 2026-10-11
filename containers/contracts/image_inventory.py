@@ -21,6 +21,7 @@ except ModuleNotFoundError:  # Python 3.9 on the governed LUNARC frontend
 
 
 INVENTORY_SCHEMA = "bijux.container.image_inventory.v1"
+PUBLICATION_SCHEMA = "bijux.container.image_inventory_publication.v1"
 SHA256 = re.compile(r"[0-9a-f]{64}")
 
 
@@ -54,6 +55,59 @@ def load_json(path: Path) -> dict[str, Any]:
     if not isinstance(value, dict):
         raise ImageInventoryError(f"JSON document must be an object: {path}")
     return value
+
+
+def stable_path(value: str, roots: dict[str, Path]) -> str:
+    if not value.startswith("/"):
+        return value
+    candidate = Path(value).resolve()
+    for scheme, root in roots.items():
+        try:
+            relative = candidate.relative_to(root.resolve())
+        except ValueError:
+            continue
+        return f"{scheme}://{relative.as_posix()}"
+    raise ImageInventoryError(
+        f"public evidence contains an absolute path outside governed roots: {value}"
+    )
+
+
+def stable_paths(value: Any, roots: dict[str, Path]) -> Any:
+    if isinstance(value, dict):
+        return {key: stable_paths(item, roots) for key, item in value.items()}
+    if isinstance(value, list):
+        return [stable_paths(item, roots) for item in value]
+    if isinstance(value, str):
+        return stable_path(value, roots)
+    return value
+
+
+def publish_inventory(
+    inventory_path: Path,
+    study_root: Path,
+    repository: Path,
+    output: Path,
+) -> dict[str, Any]:
+    if output.exists() or output.is_symlink():
+        raise ImageInventoryError(f"refusing to replace published inventory: {output}")
+    inventory = load_json(inventory_path)
+    if inventory.get("schema_version") != INVENTORY_SCHEMA:
+        raise ImageInventoryError("only raw image inventories can be published")
+    published = stable_paths(
+        inventory,
+        {"study": study_root, "repository": repository},
+    )
+    published["schema_version"] = PUBLICATION_SCHEMA
+    published["publication"] = {
+        "raw_schema_version": INVENTORY_SCHEMA,
+        "raw_sha256": sha256_file(inventory_path),
+        "path_schemes": {
+            "study": "governed execution-site study root",
+            "repository": "frozen repository root",
+        },
+    }
+    write_json(output, published)
+    return published
 
 
 def load_catalog(path: Path) -> list[dict[str, Any]]:
@@ -262,6 +316,7 @@ def audit_images(
         key=len,
         reverse=True,
     )
+    historical_images = []
     unknown_images = []
     for image in sorted(image_root.glob("*.sif")):
         if image not in known_images:
@@ -279,24 +334,23 @@ def audit_images(
                 None,
             )
             reference_count = references[digest]
-            unknown_images.append(
-                {
-                    "path": str(image),
-                    "sha256": digest,
-                    "size_bytes": image.stat().st_size,
-                    "real_run_references": reference_count,
-                    "catalog_tool": catalog_tool,
-                    "disposition": (
-                        "historical_run_dependency"
-                        if reference_count
-                        else (
-                            "unreferenced_obsolete"
-                            if catalog_tool is not None
-                            else "unclassified"
-                        )
-                    ),
-                }
-            )
+            record = {
+                "path": str(image),
+                "sha256": digest,
+                "size_bytes": image.stat().st_size,
+                "real_run_references": reference_count,
+                "catalog_tool": catalog_tool,
+            }
+            if catalog_tool is not None and reference_count:
+                record["disposition"] = "historical_run_dependency"
+                historical_images.append(record)
+            else:
+                record["disposition"] = (
+                    "unreferenced_obsolete"
+                    if catalog_tool is not None
+                    else "unclassified"
+                )
+                unknown_images.append(record)
     staged_images = [
         {
             "path": str(path),
@@ -309,6 +363,9 @@ def audit_images(
     inventory = {
         "schema_version": INVENTORY_SCHEMA,
         "created_at_utc": dt.datetime.now(dt.timezone.utc).isoformat(),
+        "image_root": str(image_root.resolve()),
+        "evidence_root": str(evidence_root.resolve()),
+        "runs_root": str(runs_root.resolve()),
         "repository_commit": subprocess.run(
             ["git", "-C", str(repository), "rev-parse", "HEAD"],
             check=True,
@@ -319,6 +376,7 @@ def audit_images(
         "summary": {
             "tool_count": len(records),
             "states": dict(sorted(states.items())),
+            "historical_dependency_count": len(historical_images),
             "unknown_image_count": len(unknown_images),
             "staged_image_count": len(staged_images),
             "unreferenced_obsolete_count": sum(
@@ -332,6 +390,7 @@ def audit_images(
             ),
         },
         "tools": records,
+        "historical_images": historical_images,
         "unknown_images": unknown_images,
         "staged_images": staged_images,
     }
@@ -341,7 +400,10 @@ def audit_images(
 
 def render_report(inventory_path: Path, output: Path) -> int:
     inventory = load_json(inventory_path)
-    if inventory.get("schema_version") != INVENTORY_SCHEMA:
+    if inventory.get("schema_version") not in {
+        INVENTORY_SCHEMA,
+        PUBLICATION_SCHEMA,
+    }:
         raise ImageInventoryError("unsupported image inventory schema")
     summary = inventory["summary"]
     lines = [
@@ -361,6 +423,7 @@ def render_report(inventory_path: Path, output: Path) -> int:
         + ", ".join(
             f"**{state} {count}**" for state, count in sorted(summary["states"].items())
         ),
+        f"- Historical run dependencies: **{summary.get('historical_dependency_count', 0)}**",
         f"- Unknown immutable images: **{summary['unknown_image_count']}**",
         f"- Interrupted staged images: **{summary['staged_image_count']}**",
         f"- Unreferenced obsolete images: **{summary['unreferenced_obsolete_count']}**",
@@ -384,8 +447,10 @@ def render_report(inventory_path: Path, output: Path) -> int:
             "`missing` means no admitted SIF exists for the catalog version. `stale_recipe`",
             "means an admitted historical image exists but does not represent the active",
             "recipe. `unsupported` is an explicit catalog decision, not a failed build.",
+            "A historical run dependency is preserved because a final governed run records",
+            "its immutable path and digest; it is not current support or release evidence.",
             "",
-            "The machine-readable companion is [image-inventory.json](image-inventory.json).",
+            "The machine-readable companion is [image-inventory.json](https://github.com/bijux/bijux-genomics/blob/main/containers/reports/image-inventory.json).",
         ]
     )
     output.parent.mkdir(parents=True, exist_ok=True)
@@ -405,6 +470,11 @@ def parser() -> argparse.ArgumentParser:
     audit.add_argument("--runs-root", type=Path, required=True)
     audit.add_argument("--repository", type=Path, required=True)
     audit.add_argument("--output", type=Path, required=True)
+    publish = commands.add_parser("publish")
+    publish.add_argument("--inventory", type=Path, required=True)
+    publish.add_argument("--study-root", type=Path, required=True)
+    publish.add_argument("--repository", type=Path, required=True)
+    publish.add_argument("--output", type=Path, required=True)
     report = commands.add_parser("render-report")
     report.add_argument("--inventory", type=Path, required=True)
     report.add_argument("--output", type=Path, required=True)
@@ -427,6 +497,14 @@ def main(argv: list[str] | None = None) -> int:
                 f"audited {inventory['summary']['tool_count']} catalog tools; "
                 f"states={inventory['summary']['states']}"
             )
+        elif args.command == "publish":
+            inventory = publish_inventory(
+                args.inventory,
+                args.study_root,
+                args.repository,
+                args.output,
+            )
+            print(f"published {len(inventory['tools'])} catalog tools")
         else:
             count = render_report(args.inventory, args.output)
             print(f"reported {count} catalog tools")

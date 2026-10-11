@@ -14,8 +14,8 @@ optimal for ancient DNA, nor that one tool is scientifically superior.
 
 | Tool | Run | Slurm job | Image SHA-256 prefix | Exit | Wall time |
 |---|---|---:|---|---|---:|
-| Trim Galore 0.6.10 | [run-1124](../runs/run-1124-trim_galore/) | `3458670` | `25567e0ec95d` | `0:0` | 8 s |
-| Trimmomatic 0.39 | [run-1125](../runs/run-1125-trimmomatic/) | `3458671` | `329c9ec4abfd` | `0:0` | 5 s |
+| Trim Galore 0.6.10 | [run-1124](https://github.com/bijux/bijux-genomics/tree/main/containers/runs/run-1124-trim_galore) | `3458670` | `25567e0ec95d` | `0:0` | 8 s |
+| Trimmomatic 0.39 | [run-1125](https://github.com/bijux/bijux-genomics/tree/main/containers/runs/run-1125-trimmomatic) | `3458671` | `329c9ec4abfd` | `0:0` | 5 s |
 
 The input is the first 100,000 read pairs from ENA sample `ERR1021817`
 (`PRJEB10854`). The two compressed FASTQ inputs are independently pinned as:

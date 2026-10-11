@@ -1,0 +1,102 @@
+schema_version: bijux.container.pipeline.v2
+run:
+  id: run-1136
+  campaign: public-ancient-horse-library-complexity
+  corpus: ena-prjeb22390-err2112767
+  sample: ERR2112767
+  domain: bam
+  stage: bam.complexity
+  tool: preseq
+  operator: bijan
+  submitted_at_utc: '2026-08-03T06:54:14Z'
+repository:
+  path: /home/bijan/bijux/bijux-genomics-runs/6a3f66c7ed49410bd60e3db901e09e73fb2d9a51
+  commit: 6a3f66c7ed49410bd60e3db901e09e73fb2d9a51
+  clean: true
+image:
+  path: /home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/preseq-3.2.0-linux-amd64-6ef1786da19b.sif
+  sha256: 6ef1786da19b8447539a1b04ab3f6801c116618308639873d6c6de6b321651b8
+data:
+  inputs:
+    - id: err2112767_alignment
+      kind: data
+      path: /home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb22390-err2112767/ERR2112767.sorted.bam
+      mount_path: /input/ERR2112767.sorted.bam
+      sha256: 1d9ca843614c66209de4618ba69ecfae236731f9999a1daa48622f061127fe87
+    - id: err2112767_alignment_index
+      kind: data
+      path: /home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb22390-err2112767/ERR2112767.sorted.bam.bai
+      mount_path: /input/ERR2112767.sorted.bam.bai
+      sha256: ab5d07b513a4a3f421a9a82aff5fc5767d41a7333693b67c9258b40a337276a3
+commands:
+  version: [preseq]
+  help: [preseq]
+  real:
+    - bash
+    - -c
+    - >-
+      set -euo pipefail;
+      preseq c_curve -B -P -r 408 -s 25000 -o /result/complexity-curve.tsv /input/ERR2112767.sorted.bam;
+      awk 'BEGIN {points=0; total=0; distinct=0} NR>1 && NF>=2 {points++; total=$1+0; distinct=$2+0} END {if (points < 1) exit 2; ratio=(total > 0 ? distinct/total : 0); printf "{\"projection_points\":%d,\"maximum_total_reads\":%.0f,\"maximum_expected_distinct\":%.6f,\"final_distinct_fraction\":%.12f}\n", points, total, distinct, ratio}' /result/complexity-curve.tsv > /result/metrics.json
+  negative: [preseq, c_curve, -B, -P, /input/not-present.bam]
+outputs:
+  result_root: /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/run-1136-preseq
+  mount_path: /result
+  required_files:
+    - complexity-curve.tsv
+    - metrics.json
+  collection_rule: required_files_and_metrics
+resources:
+  account: lu2026-2-20
+  partition: lu48
+  cpus: 1
+  memory_mb: 4096
+  walltime: '00:20:00'
+  scratch_mb: 2048
+  retry:
+    max_attempts: 1
+    backoff_seconds: 0
+    retryable_exit_codes: []
+execution:
+  locale: C
+  timezone: UTC
+  runtime_network: false
+  threads: 1
+  random_seed: 408
+  cache_policy: cold
+  determinism: deterministic
+dependencies: []
+acceptance:
+  version_regex: 'Version: 3[.]2[.]0'
+  negative_exit_nonzero: true
+  metrics:
+    - id: projection_points
+      path: metrics.json
+      json_pointer: /projection_points
+      operator: ge
+      expected: 2
+      unit: curve-points
+    - id: maximum_total_reads
+      path: metrics.json
+      json_pointer: /maximum_total_reads
+      operator: ge
+      expected: 25000
+      unit: reads
+    - id: maximum_expected_distinct
+      path: metrics.json
+      json_pointer: /maximum_expected_distinct
+      operator: ge
+      expected: 1
+      unit: distinct-fragments
+    - id: final_distinct_fraction_lower_bound
+      path: metrics.json
+      json_pointer: /final_distinct_fraction
+      operator: ge
+      expected: 0
+      unit: fraction
+    - id: final_distinct_fraction_upper_bound
+      path: metrics.json
+      json_pointer: /final_distinct_fraction
+      operator: le
+      expected: 1
+      unit: fraction

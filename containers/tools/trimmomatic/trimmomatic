@@ -1,0 +1,23 @@
+#!/bin/sh
+set -eu
+
+readonly TRIMMOMATIC_JAR="${TRIMMOMATIC_ROOT:-/opt/trimmomatic}/trimmomatic-0.39.jar"
+
+case "${1:-}" in
+    --version)
+        exec java -jar "${TRIMMOMATIC_JAR}" -version
+        ;;
+    --help|-h|'')
+        set +e
+        java -jar "${TRIMMOMATIC_JAR}" --help
+        status=$?
+        set -e
+        if [ "${status}" -ne 1 ]; then
+            exit "${status}"
+        fi
+        exit 0
+        ;;
+    *)
+        exec java -jar "${TRIMMOMATIC_JAR}" "$@"
+        ;;
+esac

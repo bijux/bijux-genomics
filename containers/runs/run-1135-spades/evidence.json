@@ -1,0 +1,136 @@
+{
+  "checks": {
+    "help": {
+      "argv": [
+        "spades.py",
+        "--help"
+      ],
+      "exit_code": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "035619d889e93becf56c999b7e8ac0384a25ef79a3458140203afe06fa04d9e3"
+    },
+    "negative": {
+      "argv": [
+        "spades.py",
+        "--definitely-invalid-option"
+      ],
+      "exit_code": 2,
+      "stderr_sha256": "210657eb808698361adc08540d36089c02bb40f84d7b3b8d0d0a151339a909bb",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "real": {
+      "argv": [
+        "bash",
+        "-c",
+        "set -euo pipefail; spades.py --meta -1 /input/F3D0_S188_L001_R1_001.fastq -2 /input/F3D0_S188_L001_R2_001.fastq -o /result/assembly -t 4 -m 16; awk 'BEGIN {n=0; b=0} /^>/ {n++; next} {b+=length($0)} END {printf \"{\\\"contig_count\\\":%d,\\\"assembled_bases\\\":%d}\\n\", n, b}' /result/assembly/contigs.fasta > /result/metrics.json"
+      ],
+      "exit_code": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "c7266f556a379cb6916a2fd1858d4093fdd587ddcbe337506510a04949da43dd"
+    },
+    "version": {
+      "argv": [
+        "spades.py",
+        "--version"
+      ],
+      "exit_code": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "8d101f01ae2086fe5c4f09f0c7dd3ddb25be995728225d26763a36176a6e24a6"
+    }
+  },
+  "credential_reference_sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+  "dependencies": [],
+  "execution": {
+    "cache_policy": "cold",
+    "determinism": "deterministic",
+    "locale": "C",
+    "random_seed": null,
+    "runtime_network": false,
+    "threads": 4,
+    "timezone": "UTC"
+  },
+  "failure_class": null,
+  "failures": [],
+  "governance_sha256": "5a48351cddde8a0251584de4bbbf01a524bf5a2ecb2a0c2034b6553a554ec37a",
+  "image": {
+    "path": "/lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/spades-4.2.0-linux-amd64-1ac426328807.sif",
+    "sha256": "1ac4263288074952b2123c2a85ff84d5b12bc93d4247ebe63e7551f0f9defda8",
+    "size_bytes": 227045376
+  },
+  "inputs": [
+    {
+      "id": "f3d0_read_one",
+      "kind": "data",
+      "mount_path": "/input/F3D0_S188_L001_R1_001.fastq",
+      "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/mothur-miseq-sop-f3d0/F3D0_S188_L001_R1_001.fastq",
+      "sha256": "f908bf940a2413f9d026615afca8cacfbcb36bf3c91ffa5ad809738b0f7064d3"
+    },
+    {
+      "id": "f3d0_read_two",
+      "kind": "data",
+      "mount_path": "/input/F3D0_S188_L001_R2_001.fastq",
+      "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/mothur-miseq-sop-f3d0/F3D0_S188_L001_R2_001.fastq",
+      "sha256": "1b3feb32e2bef0a573382cdd2b4eb833af5a3fb093e3544f6882da371db64937"
+    }
+  ],
+  "metrics": [
+    {
+      "expected": 1,
+      "id": "contig_count",
+      "json_pointer": "/contig_count",
+      "observed": 161,
+      "operator": "ge",
+      "path": "metrics.json",
+      "status": "passed",
+      "unit": "contigs"
+    },
+    {
+      "expected": 1,
+      "id": "assembled_bases",
+      "json_pointer": "/assembled_bases",
+      "observed": 16255,
+      "operator": "ge",
+      "path": "metrics.json",
+      "status": "passed",
+      "unit": "bases"
+    }
+  ],
+  "outputs": [
+    {
+      "path": "outputs/assembly/contigs.fasta",
+      "sha256": "fe751fca08ad042a7056d9a244d17c81a93a6f568656f3c7ae2ac9f046e5a405",
+      "size_bytes": 22063
+    },
+    {
+      "path": "outputs/assembly/scaffolds.fasta",
+      "sha256": "fe751fca08ad042a7056d9a244d17c81a93a6f568656f3c7ae2ac9f046e5a405",
+      "size_bytes": 22063
+    },
+    {
+      "path": "outputs/metrics.json",
+      "sha256": "7275beb21cd28b8e1c02ac45778aa99d668454dd9fd05e79795377f614c04fc2",
+      "size_bytes": 45
+    }
+  ],
+  "pipeline_schema_version": "bijux.container.pipeline.v2",
+  "pipeline_sha256": "421be4f8ae22795df48a95fe773754c8502bdc76b05a0ba40a883416b537ac3a",
+  "repository_clean": true,
+  "repository_commit": "bd9bb1b7244adf096cbc56c23ccba288af21e832",
+  "repository_path": "/home/bijan/bijux/bijux-genomics-runs/bd9bb1b7244adf096cbc56c23ccba288af21e832",
+  "run_id": "run-1135",
+  "runtime": {
+    "apptainer_version": "apptainer version 1.5.2-1.el9",
+    "cpus": "4",
+    "finished_at_utc": "2026-08-03T06:11:15.379035+00:00",
+    "host": "cn092",
+    "scratch_path": "/tmp/bijux-genomics-3458698-w6EBHB",
+    "slurm_job_id": "3458698",
+    "started_at_utc": "2026-08-03T06:11:08.807283+00:00"
+  },
+  "schema_version": "bijux.container.evidence.v2",
+  "site": {
+    "host": "cn092",
+    "id": "lunarc"
+  },
+  "status": "passed"
+}

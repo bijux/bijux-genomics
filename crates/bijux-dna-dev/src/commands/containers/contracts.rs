@@ -1,6 +1,6 @@
 use super::{
-    failure_lines, out_path_arg, read_utf8, sha256_hex, success_line, write_utf8, BTreeSet,
-    ContainerCommandOutcome, Deserialize, Result, Serialize, Workspace,
+    failure_lines, out_path_arg, read_utf8, run_argv, sha256_hex, success_line, write_utf8,
+    BTreeSet, ContainerCommandOutcome, Deserialize, Result, Serialize, Workspace,
 };
 
 const CATALOG_PATH: &str = "containers/contracts/catalog.toml";
@@ -40,7 +40,6 @@ struct ContainerContract {
     support_disposition: String,
     #[serde(default)]
     support_reason: String,
-    qualification: String,
     upstream: String,
     documentation: String,
     license: String,
@@ -88,7 +87,6 @@ struct ContractLockTool<'a> {
     version: &'a str,
     support_disposition: &'a str,
     support_reason: &'a str,
-    qualification: &'a str,
     upstream: &'a str,
     license: &'a str,
     source_sha256: &'a str,
@@ -113,6 +111,10 @@ fn is_placeholder_digest(value: &str) -> bool {
 
 fn is_hex(value: &str, length: usize) -> bool {
     value.len() == length && value.bytes().all(|byte| byte.is_ascii_hexdigit())
+}
+
+fn has_explicit_upstream_license(license: &str) -> bool {
+    !license.trim().is_empty() && license != "NOASSERTION"
 }
 
 fn validate_sorted_unique(values: &[String], label: &str, tool: &str, errors: &mut Vec<String>) {
@@ -240,12 +242,6 @@ pub(super) fn check_contract_catalog(workspace: &Workspace) -> Result<ContainerC
                 tool.id
             ));
         }
-        if !matches!(tool.qualification.as_str(), "unverified" | "qualified" | "not_applicable") {
-            errors.push(format!(
-                "{}: unsupported evidence qualification {}",
-                tool.id, tool.qualification
-            ));
-        }
         if !tool.upstream.starts_with("https://") {
             errors.push(format!("{}: upstream must be an https URL", tool.id));
         }
@@ -254,6 +250,12 @@ pub(super) fn check_contract_catalog(workspace: &Workspace) -> Result<ContainerC
         }
         if tool.license.trim().is_empty() {
             errors.push(format!("{}: license must not be empty", tool.id));
+        }
+        if tool.support_disposition == "retained" && !has_explicit_upstream_license(&tool.license) {
+            errors.push(format!(
+                "{}: retained container distribution requires an explicit upstream license grant",
+                tool.id
+            ));
         }
         if !tool.source_sha256.is_empty() && !is_hex(&tool.source_sha256, 64) {
             errors.push(format!("{}: source_sha256 must be 64 hexadecimal characters", tool.id));
@@ -398,7 +400,6 @@ fn contract_lock_content(workspace: &Workspace) -> Result<String> {
                 version: &tool.version,
                 support_disposition: &tool.support_disposition,
                 support_reason: &tool.support_reason,
-                qualification: &tool.qualification,
                 upstream: &tool.upstream,
                 license: &tool.license,
                 source_sha256: &tool.source_sha256,
@@ -455,9 +456,40 @@ pub(super) fn check_contract_lock(workspace: &Workspace) -> Result<ContainerComm
     success_line("container contract lock: OK")
 }
 
+pub(super) fn check_evidence_qualification(
+    workspace: &Workspace,
+) -> Result<ContainerCommandOutcome> {
+    let args = [
+        "python3",
+        "-B",
+        "containers/contracts/qualification_report.py",
+        "--catalog",
+        "containers/contracts/catalog.toml",
+        "--inventory",
+        "containers/reports/image-inventory.json",
+        "--runtime",
+        "containers/reports/runtime-verification.json",
+        "--runs",
+        "containers/reports/run-evidence.json",
+        "--json-output",
+        "containers/reports/qualification.json",
+        "--markdown-output",
+        "containers/reports/qualification.md",
+        "--check",
+    ]
+    .into_iter()
+    .map(ToOwned::to_owned)
+    .collect::<Vec<_>>();
+    let outcome = run_argv(workspace, &args)?;
+    if outcome.is_success() {
+        return success_line("container evidence qualification: OK");
+    }
+    Ok(outcome)
+}
+
 #[cfg(test)]
 mod tests {
-    use super::{is_hex, is_placeholder_digest, is_zero_digest};
+    use super::{has_explicit_upstream_license, is_hex, is_placeholder_digest, is_zero_digest};
 
     #[test]
     fn digest_helpers_distinguish_resolved_and_placeholder_identities() {
@@ -469,5 +501,13 @@ mod tests {
         ));
         assert!(is_hex(&"a".repeat(64), 64));
         assert!(!is_hex("not-a-digest", 64));
+    }
+
+    #[test]
+    fn redistribution_requires_an_explicit_upstream_license() {
+        assert!(has_explicit_upstream_license("MIT"));
+        assert!(has_explicit_upstream_license("GPL-3.0-only"));
+        assert!(!has_explicit_upstream_license("NOASSERTION"));
+        assert!(!has_explicit_upstream_license(""));
     }
 }

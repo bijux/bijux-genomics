@@ -1,0 +1,85 @@
+schema_version: bijux.container.pipeline.v2
+run:
+  id: run-1135
+  campaign: public-microbiome-metagenome-assembly
+  corpus: mothur-miseq-sop-f3d0
+  sample: F3D0
+  domain: fastq
+  stage: container.runtime
+  tool: spades
+  operator: bijan
+  submitted_at_utc: '2026-08-03T06:10:02Z'
+repository:
+  path: /home/bijan/bijux/bijux-genomics-runs/bd9bb1b7244adf096cbc56c23ccba288af21e832
+  commit: bd9bb1b7244adf096cbc56c23ccba288af21e832
+  clean: true
+image:
+  path: /home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/spades-4.2.0-linux-amd64-1ac426328807.sif
+  sha256: 1ac4263288074952b2123c2a85ff84d5b12bc93d4247ebe63e7551f0f9defda8
+data:
+  inputs:
+    - id: f3d0_read_one
+      kind: data
+      path: /home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/mothur-miseq-sop-f3d0/F3D0_S188_L001_R1_001.fastq
+      mount_path: /input/F3D0_S188_L001_R1_001.fastq
+      sha256: f908bf940a2413f9d026615afca8cacfbcb36bf3c91ffa5ad809738b0f7064d3
+    - id: f3d0_read_two
+      kind: data
+      path: /home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/mothur-miseq-sop-f3d0/F3D0_S188_L001_R2_001.fastq
+      mount_path: /input/F3D0_S188_L001_R2_001.fastq
+      sha256: 1b3feb32e2bef0a573382cdd2b4eb833af5a3fb093e3544f6882da371db64937
+commands:
+  version: [spades.py, --version]
+  help: [spades.py, --help]
+  real:
+    - bash
+    - -c
+    - >-
+      set -euo pipefail;
+      spades.py --meta -1 /input/F3D0_S188_L001_R1_001.fastq -2 /input/F3D0_S188_L001_R2_001.fastq -o /result/assembly -t 4 -m 16;
+      awk 'BEGIN {n=0; b=0} /^>/ {n++; next} {b+=length($0)} END {printf "{\"contig_count\":%d,\"assembled_bases\":%d}\n", n, b}' /result/assembly/contigs.fasta > /result/metrics.json
+  negative: [spades.py, --definitely-invalid-option]
+outputs:
+  result_root: /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/run-1135-spades
+  mount_path: /result
+  required_files:
+    - assembly/contigs.fasta
+    - assembly/scaffolds.fasta
+    - metrics.json
+  collection_rule: required_files_and_metrics
+resources:
+  account: lu2026-2-20
+  partition: lu48
+  cpus: 4
+  memory_mb: 16384
+  walltime: '00:30:00'
+  scratch_mb: 8192
+  retry:
+    max_attempts: 1
+    backoff_seconds: 0
+    retryable_exit_codes: []
+execution:
+  locale: C
+  timezone: UTC
+  runtime_network: false
+  threads: 4
+  random_seed: null
+  cache_policy: cold
+  determinism: deterministic
+dependencies: []
+acceptance:
+  version_regex: '^SPAdes genome assembler v4[.]2[.]0$'
+  negative_exit_nonzero: true
+  metrics:
+    - id: contig_count
+      path: metrics.json
+      json_pointer: /contig_count
+      operator: ge
+      expected: 1
+      unit: contigs
+    - id: assembled_bases
+      path: metrics.json
+      json_pointer: /assembled_bases
+      operator: ge
+      expected: 1
+      unit: bases

@@ -2,8 +2,8 @@
 # owner = bijux-genomics
 tool_id = "pydamage"
 container_kind = "bijux"
-spdx = "NOASSERTION"
-upstream_license_id = "NOASSERTION"
+spdx = "GPL-3.0"
+upstream_license_id = "GPL-3.0"
 upstream_url = "https://github.com/maxibor/pydamage"
 upstream_version = "1.0"
 upstream_checksum = "sha256:f049fad925e8418f5ba31e78429fde6cc62ad0ccb9a6ff0a8b739ba894d15d9f"

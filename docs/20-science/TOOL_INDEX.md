@@ -4,17 +4,18 @@
 # TOOL_INDEX
 
 ## Purpose
-Generated index of registry tools with stage bindings and container references/self-reports.
+Generated index of governed tools, stage bindings, container recipes, support disposition, and evidence qualification.
 
 ## Scope
-Source of truth = registry contracts + `artifacts/containers/summary.json` self-reports when available.
+Source of truth = pipeline registries + `containers/contracts/catalog.toml` + `containers/reports/qualification.json`.
 
 ## Non-goals
 - Replacing full scientific method docs for each domain.
 
 ## Contracts
 - Manual edits are forbidden; regenerate via native control-plane.
-- Source of truth is registry + containers; this file is a rendered view.
+- Local artifacts never influence this tracked document; it is deterministic for a repository commit.
+- Container support and qualification are derived from governed catalog and evidence, never registry maturity labels.
 - Tool admission policy is documented in `docs/50-reference/TOOL_ADMISSION.md`.
 
 See also: [Tool Admission](../50-reference/TOOL_ADMISSION.md)
@@ -22,102 +23,111 @@ See also: [VCF Downstream Roadmap](vcf/ROADMAP.md)
 
 ## VCF Downstream / IBD Toolkit
 
-- `angsd` (planned) : vcf.call_gl, vcf.call_pseudohaploid, vcf.damage_filter, vcf.gl_propagation
-- `bcftools` (production) : vcf.call, vcf.call_diploid, vcf.call_gl, vcf.call_pseudohaploid, vcf.damage_filter, vcf.filter, vcf.gl_propagation, vcf.postprocess, vcf.prepare_reference_panel, vcf.qc, vcf.stats
-- `beagle` (experimental) : vcf.phasing
-- `eagle` (experimental) : vcf.phasing
-- `eigensoft` (experimental) : vcf.pca, vcf.population_structure
-- `germline` (experimental) : vcf.ibd
-- `glimpse` (planned) : vcf.impute, vcf.imputation_metrics
-- `ibdhap` (experimental) : vcf.ibd
-- `ibdne` (planned) : vcf.ibd, vcf.demography
-- `ibdseq` (planned) : vcf.ibd
-- `impute5` (unsupported) : vcf.impute, vcf.imputation_metrics
-- `minimac4` (planned) : vcf.impute, vcf.imputation_metrics
-- `plink` (experimental) : vcf.qc, vcf.admixture
-- `plink2` (experimental) : vcf.qc, vcf.pca, vcf.population_structure, vcf.roh, vcf.admixture
-- `shapeit` (planned) : vcf.phasing
-- `shapeit5` (production) : vcf.phasing
+- `angsd` (retained; unverified): bam.genotyping, bam.kinship, bam.sex, vcf.call_gl, vcf.call_pseudohaploid, vcf.damage_filter, vcf.gl_propagation
+- `bcftools` (retained; unverified): vcf.call, vcf.call_diploid, vcf.call_gl, vcf.call_pseudohaploid, vcf.damage_filter, vcf.filter, vcf.gl_propagation, vcf.postprocess, vcf.prepare_reference_panel, vcf.qc, vcf.stats
+- `beagle` (retained; unverified): vcf.imputation_metrics, vcf.impute, vcf.phasing
+- `eagle` (retained; unverified): vcf.phasing
+- `eigensoft` (retained; unverified): vcf.pca, vcf.population_structure
+- `germline` (retained; unverified): vcf.ibd
+- `glimpse` (retained; unverified): vcf.imputation_metrics, vcf.impute
+- `ibdhap` (retained; unverified): vcf.ibd
+- `ibdne` (retained; unverified): vcf.demography
+- `ibdseq` (retained; unverified): vcf.ibd
+- `impute5` (unsupported; unsupported): vcf.imputation_metrics, vcf.impute
+- `minimac4` (retained; unverified): vcf.imputation_metrics, vcf.impute
+- `plink` (retained; unverified): vcf.admixture, vcf.population_structure, vcf.qc
+- `plink2` (retained; unverified): vcf.admixture, vcf.pca, vcf.population_structure, vcf.qc, vcf.roh
+- `shapeit` (retained; unverified): vcf.phasing
+- `shapeit5` (retained; unverified): vcf.phasing
 
-| Tool ID | Purpose | Stage Bindings | Container Ref | Version | Citation | Status |
-|---|---|---|---|---|---|---|
-| `adapterremoval` | `merger` | `fastq.merge_pairs, fastq.trim_reads, fastq.trim_terminal_damage` | `bijuxdna/adapterremoval@sha256:5b618834ce9fc6376c9605c3a69d738236b9be48fdf493c1bc0945568a50808d` | `2.3.3` | paper:https://pmc.ncbi.nlm.nih.gov/articles/PMC4751634/ | `production` |
-| `addeam` | `transform` | `bam.damage` | `bijuxdna/addeam:1.0.0` | `1.0.0` | paper:https://academic.oup.com/bioinformatics/article/doi/10.1093/bioinformatics/btaf407/8205671 | `production` |
-| `alientrimmer` | `trimmer` | `fastq.trim_reads` | `bijuxdna/alientrimmer:3.2` | `3.2` | paper:https://pubmed.ncbi.nlm.nih.gov/23912058/ | `production` |
-| `angsd` | `genotyping` | `vcf.call_gl, vcf.call_pseudohaploid, vcf.damage_filter, vcf.gl_propagation` | `@` | `0.940` | Korneliussen et al. 2014, BMC Bioinformatics 15:356 | `planned` |
-| `atropos` | `trimmer` | `fastq.trim_reads` | `bijuxdna/atropos@sha256:5a2fab22811303ced83475111a2427eaa894fcb39436618bb26be1da391f300d` | `1.1.31` | paper:https://pmc.ncbi.nlm.nih.gov/articles/PMC5581536/ | `production` |
-| `authenticct` | `transform` | `bam.authenticity` | `bijuxdna/authenticct:1.0.0` | `1.0.0` | paper:https://genomebiology.biomedcentral.com/articles/10.1186/s13059-020-02123-y | `production` |
-| `bamtools` | `filter` | `bam.filter, bam.mapq_filter, bam.validate` | `bijuxdna/bamtools:2.5.2` | `2.5.2` | paper:https://academic.oup.com/bioinformatics/article/27/12/1691/255399 | `production` |
-| `bamutil` | `corrector` | `bam.overlap_correction` | `bijuxdna/bamutil:1.0.15` | `1.0.15` | upstream:https://github.com/statgen/bamUtil | `production` |
-| `bayeshammer` | `corrector` | `fastq.correct_errors` | `bijuxdna/bayeshammer@sha256:99849ca7576f392a125ce5836e915481ada762cbb4fa9b69593b81c4ca359cd7` | `4.2.0` | paper:https://link.springer.com/article/10.1186/1471-2164-14-S1-S7 | `production` |
-| `bbduk` | `filter` | `fastq.filter_low_complexity, fastq.filter_reads, fastq.trim_polyg_tails, fastq.trim_reads` | `bijuxdna/bbduk@sha256:da5764715915a5edeb0e40e2c18a5ce7142f31dac8e4844bd2dcb463403b8bd4` | `39.08` | software:https://bbmap.org/tools/bbduk | `production` |
-| `bbmerge` | `merger` | `fastq.merge_pairs` | `bijuxdna/bbmerge@sha256:6182848b989c8dbf094e06c486190b5d54243ac8eea542daa2c5c059a11bba54` | `39.01` | paper:https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0185056 | `production` |
-| `bcftools` | `unknown` | `vcf.call, vcf.call_diploid, vcf.call_gl, vcf.call_pseudohaploid, vcf.damage_filter, vcf.filter, vcf.gl_propagation, vcf.postprocess, vcf.prepare_reference_panel, vcf.qc, vcf.stats` | `quay.io/biocontainers/bcftools:1.20--h8b25389_0@sha256:67f54df47f501f6ddef08e3b9ad89cf693952f9a89de0d74df6e39fce15f1ff6` | `1.20` | DOI:10.1093/gigascience/giab008 | `production` |
-| `beagle` | `phasing` | `vcf.phasing` | `registry_lock` | `5.4` | planned | `experimental` |
-| `bedtools` | `transform` | `bam.coverage, bam.filter, bam.validate` | `bijuxdna/bedtools:2.31.1` | `2.31.1` | paper:https://academic.oup.com/bioinformatics/article/26/6/841/244688 | `production` |
-| `bijux_dna` | `merger` | `fastq.detect_duplicates_premerge, fastq.estimate_library_complexity_prealign` | `bijuxdna/bijux_dna:workspace` | `workspace` | software:https://github.com/bijux/bijux-genomics | `production` |
-| `bowtie2` | `aligner` | `bam.align, fastq.deplete_host, fastq.deplete_reference_contaminants` | `bijuxdna/bowtie2:2.5.4` | `2.5.4` | paper:https://www.nature.com/articles/nmeth.1923 | `production` |
-| `bowtie2_build` | `transform` | `fastq.index_reference` | `bijuxdna/bowtie2_build:2.5.4` | `2.5.4` | paper:https://www.nature.com/articles/nmeth.1923 | `production` |
-| `bwa` | `aligner` | `bam.align` | `bijuxdna/bwa:0.7.17` | `0.7.17` | paper:https://academic.oup.com/bioinformatics/article/25/14/1754/225615 | `production` |
-| `centrifuge` | `screen` | `fastq.screen_taxonomy` | `bijuxdna/centrifuge@sha256:7a29ee8d8dc156513a23e05e9f8fda2299032ab7e6d5cb3c241c9f34c3f81553` | `1.0.4` | paper:https://genome.cshlp.org/content/26/12/1721 | `production` |
-| `clumpify` | `transform` | `fastq.remove_duplicates` | `bijuxdna/clumpify@sha256:fa8159777183edae8355363ba8cc5e8f8f069bee09cb6f2fb70a7ca4220a5c81` | `39.08` | software:https://bbmap.org/tools/clumpify | `production` |
-| `contammix` | `transform` | `bam.contamination` | `bijuxdna/contammix:1.0.11` | `1.0.11` | upstream:https://bioconductor.org/packages/contamMix | `production` |
-| `cutadapt` | `transform` | `fastq.normalize_primers, fastq.trim_reads, fastq.trim_terminal_damage` | `bijuxdna/cutadapt@sha256:4405f2effc1a195c93098408aa36268357c25b758348bfe6da8790bbe7e842ba` | `4.9` | paper:https://journal.embnet.org/index.php/embnetjournal/article/view/200 | `production` |
-| `dada2` | `transform` | `fastq.infer_asvs` | `bijuxdna/dada2@sha256:930e06fb8e27965ccafae61d4161ab5e32933aea2555e68ad409ef7af43c8245` | `1.30.0` | paper:https://www.nature.com/articles/nmeth.3869 | `production` |
-| `damageprofiler` | `transform` | `bam.authenticity, bam.damage` | `bijuxdna/damageprofiler:1.1` | `1.1` | paper:https://academic.oup.com/bioinformatics/article/37/20/3652/6247758 | `production` |
-| `eagle` | `phasing` | `vcf.phasing` | `registry_lock` | `5.4` | planned | `experimental` |
-| `eigensoft` | `population_structure` | `vcf.pca, vcf.population_structure` | `registry_lock` | `8.0.0` | planned | `experimental` |
-| `fastp` | `filter` | `fastq.filter_low_complexity, fastq.filter_reads, fastq.profile_read_lengths, fastq.trim_polyg_tails, fastq.trim_reads` | `bijuxdna/fastp@sha256:603656aa361eee1cbd1370db9412e588da91708da5542173e5ae74aab71cbc10` | `0.23.4` | paper:https://academic.oup.com/bioinformatics/article/34/17/i884/5093234 | `production` |
-| `fastq_scan` | `transform` | `fastq.profile_overrepresented_sequences, fastq.validate_reads` | `bijuxdna/fastq_scan@sha256:973e958d84a4a5d779a71e34f890b0a5335607e1fe56207c8a145409fd2937ad` | `0.0.1` | software:https://github.com/rpetit3/fastq-scan | `production` |
-| `fastqc` | `trimmer` | `fastq.detect_adapters, fastq.profile_overrepresented_sequences, fastq.validate_reads` | `bijuxdna/fastqc@sha256:e0b83c56262486cab51020e2bb809b391ad9b38ba7a898588ab15b73586ee789` | `0.12.1` | software:https://www.bioinformatics.babraham.ac.uk/projects/fastqc/ | `production` |
-| `fastqvalidator` | `validator` | `fastq.validate_reads` | `bijuxdna/fastqvalidator@sha256:3e01ccfed0313ffb63e8b9a8c4044a47249906d0b7b32c68caccf81f0a532edc` | `v0.1.1` | software:https://github.com/statgen/fastQValidator | `production` |
-| `fastuniq` | `transform` | `fastq.remove_duplicates` | `bijuxdna/fastuniq@sha256:4e0aba0be50a2894b7d36e34599cb4ff727be3e57fe47895f1a35b04985fcacf` | `1.1` | paper:https://pmc.ncbi.nlm.nih.gov/articles/PMC3527383/ | `production` |
-| `fastx_clipper` | `trimmer` | `fastq.trim_reads` | `bijuxdna/fastx_clipper:0.0.14` | `0.0.14` | software:http://hannonlab.cshl.edu/fastx_toolkit/ | `production` |
-| `flash2` | `merger` | `fastq.merge_pairs` | `bijuxdna/flash2@sha256:e3dfc866d56d1ca6d62c58ade5981e0b00fc3c8bf8148ecbd196ab56293e1dd5` | `2.2.00` | paper:https://pmc.ncbi.nlm.nih.gov/articles/PMC3198573/ | `production` |
-| `fqtools` | `validator` | `fastq.validate_reads` | `bijuxdna/fqtools@sha256:d7190221f5582bdabccecb3bae06d463d81c0cb06d47a80fa4c1b3c4704d4bf6` | `v2.3` | paper:https://pmc.ncbi.nlm.nih.gov/articles/PMC4908325/ | `production` |
-| `gatk` | `transform` | `bam.recalibration` | `bijuxdna/gatk:4.6.2.0` | `4.6.2.0` | paper:https://pmc.ncbi.nlm.nih.gov/articles/PMC2928508/ | `production` |
-| `germline` | `relatedness` | `vcf.ibd` | `registry_lock` | `1.5.3` | planned | `experimental` |
-| `glimpse` | `imputation` | `vcf.impute, vcf.imputation_metrics` | `registry_lock` | `0.0.0-planned` | planned | `planned` |
-| `ibdhap` | `relatedness` | `vcf.ibd` | `registry_lock` | `3.4` | Thompson EA. The MORGAN package for Markov chain Monte Carlo in genetic analysis. | `experimental` |
-| `ibdne` | `demography` | `vcf.ibd, vcf.demography` | `registry_lock` | `1.0-planned` | planned | `planned` |
-| `ibdseq` | `relatedness` | `vcf.ibd` | `registry_lock` | `3.0-planned` | planned | `planned` |
-| `impute5` | `imputation` | `vcf.impute, vcf.imputation_metrics` | `external@licensed-installation` | `1.2.0` | paper:https://journals.plos.org/plosgenetics/article?id=10.1371/journal.pgen.1009049 | `unsupported` |
-| `kaiju` | `screen` | `fastq.screen_taxonomy` | `bijuxdna/kaiju@sha256:4f30fd9becc62e873bc223231c717bba5b42db8a4f993979bf26c7fc00979f9b` | `1.10.0` | paper:https://www.nature.com/articles/ncomms11257 | `production` |
-| `king` | `transform` | `bam.kinship` | `bijuxdna/king:2.3.0` | `2.3.0` | paper:https://academic.oup.com/bioinformatics/article/26/22/2867/228512 | `production` |
-| `kraken2` | `screen` | `fastq.screen_taxonomy` | `bijuxdna/kraken2@sha256:e493061d26aeea71812ed8b587a0e65f67617b192e225d8d53eba896dfe7cb35` | `2.1.3` | paper:https://genomebiology.biomedcentral.com/articles/10.1186/s13059-019-1891-0 | `production` |
-| `krakenuniq` | `screen` | `fastq.screen_taxonomy` | `bijuxdna/krakenuniq:1.0.4` | `1.0.4` | paper:https://genomebiology.biomedcentral.com/articles/10.1186/s13059-018-1568-0 | `production` |
-| `leehom` | `merger` | `fastq.merge_pairs, fastq.trim_reads` | `bijuxdna/leehom@sha256:146f111ee336a7d01cba5861a9672d75a7739ad7ece923925bbd90c2550341b1` | `bbddce1542ce` | paper:https://pmc.ncbi.nlm.nih.gov/articles/PMC4191382/ | `production` |
-| `lighter` | `corrector` | `fastq.correct_errors` | `bijuxdna/lighter@sha256:e65d145062ddedd1e584f7aec7db45c13ddf33f849888e61d6c3b91e89730085` | `1.1.2` | paper:https://pmc.ncbi.nlm.nih.gov/articles/PMC4248469/ | `production` |
-| `mapdamage2` | `transform` | `bam.bias_mitigation, bam.damage` | `bijuxdna/mapdamage2:2.2.2` | `2.2.2` | paper:https://academic.oup.com/bioinformatics/article/29/13/1682/184965 | `production` |
-| `minimac4` | `imputation` | `vcf.impute, vcf.imputation_metrics` | `registry_lock` | `0.0.0-planned` | planned | `planned` |
-| `mosdepth` | `transform` | `bam.coverage` | `bijuxdna/mosdepth:0.3.10` | `0.3.10` | paper:https://academic.oup.com/bioinformatics/article-abstract/34/5/867/4583630 | `production` |
-| `multiqc` | `qc` | `bam.qc_pre, fastq.report_qc` | `bijuxdna/multiqc@sha256:40af0025fcc5bc4ea15e5cd2a4fd7bcfc98ea06c9ca781e6268f3c81d12787ec` | `1.24` | paper:https://pmc.ncbi.nlm.nih.gov/articles/PMC5039924/ | `production` |
-| `musket` | `corrector` | `fastq.correct_errors` | `bijuxdna/musket@sha256:d2761679719e961709c0c4842842c0bcb5b3fdc23a5046aa6cd2b28a6dfaca68` | `1.1` | paper:https://academic.oup.com/bioinformatics/article/29/3/308/257257 | `production` |
-| `ngsbriggs` | `transform` | `bam.damage` | `bijuxdna/ngsbriggs:0.1.3` | `0.1.3` | paper:https://pmc.ncbi.nlm.nih.gov/articles/PMC11646307/ | `production` |
-| `pear` | `merger` | `fastq.merge_pairs` | `bijuxdna/pear@sha256:4e00e9ffabc5ed46115efab5b6bae946913f1713bb314fd4acb7c379c37efae6` | `0.9.6` | paper:https://pmc.ncbi.nlm.nih.gov/articles/PMC3933873/ | `production` |
-| `picard` | `transform` | `bam.duplication_metrics, bam.gc_bias, bam.insert_size, bam.length_filter, bam.mapping_summary, bam.markdup` | `bijuxdna/picard:3.3.0` | `3.3.0` | software:https://broadinstitute.github.io/picard/ | `production` |
-| `plink` | `qc_admixture` | `vcf.qc, vcf.admixture` | `registry_lock` | `1.90` | planned | `experimental` |
-| `plink2` | `analysis` | `vcf.qc, vcf.pca, vcf.population_structure, vcf.roh, vcf.admixture` | `registry_lock` | `2.00a5` | planned | `experimental` |
-| `pmdtools` | `transform` | `bam.authenticity, bam.damage` | `bijuxdna/pmdtools:0.60` | `0.60` | paper:https://doi.org/10.1073/pnas.1318934111 | `production` |
-| `preseq` | `transform` | `bam.complexity` | `bijuxdna/preseq:3.2.0` | `3.2.0` | paper:https://www.nature.com/articles/nmeth.2375 | `production` |
-| `prinseq` | `filter` | `fastq.filter_low_complexity, fastq.filter_reads, fastq.profile_read_lengths, fastq.trim_reads` | `bijuxdna/prinseq@sha256:7216ffecd7913edaea33ec76b3775ab0cb0d60064f31e96c63e043d578a3f971` | `1.2.4` | paper:https://pmc.ncbi.nlm.nih.gov/articles/PMC3051327/ | `production` |
-| `pydamage` | `transform` | `bam.damage` | `bijuxdna/pydamage:1.0.0` | `1.0.0` | paper:https://pubmed.ncbi.nlm.nih.gov/34395085/ | `production` |
-| `rcorrector` | `corrector` | `fastq.correct_errors` | `bijuxdna/rcorrector@sha256:cfec0e32dc980f61681376e78961785c8f74804bd90ebabccb98f825e5fdb454` | `1.0.7` | paper:https://gigascience.biomedcentral.com/articles/10.1186/s13742-015-0089-y | `production` |
-| `rxy` | `transform` | `bam.sex` | `bijuxdna/rxy:1.0.0` | `1.0.0` | upstream:https://github.com/bijux/bijux-genomics | `production` |
-| `samtools` | `transform` | `bam.coverage, bam.duplication_metrics, bam.endogenous_content, bam.filter, bam.length_filter, bam.mapping_summary, bam.mapq_filter, bam.markdup, bam.qc_pre, bam.validate` | `bijuxdna/samtools:1.21` | `1.21` | paper:https://pmc.ncbi.nlm.nih.gov/articles/PMC2723002/ | `production` |
-| `schmutzi` | `transform` | `bam.contamination` | `bijuxdna/schmutzi:1.5.4` | `1.5.4` | paper:https://genomebiology.biomedcentral.com/articles/10.1186/s13059-015-0776-0 | `production` |
-| `seqfu` | `transform` | `fastq.profile_read_lengths, fastq.profile_reads` | `bijuxdna/seqfu:2.4.0` | `2.4.0` | paper:https://pmc.ncbi.nlm.nih.gov/articles/PMC8148589/ | `production` |
-| `seqkit` | `filter` | `fastq.filter_reads, fastq.normalize_abundance, fastq.profile_overrepresented_sequences, fastq.profile_reads, fastq.trim_reads, fastq.trim_terminal_damage` | `bijuxdna/seqkit@sha256:ca3dc13e3fef5d34927c44b2d8cd2bc6708c2c256f42e51369d7b1203b0d2991` | `2.8.2` | paper:https://pmc.ncbi.nlm.nih.gov/articles/PMC5051824/ | `production` |
-| `seqkit_stats` | `transform` | `fastq.profile_read_lengths, fastq.profile_reads` | `bijuxdna/seqkit@sha256:ca3dc13e3fef5d34927c44b2d8cd2bc6708c2c256f42e51369d7b1203b0d2991` | `2.7.0` | paper:https://pmc.ncbi.nlm.nih.gov/articles/PMC5051824/ | `production` |
-| `seqtk` | `validator` | `fastq.validate_reads` | `bijuxdna/seqtk@sha256:16e615286a66f1654278a862ad47c3d62bdfabbbf17cb2e12a568256d1b05024` | `1.5-r133` | software:https://github.com/lh3/seqtk | `production` |
-| `shapeit` | `phasing` | `vcf.phasing` | `registry_lock` | `4.2.2-planned` | planned | `planned` |
-| `shapeit5` | `phasing` | `vcf.phasing` | `registry_lock` | `5.1.1` | paper:https://www.nature.com/articles/s41588-023-01415-w | `production` |
-| `skewer` | `trimmer` | `fastq.trim_reads` | `bijuxdna/skewer:978e8e46cba4` | `978e8e46cba4` | paper:https://bmcbioinformatics.biomedcentral.com/articles/10.1186/1471-2105-15-182 | `production` |
-| `sortmerna` | `transform` | `fastq.deplete_rrna` | `bijuxdna/sortmerna@sha256:2021b21d075d06404339ec019b9729f2dfb820685c86835df654c2fb7d8b447c` | `4.3.7` | paper:https://academic.oup.com/bioinformatics/article/28/24/3211/246053 | `production` |
-| `star` | `transform` | `fastq.index_reference` | `bijuxdna/star:2.7.11b` | `2.7.11b` | paper:https://academic.oup.com/bioinformatics/article/29/1/15/272537 | `production` |
-| `trim_galore` | `trimmer` | `fastq.trim_reads` | `bijuxdna/trim_galore@sha256:f323405a5a0ba19bbdae765dd4269e9156c415993977996079b63c5eb5bb0a61` | `0.6.10` | software:https://doi.org/10.5281/zenodo.7598955 | `production` |
-| `trimmomatic` | `trimmer` | `fastq.trim_reads` | `bijuxdna/trimmomatic@sha256:41c0d161444ee7bb6b36ead3bbceb998af611be6ead6784231c5440e092bd5a4` | `0.39` | paper:https://pmc.ncbi.nlm.nih.gov/articles/PMC4103590/ | `production` |
-| `umi_tools` | `transform` | `fastq.extract_umis` | `bijuxdna/umi_tools@sha256:b2913af8c02c1eeea5de7a4b5c120f65e2003b90479c8873f0ec37689d36296c` | `1.1.6` | paper:https://genome.cshlp.org/content/27/3/491 | `production` |
-| `verifybamid2` | `transform` | `bam.contamination` | `bijuxdna/verifybamid2:2.0.1` | `2.0.1` | paper:https://pmc.ncbi.nlm.nih.gov/articles/PMC7050530/ | `production` |
-| `vsearch` | `transform` | `fastq.cluster_otus, fastq.merge_pairs, fastq.remove_chimeras` | `bijuxdna/vsearch@sha256:c16ef98d6fd67ac0b8eea3ebb4f3dc6df9c582d6f838317d5f6ccc7a09e60bb3` | `2.28.1` | paper:https://pmc.ncbi.nlm.nih.gov/articles/PMC5075697/ | `production` |
-| `yleaf` | `transform` | `bam.haplogroups, bam.sex` | `bijuxdna/yleaf:3.0.3` | `3.0.3` | paper:https://academic.oup.com/mbe/article/35/5/1291/4922696 | `production` |
+| Tool ID | Purpose | Stage Bindings | Apptainer Definition | Version | Citation | Support | Qualification |
+|---|---|---|---|---|---|---|---|
+| `adapterremoval` | Trims adapters and low-quality termini and merges overlapping paired-end reads, including short ancient-DNA fragments. | `fastq.merge_pairs, fastq.trim_reads, fastq.trim_terminal_damage` | `containers/apptainer/adapterremoval.def` | `2.3.4` | paper:https://pmc.ncbi.nlm.nih.gov/articles/PMC4751634/ | `retained` | `unverified` |
+| `addeam` | Removes adapters, primers, terminal damage, and low-quality sequence from FASTQ reads. | `bam.damage` | `containers/apptainer/addeam.def` | `1.0.0` | paper:https://academic.oup.com/bioinformatics/article/doi/10.1093/bioinformatics/btaf407/8205671 | `retained` | `unverified` |
+| `alientrimmer` | Removes user-supplied alien oligonucleotide sequences from FASTQ reads with a k-mer-based trimming strategy. | `fastq.trim_reads` | `containers/apptainer/alientrimmer.def` | `3.2` | paper:https://pubmed.ncbi.nlm.nih.gov/23912058/ | `retained` | `unverified` |
+| `angsd` | Profiles terminal nucleotide misincorporation and length patterns in aligned ancient-DNA reads. | `bam.genotyping, bam.kinship, bam.sex, vcf.call_gl, vcf.call_pseudohaploid, vcf.damage_filter, vcf.gl_propagation` | `containers/apptainer/angsd.def` | `0.941` | Korneliussen et al. 2014, BMC Bioinformatics 15:356 | `retained` | `unverified` |
+| `atropos` | Trims adapters and low-quality sequence from single- or paired-end reads with explicit error and overlap controls. | `fastq.trim_reads` | `containers/apptainer/atropos.def` | `1.1.31` | paper:https://pmc.ncbi.nlm.nih.gov/articles/PMC5581536/ | `retained` | `unverified` |
+| `authenticct` | Estimates whether aligned read termini carry ancient-DNA damage patterns consistent with authentic molecules. | `bam.authenticity` | `containers/apptainer/authenticct.def` | `1.0.0` | paper:https://genomebiology.biomedcentral.com/articles/10.1186/s13059-020-02123-y | `retained` | `unverified` |
+| `bamtools` | Filters, converts, inspects, and validates BAM alignments through a compact command-line toolkit. | `bam.filter, bam.mapq_filter, bam.validate` | `containers/apptainer/bamtools.def` | `2.5.2` | paper:https://academic.oup.com/bioinformatics/article/27/12/1691/255399 | `retained` | `unverified` |
+| `bamutil` | Applies alignment utilities such as overlap clipping and produces BAM-level quality summaries. | `bam.overlap_correction` | `containers/apptainer/bamutil.def` | `1.0.15` | upstream:https://github.com/statgen/bamUtil | `retained` | `unverified` |
+| `bayeshammer` | Corrects sequencing errors in short reads using Bayesian k-mer clustering as implemented by SPAdes. | `fastq.correct_errors` | `containers/apptainer/bayeshammer.def` | `4.2.0` | paper:https://link.springer.com/article/10.1186/1471-2164-14-S1-S7 | `retained` | `unverified` |
+| `bbduk` | Performs k-mer-based contaminant filtering, adapter trimming, quality trimming, and low-complexity filtering of reads. | `fastq.filter_low_complexity, fastq.filter_reads, fastq.trim_polyg_tails, fastq.trim_reads` | `containers/apptainer/bbduk.def` | `39.06` | software:https://bbmap.org/tools/bbduk | `retained` | `unverified` |
+| `bbmerge` | Merges overlapping paired reads and reports insert-length evidence from the observed overlap. | `fastq.merge_pairs` | `containers/apptainer/bbmerge.def` | `39.06` | paper:https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0185056 | `retained` | `unverified` |
+| `bcftools` | Calls, normalizes, filters, queries, merges, and validates VCF and BCF variant data. | `vcf.call, vcf.call_diploid, vcf.call_gl, vcf.call_pseudohaploid, vcf.damage_filter, vcf.filter, vcf.gl_propagation, vcf.postprocess, vcf.prepare_reference_panel, vcf.qc, vcf.stats` | `containers/apptainer/bcftools.def` | `1.20` | DOI:10.1093/gigascience/giab008 | `retained` | `unverified` |
+| `beagle` | Phases genotypes and imputes missing variants from a reference panel using localized haplotype clustering. | `vcf.imputation_metrics, vcf.impute, vcf.phasing` | `containers/apptainer/beagle.def` | `5.4` | software:https://faculty.washington.edu/browning/beagle/beagle.html | `retained` | `unverified` |
+| `bedtools` | Intersects genomic intervals and derives coverage summaries across alignment and annotation tracks. | `bam.coverage, bam.filter, bam.validate` | `containers/apptainer/bedtools.def` | `2.31.1` | paper:https://academic.oup.com/bioinformatics/article/26/6/841/244688 | `retained` | `unverified` |
+| `bijux_dna` | Plans, validates, and executes governed FASTQ, BAM, and VCF workflows through the Bijux Genomics CLI. | `fastq.detect_duplicates_premerge, fastq.estimate_library_complexity_prealign` | `containers/apptainer/bijux_dna.def` | `0.1.0` | software:https://github.com/bijux/bijux-genomics | `retained` | `unverified` |
+| `bowtie2` | Aligns short reads to reference genomes and supports host or contaminant depletion by competitive mapping. | `bam.align, fastq.deplete_host, fastq.deplete_reference_contaminants` | `containers/apptainer/bowtie2.def` | `2.5.4` | paper:https://www.nature.com/articles/nmeth.1923 | `retained` | `unverified` |
+| `bowtie2_build` | Builds the FM-index files required for reproducible Bowtie 2 reference alignment. | `fastq.index_reference` | `containers/apptainer/bowtie2_build.def` | `2.5.4` | paper:https://www.nature.com/articles/nmeth.1923 | `retained` | `unverified` |
+| `bracken` | Re-estimates taxonomic abundance from Kraken reports using a matching k-mer distribution. | `-` | `containers/apptainer/bracken.def` | `2.9` | software:https://github.com/jenniferlu717/Bracken | `retained` | `unverified` |
+| `bwa` | Aligns short sequencing reads to a reference genome using the BWA-MEM and backtrack algorithms. | `bam.align` | `containers/apptainer/bwa.def` | `0.7.17` | paper:https://academic.oup.com/bioinformatics/article/25/14/1754/225615 | `retained` | `unverified` |
+| `centrifuge` | Classifies sequencing reads against a governed compressed taxonomy index. | `fastq.screen_taxonomy` | `containers/apptainer/centrifuge.def` | `1.0.4` | paper:https://genome.cshlp.org/content/26/12/1721 | `retained` | `unverified` |
+| `clumpify` | Groups reads by shared k-mers to remove exact or optical duplicates before alignment. | `fastq.remove_duplicates` | `containers/apptainer/clumpify.def` | `39.06` | software:https://bbmap.org/tools/clumpify | `retained` | `unverified` |
+| `contammix` | Estimates mitochondrial contamination from aligned reads and candidate mitochondrial genomes. | `bam.contamination` | `containers/apptainer/contammix.def` | `1.0.11` | upstream:https://github.com/plfjohnson/contamMix | `retained` | `unverified` |
+| `cutadapt` | Finds and removes adapters, primers, poly-A tails, and other linked sequence from FASTQ reads. | `fastq.normalize_primers, fastq.trim_reads, fastq.trim_terminal_damage` | `containers/apptainer/cutadapt.def` | `4.9` | paper:https://journal.embnet.org/index.php/embnetjournal/article/view/200 | `retained` | `unverified` |
+| `dada2` | Learns amplicon error rates and resolves denoised amplicon sequence variants from filtered reads. | `fastq.infer_asvs` | `containers/apptainer/dada2.def` | `1.30.0` | paper:https://www.nature.com/articles/nmeth.3869 | `retained` | `unverified` |
+| `damageprofiler` | Summarizes terminal misincorporation, read length, and nucleotide composition patterns in ancient-DNA alignments. | `bam.authenticity, bam.damage` | `containers/apptainer/damageprofiler.def` | `1.1` | paper:https://academic.oup.com/bioinformatics/article/37/20/3652/6247758 | `retained` | `unverified` |
+| `diamond` | Aligns protein and translated nucleotide queries against protein reference databases. | `-` | `containers/apptainer/diamond.def` | `2.1.10` | software:https://github.com/bbuchfink/diamond | `retained` | `unverified` |
+| `dustmasker` | Detects and masks low-complexity nucleotide sequence using the DUST algorithm. | `-` | `containers/apptainer/dustmasker.def` | `2.15.0` | software:https://www.ncbi.nlm.nih.gov/books/NBK279690/ | `retained` | `unverified` |
+| `eagle` | Estimates chromosome-scale genotype phase from cohort haplotype structure or a phased reference panel. | `vcf.phasing` | `containers/apptainer/eagle.def` | `2.4.1` | software:https://github.com/poruloh/Eagle | `retained` | `unverified` |
+| `eigensoft` | Computes principal components and ancestry structure while supporting population-genetic outlier analysis. | `vcf.pca, vcf.population_structure` | `containers/apptainer/eigensoft.def` | `8.0.0` | software:https://github.com/DReichLab/EIG | `retained` | `unverified` |
+| `fastp` | Performs FASTQ quality control, adapter and quality trimming, filtering, and read-length reporting. | `fastq.filter_low_complexity, fastq.filter_reads, fastq.profile_read_lengths, fastq.trim_polyg_tails, fastq.trim_reads` | `containers/apptainer/fastp.def` | `0.23.4` | paper:https://academic.oup.com/bioinformatics/article/34/17/i884/5093234 | `retained` | `unverified` |
+| `fastq_scan` | Profiles FASTQ sequence composition and validates readable input streams. | `fastq.profile_overrepresented_sequences, fastq.validate_reads` | `containers/apptainer/fastq_scan.def` | `1.0.1` | software:https://github.com/rpetit3/fastq-scan | `retained` | `unverified` |
+| `fastq_screen` | Screens reads against multiple reference genomes to reveal sample composition and cross-species contamination. | `-` | `containers/apptainer/fastq_screen.def` | `0.15.3` | software:https://github.com/StevenWingett/FastQ-Screen | `retained` | `unverified` |
+| `fastqc` | Profiles read quality, adapters, and overrepresented sequences for governed FASTQ stages. | `fastq.detect_adapters, fastq.profile_overrepresented_sequences, fastq.validate_reads` | `containers/apptainer/fastqc.def` | `0.12.1` | software:https://www.bioinformatics.babraham.ac.uk/projects/fastqc/ | `retained` | `unverified` |
+| `fastqvalidator` | Checks FASTQ structure, sequence and quality lengths, encoding, and record-level format integrity. | `fastq.validate_reads` | `containers/apptainer/fastqvalidator.def` | `0.1.1` | software:https://github.com/statgen/fastQValidator | `retained` | `unverified` |
+| `fastuniq` | Removes duplicate paired-end reads while preserving mate correspondence. | `fastq.remove_duplicates` | `` | `1.1` | software:https://sourceforge.net/projects/fastuniq/ | `unsupported` | `unsupported` |
+| `fastx_clipper` | Clips declared adapter sequences from FASTA or FASTQ reads. | `fastq.trim_reads` | `containers/apptainer/fastx_clipper.def` | `0.0.14` | software:https://github.com/agordon/fastx_toolkit/tree/0.0.14 | `retained` | `unverified` |
+| `flash2` | Merges overlapping paired-end Illumina reads into consensus sequences while retaining unmerged mates for governed downstream processing. | `fastq.merge_pairs` | `containers/apptainer/flash2.def` | `2.2.00` | software:https://github.com/dstreett/FLASH2/tree/2.2.00 | `retained` | `unverified` |
+| `fqtools` | Validates single-end and paired-end FASTQ structure and sequence alphabets before governed transformations consume the reads. | `fastq.validate_reads` | `containers/apptainer/fqtools.def` | `2.3` | software:https://github.com/alastair-droop/fqtools/tree/63c6fa707fabc7569c2f256b8bcfc6ebb760f72a | `retained` | `unverified` |
+| `gatk` | Applies reference-aware BAM recalibration and variant-processing methods from the Genome Analysis Toolkit. | `bam.recalibration` | `containers/apptainer/gatk.def` | `4.6.2.0` | paper:https://pmc.ncbi.nlm.nih.gov/articles/PMC2928508/ | `retained` | `unverified` |
+| `germline` | Detects long haplotype segments shared identical by descent between genotyped individuals. | `vcf.ibd` | `containers/apptainer/germline.def` | `1.5.3` | software:https://github.com/gusevlab/germline | `retained` | `unverified` |
+| `glimpse` | Phases and imputes low-coverage genotype likelihoods against a reference panel in genomic chunks. | `vcf.imputation_metrics, vcf.impute` | `containers/apptainer/glimpse.def` | `1.1.1` | software:https://github.com/odelaneau/GLIMPSE | `retained` | `unverified` |
+| `ibdhap` | Computes posterior four-gamete IBD-state probabilities from phased or unphased diallelic SNP genotypes. | `vcf.ibd` | `containers/apptainer/ibdhap.def` | `3.4` | Thompson EA. The MORGAN package for Markov chain Monte Carlo in genetic analysis. | `retained` | `unverified` |
+| `ibdne` | Estimates recent effective population size from whole-genome hap-IBD segments. | `vcf.demography` | `containers/apptainer/ibdne.def` | `23Apr20.ae9` | software:https://faculty.washington.edu/browning/ibdne.html | `retained` | `unverified` |
+| `ibdseq` | Detects genotype-based IBD segments from VCF and reports LOD scores. | `vcf.ibd` | `containers/apptainer/ibdseq.def` | `r1206` | software:https://faculty.washington.edu/browning/ibdseq.html | `retained` | `unverified` |
+| `impute5` | Imputes untyped genotypes from phased study haplotypes and a reference panel. | `vcf.imputation_metrics, vcf.impute` | `` | `1.2.0` | paper:https://journals.plos.org/plosgenetics/article?id=10.1371/journal.pgen.1009049 | `unsupported` | `unsupported` |
+| `kaiju` | Classifies metagenomic reads by translated protein-level matches against a taxonomic reference database. | `fastq.screen_taxonomy` | `containers/apptainer/kaiju.def` | `1.10.0` | paper:https://www.nature.com/articles/ncomms11257 | `retained` | `unverified` |
+| `king` | Estimates pairwise kinship and sample relationships from genotype data with population-robust statistics. | `bam.kinship` | `containers/apptainer/king.def` | `2.3.0` | paper:https://academic.oup.com/bioinformatics/article/26/22/2867/228512 | `retained` | `unverified` |
+| `kraken2` | Classifies sequencing reads against a governed k-mer taxonomy database. | `fastq.screen_taxonomy` | `containers/apptainer/kraken2.def` | `2.1.3` | paper:https://genomebiology.biomedcentral.com/articles/10.1186/s13059-019-1891-0 | `retained` | `unverified` |
+| `krakenuniq` | Classifies reads by exact k-mers while reporting unique k-mer support for each taxon. | `fastq.screen_taxonomy` | `containers/apptainer/krakenuniq.def` | `1.0.4` | paper:https://genomebiology.biomedcentral.com/articles/10.1186/s13059-018-1568-0 | `retained` | `unverified` |
+| `leehom` | Merges overlapping paired reads and trims adapters, including ancient-DNA libraries. | `fastq.merge_pairs, fastq.trim_reads` | `containers/apptainer/leehom.def` | `1.2.18` | paper:https://pmc.ncbi.nlm.nih.gov/articles/PMC4191382/ | `retained` | `unverified` |
+| `lighter` | Corrects sequencing errors using a sampling-based k-mer spectrum with low memory requirements. | `fastq.correct_errors` | `containers/apptainer/lighter.def` | `1.1.2` | paper:https://pmc.ncbi.nlm.nih.gov/articles/PMC4248469/ | `retained` | `unverified` |
+| `mapdamage2` | Profiles terminal nucleotide misincorporation patterns from aligned ancient-DNA reads. | `bam.bias_mitigation, bam.damage` | `containers/apptainer/mapdamage2.def` | `2.2.2` | paper:https://academic.oup.com/bioinformatics/article/29/13/1682/184965 | `retained` | `unverified` |
+| `metaphlan` | Profiles microbial community composition from clade-specific marker-gene alignments. | `-` | `containers/apptainer/metaphlan.def` | `4.1.1` | software:https://github.com/biobakery/MetaPhlAn | `retained` | `unverified` |
+| `minimac4` | Imputes genotypes from phased haplotypes using a compressed reference panel. | `vcf.imputation_metrics, vcf.impute` | `containers/apptainer/minimac4.def` | `4.1.6` | software:https://github.com/statgen/Minimac4 | `retained` | `unverified` |
+| `mosdepth` | Computes whole-genome and region-level sequencing depth efficiently from coordinate-sorted alignments. | `bam.coverage` | `containers/apptainer/mosdepth.def` | `0.3.11` | paper:https://academic.oup.com/bioinformatics/article-abstract/34/5/867/4583630 | `retained` | `unverified` |
+| `multiqc` | Aggregates quality-control outputs from many samples and tools into one comparable report. | `bam.qc_pre, fastq.report_qc` | `containers/apptainer/multiqc.def` | `1.24` | paper:https://pmc.ncbi.nlm.nih.gov/articles/PMC5039924/ | `retained` | `unverified` |
+| `musket` | Corrects substitution errors in short reads using a multistage k-mer spectrum algorithm. | `fastq.correct_errors` | `containers/apptainer/musket.def` | `1.1` | paper:https://academic.oup.com/bioinformatics/article/29/3/308/257257 | `retained` | `unverified` |
+| `ngsbriggs` | Fits Briggs-style ancient-DNA damage parameters from aligned read misincorporation patterns. | `bam.damage` | `containers/apptainer/ngsbriggs.def` | `0.01` | paper:https://pmc.ncbi.nlm.nih.gov/articles/PMC11646307/ | `retained` | `unverified` |
+| `pear` | Merges paired-end reads by statistically evaluating overlap and assembly quality. | `fastq.merge_pairs` | `containers/apptainer/pear.def` | `0.9.6` | paper:https://pmc.ncbi.nlm.nih.gov/articles/PMC3933873/ | `retained` | `unverified` |
+| `picard` | Marks duplicates and computes insert-size, GC-bias, alignment, and library-complexity metrics for BAM data. | `bam.duplication_metrics, bam.gc_bias, bam.insert_size, bam.length_filter, bam.mapping_summary, bam.markdup` | `containers/apptainer/picard.def` | `3.3.0` | software:https://broadinstitute.github.io/picard/ | `retained` | `unverified` |
+| `plink` | Filters genotype datasets and computes population structure, relatedness, and association-ready quality metrics. | `vcf.admixture, vcf.population_structure, vcf.qc` | `containers/apptainer/plink.def` | `1.90b7.2` | software:https://www.cog-genomics.org/plink/ | `retained` | `unverified` |
+| `plink2` | Processes large genotype datasets for quality control, PCA, ancestry analysis, and runs of homozygosity. | `vcf.admixture, vcf.pca, vcf.population_structure, vcf.qc, vcf.roh` | `containers/apptainer/plink2.def` | `2.00a6` | software:https://www.cog-genomics.org/plink/2.0/ | `retained` | `unverified` |
+| `pmdtools` | Scores aligned reads by the likelihood that their terminal substitutions arise from ancient-DNA damage. | `bam.authenticity, bam.damage` | `containers/apptainer/pmdtools.def` | `0.60` | paper:https://doi.org/10.1073/pnas.1318934111 | `retained` | `unverified` |
+| `preseq` | Estimates library complexity and predicts yield from additional sequencing using observed duplicate counts. | `bam.complexity` | `containers/apptainer/preseq.def` | `3.2.0` | paper:https://www.nature.com/articles/nmeth.2375 | `retained` | `unverified` |
+| `prinseq` | Filters and trims reads by length, quality, ambiguity, duplication, and sequence complexity. | `fastq.filter_low_complexity, fastq.filter_reads, fastq.profile_read_lengths, fastq.trim_reads` | `containers/apptainer/prinseq.def` | `1.2.4` | paper:https://pmc.ncbi.nlm.nih.gov/articles/PMC3051327/ | `retained` | `unverified` |
+| `pydamage` | Quantifies ancient-DNA damage per reference sequence and estimates confidence that damage is present. | `bam.damage` | `containers/apptainer/pydamage.def` | `1.0` | paper:https://pubmed.ncbi.nlm.nih.gov/34395085/ | `retained` | `unverified` |
+| `qualimap` | Reports alignment coverage, mapping quality, insert size, GC bias, and other BAM quality-control summaries. | `-` | `containers/apptainer/qualimap.def` | `2.3` | software:https://bitbucket.org/kokonech/qualimap/src | `retained` | `unverified` |
+| `rcorrector` | Corrects random sequencing errors in RNA-seq reads from their k-mer count distribution. | `fastq.correct_errors` | `containers/apptainer/rcorrector.def` | `1.0.7` | paper:https://gigascience.biomedcentral.com/articles/10.1186/s13742-015-0089-y | `retained` | `unverified` |
+| `rxy` | Reports the R_y proportion of X/Y-aligned reads with explicit human, custom, or unclassified interpretation profiles. | `bam.sex` | `containers/apptainer/rxy.def` | `2.0.0` | upstream:https://github.com/bijux/bijux-genomics | `retained` | `unverified` |
+| `samtools` | Sorts, indexes, filters, validates, and summarizes SAM, BAM, and CRAM alignment data. | `bam.coverage, bam.duplication_metrics, bam.endogenous_content, bam.filter, bam.length_filter, bam.mapping_summary, bam.mapq_filter, bam.markdup, bam.qc_pre, bam.validate` | `containers/apptainer/samtools.def` | `1.20` | paper:https://pmc.ncbi.nlm.nih.gov/articles/PMC2723002/ | `retained` | `unverified` |
+| `schmutzi` | Estimates mitochondrial contamination and reconstructs endogenous mitochondrial consensus sequence from ancient DNA. | `bam.contamination` | `containers/apptainer/schmutzi.def` | `1.5.4` | paper:https://genomebiology.biomedcentral.com/articles/10.1186/s13059-015-0776-0 | `retained` | `unverified` |
+| `seqfu` | Inspects and transforms FASTA and FASTQ data while producing read-count and length summaries. | `fastq.profile_read_lengths, fastq.profile_reads` | `containers/apptainer/seqfu.def` | `1.26.0` | paper:https://pmc.ncbi.nlm.nih.gov/articles/PMC8148589/ | `retained` | `unverified` |
+| `seqkit` | Filters, samples, transforms, and profiles FASTA and FASTQ records with streaming sequence operations. | `fastq.filter_reads, fastq.normalize_abundance, fastq.profile_overrepresented_sequences, fastq.profile_reads, fastq.trim_reads, fastq.trim_terminal_damage` | `containers/apptainer/seqkit.def` | `2.8.2` | paper:https://pmc.ncbi.nlm.nih.gov/articles/PMC5051824/ | `retained` | `unverified` |
+| `seqkit_stats` | Reports sequence counts, total bases, length distributions, and composition statistics for FASTA and FASTQ inputs. | `fastq.profile_read_lengths, fastq.profile_reads` | `containers/apptainer/seqkit_stats.def` | `2.8.2` | paper:https://pmc.ncbi.nlm.nih.gov/articles/PMC5051824/ | `retained` | `unverified` |
+| `seqprep` | Merges overlapping read pairs and trims paired-end adapters for governed FASTQ stages. | `fastq.merge_pairs, fastq.trim_reads` | `containers/apptainer/seqprep.def` | `1.3.2` | software:https://github.com/jstjohn/SeqPrep | `retained` | `unverified` |
+| `seqpurge` | Trims adapters and performs optional error correction for paired FASTQ reads. | `-` | `containers/apptainer/seqpurge.def` | `2026_06` | software:https://github.com/imgag/ngs-bits | `retained` | `unverified` |
+| `seqtk` | Samples, converts, trims, and inspects FASTA and FASTQ sequence records. | `fastq.validate_reads` | `containers/apptainer/seqtk.def` | `1.4` | software:https://github.com/lh3/seqtk | `retained` | `unverified` |
+| `shapeit` | Phases cohort genotypes into haplotypes using a haplotype graph and recombination map. | `vcf.phasing` | `containers/apptainer/shapeit.def` | `4.2.2` | software:https://github.com/odelaneau/shapeit4 | `retained` | `unverified` |
+| `shapeit5` | Phases common and rare variants at biobank scale with reference-panel-aware algorithms. | `vcf.phasing` | `containers/apptainer/shapeit5.def` | `5.1.1` | paper:https://www.nature.com/articles/s41588-023-01415-w | `retained` | `unverified` |
+| `skewer` | Trims adapters from single- and paired-end reads using dynamic programming with error tolerance. | `fastq.trim_reads` | `containers/apptainer/skewer.def` | `0.2.2` | paper:https://bmcbioinformatics.biomedcentral.com/articles/10.1186/1471-2105-15-182 | `retained` | `unverified` |
+| `sortmerna` | Separates ribosomal RNA reads from sequencing data by indexed alignment to rRNA databases. | `fastq.deplete_rrna` | `containers/apptainer/sortmerna.def` | `4.3.7` | paper:https://academic.oup.com/bioinformatics/article/28/24/3211/246053 | `retained` | `unverified` |
+| `spades` | Assembles short sequencing reads into contigs with multi-k-mer de Bruijn graphs. | `-` | `containers/apptainer/spades.def` | `4.2.0` | software:https://github.com/ablab/spades | `retained` | `unverified` |
+| `star` | Builds genome indexes and performs splice-aware alignment of RNA sequencing reads. | `fastq.index_reference` | `containers/apptainer/star.def` | `2.7.11b` | paper:https://academic.oup.com/bioinformatics/article/29/1/15/272537 | `retained` | `unverified` |
+| `trim_galore` | Coordinates Cutadapt and quality checks for reproducible adapter and quality trimming of FASTQ reads. | `fastq.trim_reads` | `containers/apptainer/trim_galore.def` | `0.6.10` | software:https://doi.org/10.5281/zenodo.7598955 | `retained` | `unverified` |
+| `trimmomatic` | Applies configurable adapter clipping and sliding-window, leading, trailing, and length filters to reads. | `fastq.trim_reads` | `containers/apptainer/trimmomatic.def` | `0.39` | paper:https://pmc.ncbi.nlm.nih.gov/articles/PMC4103590/ | `retained` | `unverified` |
+| `umi_tools` | Extracts unique molecular identifiers from reads and supports UMI-aware duplicate handling. | `fastq.extract_umis` | `containers/apptainer/umi_tools.def` | `1.1.6` | paper:https://genome.cshlp.org/content/27/3/491 | `retained` | `unverified` |
+| `verifybamid2` | Estimates DNA sample contamination by comparing sequence reads with population allele frequencies. | `bam.contamination` | `containers/apptainer/verifybamid2.def` | `2.0.1` | paper:https://pmc.ncbi.nlm.nih.gov/articles/PMC7050530/ | `retained` | `unverified` |
+| `vsearch` | Merges amplicon reads, dereplicates and clusters sequences, and detects chimeras with open algorithms. | `fastq.cluster_otus, fastq.merge_pairs, fastq.remove_chimeras` | `containers/apptainer/vsearch.def` | `2.29.3` | paper:https://pmc.ncbi.nlm.nih.gov/articles/PMC5075697/ | `retained` | `unverified` |
+| `yleaf` | Infers human Y-chromosomal haplogroups from BAM, CRAM, FASTQ, VCF, or SNP-array data. | `bam.haplogroups, bam.sex` | `containers/apptainer/yleaf.def` | `4.1.4` | paper:https://academic.oup.com/mbe/article/35/5/1291/4922696 | `retained` | `unverified` |

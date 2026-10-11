@@ -21,6 +21,7 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
     org.opencontainers.image.created governed-by-build-evidence
     org.opencontainers.image.licenses GPL-3.0-or-later
     org.opencontainers.image.version 2.1.10
+    io.bijux.tool.version 2.1.10
     org.opencontainers.image.tool diamond
 %environment
     export PATH=/opt/diamond/bin:/usr/local/bin:/usr/bin:/bin
@@ -29,15 +30,15 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
     export TZ=UTC
 
 %files
+    containers/contracts/configure-apt-snapshot /usr/local/sbin/bijux-configure-apt-snapshot
     containers/tools/diamond/install /opt/diamond-build/install
 
 %post
     set -eux
     umask 022
     export DEBIAN_FRONTEND=noninteractive
-    sed -i 's#http://archive.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubuntu/20260802T000000Z/#g; s#http://security.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubuntu/20260802T000000Z/#g' /etc/apt/sources.list.d/ubuntu.sources
-    apt-get -o Acquire::https::Verify-Peer=false -o Acquire::Check-Valid-Until=false update
-    apt-get -o Acquire::https::Verify-Peer=false install -y --no-install-recommends ca-certificates
+    /bin/sh /usr/local/sbin/bijux-configure-apt-snapshot
+    apt-get install -y --no-install-recommends ca-certificates
     apt-get -o Acquire::Check-Valid-Until=false update
     apt-get install -y --no-install-recommends build-essential cmake curl zlib1g-dev
     /opt/diamond-build/install

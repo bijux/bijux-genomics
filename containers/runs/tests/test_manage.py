@@ -2,10 +2,9 @@ from __future__ import annotations
 
 import importlib.util
 import json
-from pathlib import Path
 import tempfile
 import unittest
-
+from pathlib import Path
 
 SCRIPT = Path(__file__).parents[1] / "manage.py"
 SPEC = importlib.util.spec_from_file_location("container_run_manage", SCRIPT)
@@ -22,6 +21,11 @@ class RunEvidenceTests(unittest.TestCase):
             "schema_version: bijux.container.pipeline.v1\n"
             "run:\n"
             "  id: run-1001\n"
+            "  campaign: public-read-trimming\n"
+            "  corpus: ena-public-reads\n"
+            "  sample: ERR000001\n"
+            "  domain: fastq\n"
+            "  stage: fastq.trim_reads\n"
             "  tool: adapterremoval\n"
             "repository:\n"
             f"  commit: {'a' * 40}\n",
@@ -149,14 +153,91 @@ class RunEvidenceTests(unittest.TestCase):
             runs = root / "runs"
             report = root / "run-evidence.md"
             manage.import_evidence(root / "results", runs, None, None)
+            manage.publish_final_evidence(
+                runs, runs / "attempt-ledger.json", True
+            )
 
             count = manage.render_report(runs, report)
             rendered = report.read_text(encoding="utf-8")
 
         self.assertEqual(count, 1)
-        self.assertIn("| `adapterremoval` | 1 | 1 | 0 |", rendered)
+        self.assertIn("| `adapterremoval` | [run-1001]", rendered)
         self.assertIn("not_assessed", rendered)
         self.assertIn("successful process is not", rendered)
+        self.assertIn("`ena-public-reads`", rendered)
+        self.assertIn("`fastq.trim_reads`", rendered)
+
+    def test_index_exposes_scientific_execution_identity(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            self.make_result(root / "results")
+            runs = root / "runs"
+            index = root / "run-evidence.json"
+            manage.import_evidence(root / "results", runs, None, None)
+            manage.publish_final_evidence(runs, runs / "attempt-ledger.json", True)
+
+            manage.render_index(runs, index)
+            record = json.loads(index.read_text(encoding="utf-8"))["runs"][0]
+
+        self.assertEqual(record["corpus"], "ena-public-reads")
+        self.assertEqual(record["stage"], "fastq.trim_reads")
+        self.assertEqual(record["domain"], "fastq")
+
+    def test_final_publication_keeps_latest_success_and_ledgers_attempts(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            result = self.make_result(root / "results")
+            runs = root / "runs"
+            manage.import_evidence(root / "results", runs, None, None)
+            second = result.parent / "run-1002"
+            second.mkdir()
+            for source in result.iterdir():
+                target = second / source.name
+                target.write_bytes(source.read_bytes())
+            pipeline = second / "config-pipeline.yml"
+            pipeline.write_text(
+                pipeline.read_text(encoding="utf-8").replace("run-1001", "run-1002"),
+                encoding="utf-8",
+            )
+            evidence = json.loads((second / "evidence.json").read_text(encoding="utf-8"))
+            evidence["run_id"] = "run-1002"
+            evidence["status"] = "failed"
+            evidence["failures"] = ["governed failure"]
+            (second / "evidence.json").write_text(json.dumps(evidence), encoding="utf-8")
+            manage.import_evidence(root / "results", runs, 1002, 1002)
+            ledger = runs / "attempt-ledger.json"
+
+            selected, superseded = manage.publish_final_evidence(runs, ledger, True)
+
+            self.assertEqual((selected, superseded), (1, 1))
+            self.assertTrue((runs / "run-1001-adapterremoval").is_dir())
+            self.assertFalse((runs / "run-1002-adapterremoval").exists())
+            attempts = json.loads(ledger.read_text(encoding="utf-8"))["attempts"]
+            self.assertEqual(attempts[0]["failures"], ["governed failure"])
+            records = manage.validate_runs(runs)
+            manage.validate_final_evidence(records)
+            manage.validate_attempt_ledger(ledger, records)
+
+            third = result.parent / "run-1003"
+            third.mkdir()
+            for source in result.iterdir():
+                target = third / source.name
+                target.write_bytes(source.read_bytes())
+            pipeline = third / "config-pipeline.yml"
+            pipeline.write_text(
+                pipeline.read_text(encoding="utf-8").replace("run-1001", "run-1003"),
+                encoding="utf-8",
+            )
+            evidence = json.loads((third / "evidence.json").read_text(encoding="utf-8"))
+            evidence["run_id"] = "run-1003"
+            (third / "evidence.json").write_text(json.dumps(evidence), encoding="utf-8")
+            manage.import_evidence(root / "results", runs, 1003, 1003)
+
+            manage.publish_final_evidence(runs, ledger, True)
+
+            attempts = json.loads(ledger.read_text(encoding="utf-8"))["attempts"]
+            self.assertEqual({row["run_id"] for row in attempts}, {"run-1001", "run-1002"})
+            self.assertEqual({row["superseded_by"] for row in attempts}, {"run-1003"})
 
     def test_invalid_source_inventory_digest_is_rejected(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -171,6 +252,46 @@ class RunEvidenceTests(unittest.TestCase):
 
             with self.assertRaisesRegex(manage.RunEvidenceError, "digest is invalid"):
                 manage.validate_runs(runs)
+
+    def test_report_rejects_superseded_attempt_directories(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            result = self.make_result(root / "results")
+            runs = root / "runs"
+            report = root / "run-evidence.md"
+            manage.import_evidence(root / "results", runs, None, None)
+            duplicate = result.parent / "run-1002"
+            duplicate.mkdir()
+            for source in result.iterdir():
+                (duplicate / source.name).write_bytes(source.read_bytes())
+            pipeline = duplicate / "config-pipeline.yml"
+            pipeline.write_text(
+                pipeline.read_text(encoding="utf-8").replace("run-1001", "run-1002"),
+                encoding="utf-8",
+            )
+            evidence = json.loads((duplicate / "evidence.json").read_text(encoding="utf-8"))
+            evidence["run_id"] = "run-1002"
+            (duplicate / "evidence.json").write_text(json.dumps(evidence), encoding="utf-8")
+            manage.import_evidence(root / "results", runs, 1002, 1002)
+
+            with self.assertRaisesRegex(manage.RunEvidenceError, "superseded attempts"):
+                manage.render_report(runs, report)
+
+    def test_report_rejects_attempt_ledger_count_drift(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            self.make_result(root / "results")
+            runs = root / "runs"
+            report = root / "run-evidence.md"
+            manage.import_evidence(root / "results", runs, None, None)
+            ledger = runs / "attempt-ledger.json"
+            manage.publish_final_evidence(runs, ledger, True)
+            value = json.loads(ledger.read_text(encoding="utf-8"))
+            value["summary"]["published_run_count"] = 2
+            ledger.write_text(json.dumps(value), encoding="utf-8")
+
+            with self.assertRaisesRegex(manage.RunEvidenceError, "published count drifted"):
+                manage.render_report(runs, report)
 
 
 if __name__ == "__main__":
