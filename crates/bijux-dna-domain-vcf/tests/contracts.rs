@@ -1076,3 +1076,6 @@ mod contracts {
         );
     }
 }
+
+#[path = "contracts/sample_header.rs"]
+mod sample_header;

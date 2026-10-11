@@ -78,6 +78,14 @@ pub fn persisted_benchmark_schemas() -> &'static [PersistedBenchmarkSchema] {
     };
 
     static SCHEMAS: &[PersistedBenchmarkSchema] = &[
+        PersistedBenchmarkSchema::new("benchmarks/contracts/schemas/all-domain-completion-check.schema.json", || schemars::schema_for!(super::simulation::completion::AllDomainCompletionCheckReport)),
+        PersistedBenchmarkSchema::new("benchmarks/contracts/schemas/all-domain-missing-result-audit.schema.json", || schemars::schema_for!(super::simulation::AllDomainMissingResultTestReport)),
+        PersistedBenchmarkSchema::new("benchmarks/contracts/schemas/local-all-domain-fake-failure-record.schema.json", || schemars::schema_for!(super::simulation::AllDomainFakeFailureRecord)),
+        PersistedBenchmarkSchema::new("benchmarks/contracts/schemas/local-all-domain-fake-failures.schema.json", || schemars::schema_for!(super::simulation::AllDomainFakeFailuresManifest)),
+        PersistedBenchmarkSchema::new("benchmarks/contracts/schemas/hpc-slurm-submission.schema.json", || schemars::schema_for!(crate::SlurmSubmissionReport)),
+        PersistedBenchmarkSchema::new("benchmarks/contracts/schemas/local-slurm-script-bodies.schema.json", || schemars::schema_for!(crate::BenchmarkLocalSlurmScriptBodyReport)),
+        PersistedBenchmarkSchema::new("benchmarks/contracts/schemas/hpc-results-submission-bundle.schema.json", || schemars::schema_for!(crate::HpcResultsSubmissionBundle)),
+        PersistedBenchmarkSchema::new("benchmarks/contracts/schemas/hpc-code-submission-bundle.schema.json", || schemars::schema_for!(crate::HpcCodeSubmissionBundle)),
         PersistedBenchmarkSchema::new("benchmarks/contracts/schemas/tool-execution-modes-config.schema.json", || schemars::schema_for!(crate::ToolExecutionModesConfig)),
         PersistedBenchmarkSchema::new("benchmarks/contracts/schemas/tool-execution-modes-validation.schema.json", || schemars::schema_for!(crate::ToolExecutionModesValidationReport)),
         PersistedBenchmarkSchema::new("benchmarks/contracts/schemas/micro-benchmark-report.schema.json", || schemars::schema_for!(crate::MicroBenchmarkReport)),

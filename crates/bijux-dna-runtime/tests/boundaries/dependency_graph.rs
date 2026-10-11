@@ -35,8 +35,8 @@ fn dependency_graph_matches_runtime_boundary() {
 
     assert_eq!(
         dependency_keys(&manifest, "dev-dependencies"),
-        keys(["bijux-dna-policies", "bijux-dna-testkit", "walkdir"]),
-        "runtime dev dependencies must stay limited to policies, isolated fixtures, and tree scanning"
+        keys(["bijux-dna-policies", "bijux-dna-testkit", "regex", "walkdir"]),
+        "runtime dev dependencies must stay limited to policies, isolated fixtures, declaration grammar, and tree scanning"
     );
 
     for forbidden in [

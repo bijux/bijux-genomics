@@ -95,3 +95,15 @@ Invocation hash includes command, args, env, cwd, mounts, and image digest.
 Bundle recipient admission rejects empty, blank, padded or duplicate declarations before backend effects. On decode, ordered fingerprints must match the declared recipient strings; the deterministic mock envelope must also match those declarations. The age sidecar is unsigned: matching fingerprints are declaration consistency, not proof that the ciphertext targets those recipients. Age decryption authenticates its payload through the supplied identity, while the mock transport provides no confidentiality. No new dependency is required for this admission.
 
 A pair writer acquires its lease once without polling, prepares and hashes both outputs, then atomically admits the journal. Ciphertext and sidecar renames precede the commit marker. Under the same lease, an uncommitted journal restores the previous pair (or absence), while a committed journal validates the new pair. Readers of locally published bundles recover pending journals before decoding and fail immediately on contention. This contract covers process interruption and ordinary IO failure; it does not assert power-loss durability or atomic visibility to readers that bypass the lease.
+
+## Shared process transport
+
+Process supervision separates child lifecycle (`bijux-dna-process/src/lifecycle.rs`) from
+Unix pipe readiness (`bijux-dna-process/src/readiness.rs`). A single collection deadline
+covers both stream EOF and child exit, including descendants retaining inherited pipes.
+Cancellation uses the owned process group and reaps the direct child. The non-Unix
+threaded collector retains its existing behavior; inherited-pipe deadline protection
+is currently Unix only. Existing command capture retains complete output without a
+new size cap; output budgets must be explicit at callers that require them.
+
+The shared `bijux-dna-process` leaf owns Unix readiness and process lifecycle. Runner keeps execution bindings and scheduler policy; the non-Unix compatibility reader remains private.

@@ -19,6 +19,7 @@ pub struct CampaignContext {
 }
 
 pub(crate) mod monitor;
+pub use crate::repo::hpc_campaign::redaction::collect_hpc_redaction_needles;
 pub use monitor::monitor_campaign;
 pub use planning::campaign_dry_run;
 pub use preflight::campaign_preflight;
@@ -28,3 +29,6 @@ mod tests;
 
 pub(crate) mod copy_back;
 pub use copy_back::write_campaign_copy_back_manifest;
+
+mod submission;
+pub use submission::{submit_hpc_campaign, HpcSubmissionBackend};

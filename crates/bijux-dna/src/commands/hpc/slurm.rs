@@ -1,14 +1,21 @@
-use bijux_dna_api::v1::api::bench::inspect_hpc_replay_payloads;
+#[cfg(test)]
+use bijux_dna_api::v1::api::bench::quote_slurm_argument as shell_quote;
 pub use bijux_dna_api::v1::api::bench::SlurmMonitorReport;
 use bijux_dna_api::v1::api::bench::{
-    quote_slurm_argument as shell_quote, slurm_script_path as script_path_for,
+    hpc_stage_domain as stage_domain, HpcSubmissionSelector as SubmissionSubset,
+};
+use bijux_dna_api::v1::api::bench::{
+    inspect_hpc_replay_payloads, submit_hpc_campaign, HpcBundleFoundationLocks,
 };
 pub use bijux_dna_api::v1::api::bench::{CopyBackEntry, CopyBackManifestReport};
-use std::collections::BTreeMap;
+use bijux_dna_api::v1::api::bench::{
+    HpcSubmissionMode as SubmissionMode, HpcSubmissionSettings as SubmissionSettings,
+};
+pub use bijux_dna_api::v1::api::bench::{SlurmSubmissionReport, SubmittedJob};
+use bijux_dna_api::v1::api::run::{HpcSchedulerSubmissionBackend, SlurmClientPaths};
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
-use bijux_dna_api::v1::api::run::run_command;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 
@@ -20,41 +27,11 @@ use crate::commands::cli::{
     SlurmSubmitCrossArgs, SlurmSubmitDomainArgs, SlurmSubmitStageArgs,
 };
 use crate::commands::hpc::{
-    campaign_dry_run, decrypt_bundle, foundation_lock_path, sha256_hex, sidecar_path_for,
+    campaign_dry_run, decrypt_bundle, foundation_lock_path, sidecar_path_for,
     write_encrypted_bundle, BundleDecryptRequest, BundleWriteRequest, CampaignDryRunReport,
-    PlannedJob,
 };
 
-const SLURM_SUBMISSION_SCHEMA_VERSION: &str = "bijux.hpc.slurm.submission.v1";
 const BUNDLE_DECRYPT_SCHEMA_VERSION: &str = "bijux.hpc.bundle.decrypt.v1";
-
-#[derive(Debug, Clone, Serialize)]
-pub struct SlurmSubmissionReport {
-    pub schema_version: &'static str,
-    pub mode: String,
-    pub campaign_id: String,
-    pub domain: String,
-    pub submitted_at: String,
-    pub jobs: Vec<SubmittedJob>,
-}
-
-#[derive(Debug, Clone, Serialize)]
-pub struct SubmittedJob {
-    pub job_name: String,
-    pub stage: String,
-    pub tool: String,
-    pub sample: String,
-    pub array_task: Option<u32>,
-    pub planned_job_id: String,
-    pub scheduler_job_id: String,
-    pub dependency_scheduler_ids: Vec<String>,
-    pub script_path: String,
-    pub log_path: String,
-    pub out_path: String,
-    pub err_path: String,
-    pub results_path: String,
-    pub code_path: String,
-}
 
 #[derive(Debug, Clone, Serialize)]
 pub struct SlurmDecryptReport {
@@ -160,33 +137,6 @@ fn default_share_backend() -> String {
     "mock-envelope-v1".to_string()
 }
 
-#[derive(Debug, Clone)]
-struct SelectedJob {
-    name: String,
-    planned: PlannedJob,
-    depends_on_names: Vec<String>,
-}
-
-#[derive(Debug, Clone)]
-struct SubmissionSettings {
-    mode: SubmissionMode,
-    subset: SubmissionSubset,
-}
-
-#[derive(Debug, Clone)]
-enum SubmissionMode {
-    Mock,
-    Real,
-}
-
-#[derive(Debug, Clone)]
-enum SubmissionSubset {
-    All,
-    Stage { stage: String, tool: Option<String>, sample: Option<String> },
-    Domain { domain: String },
-    Cross { domains: Vec<String> },
-}
-
 fn now_timestamp_compact() -> String {
     let secs = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
@@ -194,54 +144,8 @@ fn now_timestamp_compact() -> String {
     secs.to_string()
 }
 
-fn stage_domain(stage_id: &str) -> String {
-    stage_id.split('.').next().unwrap_or("unknown").to_string()
-}
-
-fn infer_dependencies(jobs: &[SelectedJob]) -> Vec<Vec<String>> {
-    let mut by_sample_last_name: BTreeMap<String, String> = BTreeMap::new();
-    let mut result = Vec::with_capacity(jobs.len());
-    for job in jobs {
-        let mut deps = job.depends_on_names.clone();
-        if let Some(previous_name) = by_sample_last_name.get(&job.planned.sample) {
-            if !deps.iter().any(|dep| dep == previous_name) {
-                deps.push(previous_name.clone());
-            }
-        }
-        by_sample_last_name.insert(job.planned.sample.clone(), job.name.clone());
-        result.push(deps);
-    }
-    result
-}
-
 fn prepared_root_lock_path(root: &str) -> String {
     foundation_lock_path(Path::new(root)).display().to_string()
-}
-
-fn prepared_root_shell_block(report: &CampaignDryRunReport) -> String {
-    let corpora_root = shell_quote(&report.layout.corpora_root);
-    let databases_root = shell_quote(&report.layout.databases_root);
-    let images_root = shell_quote(&report.layout.images_root);
-    let corpora_lock = shell_quote(&prepared_root_lock_path(&report.layout.corpora_root));
-    let databases_lock = shell_quote(&prepared_root_lock_path(&report.layout.databases_root));
-    let images_lock = shell_quote(&prepared_root_lock_path(&report.layout.images_root));
-    format!(
-        "export BIJUX_CORPORA_ROOT={corpora_root}\n\
-export BIJUX_DATABASES_ROOT={databases_root}\n\
-export BIJUX_IMAGES_ROOT={images_root}\n\
-export BIJUX_CORPORA_PREPARE_LOCK={corpora_lock}\n\
-export BIJUX_DATABASES_PREPARE_LOCK={databases_lock}\n\
-export BIJUX_IMAGES_PREPARE_LOCK={images_lock}\n\
-for bijux_prepare_lock in \\\n\
-  \"$BIJUX_CORPORA_PREPARE_LOCK\" \\\n\
-  \"$BIJUX_DATABASES_PREPARE_LOCK\" \\\n\
-  \"$BIJUX_IMAGES_PREPARE_LOCK\"; do\n\
-  if [ ! -f \"$bijux_prepare_lock\" ]; then\n\
-    echo \"missing prepared foundation lock: $bijux_prepare_lock\" >&2\n\
-    exit 97\n\
-  fi\n\
-done\n"
-    )
 }
 
 fn ensure_parent(path: &Path) -> Result<()> {
@@ -251,477 +155,20 @@ fn ensure_parent(path: &Path) -> Result<()> {
     bijux_dna_infra::ensure_dir(parent).with_context(|| format!("create {}", parent.display()))
 }
 
-fn write_text(path: &Path, content: &str) -> Result<()> {
-    ensure_parent(path)?;
-    bijux_dna_api::v1::api::run::atomic_write_bytes(path, content.as_bytes())
-        .with_context(|| format!("write {}", path.display()))
-}
-
-fn write_operator_files(
-    job: &SelectedJob,
-    scheduler_job_id: &str,
-    submitted_at: &str,
-    redaction_needles: &[String],
-) -> Result<()> {
-    let log_path = Path::new(&job.planned.outputs.log);
-    let out_path = Path::new(&job.planned.outputs.out);
-    let err_path = Path::new(&job.planned.outputs.err);
-
-    let log = format!(
-        "submitted_at={submitted_at}\njob_name={}\nscheduler_job_id={scheduler_job_id}\nstage={}\ntool={}\nsample={}\nresults={}\ncode={}\n",
-        job.name,
-        job.planned.stage,
-        job.planned.tool,
-        job.planned.sample,
-        job.planned.outputs.results,
-        job.planned.outputs.code
-    );
-    let out = "pending: scheduler output will be captured by slurm runtime wrapper\n";
-    let err = "pending: scheduler stderr will be captured by slurm runtime wrapper\n";
-
-    write_text(log_path, &redact_text(log, redaction_needles))?;
-    write_text(out_path, &redact_text(out.to_string(), redaction_needles))?;
-    write_text(err_path, &redact_text(err.to_string(), redaction_needles))?;
-    Ok(())
-}
-
-fn git_stdout(args: &[&str]) -> Option<String> {
-    let arg_vec = args.iter().map(|value| (*value).to_string()).collect::<Vec<_>>();
-    let output = run_command("git", &arg_vec).ok()?;
-    if output.exit_code != 0 {
-        return None;
-    }
-    Some(output.stdout.trim().to_string())
-}
-
-fn build_results_bundle(
-    report: &CampaignDryRunReport,
-    job: &SelectedJob,
-    scheduler_job_id: &str,
-    submitted_at: &str,
-    redaction_needles: &[String],
-) -> Result<Vec<u8>> {
-    let payload = json!({
-        "schema_version": "bijux.hpc.results_bundle.v1",
-        "campaign": {
-            "id": report.campaign_id,
-            "domain": report.domain,
-            "config_path": report.config_path,
-            "env_file_path": report.env_file_path,
-            "user_policy_path": report.user_policy_path,
-        },
-        "job": {
-            "planned_job_id": job.planned.job_id,
-            "scheduler_job_id": scheduler_job_id,
-            "submitted_at": submitted_at,
-            "job_name": job.name,
-            "stage": job.planned.stage,
-            "tool": job.planned.tool,
-            "sample": job.planned.sample,
-            "resource_template": job.planned.resource_template,
-            "resources": job.planned.resources,
-            "depends_on": job.depends_on_names,
-        },
-        "metrics": {
-            "status": "pending_execution",
-            "submission_mode": "slurm",
-        },
-        "artifacts": {
-            "inventory": [
-                {"kind": "log", "path": job.planned.outputs.log},
-                {"kind": "out", "path": job.planned.outputs.out},
-                {"kind": "err", "path": job.planned.outputs.err},
-            ],
-            "encrypted_targets": [
-                {"kind": "results", "path": job.planned.outputs.results},
-                {"kind": "code", "path": job.planned.outputs.code},
-            ],
-        },
-        "reports": [{
-            "kind": "submission_receipt",
-            "summary": "job submitted or mocked; execution metrics pending runtime wrapper output",
-        }],
-        "traces": {
-            "script_path": script_path_for(Path::new(&job.planned.outputs.log)).display().to_string(),
-            "scheduler_job_id": scheduler_job_id,
-        },
-        "inventories": {
-            "encryption_backend": report.security.encryption_backend,
-            "recipient_fingerprints": report.security.encryption_recipients.iter().map(|recipient| {
-                sha256_hex(recipient.as_bytes()).chars().take(16).collect::<String>()
-            }).collect::<Vec<_>>(),
-        },
-        "appraiser_outputs": [{
-            "name": "submission_ready",
-            "status": "pending",
-            "note": "appraiser jobs are tracked after runtime completion",
-        }],
-    });
-    let text =
-        serde_json::to_string_pretty(&payload).context("serialize results bundle payload")?;
-    Ok(redact_text(text, redaction_needles).into_bytes())
-}
-
-fn build_code_bundle(
-    report: &CampaignDryRunReport,
-    job: &SelectedJob,
-    script_path: &Path,
-    scheduler_job_id: &str,
-    submitted_at: &str,
-    redaction_needles: &[String],
-) -> Result<Vec<u8>> {
-    let script = std::fs::read_to_string(script_path)
-        .with_context(|| format!("read {}", script_path.display()))?;
-    let payload = json!({
-        "schema_version": "bijux.hpc.code_bundle.v1",
-        "campaign": {
-            "id": report.campaign_id,
-            "domain": report.domain,
-            "config_path": report.config_path,
-            "env_file_path": report.env_file_path,
-            "user_policy_path": report.user_policy_path,
-            "user_policies_applied": report.user_policies_applied,
-        },
-        "job": {
-            "planned_job_id": job.planned.job_id,
-            "scheduler_job_id": scheduler_job_id,
-            "submitted_at": submitted_at,
-            "job_name": job.name,
-            "stage": job.planned.stage,
-            "tool": job.planned.tool,
-            "sample": job.planned.sample,
-        },
-        "code_freeze": {
-            "slurm_script": script,
-            "effective_settings": {
-                "slurm": report.resolved_slurm,
-                "resources": job.planned.resources,
-            },
-            "config_references": {
-                "campaign_config": report.config_path,
-                "env_file": report.env_file_path,
-                "user_policy": report.user_policy_path,
-            },
-            "repository_state": {
-                "git_head": git_stdout(&["rev-parse", "HEAD"]),
-                "git_branch": git_stdout(&["rev-parse", "--abbrev-ref", "HEAD"]),
-                "git_status_porcelain": git_stdout(&["status", "--porcelain"]),
-            },
-            "dvc_state": {
-                "available": run_command("dvc", &["--version".to_string()])
-                    .map(|output| output.exit_code == 0)
-                    .unwrap_or(false),
-                "status_hint": "capture deferred to runtime wrapper when dvc is configured",
-            },
-        },
-        "locks": {
-            "corpus_lock": prepared_root_lock_path(&report.layout.corpora_root),
-            "database_lock": prepared_root_lock_path(&report.layout.databases_root),
-            "image_lock": prepared_root_lock_path(&report.layout.images_root),
-            "tool_lock": "deferred_to_runtime_registry_capture",
-        },
-        "plan": {
-            "depends_on": job.depends_on_names,
-            "outputs": job.planned.outputs,
-        },
-    });
-    let text = serde_json::to_string_pretty(&payload).context("serialize code bundle payload")?;
-    Ok(redact_text(text, redaction_needles).into_bytes())
-}
-
-fn emit_primary_encrypted_bundles(
-    report: &CampaignDryRunReport,
-    job: &SelectedJob,
-    script_path: &Path,
-    scheduler_job_id: &str,
-    submitted_at: &str,
-    redaction_needles: &[String],
-) -> Result<()> {
-    let recipients = &report.security.encryption_recipients;
-    let backend = report.security.encryption_backend.as_str();
-
-    let results_payload =
-        build_results_bundle(report, job, scheduler_job_id, submitted_at, redaction_needles)?;
-    write_encrypted_bundle(&BundleWriteRequest {
-        output_path: Path::new(&job.planned.outputs.results),
-        bundle_kind: "results",
-        campaign_id: &report.campaign_id,
-        domain: &report.domain,
-        stage: &job.planned.stage,
-        tool: &job.planned.tool,
-        sample: &job.planned.sample,
-        planned_job_id: &job.planned.job_id,
-        scheduler_job_id,
-        submitted_at,
-        backend,
-        recipients,
-        plaintext: &results_payload,
-    })?;
-
-    let code_payload = build_code_bundle(
-        report,
-        job,
-        script_path,
-        scheduler_job_id,
-        submitted_at,
-        redaction_needles,
-    )?;
-    write_encrypted_bundle(&BundleWriteRequest {
-        output_path: Path::new(&job.planned.outputs.code),
-        bundle_kind: "code",
-        campaign_id: &report.campaign_id,
-        domain: &report.domain,
-        stage: &job.planned.stage,
-        tool: &job.planned.tool,
-        sample: &job.planned.sample,
-        planned_job_id: &job.planned.job_id,
-        scheduler_job_id,
-        submitted_at,
-        backend,
-        recipients,
-        plaintext: &code_payload,
-    })?;
-    Ok(())
-}
-
-fn maybe_encrypt_operator_outputs(
-    report: &CampaignDryRunReport,
-    job: &SelectedJob,
-    scheduler_job_id: &str,
-    submitted_at: &str,
-    redaction_needles: &[String],
-) -> Result<()> {
-    if !report.security.encrypt_operator_outputs {
-        return Ok(());
-    }
-    let recipients = &report.security.encryption_recipients;
-    let backend = report.security.encryption_backend.as_str();
-    for (path, kind) in [
-        (job.planned.outputs.log.as_str(), "operator_log"),
-        (job.planned.outputs.out.as_str(), "operator_out"),
-        (job.planned.outputs.err.as_str(), "operator_err"),
-    ] {
-        let plaintext = std::fs::read_to_string(path).with_context(|| format!("read {path}"))?;
-        let redacted = redact_text(plaintext, redaction_needles);
-        write_encrypted_bundle(&BundleWriteRequest {
-            output_path: Path::new(path),
-            bundle_kind: kind,
-            campaign_id: &report.campaign_id,
-            domain: &report.domain,
-            stage: &job.planned.stage,
-            tool: &job.planned.tool,
-            sample: &job.planned.sample,
-            planned_job_id: &job.planned.job_id,
-            scheduler_job_id,
-            submitted_at,
-            backend,
-            recipients,
-            plaintext: redacted.as_bytes(),
-        })?;
-    }
-    Ok(())
-}
-
-fn build_slurm_script(
-    report: &CampaignDryRunReport,
-    job: &SelectedJob,
-    script_path: &Path,
-    dependency_scheduler_ids: &[String],
-) -> String {
-    let dependency_line = if dependency_scheduler_ids.is_empty() {
-        String::new()
-    } else {
-        format!("#SBATCH --dependency=afterok:{}\n", dependency_scheduler_ids.join(":"))
-    };
-    let array_line =
-        job.planned.array_task.map_or_else(String::new, |task| format!("#SBATCH --array={task}\n"));
-    let prepared_root_block = prepared_root_shell_block(report);
-
-    format!(
-        "#!/usr/bin/env bash\nset -euo pipefail\n\n#SBATCH --job-name={}\n#SBATCH --cpus-per-task={}\n#SBATCH --mem={}G\n#SBATCH --time={}\n#SBATCH --partition={}\n#SBATCH --qos={}\n{}{}\n# Campaign: {}\n# Domain: {}\n# Stage: {}\n# Tool: {}\n# Sample: {}\n# Script path: {}\n\nexport BIJUX_RUN_CONTEXT=hpc\nexport BIJUX_ARRAY_TASK=${{SLURM_ARRAY_TASK_ID:-{}}}\n{}\nexport BIJUX_SCRATCH_DIR={}\nexport BIJUX_SCRATCH_IN=$BIJUX_SCRATCH_DIR/in\nexport BIJUX_SCRATCH_OUT=$BIJUX_SCRATCH_DIR/out\nmkdir -p \"$BIJUX_SCRATCH_IN\" \"$BIJUX_SCRATCH_OUT\"\ncleanup() {{\n  rm -rf \"$BIJUX_SCRATCH_DIR\"\n}}\ntrap cleanup EXIT\n\nif [ -f {} ]; then\n  set -a\n  # shellcheck disable=SC1090\n  . {}\n  set +a\nfi\n\n# Each scheduler job executes exactly one attempt. Retry and supersession are\n# separate lifecycle transitions, never a blocking loop inside this script.\necho \\\"execute stage {} tool {} sample {} array_task=$BIJUX_ARRAY_TASK scratch=$BIJUX_SCRATCH_DIR\\\"\n",
-        shell_quote(&job.name),
-        job.planned.resources.cpus,
-        job.planned.resources.mem_gb,
-        shell_quote(&job.planned.resources.walltime),
-        shell_quote(&report.resolved_slurm.partition),
-        shell_quote(&report.resolved_slurm.qos),
-        dependency_line,
-        array_line,
-        report.campaign_id,
-        report.domain,
-        job.planned.stage,
-        job.planned.tool,
-        job.planned.sample,
-        script_path.display(),
-        job.planned.array_task.unwrap_or(0),
-        prepared_root_block,
-        shell_quote(&job.planned.outputs.scratch_dir),
-        shell_quote(&report.env_file_path),
-        shell_quote(&report.env_file_path),
-        job.planned.stage,
-        job.planned.tool,
-        job.planned.sample
-    )
-}
-
-fn submit_with_sbatch(script_path: &Path, dependency_scheduler_ids: &[String]) -> Result<String> {
-    let mut args = Vec::new();
-    if !dependency_scheduler_ids.is_empty() {
-        args.push(format!("--dependency=afterok:{}", dependency_scheduler_ids.join(":")));
-    }
-    args.push(script_path.display().to_string());
-    let output = run_command("sbatch", &args)
-        .with_context(|| format!("run sbatch for {}", script_path.display()))?;
-    if output.exit_code != 0 {
-        return Err(anyhow!("sbatch failed for {}: {}", script_path.display(), output.stderr));
-    }
-    let stdout = output.stdout;
-    let id = stdout
-        .split_whitespace()
-        .find(|token| token.chars().all(|ch| ch.is_ascii_digit()))
-        .ok_or_else(|| anyhow!("could not parse job id from sbatch output: {stdout}"))?;
-    Ok(id.to_string())
-}
-
-fn select_jobs(
-    report: &CampaignDryRunReport,
-    subset: &SubmissionSubset,
-) -> Result<Vec<SelectedJob>> {
-    let mut selected = Vec::new();
-
-    for planned in &report.planned_jobs {
-        let include = match subset {
-            SubmissionSubset::All => true,
-            SubmissionSubset::Stage { stage, tool, sample } => {
-                if planned.stage != *stage {
-                    false
-                } else if let Some(tool) = tool {
-                    planned.tool == *tool
-                } else if let Some(sample) = sample {
-                    planned.sample == *sample
-                } else {
-                    true
-                }
-            }
-            SubmissionSubset::Domain { domain } => stage_domain(&planned.stage) == *domain,
-            SubmissionSubset::Cross { domains } => {
-                let sd = stage_domain(&planned.stage);
-                domains.iter().any(|domain| domain == &sd)
-            }
-        };
-        if include {
-            selected.push(SelectedJob {
-                name: planned.job_name.clone(),
-                planned: planned.clone(),
-                depends_on_names: planned.depends_on.clone(),
-            });
-        }
-    }
-
-    if matches!(subset, SubmissionSubset::Cross { .. }) {
-        let distinct_domains = selected
-            .iter()
-            .map(|job| stage_domain(&job.planned.stage))
-            .collect::<std::collections::BTreeSet<_>>();
-        if distinct_domains.len() < 2 {
-            return Err(anyhow!(
-                "cross-domain submission requires jobs from at least two domains; found {}",
-                distinct_domains.len()
-            ));
-        }
-    }
-
-    if selected.is_empty() {
-        return Err(anyhow!("no jobs matched submission selector"));
-    }
-    Ok(selected)
-}
-
 fn run_submission(
     report: CampaignDryRunReport,
     settings: SubmissionSettings,
 ) -> Result<SlurmSubmissionReport> {
-    let selected = select_jobs(&report, &settings.subset)?;
-    let dependency_name_graph = infer_dependencies(&selected);
-    let redaction_needles = redaction_needles(&report)?;
-
-    let submitted_at = now_timestamp_compact();
-    let mut name_to_scheduler_id: BTreeMap<String, String> = BTreeMap::new();
-    let mut jobs_out = Vec::new();
-
-    for (index, selected_job) in selected.iter().enumerate() {
-        let dependency_scheduler_ids = dependency_name_graph[index]
-            .iter()
-            .filter_map(|name| name_to_scheduler_id.get(name).cloned())
-            .collect::<Vec<_>>();
-
-        let script_path = script_path_for(Path::new(&selected_job.planned.outputs.log));
-        let script =
-            build_slurm_script(&report, selected_job, &script_path, &dependency_scheduler_ids);
-        write_text(&script_path, &script)?;
-        #[cfg(unix)]
-        {
-            use std::os::unix::fs::PermissionsExt;
-            let mut perms = std::fs::metadata(&script_path)
-                .with_context(|| format!("stat {}", script_path.display()))?
-                .permissions();
-            perms.set_mode(0o750);
-            std::fs::set_permissions(&script_path, perms)
-                .with_context(|| format!("chmod {}", script_path.display()))?;
-        }
-
-        let scheduler_job_id = match settings.mode {
-            SubmissionMode::Mock => format!("mock-{:04}", index + 1),
-            SubmissionMode::Real => submit_with_sbatch(&script_path, &dependency_scheduler_ids)?,
-        };
-
-        write_operator_files(selected_job, &scheduler_job_id, &submitted_at, &redaction_needles)?;
-        emit_primary_encrypted_bundles(
-            &report,
-            selected_job,
-            &script_path,
-            &scheduler_job_id,
-            &submitted_at,
-            &redaction_needles,
-        )?;
-        maybe_encrypt_operator_outputs(
-            &report,
-            selected_job,
-            &scheduler_job_id,
-            &submitted_at,
-            &redaction_needles,
-        )?;
-
-        name_to_scheduler_id.insert(selected_job.name.clone(), scheduler_job_id.clone());
-        jobs_out.push(SubmittedJob {
-            job_name: selected_job.name.clone(),
-            stage: selected_job.planned.stage.clone(),
-            tool: selected_job.planned.tool.clone(),
-            sample: selected_job.planned.sample.clone(),
-            array_task: selected_job.planned.array_task,
-            planned_job_id: selected_job.planned.job_id.clone(),
-            scheduler_job_id,
-            dependency_scheduler_ids,
-            script_path: script_path.display().to_string(),
-            log_path: selected_job.planned.outputs.log.clone(),
-            out_path: selected_job.planned.outputs.out.clone(),
-            err_path: selected_job.planned.outputs.err.clone(),
-            results_path: selected_job.planned.outputs.results.clone(),
-            code_path: selected_job.planned.outputs.code.clone(),
-        });
-    }
-
-    Ok(SlurmSubmissionReport {
-        schema_version: SLURM_SUBMISSION_SCHEMA_VERSION,
-        mode: match settings.mode {
-            SubmissionMode::Mock => "mock".to_string(),
-            SubmissionMode::Real => "real".to_string(),
-        },
-        campaign_id: report.campaign_id,
-        domain: report.domain,
-        submitted_at,
-        jobs: jobs_out,
-    })
+    let locks = HpcBundleFoundationLocks {
+        corpus_lock: prepared_root_lock_path(&report.layout.corpora_root),
+        database_lock: prepared_root_lock_path(&report.layout.databases_root),
+        image_lock: prepared_root_lock_path(&report.layout.images_root),
+    };
+    let backend = HpcSchedulerSubmissionBackend {
+        paths: SlurmClientPaths::default(),
+        working_directory: std::env::current_dir().context("resolve Slurm working directory")?,
+    };
+    submit_hpc_campaign(report, settings, &locks, now_timestamp_compact(), &backend)
 }
 
 pub fn submit_stage_benchmark(args: &SlurmSubmitStageArgs) -> Result<SlurmSubmissionReport> {
@@ -771,7 +218,7 @@ pub fn submit_cross_benchmark(args: &SlurmSubmitCrossArgs) -> Result<SlurmSubmis
             report
                 .planned_jobs
                 .iter()
-                .map(|job| stage_domain(&job.stage))
+                .map(|job| stage_domain(&job.stage).to_string())
                 .collect::<std::collections::BTreeSet<_>>()
                 .into_iter()
                 .collect::<Vec<_>>()
@@ -897,60 +344,6 @@ fn ensure_safe_private_directory(path: &Path, allow_unsafe_destination: bool) ->
     ensure_private_directory(path)
 }
 
-fn load_env_map_for_redaction(env_path: &Path) -> Result<BTreeMap<String, String>> {
-    if !env_path.exists() {
-        return Ok(BTreeMap::new());
-    }
-    let raw = std::fs::read_to_string(env_path)
-        .with_context(|| format!("read {}", env_path.display()))?;
-    let mut map = BTreeMap::new();
-    for line in raw.lines() {
-        let trimmed = line.trim();
-        if trimmed.is_empty() || trimmed.starts_with('#') {
-            continue;
-        }
-        let mut parts = trimmed.splitn(2, '=');
-        let Some(key) = parts.next() else { continue };
-        let Some(value) = parts.next() else { continue };
-        map.insert(key.trim().to_string(), value.trim().trim_matches('"').to_string());
-    }
-    Ok(map)
-}
-
-fn redaction_needles(report: &CampaignDryRunReport) -> Result<Vec<String>> {
-    let env_map = load_env_map_for_redaction(Path::new(&report.env_file_path))?;
-    let mut needles = Vec::new();
-    for (key, value) in env_map {
-        if value.is_empty() {
-            continue;
-        }
-        let uppercase = key.to_ascii_uppercase();
-        let by_name = uppercase.contains("SECRET")
-            || uppercase.contains("TOKEN")
-            || uppercase.contains("PASSWORD")
-            || uppercase.contains("KEY")
-            || uppercase.contains("ACCOUNT")
-            || uppercase.contains("PROJECT");
-        let explicitly = report.security.redacted_env_keys.iter().any(|k| k == &key);
-        if (by_name || explicitly) && value.len() >= 4 {
-            needles.push(value);
-        }
-    }
-    needles.sort();
-    needles.dedup();
-    Ok(needles)
-}
-
-fn redact_text(mut text: String, needles: &[String]) -> String {
-    for needle in needles {
-        if needle.is_empty() {
-            continue;
-        }
-        text = text.replace(needle, "<redacted>");
-    }
-    text
-}
-
 fn normalized_sidecar_for_bundle(
     bundle_path: &Path,
     original_sidecar: &Path,
@@ -986,18 +379,8 @@ pub fn decrypt_bundle_to_local(args: &SlurmBundleDecryptArgs) -> Result<SlurmDec
         identity_files: &args.identity_file,
     })?;
     let output_path = decrypted_output_path(&args.bundle, &args.out_dir);
-    bijux_dna_api::v1::api::run::atomic_write_bytes(&output_path, &plaintext)
+    bijux_dna_infra::atomic_write_private_bytes(&output_path, &plaintext)
         .with_context(|| format!("write {}", output_path.display()))?;
-    #[cfg(unix)]
-    {
-        use std::os::unix::fs::PermissionsExt;
-        let mut perms = std::fs::metadata(&output_path)
-            .with_context(|| format!("stat {}", output_path.display()))?
-            .permissions();
-        perms.set_mode(0o600);
-        std::fs::set_permissions(&output_path, perms)
-            .with_context(|| format!("chmod {}", output_path.display()))?;
-    }
 
     Ok(SlurmDecryptReport {
         schema_version: BUNDLE_DECRYPT_SCHEMA_VERSION,
@@ -1102,20 +485,8 @@ pub fn import_encrypted_replay(args: &SlurmReplayImportArgs) -> Result<SlurmRepl
         let results_out =
             bundle_output_path(&args.results_bundle, &args.out_dir, ".replay.results.json");
         let code_out = bundle_output_path(&args.code_bundle, &args.out_dir, ".replay.code.json");
-        bijux_dna_api::v1::api::run::atomic_write_bytes(&results_out, &results_plaintext)?;
-        bijux_dna_api::v1::api::run::atomic_write_bytes(&code_out, &code_plaintext)?;
-        #[cfg(unix)]
-        {
-            use std::os::unix::fs::PermissionsExt;
-            for path in [&results_out, &code_out] {
-                let mut perms = std::fs::metadata(path)
-                    .with_context(|| format!("stat {}", path.display()))?
-                    .permissions();
-                perms.set_mode(0o600);
-                std::fs::set_permissions(path, perms)
-                    .with_context(|| format!("chmod {}", path.display()))?;
-            }
-        }
+        bijux_dna_infra::atomic_write_private_bytes(&results_out, &results_plaintext)?;
+        bijux_dna_infra::atomic_write_private_bytes(&code_out, &code_plaintext)?;
     }
 
     let report = SlurmReplayImportReport {
@@ -2626,5 +1997,113 @@ sample = "{secret}"
         let log = std::fs::read_to_string(&report.jobs[0].log_path).expect("read log");
         assert!(!log.contains(secret));
         assert!(log.contains("<redacted>"));
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn planned_slurm_submission_uses_owner_protocol_and_declared_output_paths() -> anyhow::Result<()>
+    {
+        use bijux_dna_api::v1::api::bench::{plan_hpc_submission, HpcSubmissionBackend};
+        use std::os::unix::fs::PermissionsExt;
+        let root = tempfile::tempdir()?;
+        let config = write_campaign(root.path());
+        let mut report = super::campaign_dry_run(&config, None, None)?;
+        report.planned_jobs[0].outputs.out =
+            root.path().join("output/one.stdout").display().to_string();
+        report.planned_jobs[0].outputs.err =
+            root.path().join("errors/one.stderr").display().to_string();
+        let plan = plan_hpc_submission(&report.planned_jobs, &super::SubmissionSubset::All)?;
+        let job = &plan.jobs()[0];
+        let script = root.path().join("job.sbatch");
+        std::fs::write(&script, "#!/bin/sh\nexit 0\n")?;
+        let executable = root.path().join("fake sbatch");
+        let argument_log = root.path().join("scheduler.args");
+        let quoted_log = super::shell_quote(&argument_log.display().to_string());
+        let fake = format!(
+            "#!/bin/sh\nprintf '%s\\n' \"$@\" > {quoted_log}\nprintf '3459974;cluster\\n'\n"
+        );
+        std::fs::write(&executable, fake)?;
+        std::fs::set_permissions(&executable, std::fs::Permissions::from_mode(0o750))?;
+        let paths = super::SlurmClientPaths {
+            sbatch: executable.clone(),
+            ..super::SlurmClientPaths::default()
+        };
+        let backend = super::HpcSchedulerSubmissionBackend {
+            paths,
+            working_directory: std::env::current_dir()?,
+        };
+        assert_eq!(
+            backend.submit_job(job.planned, &script, &["40".into()], "1700000000")?,
+            "3459974"
+        );
+        std::fs::write(&job.planned.outputs.out, "scheduler stdout\n")?;
+        std::fs::write(&job.planned.outputs.err, "scheduler stderr\n")?;
+        let expected = vec![
+            "--parsable".to_string(),
+            "--dependency".to_string(),
+            "afterok:40".to_string(),
+            "--chdir".to_string(),
+            std::env::current_dir()?.display().to_string(),
+            "--output".to_string(),
+            job.planned.outputs.out.clone(),
+            "--error".to_string(),
+            job.planned.outputs.err.clone(),
+            script.display().to_string(),
+        ];
+        assert_eq!(std::fs::read_to_string(&argument_log)?.lines().collect::<Vec<_>>(), expected);
+        assert!(std::path::Path::new(&job.planned.outputs.out)
+            .parent()
+            .is_some_and(std::path::Path::is_dir));
+        assert!(std::path::Path::new(&job.planned.outputs.err)
+            .parent()
+            .is_some_and(std::path::Path::is_dir));
+        let mut single = report.clone();
+        single.planned_jobs.truncate(1);
+        let locks = super::HpcBundleFoundationLocks {
+            corpus_lock: super::prepared_root_lock_path(&report.layout.corpora_root),
+            database_lock: super::prepared_root_lock_path(&report.layout.databases_root),
+            image_lock: super::prepared_root_lock_path(&report.layout.images_root),
+        };
+        let settings = super::SubmissionSettings {
+            mode: super::SubmissionMode::Real,
+            subset: super::SubmissionSubset::All,
+        };
+        let untouched = root.path().join("rejected-submission");
+        let mut invalid = single.clone();
+        invalid.planned_jobs[0].outputs.log = untouched.join("job.log").display().to_string();
+        let invalid_result =
+            super::submit_hpc_campaign(invalid, settings.clone(), &locks, " ".into(), &backend);
+        assert!(invalid_result.is_err());
+        assert!(!untouched.exists(), "invalid context must reject before script publication");
+        super::submit_hpc_campaign(
+            single.clone(),
+            settings.clone(),
+            &locks,
+            "1700000000".into(),
+            &backend,
+        )?;
+        assert_eq!(std::fs::read_to_string(&job.planned.outputs.out)?, "scheduler stdout\n");
+        assert_eq!(std::fs::read_to_string(&job.planned.outputs.err)?, "scheduler stderr\n");
+        std::fs::write(&executable, "#!/bin/sh\nprintf 'notice 17\\n3459974\\n'\n")?;
+        assert!(super::submit_hpc_campaign(
+            single,
+            settings,
+            &locks,
+            "1700000000".into(),
+            &backend
+        )
+        .is_err());
+        drop(plan);
+        report.security.encrypt_operator_outputs = true;
+        let error = super::run_submission(
+            report,
+            super::SubmissionSettings {
+                mode: super::SubmissionMode::Real,
+                subset: super::SubmissionSubset::All,
+            },
+        )
+        .expect_err("active scheduler output encryption must be rejected before submission");
+        assert!(error.to_string().contains("cannot encrypt active scheduler output paths"));
+        Ok(())
     }
 }

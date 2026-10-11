@@ -28,6 +28,8 @@ The public API is the planner surface exported from `src/lib.rs`.
 - `STAGE_COMPARE_STAGE_TOOLS`
 - `STAGE_SELECT_STAGE_TOOL`
 - `args`
+- `decode_local_benchmark_stage_parameters`
+- `project_local_benchmark_tool_parameters`
 - `plan_fastq_to_fastq__default__v1`
 - `plan_fastq_to_bam__default__v1`
 - `compose_fastq_stage_bindings`
@@ -91,3 +93,26 @@ The `stage_api` module is the curated compatibility surface for downstream stage
 - Additions must be documented here and covered by boundary or contract tests.
 - Changes to plan JSON, graph topology, explain payloads, tool selection, or benchmark cohort behavior require snapshot review.
 - Runtime execution and output parsing do not belong in this API.
+
+Local benchmark fixture parameter projection lives in the planner's benchmark owner.
+`project_local_benchmark_tool_parameters` retains the existing tool-specific fixture
+settings and correction-size defaults. Omitted unsupported fixture options are not
+proof that the resulting tool runs are scientifically equivalent. The selected
+adapter still admits its actual parameters, inputs and capabilities before execution.
+
+`decode_local_benchmark_stage_parameters` binds a requested stage to its observed
+plan before reading raw or effective parameters. Present raw fields consumed by the
+decoder require their declared scalar types and integer widths; absent/null fields
+retain existing defaults. Effective records use domain typed decoding. Unconsumed
+raw fields remain available to their upstream contracts, and tool adapters still
+own complete capability, range, identity and scientific admission.
+
+Benchmark enum parameters use the domain enums' serde implementations as the
+single authority for supported wire values. The planner adds benchmark field
+context to failures; it does not maintain another enum variant lookup table.
+
+`assess_fastq_output_declarations` owns report selection and declaration closure.
+A recognized report must occur in the stage and tool-specific expected outputs;
+file suffixes and stage-only defaults cannot establish a tool report. Duplicate
+declarations reject. Report-only tools retain their existing dual raw/normalized
+role, without implying independent raw output or scientific normalization proof.

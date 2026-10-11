@@ -28,3 +28,28 @@ The public API is the planner surface exported from `src/lib.rs`.
 - Additions must be documented here and covered by boundary or contract tests.
 - Changes to plan JSON, execution graph topology, explain payloads, or tool selection behavior require snapshot review.
 - Runtime execution behavior does not belong in this API.
+
+`stage_api::load_bam_domain_tool_definition` returns an immutable
+`BamDomainToolDefinition` for one observed tool YAML. Its `contract_metadata`,
+`planning_spec`, and `execution_spec` methods project that same observation.
+Existing path-based loaders remain available and reload on each call. Definition
+reuse is scoped by the caller; it does not cache changing repository files globally.
+
+`stage_api::assess_bam_tool_definition` projects `BamToolDefinitionReadiness` from
+an optional observed definition and a stage identity. Its typed contract and adapter
+statuses preserve independent metadata admission and planning/execution-spec viability.
+The stable status labels remain available through `as_str`. Runnable spec viability
+does not assert tool installation, successful execution, or scientific qualification.
+
+`stage_api::plan_stage_at(root, request)` resolves current BAM size and reference
+sidecar observations relative to an explicit root. Logical input/output paths and
+structured command arguments are preserved. The original `plan_stage` and direct
+alignment adapter retain their caller-relative behavior. Planning does not change
+the process working directory; missing size observations retain the existing zero
+estimate, and sidecar presence alone does not establish scientific compatibility.
+
+`assess_bam_output_declarations` owns report-artifact selection and declaration
+closure. A recognized report must occur in both the stage output contract and
+tool-specific expected artifacts. Missing outputs and duplicate declarations
+are rejected or reported explicitly; stage defaults cannot invent a tool output.
+The result describes declarations, not payload validity or scientific substitution.

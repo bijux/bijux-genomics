@@ -1,0 +1,126 @@
+#![allow(clippy::expect_used, clippy::too_many_lines)]
+
+use std::process::Command;
+
+use crate::support;
+
+fn run_cli_json(args: &[&str]) -> serde_json::Value {
+    let _cwd_guard = support::CWD_LOCK.lock().expect("cwd lock");
+    let _env_guard = support::EnvGuard::new().expect("capture env");
+    let _crate_root = support::crate_root("bijux-dna").expect("crate root");
+    let repo_root = support::repo_root().expect("repo root");
+    let home = tempfile::tempdir().expect("tempdir");
+    let runtime_root = tempfile::tempdir().expect("runtime tempdir");
+
+    let mut command = Command::new(env!("CARGO_BIN_EXE_bijux-dna"));
+    support::configure_isolated_runtime_resolution(&mut command, runtime_root.path());
+    let output = command
+        .current_dir(&repo_root)
+        .env("HOME", home.path())
+        .env("BIJUX_SKIP_QA", "1")
+        .env("BIJUX_ALLOW_SILVER", "1")
+        .env("BIJUX_SKIP_IMAGE_CHECK", "1")
+        .args(args)
+        .output()
+        .expect("run cli");
+
+    assert!(
+        output.status.success(),
+        "command failed: {}\nstdout:\n{}\nstderr:\n{}",
+        output.status,
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+
+    serde_json::from_slice(&output.stdout).expect("parse stdout as json")
+}
+
+#[test]
+fn bench_readiness_version_probes_report_governed_probe_contracts() {
+    let payload = run_cli_json(&["bench", "readiness", "render-version-probes", "--json"]);
+
+    assert_eq!(
+        payload.get("schema_version").and_then(serde_json::Value::as_str),
+        Some("bijux.bench.readiness.version_probes.v1")
+    );
+    assert_eq!(
+        payload.get("output_path").and_then(serde_json::Value::as_str),
+        Some("artifacts/benchmark-smoke/readiness/tools/version-probes.json")
+    );
+    let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows");
+    let row_count = rows.len() as u64;
+    let ready_count = support::json_u64(&payload, "ready_count").expect("ready count");
+    let unavailable_count =
+        support::json_u64(&payload, "unavailable_count").expect("unavailable count");
+    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(row_count));
+    assert_eq!(ready_count + unavailable_count, row_count);
+    assert_eq!(payload.get("unavailable_count").and_then(serde_json::Value::as_u64), Some(0));
+
+    let parser_kind_counts = payload
+        .get("parser_kind_counts")
+        .and_then(serde_json::Value::as_object)
+        .expect("parser kind counts");
+    assert_eq!(
+        parser_kind_counts.get("first_dotted_numeric_token").and_then(serde_json::Value::as_u64),
+        Some(ready_count)
+    );
+
+    assert!(rows.iter().any(|row| {
+        row.get("tool_id").and_then(serde_json::Value::as_str) == Some("bijux_dna")
+            && row.get("version_probe_status").and_then(serde_json::Value::as_str) == Some("ready")
+            && row.get("version_cmd").and_then(serde_json::Value::as_str)
+                == Some("bijux-dna --version")
+            && row.get("expected_bin").and_then(serde_json::Value::as_str) == Some("bijux-dna")
+    }));
+    assert!(rows.iter().any(|row| {
+        row.get("tool_id").and_then(serde_json::Value::as_str) == Some("bcftools")
+            && row.get("version_probe_status").and_then(serde_json::Value::as_str) == Some("ready")
+            && row.get("expected_version_regex").and_then(serde_json::Value::as_str)
+                == Some("bcftools [0-9]+([.][0-9]+)?")
+            && row.get("registry_paths").and_then(serde_json::Value::as_array).is_some_and(
+                |paths| {
+                    paths.iter().any(|path| {
+                        path.as_str() == Some("configs/ci/registry/tool_registry_vcf.toml")
+                    })
+                },
+            )
+    }));
+    assert!(rows.iter().any(|row| {
+        row.get("tool_id").and_then(serde_json::Value::as_str) == Some("seqfu")
+            && row.get("version_probe_status").and_then(serde_json::Value::as_str) == Some("ready")
+            && row.get("registry_paths").and_then(serde_json::Value::as_array).is_some_and(
+                |paths| {
+                    paths
+                        .iter()
+                        .any(|path| path.as_str() == Some("configs/ci/registry/tool_registry.toml"))
+                },
+            )
+    }));
+    assert!(rows.iter().any(|row| {
+        row.get("tool_id").and_then(serde_json::Value::as_str) == Some("angsd")
+            && row.get("resolution_kind").and_then(serde_json::Value::as_str)
+                == Some("external_artifact")
+            && row.get("resolution_target").and_then(serde_json::Value::as_str)
+                == Some("external-artifact://angsd")
+            && row.get("version_probe_status").and_then(serde_json::Value::as_str) == Some("ready")
+    }));
+    assert!(rows.iter().any(|row| {
+        row.get("tool_id").and_then(serde_json::Value::as_str) == Some("shapeit5")
+            && row.get("version_probe_status").and_then(serde_json::Value::as_str) == Some("ready")
+            && row.get("resolution_kind").and_then(serde_json::Value::as_str)
+                == Some("apptainer_image")
+            && row.get("resolution_target").and_then(serde_json::Value::as_str).is_some_and(
+                |target| target.starts_with("containers/apptainer/shapeit5.def@sha256:"),
+            )
+    }));
+    assert!(rows.iter().any(|row| {
+        row.get("tool_id").and_then(serde_json::Value::as_str) == Some("plink")
+            && row.get("version_probe_status").and_then(serde_json::Value::as_str) == Some("ready")
+            && row.get("resolution_kind").and_then(serde_json::Value::as_str)
+                == Some("apptainer_image")
+            && row
+                .get("resolution_target")
+                .and_then(serde_json::Value::as_str)
+                .is_some_and(|target| target.starts_with("containers/apptainer/plink.def@sha256:"))
+    }));
+}

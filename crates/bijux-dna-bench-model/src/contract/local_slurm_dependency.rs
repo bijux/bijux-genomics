@@ -220,3 +220,8 @@ fn require_text(value: &str, field: &str) -> Result<(), BenchError> {
 fn invalid<T>(message: impl Into<String>) -> Result<T, BenchError> {
     Err(BenchError::InvalidPolicy(message.into()))
 }
+
+mod inspection;
+pub use inspection::{
+    build_benchmark_local_slurm_dependency_report, inspect_benchmark_local_slurm_job_dependencies,
+};

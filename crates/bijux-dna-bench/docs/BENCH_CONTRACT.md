@@ -76,6 +76,8 @@ Local stage inventories retain matrix declaration order, domain prefixes, unique
 
 ## All-domain local simulation
 
+Completion checks preserve unrelated evidence and admit all five mutation targets before writes. Repository observation distinguishes missing manifests, invalid content and IO failure; reads are bounded to16MiB. The completion wire contract is generated as `all-domain-completion-check.schema.json`; its verdict describes illustrative failures, not scientific compatibility.
+
 The simulation service consumes canonical expected-result, rendered-command and output-declaration rows. The model admits their unique identities and output paths before the repository writes any artifacts. The workflow owns orchestration; artifact rendering records illustrative commands without executing them. CLI adapters acquire the current readiness rows and present the report.
 
 `local-all-domain-fake-runs.schema.json` and `local-all-domain-fake-run-metrics.schema.json` are generated from the benchmark model. Existing wire version identifiers and artifact names remain stable. These outputs demonstrate local orchestration only: zero-length binary placeholders and simulated elapsed time do not certify scientific validity, real resource use or tool interchangeability. Byte counts describe produced artifact bytes and exclude unrelated files from earlier runs.

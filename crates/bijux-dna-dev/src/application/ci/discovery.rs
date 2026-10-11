@@ -4,7 +4,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use anyhow::{ensure, Context, Result};
 use serde_json::{json, Value};
 
-use super::{inventory::ExpectedTestInventory, partition::escape_matcher};
+use super::inventory::ExpectedTestInventory;
 
 pub(crate) struct BinaryDiscoveryPlan {
     metadata: Value,
@@ -13,7 +13,7 @@ pub(crate) struct BinaryDiscoveryPlan {
 
 pub(crate) struct BinaryDiscoveryGroup {
     pub(crate) label: String,
-    pub(crate) filterset: String,
+    pub(crate) metadata: Vec<u8>,
     binaries: BTreeSet<String>,
 }
 
@@ -43,16 +43,19 @@ impl BinaryDiscoveryPlan {
         let groups = selections
             .into_iter()
             .enumerate()
-            .map(|(index, binaries)| BinaryDiscoveryGroup {
-                label: format!("test-inventory-group-{index}"),
-                filterset: binaries
-                    .iter()
-                    .map(|id| format!("binary_id(={})", escape_matcher(id)))
-                    .collect::<Vec<_>>()
-                    .join(" | "),
-                binaries,
+            .map(|(index, binaries)| {
+                let mut selected = metadata.clone();
+                selected["rust-binaries"]
+                    .as_object_mut()
+                    .context("compiled binary map is absent")?
+                    .retain(|id, _| binaries.contains(id));
+                Ok(BinaryDiscoveryGroup {
+                    label: format!("test-inventory-group-{index}"),
+                    metadata: serde_json::to_vec(&selected)?,
+                    binaries,
+                })
             })
-            .collect();
+            .collect::<Result<Vec<_>>>()?;
         Ok(Self { metadata, groups })
     }
 
@@ -81,8 +84,8 @@ impl BinaryDiscoveryPlan {
             let suites =
                 value["rust-suites"].as_object().context("discovered suite map is absent")?;
             ensure!(
-                suites.keys().eq(expected_binaries.keys()),
-                "discovery changed the binary universe"
+                suites.keys().eq(group.binaries.iter()),
+                "discovery changed its assigned binary universe"
             );
             let mut count = 0usize;
             for (id, suite) in suites {
@@ -102,29 +105,19 @@ impl BinaryDiscoveryPlan {
                 }
                 let cases =
                     suite["testcases"].as_object().context("discovered cases are absent")?;
-                if group.binaries.contains(id) {
-                    ensure!(suite["status"] == "listed", "selected binary {id} was not discovered");
-                    for case in cases.values() {
-                        ensure!(
-                            case["filter-match"]["status"] == "matches",
-                            "discovery filtered a selected case"
-                        );
-                        ensure!(
-                            case["ignored"].is_boolean(),
-                            "discovered ignored status is absent"
-                        );
-                    }
-                    count = count.checked_add(cases.len()).context("discovery count overflow")?;
+                ensure!(suite["status"] == "listed", "selected binary {id} was not discovered");
+                for case in cases.values() {
                     ensure!(
-                        merged.insert(id.clone(), suite.clone()).is_none(),
-                        "duplicate discovered binary"
+                        case["filter-match"]["status"] == "matches",
+                        "discovery filtered a selected case"
                     );
-                } else {
-                    ensure!(
-                        suite["status"] == "skipped" && cases.is_empty(),
-                        "discovery executed an unselected binary"
-                    );
+                    ensure!(case["ignored"].is_boolean(), "discovered ignored status is absent");
                 }
+                count = count.checked_add(cases.len()).context("discovery count overflow")?;
+                ensure!(
+                    merged.insert(id.clone(), suite.clone()).is_none(),
+                    "duplicate discovered binary"
+                );
             }
             ensure!(
                 value["test-count"].as_u64() == Some(u64::try_from(count)?),

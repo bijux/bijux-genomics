@@ -1,7 +1,7 @@
 use std::path::PathBuf;
 use std::sync::OnceLock;
 
-pub fn tool_registry_toml() -> Option<toml::Value> {
+pub(super) fn tool_registry_toml() -> Option<&'static toml::Value> {
     static REGISTRY: OnceLock<Option<toml::Value>> = OnceLock::new();
     REGISTRY
         .get_or_init(|| {
@@ -15,5 +15,5 @@ pub fn tool_registry_toml() -> Option<toml::Value> {
             let raw = std::fs::read_to_string(path).ok()?;
             toml::from_str::<toml::Value>(&raw).ok()
         })
-        .clone()
+        .as_ref()
 }

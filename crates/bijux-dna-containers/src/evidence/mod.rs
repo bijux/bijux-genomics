@@ -25,13 +25,15 @@ pub use chain::{
     validate_container_recipe_evidence_chain, ContainerEvidenceChain,
 };
 pub use external_artifact::{
-    admit_external_artifact, bind_external_artifact_command, external_artifact_admission_schema,
-    external_artifact_admission_schema_matches, external_artifact_image_ref,
-    external_artifact_tool_id, load_external_artifact_admission,
+    admit_external_artifact, admit_external_artifact_with_probe, bind_external_artifact_command,
+    external_artifact_admission_schema, external_artifact_admission_schema_matches,
+    external_artifact_image_ref, external_artifact_tool_id, load_external_artifact_admission,
     verify_external_artifact_admission, write_external_artifact_admission_schema,
     ExternalArtifactAdmission, ExternalArtifactAdmissionRequest, ExternalArtifactAdmissionStatus,
     ExternalArtifactCommandBinding, ExternalArtifactIdentity, ExternalArtifactInput,
-    ExternalArtifactKind, ExternalArtifactVersionProbe, EXTERNAL_ARTIFACT_ADMISSION_SCHEMA_V1,
+    ExternalArtifactKind, ExternalArtifactProbeObservation, ExternalArtifactProbeOutcome,
+    ExternalArtifactProbeRequest, ExternalArtifactProbeTransport, ExternalArtifactVersionProbe,
+    NativeExternalArtifactProbeTransport, EXTERNAL_ARTIFACT_ADMISSION_SCHEMA_V1,
     EXTERNAL_ARTIFACT_ADMISSION_SCHEMA_V2, EXTERNAL_ARTIFACT_IMAGE_SCHEME,
 };
 pub use image_activation::{

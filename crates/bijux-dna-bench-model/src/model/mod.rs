@@ -737,7 +737,9 @@ pub use workspace_layout::{
 
 pub use local_slurm_scripts::{
     BenchmarkLocalAllDomainSlurmScriptEntry, BenchmarkLocalAllDomainSlurmScriptsReport,
+    BenchmarkLocalSlurmScriptBodyEntry, BenchmarkLocalSlurmScriptBodyReport,
     BENCHMARK_LOCAL_ALL_DOMAIN_SLURM_SCRIPTS_SCHEMA_V1,
+    BENCHMARK_LOCAL_SLURM_SCRIPT_BODY_SCHEMA_V1,
 };
 
 pub use readiness::smoke_subset::{

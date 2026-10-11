@@ -458,6 +458,106 @@
       "gates": [
         "report-freshness"
       ]
+    },
+    {
+      "id": "crate:bijux-dna-bench-corpus",
+      "kind": "crate",
+      "paths": [
+        "crates/bijux-dna-bench-corpus/"
+      ],
+      "gates": [
+        "crate-tests:bijux-dna-bench-corpus"
+      ]
+    },
+    {
+      "id": "crate:bijux-dna-process",
+      "kind": "crate",
+      "paths": [
+        "crates/bijux-dna-process/"
+      ],
+      "gates": [
+        "crate-tests:bijux-dna-process"
+      ]
+    },
+    {
+      "id": "crate:bijux-dna-bench-vcf",
+      "kind": "crate",
+      "paths": [
+        "crates/bijux-dna-bench-vcf/"
+      ],
+      "gates": [
+        "crate-tests:bijux-dna-bench-vcf"
+      ]
+    },
+    {
+      "id": "crate:bijux-dna-bench-workflows",
+      "kind": "crate",
+      "paths": [
+        "crates/bijux-dna-bench-workflows/"
+      ],
+      "gates": [
+        "crate-tests:bijux-dna-bench-workflows"
+      ]
+    },
+    {
+      "id": "crate:bijux-dna-bench-population",
+      "kind": "crate",
+      "paths": [
+        "crates/bijux-dna-bench-population/"
+      ],
+      "gates": [
+        "crate-tests:bijux-dna-bench-population"
+      ]
+    },
+    {
+      "id": "crate:bijux-dna-bench-haplotypes",
+      "kind": "crate",
+      "paths": [
+        "crates/bijux-dna-bench-haplotypes/"
+      ],
+      "gates": [
+        "crate-tests:bijux-dna-bench-haplotypes"
+      ]
+    },
+    {
+      "id": "crate:bijux-dna-bench-artifacts",
+      "kind": "crate",
+      "paths": [
+        "crates/bijux-dna-bench-artifacts/"
+      ],
+      "gates": [
+        "crate-tests:bijux-dna-bench-artifacts"
+      ]
+    },
+    {
+      "id": "crate:bijux-dna-bench-variants",
+      "kind": "crate",
+      "paths": [
+        "crates/bijux-dna-bench-variants/"
+      ],
+      "gates": [
+        "crate-tests:bijux-dna-bench-variants"
+      ]
+    },
+    {
+      "id": "crate:bijux-dna-bench-genotypes",
+      "kind": "crate",
+      "paths": [
+        "crates/bijux-dna-bench-genotypes/"
+      ],
+      "gates": [
+        "crate-tests:bijux-dna-bench-genotypes"
+      ]
+    },
+    {
+      "id": "crate:bijux-dna-bench-vcf-evidence",
+      "kind": "crate",
+      "paths": [
+        "crates/bijux-dna-bench-vcf-evidence/"
+      ],
+      "gates": [
+        "crate-tests:bijux-dna-bench-vcf-evidence"
+      ]
     }
   ],
   "edges": [
@@ -579,11 +679,6 @@
     {
       "consumer": "crate:bijux-dna-analyze",
       "dependency": "crate:bijux-dna-planner-fastq",
-      "kind": "dev"
-    },
-    {
-      "consumer": "crate:bijux-dna-analyze",
-      "dependency": "crate:bijux-dna-policies",
       "kind": "dev"
     },
     {
@@ -798,11 +893,6 @@
     },
     {
       "consumer": "crate:bijux-dna-bench-model",
-      "dependency": "crate:bijux-dna-policies",
-      "kind": "dev"
-    },
-    {
-      "consumer": "crate:bijux-dna-bench-model",
       "dependency": "crate:bijux-dna-stage-contract",
       "kind": "normal"
     },
@@ -887,24 +977,9 @@
       "kind": "dev"
     },
     {
-      "consumer": "crate:bijux-dna-core",
-      "dependency": "crate:bijux-dna-policies",
-      "kind": "dev"
-    },
-    {
-      "consumer": "crate:bijux-dna-db-ena",
-      "dependency": "crate:bijux-dna-policies",
-      "kind": "dev"
-    },
-    {
       "consumer": "crate:bijux-dna-db-ref",
       "dependency": "crate:bijux-dna-domain-vcf",
       "kind": "normal"
-    },
-    {
-      "consumer": "crate:bijux-dna-db-ref",
-      "dependency": "crate:bijux-dna-policies",
-      "kind": "dev"
     },
     {
       "consumer": "crate:bijux-dna-dev",
@@ -1213,18 +1288,8 @@
     },
     {
       "consumer": "crate:bijux-dna-planner-vcf",
-      "dependency": "crate:bijux-dna-policies",
-      "kind": "dev"
-    },
-    {
-      "consumer": "crate:bijux-dna-planner-vcf",
       "dependency": "crate:bijux-dna-stage-contract",
       "kind": "normal"
-    },
-    {
-      "consumer": "crate:bijux-dna-policies",
-      "dependency": "crate:bijux-dna",
-      "kind": "dev"
     },
     {
       "consumer": "crate:bijux-dna-policies",
@@ -1234,11 +1299,6 @@
     {
       "consumer": "crate:bijux-dna-policies",
       "dependency": "crate:bijux-dna-pipelines",
-      "kind": "dev"
-    },
-    {
-      "consumer": "crate:bijux-dna-policies",
-      "dependency": "crate:bijux-dna-runtime",
       "kind": "dev"
     },
     {
@@ -1275,11 +1335,6 @@
       "consumer": "crate:bijux-dna-runner",
       "dependency": "crate:bijux-dna-infra",
       "kind": "normal"
-    },
-    {
-      "consumer": "crate:bijux-dna-runner",
-      "dependency": "crate:bijux-dna-policies",
-      "kind": "dev"
     },
     {
       "consumer": "crate:bijux-dna-runner",
@@ -1433,11 +1488,6 @@
     },
     {
       "consumer": "crate:bijux-dna-stages-vcf",
-      "dependency": "crate:bijux-dna-policies",
-      "kind": "dev"
-    },
-    {
-      "consumer": "crate:bijux-dna-stages-vcf",
       "dependency": "crate:bijux-dna-runner",
       "kind": "normal"
     },
@@ -1520,6 +1570,361 @@
       "consumer": "source:containers",
       "dependency": "crate:bijux-dna-containers",
       "kind": "owned_by"
+    },
+    {
+      "consumer": "crate:bijux-dna",
+      "dependency": "crate:bijux-dna-bench-corpus",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench-corpus",
+      "dependency": "crate:bijux-dna-domain-bam",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench-corpus",
+      "dependency": "crate:bijux-dna-domain-vcf",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench",
+      "dependency": "crate:bijux-dna-policies",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench-model",
+      "dependency": "crate:bijux-dna-domain-fastq",
+      "kind": "dev"
+    },
+    {
+      "consumer": "crate:bijux-dna-containers",
+      "dependency": "crate:bijux-dna-process",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-runner",
+      "dependency": "crate:bijux-dna-process",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna",
+      "dependency": "crate:bijux-dna-bench-vcf",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench-vcf",
+      "dependency": "crate:bijux-dna-bench-corpus",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench-vcf",
+      "dependency": "crate:bijux-dna-bench-model",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench-vcf",
+      "dependency": "crate:bijux-dna-db-ref",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench-vcf",
+      "dependency": "crate:bijux-dna-domain-vcf",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench-vcf",
+      "dependency": "crate:bijux-dna-infra",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench-vcf",
+      "dependency": "crate:bijux-dna-stages-vcf",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna",
+      "dependency": "crate:bijux-dna-bench-workflows",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench-workflows",
+      "dependency": "crate:bijux-dna-bench-corpus",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench-workflows",
+      "dependency": "crate:bijux-dna-db-ref",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench-workflows",
+      "dependency": "crate:bijux-dna-domain-bam",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench-workflows",
+      "dependency": "crate:bijux-dna-domain-fastq",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench-workflows",
+      "dependency": "crate:bijux-dna-domain-vcf",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench-workflows",
+      "dependency": "crate:bijux-dna-infra",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench-workflows",
+      "dependency": "crate:bijux-dna-stages-vcf",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench-workflows",
+      "dependency": "crate:bijux-dna-core",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna",
+      "dependency": "crate:bijux-dna-bench-population",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench-population",
+      "dependency": "crate:bijux-dna-bench-corpus",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench-population",
+      "dependency": "crate:bijux-dna-bench-model",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench-population",
+      "dependency": "crate:bijux-dna-core",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench-population",
+      "dependency": "crate:bijux-dna-domain-vcf",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench-population",
+      "dependency": "crate:bijux-dna-infra",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench-population",
+      "dependency": "crate:bijux-dna-stages-vcf",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench-corpus",
+      "dependency": "crate:bijux-dna-db-ref",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench-corpus",
+      "dependency": "crate:bijux-dna-infra",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-science",
+      "dependency": "crate:bijux-dna-domain-vcf",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna",
+      "dependency": "crate:bijux-dna-bench-haplotypes",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench-haplotypes",
+      "dependency": "crate:bijux-dna-bench-corpus",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench-haplotypes",
+      "dependency": "crate:bijux-dna-bench-model",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench-haplotypes",
+      "dependency": "crate:bijux-dna-core",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench-haplotypes",
+      "dependency": "crate:bijux-dna-db-ref",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench-haplotypes",
+      "dependency": "crate:bijux-dna-domain-vcf",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench-haplotypes",
+      "dependency": "crate:bijux-dna-infra",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench-haplotypes",
+      "dependency": "crate:bijux-dna-stage-contract",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench-haplotypes",
+      "dependency": "crate:bijux-dna-stages-vcf",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna",
+      "dependency": "crate:bijux-dna-bench-variants",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench-artifacts",
+      "dependency": "crate:bijux-dna-bench-model",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench-artifacts",
+      "dependency": "crate:bijux-dna-infra",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench-haplotypes",
+      "dependency": "crate:bijux-dna-bench-artifacts",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench-variants",
+      "dependency": "crate:bijux-dna-bench-artifacts",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench-variants",
+      "dependency": "crate:bijux-dna-bench-corpus",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench-variants",
+      "dependency": "crate:bijux-dna-bench-model",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench-variants",
+      "dependency": "crate:bijux-dna-core",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench-variants",
+      "dependency": "crate:bijux-dna-domain-vcf",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench-variants",
+      "dependency": "crate:bijux-dna-infra",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench-variants",
+      "dependency": "crate:bijux-dna-stages-vcf",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna",
+      "dependency": "crate:bijux-dna-bench-genotypes",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench-genotypes",
+      "dependency": "crate:bijux-dna-bench-artifacts",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench-genotypes",
+      "dependency": "crate:bijux-dna-bench-corpus",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench-genotypes",
+      "dependency": "crate:bijux-dna-bench-model",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench-genotypes",
+      "dependency": "crate:bijux-dna-core",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench-genotypes",
+      "dependency": "crate:bijux-dna-domain-vcf",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench-genotypes",
+      "dependency": "crate:bijux-dna-infra",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench-genotypes",
+      "dependency": "crate:bijux-dna-stages-vcf",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna",
+      "dependency": "crate:bijux-dna-bench-vcf-evidence",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench-vcf",
+      "dependency": "crate:bijux-dna-bench-vcf-evidence",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna",
+      "dependency": "crate:bijux-dna-bench-artifacts",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench",
+      "dependency": "crate:bijux-dna-bench-artifacts",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench-genotypes",
+      "dependency": "crate:bijux-dna-bench-vcf-evidence",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench-variants",
+      "dependency": "crate:bijux-dna-bench-vcf-evidence",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench-population",
+      "dependency": "crate:bijux-dna-bench-vcf-evidence",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench-haplotypes",
+      "dependency": "crate:bijux-dna-bench-vcf-evidence",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench-vcf",
+      "dependency": "crate:bijux-dna-bench-artifacts",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench-vcf",
+      "dependency": "crate:bijux-dna-core",
+      "kind": "normal"
     }
   ]
 }

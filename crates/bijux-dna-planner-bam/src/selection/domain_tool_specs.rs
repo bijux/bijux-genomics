@@ -1,4 +1,4 @@
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
 use bijux_dna_core::prelude::{
@@ -82,28 +82,7 @@ pub fn load_bam_domain_tool_contract_metadata(
     repo_root: &Path,
     tool_id: &ToolId,
 ) -> Result<BamDomainToolContractMetadata> {
-    let parsed = load_domain_tool_yaml(repo_root, tool_id)?;
-    let support_level = match parsed.status.as_str() {
-        "supported" => BamDomainToolSupportLevel::Supported,
-        "planned" => BamDomainToolSupportLevel::Planned,
-        other => {
-            return Err(anyhow!(
-                "governed BAM tool yaml {} declares unsupported status `{other}`",
-                tool_id.as_str()
-            ))
-        }
-    };
-
-    let stage_ids = parsed.stage_ids.iter().cloned().map(StageId::new).collect::<Vec<_>>();
-    let planned_stage_ids =
-        parsed.planned_stage_ids.iter().cloned().map(StageId::new).collect::<Vec<_>>();
-
-    Ok(BamDomainToolContractMetadata {
-        tool_id: tool_id.clone(),
-        support_level,
-        stage_ids,
-        planned_stage_ids,
-    })
+    load_bam_domain_tool_definition(repo_root, tool_id)?.contract_metadata()
 }
 
 /// # Errors
@@ -135,52 +114,8 @@ fn load_bam_domain_tool_spec_inner(
     tool_id: &ToolId,
     allow_placeholder_image: bool,
 ) -> Result<ToolExecutionSpecV1> {
-    let parsed = load_domain_tool_yaml(repo_root, tool_id)?;
-    let yaml_path =
-        repo_root.join("domain").join("bam").join("tools").join(format!("{tool_id}.yaml"));
-
-    let mut admitted_stage_ids = parsed.stage_ids.clone();
-    if let Some(single_stage_id) = parsed.stage_id.as_ref() {
-        admitted_stage_ids.push(single_stage_id.clone());
-    }
-    admitted_stage_ids.extend(parsed.planned_stage_ids.iter().cloned());
-    if !admitted_stage_ids.iter().any(|candidate| candidate == stage_id.as_str()) {
-        return Err(anyhow!(
-            "governed tool yaml {} does not admit stage {}",
-            yaml_path.display(),
-            stage_id.as_str()
-        ));
-    }
-
-    let default_entrypoint = if parsed.command_template.is_empty() {
-        Some(default_command_entrypoint(&parsed, allow_placeholder_image)?)
-    } else {
-        None
-    };
-    let command_template = if parsed.command_template.is_empty() {
-        vec![default_entrypoint.clone().unwrap_or_else(|| parsed.tool_id.clone())]
-    } else {
-        parsed.command_template.clone()
-    };
-    let image = match parsed.container {
-        Some(container) => ContainerImageRefV1 { image: container.image, digest: container.digest },
-        None => {
-            let image = if allow_placeholder_image {
-                parsed.tool_id.clone()
-            } else {
-                default_entrypoint.clone().unwrap_or_else(|| parsed.tool_id.clone())
-            };
-            ContainerImageRefV1 { image, digest: None }
-        }
-    };
-
-    Ok(ToolExecutionSpecV1 {
-        tool_id: tool_id.clone(),
-        tool_version: parsed.default_version,
-        image,
-        command: CommandSpecV1 { template: command_template },
-        resources: parsed.constraints.unwrap_or_default(),
-    })
+    load_bam_domain_tool_definition(repo_root, tool_id)?
+        .project_spec(stage_id, allow_placeholder_image)
 }
 
 fn default_command_entrypoint(
@@ -246,608 +181,138 @@ fn load_domain_tool_yaml(repo_root: &Path, tool_id: &ToolId) -> Result<DomainToo
     Ok(parsed)
 }
 
-#[cfg(test)]
-mod tests {
-    use super::{
-        load_bam_domain_tool_contract_metadata, load_bam_domain_tool_execution_spec,
-        load_bam_domain_tool_planning_spec, BamDomainToolSupportLevel,
-    };
-    use anyhow::Result;
-    use bijux_dna_core::prelude::{StageId, ToolId};
-    use std::path::{Path, PathBuf};
-
-    fn repo_root() -> PathBuf {
-        PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-            .parent()
-            .and_then(Path::parent)
-            .unwrap_or_else(|| panic!("workspace root"))
-            .to_path_buf()
-    }
-
-    #[test]
-    fn load_bam_domain_tool_execution_spec_accepts_supported_bwa_stage() -> Result<()> {
-        let repo_root = repo_root();
-        let stage_id = StageId::from_static("bam.align");
-        let tool_id = ToolId::from_static("bwa");
-
-        let spec = load_bam_domain_tool_execution_spec(&repo_root, &stage_id, &tool_id)?;
-
-        assert_eq!(spec.tool_id.as_str(), "bwa");
-        assert_eq!(spec.command.template, vec!["bwa".to_string()]);
-        assert_eq!(spec.image.image, "bijuxdna/bwa");
-        assert!(spec.image.digest.is_none());
-        Ok(())
-    }
-
-    #[test]
-    fn load_bam_domain_tool_contract_metadata_reads_supported_stage_status() -> Result<()> {
-        let repo_root = repo_root();
-        let tool_id = ToolId::from_static("samtools");
-        let validate_stage = StageId::from_static("bam.validate");
-        let align_stage = StageId::from_static("bam.align");
-
-        let metadata = load_bam_domain_tool_contract_metadata(&repo_root, &tool_id)?;
-
-        assert_eq!(metadata.tool_id.as_str(), "samtools");
-        assert_eq!(metadata.support_level, BamDomainToolSupportLevel::Supported);
-        assert!(
-            metadata.stage_ids.iter().any(|stage_id| stage_id == &validate_stage),
-            "samtools metadata must retain direct BAM stage admissions"
-        );
-        assert!(
-            !metadata.planned_stage_ids.iter().any(|stage_id| stage_id == &align_stage),
-            "samtools metadata must not retain a stale planned-only BAM alignment admission"
-        );
-        assert_eq!(metadata.pair_support_level(&validate_stage).as_str(), "supported");
-        Ok(())
-    }
-
-    #[test]
-    fn load_bam_domain_tool_contract_metadata_reads_supported_multiqc_qc_pre_stage() -> Result<()> {
-        let repo_root = repo_root();
-        let tool_id = ToolId::from_static("multiqc");
-
-        let metadata = load_bam_domain_tool_contract_metadata(&repo_root, &tool_id)?;
-
-        assert_eq!(metadata.tool_id.as_str(), "multiqc");
-        assert_eq!(metadata.support_level, BamDomainToolSupportLevel::Supported);
-        assert!(
-            metadata.stage_ids.iter().any(|stage_id| stage_id.as_str() == "bam.qc_pre"),
-            "multiqc metadata must retain admitted BAM qc_pre reporting coverage"
-        );
-        Ok(())
-    }
-
-    #[test]
-    fn load_bam_domain_tool_contract_metadata_reads_supported_picard_status() -> Result<()> {
-        let repo_root = repo_root();
-        let tool_id = ToolId::from_static("picard");
-
-        let metadata = load_bam_domain_tool_contract_metadata(&repo_root, &tool_id)?;
-
-        assert_eq!(metadata.tool_id.as_str(), "picard");
-        assert_eq!(metadata.support_level, BamDomainToolSupportLevel::Supported);
-        assert!(
-            metadata.stage_ids.iter().any(|stage_id| stage_id.as_str() == "bam.gc_bias"),
-            "picard metadata must retain admitted BAM stages"
-        );
-        assert_eq!(
-            metadata.pair_support_level(&StageId::from_static("bam.gc_bias")).as_str(),
-            "supported"
-        );
-        Ok(())
-    }
-
-    #[test]
-    fn load_bam_domain_tool_planning_spec_accepts_insert_size_stage() -> Result<()> {
-        let repo_root = repo_root();
-        let stage_id = StageId::from_static("bam.insert_size");
-        let tool_id = ToolId::from_static("picard");
-
-        let metadata = load_bam_domain_tool_contract_metadata(&repo_root, &tool_id)?;
-        assert!(
-            metadata.stage_ids.iter().any(|candidate| candidate == &stage_id),
-            "picard metadata must retain admitted bam.insert_size coverage"
-        );
-
-        let spec = load_bam_domain_tool_planning_spec(&repo_root, &stage_id, &tool_id)?;
-        assert_eq!(spec.tool_id.as_str(), "picard");
-        assert_eq!(spec.command.template, vec!["picard".to_string()]);
-        assert_eq!(spec.image.image, "bijuxdna/picard:3.3.0");
-        Ok(())
-    }
-
-    #[test]
-    fn load_bam_domain_tool_planning_spec_accepts_gc_bias_stage() -> Result<()> {
-        let repo_root = repo_root();
-        let stage_id = StageId::from_static("bam.gc_bias");
-        let tool_id = ToolId::from_static("picard");
-
-        let metadata = load_bam_domain_tool_contract_metadata(&repo_root, &tool_id)?;
-        assert!(
-            metadata.stage_ids.iter().any(|candidate| candidate == &stage_id),
-            "picard metadata must retain admitted bam.gc_bias coverage"
-        );
-
-        let spec = load_bam_domain_tool_planning_spec(&repo_root, &stage_id, &tool_id)?;
-        assert_eq!(spec.tool_id.as_str(), "picard");
-        assert_eq!(spec.command.template, vec!["picard".to_string()]);
-        assert_eq!(spec.image.image, "bijuxdna/picard:3.3.0");
-        Ok(())
-    }
-
-    #[test]
-    fn load_bam_domain_tool_execution_spec_accepts_supported_picard_mapping_summary_stage(
-    ) -> Result<()> {
-        let repo_root = repo_root();
-        let stage_id = StageId::from_static("bam.mapping_summary");
-        let tool_id = ToolId::from_static("picard");
-
-        let spec = load_bam_domain_tool_execution_spec(&repo_root, &stage_id, &tool_id)?;
-
-        assert_eq!(spec.tool_id.as_str(), "picard");
-        assert_eq!(spec.command.template, vec!["picard".to_string()]);
-        assert_eq!(spec.image.image, "bijuxdna/picard:3.3.0");
-        assert!(spec.image.digest.is_none());
-        Ok(())
-    }
-
-    #[test]
-    fn load_bam_domain_tool_planning_spec_accepts_endogenous_content_stage() -> Result<()> {
-        let repo_root = repo_root();
-        let stage_id = StageId::from_static("bam.endogenous_content");
-        let tool_id = ToolId::from_static("samtools");
-
-        let metadata = load_bam_domain_tool_contract_metadata(&repo_root, &tool_id)?;
-        assert!(
-            metadata.stage_ids.iter().any(|candidate| candidate == &stage_id),
-            "samtools metadata must retain admitted bam.endogenous_content coverage"
-        );
-
-        let spec = load_bam_domain_tool_planning_spec(&repo_root, &stage_id, &tool_id)?;
-        assert_eq!(spec.tool_id.as_str(), "samtools");
-        assert_eq!(spec.command.template, vec!["samtools".to_string()]);
-        assert_eq!(spec.image.image, "bijuxdna/samtools:1.21");
-        assert!(spec.image.digest.is_none());
-        Ok(())
-    }
-
-    #[test]
-    fn load_bam_domain_tool_planning_spec_accepts_overlap_correction_stage() -> Result<()> {
-        let repo_root = repo_root();
-        let stage_id = StageId::from_static("bam.overlap_correction");
-        let tool_id = ToolId::from_static("bamutil");
-
-        let metadata = load_bam_domain_tool_contract_metadata(&repo_root, &tool_id)?;
-        assert_eq!(metadata.support_level, BamDomainToolSupportLevel::Supported);
-        assert!(
-            metadata.stage_ids.iter().any(|candidate| candidate == &stage_id),
-            "bamutil metadata must retain admitted bam.overlap_correction coverage"
-        );
-
-        let spec = load_bam_domain_tool_planning_spec(&repo_root, &stage_id, &tool_id)?;
-        assert_eq!(spec.tool_id.as_str(), "bamutil");
-        assert_eq!(spec.command.template, vec!["bamutil".to_string()]);
-        assert_eq!(spec.image.image, "bijuxdna/bamutil:1.0.15");
-        assert!(spec.image.digest.is_none());
-        Ok(())
-    }
-
-    #[test]
-    fn load_bam_domain_tool_execution_spec_accepts_overlap_correction_stage() -> Result<()> {
-        let repo_root = repo_root();
-        let stage_id = StageId::from_static("bam.overlap_correction");
-        let tool_id = ToolId::from_static("bamutil");
-
-        let spec = load_bam_domain_tool_execution_spec(&repo_root, &stage_id, &tool_id)?;
-
-        assert_eq!(spec.tool_id.as_str(), "bamutil");
-        assert_eq!(spec.command.template, vec!["bamutil".to_string()]);
-        assert_eq!(spec.image.image, "bijuxdna/bamutil:1.0.15");
-        assert!(spec.image.digest.is_none());
-        Ok(())
-    }
-
-    #[test]
-    fn load_bam_domain_tool_planning_spec_accepts_damage_stage_tools() -> Result<()> {
-        let repo_root = repo_root();
-        let stage_id = StageId::from_static("bam.damage");
-
-        let supported_tools =
-            ["addeam", "damageprofiler", "mapdamage2", "ngsbriggs", "pmdtools", "pydamage"];
-        for tool_name in supported_tools {
-            let tool_id = ToolId::new(tool_name);
-            let metadata = load_bam_domain_tool_contract_metadata(&repo_root, &tool_id)?;
-            assert!(
-                metadata.stage_ids.iter().any(|candidate| candidate == &stage_id),
-                "{tool_name} metadata must retain admitted bam.damage coverage"
-            );
-            assert_eq!(
-                metadata.support_level,
-                BamDomainToolSupportLevel::Supported,
-                "{tool_name} must remain admitted as supported bam.damage coverage"
-            );
-            let spec = load_bam_domain_tool_planning_spec(&repo_root, &stage_id, &tool_id)?;
-            assert_eq!(spec.tool_id.as_str(), tool_name);
-        }
-        Ok(())
-    }
-
-    #[test]
-    fn load_bam_domain_tool_execution_spec_accepts_supported_bowtie2_stage() -> Result<()> {
-        let repo_root = repo_root();
-        let stage_id = StageId::from_static("bam.align");
-        let tool_id = ToolId::from_static("bowtie2");
-
-        let spec = load_bam_domain_tool_execution_spec(&repo_root, &stage_id, &tool_id)?;
-
-        assert_eq!(spec.tool_id.as_str(), "bowtie2");
-        assert_eq!(spec.command.template, vec!["bowtie2".to_string()]);
-        assert_eq!(spec.image.image, "bijuxdna/bowtie2");
-        assert!(spec.image.digest.is_none());
-        Ok(())
-    }
-
-    #[test]
-    fn load_bam_domain_tool_execution_spec_accepts_addeam_damage_stage() -> Result<()> {
-        let repo_root = repo_root();
-        let stage_id = StageId::from_static("bam.damage");
-        let tool_id = ToolId::from_static("addeam");
-
-        let spec = load_bam_domain_tool_execution_spec(&repo_root, &stage_id, &tool_id)?;
-
-        assert_eq!(spec.tool_id.as_str(), "addeam");
-        assert_eq!(spec.command.template, vec!["addeam".to_string()]);
-        assert_eq!(spec.image.image, "bijuxdna/addeam:1.0.0");
-        assert!(spec.image.digest.is_none());
-        Ok(())
-    }
-
-    #[test]
-    fn load_bam_domain_tool_execution_spec_marks_angsd_as_external_artifact() -> Result<()> {
-        let repo_root = repo_root();
-        let stage_id = StageId::from_static("bam.sex");
-        let tool_id = ToolId::from_static("angsd");
-
-        let metadata = load_bam_domain_tool_contract_metadata(&repo_root, &tool_id)?;
-        let spec = load_bam_domain_tool_execution_spec(&repo_root, &stage_id, &tool_id)?;
-
-        assert_eq!(metadata.support_level, BamDomainToolSupportLevel::Supported);
-        assert_eq!(spec.image.image, "external-artifact://angsd");
-        assert!(spec.image.digest.is_none());
-        Ok(())
-    }
-
-    #[test]
-    fn load_bam_domain_tool_execution_spec_accepts_benchmark_ready_validate_and_damage_tools(
-    ) -> Result<()> {
-        let repo_root = repo_root();
-        for (stage_name, tool_name, expected_image) in [
-            ("bam.validate", "bamtools", "bijuxdna/bamtools:2.5.2"),
-            ("bam.validate", "bedtools", "bijuxdna/bedtools:2.31.1"),
-            ("bam.validate", "samtools", "bijuxdna/samtools:1.21"),
-            ("bam.damage", "damageprofiler", "bijuxdna/damageprofiler:1.1"),
-            ("bam.damage", "mapdamage2", "bijuxdna/mapdamage2:2.2.2"),
-            ("bam.damage", "ngsbriggs", "external-artifact://ngsbriggs"),
-            ("bam.damage", "pmdtools", "bijuxdna/pmdtools:0.60"),
-            ("bam.damage", "pydamage", "bijuxdna/pydamage:1.0"),
-        ] {
-            let stage_id = StageId::new(stage_name.to_string());
-            let tool_id = ToolId::new(tool_name);
-
-            let spec = load_bam_domain_tool_execution_spec(&repo_root, &stage_id, &tool_id)?;
-
-            assert_eq!(spec.tool_id.as_str(), tool_name);
-            assert_eq!(spec.command.template, vec![tool_name.to_string()]);
-            assert_eq!(spec.image.image, expected_image);
-            assert!(spec.image.digest.is_none());
-        }
-        Ok(())
-    }
-
-    #[test]
-    fn load_bam_domain_tool_execution_spec_accepts_supported_yleaf_stage() -> Result<()> {
-        let repo_root = repo_root();
-        let stage_id = StageId::from_static("bam.haplogroups");
-        let tool_id = ToolId::from_static("yleaf");
-
-        let spec = load_bam_domain_tool_execution_spec(&repo_root, &stage_id, &tool_id)?;
-
-        assert_eq!(spec.tool_id.as_str(), "yleaf");
-        assert_eq!(spec.command.template, vec!["yleaf".to_string()]);
-        assert_eq!(spec.image.image, "bijuxdna/yleaf");
-        assert!(spec.image.digest.is_none());
-        Ok(())
-    }
-
-    #[test]
-    fn load_bam_domain_tool_execution_spec_accepts_supported_bcftools_genotyping_stage(
-    ) -> Result<()> {
-        let repo_root = repo_root();
-        let stage_id = StageId::from_static("bam.genotyping");
-        let tool_id = ToolId::from_static("bcftools");
-
-        let spec = load_bam_domain_tool_execution_spec(&repo_root, &stage_id, &tool_id)?;
-
-        assert_eq!(spec.tool_id.as_str(), "bcftools");
-        assert_eq!(spec.command.template, vec!["bcftools".to_string()]);
-        assert_eq!(spec.image.image, "quay.io/biocontainers/bcftools:1.20--h8b25389_0");
-        assert_eq!(
-            spec.image.digest.as_deref(),
-            Some("sha256:67f54df47f501f6ddef08e3b9ad89cf693952f9a89de0d74df6e39fce15f1ff6")
-        );
-        Ok(())
-    }
-
-    #[test]
-    fn load_bam_domain_tool_execution_spec_accepts_supported_king_kinship_stage() -> Result<()> {
-        let repo_root = repo_root();
-        let stage_id = StageId::from_static("bam.kinship");
-        let tool_id = ToolId::from_static("king");
-
-        let spec = load_bam_domain_tool_execution_spec(&repo_root, &stage_id, &tool_id)?;
-
-        assert_eq!(spec.tool_id.as_str(), "king");
-        assert_eq!(spec.command.template, vec!["king".to_string()]);
-        assert_eq!(spec.image.image, "bijuxdna/king:2.3.0");
-        assert!(spec.image.digest.is_none());
-        Ok(())
-    }
-
-    #[test]
-    fn load_bam_domain_tool_execution_spec_accepts_supported_multiqc_qc_pre_stage() -> Result<()> {
-        let repo_root = repo_root();
-        let stage_id = StageId::from_static("bam.qc_pre");
-        let tool_id = ToolId::from_static("multiqc");
-
-        let spec = load_bam_domain_tool_execution_spec(&repo_root, &stage_id, &tool_id)?;
-
-        assert_eq!(spec.tool_id.as_str(), "multiqc");
-        assert_eq!(spec.command.template, vec!["multiqc".to_string()]);
-        assert_eq!(spec.image.image, "bijuxdna/multiqc");
-        assert_eq!(
-            spec.image.digest.as_deref(),
-            Some("sha256:40af0025fcc5bc4ea15e5cd2a4fd7bcfc98ea06c9ca781e6268f3c81d12787ec")
-        );
-        Ok(())
-    }
-
-    #[test]
-    fn load_bam_domain_tool_execution_spec_accepts_supported_authenticct_stage() -> Result<()> {
-        let repo_root = repo_root();
-        let stage_id = StageId::from_static("bam.authenticity");
-        let tool_id = ToolId::from_static("authenticct");
-
-        let spec = load_bam_domain_tool_execution_spec(&repo_root, &stage_id, &tool_id)?;
-
-        assert_eq!(spec.tool_id.as_str(), "authenticct");
-        assert_eq!(spec.command.template, vec!["authenticct".to_string()]);
-        assert_eq!(spec.image.image, "bijuxdna/authenticct:1.0.0");
-        assert!(spec.image.digest.is_none());
-        Ok(())
-    }
-
-    #[test]
-    fn load_bam_domain_tool_execution_spec_accepts_supported_coverage_stage_tools() -> Result<()> {
-        let repo_root = repo_root();
-
-        for (tool_name, expected_image) in [
-            ("bedtools", "bijuxdna/bedtools:2.31.1"),
-            ("mosdepth", "bijuxdna/mosdepth:0.3.11"),
-            ("samtools", "bijuxdna/samtools:1.21"),
-        ] {
-            let stage_id = StageId::from_static("bam.coverage");
-            let tool_id = ToolId::new(tool_name);
-
-            let spec = load_bam_domain_tool_execution_spec(&repo_root, &stage_id, &tool_id)?;
-
-            assert_eq!(spec.tool_id.as_str(), tool_name);
-            assert_eq!(spec.command.template, vec![tool_name.to_string()]);
-            assert_eq!(spec.image.image, expected_image);
-            assert!(spec.image.digest.is_none());
-        }
-
-        Ok(())
-    }
-
-    #[test]
-    fn load_bam_domain_tool_planning_spec_accepts_validate_stage_with_container_metadata(
-    ) -> Result<()> {
-        let repo_root = repo_root();
-        let stage_id = StageId::from_static("bam.validate");
-        let tool_id = ToolId::from_static("samtools");
-
-        let spec = load_bam_domain_tool_planning_spec(&repo_root, &stage_id, &tool_id)?;
-
-        assert_eq!(spec.tool_id.as_str(), "samtools");
-        assert_eq!(spec.command.template, vec!["samtools".to_string()]);
-        assert_eq!(spec.image.image, "bijuxdna/samtools:1.21");
-        assert!(spec.image.digest.is_none());
-        Ok(())
-    }
-
-    #[test]
-    fn load_bam_domain_tool_planning_spec_accepts_supported_multiqc_qc_pre_stage() -> Result<()> {
-        let repo_root = repo_root();
-        let stage_id = StageId::from_static("bam.qc_pre");
-        let tool_id = ToolId::from_static("multiqc");
-
-        let spec = load_bam_domain_tool_planning_spec(&repo_root, &stage_id, &tool_id)?;
-
-        assert_eq!(spec.tool_id.as_str(), "multiqc");
-        assert_eq!(spec.command.template, vec!["multiqc".to_string()]);
-        assert_eq!(spec.image.image, "bijuxdna/multiqc");
-        assert_eq!(
-            spec.image.digest.as_deref(),
-            Some("sha256:40af0025fcc5bc4ea15e5cd2a4fd7bcfc98ea06c9ca781e6268f3c81d12787ec")
-        );
-        Ok(())
-    }
-
-    #[test]
-    fn load_bam_domain_tool_planning_spec_accepts_supported_picard_mapping_summary_stage(
-    ) -> Result<()> {
-        let repo_root = repo_root();
-        let stage_id = StageId::from_static("bam.mapping_summary");
-        let tool_id = ToolId::from_static("picard");
-
-        let spec = load_bam_domain_tool_planning_spec(&repo_root, &stage_id, &tool_id)?;
-
-        assert_eq!(spec.tool_id.as_str(), "picard");
-        assert_eq!(spec.command.template, vec!["picard".to_string()]);
-        assert_eq!(spec.image.image, "bijuxdna/picard:3.3.0");
-        assert!(spec.image.digest.is_none());
-        Ok(())
-    }
-
-    #[test]
-    fn load_bam_domain_tool_planning_spec_accepts_supported_filter_stage_tools() -> Result<()> {
-        let repo_root = repo_root();
-        let stage_id = StageId::from_static("bam.filter");
-
-        for (tool, expected_image) in [
-            ("samtools", "bijuxdna/samtools:1.21"),
-            ("bamtools", "bijuxdna/bamtools:2.5.2"),
-            ("bedtools", "bijuxdna/bedtools:2.31.1"),
-        ] {
-            let tool_id = ToolId::new(tool);
-            let spec = load_bam_domain_tool_planning_spec(&repo_root, &stage_id, &tool_id)?;
-
-            assert_eq!(spec.tool_id.as_str(), tool);
-            assert_eq!(spec.command.template, vec![tool.to_string()]);
-            assert_eq!(spec.image.image, expected_image);
-            assert!(spec.image.digest.is_none());
-        }
-
-        Ok(())
-    }
-
-    #[test]
-    fn load_bam_domain_tool_planning_spec_accepts_supported_coverage_stage_tools() -> Result<()> {
-        let repo_root = repo_root();
-        let stage_id = StageId::from_static("bam.coverage");
-
-        for (tool, expected_image) in [
-            ("mosdepth", "bijuxdna/mosdepth:0.3.11"),
-            ("samtools", "bijuxdna/samtools:1.21"),
-            ("bedtools", "bijuxdna/bedtools:2.31.1"),
-        ] {
-            let tool_id = ToolId::new(tool);
-            let spec = load_bam_domain_tool_planning_spec(&repo_root, &stage_id, &tool_id)?;
-
-            assert_eq!(spec.tool_id.as_str(), tool);
-            assert_eq!(spec.command.template, vec![tool.to_string()]);
-            assert_eq!(spec.image.image, expected_image);
-            assert!(spec.image.digest.is_none());
-        }
-
-        Ok(())
-    }
-
-    #[test]
-    fn load_bam_domain_tool_planning_spec_accepts_supported_mapq_filter_stage_tools() -> Result<()>
-    {
-        let repo_root = repo_root();
-        let stage_id = StageId::from_static("bam.mapq_filter");
-
-        for (tool, expected_image) in
-            [("samtools", "bijuxdna/samtools:1.21"), ("bamtools", "bijuxdna/bamtools:2.5.2")]
-        {
-            let tool_id = ToolId::new(tool);
-            let spec = load_bam_domain_tool_planning_spec(&repo_root, &stage_id, &tool_id)?;
-
-            assert_eq!(spec.tool_id.as_str(), tool);
-            assert_eq!(spec.command.template, vec![tool.to_string()]);
-            assert_eq!(spec.image.image, expected_image);
-            assert!(spec.image.digest.is_none());
-        }
-
-        Ok(())
-    }
-
-    #[test]
-    fn load_bam_domain_tool_planning_spec_accepts_supported_length_filter_stage_tools() -> Result<()>
-    {
-        let repo_root = repo_root();
-        let stage_id = StageId::from_static("bam.length_filter");
-
-        for tool in ["samtools", "picard"] {
-            let tool_id = ToolId::new(tool);
-            let spec = load_bam_domain_tool_planning_spec(&repo_root, &stage_id, &tool_id)?;
-
-            assert_eq!(spec.tool_id.as_str(), tool);
-            assert_eq!(spec.command.template, vec![tool.to_string()]);
-            if tool == "picard" {
-                assert_eq!(spec.image.image, "bijuxdna/picard:3.3.0");
-                assert!(spec.image.digest.is_none());
-            } else {
-                assert_eq!(spec.image.image, "bijuxdna/samtools:1.21");
-                assert!(spec.image.digest.is_none());
+/// One identity-checked tool YAML observation shared by metadata and spec projections.
+#[derive(Debug)]
+pub struct BamDomainToolDefinition {
+    tool_id: ToolId,
+    source_path: PathBuf,
+    parsed: DomainToolYaml,
+}
+
+/// Read and parse the current governed BAM tool definition.
+///
+/// # Errors
+/// Rejects unreadable, malformed, or differently identified tool YAML.
+pub fn load_bam_domain_tool_definition(
+    repo_root: &Path,
+    tool_id: &ToolId,
+) -> Result<BamDomainToolDefinition> {
+    let parsed = load_domain_tool_yaml(repo_root, tool_id)?;
+    Ok(BamDomainToolDefinition {
+        tool_id: tool_id.clone(),
+        source_path: repo_root
+            .join("domain")
+            .join("bam")
+            .join("tools")
+            .join(format!("{tool_id}.yaml")),
+        parsed,
+    })
+}
+
+impl BamDomainToolDefinition {
+    /// Project support metadata from this observation.
+    ///
+    /// # Errors
+    /// Rejects unrecognized support status values.
+    pub fn contract_metadata(&self) -> Result<BamDomainToolContractMetadata> {
+        let parsed = &self.parsed;
+        let tool_id = &self.tool_id;
+        let support_level = match parsed.status.as_str() {
+            "supported" => BamDomainToolSupportLevel::Supported,
+            "planned" => BamDomainToolSupportLevel::Planned,
+            other => {
+                return Err(anyhow!(
+                    "governed BAM tool yaml {} declares unsupported status `{other}`",
+                    tool_id.as_str()
+                ))
             }
-        }
+        };
 
-        Ok(())
+        let stage_ids = parsed.stage_ids.iter().cloned().map(StageId::new).collect::<Vec<_>>();
+        let planned_stage_ids =
+            parsed.planned_stage_ids.iter().cloned().map(StageId::new).collect::<Vec<_>>();
+
+        Ok(BamDomainToolContractMetadata {
+            tool_id: tool_id.clone(),
+            support_level,
+            stage_ids,
+            planned_stage_ids,
+        })
     }
 
-    #[test]
-    fn load_bam_domain_tool_planning_spec_accepts_supported_markdup_stage_tools() -> Result<()> {
-        let repo_root = repo_root();
-        let stage_id = StageId::from_static("bam.markdup");
+    /// Project an executable stage binding from this observation.
+    ///
+    /// # Errors
+    /// Rejects an unadmitted stage or missing execution fields.
+    pub fn execution_spec(&self, stage_id: &StageId) -> Result<ToolExecutionSpecV1> {
+        self.project_spec(stage_id, false)
+    }
 
-        for tool in ["samtools", "picard"] {
-            let tool_id = ToolId::new(tool);
-            let spec = load_bam_domain_tool_planning_spec(&repo_root, &stage_id, &tool_id)?;
+    /// Project a planning binding, permitting the existing placeholder-image policy.
+    ///
+    /// # Errors
+    /// Rejects an unadmitted stage or missing command fields.
+    pub fn planning_spec(&self, stage_id: &StageId) -> Result<ToolExecutionSpecV1> {
+        self.project_spec(stage_id, true)
+    }
 
-            assert_eq!(spec.tool_id.as_str(), tool);
-            assert_eq!(spec.command.template, vec![tool.to_string()]);
-            if tool == "picard" {
-                assert_eq!(spec.image.image, "bijuxdna/picard:3.3.0");
-                assert!(spec.image.digest.is_none());
-            } else {
-                assert_eq!(spec.image.image, "bijuxdna/samtools:1.21");
-                assert!(spec.image.digest.is_none());
+    fn project_spec(
+        &self,
+        stage_id: &StageId,
+        allow_placeholder_image: bool,
+    ) -> Result<ToolExecutionSpecV1> {
+        let parsed = &self.parsed;
+        let tool_id = &self.tool_id;
+        let yaml_path = &self.source_path;
+
+        let mut admitted_stage_ids = parsed.stage_ids.clone();
+        if let Some(single_stage_id) = parsed.stage_id.as_ref() {
+            admitted_stage_ids.push(single_stage_id.clone());
+        }
+        admitted_stage_ids.extend(parsed.planned_stage_ids.iter().cloned());
+        if !admitted_stage_ids.iter().any(|candidate| candidate == stage_id.as_str()) {
+            return Err(anyhow!(
+                "governed tool yaml {} does not admit stage {}",
+                yaml_path.display(),
+                stage_id.as_str()
+            ));
+        }
+
+        let default_entrypoint = if parsed.command_template.is_empty() {
+            Some(default_command_entrypoint(parsed, allow_placeholder_image)?)
+        } else {
+            None
+        };
+        let command_template = if parsed.command_template.is_empty() {
+            vec![default_entrypoint.clone().unwrap_or_else(|| parsed.tool_id.clone())]
+        } else {
+            parsed.command_template.clone()
+        };
+        let image = match parsed.container.as_ref() {
+            Some(container) => ContainerImageRefV1 {
+                image: container.image.clone(),
+                digest: container.digest.clone(),
+            },
+            None => {
+                let image = if allow_placeholder_image {
+                    parsed.tool_id.clone()
+                } else {
+                    default_entrypoint.clone().unwrap_or_else(|| parsed.tool_id.clone())
+                };
+                ContainerImageRefV1 { image, digest: None }
             }
-        }
+        };
 
-        Ok(())
-    }
-
-    #[test]
-    fn load_bam_domain_tool_planning_spec_accepts_supported_duplication_metrics_stage_tools(
-    ) -> Result<()> {
-        let repo_root = repo_root();
-        let stage_id = StageId::from_static("bam.duplication_metrics");
-
-        for tool in ["samtools", "picard"] {
-            let tool_id = ToolId::new(tool);
-            let spec = load_bam_domain_tool_planning_spec(&repo_root, &stage_id, &tool_id)?;
-
-            assert_eq!(spec.tool_id.as_str(), tool);
-            assert_eq!(spec.command.template, vec![tool.to_string()]);
-            if tool == "picard" {
-                assert_eq!(spec.image.image, "bijuxdna/picard:3.3.0");
-                assert!(spec.image.digest.is_none());
-            } else {
-                assert_eq!(spec.image.image, "bijuxdna/samtools:1.21");
-                assert!(spec.image.digest.is_none());
-            }
-        }
-
-        Ok(())
-    }
-
-    #[test]
-    fn load_bam_domain_tool_execution_spec_accepts_supported_complexity_stage_tool() -> Result<()> {
-        let repo_root = repo_root();
-        let stage_id = StageId::from_static("bam.complexity");
-        let tool_id = ToolId::from_static("preseq");
-
-        let spec = load_bam_domain_tool_execution_spec(&repo_root, &stage_id, &tool_id)?;
-
-        assert_eq!(spec.tool_id.as_str(), "preseq");
-        assert_eq!(spec.command.template, vec!["preseq".to_string()]);
-        assert_eq!(spec.image.image, "bijuxdna/preseq");
-        assert!(spec.image.digest.is_none());
-        Ok(())
+        Ok(ToolExecutionSpecV1 {
+            tool_id: tool_id.clone(),
+            tool_version: parsed.default_version.clone(),
+            image,
+            command: CommandSpecV1 { template: command_template },
+            resources: parsed.constraints.clone().unwrap_or_default(),
+        })
     }
 }
+
+#[cfg(test)]
+#[path = "../../tests/contracts/selection/tool_definitions.rs"]
+mod tests;

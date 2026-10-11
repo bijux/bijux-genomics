@@ -67,3 +67,5 @@ state, but response fields must keep stable meaning and shape.
 source namespace layout, and test documentation location.
 
 checks for the crate.
+
+`HpcSchedulerSubmissionBackend` adapts benchmark submission capabilities to the existing runner scheduler and encryption contracts. Its working directory and scheduler executable paths are explicit invocation inputs. Campaign selection, dependency order, receipt construction and payload policy remain in their benchmark owners.

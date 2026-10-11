@@ -170,3 +170,18 @@ mod suite_catalog_port;
 
 #[path = "contracts/suite_records.rs"]
 mod suite_records;
+
+#[path = "contracts/hpc_submission.rs"]
+mod hpc_submission;
+
+#[path = "contracts/hpc_submission_bundle.rs"]
+mod hpc_submission_bundle;
+
+#[path = "support/hpc_campaign.rs"]
+mod hpc_campaign_fixture;
+
+#[path = "contracts/hpc_submission_script.rs"]
+mod hpc_submission_script;
+
+#[path = "contracts/hpc_submission_report.rs"]
+mod hpc_submission_report;

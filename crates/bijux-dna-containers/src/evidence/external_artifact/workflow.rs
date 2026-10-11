@@ -1,9 +1,7 @@
-use std::path::{Path, PathBuf};
-use std::process::Command;
+//! Current repository observations and immutable admission publication.
+use std::path::Path;
 
 use anyhow::{bail, Context, Result};
-use regex::Regex;
-use serde::Deserialize;
 
 use super::super::tool_contract::{
     catalog_identity_at_commit, load_container_catalog, repository_head_commit,
@@ -11,54 +9,19 @@ use super::super::tool_contract::{
 use super::super::EvidenceSourceIdentity;
 use super::model::{
     ExternalArtifactAdmission, ExternalArtifactAdmissionStatus, ExternalArtifactCommandBinding,
-    ExternalArtifactIdentity, ExternalArtifactKind, ExternalArtifactVersionProbe,
-    EXTERNAL_ARTIFACT_ADMISSION_SCHEMA_V1, EXTERNAL_ARTIFACT_ADMISSION_SCHEMA_V2,
+    ExternalArtifactIdentity, ExternalArtifactVersionProbe, EXTERNAL_ARTIFACT_ADMISSION_SCHEMA_V2,
 };
 
-const MAX_VERSION_OUTPUT_BYTES: usize = 64 * 1024;
+use super::admission::{
+    decode_external_artifact_admission, require_timestamp, validate_external_artifact_admission,
+    validate_persisted_version_probe, validate_sha256,
+};
 
-#[derive(Debug, Deserialize)]
-#[serde(deny_unknown_fields)]
-struct LegacyExternalArtifactAdmissionV1 {
-    schema_version: String,
-    status: ExternalArtifactAdmissionStatus,
-    recorded_at_utc: String,
-    repository_commit: String,
-    catalog: EvidenceSourceIdentity,
-    distributable_image_root: String,
-    tool_id: String,
-    version: String,
-    support_disposition: String,
-    support_reason: String,
-    stage_ids: Vec<String>,
-    expected_binary: String,
-    version_command: String,
-    expected_version_regex: String,
-    redistribution_permitted: bool,
-    lawful_access_basis: Option<String>,
-    artifact: Option<ExternalArtifactIdentity>,
-    version_probe: Option<ExternalArtifactVersionProbe>,
-    blocker_reason: Option<String>,
-}
-
-pub struct ExternalArtifactInput<'a> {
-    pub kind: ExternalArtifactKind,
-    pub path: &'a Path,
-    pub expected_sha256: &'a str,
-    pub lawful_access_basis: &'a str,
-    pub apptainer_executable: Option<&'a Path>,
-}
-
-pub struct ExternalArtifactAdmissionRequest<'a> {
-    pub repository_root: &'a Path,
-    pub distributable_image_root: &'a Path,
-    pub repository_commit: &'a str,
-    pub tool_id: &'a str,
-    pub recorded_at_utc: &'a str,
-    pub availability: ExternalArtifactAdmissionStatus,
-    pub artifact: Option<ExternalArtifactInput<'a>>,
-    pub blocker_reason: Option<&'a str>,
-}
+use super::probe::{
+    probe_version, ExternalArtifactProbeTransport, NativeExternalArtifactProbeTransport,
+};
+use super::request::{ExternalArtifactAdmissionRequest, ExternalArtifactInput};
+use super::storage;
 
 /// Admit an operator-provided artifact without copying it into repository or active image storage.
 ///
@@ -68,6 +31,21 @@ pub struct ExternalArtifactAdmissionRequest<'a> {
 pub fn admit_external_artifact(
     request: &ExternalArtifactAdmissionRequest<'_>,
     output: &Path,
+) -> Result<ExternalArtifactAdmission> {
+    admit_external_artifact_with_probe(request, output, &mut NativeExternalArtifactProbeTransport)
+}
+
+/// Admit an artifact using an explicit version-observation transport.
+/// The same catalog, source, checksum, version and immutable-publication requirements apply
+/// as in [`admit_external_artifact`]. Blocked/unavailable declarations never invoke the probe.
+///
+/// # Errors
+/// Rejects invalid requests before probing and rejects unsuccessful or incompatible evidence
+/// before publication. A transport error does not become a successful availability record.
+pub fn admit_external_artifact_with_probe(
+    request: &ExternalArtifactAdmissionRequest<'_>,
+    output: &Path,
+    transport: &mut dyn ExternalArtifactProbeTransport,
 ) -> Result<ExternalArtifactAdmission> {
     require_timestamp(request.recorded_at_utc)?;
     let repository_root = request
@@ -108,8 +86,13 @@ pub fn admit_external_artifact(
     let (lawful_access_basis, artifact, version_probe, blocker_reason) =
         match (request.availability, &request.artifact, request.blocker_reason) {
             (ExternalArtifactAdmissionStatus::Admitted, Some(input), None) => {
-                let admitted =
-                    inspect_artifact(&repository_root, &distributable_image_root, &tool, input)?;
+                let admitted = inspect_artifact(
+                    &repository_root,
+                    &distributable_image_root,
+                    &tool,
+                    input,
+                    transport,
+                )?;
                 (
                     Some(input.lawful_access_basis.trim().to_string()),
                     Some(admitted.0),
@@ -167,61 +150,7 @@ pub fn admit_external_artifact(
 pub fn load_external_artifact_admission(path: &Path) -> Result<ExternalArtifactAdmission> {
     let bytes = bijux_dna_infra::read_to_end_bounded(path, 4 * 1024 * 1024)
         .context("read external-artifact admission")?;
-    let value: serde_json::Value =
-        serde_json::from_slice(&bytes).context("parse external-artifact admission JSON")?;
-    let schema_version = value
-        .get("schema_version")
-        .and_then(serde_json::Value::as_str)
-        .context("external-artifact admission lacks a schema version")?;
-    let admission = if schema_version == EXTERNAL_ARTIFACT_ADMISSION_SCHEMA_V1 {
-        migrate_external_artifact_admission_v1(value)?
-    } else {
-        serde_json::from_value(value).context("parse external-artifact admission")?
-    };
-    validate_external_artifact_admission(&admission)?;
-    Ok(admission)
-}
-
-fn migrate_external_artifact_admission_v1(
-    value: serde_json::Value,
-) -> Result<ExternalArtifactAdmission> {
-    if value.get("status").is_none() {
-        let mut admission: ExternalArtifactAdmission = serde_json::from_value(value)
-            .context("parse mis-versioned external-artifact admission")?;
-        admission.schema_version = EXTERNAL_ARTIFACT_ADMISSION_SCHEMA_V2.to_string();
-        return Ok(admission);
-    }
-    let legacy: LegacyExternalArtifactAdmissionV1 =
-        serde_json::from_value(value).context("parse v1 external-artifact admission")?;
-    if legacy.schema_version != EXTERNAL_ARTIFACT_ADMISSION_SCHEMA_V1
-        || legacy.support_disposition != "unsupported"
-        || legacy.redistribution_permitted
-        || legacy.status == ExternalArtifactAdmissionStatus::Unavailable
-    {
-        bail!("legacy external-artifact admission has invalid support semantics");
-    }
-    Ok(ExternalArtifactAdmission {
-        schema_version: EXTERNAL_ARTIFACT_ADMISSION_SCHEMA_V2.to_string(),
-        availability: legacy.status,
-        recorded_at_utc: legacy.recorded_at_utc,
-        repository_commit: legacy.repository_commit,
-        catalog: legacy.catalog,
-        distributable_image_root: legacy.distributable_image_root,
-        tool_id: legacy.tool_id,
-        version: legacy.version,
-        product_support: crate::evidence::ContainerProductSupport::Supported,
-        artifact_delivery: crate::evidence::ContainerArtifactDelivery::ExternalArtifact,
-        delivery_reason: legacy.support_reason,
-        stage_ids: legacy.stage_ids,
-        expected_binary: legacy.expected_binary,
-        version_command: legacy.version_command,
-        expected_version_regex: legacy.expected_version_regex,
-        redistribution_permitted: false,
-        lawful_access_basis: legacy.lawful_access_basis,
-        artifact: legacy.artifact,
-        version_probe: legacy.version_probe,
-        blocker_reason: legacy.blocker_reason,
-    })
+    decode_external_artifact_admission(&bytes)
 }
 
 /// Reverify catalog and artifact identities without executing a stage command.
@@ -272,24 +201,10 @@ pub fn verify_external_artifact_admission(
         bail!("external-artifact tool contract changed");
     }
     if let Some(artifact) = &admission.artifact {
-        let path = Path::new(&artifact.path);
-        if path.starts_with(&repository_root) {
-            bail!("external artifact entered the product repository");
-        }
-        if path.starts_with(&distributable_image_root) {
-            bail!("external artifact entered the distributable active image root");
-        }
         if !tool.external_artifact_kinds.iter().any(|kind| kind == artifact.kind.as_str()) {
             bail!("external artifact kind is no longer permitted");
         }
-        let metadata = path.metadata().context("inspect external artifact")?;
-        if !metadata.is_file()
-            || metadata.len() != artifact.size_bytes
-            || bijux_dna_infra::hash_file_sha256(path).context("rehash external artifact")?
-                != artifact.sha256
-        {
-            bail!("external artifact identity changed");
-        }
+        storage::verify(&repository_root, &distributable_image_root, artifact)?;
         validate_persisted_version_probe(&admission, artifact)?;
     }
     Ok(admission)
@@ -313,116 +228,12 @@ pub fn bind_external_artifact_command(
         distributable_image_root,
         admission_path,
     )?;
-    match admission.availability {
-        ExternalArtifactAdmissionStatus::Admitted => {}
-        ExternalArtifactAdmissionStatus::BlockedExternalAccess => {
-            bail!(
-                "external artifact access blocked for {}: {}",
-                admission.tool_id,
-                admission.blocker_reason.as_deref().unwrap_or("unspecified")
-            );
-        }
-        ExternalArtifactAdmissionStatus::Unavailable => {
-            bail!(
-                "external artifact unavailable for {}: {}",
-                admission.tool_id,
-                admission.blocker_reason.as_deref().unwrap_or("unspecified")
-            );
-        }
-    }
-    if !admission.stage_ids.iter().any(|allowed| allowed == stage_id) {
-        bail!("tool {} is not bound to stage {stage_id}", admission.tool_id);
-    }
-    let [program, arguments @ ..] = command else {
-        bail!("external artifact stage command is empty");
-    };
-    let artifact = admission.artifact.context("admitted external artifact has no identity")?;
-    let (executable, arguments) = match artifact.kind {
-        ExternalArtifactKind::Binary => {
-            bind_binary_command(program, arguments, &admission.expected_binary, &artifact.path)?
-        }
-        ExternalArtifactKind::ApptainerSif => {
-            require_expected_binary_invocation(command, &admission.expected_binary)?;
-            let executable =
-                apptainer_executable.map_or_else(|| PathBuf::from("apptainer"), Path::to_path_buf);
-            let mut bound = vec!["exec".to_string(), artifact.path];
-            bound.extend(command.iter().cloned());
-            (executable.display().to_string(), bound)
-        }
-    };
-    Ok(ExternalArtifactCommandBinding {
-        tool_id: admission.tool_id,
-        stage_id: stage_id.to_string(),
-        artifact_sha256: artifact.sha256,
-        executable,
-        arguments,
-    })
-}
-
-fn bind_binary_command(
-    program: &str,
-    arguments: &[String],
-    expected_binary: &str,
-    artifact_path: &str,
-) -> Result<(String, Vec<String>)> {
-    if program == expected_binary {
-        return Ok((artifact_path.to_string(), arguments.to_vec()));
-    }
-    let [shell_option, script, remaining @ ..] = arguments else {
-        bail!("external artifact stage command must invoke {expected_binary}");
-    };
-    if !matches!(program, "sh" | "/bin/sh" | "bash" | "/bin/bash")
-        || !matches!(shell_option.as_str(), "-c" | "-lc")
-    {
-        bail!("external artifact stage command must invoke {expected_binary}");
-    }
-    let bound_script = replace_shell_command_word(script, expected_binary, artifact_path)?;
-    let mut bound_arguments = vec![shell_option.clone(), bound_script];
-    bound_arguments.extend_from_slice(remaining);
-    Ok((program.to_string(), bound_arguments))
-}
-
-fn require_expected_binary_invocation(command: &[String], expected_binary: &str) -> Result<()> {
-    let [program, arguments @ ..] = command else {
-        bail!("external artifact stage command is empty");
-    };
-    if program == expected_binary {
-        return Ok(());
-    }
-    let [shell_option, script, ..] = arguments else {
-        bail!("external artifact stage command must invoke {expected_binary}");
-    };
-    if !matches!(program.as_str(), "sh" | "/bin/sh" | "bash" | "/bin/bash")
-        || !matches!(shell_option.as_str(), "-c" | "-lc")
-    {
-        bail!("external artifact stage command must invoke {expected_binary}");
-    }
-    replace_shell_command_word(script, expected_binary, expected_binary).map(|_| ())
-}
-
-fn replace_shell_command_word(
-    script: &str,
-    expected_binary: &str,
-    replacement: &str,
-) -> Result<String> {
-    let pattern = Regex::new(&format!(
-        r"(?m)(^|[;&|])([[:space:]]*){}([[:space:]]|$)",
-        regex::escape(expected_binary)
-    ))
-    .context("compile external artifact shell binding")?;
-    if !pattern.is_match(script) {
-        bail!("external artifact shell command must invoke {expected_binary}");
-    }
-    let quoted = shell_quote(replacement);
-    Ok(pattern
-        .replace_all(script, |captures: &regex::Captures<'_>| {
-            format!("{}{}{}{}", &captures[1], &captures[2], quoted, &captures[3])
-        })
-        .into_owned())
-}
-
-fn shell_quote(value: &str) -> String {
-    format!("'{}'", value.replace('\'', "'\"'\"'"))
+    super::binding::bind_verified_external_artifact_command(
+        admission,
+        stage_id,
+        command,
+        apptainer_executable,
+    )
 }
 
 fn inspect_artifact(
@@ -430,6 +241,7 @@ fn inspect_artifact(
     distributable_image_root: &Path,
     tool: &crate::evidence::tool_contract::ContainerCatalogTool,
     input: &ExternalArtifactInput<'_>,
+    transport: &mut dyn ExternalArtifactProbeTransport,
 ) -> Result<(ExternalArtifactIdentity, ExternalArtifactVersionProbe)> {
     if input.lawful_access_basis.trim().is_empty() {
         bail!("external artifact requires a lawful access basis");
@@ -438,226 +250,9 @@ fn inspect_artifact(
         bail!("tool {} does not permit {} artifacts", tool.id, input.kind.as_str());
     }
     validate_sha256(input.expected_sha256, "external artifact checksum")?;
-    let artifact_path = input.path.canonicalize().context("canonicalize external artifact")?;
-    if artifact_path.starts_with(repository_root) {
-        bail!("external artifact must remain outside the product repository");
-    }
-    if artifact_path.starts_with(distributable_image_root) {
-        bail!("external artifact must remain outside the distributable active image root");
-    }
-    let metadata = artifact_path.metadata().context("inspect external artifact")?;
-    if !metadata.is_file() {
-        bail!("external artifact is not a regular file");
-    }
-    let sha256 =
-        bijux_dna_infra::hash_file_sha256(&artifact_path).context("hash external artifact")?;
-    if sha256 != input.expected_sha256.to_ascii_lowercase() {
-        bail!("external artifact checksum does not match operator declaration");
-    }
-    let command = version_probe_command(tool, input, &artifact_path)?;
-    let output = execute_version_probe(&command)?;
-    let expected = Regex::new(&tool.expected_version_regex)
-        .context("compile external artifact version contract")?;
-    if !expected.is_match(&output) {
-        bail!("external artifact version output does not match catalog contract");
-    }
-    Ok((
-        ExternalArtifactIdentity {
-            kind: input.kind,
-            path: artifact_path.display().to_string(),
-            sha256,
-            size_bytes: metadata.len(),
-        },
-        ExternalArtifactVersionProbe {
-            command,
-            output_sha256: bijux_dna_infra::hash_bytes_sha256(output.as_bytes()),
-            output,
-        },
-    ))
-}
-
-fn version_probe_command(
-    tool: &crate::evidence::tool_contract::ContainerCatalogTool,
-    input: &ExternalArtifactInput<'_>,
-    artifact_path: &Path,
-) -> Result<Vec<String>> {
-    let tokens = tool.version_command.split_ascii_whitespace().collect::<Vec<_>>();
-    let [program, arguments @ ..] = tokens.as_slice() else {
-        bail!("external artifact version command is empty");
-    };
-    if *program != tool.expected_bin {
-        bail!("external artifact version command does not invoke the expected binary");
-    }
-    let mut command = match input.kind {
-        ExternalArtifactKind::Binary => vec![artifact_path.display().to_string()],
-        ExternalArtifactKind::ApptainerSif => vec![
-            input
-                .apptainer_executable
-                .map_or_else(|| PathBuf::from("apptainer"), Path::to_path_buf)
-                .display()
-                .to_string(),
-            "exec".to_string(),
-            artifact_path.display().to_string(),
-            tool.expected_bin.clone(),
-        ],
-    };
-    command.extend(arguments.iter().map(|argument| (*argument).to_string()));
-    Ok(command)
-}
-
-fn execute_version_probe(command: &[String]) -> Result<String> {
-    let [program, arguments @ ..] = command else {
-        bail!("external artifact version probe is empty");
-    };
-    let output = Command::new(program)
-        .args(arguments)
-        .output()
-        .with_context(|| format!("execute external artifact version probe {program}"))?;
-    let byte_count = output.stdout.len().saturating_add(output.stderr.len());
-    if byte_count > MAX_VERSION_OUTPUT_BYTES {
-        bail!("external artifact version output exceeds the bounded evidence limit");
-    }
-    if !output.status.success() {
-        bail!("external artifact version probe exited with {}", output.status);
-    }
-    let mut bytes = output.stdout;
-    if !bytes.is_empty() && !output.stderr.is_empty() && !bytes.ends_with(b"\n") {
-        bytes.push(b'\n');
-    }
-    bytes.extend(output.stderr);
-    String::from_utf8(bytes).context("external artifact version output is not UTF-8")
-}
-
-fn validate_persisted_version_probe(
-    admission: &ExternalArtifactAdmission,
-    artifact: &ExternalArtifactIdentity,
-) -> Result<()> {
-    let probe = admission.version_probe.as_ref().context("admission omits version probe")?;
-    let tokens = admission.version_command.split_ascii_whitespace().collect::<Vec<_>>();
-    let [program, version_arguments @ ..] = tokens.as_slice() else {
-        bail!("external artifact version command is empty");
-    };
-    if *program != admission.expected_binary {
-        bail!("external artifact version command does not invoke the expected binary");
-    }
-    let valid_command = match artifact.kind {
-        ExternalArtifactKind::Binary => {
-            probe.command.first().is_some_and(|value| value == &artifact.path)
-                && probe.command[1..]
-                    == version_arguments
-                        .iter()
-                        .map(|argument| (*argument).to_string())
-                        .collect::<Vec<_>>()
-        }
-        ExternalArtifactKind::ApptainerSif => {
-            probe.command.len() >= 4
-                && probe.command[1] == "exec"
-                && probe.command[2] == artifact.path
-                && probe.command[3] == admission.expected_binary
-                && probe.command[4..]
-                    == version_arguments
-                        .iter()
-                        .map(|argument| (*argument).to_string())
-                        .collect::<Vec<_>>()
-        }
-    };
-    let expected = Regex::new(&admission.expected_version_regex)
-        .context("compile persisted external artifact version contract")?;
-    if !valid_command || !expected.is_match(&probe.output) {
-        bail!("external artifact version probe evidence changed");
-    }
-    Ok(())
-}
-
-fn validate_external_artifact_admission(admission: &ExternalArtifactAdmission) -> Result<()> {
-    if admission.schema_version != EXTERNAL_ARTIFACT_ADMISSION_SCHEMA_V2 {
-        bail!("unsupported external-artifact admission schema");
-    }
-    require_timestamp(&admission.recorded_at_utc)?;
-    validate_sha256(&admission.catalog.sha256, "external artifact catalog")?;
-    if admission.catalog.path != "containers/contracts/catalog.toml" {
-        bail!("external-artifact catalog path is not canonical");
-    }
-    if admission.repository_commit.len() != 40
-        || !admission.repository_commit.bytes().all(|byte| byte.is_ascii_hexdigit())
-    {
-        bail!("external-artifact repository commit is invalid");
-    }
-    if admission.tool_id.trim().is_empty()
-        || admission.version.trim().is_empty()
-        || admission.product_support != crate::evidence::ContainerProductSupport::Supported
-        || admission.artifact_delivery
-            == crate::evidence::ContainerArtifactDelivery::RedistributableImage
-        || admission.delivery_reason.trim().is_empty()
-        || admission.distributable_image_root.trim().is_empty()
-        || !Path::new(&admission.distributable_image_root).is_absolute()
-        || admission.stage_ids.is_empty()
-        || admission.expected_binary.trim().is_empty()
-        || admission.version_command.trim().is_empty()
-        || admission.expected_version_regex.trim().is_empty()
-        || admission.redistribution_permitted
-    {
-        bail!("external-artifact admission has an incomplete or distributable tool contract");
-    }
-    let mut stages = admission.stage_ids.clone();
-    stages.sort();
-    stages.dedup();
-    if stages != admission.stage_ids {
-        bail!("external-artifact stage bindings must be sorted and unique");
-    }
-    match admission.availability {
-        ExternalArtifactAdmissionStatus::Admitted => {
-            let basis = admission.lawful_access_basis.as_deref().unwrap_or_default();
-            let artifact = admission.artifact.as_ref().context("admission omits artifact")?;
-            let probe =
-                admission.version_probe.as_ref().context("admission omits version probe")?;
-            if basis.trim().is_empty() || admission.blocker_reason.is_some() {
-                bail!("admitted external artifact has invalid access state");
-            }
-            validate_sha256(&artifact.sha256, "external artifact")?;
-            validate_sha256(&probe.output_sha256, "external artifact version output")?;
-            if artifact.path.trim().is_empty()
-                || artifact.size_bytes == 0
-                || probe.command.is_empty()
-                || probe.output.trim().is_empty()
-                || bijux_dna_infra::hash_bytes_sha256(probe.output.as_bytes())
-                    != probe.output_sha256
-            {
-                bail!("admitted external artifact has incomplete identity evidence");
-            }
-        }
-        ExternalArtifactAdmissionStatus::BlockedExternalAccess => {
-            if admission.artifact.is_some()
-                || admission.version_probe.is_some()
-                || admission.lawful_access_basis.is_some()
-                || admission.blocker_reason.as_deref().unwrap_or_default().trim().is_empty()
-            {
-                bail!("blocked external artifact has invalid access state");
-            }
-        }
-        ExternalArtifactAdmissionStatus::Unavailable => {
-            if admission.artifact.is_some()
-                || admission.version_probe.is_some()
-                || admission.lawful_access_basis.is_some()
-                || admission.blocker_reason.as_deref().unwrap_or_default().trim().is_empty()
-            {
-                bail!("unavailable external artifact has invalid access state");
-            }
-        }
-    }
-    Ok(())
-}
-
-fn validate_sha256(value: &str, label: &str) -> Result<()> {
-    if value.len() != 64 || !value.bytes().all(|byte| byte.is_ascii_hexdigit()) {
-        bail!("{label} SHA-256 identity is invalid");
-    }
-    Ok(())
-}
-
-fn require_timestamp(value: &str) -> Result<()> {
-    if value.trim().is_empty() || !value.ends_with('Z') || !value.contains('T') {
-        bail!("external-artifact timestamp is not UTC RFC 3339");
-    }
-    Ok(())
+    let artifact = storage::observe(repository_root, distributable_image_root, input)?;
+    let version_probe = probe_version(tool, input, Path::new(&artifact.path), transport)?;
+    storage::verify(repository_root, distributable_image_root, &artifact)
+        .context("external artifact changed during version observation")?;
+    Ok((artifact, version_probe))
 }

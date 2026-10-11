@@ -54,3 +54,5 @@ TEST_TMP_DIR=artifacts/test-tmp CARGO_TARGET_DIR=artifacts/cargo-target cargo te
 Qualification-registry contracts retain the complete 89-tool, 159-run namespace and its historical/tombstone cases. The existing wire fixture additionally replays legacy v2 delivery declarations, rejects unknown versions/fields and restores current bytes. The existing run-index case checks captured source size/digest and decoded runs against the canonical registry. This does not simulate concurrent file mutation or claim an atomic multi-file capture.
 
 Shared guardrail parser regressions are owned and executed by the policy crate. This boundary suite retains its crate-specific architecture checks; it does not compile another crate's test source. Constructor-only guardrail wrappers provide no source-check coverage and are retired.
+
+Registry projection contracts retain the complete generated container-manifest snapshot under `tests/fixtures/registry_export`. The snapshot and its case metadata move with the export owner; this small wire-format regression complements the existing synthetic projection cases and requires no container execution.

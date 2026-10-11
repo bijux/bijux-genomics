@@ -1,3 +1,6 @@
+use bijux_dna_api::v1::api::bench::{
+    project_full_benchmark_observation_rows, FullBenchmarkSourceObservation,
+};
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -14,32 +17,27 @@ pub(crate) use bijux_dna_api::v1::api::bench::{
 use serde_json::Value;
 
 use super::all_domain_expected_benchmark_results::{
-    render_all_domain_expected_benchmark_results, AllDomainExpectedBenchmarkResultsReport,
+    render_all_domain_expected_benchmark_results,
     DEFAULT_ALL_DOMAIN_EXPECTED_BENCHMARK_RESULTS_PATH,
 };
 use super::all_domain_failure_classification::{
-    render_all_domain_failure_classification, AllDomainFailureClassificationReport,
-    DEFAULT_ALL_DOMAIN_FAILURE_CLASSIFICATION_PATH,
+    render_all_domain_failure_classification, DEFAULT_ALL_DOMAIN_FAILURE_CLASSIFICATION_PATH,
 };
 use super::all_domain_missing_result_audit::{
-    render_all_domain_missing_result_audit, AllDomainMissingResultStatus,
-    AllDomainMissingResultTestReport, DEFAULT_ALL_DOMAIN_MISSING_RESULT_TEST_PATH,
+    render_all_domain_missing_result_audit, DEFAULT_ALL_DOMAIN_MISSING_RESULT_TEST_PATH,
 };
 use crate::commands::benchmark::local_all_domain_fake_failures::{
-    fake_run_all_domain_failures, AllDomainFakeFailuresManifest,
-    DEFAULT_ALL_DOMAIN_FAKE_FAILURE_ROOT,
+    fake_run_all_domain_failures, DEFAULT_ALL_DOMAIN_FAKE_FAILURE_ROOT,
 };
 use crate::commands::benchmark::local_all_domain_fake_runs::{
-    fake_run_all_domain_benchmark_results, AllDomainFakeRunsReport,
-    DEFAULT_ALL_DOMAIN_FAKE_RUN_ROOT,
+    fake_run_all_domain_benchmark_results, DEFAULT_ALL_DOMAIN_FAKE_RUN_ROOT,
 };
 use crate::commands::benchmark::local_essential_pipeline_fake_runs::{
     fake_run_essential_pipelines, EssentialPipelineFakeRunsReport,
     DEFAULT_ESSENTIAL_PIPELINE_FAKE_RUN_ROOT,
 };
 use crate::commands::benchmark::local_real_smoke_core_subset::{
-    render_real_smoke_core_subset, RealSmokeCoreSubsetExecutionKind, RealSmokeCoreSubsetReport,
-    DEFAULT_REAL_SMOKE_CORE_SUBSET_PATH,
+    render_real_smoke_core_subset, DEFAULT_REAL_SMOKE_CORE_SUBSET_PATH,
 };
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
@@ -108,14 +106,25 @@ pub(crate) fn render_full_benchmark_result_collector(
     )?;
 
     let mut rows = Vec::new();
-    rows.extend(collect_expected_rows(&expected_report));
+    rows.extend(project_full_benchmark_observation_rows(
+        FullBenchmarkSourceObservation::Expected(&expected_report),
+    )?);
     rows.extend(collect_pipeline_rows(repo_root, &pipeline_report)?);
-    rows.extend(collect_fake_run_rows(&fake_run_report));
-    rows.extend(collect_fake_failure_rows(&fake_failure_report));
-    rows.extend(collect_missing_result_rows(&missing_result_report));
-    rows.extend(collect_real_smoke_rows(&real_smoke_report));
-    rows.extend(collect_insufficient_data_rows(&failure_classification_report));
-    rows.extend(collect_unsupported_pair_rows(&failure_classification_report));
+    rows.extend(project_full_benchmark_observation_rows(
+        FullBenchmarkSourceObservation::Simulated(&fake_run_report),
+    )?);
+    rows.extend(project_full_benchmark_observation_rows(
+        FullBenchmarkSourceObservation::SimulatedFailures(&fake_failure_report),
+    )?);
+    rows.extend(project_full_benchmark_observation_rows(
+        FullBenchmarkSourceObservation::MissingResultAudit(&missing_result_report),
+    )?);
+    rows.extend(project_full_benchmark_observation_rows(
+        FullBenchmarkSourceObservation::SmokeSubset(&real_smoke_report),
+    )?);
+    rows.extend(project_full_benchmark_observation_rows(
+        FullBenchmarkSourceObservation::FailureClassification(&failure_classification_report),
+    )?);
     rows.sort_by(|left, right| {
         left.domain
             .cmp(&right.domain)
@@ -209,36 +218,6 @@ pub(crate) fn render_full_benchmark_result_collector(
     Ok(report)
 }
 
-fn collect_expected_rows(
-    report: &AllDomainExpectedBenchmarkResultsReport,
-) -> Vec<FullBenchmarkResultCollectorRow> {
-    report
-        .rows
-        .iter()
-        .map(|row| FullBenchmarkResultCollectorRow {
-            record_id: format!("expected:{}", row.result_id),
-            source_surface: "all_domain_expected_benchmark_results".to_string(),
-            surface_kind: FullBenchmarkResultSurfaceKind::BenchmarkExpected,
-            result_status: FullBenchmarkResultStatus::Expected,
-            domain: row.domain.clone(),
-            stage_id: row.stage_id.clone(),
-            tool_id: row.tool_id.clone(),
-            pipeline_id: None,
-            node_id: None,
-            result_id: Some(row.result_id.clone()),
-            execution_id: None,
-            corpus_id: Some(row.corpus_id.clone()),
-            asset_profile_id: Some(row.asset_profile_id.clone()),
-            report_section: Some(row.report_section.clone()),
-            evidence_path: report.output_path.clone(),
-            manifest_path: None,
-            declared_output_count: row.expected_outputs.len(),
-            normalized_metric_count: row.expected_metrics.len(),
-            detail: "canonical benchmark-ready result binding".to_string(),
-        })
-        .collect()
-}
-
 fn collect_pipeline_rows(
     repo_root: &Path,
     report: &EssentialPipelineFakeRunsReport,
@@ -275,198 +254,6 @@ fn collect_pipeline_rows(
         }
     }
     Ok(rows)
-}
-
-fn collect_fake_run_rows(report: &AllDomainFakeRunsReport) -> Vec<FullBenchmarkResultCollectorRow> {
-    report
-        .results
-        .iter()
-        .map(|row| FullBenchmarkResultCollectorRow {
-            record_id: format!("fake-run:{}", row.result_id),
-            source_surface: "all_domain_fake_runs".to_string(),
-            surface_kind: FullBenchmarkResultSurfaceKind::FakeRun,
-            result_status: FullBenchmarkResultStatus::Succeeded,
-            domain: row.domain.clone(),
-            stage_id: row.stage_id.clone(),
-            tool_id: row.tool_id.clone(),
-            pipeline_id: None,
-            node_id: None,
-            result_id: Some(row.result_id.clone()),
-            execution_id: None,
-            corpus_id: Some(row.corpus_id.clone()),
-            asset_profile_id: Some(row.asset_profile_id.clone()),
-            report_section: None,
-            evidence_path: row.metrics_path.clone(),
-            manifest_path: Some(row.stage_result_path.clone()),
-            declared_output_count: row.declared_output_count,
-            normalized_metric_count: row.expected_metric_count,
-            detail: format!("fake-run materialized via `{}`", row.command_source),
-        })
-        .collect()
-}
-
-fn collect_fake_failure_rows(
-    report: &AllDomainFakeFailuresManifest,
-) -> Vec<FullBenchmarkResultCollectorRow> {
-    report
-        .failures
-        .iter()
-        .map(|row| FullBenchmarkResultCollectorRow {
-            record_id: format!("fake-failure:{}", row.result_id),
-            source_surface: "all_domain_fake_failures".to_string(),
-            surface_kind: FullBenchmarkResultSurfaceKind::FakeFailure,
-            result_status: FullBenchmarkResultStatus::Failed,
-            domain: row.domain.clone(),
-            stage_id: row.stage_id.clone(),
-            tool_id: row.tool_id.clone(),
-            pipeline_id: None,
-            node_id: None,
-            result_id: Some(row.result_id.clone()),
-            execution_id: None,
-            corpus_id: Some(row.corpus_id.clone()),
-            asset_profile_id: Some(row.asset_profile_id.clone()),
-            report_section: None,
-            evidence_path: row.failure_record_path.clone(),
-            manifest_path: None,
-            declared_output_count: row.failed_output_count,
-            normalized_metric_count: 0,
-            detail: format!("fake failure recorded exit_code={}", row.exit_code),
-        })
-        .collect()
-}
-
-fn collect_missing_result_rows(
-    report: &AllDomainMissingResultTestReport,
-) -> Vec<FullBenchmarkResultCollectorRow> {
-    report
-        .rows
-        .iter()
-        .map(|row| FullBenchmarkResultCollectorRow {
-            record_id: format!("missing-audit:{}", row.result_id),
-            source_surface: "all_domain_missing_result_audit".to_string(),
-            surface_kind: FullBenchmarkResultSurfaceKind::MissingResultAudit,
-            result_status: match row.result_status {
-                AllDomainMissingResultStatus::Present => FullBenchmarkResultStatus::Present,
-                AllDomainMissingResultStatus::MissingResult => {
-                    FullBenchmarkResultStatus::MissingResult
-                }
-            },
-            domain: row.domain.clone(),
-            stage_id: row.stage_id.clone(),
-            tool_id: row.tool_id.clone(),
-            pipeline_id: None,
-            node_id: None,
-            result_id: Some(row.result_id.clone()),
-            execution_id: None,
-            corpus_id: Some(row.corpus_id.clone()),
-            asset_profile_id: Some(row.asset_profile_id.clone()),
-            report_section: Some(row.report_section.clone()),
-            evidence_path: row.audit_manifest_path.clone(),
-            manifest_path: Some(row.audit_manifest_path.clone()),
-            declared_output_count: row.expected_output_artifact_ids.len(),
-            normalized_metric_count: row.expected_metrics.len(),
-            detail: row.reason.clone(),
-        })
-        .collect()
-}
-
-fn collect_real_smoke_rows(
-    report: &RealSmokeCoreSubsetReport,
-) -> Vec<FullBenchmarkResultCollectorRow> {
-    report
-        .rows
-        .iter()
-        .map(|row| FullBenchmarkResultCollectorRow {
-            record_id: format!("real-smoke:{}", row.execution_id),
-            source_surface: "real_smoke_core_subset".to_string(),
-            surface_kind: FullBenchmarkResultSurfaceKind::RealSmoke,
-            result_status: FullBenchmarkResultStatus::Succeeded,
-            domain: row.domain.clone(),
-            stage_id: row.stage_id.clone(),
-            tool_id: row.tool_id.clone(),
-            pipeline_id: None,
-            node_id: None,
-            result_id: None,
-            execution_id: Some(row.execution_id.clone()),
-            corpus_id: Some(row.corpus_id.clone()),
-            asset_profile_id: Some(row.asset_profile_id.clone()),
-            report_section: None,
-            evidence_path: row.evidence_path.clone(),
-            manifest_path: row.stage_result_manifest_path.clone(),
-            declared_output_count: 0,
-            normalized_metric_count: row.normalized_metric_count,
-            detail: match row.execution_kind {
-                RealSmokeCoreSubsetExecutionKind::Stage => {
-                    "governed real-smoke stage execution".to_string()
-                }
-                RealSmokeCoreSubsetExecutionKind::PipelineBridge => {
-                    "governed real-smoke pipeline bridge execution".to_string()
-                }
-            },
-        })
-        .collect()
-}
-
-fn collect_insufficient_data_rows(
-    report: &AllDomainFailureClassificationReport,
-) -> Vec<FullBenchmarkResultCollectorRow> {
-    report
-        .rows
-        .iter()
-        .filter(|row| row.class_id == "insufficient_data")
-        .map(|row| FullBenchmarkResultCollectorRow {
-            record_id: format!("insufficient-data:{}:{}:{}", row.domain, row.stage_id, row.tool_id),
-            source_surface: "all_domain_failure_classification".to_string(),
-            surface_kind: FullBenchmarkResultSurfaceKind::FailureClassification,
-            result_status: FullBenchmarkResultStatus::InsufficientData,
-            domain: row.domain.clone(),
-            stage_id: row.stage_id.clone(),
-            tool_id: row.tool_id.clone(),
-            pipeline_id: None,
-            node_id: None,
-            result_id: row.result_id.clone(),
-            execution_id: None,
-            corpus_id: None,
-            asset_profile_id: None,
-            report_section: None,
-            evidence_path: row.evidence_path.clone(),
-            manifest_path: None,
-            declared_output_count: 0,
-            normalized_metric_count: 1,
-            detail: row.detail.clone(),
-        })
-        .collect()
-}
-
-fn collect_unsupported_pair_rows(
-    report: &AllDomainFailureClassificationReport,
-) -> Vec<FullBenchmarkResultCollectorRow> {
-    report
-        .rows
-        .iter()
-        .filter(|row| row.class_id == "unsupported_pair")
-        .map(|row| FullBenchmarkResultCollectorRow {
-            record_id: format!("unsupported-pair:{}:{}:{}", row.domain, row.stage_id, row.tool_id),
-            source_surface: "all_domain_failure_classification".to_string(),
-            surface_kind: FullBenchmarkResultSurfaceKind::UnsupportedPair,
-            result_status: FullBenchmarkResultStatus::UnsupportedPair,
-            domain: row.domain.clone(),
-            stage_id: row.stage_id.clone(),
-            tool_id: row.tool_id.clone(),
-            pipeline_id: None,
-            node_id: None,
-            result_id: row.result_id.clone(),
-            execution_id: None,
-            corpus_id: None,
-            asset_profile_id: None,
-            report_section: None,
-            evidence_path: row.evidence_path.clone(),
-            manifest_path: None,
-            declared_output_count: 0,
-            normalized_metric_count: 0,
-            detail: row.detail.clone(),
-        })
-        .collect()
 }
 
 fn count_surface(

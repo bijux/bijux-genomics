@@ -3,7 +3,7 @@ use anyhow::Result;
 use bijux_dna_bench_model::{AllDomainOutputDeclarationStatus, AllDomainRenderedCommandStep};
 use std::fs;
 
-fn inputs(
+pub(super) fn inputs(
 ) -> (AllDomainExpectedBenchmarkResultRow, AllDomainRenderedCommandRow, AllDomainOutputDeclarationRow)
 {
     let expected = AllDomainExpectedBenchmarkResultRow {
@@ -193,3 +193,59 @@ fn simulation_rejects_existing_symlink_output_and_keeps_external_bytes() -> Resu
     assert!(!root.path().join(DESTINATION).join("manifest.json").exists());
     Ok(())
 }
+
+#[path = "simulation/failure.rs"]
+mod failure;
+
+#[test]
+fn missing_result_projection_binds_simulation_to_typed_manifest_observations() -> Result<()> {
+    use bijux_dna_bench_model::{
+        project_all_domain_missing_result_observation as project,
+        AllDomainMissingResultObservation as Observation, AllDomainMissingResultStatus as Status,
+        BenchmarkStageResultManifest,
+    };
+    let root = tempfile::tempdir()?;
+    let (expected, command, outputs) = inputs();
+    let simulated = fake_run_all_domain_benchmark_results(
+        root.path(),
+        Path::new(DESTINATION),
+        std::slice::from_ref(&expected),
+        std::slice::from_ref(&command),
+        std::slice::from_ref(&outputs),
+    )?;
+    let source = &simulated.results[0];
+    let manifest: BenchmarkStageResultManifest =
+        serde_json::from_slice(&fs::read(root.path().join(&source.stage_result_path))?)?;
+    let observe = |manifest: Option<&BenchmarkStageResultManifest>| {
+        project(Observation { expected: &expected, outputs: &outputs, simulated: source, manifest })
+    };
+    let present = observe(Some(&manifest))?;
+    assert_eq!(present.result_status, Status::Present);
+    assert_eq!(present.observed_output_artifact_ids, present.expected_output_artifact_ids);
+    let missing = observe(None)?;
+    assert_eq!(missing.result_status, Status::MissingResult);
+    assert_eq!(missing.expected_manifest_path, present.expected_manifest_path);
+    assert!(missing.observed_output_artifact_ids.is_empty());
+    let mut wrong = manifest.clone();
+    wrong.tool.id = "foreign".into();
+    assert!(observe(Some(&wrong)).is_err());
+    let mut wrong = manifest;
+    wrong.runtime.mode = "native_execution".into();
+    assert!(observe(Some(&wrong)).is_err());
+    let mut wrong = outputs.clone();
+    wrong.asset_profile_id = "foreign".into();
+    assert!(project(Observation {
+        expected: &expected,
+        outputs: &wrong,
+        simulated: source,
+        manifest: None
+    })
+    .is_err());
+    Ok(())
+}
+
+#[path = "simulation/missing.rs"]
+mod missing;
+
+#[path = "simulation/parser.rs"]
+mod parser;

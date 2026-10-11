@@ -40,3 +40,5 @@
   non-self-referential qualification evidence sets.
 - `tool_eligibility::select_eligible_tools`: applies an explicit role policy to ordered tool
   candidates without loading registries or reading process state.
+
+`analyze_workspace_dependencies` admits a closed crate adjacency map and returns deterministic cycle components and dependency-first order. The iterative policy has no filesystem or process effects. Cyclic graphs have no complete dependency order; undeclared dependency nodes reject.

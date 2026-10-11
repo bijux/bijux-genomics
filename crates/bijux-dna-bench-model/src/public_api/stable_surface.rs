@@ -58,8 +58,10 @@ pub use crate::contract;
 pub use crate::contract::FullBenchmarkReportAdmissionContext;
 pub use crate::contract::{
     append_attempt_transition, benchmark_attempt_identity_sha256, benchmark_run_definition_sha256,
-    benchmark_run_directory_name, migrate_benchmark_attempt_v1, parse_benchmark_attempt_document,
-    parse_benchmark_cycle_document, validate_active_scope_fast_validation_report,
+    benchmark_run_directory_name, build_benchmark_local_slurm_dependency_report,
+    inspect_benchmark_local_slurm_job_dependencies, migrate_benchmark_attempt_v1,
+    parse_benchmark_attempt_document, parse_benchmark_cycle_document,
+    project_full_benchmark_observation_rows, validate_active_scope_fast_validation_report,
     validate_all_domain_active_stage_tool_matrix, validate_all_domain_expected_benchmark_results,
     validate_all_domain_failure_classification, validate_all_domain_parser_collector,
     validate_all_domain_retained_tools, validate_appraisal_report, validate_attempt_archive,
@@ -136,10 +138,11 @@ pub use crate::contract::{
     validate_stage_registry_extra_pairs, validate_stage_tool_benchmark_ready_report,
     validate_stage_universe, validate_tool_centric_report, validate_utc_timestamp,
     validate_vcf_benchmark_campaign_report, validate_vcf_comparable_metrics_report,
-    ALL_DOMAIN_ACTIVE_STAGE_TOOL_MATRIX_SCHEMA_V1, ALL_DOMAIN_EXPECTED_BENCHMARK_RESULTS_SCHEMA_V1,
-    ALL_DOMAIN_FAILURE_CLASSIFICATION_SCHEMA_V1, ALL_DOMAIN_PARSER_COLLECTOR_SCHEMA_V1,
-    ALL_DOMAIN_RETAINED_TOOLS_SCHEMA_V1, BAM_COMPARABLE_METRICS_SCHEMA_V1,
-    BENCHMARK_ADMITTED_CASE_OBSERVATION_SCHEMA_V1, BENCHMARK_ADMITTED_CASE_OBSERVATION_SCHEMA_V2,
+    FullBenchmarkSourceObservation, ALL_DOMAIN_ACTIVE_STAGE_TOOL_MATRIX_SCHEMA_V1,
+    ALL_DOMAIN_EXPECTED_BENCHMARK_RESULTS_SCHEMA_V1, ALL_DOMAIN_FAILURE_CLASSIFICATION_SCHEMA_V1,
+    ALL_DOMAIN_PARSER_COLLECTOR_SCHEMA_V1, ALL_DOMAIN_RETAINED_TOOLS_SCHEMA_V1,
+    BAM_COMPARABLE_METRICS_SCHEMA_V1, BENCHMARK_ADMITTED_CASE_OBSERVATION_SCHEMA_V1,
+    BENCHMARK_ADMITTED_CASE_OBSERVATION_SCHEMA_V2,
     BENCHMARK_ADMITTED_CASE_OBSERVATION_SET_SCHEMA_V1, BENCHMARK_ATTEMPT_ARCHIVE_SCHEMA_V1,
     BENCHMARK_ATTEMPT_MIGRATION_LEDGER_SCHEMA_V1, BENCHMARK_ATTEMPT_MIGRATION_PLAN_SCHEMA_V1,
     BENCHMARK_ATTEMPT_MIGRATION_VERIFICATION_SCHEMA_V1, BENCHMARK_ATTEMPT_SCHEMA_V1,
@@ -743,11 +746,17 @@ pub use crate::stats::robust_estimators::robust_stats;
 
 pub use crate::contract::{
     build_benchmark_local_all_domain_slurm_scripts_report,
+    build_benchmark_local_slurm_script_body_report, evaluate_benchmark_local_hpc_harness_readiness,
+    evaluate_benchmark_local_hpc_slurm_readiness, inspect_benchmark_local_slurm_script_body,
     validate_benchmark_local_all_domain_slurm_scripts_report,
+    validate_benchmark_local_slurm_script_body_report, BenchmarkLocalHpcHarnessObservation,
+    BenchmarkLocalHpcSlurmObservation,
 };
 pub use crate::model::{
     BenchmarkLocalAllDomainSlurmScriptEntry, BenchmarkLocalAllDomainSlurmScriptsReport,
+    BenchmarkLocalSlurmScriptBodyEntry, BenchmarkLocalSlurmScriptBodyReport,
     BENCHMARK_LOCAL_ALL_DOMAIN_SLURM_SCRIPTS_SCHEMA_V1,
+    BENCHMARK_LOCAL_SLURM_SCRIPT_BODY_SCHEMA_V1,
 };
 
 pub use crate::contract::validate_stage_scoring_config;
@@ -824,15 +833,29 @@ pub use crate::model::hpc_campaign::{
 pub use crate::policy::campaign_monitor::summarize_campaign_monitor;
 
 pub use crate::model::simulation::{
-    all_domain_simulation_elapsed_seconds, all_domain_simulation_output_ids,
-    all_domain_simulation_output_path, all_domain_simulation_output_role,
-    validate_all_domain_simulation_report, validate_all_domain_simulation_result,
-    AllDomainFakeRunMetrics, AllDomainFakeRunOutputEntry, AllDomainFakeRunResultReport,
-    AllDomainFakeRunsReport, ALL_DOMAIN_FAKE_RUNS_SCHEMA_VERSION,
-    ALL_DOMAIN_FAKE_RUN_METRICS_SCHEMA_VERSION, DEFAULT_ALL_DOMAIN_FAKE_RUN_ROOT,
+    all_domain_fake_failure_manifest_schema, all_domain_fake_failure_record_schema,
+    all_domain_missing_result_audit_schema, all_domain_simulation_elapsed_seconds,
+    all_domain_simulation_output_ids, all_domain_simulation_output_path,
+    all_domain_simulation_output_role, validate_all_domain_simulation_report,
+    validate_all_domain_simulation_result, AllDomainFakeFailureOutputEntry,
+    AllDomainFakeFailureRecord, AllDomainFakeFailuresManifest, AllDomainFakeRunMetrics,
+    AllDomainFakeRunOutputEntry, AllDomainFakeRunResultReport, AllDomainFakeRunsReport,
+    AllDomainMissingResultRow, AllDomainMissingResultStatus, AllDomainMissingResultTestReport,
+    ALL_DOMAIN_FAKE_FAILURE_MANIFEST_SCHEMA_VERSION, ALL_DOMAIN_FAKE_FAILURE_RECORD_SCHEMA_VERSION,
+    ALL_DOMAIN_FAKE_RUNS_SCHEMA_VERSION, ALL_DOMAIN_FAKE_RUN_METRICS_SCHEMA_VERSION,
+    ALL_DOMAIN_MISSING_RESULT_TEST_SCHEMA_VERSION, BAM_REMOVED_RESULT_ID,
+    DEFAULT_ALL_DOMAIN_FAKE_FAILURE_ROOT, DEFAULT_ALL_DOMAIN_FAKE_RUN_ROOT,
+    DEFAULT_ALL_DOMAIN_MISSING_RESULT_FIXTURE_ROOT, DEFAULT_ALL_DOMAIN_MISSING_RESULT_TEST_PATH,
+    FASTQ_REMOVED_RESULT_ID, VCF_REMOVED_RESULT_ID,
 };
 
-pub use crate::contract::{admit_all_domain_simulation_inputs, AllDomainSimulationInput};
+pub use crate::contract::{
+    admit_all_domain_missing_result_audit, admit_all_domain_missing_result_inputs,
+    admit_all_domain_simulation_inputs, project_all_domain_missing_result_observation,
+    validate_all_domain_failure_simulation_manifest, validate_all_domain_failure_simulation_record,
+    validate_all_domain_missing_result_audit, AllDomainMissingResultObservation,
+    AllDomainSimulationInput,
+};
 
 pub use crate::model::hpc_campaign::{
     CopyBackEntry, CopyBackManifestReport, COPY_BACK_MANIFEST_SCHEMA_VERSION,
@@ -948,3 +971,33 @@ pub use crate::model::tool_execution_modes::{
 };
 
 pub use crate::contract::{inspect_hpc_replay_payloads, HpcReplayPayloadAdmission};
+
+pub use crate::policy::bundle_redaction::{encode_redacted_hpc_bundle, redact_hpc_text};
+
+pub use crate::policy::hpc_submission::{
+    hpc_stage_domain, plan_hpc_submission, render_hpc_submission_script,
+    select_hpc_redaction_needles, validate_hpc_submission_request, HpcSelectedJob,
+    HpcSubmissionPlan, HpcSubmissionSelector,
+};
+
+pub use crate::model::hpc_campaign::{
+    assemble_hpc_code_submission, assemble_hpc_results_submission, validate_hpc_scheduler_receipt,
+    validate_hpc_submission_report, HpcBundleFoundationLocks, HpcBundleSubmission,
+    HpcCodeFreezeObservation, HpcCodeSubmissionBundle, HpcResultsSubmissionBundle,
+    HpcSubmissionMode, HpcSubmissionSettings, SlurmSubmissionReport, SubmittedJob,
+    HPC_SLURM_SUBMISSION_SCHEMA_VERSION,
+};
+
+/// Closed completion observations and their pure admission boundary.
+pub mod completion {
+    pub use crate::contract::{
+        admit_all_domain_completion_check, validate_all_domain_completion_check,
+    };
+    pub use crate::model::simulation::completion::*;
+}
+
+pub use crate::policy::operational_readiness::harness;
+
+pub use crate::contract::project_all_domain_simulation_parser_row;
+
+pub use crate::model::scope_views::DEFAULT_ALL_DOMAIN_ACTIVE_STAGE_TOOL_MATRIX_PATH;

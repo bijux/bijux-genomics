@@ -101,3 +101,28 @@ fn vcf_ref_match_check_refuses_build_mismatch() {
         .expect_err("build mismatch must refuse");
     assert!(err.to_string().contains("build mismatch"));
 }
+
+#[test]
+fn sample_observation_matches_plain_and_bgzf_vcf_without_weakening_validation() -> anyhow::Result<()>
+{
+    use bijux_dna_stages_vcf::vcf_io::{
+        vcf_index_bgzip_tabix, vcf_sample_count, vcf_validate_input, VcfFieldRequirement,
+    };
+    let dir = tempfile::tempdir()?;
+    let input = std::path::Path::new("tests/fixtures/vcf/default/input.vcf");
+    let indexed = dir.path().join("indexed.vcf.gz");
+    vcf_index_bgzip_tabix(input, &indexed)?;
+    assert_eq!(vcf_sample_count(input)?, 1);
+    assert_eq!(vcf_sample_count(&indexed)?, 1);
+    let invalid = dir.path().join("duplicate_samples.vcf");
+    let raw =
+        std::fs::read_to_string(input)?.replace("\tFORMAT\tsample1", "\tFORMAT\tsample1\tsample1");
+    std::fs::write(&invalid, raw)?;
+    assert_eq!(vcf_sample_count(&invalid)?, 2);
+    assert!(vcf_validate_input(
+        &invalid,
+        VcfFieldRequirement { require_gt: true, require_gl: false }
+    )
+    .is_err());
+    Ok(())
+}

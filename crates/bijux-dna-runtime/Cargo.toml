@@ -19,6 +19,7 @@ uuid.workspace = true
 chrono.workspace = true
 
 [dev-dependencies]
+regex.workspace = true
 bijux-dna-policies.workspace = true
 bijux-dna-testkit.workspace = true
 walkdir.workspace = true

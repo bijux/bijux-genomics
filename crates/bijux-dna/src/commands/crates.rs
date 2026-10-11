@@ -170,8 +170,84 @@ const PLANNER_AUDIT_SPECS: &[PlannerCrateAuditSpec] = &[
                 reason: "loads governed local-ready planning inputs and runtime defaults",
             },
             AllowedAuditFileSpec {
-                path: "crates/bijux-dna-planner-bam/src/local_stage_cases.rs",
-                reason: "loads governed local-smoke planning inputs and fixture manifests",
+                path: "crates/bijux-dna-planner-bam/src/benchmark/cases/ancient/authenticity.rs",
+                reason: "loads governed BAM authenticity case inputs",
+            },
+            AllowedAuditFileSpec {
+                path: "crates/bijux-dna-planner-bam/src/benchmark/cases/ancient/damage.rs",
+                reason: "loads governed BAM damage case inputs",
+            },
+            AllowedAuditFileSpec {
+                path: "crates/bijux-dna-planner-bam/src/benchmark/cases/ancient/sex.rs",
+                reason: "loads governed BAM sex case inputs",
+            },
+            AllowedAuditFileSpec {
+                path: "crates/bijux-dna-planner-bam/src/benchmark/cases/downstream/bias_mitigation.rs",
+                reason: "loads governed BAM bias mitigation case inputs",
+            },
+            AllowedAuditFileSpec {
+                path: "crates/bijux-dna-planner-bam/src/benchmark/cases/downstream/kinship.rs",
+                reason: "loads governed BAM kinship case inputs",
+            },
+            AllowedAuditFileSpec {
+                path: "crates/bijux-dna-planner-bam/src/benchmark/cases/pre/filter.rs",
+                reason: "loads governed BAM filter case inputs",
+            },
+            AllowedAuditFileSpec {
+                path: "crates/bijux-dna-planner-bam/src/benchmark/cases/pre/length_filter.rs",
+                reason: "loads governed BAM length filter case inputs",
+            },
+            AllowedAuditFileSpec {
+                path: "crates/bijux-dna-planner-bam/src/benchmark/cases/pre/mapping_summary.rs",
+                reason: "loads governed BAM mapping summary case inputs",
+            },
+            AllowedAuditFileSpec {
+                path: "crates/bijux-dna-planner-bam/src/benchmark/cases/pre/mapq_filter.rs",
+                reason: "loads governed BAM mapq filter case inputs",
+            },
+            AllowedAuditFileSpec {
+                path: "crates/bijux-dna-planner-bam/src/benchmark/cases/pre/overlap_correction.rs",
+                reason: "loads governed BAM overlap correction case inputs",
+            },
+            AllowedAuditFileSpec {
+                path: "crates/bijux-dna-planner-bam/src/benchmark/cases/pre/qc_pre.rs",
+                reason: "loads governed BAM qc pre case inputs",
+            },
+            AllowedAuditFileSpec {
+                path: "crates/bijux-dna-planner-bam/src/benchmark/cases/pre/validate.rs",
+                reason: "loads governed BAM validate case inputs",
+            },
+            AllowedAuditFileSpec {
+                path: "crates/bijux-dna-planner-bam/src/benchmark/cases/qc/complexity.rs",
+                reason: "loads governed BAM complexity case inputs",
+            },
+            AllowedAuditFileSpec {
+                path: "crates/bijux-dna-planner-bam/src/benchmark/cases/qc/coverage.rs",
+                reason: "loads governed BAM coverage case inputs",
+            },
+            AllowedAuditFileSpec {
+                path: "crates/bijux-dna-planner-bam/src/benchmark/cases/qc/duplication_metrics.rs",
+                reason: "loads governed BAM duplication metrics case inputs",
+            },
+            AllowedAuditFileSpec {
+                path: "crates/bijux-dna-planner-bam/src/benchmark/cases/qc/endogenous_content.rs",
+                reason: "loads governed BAM endogenous content case inputs",
+            },
+            AllowedAuditFileSpec {
+                path: "crates/bijux-dna-planner-bam/src/benchmark/cases/qc/gc_bias.rs",
+                reason: "loads governed BAM gc bias case inputs",
+            },
+            AllowedAuditFileSpec {
+                path: "crates/bijux-dna-planner-bam/src/benchmark/cases/qc/insert_size.rs",
+                reason: "loads governed BAM insert size case inputs",
+            },
+            AllowedAuditFileSpec {
+                path: "crates/bijux-dna-planner-bam/src/benchmark/cases/qc/markdup.rs",
+                reason: "loads governed BAM markdup case inputs",
+            },
+            AllowedAuditFileSpec {
+                path: "crates/bijux-dna-planner-bam/src/benchmark/cases/qc/recalibration.rs",
+                reason: "loads governed BAM recalibration case inputs",
             },
             AllowedAuditFileSpec {
                 path: "crates/bijux-dna-planner-bam/src/selection/domain_tool_specs.rs",
@@ -199,8 +275,92 @@ const PLANNER_AUDIT_SPECS: &[PlannerCrateAuditSpec] = &[
                 reason: "loads governed local-ready FASTQ planning inputs",
             },
             AllowedAuditFileSpec {
-                path: "crates/bijux-dna-planner-fastq/src/planner/local_stage_cases.rs",
-                reason: "loads governed local-smoke FASTQ planning inputs and fixture manifests",
+                path: "crates/bijux-dna-planner-fastq/src/planner/benchmark/cases/amplicon/cluster_otus.rs",
+                reason: "loads governed FASTQ cluster otus case inputs",
+            },
+            AllowedAuditFileSpec {
+                path: "crates/bijux-dna-planner-fastq/src/planner/benchmark/cases/amplicon/infer_asvs.rs",
+                reason: "loads governed FASTQ infer asvs case inputs",
+            },
+            AllowedAuditFileSpec {
+                path: "crates/bijux-dna-planner-fastq/src/planner/benchmark/cases/amplicon/normalize_abundance.rs",
+                reason: "loads governed FASTQ normalize abundance case inputs",
+            },
+            AllowedAuditFileSpec {
+                path: "crates/bijux-dna-planner-fastq/src/planner/benchmark/cases/amplicon/normalize_primers.rs",
+                reason: "loads governed FASTQ normalize primers case inputs",
+            },
+            AllowedAuditFileSpec {
+                path: "crates/bijux-dna-planner-fastq/src/planner/benchmark/cases/amplicon/remove_chimeras.rs",
+                reason: "loads governed FASTQ remove chimeras case inputs",
+            },
+            AllowedAuditFileSpec {
+                path: "crates/bijux-dna-planner-fastq/src/planner/benchmark/cases/pre/detect_adapters.rs",
+                reason: "loads governed FASTQ detect adapters case inputs",
+            },
+            AllowedAuditFileSpec {
+                path: "crates/bijux-dna-planner-fastq/src/planner/benchmark/cases/pre/detect_duplicates_premerge.rs",
+                reason: "loads governed FASTQ detect duplicates premerge case inputs",
+            },
+            AllowedAuditFileSpec {
+                path: "crates/bijux-dna-planner-fastq/src/planner/benchmark/cases/pre/estimate_library_complexity_prealign.rs",
+                reason: "loads governed FASTQ estimate library complexity prealign case inputs",
+            },
+            AllowedAuditFileSpec {
+                path: "crates/bijux-dna-planner-fastq/src/planner/benchmark/cases/pre/profile_overrepresented_sequences.rs",
+                reason: "loads governed FASTQ profile overrepresented sequences case inputs",
+            },
+            AllowedAuditFileSpec {
+                path: "crates/bijux-dna-planner-fastq/src/planner/benchmark/cases/pre/profile_read_lengths.rs",
+                reason: "loads governed FASTQ profile read lengths case inputs",
+            },
+            AllowedAuditFileSpec {
+                path: "crates/bijux-dna-planner-fastq/src/planner/benchmark/cases/pre/validate_reads.rs",
+                reason: "loads governed FASTQ validate reads case inputs",
+            },
+            AllowedAuditFileSpec {
+                path: "crates/bijux-dna-planner-fastq/src/planner/benchmark/cases/qc/profile_reads.rs",
+                reason: "loads governed FASTQ profile reads case inputs",
+            },
+            AllowedAuditFileSpec {
+                path: "crates/bijux-dna-planner-fastq/src/planner/benchmark/cases/qc/report_qc.rs",
+                reason: "loads governed FASTQ report qc case inputs",
+            },
+            AllowedAuditFileSpec {
+                path: "crates/bijux-dna-planner-fastq/src/planner/benchmark/cases/transform/correct_errors.rs",
+                reason: "loads governed FASTQ correct errors case inputs",
+            },
+            AllowedAuditFileSpec {
+                path: "crates/bijux-dna-planner-fastq/src/planner/benchmark/cases/transform/extract_umis.rs",
+                reason: "loads governed FASTQ extract umis case inputs",
+            },
+            AllowedAuditFileSpec {
+                path: "crates/bijux-dna-planner-fastq/src/planner/benchmark/cases/transform/filter_low_complexity.rs",
+                reason: "loads governed FASTQ filter low complexity case inputs",
+            },
+            AllowedAuditFileSpec {
+                path: "crates/bijux-dna-planner-fastq/src/planner/benchmark/cases/transform/filter_reads.rs",
+                reason: "loads governed FASTQ filter reads case inputs",
+            },
+            AllowedAuditFileSpec {
+                path: "crates/bijux-dna-planner-fastq/src/planner/benchmark/cases/transform/merge_pairs.rs",
+                reason: "loads governed FASTQ merge pairs case inputs",
+            },
+            AllowedAuditFileSpec {
+                path: "crates/bijux-dna-planner-fastq/src/planner/benchmark/cases/transform/remove_duplicates.rs",
+                reason: "loads governed FASTQ remove duplicates case inputs",
+            },
+            AllowedAuditFileSpec {
+                path: "crates/bijux-dna-planner-fastq/src/planner/benchmark/cases/transform/trim_polyg_tails.rs",
+                reason: "loads governed FASTQ trim polyg tails case inputs",
+            },
+            AllowedAuditFileSpec {
+                path: "crates/bijux-dna-planner-fastq/src/planner/benchmark/cases/transform/trim_reads.rs",
+                reason: "loads governed FASTQ trim reads case inputs",
+            },
+            AllowedAuditFileSpec {
+                path: "crates/bijux-dna-planner-fastq/src/planner/benchmark/cases/transform/trim_terminal_damage.rs",
+                reason: "loads governed FASTQ trim terminal damage case inputs",
             },
             AllowedAuditFileSpec {
                 path: "crates/bijux-dna-planner-fastq/src/planner/quality_sampling.rs",
@@ -622,142 +782,6 @@ fn crate_cycle_category(crate_name: &str) -> Option<&'static str> {
 
 fn audited_crate_cycle_names() -> BTreeSet<&'static str> {
     CRATE_CYCLE_CATEGORIES.iter().flat_map(|spec| spec.crates.iter().copied()).collect()
-}
-
-fn strongly_connected_components(
-    adjacency: &BTreeMap<String, BTreeSet<String>>,
-) -> Vec<Vec<String>> {
-    struct TarjanState {
-        index: usize,
-        indices: BTreeMap<String, usize>,
-        lowlinks: BTreeMap<String, usize>,
-        stack: Vec<String>,
-        on_stack: BTreeSet<String>,
-        components: Vec<Vec<String>>,
-    }
-
-    fn visit(node: &str, adjacency: &BTreeMap<String, BTreeSet<String>>, state: &mut TarjanState) {
-        let index = state.index;
-        state.index += 1;
-        state.indices.insert(node.to_string(), index);
-        state.lowlinks.insert(node.to_string(), index);
-        state.stack.push(node.to_string());
-        state.on_stack.insert(node.to_string());
-
-        let neighbors = adjacency.get(node).cloned().unwrap_or_default();
-        for neighbor in neighbors {
-            if !state.indices.contains_key(&neighbor) {
-                visit(&neighbor, adjacency, state);
-                let Some(neighbor_lowlink) = state.lowlinks.get(&neighbor).copied() else {
-                    panic!("neighbor lowlink must exist after visit");
-                };
-                if let Some(node_lowlink) = state.lowlinks.get_mut(node) {
-                    *node_lowlink = (*node_lowlink).min(neighbor_lowlink);
-                }
-            } else if state.on_stack.contains(&neighbor) {
-                let Some(neighbor_index) = state.indices.get(&neighbor).copied() else {
-                    panic!("stacked neighbor index must exist");
-                };
-                if let Some(node_lowlink) = state.lowlinks.get_mut(node) {
-                    *node_lowlink = (*node_lowlink).min(neighbor_index);
-                }
-            }
-        }
-
-        let Some(node_lowlink) = state.lowlinks.get(node).copied() else {
-            panic!("node lowlink must exist");
-        };
-        let Some(node_index) = state.indices.get(node).copied() else {
-            panic!("node index must exist");
-        };
-        if node_lowlink == node_index {
-            let mut component = Vec::new();
-            while let Some(entry) = state.stack.pop() {
-                state.on_stack.remove(&entry);
-                let done = entry == node;
-                component.push(entry);
-                if done {
-                    break;
-                }
-            }
-            component.sort();
-            state.components.push(component);
-        }
-    }
-
-    let mut state = TarjanState {
-        index: 0,
-        indices: BTreeMap::new(),
-        lowlinks: BTreeMap::new(),
-        stack: Vec::new(),
-        on_stack: BTreeSet::new(),
-        components: Vec::new(),
-    };
-
-    for node in adjacency.keys() {
-        if !state.indices.contains_key(node) {
-            visit(node, adjacency, &mut state);
-        }
-    }
-
-    state.components.sort_by(|left, right| left[0].cmp(&right[0]));
-    state.components
-}
-
-fn cycle_components(adjacency: &BTreeMap<String, BTreeSet<String>>) -> Vec<Vec<String>> {
-    strongly_connected_components(adjacency)
-        .into_iter()
-        .filter(|component| {
-            component.len() > 1
-                || adjacency.get(&component[0]).is_some_and(|deps| deps.contains(&component[0]))
-        })
-        .collect()
-}
-
-fn topological_dependency_order(adjacency: &BTreeMap<String, BTreeSet<String>>) -> Vec<String> {
-    let mut indegree = adjacency
-        .keys()
-        .map(|node| (node.clone(), adjacency[node].len()))
-        .collect::<BTreeMap<_, _>>();
-    let mut dependents = adjacency
-        .keys()
-        .map(|node| (node.clone(), BTreeSet::<String>::new()))
-        .collect::<BTreeMap<_, _>>();
-
-    for (from, deps) in adjacency {
-        for dep in deps {
-            dependents.entry(dep.clone()).or_default().insert(from.clone());
-        }
-    }
-
-    let mut ready = indegree
-        .iter()
-        .filter_map(|(node, degree)| (*degree == 0).then_some(node.clone()))
-        .collect::<Vec<_>>();
-    ready.sort();
-
-    let mut order = Vec::with_capacity(adjacency.len());
-    while let Some(node) = ready.first().cloned() {
-        ready.remove(0);
-        order.push(node.clone());
-        let next_dependents = dependents.get(&node).cloned().unwrap_or_default();
-        for dependent in next_dependents {
-            let Some(entry) = indegree.get_mut(&dependent) else {
-                panic!("dependent must remain present in indegree map");
-            };
-            *entry -= 1;
-            if *entry == 0 {
-                ready.push(dependent);
-            }
-        }
-        ready.sort();
-    }
-
-    if order.len() == adjacency.len() {
-        order
-    } else {
-        Vec::new()
-    }
 }
 
 fn gate_cargo_target_dir_with_explicit_path(cwd: &Path, explicit_path: Option<&Path>) -> PathBuf {
@@ -2262,8 +2286,13 @@ pub fn write_no_crate_cycles_report(cwd: &Path, output_path: &Path) -> Result<No
         &direct_deps,
         &direct_dependents,
     )?;
-    let cycles = collect_no_crate_cycle_components(&direct_deps);
-    let topological_order = collect_no_crate_cycle_topological_order(&direct_deps, &cycles);
+    let analysis = bijux_dna_api::v1::api::analyze_workspace_dependencies(&direct_deps)?;
+    let cycles = analysis
+        .cycles
+        .into_iter()
+        .map(|crates| NoCrateCyclesComponent { crates })
+        .collect::<Vec<_>>();
+    let topological_order = analysis.dependency_order;
     let skipped_workspace_crates =
         member_names.difference(&configured_names).cloned().collect::<Vec<_>>();
     let report = NoCrateCyclesReport {
@@ -2337,26 +2366,6 @@ fn collect_no_crate_cycle_crates(
             })
         })
         .collect()
-}
-
-fn collect_no_crate_cycle_components(
-    direct_deps: &BTreeMap<String, BTreeSet<String>>,
-) -> Vec<NoCrateCyclesComponent> {
-    cycle_components(direct_deps)
-        .into_iter()
-        .map(|crates| NoCrateCyclesComponent { crates })
-        .collect()
-}
-
-fn collect_no_crate_cycle_topological_order(
-    direct_deps: &BTreeMap<String, BTreeSet<String>>,
-    cycles: &[NoCrateCyclesComponent],
-) -> Vec<String> {
-    if cycles.is_empty() {
-        topological_dependency_order(direct_deps)
-    } else {
-        Vec::new()
-    }
 }
 
 /// # Errors
@@ -2619,62 +2628,11 @@ pub fn write_runner_owned_process_execution_report(
 #[cfg(test)]
 mod tests {
     use super::{
-        build_benchmarking_ready_crate_shape_gate_report, cycle_components,
-        gate_cargo_target_dir_with_explicit_path, topological_dependency_order,
+        build_benchmarking_ready_crate_shape_gate_report, gate_cargo_target_dir_with_explicit_path,
         CrateShapeGateCheckReport, CRATE_CYCLE_CATEGORIES, CRATE_CYCLE_CLI_CRATES,
         CRATE_CYCLE_DOMAIN_CRATES,
     };
-    use std::collections::{BTreeMap, BTreeSet};
     use std::path::Path;
-
-    fn graph(nodes: &[&str], edges: &[(&str, &str)]) -> BTreeMap<String, BTreeSet<String>> {
-        let mut graph = nodes
-            .iter()
-            .map(|node| ((*node).to_string(), BTreeSet::<String>::new()))
-            .collect::<BTreeMap<_, _>>();
-        for (from, to) in edges {
-            graph.entry((*from).to_string()).or_default().insert((*to).to_string());
-        }
-        graph
-    }
-
-    #[test]
-    fn cycle_components_detects_multi_crate_cycle() {
-        let graph = graph(
-            &["bijux-dna-analyze", "bijux-dna-bench", "bijux-dna-bench-model"],
-            &[
-                ("bijux-dna-analyze", "bijux-dna-bench"),
-                ("bijux-dna-bench", "bijux-dna-bench-model"),
-                ("bijux-dna-bench-model", "bijux-dna-analyze"),
-            ],
-        );
-
-        assert_eq!(
-            cycle_components(&graph),
-            vec![vec![
-                "bijux-dna-analyze".to_string(),
-                "bijux-dna-bench".to_string(),
-                "bijux-dna-bench-model".to_string(),
-            ]]
-        );
-    }
-
-    #[test]
-    fn topological_dependency_order_lists_dependencies_before_dependents() {
-        let graph = graph(
-            &["bijux-dna", "bijux-dna-api", "bijux-dna-core"],
-            &[("bijux-dna", "bijux-dna-api"), ("bijux-dna-api", "bijux-dna-core")],
-        );
-
-        assert_eq!(
-            topological_dependency_order(&graph),
-            vec![
-                "bijux-dna-core".to_string(),
-                "bijux-dna-api".to_string(),
-                "bijux-dna".to_string(),
-            ]
-        );
-    }
 
     #[test]
     fn crate_cycle_category_configuration_keeps_cli_and_domain_scopes_explicit() {

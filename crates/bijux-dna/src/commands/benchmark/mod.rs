@@ -89,7 +89,6 @@ pub(crate) mod local_taxonomy_database_fixture;
 pub(crate) mod local_taxonomy_output_judgment;
 pub(crate) mod local_tool_comparison_template;
 pub(crate) mod local_vcf_admixture_smoke;
-pub(crate) mod local_vcf_call_bam_smoke_support;
 pub(crate) mod local_vcf_call_diploid_smoke;
 pub(crate) mod local_vcf_call_gl_smoke;
 pub(crate) mod local_vcf_call_pseudohaploid_smoke;
@@ -103,7 +102,6 @@ pub(crate) mod local_vcf_imputation_metrics_smoke;
 pub(crate) mod local_vcf_impute_smoke;
 pub(crate) mod local_vcf_micro_smoke_subset;
 pub(crate) mod local_vcf_no_empty_output;
-pub(crate) mod local_vcf_panel_workflow_smoke_support;
 pub(crate) mod local_vcf_pca_smoke;
 pub(crate) mod local_vcf_phasing_smoke;
 pub(crate) mod local_vcf_population_structure_smoke;
@@ -135,3 +133,9 @@ pub(crate) mod suite;
 pub(crate) mod taxonomy_database;
 pub(crate) mod vcf_benchmark_bindings;
 pub(crate) mod workspace;
+
+mod micro_pipeline_inputs;
+
+mod population_inputs;
+
+mod haplotype_inputs;

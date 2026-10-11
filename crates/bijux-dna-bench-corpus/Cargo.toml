@@ -1,0 +1,30 @@
+[package]
+name = "bijux-dna-bench-corpus"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+
+[features]
+default = []
+alignment = ["dep:bijux-dna-domain-bam"]
+variants = ["dep:bijux-dna-domain-vcf"]
+panel-metadata = ["dep:bijux-dna-db-ref", "dep:bijux-dna-infra", "dep:bijux-dna-domain-vcf"]
+
+[dependencies]
+anyhow.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+toml.workspace = true
+flate2.workspace = true
+bijux-dna-domain-bam = { workspace = true, optional = true }
+bijux-dna-domain-vcf = { workspace = true, optional = true }
+
+bijux-dna-db-ref = { workspace = true, optional = true }
+bijux-dna-infra = { workspace = true, optional = true }
+
+[dev-dependencies]
+tempfile.workspace = true
+
+[lints]
+workspace = true

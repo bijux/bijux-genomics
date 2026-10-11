@@ -376,3 +376,82 @@ fn benchmark_cohorts_surface_governed_toolsets_per_fairness_scenario() {
         );
     }
 }
+
+#[test]
+fn benchmark_fixture_projection_preserves_explicit_correction_resources() -> anyhow::Result<()> {
+    use bijux_dna_planner_fastq::{
+        project_local_benchmark_tool_parameters as project, CorrectErrorsStageParams,
+        FastqStageParameters as Parameters,
+    };
+    let mut explicit = CorrectErrorsStageParams::baseline();
+    explicit.genome_size = Some(8_000_000);
+    explicit.musket_kmer_budget = Some(123_456);
+    explicit.threads = Some(3);
+    explicit.conservative_mode = true;
+    for (tool, expected_genome, expected_budget) in
+        [("lighter", Some(8_000_000), None), ("musket", None, Some(123_456))]
+    {
+        let Some(Parameters::CorrectErrors(projected)) = project(
+            "fastq.correct_errors",
+            tool,
+            Some(Parameters::CorrectErrors(explicit.clone())),
+        ) else {
+            anyhow::bail!("correction fixture parameters absent");
+        };
+        assert_eq!(projected.genome_size, expected_genome);
+        assert_eq!(projected.musket_kmer_budget, expected_budget);
+        assert_eq!(projected.threads, explicit.threads);
+        assert_eq!(projected.quality_encoding, explicit.quality_encoding);
+        assert_eq!(projected.conservative_mode, explicit.conservative_mode);
+    }
+    for (tool, expected_genome, expected_budget) in
+        [("lighter", Some(2_500_000), None), ("musket", None, Some(536_870_912))]
+    {
+        let Some(Parameters::CorrectErrors(projected)) = project(
+            "fastq.correct_errors",
+            tool,
+            Some(Parameters::CorrectErrors(CorrectErrorsStageParams::baseline())),
+        ) else {
+            anyhow::bail!("correction fixture parameters absent");
+        };
+        assert_eq!(projected.genome_size, expected_genome);
+        assert_eq!(projected.musket_kmer_budget, expected_budget);
+    }
+    assert!(project("fastq.correct_errors", "lighter", None).is_none());
+    Ok(())
+}
+
+#[test]
+fn benchmark_fixture_projection_retains_supported_merge_settings_and_read_policy(
+) -> anyhow::Result<()> {
+    use bijux_dna_planner_fastq::{
+        project_local_benchmark_tool_parameters as project, FastqStageParameters as Parameters,
+        MergePairsStageParams,
+    };
+    let mut original = MergePairsStageParams::baseline();
+    original.merge_overlap = Some(24);
+    original.min_len = Some(60);
+    original.threads = Some(2);
+    original.unmerged_read_policy =
+        bijux_dna_domain_fastq::params::merge::UnmergedReadPolicy::OmitUnmergedPairs;
+    for tool in ["adapterremoval", "pear", "vsearch", "bbmerge"] {
+        let Some(Parameters::MergePairs(projected)) =
+            project("fastq.merge_pairs", tool, Some(Parameters::MergePairs(original.clone())))
+        else {
+            anyhow::bail!("merge fixture parameters absent");
+        };
+        assert_eq!(projected, original);
+    }
+    for tool in ["leehom", "seqprep"] {
+        let Some(Parameters::MergePairs(projected)) =
+            project("fastq.merge_pairs", tool, Some(Parameters::MergePairs(original.clone())))
+        else {
+            anyhow::bail!("merge fixture parameters absent");
+        };
+        assert_eq!(projected.min_len, None);
+        assert_eq!(projected.merge_overlap, None);
+        assert_eq!(projected.threads, original.threads);
+        assert_eq!(projected.unmerged_read_policy, original.unmerged_read_policy);
+    }
+    Ok(())
+}

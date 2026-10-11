@@ -1,3 +1,4 @@
+//! Owner: benchmark execution-mode observation and validation workflow.
 //! Admit scope, acquire current runtime declarations, then produce a complete validation report.
 use crate::repo::runtime_probe::load_runtime_probe;
 use anyhow::Result;

@@ -46,19 +46,19 @@ fn bench_does_not_import_selection_or_reports() {
 // The local simulation repository owns its disposable destination. No publication
 // authority may consume that destination, and this owner may not adopt other roots.
 fn owns_disposable_destination(source: &Path, destination: &str) -> bool {
-    source == Path::new("crates/bijux-dna-bench/src/repo/simulation.rs")
+    source == Path::new("crates/bijux-dna-bench/src/repo/simulation/mod.rs")
         && destination == "artifacts/benchmark-smoke/simulated-runs"
 }
 
 #[test]
 fn disposable_destination_ownership_does_not_exempt_adjacent_authorities() {
-    let owner = Path::new("crates/bijux-dna-bench/src/repo/simulation.rs");
+    let owner = Path::new("crates/bijux-dna-bench/src/repo/simulation/mod.rs");
     let destination = "artifacts/benchmark-smoke/simulated-runs";
     assert!(owns_disposable_destination(owner, destination));
     assert!(!owns_disposable_destination(owner, "assets/toy"));
     for source in [
         "crates/bijux-dna-bench/src/repo/hpc_campaign/copy_back.rs",
-        "crates/bijux-dna-bench/src/workflow/simulation.rs",
+        "crates/bijux-dna-bench/src/workflow/simulation/mod.rs",
         "crates/bijux-dna-runner/src/backend/bundle/mod.rs",
         "benchmarks/corpora/simulation.json",
     ] {

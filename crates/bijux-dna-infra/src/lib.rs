@@ -13,10 +13,10 @@ pub use stable_surface::init_logging;
 pub use stable_surface::FileLock;
 pub use stable_surface::{
     append_line, atomic_create_bytes, atomic_create_json, atomic_create_with, atomic_write_bytes,
-    atomic_write_json, atomic_write_with, classify_io_error, copy_file, create_file, ensure_dir,
-    read_to_end_bounded, remove_dir_all, remove_empty_dir, remove_file, remove_file_if_exists,
-    remove_path_if_exists, rename, same_filesystem, write_bytes, write_payload, write_string,
-    IoError, IoErrorKind,
+    atomic_write_json, atomic_write_private_bytes, atomic_write_with, classify_io_error, copy_file,
+    create_file, ensure_dir, read_to_end_bounded, remove_dir_all, remove_empty_dir, remove_file,
+    remove_file_if_exists, remove_path_if_exists, rename, same_filesystem, write_bytes,
+    write_payload, write_string, IoError, IoErrorKind,
 };
 pub use stable_surface::{
     archive_attempt_layout, attempt_archive_paths, attempt_archive_rollback_schema,

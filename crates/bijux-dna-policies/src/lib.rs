@@ -72,3 +72,7 @@ pub use security_evidence::{
 pub use tool_eligibility::{
     select_eligible_tools, ToolEligibilityCandidate, ToolEligibilityPolicy, ToolEligibilityTier,
 };
+
+pub use checks::workspace_dependencies::{
+    analyze_workspace_dependencies, WorkspaceDependencyAnalysis,
+};

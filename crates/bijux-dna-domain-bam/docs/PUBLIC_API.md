@@ -55,3 +55,8 @@ Primary catalogs:
 - `BAM_LOCAL_BENCH_STAGE_ID_CATALOG`
 - `BAM_PARAMS_CATALOG`
 - `BAM_METRICS_CATALOG`
+
+`stage_specs::stage_declared_output_ids` returns all output names from the
+authored stage manifest, including optional companion outputs. Its immutable
+projection admits each stage identity and unique output names. The existing
+required-output API retains its narrower meaning. Neither view validates files.

@@ -9,6 +9,7 @@ use super::admission::{
     validate_layout_binding, validate_layout_totals, validate_run_and_tool, validate_sha256,
 };
 use super::observations::{AttemptLedgerView, LayoutEvidenceLock};
+use super::paths::{owned_path, regular_metadata, require_directory, validate_regular_tree};
 use anyhow::{bail, Context, Result};
 use std::collections::BTreeSet;
 use std::fs;
@@ -28,7 +29,9 @@ pub(super) fn load_layout_plan(
     }
     validate_layout_totals(&plan)?;
     for movement in &plan.moves {
-        let lock_path = runs_root.join(safe_relative(&movement.evidence_lock, "evidence lock")?);
+        owned_path(result_root, &movement.source, "source")?;
+        owned_path(result_root, &movement.target, "target")?;
+        let lock_path = owned_path(runs_root, &movement.evidence_lock, "evidence lock")?;
         if !lock_path.is_file()
             || bijux_dna_infra::hash_file_sha256(&lock_path)? != movement.evidence_lock_sha256
         {
@@ -39,6 +42,8 @@ pub(super) fn load_layout_plan(
         if inventory_digest(&lock.source_files)? != movement.inventory_sha256 {
             bail!("tracked source inventory changed: {}", lock_path.display());
         }
+        let active = if movement.applied { &movement.target } else { &movement.source };
+        validate_regular_tree(&owned_path(result_root, active, "active result")?)?;
     }
     Ok(plan)
 }
@@ -68,9 +73,17 @@ pub(super) fn load_archive_plan(
     let ledger = load_attempt_ledger(&request.attempt_ledger_path)?;
     validate_archive_bindings(&plan, &ledger)?;
     for movement in &plan.moves {
+        owned_path(&request.result_root, &movement.source, "source")?;
+        owned_path(&request.archive_root, &movement.target, "target")?;
         if inventory_digest(&movement.files)? != movement.inventory_sha256 {
             bail!("archive plan inventory digest is invalid");
         }
+        let active = if movement.applied {
+            owned_path(&request.archive_root, &movement.target, "active archive")?
+        } else {
+            owned_path(&request.result_root, &movement.source, "active result")?
+        };
+        validate_regular_tree(&active)?;
     }
     Ok(plan)
 }
@@ -117,6 +130,7 @@ fn final_result_names(runs_root: &Path) -> Result<BTreeSet<String>> {
 }
 
 pub(super) fn directory_inventory(root: &Path) -> Result<Vec<ResultFileIdentity>> {
+    require_directory(root)?;
     let mut files = Vec::new();
     collect_files(root, root, &mut files)?;
     if files.is_empty() {
@@ -132,12 +146,13 @@ fn collect_files(root: &Path, current: &Path, files: &mut Vec<ResultFileIdentity
         .collect::<std::io::Result<Vec<_>>>()?;
     entries.sort();
     for path in entries {
-        if path.is_dir() {
+        let metadata = regular_metadata(&path)?;
+        if metadata.is_dir() {
             collect_files(root, &path, files)?;
-        } else if path.is_file() {
+        } else {
             files.push(ResultFileIdentity {
                 path: portable_path(path.strip_prefix(root)?),
-                size_bytes: path.metadata()?.len(),
+                size_bytes: metadata.len(),
                 sha256: bijux_dna_infra::hash_file_sha256(&path)?,
             });
         }
@@ -153,10 +168,11 @@ pub(super) fn validate_inventory(root: &Path, files: &[ResultFileIdentity]) -> R
             bail!("duplicate inventory path for {}: {}", root.display(), relative.display());
         }
         validate_sha256(&file.sha256, "recorded result digest")?;
-        let candidate = root.join(relative);
-        let metadata = candidate
-            .metadata()
-            .with_context(|| format!("recorded result file is absent: {}", candidate.display()))?;
+        let candidate = owned_path(root, &file.path, "inventory path")?;
+        let metadata = regular_metadata(&candidate)?;
+        if !metadata.is_file() {
+            bail!("recorded result is not a regular file: {}", candidate.display());
+        }
         if metadata.len() != file.size_bytes {
             bail!("recorded result size changed: {}", candidate.display());
         }
@@ -200,16 +216,26 @@ pub(super) fn path_exists(path: &Path) -> Result<bool> {
 }
 
 pub(super) fn child_directories(root: &Path) -> Result<Vec<PathBuf>> {
-    let mut paths = fs::read_dir(root)
+    require_directory(root)?;
+    let paths = fs::read_dir(root)
         .with_context(|| format!("read directory {}", root.display()))?
         .map(|entry| entry.map(|value| value.path()))
         .collect::<std::io::Result<Vec<_>>>()?;
-    paths.retain(|path| path.is_dir());
+    let mut directories = Vec::new();
+    for path in paths {
+        if regular_metadata(&path)?.is_dir() {
+            directories.push(path);
+        }
+    }
+    let mut paths = directories;
     paths.sort();
     Ok(paths)
 }
 
 fn load_json<T: serde::de::DeserializeOwned>(path: &Path) -> Result<T> {
+    if !regular_metadata(path)?.is_file() {
+        bail!("JSON evidence is not a regular file: {}", path.display());
+    }
     let raw = fs::read_to_string(path).with_context(|| format!("read JSON {}", path.display()))?;
     serde_json::from_str(&raw).with_context(|| format!("parse JSON {}", path.display()))
 }

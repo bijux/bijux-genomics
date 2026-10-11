@@ -44,3 +44,9 @@ src/
 3. Stage taxonomy and contract modules validate downstream VCF invariants.
 4. Registry rendering functions produce deterministic TOML that tests compare to committed config
    artifacts.
+
+`artifacts/genotype_calls.rs` owns phase-insensitive genotype comparison. Exact
+strings retain equality; otherwise complete calls with at least two alleles are
+compared without allele order or phase separators. This operation does not
+validate genotype syntax. Science evidence and benchmark workflows share this
+domain contract without depending on one another.

@@ -12,7 +12,7 @@
 - Hashing: `hash_bytes_sha256`, `hash_file_sha256`, and deterministic file-or-directory
   `hash_path_sha256`.
 - Filesystem IO: `ensure_dir`, `create_file`, `atomic_create_bytes`, `atomic_create_json`,
-  `atomic_create_with`, `atomic_write_bytes`, `atomic_write_json`, `atomic_write_with`,
+  `atomic_create_with`, `atomic_write_bytes`, `atomic_write_private_bytes`, `atomic_write_json`, `atomic_write_with`,
   `write_bytes`, `write_string`, `append_line`, `copy_file`, `rename`, `read_to_end_bounded`,
   `remove_file`, `remove_file_if_exists`, `remove_dir_all`, `remove_path_if_exists`, `IoError`,
   `IoErrorKind`, and `classify_io_error`.
@@ -45,3 +45,5 @@
 - Breaking behavior changes require explicit approval, focused contract tests, and snapshot updates
   where the public surface changes.
 - Internal helpers are not stable unless they are re-exported from `src/lib.rs`.
+
+`atomic_write_private_bytes` retains private temporary-file permissions through atomic replacement: Unix plaintext files are published as mode `0600`, even when replacing a file with broader permissions. The general atomic writer continues to preserve existing permissions. Callers own destination-directory admission, ACL policy on other platforms, and transactions involving multiple files.

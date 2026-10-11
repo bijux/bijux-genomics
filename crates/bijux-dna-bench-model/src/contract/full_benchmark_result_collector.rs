@@ -339,3 +339,6 @@ fn require_path(value: &str, field: &str) -> Result<(), BenchError> {
 fn invalid<T>(message: impl Into<String>) -> Result<T, BenchError> {
     Err(BenchError::InvalidPolicy(message.into()))
 }
+
+mod projection;
+pub use projection::{project_full_benchmark_observation_rows, FullBenchmarkSourceObservation};

@@ -3,8 +3,9 @@
 //! Stability: v1 (stable).
 
 pub use self::runtime_support::{
-    decrypt_bundle, digest_file_sha256, sha256_hex, sidecar_path_for, write_encrypted_bundle,
-    BundleDecryptRequest, BundleSidecar, BundleWriteRequest,
+    decrypt_bundle, digest_file_sha256, observe_hpc_code_freeze, sha256_hex, sidecar_path_for,
+    submit_slurm_job, write_encrypted_bundle, BundleDecryptRequest, BundleSidecar,
+    BundleWriteRequest, SlurmClientPaths, SlurmDependencyCondition, SlurmSubmitRequest,
 };
 
 mod entrypoints;
@@ -52,3 +53,6 @@ pub use stage_assets::{
     stage_external_asset_requirement, stage_requires_local_assets, StageAssetClass,
     StageExternalAssetRequirement,
 };
+
+mod hpc_submission;
+pub use hpc_submission::HpcSchedulerSubmissionBackend;

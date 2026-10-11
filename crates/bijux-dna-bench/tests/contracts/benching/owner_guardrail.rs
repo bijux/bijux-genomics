@@ -457,7 +457,18 @@ fn thin_cli_uses_model_owned_local_slurm_dependency_contract() {
         repo_root.join("crates/bijux-dna/src/commands/benchmark/local_slurm_dependency_check.rs");
     let contents = fs::read_to_string(&cli_source)
         .unwrap_or_else(|err| panic!("read {}: {err}", cli_source.display()));
-    assert!(contents.contains("validate_benchmark_local_slurm_dependency_check"));
+    assert!(contents.contains("inspect_benchmark_local_slurm_dependencies"));
+    assert!(!contents.contains("fn inspect_job_dependency_sources"));
+    let workflow =
+        repo_root.join("crates/bijux-dna-bench/src/workflow/readiness/slurm_dependencies.rs");
+    let workflow = fs::read_to_string(&workflow)
+        .unwrap_or_else(|err| panic!("read {}: {err}", workflow.display()));
+    assert!(workflow.contains("build_benchmark_local_slurm_dependency_report"));
+    let contract = repo_root
+        .join("crates/bijux-dna-bench-model/src/contract/local_slurm_dependency/inspection.rs");
+    let contract = fs::read_to_string(&contract)
+        .unwrap_or_else(|err| panic!("read {}: {err}", contract.display()));
+    assert!(contract.contains("validate_benchmark_local_slurm_dependency_check"));
     assert!(!contents.contains("struct BenchLocalSlurmDependencyCheckReport {"));
     assert!(!contents.contains("struct BenchLocalSlurmDependencyCheckJob {"));
     assert!(!contents.contains("bijux.bench.local_slurm_dependency_check.v1"));

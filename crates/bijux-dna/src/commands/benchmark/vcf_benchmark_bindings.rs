@@ -1,5 +1,3 @@
-use std::collections::{BTreeMap, BTreeSet};
-
 use anyhow::{anyhow, Result};
 use bijux_dna_api::v1::api::bench::derive_supported_domain_stage_tool_pairs;
 use bijux_dna_domain_vcf::VcfDomainStage;
@@ -8,50 +6,18 @@ use super::local_vcf_stage_matrix::{build_vcf_stage_matrix_rows, VcfStageMatrixR
 
 pub(crate) fn collect_vcf_benchmark_binding_rows() -> Result<Vec<VcfStageMatrixRow>> {
     let repository_root = crate::commands::support::workspace_root::resolve_repo_root()?;
-    let templates = build_vcf_stage_matrix_rows()?
-        .into_iter()
-        .map(|row| (row.stage_id.clone(), row))
-        .collect::<BTreeMap<_, _>>();
-    let supported_pairs = derive_supported_domain_stage_tool_pairs(&repository_root, "vcf")?;
-    let mut rows = supported_pairs
-        .into_iter()
-        .map(|pair| {
-            let template = templates.get(pair.stage_id.as_str()).ok_or_else(|| {
-                anyhow!(
-                    "supported VCF binding `{}` / `{}` has no stage contract template",
-                    pair.stage_id,
-                    pair.tool_id
-                )
-            })?;
-            let mut row = template.clone();
-            row.tool_id = pair.tool_id;
-            Ok(row)
-        })
-        .collect::<Result<Vec<_>>>()?;
-    rows.sort_by(|left, right| {
-        left.stage_id
-            .cmp(&right.stage_id)
-            .then_with(|| left.tool_id.cmp(&right.tool_id))
-            .then_with(|| left.corpus_id.cmp(&right.corpus_id))
-            .then_with(|| left.asset_profile_id.cmp(&right.asset_profile_id))
-    });
+    collect_vcf_benchmark_binding_rows_at(&repository_root)
+}
 
-    let binding_keys = rows
-        .iter()
-        .map(|row| {
-            (
-                row.stage_id.clone(),
-                row.tool_id.clone(),
-                row.corpus_id.clone(),
-                row.asset_profile_id.clone(),
-            )
-        })
-        .collect::<BTreeSet<_>>();
-    if binding_keys.len() != rows.len() {
-        return Err(anyhow!(
-            "VCF benchmark bindings must keep exactly one row per stage/tool/corpus/asset binding"
-        ));
-    }
+pub(crate) fn collect_vcf_benchmark_binding_rows_at(
+    repository_root: &std::path::Path,
+) -> Result<Vec<VcfStageMatrixRow>> {
+    let templates = build_vcf_stage_matrix_rows()?;
+    let pairs = derive_supported_domain_stage_tool_pairs(repository_root, "vcf")?;
+    let rows = bijux_dna_bench_vcf::inputs::project_supported_vcf_bindings(
+        &templates,
+        pairs.into_iter().map(|pair| (pair.stage_id, pair.tool_id)),
+    )?;
     ensure_licensed_external_bindings(&rows)?;
     Ok(rows)
 }

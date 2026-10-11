@@ -487,3 +487,44 @@ Runtime declaration classification uses `RuntimeResolutionInput` and returns `Ru
 `BenchmarkRuntimeProbe` is the typed runtime-readiness projection of a domain tool declaration. Its entrypoint, container identity, version/help command and required-field accessors preserve existing interpretation. It intentionally does not validate unrelated full domain fields; repository acquisition separately binds the declared tool identity to the request.
 
 Execution-mode declarations own closed TOML-compatible shapes and header/assignment admission. Unknown schemas, unsupported required fields and ambiguous tool assignments fail before executable resolution. This policy does not establish actual tool availability.
+
+`render_hpc_submission_script` projects one campaign attempt from planned jobs and explicit foundation lock references. Scheduler directives precede executable statements; metadata is quoted as literal shell arguments. Header control characters and malformed dependency identities are rejected before script publication. Rendering performs no IO and does not certify stage execution.
+
+`select_hpc_redaction_needles` applies campaign sensitive-key policy to explicit decoded values. `redact_hpc_text` shares literal replacement semantics with bundle string redaction; environment acquisition belongs to the benchmark repository reader.
+
+`SlurmSubmissionReport` and `SubmittedJob` own the existing scheduler receipt wire format. `validate_hpc_submission_report` admits unique job identities and ordered in-scope dependencies; unsupported versions and modes reject during decoding. `HpcSubmissionSettings` and `HpcSubmissionMode` carry scope choices without command-parser dependencies. The report records submission, not successful execution.
+
+`validate_hpc_submission_request` admits selected campaign identities and output fields before submission effects. `validate_hpc_scheduler_receipt` applies the report identity rules immediately after a backend response and before operator or encrypted artifact publication; duplicate receipts reject. These checks do not roll back a scheduler side effect that already occurred.
+
+Slurm script-body evidence is owned by `BenchmarkLocalSlurmScriptBodyReport` and `BenchmarkLocalSlurmScriptBodyEntry`. `inspect_benchmark_local_slurm_script_body` applies the lexical placeholder/command-marker policy; `build_benchmark_local_slurm_script_body_report` constructs and admits aggregate evidence; `validate_benchmark_local_slurm_script_body_report` checks persisted versions, paths, uniqueness, findings and verdicts. The registered closed schema preserves the existing JSON keys and version. Text inspection is not shell parsing or proof of scientific execution.
+
+`evaluate_benchmark_local_hpc_slurm_readiness` consumes a borrowed `BenchmarkLocalHpcSlurmObservation` and returns one stable local-readiness check. Full script, syntax, manifest and dependency report admission precedes a successful check; absent prerequisites remain failed checks. The retained goal IDs and valid-observation presentation remain unchanged. No scheduler or filesystem capability is part of this policy.
+
+Slurm dependency inspection interprets borrowed submission jobs and observed script text, then constructs an admitted dependency-source diagnostic. It does not authorize scheduler submission or replace complete manifest/DAG validation.
+
+`evaluate_benchmark_local_hpc_harness_readiness` admits borrowed fake-failure, output-completion, manifest-completion and runtime-metric observations before returning stable local HPC readiness checks. Synthetic evidence remains synthetic; a counter with missing or inconsistent rows cannot establish readiness.
+
+`project_full_benchmark_observation_rows` consumes borrowed `FullBenchmarkSourceObservation` values for expected results, simulation, smoke subsets and failure classifications. Complete existing source admission precedes projection; source kinds, identifiers, missingness and evidence paths remain distinct. Final collector closure and independent scientific execution provenance still require their owning checks.
+
+Failure simulation owns closed `AllDomainFakeFailureRecord` and `AllDomainFakeFailuresManifest` v1 wire contracts, `AllDomainFakeFailureOutputEntry`, their schema functions and version/root constants. `validate_all_domain_failure_simulation_record` and `validate_all_domain_failure_simulation_manifest` reject schema, identity, output-role/path, count and outcome contradictions. These artifacts describe illustrative failures and do not attest tool execution.
+
+Missing-result audit observations use closed `AllDomainMissingResultTestReport`, `AllDomainMissingResultRow` and `AllDomainMissingResultStatus` contracts. `AllDomainMissingResultObservation` borrows aligned declarations, simulation rows and an optional typed stage manifest; `project_all_domain_missing_result_observation` preserves source identity and missingness without I/O. `admit_all_domain_missing_result_audit` computes the verdict after complete declared-content checks; `validate_all_domain_missing_result_audit` admits replay. The schema function, version/default-path constants and governed removal identities belong to the model. These are illustrative manifest-presence checks, not fresh scientific execution evidence.
+
+The `completion` namespace owns closed all-domain completion reports, schema/version
+identity, and pure admission. Admission checks every row, required-file identity,
+manifest/runtime flag, artifact count, failure reason, aggregate counter, and the
+five governed mutation identities before computing the behavior verdict. Replay
+validation requires a consistent successful declared verdict; it does not prove
+current filesystem state or fresh scientific execution.
+
+`harness::validate_all_domain_harness_alignment` borrows the current typed reports
+and checks exact simulation result coverage and benchmark-ready binding agreement.
+It rejects blank, padded and repeated result identities before set comparison;
+real-smoke parser records use a separate identity space. This policy performs no
+IO and does not certify scientific payloads or external execution.
+
+`project_all_domain_simulation_parser_row` admits illustrative metrics against a
+result report and stage manifest before producing the four-field normalized
+parser snapshot. Schema, six identities, counts, metric-name uniqueness, finite
+duration, stage/tool/runtime and exact declared output observations must agree.
+This proves report consistency; it does not verify scientific output contents.

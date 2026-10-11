@@ -418,3 +418,6 @@ fn run_artifact_envelope_has_required_keys() {
         assert!(value.get(key).is_some(), "missing key {key}");
     }
 }
+
+#[path = "manifest_integrity/output_declarations.rs"]
+mod output_declarations;

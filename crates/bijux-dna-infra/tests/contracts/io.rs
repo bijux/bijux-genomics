@@ -269,3 +269,41 @@ fn empty_directory_removal_preserves_unexpected_contents() -> anyhow::Result<()>
     assert!(!directory.exists());
     Ok(())
 }
+
+#[test]
+fn private_atomic_publication_replaces_bytes_and_cleans_failed_staging() -> anyhow::Result<()> {
+    let root = bijux_dna_infra::temp_dir("bijux-private-publication")?;
+    let output = root.path().join("plaintext.json");
+    bijux_dna_infra::atomic_write_private_bytes(&output, b"first plaintext")?;
+    assert_eq!(std::fs::read(&output)?, b"first plaintext");
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        assert_eq!(std::fs::metadata(&output)?.permissions().mode() & 0o777, 0o600);
+        std::fs::set_permissions(&output, std::fs::Permissions::from_mode(0o644))?;
+    }
+    bijux_dna_infra::atomic_write_private_bytes(&output, b"replacement plaintext")?;
+    assert_eq!(std::fs::read(&output)?, b"replacement plaintext");
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        assert_eq!(std::fs::metadata(&output)?.permissions().mode() & 0o777, 0o600);
+    }
+    let directory = root.path().join("existing-directory");
+    std::fs::create_dir(&directory)?;
+    std::fs::write(directory.join("guard"), b"untouched")?;
+    assert!(bijux_dna_infra::atomic_write_private_bytes(&directory, b"must not publish").is_err());
+    assert_eq!(std::fs::read(directory.join("guard"))?, b"untouched");
+    let mut entries = std::fs::read_dir(root.path())?
+        .map(|entry| entry.map(|entry| entry.file_name()))
+        .collect::<std::io::Result<Vec<_>>>()?;
+    entries.sort();
+    assert_eq!(
+        entries,
+        [
+            std::ffi::OsString::from("existing-directory"),
+            std::ffi::OsString::from("plaintext.json")
+        ]
+    );
+    Ok(())
+}

@@ -16,22 +16,22 @@ fn metadata() -> Value {
     json!({"rust-build-meta":{"target-directory":"/compiled"},"rust-binaries":binaries})
 }
 
-fn observations(plan: &BinaryDiscoveryPlan) -> Vec<(String, Value)> {
+fn observations(plan: &BinaryDiscoveryPlan) -> Result<Vec<(String, Value)>> {
     plan.groups.iter().map(|group| {
         let mut suites = BTreeMap::new();
         let mut count = 0usize;
-        for (id, binary) in plan.metadata["rust-binaries"].as_object().into_iter().flatten() {
+        let metadata: Value = serde_json::from_slice(&group.metadata)?;
+        for (id, binary) in metadata["rust-binaries"].as_object().into_iter().flatten() {
             let mut suite = binary.clone();
             suite["package-name"] = json!("owner");
-            let selected = group.binaries.contains(id);
-            suite["status"] = json!(if selected { "listed" } else { "skipped" });
-            suite["testcases"] = if selected && !id.ends_with("empty") {
+            suite["status"] = json!("listed");
+            suite["testcases"] = if id.ends_with("empty") {json!({})} else {
                 count += 1;
                 json!({"case":{"ignored":id.ends_with('b'), "filter-match":{"status":"matches"}}})
-            } else {json!({})};
+            };
             suites.insert(id.clone(),suite);
         }
-        (group.label.clone(),json!({"rust-build-meta":plan.metadata["rust-build-meta"],"test-count":count,"rust-suites":suites}))
+        Ok((group.label.clone(),json!({"rust-build-meta":plan.metadata["rust-build-meta"],"test-count":count,"rust-suites":suites})))
     }).collect()
 }
 
@@ -47,7 +47,7 @@ fn merge(plan: &BinaryDiscoveryPlan, values: &[(String, Value)]) -> Result<Vec<u
 fn binary_discovery_preserves_empty_ignored_and_ordinary_suites() -> Result<()> {
     for concurrency in [1, 2, 5] {
         let plan = BinaryDiscoveryPlan::new(&serde_json::to_vec(&metadata())?, concurrency)?;
-        let bytes = merge(&plan, &observations(&plan))?;
+        let bytes = merge(&plan, &observations(&plan)?)?;
         let result = ExpectedTestInventory::parse(&bytes)?;
         assert_eq!(result.case_count(), 2);
         assert_eq!(result.ignored_case_count(), 1);
@@ -60,7 +60,7 @@ fn binary_discovery_preserves_empty_ignored_and_ordinary_suites() -> Result<()> 
 #[test]
 fn binary_discovery_rejects_missing_repeated_or_unknown_groups() -> Result<()> {
     let plan = BinaryDiscoveryPlan::new(&serde_json::to_vec(&metadata())?, 2)?;
-    let valid = observations(&plan);
+    let valid = observations(&plan)?;
     assert!(merge(&plan, &valid[..1]).is_err());
     assert!(merge(&plan, &[valid[0].clone(), valid[0].clone()]).is_err());
     let mut changed = valid.clone();
@@ -74,7 +74,7 @@ fn binary_discovery_rejects_missing_repeated_or_unknown_groups() -> Result<()> {
 #[test]
 fn binary_discovery_rejects_changed_metadata_coverage_counts_and_execution_scope() -> Result<()> {
     let plan = BinaryDiscoveryPlan::new(&serde_json::to_vec(&metadata())?, 2)?;
-    let valid = observations(&plan);
+    let valid = observations(&plan)?;
     for (pointer, replacement) in [
         ("/rust-build-meta/target-directory", json!("/other")),
         ("/test-count", json!(900)),
@@ -82,16 +82,47 @@ fn binary_discovery_rejects_changed_metadata_coverage_counts_and_execution_scope
         ("/rust-suites/owner::a/status", json!("skipped")),
         ("/rust-suites/owner::a/testcases/case/filter-match/status", json!("mismatch")),
         ("/rust-suites/owner::a/testcases/case/ignored", json!(null)),
-        ("/rust-suites/owner::b/status", json!("listed")),
         ("/rust-suites/owner::empty", json!(null)),
     ] {
         let mut changed = valid.clone();
         *changed[0].1.pointer_mut(pointer).context("fixture pointer")? = replacement;
         assert!(merge(&plan, &changed).is_err(), "admitted mutation {pointer}");
     }
+    let mut wrong_group = valid.clone();
+    wrong_group[0].1["rust-suites"]["owner::b"] = valid[1].1["rust-suites"]["owner::b"].clone();
+    assert!(
+        merge(&plan, &wrong_group).is_err(),
+        "admitted a real binary assigned to another group"
+    );
     let mut changed = valid;
     changed[0].1["rust-suites"]["unrecognized"] = json!({});
     assert!(merge(&plan, &changed).is_err());
     assert!(plan.merge([("test-inventory-group-0", b"{".as_slice())]).is_err());
+    Ok(())
+}
+
+#[test]
+fn discovery_metadata_partitions_preserve_native_records_and_cover_each_binary_once() -> Result<()>
+{
+    let original = metadata();
+    let mut authority = original.clone();
+    authority["rust-build-meta"]["non-test-binaries"] =
+        json!({"owner": [{"name":"runner","path":"runner"}]});
+    authority["producer-extension"] = json!({"retained":true});
+    let plan = BinaryDiscoveryPlan::new(&serde_json::to_vec(&authority)?, 2)?;
+    let mut union = BTreeSet::new();
+    for group in &plan.groups {
+        let selected: Value = serde_json::from_slice(&group.metadata)?;
+        assert_eq!(selected["rust-build-meta"], authority["rust-build-meta"]);
+        assert_eq!(selected["producer-extension"], authority["producer-extension"]);
+        for (id, record) in selected["rust-binaries"].as_object().context("binary map")? {
+            assert!(union.insert(id.clone()), "binary was assigned twice");
+            assert_eq!(record, &authority["rust-binaries"][id]);
+        }
+    }
+    assert_eq!(
+        union,
+        authority["rust-binaries"].as_object().context("binary map")?.keys().cloned().collect()
+    );
     Ok(())
 }

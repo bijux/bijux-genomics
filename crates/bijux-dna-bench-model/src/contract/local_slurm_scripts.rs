@@ -252,3 +252,9 @@ mod tests {
         Ok(())
     }
 }
+
+mod body;
+pub use body::{
+    build_benchmark_local_slurm_script_body_report, inspect_benchmark_local_slurm_script_body,
+    validate_benchmark_local_slurm_script_body_report,
+};

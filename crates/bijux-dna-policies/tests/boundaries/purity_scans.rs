@@ -363,7 +363,8 @@ fn policy__boundaries__purity_scans__tool_rosters_are_confined_to_registry_sourc
         "crates/bijux-dna-domain-bam/src/metrics/raw_parser_contract.rs",
         "crates/bijux-dna-domain-bam/src/benchmark_corpus_assignment.rs",
         "crates/bijux-dna-stage-contract/src/tool_binding/catalog.rs",
-        "crates/bijux-dna/src/commands/benchmark/readiness/benchmark_command_rows.rs",
+        // Fixture option projection belongs to planner policy; adapters own subsequent admission.
+        "crates/bijux-dna-planner-fastq/src/planner/benchmark/fixture_parameters.rs",
         "crates/bijux-dna/src/commands/benchmark/readiness/stage_tool_containers.rs",
         "crates/bijux-dna/src/commands/benchmark/readiness/tool_centric_report.rs",
         "crates/bijux-dna/src/commands/benchmark/readiness/tool_serving_map.rs",
@@ -404,7 +405,7 @@ fn policy__boundaries__purity_scans__tool_rosters_are_confined_to_registry_sourc
 
     bijux_dna_policies::policy_assert!(
         offenders.is_empty(),
-        "tool rosters must be declared only in registry compiler/domain loaders:\n{}",
+        "tool rosters must remain in registry sources or explicitly owned tool projections:\n{}",
         offenders.join("\n")
     );
 }

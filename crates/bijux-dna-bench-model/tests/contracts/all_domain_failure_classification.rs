@@ -86,3 +86,27 @@ fn failure_classification_rejects_class_counter_and_trigger_drift() {
     wrong_domain.rows[0].domain = "bam".to_string();
     assert!(validate_all_domain_failure_classification(&mut wrong_domain).is_err());
 }
+
+#[test]
+fn collector_projection_admits_classification_without_mutating_source_evidence(
+) -> anyhow::Result<()> {
+    use bijux_dna_bench_model::{
+        project_full_benchmark_observation_rows as project, FullBenchmarkResultStatus,
+        FullBenchmarkSourceObservation as Observation,
+    };
+    let mut source = report();
+    validate_all_domain_failure_classification(&mut source)?;
+    let before = serde_json::to_value(&source)?;
+    let rows = project(Observation::FailureClassification(&source))?;
+    assert_eq!(rows.len(), 2);
+    assert_eq!(rows[0].result_status, FullBenchmarkResultStatus::InsufficientData);
+    assert_eq!(rows[1].result_status, FullBenchmarkResultStatus::UnsupportedPair);
+    assert!(rows.iter().all(|row| row.execution_id.is_none()));
+    assert_eq!(serde_json::to_value(&source)?, before);
+    source.passes_behavior_test = false;
+    assert!(project(Observation::FailureClassification(&source)).is_err());
+    source.passes_behavior_test = true;
+    source.rows[0].triggered = false;
+    assert!(project(Observation::FailureClassification(&source)).is_err());
+    Ok(())
+}

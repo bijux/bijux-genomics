@@ -4,6 +4,7 @@ use super::super::{
     CONTAINER_RESULT_LAYOUT_PLAN_SCHEMA_V1,
 };
 use super::admission::{inventory_digest, portable_path, safe_relative};
+use super::paths::owned_path;
 use super::repository::{
     absolute_path, load_layout_lock, load_layout_plan, path_exists, tracked_locks,
     validate_inventory, write_json,
@@ -34,8 +35,8 @@ pub fn derive_result_layout_plan(request: &ResultLayoutPlanRequest) -> Result<Re
         if source_relative != Path::new(&lock.tool).join(&lock.run_id) {
             bail!("historical result layout is not recognized: {}", source_relative.display());
         }
-        let source = result_root.join(source_relative);
-        let target = result_root.join(&target_relative);
+        let source = owned_path(&result_root, &portable_path(source_relative), "source")?;
+        let target = owned_path(&result_root, &portable_path(&target_relative), "target")?;
         if !targets.insert(target.clone()) {
             bail!("duplicate flat result target: {}", target.display());
         }
@@ -93,9 +94,10 @@ pub fn apply_result_layout(
     write_json(plan_path, &plan)?;
     for index in 0..plan.moves.len() {
         let movement = plan.moves[index].clone();
-        let source = result_root.join(safe_relative(&movement.source, "source")?);
-        let target = result_root.join(safe_relative(&movement.target, "target")?);
-        let lock = load_layout_lock(&runs_root.join(&movement.evidence_lock))?;
+        let source = owned_path(result_root, &movement.source, "source")?;
+        let target = owned_path(result_root, &movement.target, "target")?;
+        let lock =
+            load_layout_lock(&owned_path(runs_root, &movement.evidence_lock, "evidence lock")?)?;
         if movement.applied {
             validate_inventory(&target, &lock.source_files)?;
             continue;
@@ -145,12 +147,13 @@ pub fn verify_result_layout(
         bail!("plan is not applied: {:?}", plan.state);
     }
     for movement in &plan.moves {
-        let source = result_root.join(safe_relative(&movement.source, "source")?);
-        let target = result_root.join(safe_relative(&movement.target, "target")?);
+        let source = owned_path(result_root, &movement.source, "source")?;
+        let target = owned_path(result_root, &movement.target, "target")?;
         if path_exists(&source)? {
             bail!("nested result still exists: {}", source.display());
         }
-        let lock = load_layout_lock(&runs_root.join(&movement.evidence_lock))?;
+        let lock =
+            load_layout_lock(&owned_path(runs_root, &movement.evidence_lock, "evidence lock")?)?;
         validate_inventory(&target, &lock.source_files)?;
     }
     Ok(plan.moves.len())
@@ -172,9 +175,10 @@ pub fn rollback_result_layout(
     }
     for index in (0..plan.moves.len()).rev() {
         let movement = plan.moves[index].clone();
-        let source = result_root.join(safe_relative(&movement.source, "source")?);
-        let target = result_root.join(safe_relative(&movement.target, "target")?);
-        let lock = load_layout_lock(&runs_root.join(&movement.evidence_lock))?;
+        let source = owned_path(result_root, &movement.source, "source")?;
+        let target = owned_path(result_root, &movement.target, "target")?;
+        let lock =
+            load_layout_lock(&owned_path(runs_root, &movement.evidence_lock, "evidence lock")?)?;
         validate_inventory(&target, &lock.source_files)?;
         if path_exists(&source)? {
             bail!("rollback source already exists: {}", source.display());

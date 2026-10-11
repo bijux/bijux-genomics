@@ -45,7 +45,7 @@ fn runner_tree_matches_architecture_contract() {
         "command_runner/",
         "command_runner.rs",
         "lib.rs",
-        "process_supervision.rs",
+        "process_supervision/",
         "public_api/",
         "repo_root/",
         "runner_driver/",
@@ -84,6 +84,7 @@ fn runner_tree_matches_architecture_contract() {
         dir_entries(&root.join("src/backend/bundle")),
         [
             "age.rs",
+            "code_freeze.rs",
             "contracts.rs",
             "mock.rs",
             "mod.rs",

@@ -17,3 +17,9 @@ pub use command_audit::write_recorded_command_audit;
 
 mod command_artifacts;
 pub use command_artifacts::publish_rendered_command_artifacts;
+
+mod slurm_scripts;
+pub use slurm_scripts::validate_benchmark_local_slurm_script_bodies;
+
+mod slurm_dependencies;
+pub use slurm_dependencies::inspect_benchmark_local_slurm_dependencies;

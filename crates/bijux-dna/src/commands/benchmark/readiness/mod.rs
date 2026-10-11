@@ -172,3 +172,5 @@ pub(crate) mod vcf_tool_scores;
 pub(crate) mod vcf_tool_serving_map;
 pub(crate) mod vcf_undercovered_stages;
 pub(crate) mod version_probes;
+
+mod vcf_adapter_inputs;

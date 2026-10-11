@@ -28,6 +28,7 @@ tests/
 ```
 
 ## Coverage Map
+- `tests/bench_micro_workflows.rs`: amplicon, ancient-DNA and core-germline report/file contracts under `tests/contracts/benchmark/micro_workflows/`. Six unchanged scenarios share one executable and support module; the full-profile repository mutation group still serializes their shared output effects.
 - `tests/bench_readiness_bam.rs` and `tests/bench_readiness_vcf.rs`: domain readiness contracts grouped by inventory, adapter, metric and scientific responsibility. Standard-harness cases share one process guard per executable; nextest retains case-level scheduling. The four dedicated VCF parser-failure and missing-input targets remain entrypoints for their native fast lanes.
 - `tests/bench_readiness_fastq.rs`: FASTQ stage bindings, execution surfaces, evidence maps and metrics contracts, grouped under `tests/contracts/benchmark/fastq_readiness/`. Cases retain their function names and use one shared process guard; nextest partitions individual cases and retains the full-profile repository mutation group.
 - `tests/benchmark_readiness.rs`: active stage/tool scope, adapters, parser fixtures, output declarations/contracts, expected results and report maps. JSON and TSV assertions live in `tests/contracts/benchmark/readiness/`. One executable retains individual case identities under report modules; the slow roster matches the unchanged function-name suffixes. The standard harness shares one process environment guard, while nextest can schedule separate cases.
@@ -100,3 +101,26 @@ Operational readiness passes its current stage table, expected results, rendered
 The scratch-layout publication suite retains one private manifest for schema/root/source-link assertions, validated-path presentation, and stale input-link count rejection. All original assertions and both validator invocations remain; duplicate render setup and its second integration executable are retired. The directory guard spans the whole case and drift is restored before completion.
 
 Shared guardrail parser regressions are owned and executed by the policy crate. This boundary suite retains its crate-specific architecture checks; it does not compile another crate's test source. Constructor-only guardrail wrappers provide no source-check coverage and are retired.
+
+Variant truth admission and expected/observed JSON/text output cases share the
+`fixtures_vcf` target, grouped by scientific truth family. Pipeline validation JSON
+and file-publication cases share `plan_validate_pipelines`, grouped by declared pipeline.
+Both retain the repository-mutator nextest group and original per-command guards.
+These are command boundary contracts; scientific truth semantics remain owner-tested.
+
+Benchmark path admission/cleanup, schema validation and planning projections are
+grouped in `bench_paths`, `bench_schema_validation` and `bench_planning`.
+Their modules pair JSON with file, TSV, TOML, shell and argv publication contracts
+under each responsibility. All original cases and repository-mutator guards remain;
+test execution can be sharded independently of these shared compilation targets.
+
+Registry coverage and runtime readiness CLI reports compile in
+`bench_registry_coverage` and `bench_runtime_readiness`. Each responsibility pairs
+its JSON and persisted output contracts under `tests/contracts/benchmark/`.
+The original BAM feature gates and repository mutator guards remain; native test
+partitions still schedule individual cases independently of the compilation groups.
+
+Stage inventory reports, result admission, completion evidence and runtime metrics
+compile together in `bench_stage_evidence`, with responsibility-specific modules
+under `tests/contracts/benchmark/stage_evidence/`. Original BAM feature annotations
+and repository mutation guards remain; native scheduling still partitions cases.

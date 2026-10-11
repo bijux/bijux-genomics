@@ -33,6 +33,22 @@ runtime scheduling, or environment provisioning.
 - `plugin`: shared invocation and normalized-output adaptation for every VCF
   domain stage.
 
+## Damage filtering policy
+
+`pipeline::run_damage_filter_stage_with_policy` accepts `DamageFilterPolicy` per
+execution. Services can run independent remove/mark, library-context and PMD
+policies concurrently without changing process environment. The existing
+`run_damage_filter_stage` entry point captures legacy environment settings and
+then uses the same executor. Unknown strict UDG regimes and invalid explicit
+policy values are refused before output creation. PMD log scores may be negative
+but must be finite; terminal thresholds must be finite probabilities. Legacy
+terminal settings retain their clamp to `[0, 1]`; nonfinite PMD and NaN terminal
+settings now refuse execution instead of producing ambiguous scientific decisions.
+
+Mark mode emits each input record once with its damage filter annotation and
+counts it as retained. Remove mode excludes those records. Persisted manifest and
+summary schema versions remain unchanged.
+
 ## Release Example
 
 Run the release-surface example from the repository root:

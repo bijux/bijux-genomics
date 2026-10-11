@@ -284,3 +284,16 @@ fn recipient_admission_rejects_sidecar_and_mock_envelope_contradictions() -> any
     assert_eq!(decrypt_bundle(&request)?.1, b"retained payload");
     Ok(())
 }
+
+#[test]
+fn code_freeze_observation_reads_current_script_and_rejects_missing_source() -> anyhow::Result<()> {
+    let root = tempfile::tempdir()?;
+    let script = root.path().join("job.sbatch");
+    std::fs::write(&script, "first script\n")?;
+    assert_eq!(super::observe_hpc_code_freeze(&script)?.slurm_script, "first script\n");
+    std::fs::write(&script, "replacement script\n")?;
+    assert_eq!(super::observe_hpc_code_freeze(&script)?.slurm_script, "replacement script\n");
+    std::fs::remove_file(&script)?;
+    assert!(super::observe_hpc_code_freeze(&script).is_err());
+    Ok(())
+}

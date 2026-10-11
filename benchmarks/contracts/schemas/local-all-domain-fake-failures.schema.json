@@ -1,0 +1,157 @@
+{
+  "$defs": {
+    "AllDomainFakeFailureOutputEntry": {
+      "additionalProperties": false,
+      "properties": {
+        "artifact_id": {
+          "type": "string"
+        },
+        "declared_output": {
+          "type": "string"
+        },
+        "expected_fake_run_path": {
+          "type": "string"
+        },
+        "role": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "artifact_id",
+        "declared_output",
+        "expected_fake_run_path",
+        "role"
+      ],
+      "type": "object"
+    },
+    "AllDomainFakeFailureRecord": {
+      "additionalProperties": false,
+      "properties": {
+        "asset_profile_id": {
+          "type": "string"
+        },
+        "command": {
+          "type": "string"
+        },
+        "command_script_path": {
+          "type": "string"
+        },
+        "command_source": {
+          "type": "string"
+        },
+        "corpus_id": {
+          "type": "string"
+        },
+        "domain": {
+          "type": "string"
+        },
+        "exit_code": {
+          "format": "int32",
+          "type": "integer"
+        },
+        "failed_output_count": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "failed_outputs": {
+          "items": {
+            "$ref": "#/$defs/AllDomainFakeFailureOutputEntry"
+          },
+          "type": "array"
+        },
+        "failure_record_path": {
+          "type": "string"
+        },
+        "result_id": {
+          "type": "string"
+        },
+        "schema_version": {
+          "const": "bijux.bench.local_all_domain_fake_failure_record.v1",
+          "type": "string"
+        },
+        "stage_id": {
+          "type": "string"
+        },
+        "stderr_path": {
+          "type": "string"
+        },
+        "tool_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "schema_version",
+        "result_id",
+        "domain",
+        "stage_id",
+        "tool_id",
+        "corpus_id",
+        "asset_profile_id",
+        "command_source",
+        "command",
+        "exit_code",
+        "command_script_path",
+        "stderr_path",
+        "failure_record_path",
+        "failed_output_count",
+        "failed_outputs"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "domain_counts": {
+      "additionalProperties": {
+        "format": "uint",
+        "minimum": 0,
+        "type": "integer"
+      },
+      "type": "object"
+    },
+    "exit_code": {
+      "format": "int32",
+      "type": "integer"
+    },
+    "failed_output_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "failure_root": {
+      "type": "string"
+    },
+    "failures": {
+      "items": {
+        "$ref": "#/$defs/AllDomainFakeFailureRecord"
+      },
+      "type": "array"
+    },
+    "result_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "root_manifest_path": {
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "bijux.bench.local_all_domain_fake_failures.v1",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "failure_root",
+    "root_manifest_path",
+    "result_count",
+    "failed_output_count",
+    "exit_code",
+    "domain_counts",
+    "failures"
+  ],
+  "title": "AllDomainFakeFailuresManifest",
+  "type": "object"
+}
