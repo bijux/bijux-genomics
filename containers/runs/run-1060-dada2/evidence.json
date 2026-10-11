@@ -1,0 +1,124 @@
+{
+  "checks": {
+    "help": {
+      "argv": [
+        "dada2",
+        "--help"
+      ],
+      "exit_code": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "37bda01c0b99e187e3d37537cf3a95db5f2739f478f968a538a87dd46872c14b"
+    },
+    "negative": {
+      "argv": [
+        "dada2",
+        "infer-asvs",
+        "--input",
+        "/governed-missing-r1.fastq.gz",
+        "--input-r2",
+        "/governed-missing-r2.fastq.gz",
+        "--output-dir",
+        "/home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/dada2/run-1060/negative"
+      ],
+      "exit_code": 1,
+      "stderr_sha256": "9e6ac1bcdec3312a7feb171b4510e9a102b58bcd4daee162de34eb1abe490aec",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "real": {
+      "argv": [
+        "dada2",
+        "infer-asvs",
+        "--input",
+        "/home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/mothur-miseq-sop-f3d0/F3D0_S188_L001_R1_001.fastq",
+        "--input-r2",
+        "/home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/mothur-miseq-sop-f3d0/F3D0_S188_L001_R2_001.fastq",
+        "--output-dir",
+        "/home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/dada2/run-1060",
+        "--sample-id",
+        "F3D0",
+        "--threads",
+        "4"
+      ],
+      "exit_code": 0,
+      "stderr_sha256": "94c38883044ebcfa14dc99bb321e6e5c4c32d49fed981c60da0eb518abc832de",
+      "stdout_sha256": "5db4693887bc6b4285ced333681f14912a158f3f1b917ff8b92b22e547d61ea8"
+    },
+    "version": {
+      "argv": [
+        "dada2",
+        "--version"
+      ],
+      "exit_code": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "b714e21c0bf7ac53083483f9db46e8790ae5f84c58f76f40c1374cec9cfba2bc"
+    }
+  },
+  "credential_reference_sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+  "failure_class": null,
+  "failures": [],
+  "governance_sha256": "d7c38500306b1d88b227b3acfc26ff9d212ebd729d62776f913c912eef12ecc2",
+  "image": {
+    "path": "/lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/dada2-1.30.0-linux-amd64-912e10759d87.sif",
+    "sha256": "912e10759d87d3f64492b39db9c06f14af8504235f69ac3a92dafe76a2fd5114",
+    "size_bytes": 261373952
+  },
+  "inputs": [
+    {
+      "id": "mothur-miseq-sop-f3d0-r1",
+      "kind": "data",
+      "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/mothur-miseq-sop-f3d0/F3D0_S188_L001_R1_001.fastq",
+      "sha256": "f908bf940a2413f9d026615afca8cacfbcb36bf3c91ffa5ad809738b0f7064d3"
+    },
+    {
+      "id": "mothur-miseq-sop-f3d0-r2",
+      "kind": "data",
+      "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/mothur-miseq-sop-f3d0/F3D0_S188_L001_R2_001.fastq",
+      "sha256": "1b3feb32e2bef0a573382cdd2b4eb833af5a3fb093e3544f6882da371db64937"
+    }
+  ],
+  "outputs": [
+    {
+      "path": "asv-table.tsv",
+      "sha256": "df35c9193bb7e296d6d38b84a1c635b4f1bcc5aca63a3547f7d94f1a56f62e7f",
+      "size_bytes": 22790
+    },
+    {
+      "path": "asv-sequences.fasta",
+      "sha256": "f135ef8e136b7903f310f6a20fc2d2cc3a4fe280e364003eb55f4e431d600884",
+      "size_bytes": 24284
+    },
+    {
+      "path": "taxonomy-ready.fasta",
+      "sha256": "c0df52cde5d7f2e0a22bad230bf46cf6313acf9dfc71a7465ad295da4a5b2975",
+      "size_bytes": 22165
+    },
+    {
+      "path": "taxonomy-ready.fastq.gz",
+      "sha256": "dc8b02bf2d30565f05d6f68b91d8b92d538cf07fbaa1f08421edea05bfd63a4f",
+      "size_bytes": 3638
+    },
+    {
+      "path": "report.json",
+      "sha256": "a6da628cca88a3aa55f1b667b7729c4f032ca1ccb34e0ede379ccbc682a28f97",
+      "size_bytes": 244
+    }
+  ],
+  "pipeline_sha256": "e1875a49f9d1f429a3fdc2043b0f57cf559ac74b42d8ee4839b80a06300fa81d",
+  "repository_clean": true,
+  "repository_commit": "0402016c18e5c932e6af6338094bf250cd3ba97b",
+  "repository_path": "/home/bijan/bijux/bijux-genomics-runs/0402016c18e5c932e6af6338094bf250cd3ba97b",
+  "run_id": "run-1060",
+  "runtime": {
+    "apptainer_version": "apptainer version 1.5.2-1.el9",
+    "cpus": "4",
+    "host": "cn284",
+    "slurm_job_id": "3457916",
+    "started_at_utc": "2026-08-02T19:21:02.046877+00:00"
+  },
+  "schema_version": "bijux.container.evidence.v1",
+  "site": {
+    "host": "cn284",
+    "id": "lunarc"
+  },
+  "status": "passed"
+}

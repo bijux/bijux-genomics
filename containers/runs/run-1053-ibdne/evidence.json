@@ -1,0 +1,110 @@
+{
+  "checks": {
+    "help": {
+      "argv": [
+        "ibdne",
+        "--help"
+      ],
+      "exit_code": 0,
+      "stderr_sha256": "658c9bbc018653899416aad4e89dd7d481c180e2ae48751038afa72f25e57dc9",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "negative": {
+      "argv": [
+        "ibdne",
+        "map=/governed-missing.map",
+        "out=/home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/ibdne/run-1053/missing"
+      ],
+      "exit_code": 1,
+      "stderr_sha256": "d9854dbfe92336b17dba55a9473e8c757e275704d90c74e7b54c6a6d6c67ddac",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "real": {
+      "argv": [
+        "sh",
+        "-c",
+        "set -eu; gzip -cd /home/bijan/lu2024-12-24/Dardel/STUDY/data/references/eagle-genetic-maps/genetic_map_hg19_withX.txt.gz | awk 'NR > 1 && $1 == 22 { print $1, \".\", $4, $2 }' > /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/ibdne/run-1053/chr22.plink.map; cat /home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/1000-genomes-phase3-chr22-100-samples-ibdseq-segments-full-chromosome/segments.ibd | ibdne map=/home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/ibdne/run-1053/chr22.plink.map out=/home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/ibdne/run-1053/demography nthreads=8 nboots=0 seed=15052011"
+      ],
+      "exit_code": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "d7e0ca3abec018a9ad3cb9a3ede4873fde752448daeafb1162c6dd7f094c7bf9"
+    },
+    "version": {
+      "argv": [
+        "ibdne",
+        "--version"
+      ],
+      "exit_code": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "105499d5b3d13ac9ebfdc809e19a5131c479f858675262a98303b0c4ff56d43a"
+    }
+  },
+  "credential_reference_sha256": "9dda0d787caf2759ee964425049ef52c11ce16ada127cc7c594c8165e6e73d2e",
+  "failure_class": null,
+  "failures": [],
+  "governance_sha256": "3351dcd4b58d966ab6b5b35185b8f4bb4d87485583cc65eb072e623a03636e33",
+  "image": {
+    "path": "/lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/ibdne-23Apr20.ae9-linux-amd64-ba400ac39ae8.sif",
+    "sha256": "ba400ac39ae8e69794d839b409135ecb66e92159c3456825cf396bcad22b296d",
+    "size_bytes": 104599552
+  },
+  "inputs": [
+    {
+      "id": "1000-genomes-phase3-chr22-100-samples-ibdseq-segments-full-chromosome",
+      "kind": "data",
+      "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/1000-genomes-phase3-chr22-100-samples-ibdseq-segments-full-chromosome/segments.ibd",
+      "sha256": "f4ef35be66a00117b31dd34644482d677d8fd92f59983e3942f0c690842263d4"
+    },
+    {
+      "id": "eagle-v2.4.1-hg19-genetic-map",
+      "kind": "reference",
+      "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/data/references/eagle-genetic-maps/genetic_map_hg19_withX.txt.gz",
+      "sha256": "7398f142f02815bdf563e125a0c34770f4024eb250ba57cb6ef81570c109fbbf"
+    }
+  ],
+  "outputs": [
+    {
+      "path": "chr22.plink.map",
+      "sha256": "336b38f9893371b56b9dc5926c751c62061895d971ddd47135b05cb7327c8ea6",
+      "size_bytes": 1341636
+    },
+    {
+      "path": "demography.ne",
+      "sha256": "66da6c7e1cab069a13775f7f045174c98299cee31a5875b51fd3d1b6ea94edec",
+      "size_bytes": 3208
+    },
+    {
+      "path": "demography.log",
+      "sha256": "d7e0ca3abec018a9ad3cb9a3ede4873fde752448daeafb1162c6dd7f094c7bf9",
+      "size_bytes": 1057
+    },
+    {
+      "path": "demography.pair.excl",
+      "sha256": "7c1cc897feb02add398e6706906ac22cc8104b7bed37dfa5b7aba0d369b19b56",
+      "size_bytes": 139
+    },
+    {
+      "path": "demography.region.excl",
+      "sha256": "954170a8d3f36f9f157357c0d837fb35b1629cfa1bcb42b0f68e0ff8c7b36435",
+      "size_bytes": 194
+    }
+  ],
+  "pipeline_sha256": "12260fa625aece67b2119e2c88248062c6f5cc2753dbe811df3479236d4b1308",
+  "repository_clean": true,
+  "repository_commit": "cd19ed5c31348a9786a7bb7fdebd546239fdeb24",
+  "repository_path": "/home/bijan/bijux/bijux-genomics-runs/cd19ed5c31348a9786a7bb7fdebd546239fdeb24",
+  "run_id": "run-1053",
+  "runtime": {
+    "apptainer_version": "apptainer version 1.5.2-1.el9",
+    "cpus": "8",
+    "host": "cn101",
+    "slurm_job_id": "3457875",
+    "started_at_utc": "2026-08-02T18:41:45.778366+00:00"
+  },
+  "schema_version": "bijux.container.evidence.v1",
+  "site": {
+    "host": "cn101",
+    "id": "lunarc"
+  },
+  "status": "passed"
+}

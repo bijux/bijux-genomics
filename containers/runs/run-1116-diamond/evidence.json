@@ -1,0 +1,88 @@
+{
+  "checks": {
+    "help": {
+      "argv": [
+        "diamond",
+        "help"
+      ],
+      "exit_code": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "18709b4a4dbe061bb60883e94dc847e3ddbb6171b35cf49c289504f7aa525f9c"
+    },
+    "negative": {
+      "argv": [
+        "diamond",
+        "governed-invalid-command"
+      ],
+      "exit_code": 1,
+      "stderr_sha256": "c603fbd942714b00715899949ce513fe0b3178dce72f3c851029729d19a22de6",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "real": {
+      "argv": [
+        "diamond",
+        "makedb",
+        "--in",
+        "/home/bijan/lu2024-12-24/Dardel/STUDY/data/references/equcab3-gcf-002863925.1/GCF_002863925.1_EquCab3.0_protein.faa.gz",
+        "--db",
+        "/home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/diamond/run-1116/equcab3-protein",
+        "--threads",
+        "4"
+      ],
+      "exit_code": 0,
+      "stderr_sha256": "edb60f135b83ad82f5855ef37be9a1659c69d92be76e98d8480f0f0f6a921d35",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "version": {
+      "argv": [
+        "diamond",
+        "version"
+      ],
+      "exit_code": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "9fda3c944984124a2ff52a379acb93a6b766cc35a9cc5904a05ffbc221414b49"
+    }
+  },
+  "credential_reference_sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+  "failure_class": null,
+  "failures": [],
+  "governance_sha256": "d7c38500306b1d88b227b3acfc26ff9d212ebd729d62776f913c912eef12ecc2",
+  "image": {
+    "path": "/lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/diamond-2.1.10-linux-amd64-d86c946a7abb.sif",
+    "sha256": "d86c946a7abb2f28f3da389735b425eff159fd2415e95cab5cf4a5b8611b579d",
+    "size_bytes": 34537472
+  },
+  "inputs": [
+    {
+      "id": "equcab3-gcf-002863925.1-proteins",
+      "kind": "reference",
+      "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/data/references/equcab3-gcf-002863925.1/GCF_002863925.1_EquCab3.0_protein.faa.gz",
+      "sha256": "596c6e5314389fb3f71091f361a46af8ed94304adce9d7469e61fce546a91614"
+    }
+  ],
+  "outputs": [
+    {
+      "path": "equcab3-protein.dmnd",
+      "sha256": "f34a40c4339b51a4216532e883c69c322fab40fe972dc6f13f1c1f3a21183a36",
+      "size_bytes": 50744508
+    }
+  ],
+  "pipeline_sha256": "efc6c4c6bd0f6e5ada1a879269b934afac766029fcca3349f9c660fb6c67d7e9",
+  "repository_clean": true,
+  "repository_commit": "18b311fb90881e765510bcb81dcc7319546997b6",
+  "repository_path": "/home/bijan/bijux/bijux-genomics-runs/18b311fb90881e765510bcb81dcc7319546997b6",
+  "run_id": "run-1116",
+  "runtime": {
+    "apptainer_version": "apptainer version 1.5.2-1.el9",
+    "cpus": "4",
+    "host": "cn091",
+    "slurm_job_id": "3458166",
+    "started_at_utc": "2026-08-03T01:59:16.838523+00:00"
+  },
+  "schema_version": "bijux.container.evidence.v1",
+  "site": {
+    "host": "cn091",
+    "id": "lunarc"
+  },
+  "status": "passed"
+}

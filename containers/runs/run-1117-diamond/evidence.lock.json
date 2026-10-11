@@ -1,0 +1,116 @@
+{
+  "execution_status": "passed",
+  "failures": [],
+  "image": {
+    "path": "/lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/diamond-2.1.10-linux-amd64-d86c946a7abb.sif",
+    "sha256": "d86c946a7abb2f28f3da389735b425eff159fd2415e95cab5cf4a5b8611b579d",
+    "size_bytes": 34537472
+  },
+  "repository_commit": "18b311fb90881e765510bcb81dcc7319546997b6",
+  "run_id": "run-1117",
+  "schema_version": "bijux.container.run_evidence_lock.v1",
+  "scientific_status": "not_assessed",
+  "slurm_job_id": "3458167",
+  "source_files": [
+    {
+      "path": "ERR1021817.equcab3-protein.tsv",
+      "sha256": "7c54f74373d6a9b29f4e2177db780a7d7abbca1bc059568a75efe5f2925b43e7",
+      "size_bytes": 79526
+    },
+    {
+      "path": "config-credential.yml",
+      "sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+      "size_bytes": 134
+    },
+    {
+      "path": "config-governance.yml",
+      "sha256": "d7c38500306b1d88b227b3acfc26ff9d212ebd729d62776f913c912eef12ecc2",
+      "size_bytes": 403
+    },
+    {
+      "path": "config-pipeline.yml",
+      "sha256": "c6f40ad0a875a67b3cee4587f04faefc7939335d6e0ebbbadfc104e15cf92bc8",
+      "size_bytes": 2529
+    },
+    {
+      "path": "evidence.json",
+      "sha256": "0a46e99ef1400c693c51acbaee01cbba69f4e709abb61e895cdc5afd2e79c52f",
+      "size_bytes": 3844
+    },
+    {
+      "path": "help.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "help.stdout.log",
+      "sha256": "18709b4a4dbe061bb60883e94dc847e3ddbb6171b35cf49c289504f7aa525f9c",
+      "size_bytes": 1605
+    },
+    {
+      "path": "negative.stderr.log",
+      "sha256": "c603fbd942714b00715899949ce513fe0b3178dce72f3c851029729d19a22de6",
+      "size_bytes": 86
+    },
+    {
+      "path": "negative.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "real.stderr.log",
+      "sha256": "248c1d75dc81fa2880fe9e6bb49adbe8fbab12b6f1ffabb5801b2d978ae53a0a",
+      "size_bytes": 6103
+    },
+    {
+      "path": "real.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "slurm-accounting.json",
+      "sha256": "fcb44d84aa82d3f2cef2926039418bdb3570e24bc06dc25f5d8fbd85501682a3",
+      "size_bytes": 922
+    },
+    {
+      "path": "slurm-job-id.txt",
+      "sha256": "8b373f97ad8e0eb9d22baaa633f37c24187baa81afa63010f08c22468b600eb5",
+      "size_bytes": 8
+    },
+    {
+      "path": "submit.sh",
+      "sha256": "d52d87791b3803dcfe3b921bc5f1c2448f0ac5f3b77b1678c773e8d9ed3c1e72",
+      "size_bytes": 1048
+    },
+    {
+      "path": "version.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "version.stdout.log",
+      "sha256": "9fda3c944984124a2ff52a379acb93a6b766cc35a9cc5904a05ffbc221414b49",
+      "size_bytes": 23
+    }
+  ],
+  "source_result": "results/container-validation/diamond/run-1117",
+  "tool": "diamond",
+  "tracked_files": {
+    "config-credential.yml": {
+      "sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+      "size_bytes": 134
+    },
+    "config-pipeline.yml": {
+      "sha256": "c6f40ad0a875a67b3cee4587f04faefc7939335d6e0ebbbadfc104e15cf92bc8",
+      "size_bytes": 2529
+    },
+    "evidence.json": {
+      "sha256": "0a46e99ef1400c693c51acbaee01cbba69f4e709abb61e895cdc5afd2e79c52f",
+      "size_bytes": 3844
+    },
+    "slurm-accounting.json": {
+      "sha256": "fcb44d84aa82d3f2cef2926039418bdb3570e24bc06dc25f5d8fbd85501682a3",
+      "size_bytes": 922
+    }
+  }
+}

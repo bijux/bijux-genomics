@@ -1,0 +1,27 @@
+{
+  "collected_at_utc": "2026-08-03T01:59:50.587395+00:00",
+  "credential_reference_sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+  "governance_sha256": "d7c38500306b1d88b227b3acfc26ff9d212ebd729d62776f913c912eef12ecc2",
+  "pipeline_sha256": "efc6c4c6bd0f6e5ada1a879269b934afac766029fcca3349f9c660fb6c67d7e9",
+  "rows": [
+    {
+      "AllocCPUS": "4",
+      "AveRSS": "",
+      "CPUTimeRAW": "4",
+      "Elapsed": "00:00:01",
+      "ElapsedRaw": "1",
+      "ExitCode": "0:0",
+      "JobID": "3458166",
+      "JobName": "fastq-runtime-diamond-EquCab3.0-RefSeq-proteins",
+      "MaxRSS": "",
+      "NodeList": "cn091",
+      "ReqMem": "8G",
+      "State": "COMPLETED",
+      "TotalCPU": "00:00:00"
+    }
+  ],
+  "run_id": "run-1116",
+  "schema_version": "bijux.slurm.accounting.v1",
+  "slurm_job_id": "3458166",
+  "submit_script_sha256": "77d0fb51ddfd2d9cfb87cde307fa80279769942c9dea159f9e83f59c398a9daf"
+}

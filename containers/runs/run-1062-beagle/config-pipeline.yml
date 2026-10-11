@@ -1,0 +1,55 @@
+schema_version: bijux.container.pipeline.v1
+run:
+  id: run-1062
+  campaign: public-chromosome-22-vcf-container-qualification
+  corpus: 1000-genomes-phase3-chr22-biallelic-100-samples-full-chromosome
+  sample: HG00096-HG00097
+  domain: vcf
+  stage: vcf.phasing
+  tool: beagle
+  operator: bijan
+repository:
+  path: /home/bijan/bijux/bijux-genomics-runs/5b6f49a03cbd13c1b3a5c06fa39d2e18a7749a30
+  commit: 5b6f49a03cbd13c1b3a5c06fa39d2e18a7749a30
+  clean: true
+image:
+  path: /home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/beagle-5.4-linux-amd64-98b380fa3e87.sif
+  sha256: 98b380fa3e87bd7811baac9a95bd97521028062672c72b48197187c37c2562db
+data:
+  inputs:
+    - id: 1000-genomes-phase3-chr22-biallelic-100-samples
+      kind: data
+      path: /home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/1000-genomes-phase3-chr22-biallelic-100-samples-full-chromosome/panel.vcf.gz
+      sha256: 343a756d611cb58c1187e9b8f6c9a15a297772ea4fc9691a51ad2a56457a91bb
+commands:
+  version: [beagle, --version]
+  help: [beagle, --help]
+  real:
+    - beagle
+    - gt=/home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/1000-genomes-phase3-chr22-biallelic-100-samples-full-chromosome/panel.vcf.gz
+    - out=/home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/beagle/run-1062/phased
+    - nthreads=4
+    - chrom=22:20000000-22000000
+  negative:
+    - beagle
+    - gt=/governed-missing-panel.vcf.gz
+    - out=/home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/beagle/run-1062/negative/phased
+outputs:
+  result_root: /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/beagle/run-1062
+  required_files:
+    - phased.vcf.gz
+    - phased.log
+resources:
+  account: lu2026-2-20
+  partition: lu48
+  cpus: 4
+  memory_mb: 8192
+  walltime: '00:30:00'
+  scratch_mb: 4096
+execution:
+  locale: C
+  timezone: UTC
+  runtime_network: false
+acceptance:
+  version_regex: '^beagle 5[.]4$'
+  negative_exit_nonzero: true

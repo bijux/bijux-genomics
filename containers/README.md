@@ -26,3 +26,201 @@ The reviewed LUNARC authority is
 [`containers/contracts/sites/lunarc.yml`](contracts/sites/lunarc.yml); every
 submitted run archives its resolved copy alongside the pipeline and redacted
 credential-reference contracts.
+
+## Reproduce the LUNARC image roster
+
+`run-1000` is the governed frontend campaign that prepares immutable SIFs. It
+selects only supported catalog tools whose admitted image is missing or no
+longer matches the active recipe. The operational execution record resolves
+the exact clean repository commit, catalog hash, inventory hash, recipe hashes,
+logs, and admitted image hashes; the source campaign cannot contain its own Git
+commit because a Git object cannot self-identify.
+
+Inventory and campaign records are immutable and commit-addressed. Preparation
+creates a clean, complete build worktree beneath the configured
+`paths.frozen_repositories/image-builds/` root. The campaign reads recipes and
+all `%files` inputs from that worktree, so later movement of the active checkout
+cannot change an in-flight build.
+
+```console
+image_commit="$(git rev-parse HEAD)"
+inventory_root="/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/inventory/${image_commit}"
+campaign_root="/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/campaigns/run-1000-images/${image_commit}"
+mkdir -p "${inventory_root}" "${campaign_root}"
+
+python3 -B containers/contracts/image_inventory.py audit \
+  --catalog containers/contracts/catalog.toml \
+  --image-root /home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer \
+  --evidence-root /home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence \
+  --runs-root containers/runs \
+  --repository . \
+  --output "${inventory_root}/image-inventory.json"
+
+python3 -B containers/contracts/image_campaign.py prepare \
+  --campaign containers/runs/run-1000-images/config-campaign.json \
+  --inventory "${inventory_root}/image-inventory.json" \
+  --catalog containers/contracts/catalog.toml \
+  --governance containers/contracts/sites/lunarc.yml \
+  --output "${campaign_root}/execution.json"
+
+python3 -B containers/contracts/image_campaign.py execute \
+  --execution "${campaign_root}/execution.json" \
+  --governance containers/contracts/sites/lunarc.yml \
+  --jobs 2
+```
+
+Image construction runs on the approved frontend. Real scientific tool runs
+remain Slurm jobs with separate pipeline and credential-reference contracts.
+
+Superseded images and interrupted builds are never deleted from an ad hoc
+shell command. After the image campaign is idle, create and inspect a
+checksummed quarantine plan, then apply and verify its same-filesystem moves:
+
+```console
+python3 -B containers/contracts/image_storage.py plan \
+  --inventory "${inventory_root}/image-inventory.json" \
+  --image-root /home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer \
+  --quarantine-root "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/.quarantine/${image_commit}" \
+  --plan "${inventory_root}/image-storage-plan.json"
+
+python3 -B containers/contracts/image_storage.py apply \
+  --image-root /home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer \
+  --plan "${inventory_root}/image-storage-plan.json"
+
+python3 -B containers/contracts/image_storage.py verify \
+  --image-root /home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer \
+  --plan "${inventory_root}/image-storage-plan.json"
+```
+
+`rollback` restores every file only after rechecking its size and SHA-256.
+Unknown images and images referenced by historical runs are excluded from the
+quarantine plan.
+
+## Verify version and help contracts
+
+Image admission proves that a recipe produced an inspectable SIF; it does not
+prove that the packaged entry points start correctly. After inventory and
+quarantine are complete, run the catalog-wide runtime campaign on the approved
+frontend. It executes version and help checks with a disabled runtime network,
+bounded command time, and one immutable stdout/stderr pair per check:
+
+```console
+runtime_root="/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/runtime/${image_commit}"
+mkdir -p "${runtime_root}"
+
+python3 -B containers/contracts/runtime_verification.py prepare \
+  --inventory "${inventory_root}/image-inventory-post-quarantine.json" \
+  --catalog containers/contracts/catalog.toml \
+  --governance containers/contracts/sites/lunarc.yml \
+  --output "${runtime_root}/execution.json"
+
+python3 -B containers/contracts/runtime_verification.py execute \
+  --execution "${runtime_root}/execution.json" \
+  --governance containers/contracts/sites/lunarc.yml \
+  --jobs 8 \
+  --timeout-seconds 30
+```
+
+The execution record retains the exact repository, catalog, inventory, image,
+command, output, and log digests. A passing runtime campaign qualifies only the
+version and help dimensions. Real one-sample execution remains a governed
+Slurm run, and scientific, benchmark, security, and release claims remain
+independent.
+
+## Prepare governed input data
+
+Container validation does not download or silently replace scientific input.
+Admit a file beneath the configured study `data/` root, verify its format with
+the domain-appropriate reader, and record its SHA-256 in `config-pipeline.yml`.
+For the paired FASTQ corpus used by the current real-run examples:
+
+```console
+data_root="/home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb10854-err1021817"
+gzip -t "${data_root}/ERR1021817.read-prefix-100000_1.fastq.gz"
+gzip -t "${data_root}/ERR1021817.read-prefix-100000_2.fastq.gz"
+sha256sum "${data_root}/ERR1021817.read-prefix-100000_1.fastq.gz" \
+  "${data_root}/ERR1021817.read-prefix-100000_2.fastq.gz"
+```
+
+The validator re-hashes every declared input, image, and frozen repository
+before submission. A missing file or checksum mismatch is a hard failure; the
+executor never substitutes a fixture.
+
+## Prepare and submit a real run
+
+Draft specifications are staged under the governed study evidence root. The
+repository commit named by the specification must first be frozen into a clean
+execution checkout:
+
+```console
+run_commit="$(git rev-parse HEAD)"
+python3 -B containers/contracts/container_validation.py freeze-repository \
+  --governance containers/contracts/sites/lunarc.yml \
+  --commit "${run_commit}"
+
+run_spec="/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/specifications/run-1125-trimmomatic"
+python3 -B containers/contracts/container_validation.py validate \
+  --governance containers/contracts/sites/lunarc.yml \
+  --pipeline "${run_spec}/config-pipeline.yml" \
+  --credentials "${run_spec}/config-credential.yml"
+python3 -B containers/contracts/container_validation.py submit \
+  --manifest "${run_spec}" \
+  --governance containers/contracts/sites/lunarc.yml
+```
+
+To validate every staged specification before submitting any of them, run:
+
+```console
+spec_root="/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/specifications"
+for run_spec in "${spec_root}"/run-*-*; do
+  python3 -B containers/contracts/container_validation.py validate \
+    --governance containers/contracts/sites/lunarc.yml \
+    --pipeline "${run_spec}/config-pipeline.yml" \
+    --credentials "${run_spec}/config-credential.yml"
+done
+```
+
+Submission remains an explicit per-run action so a malformed or scientifically
+inappropriate batch cannot enter the queue merely because it shares a folder.
+
+## Collect results and publish run evidence
+
+After Slurm reaches a terminal state, collection adds immutable scheduler
+accounting and preserves failures even when the executor never started:
+
+```console
+python3 -B containers/contracts/container_validation.py collect-accounting \
+  --manifest "${run_spec}" \
+  --governance containers/contracts/sites/lunarc.yml
+```
+
+Import one run by bounding the identifier, or import all not-yet-tracked result
+directories into a clean checkout:
+
+```console
+result_root="/home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation"
+
+# One run
+python3 -B containers/runs/manage.py import-evidence \
+  --result-root "${result_root}" \
+  --output-root containers/runs \
+  --minimum-run 1125 \
+  --maximum-run 1125
+
+# All available runs (fails instead of overwriting an existing tracked record)
+python3 -B containers/runs/manage.py import-evidence \
+  --result-root "${result_root}" \
+  --output-root containers/runs
+
+python3 -B containers/runs/manage.py validate --runs-root containers/runs
+python3 -B containers/runs/manage.py render-index \
+  --runs-root containers/runs \
+  --output containers/reports/run-evidence.json
+python3 -B containers/runs/manage.py render-report \
+  --runs-root containers/runs \
+  --output containers/reports/run-evidence.md
+```
+
+The all-runs importer is intentionally non-overwriting. Use a fresh checkout or
+an empty output root for a complete replay; use run bounds when adding evidence
+to the repository incrementally.

@@ -1,32 +1,46 @@
 # Containers
 
-Purpose: single entrypoint for container contracts, lifecycle, and operations.
+Bijux Genomics packages third-party genomics tools for reproducible local and
+LUNARC execution. A recipe in this repository is only source code. It becomes
+an admitted image after its build provenance and SIF checksum are recorded; it
+becomes runtime-verified after its real version and help entry points pass; and
+it gains real-data evidence only through an archived Slurm run. None of those
+steps alone establishes scientific validity or release readiness.
 
-## Start Here
-- Index: [containers/docs/index.md](docs/index.md)
-- Tool lifecycle and promotion path: [containers/docs/TOOL_LIFECYCLE.md](docs/TOOL_LIFECYCLE.md)
-- Version authority: [containers/docs/VERSION_AUTHORITY.md](docs/VERSION_AUTHORITY.md)
-- Versioning artifact index: [containers/versions/index.md](versions/index.md)
-- Lock lifecycle: [containers/versions/LOCK.md](versions/LOCK.md)
-- Smoke contract: [containers/docs/SMOKE_CONTRACT.md](docs/SMOKE_CONTRACT.md)
-- Promotion policy: [containers/docs/PROMOTION_POLICY.md](docs/PROMOTION_POLICY.md)
-- Science evidence boundary: [containers/docs/SCIENCE_EVIDENCE_BOUNDARY.md](docs/SCIENCE_EVIDENCE_BOUNDARY.md)
-- Security boundary: [containers/docs/SECURITY_BOUNDARY.md](docs/SECURITY_BOUNDARY.md)
-- Multiarch policy (arm64-first): [containers/docs/MULTIARCH_POLICY.md](docs/MULTIARCH_POLICY.md)
-- License assertion inventory: [containers/licenses/README.md](licenses/README.md)
+## What is verified now
 
-## Reproducibility
-- Source of truth: [containers/versions/versions.toml](versions/versions.toml)
-- Lock: [containers/versions/lock.json](versions/lock.json)
-- Versions index hash: [containers/versions/index.sha256](versions/index.sha256)
+- [Image inventory](reports/image-inventory.md): every supported Apptainer
+  recipe has a current, immutable amd64 SIF. Unsupported tools remain explicit.
+- [Runtime verification](reports/runtime-verification.md): version and help
+  commands are checked inside every admitted image with network access disabled.
+- [Real executions](reports/run-evidence.md): successful, failed, and incomplete
+  LUNARC attempts are all retained; scientific assessment remains separate.
+- [Scientific reports](reports/README.md): reviewed cross-tool reports state the
+  corpus, acceptance boundary, evidence, and remaining limitations.
 
-Hash example:
-```text
-sha256(containers/versions/versions.toml) = <64-hex>
-sha256(containers/versions/lock.json)     = <64-hex>
-```
+## Reproduce or review a run
 
-## Contracts
-- Runtime/build parity is enforced by container checks under `bijux-dna-dev/containers/`.
-- No floating tags for production tools.
-- Promotion to production requires locked version metadata and locked digest evidence.
+Start with [the container operating guide](README.md). It gives the exact image
+inventory, build, quarantine, runtime-verification, Slurm submission,
+accounting, and evidence-import commands. Every current Slurm specification has
+two public documents:
+
+- `config-pipeline.yml` freezes repository, image, input, command, resource,
+  output, and acceptance facts;
+- `config-credential.yml` contains credential references and redaction rules,
+  never credential values.
+
+Completed attempts live under [`containers/runs/`](runs/README.md). Large SIFs,
+inputs, logs, and results stay in the governed LUNARC study tree; tracked locks
+record their identities and checksums.
+
+## Authorities
+
+- [Container catalog](contracts/catalog.toml): identity, ownership, support,
+  source, runtime, stage, and evidence requirements.
+- [Version lock](versions/lock.json): generated immutable version/source facts.
+- [LUNARC execution contract](docs/LUNARC_EXECUTION_CONTRACT.md): governed paths,
+  scratch, submission, collection, and recovery behavior.
+- [Evidence boundaries](docs/SCIENCE_EVIDENCE_BOUNDARY.md): what runtime, stage,
+  science, benchmark, security, and release claims mean.
+- [Detailed documentation index](docs/index.md): policies and operator reference.

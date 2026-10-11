@@ -1,0 +1,110 @@
+{
+  "checks": {
+    "help": {
+      "argv": [
+        "leehom",
+        "--help"
+      ],
+      "exit_code": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "bb28ce9e3d88874a1dba04332e6d06b1660457ef64807674e1075443ccda2e02"
+    },
+    "negative": {
+      "argv": [
+        "leehom",
+        "-fq1",
+        "/governed-missing.fastq.gz",
+        "-fqo",
+        "/tmp/missing"
+      ],
+      "exit_code": 1,
+      "stderr_sha256": "4f77e4a670a05bc701790594fb79b3034cf7c198597d86f7b237fdb4e0570c35",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "real": {
+      "argv": [
+        "leehom",
+        "-fq1",
+        "/home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb10854-err1021817/ERR1021817.read-prefix-100000_1.fastq.gz",
+        "-fq2",
+        "/home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb10854-err1021817/ERR1021817.read-prefix-100000_2.fastq.gz",
+        "-fqo",
+        "/home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/leehom/run-1016/reads",
+        "--log",
+        "/home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/leehom/run-1016/summary.txt",
+        "-t",
+        "4"
+      ],
+      "exit_code": 0,
+      "stderr_sha256": "6f698dbfd2dded636f5fdf393a0f43122e7ef45a266139d78a97789190c4e50c",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "version": {
+      "argv": [
+        "leehom",
+        "--version"
+      ],
+      "exit_code": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "4d94288e832e32e055e6ebc05508b2c559842cf9a877cafe392ce55e65f866e5"
+    }
+  },
+  "credential_reference_sha256": "9dda0d787caf2759ee964425049ef52c11ce16ada127cc7c594c8165e6e73d2e",
+  "failure_class": null,
+  "failures": [],
+  "governance_sha256": "d7c38500306b1d88b227b3acfc26ff9d212ebd729d62776f913c912eef12ecc2",
+  "image": {
+    "path": "/lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/leehom-1.2.18-linux-amd64-b3ea2f42cfc8.sif",
+    "sha256": "b3ea2f42cfc89539bda6b3c2b216a5a36ebcccc3ea820b2c05fbbe958c623373",
+    "size_bytes": 166760448
+  },
+  "inputs": [
+    {
+      "id": "err1021817-read-prefix-100000-r1",
+      "kind": "data",
+      "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb10854-err1021817/ERR1021817.read-prefix-100000_1.fastq.gz",
+      "sha256": "37e3200622685562d2fe7db41cd6b573eddfa23861719683026f1387e2bbeabc"
+    },
+    {
+      "id": "err1021817-read-prefix-100000-r2",
+      "kind": "data",
+      "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb10854-err1021817/ERR1021817.read-prefix-100000_2.fastq.gz",
+      "sha256": "14e65d2e2e43e8658bf04a9bf1f4ae90d2c41028b9ab0b86bafbfcc737d75fdf"
+    }
+  ],
+  "outputs": [
+    {
+      "path": "reads_r1.fq.gz",
+      "sha256": "ed81c6605035a6a9315345c72d4eb06d0485dcb2054ee1719fc3ba60ef3fea5e",
+      "size_bytes": 6263958
+    },
+    {
+      "path": "reads_r2.fq.gz",
+      "sha256": "7dc5f4b9b29ec30df5d0be4ea3c1fc7056366a7548efc8ec7e10e7dad1597393",
+      "size_bytes": 6504734
+    },
+    {
+      "path": "summary.txt",
+      "sha256": "73fb85544c4cda1b886533627409883fb9a74f843333101cc09e64f2bf1e0b63",
+      "size_bytes": 180
+    }
+  ],
+  "pipeline_sha256": "c6ed16065736f7d4f19ae41ee963d7551c2498d4e21f7757e44a4b56f2e2a4aa",
+  "repository_clean": true,
+  "repository_commit": "953e9a17bcc2ec15b82789a788f8b9301b5d9c56",
+  "repository_path": "/home/bijan/bijux/bijux-genomics-runs/953e9a17bcc2ec15b82789a788f8b9301b5d9c56",
+  "run_id": "run-1016",
+  "runtime": {
+    "apptainer_version": "apptainer version 1.5.2-1.el9",
+    "cpus": "4",
+    "host": "cn053",
+    "slurm_job_id": "3457637",
+    "started_at_utc": "2026-08-02T14:56:22.831124+00:00"
+  },
+  "schema_version": "bijux.container.evidence.v1",
+  "site": {
+    "host": "cn053",
+    "id": "lunarc"
+  },
+  "status": "passed"
+}

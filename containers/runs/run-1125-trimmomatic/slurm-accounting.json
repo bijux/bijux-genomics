@@ -1,0 +1,27 @@
+{
+  "collected_at_utc": "2026-08-03T05:10:40.372178+00:00",
+  "credential_reference_sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+  "governance_sha256": "5a48351cddde8a0251584de4bbbf01a524bf5a2ecb2a0c2034b6553a554ec37a",
+  "pipeline_sha256": "b4ca9f628b68c9bc5a614f1c496717ef952ffa86282bfc214a1dee0932b37967",
+  "rows": [
+    {
+      "AllocCPUS": "2",
+      "AveRSS": "",
+      "CPUTimeRAW": "10",
+      "Elapsed": "00:00:05",
+      "ElapsedRaw": "5",
+      "ExitCode": "0:0",
+      "JobID": "3458671",
+      "JobName": "fastq-trim_reads-trimmomatic-ERR1021817",
+      "MaxRSS": "",
+      "NodeList": "cn005",
+      "ReqMem": "4G",
+      "State": "COMPLETED",
+      "TotalCPU": "00:00:00"
+    }
+  ],
+  "run_id": "run-1125",
+  "schema_version": "bijux.slurm.accounting.v1",
+  "slurm_job_id": "3458671",
+  "submit_script_sha256": "81b6c2117623b2eb4e06dda5ec67960b3ee130a4d891e4142cd2d54900dd3555"
+}

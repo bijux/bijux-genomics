@@ -1,0 +1,111 @@
+{
+  "execution_status": "passed",
+  "failures": [],
+  "image": {
+    "path": "/lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/fqtools-2.3-linux-amd64-a0f39cc7e90e.sif",
+    "sha256": "a0f39cc7e90e778b603d41d23780a0add9bb0ded2849d73d0787f4e1d7c96488",
+    "size_bytes": 111198208
+  },
+  "repository_commit": "4fa8609958a669146869efeca21cb373736192bc",
+  "run_id": "run-1121",
+  "schema_version": "bijux.container.run_evidence_lock.v1",
+  "scientific_status": "not_assessed",
+  "slurm_job_id": "3458194",
+  "source_files": [
+    {
+      "path": "config-credential.yml",
+      "sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+      "size_bytes": 134
+    },
+    {
+      "path": "config-governance.yml",
+      "sha256": "d7c38500306b1d88b227b3acfc26ff9d212ebd729d62776f913c912eef12ecc2",
+      "size_bytes": 403
+    },
+    {
+      "path": "config-pipeline.yml",
+      "sha256": "3079428483fb81f8563bf8ea96eb9ca5c70c106c0fb622f9eb80de2c53c7618c",
+      "size_bytes": 1608
+    },
+    {
+      "path": "evidence.json",
+      "sha256": "c0b582fc55d400e4ebb4ff7210bcc46c2a8b4adf8898420990c82c3c09d406bc",
+      "size_bytes": 2953
+    },
+    {
+      "path": "help.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "help.stdout.log",
+      "sha256": "389c5e686600be4690c4c5665686cca1c581b5b5bfad3f8b1263e40de51c1d81",
+      "size_bytes": 2346
+    },
+    {
+      "path": "negative.stderr.log",
+      "sha256": "99e44ac9325be6235b1ad769370990ba12b8163825d4fb46c659f9c772815898",
+      "size_bytes": 50
+    },
+    {
+      "path": "negative.stdout.log",
+      "sha256": "e19484a6526699fd4a576561b7acf41f85c2739310b45dac9081b4a126f09e84",
+      "size_bytes": 120
+    },
+    {
+      "path": "real.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "real.stdout.log",
+      "sha256": "a12b7cb43c9d9134b5bb1b35e9096b66775d9e92e7611d1cc92b02edd6782a87",
+      "size_bytes": 3
+    },
+    {
+      "path": "slurm-accounting.json",
+      "sha256": "1191896641136a10ba1c01b4b5829cbca61d628607f3be21860ecb424580197a",
+      "size_bytes": 930
+    },
+    {
+      "path": "slurm-job-id.txt",
+      "sha256": "9cc25c81d1327c4ff26289a19c6ae3e80b112a30992c355bfc755b6589b2b6bc",
+      "size_bytes": 8
+    },
+    {
+      "path": "submit.sh",
+      "sha256": "e11bdfb22b99330bb78015b751a93fd4fcbc296ac2eb41cc15d8b05150bc2991",
+      "size_bytes": 1057
+    },
+    {
+      "path": "version.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "version.stdout.log",
+      "sha256": "022804d19c8fe566dc00dca4721c1eadf6ed71164d647a2e77493ac87c4fe3a6",
+      "size_bytes": 4
+    }
+  ],
+  "source_result": "results/container-validation/fqtools/run-1121",
+  "tool": "fqtools",
+  "tracked_files": {
+    "config-credential.yml": {
+      "sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+      "size_bytes": 134
+    },
+    "config-pipeline.yml": {
+      "sha256": "3079428483fb81f8563bf8ea96eb9ca5c70c106c0fb622f9eb80de2c53c7618c",
+      "size_bytes": 1608
+    },
+    "evidence.json": {
+      "sha256": "c0b582fc55d400e4ebb4ff7210bcc46c2a8b4adf8898420990c82c3c09d406bc",
+      "size_bytes": 2953
+    },
+    "slurm-accounting.json": {
+      "sha256": "1191896641136a10ba1c01b4b5829cbca61d628607f3be21860ecb424580197a",
+      "size_bytes": 930
+    }
+  }
+}

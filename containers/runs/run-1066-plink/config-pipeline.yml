@@ -1,0 +1,65 @@
+schema_version: bijux.container.pipeline.v1
+run:
+  id: run-1066
+  campaign: public-chromosome-22-vcf-container-qualification
+  corpus: 1000-genomes-phase3-chr22-biallelic-100-samples-full-chromosome
+  sample: HG00096-HG00097
+  domain: vcf
+  stage: vcf.allele_frequency
+  tool: plink
+  operator: bijan
+repository:
+  path: /home/bijan/bijux/bijux-genomics-runs/1c4c3ee70a622a6363762f38f5d27a90bbf8d511
+  commit: 1c4c3ee70a622a6363762f38f5d27a90bbf8d511
+  clean: true
+image:
+  path: /home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/plink-1.90b7.2-linux-amd64-ce4688add11d.sif
+  sha256: ce4688add11dc0e87d6da70236a508c18373b54b8582a4519cc645f7a8ad9f99
+data:
+  inputs:
+    - id: 1000-genomes-phase3-chr22-biallelic-100-samples
+      kind: data
+      path: /home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/1000-genomes-phase3-chr22-biallelic-100-samples-full-chromosome/panel.vcf.gz
+      sha256: 343a756d611cb58c1187e9b8f6c9a15a297772ea4fc9691a51ad2a56457a91bb
+commands:
+  version: [plink, --version]
+  help: [plink, --help]
+  real:
+    - plink
+    - --vcf
+    - /home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/1000-genomes-phase3-chr22-biallelic-100-samples-full-chromosome/panel.vcf.gz
+    - --chr
+    - '22'
+    - --from-bp
+    - '20000000'
+    - --to-bp
+    - '22000000'
+    - --freq
+    - --out
+    - /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/plink/run-1066/plink
+  negative:
+    - plink
+    - --vcf
+    - /governed-missing-panel.vcf.gz
+    - --freq
+    - --out
+    - /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/plink/run-1066/negative/plink
+outputs:
+  result_root: /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/plink/run-1066
+  required_files:
+    - plink.frq
+    - plink.log
+resources:
+  account: lu2026-2-20
+  partition: lu48
+  cpus: 2
+  memory_mb: 4096
+  walltime: '00:20:00'
+  scratch_mb: 2048
+execution:
+  locale: C
+  timezone: UTC
+  runtime_network: false
+acceptance:
+  version_regex: '^PLINK v1[.]90b7[.]2'
+  negative_exit_nonzero: true

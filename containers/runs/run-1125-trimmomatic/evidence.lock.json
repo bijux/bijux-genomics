@@ -1,0 +1,140 @@
+{
+  "execution_status": "passed",
+  "failures": [],
+  "image": {
+    "path": "/lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/trimmomatic-0.39-linux-amd64-329c9ec4abfd.sif",
+    "sha256": "329c9ec4abfdfd6543ed7973f24ab4dba870899b0a98e16784ae2127797a9e7d",
+    "size_bytes": 99934208
+  },
+  "repository_commit": "5306d62788b314d1b0cfac8f6fa19ee55d45dd35",
+  "run_id": "run-1125",
+  "schema_version": "bijux.container.run_evidence_lock.v1",
+  "scientific_status": "not_assessed",
+  "slurm_job_id": "3458671",
+  "source_files": [
+    {
+      "path": "config-credential.yml",
+      "sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+      "size_bytes": 134
+    },
+    {
+      "path": "config-governance.yml",
+      "sha256": "5a48351cddde8a0251584de4bbbf01a524bf5a2ecb2a0c2034b6553a554ec37a",
+      "size_bytes": 424
+    },
+    {
+      "path": "config-pipeline.yml",
+      "sha256": "b4ca9f628b68c9bc5a614f1c496717ef952ffa86282bfc214a1dee0932b37967",
+      "size_bytes": 3093
+    },
+    {
+      "path": "evidence.json",
+      "sha256": "5baa29444fbbf5249bc0b609deba5a3677417068cab1293f85cc7dd2bc204258",
+      "size_bytes": 4986
+    },
+    {
+      "path": "help.stderr.log",
+      "sha256": "4405bf6acf7a8cedb026542573995fdba56ead8d80bc7e74e03adf4d2cd83a81",
+      "size_bytes": 498
+    },
+    {
+      "path": "help.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "metrics.json",
+      "sha256": "b6844a43c56edb1d159cd63ba90d6cff00289d00de3a093f9574a2463ceeedf3",
+      "size_bytes": 64
+    },
+    {
+      "path": "negative.stderr.log",
+      "sha256": "4405bf6acf7a8cedb026542573995fdba56ead8d80bc7e74e03adf4d2cd83a81",
+      "size_bytes": 498
+    },
+    {
+      "path": "negative.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "paired_1.fastq.gz",
+      "sha256": "660f03e061e43699ab153bacab06c898b6b1523eae78878f0468230c9e635bdb",
+      "size_bytes": 6605382
+    },
+    {
+      "path": "paired_2.fastq.gz",
+      "sha256": "0a6cf430f5a737ecbf1fb51a408d901f8050f71d5f8fed0f56a1abe0ab2b555f",
+      "size_bytes": 6788925
+    },
+    {
+      "path": "real.stderr.log",
+      "sha256": "d93c1aa36cf544f1f4c74b9d4d1647082e46d5aaf3ba880aec08365778fab384",
+      "size_bytes": 509
+    },
+    {
+      "path": "real.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "slurm-accounting.json",
+      "sha256": "c462ecfd82a00e8e84f7ca38e3ccdd3c871c99f43d003164fc03bfc6d9887568",
+      "size_bytes": 928
+    },
+    {
+      "path": "slurm-job-id.txt",
+      "sha256": "6e91bbf4c0e2b5b1f828d201e09217310a76794e2559337b7b6cdc2b226f0bfb",
+      "size_bytes": 8
+    },
+    {
+      "path": "submit.sh",
+      "sha256": "81b6c2117623b2eb4e06dda5ec67960b3ee130a4d891e4142cd2d54900dd3555",
+      "size_bytes": 1808
+    },
+    {
+      "path": "unpaired_1.fastq.gz",
+      "sha256": "ed33974b3f5a8643ae2bce8ea5f5958de482f97f732b34f8a68a1beff5ca2e72",
+      "size_bytes": 650117
+    },
+    {
+      "path": "unpaired_2.fastq.gz",
+      "sha256": "f9a4957a8551d33262dc5604fe2271116a40d320f9b01ea6cb51d06606c81aa9",
+      "size_bytes": 77670
+    },
+    {
+      "path": "version.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "version.stdout.log",
+      "sha256": "6e716944a37478a3abecebd10460577aacbaa7f3ee9b75328e1e6a00d1df6f02",
+      "size_bytes": 5
+    }
+  ],
+  "source_result": "results/container-validation/run-1125-trimmomatic",
+  "tool": "trimmomatic",
+  "tracked_files": {
+    "config-credential.yml": {
+      "sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+      "size_bytes": 134
+    },
+    "config-governance.yml": {
+      "sha256": "5a48351cddde8a0251584de4bbbf01a524bf5a2ecb2a0c2034b6553a554ec37a",
+      "size_bytes": 424
+    },
+    "config-pipeline.yml": {
+      "sha256": "b4ca9f628b68c9bc5a614f1c496717ef952ffa86282bfc214a1dee0932b37967",
+      "size_bytes": 3093
+    },
+    "evidence.json": {
+      "sha256": "5baa29444fbbf5249bc0b609deba5a3677417068cab1293f85cc7dd2bc204258",
+      "size_bytes": 4986
+    },
+    "slurm-accounting.json": {
+      "sha256": "c462ecfd82a00e8e84f7ca38e3ccdd3c871c99f43d003164fc03bfc6d9887568",
+      "size_bytes": 928
+    }
+  }
+}

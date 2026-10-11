@@ -1,0 +1,64 @@
+schema_version: bijux.container.pipeline.v1
+run:
+  id: run-1119
+  campaign: public-horse-fastq-adapter-clip-container-qualification
+  corpus: ena-prjeb10854-err1021817-read-prefix-100000
+  sample: ERR1021817-R1
+  domain: fastq
+  stage: fastq.trim_reads
+  tool: fastx_clipper
+  operator: bijan
+repository:
+  path: /home/bijan/bijux/bijux-genomics-runs/6678ba0be6451eca04e6cce7f777f6e34ca526e1
+  commit: 6678ba0be6451eca04e6cce7f777f6e34ca526e1
+  clean: true
+image:
+  path: /home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/fastx_clipper-0.0.14-linux-amd64-4fe414e042bf.sif
+  sha256: 4fe414e042bf61979c1c5fe82143bd1701dc977184750a54cb0d52abb4a2d440
+data:
+  inputs:
+    - id: ena-err1021817-read-prefix-100000-r1-uncompressed
+      kind: data
+      path: /home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb10854-err1021817/ERR1021817.read-prefix-100000_1.fastq
+      sha256: f95166df34bf2c3ce3b8641f62068a3ab1e3a9bbb1ec71c570035b7d844588e2
+commands:
+  version: [fastx_clipper, --version]
+  help: [fastx_clipper, --help]
+  real:
+    - sh
+    - -c
+    - >-
+      set -eu;
+      input=/home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb10854-err1021817/ERR1021817.read-prefix-100000_1.fastq;
+      output=/home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/fastx_clipper/run-1119/trimmed.fastq;
+      metrics=/home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/fastx_clipper/run-1119/metrics.tsv;
+      fastx_clipper -a AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC -i "$input" -o "$output";
+      input_lines=$(wc -l < "$input");
+      output_lines=$(wc -l < "$output");
+      test $((input_lines % 4)) -eq 0;
+      test $((output_lines % 4)) -eq 0;
+      input_reads=$((input_lines / 4));
+      output_reads=$((output_lines / 4));
+      test "$output_reads" -gt 0;
+      test "$output_reads" -le "$input_reads";
+      printf 'metric\tvalue\ninput_reads\t%s\noutput_reads\t%s\nremoved_reads\t%s\nretention_fraction\t%.6f\n' "$input_reads" "$output_reads" "$((input_reads - output_reads))" "$(awk -v kept="$output_reads" -v total="$input_reads" 'BEGIN { print kept / total }')" > "$metrics"
+  negative: [fastx_clipper, --governed-invalid-option]
+outputs:
+  result_root: /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/fastx_clipper/run-1119
+  required_files:
+    - trimmed.fastq
+    - metrics.tsv
+resources:
+  account: lu2026-2-20
+  partition: lu48
+  cpus: 1
+  memory_mb: 2048
+  walltime: '00:15:00'
+  scratch_mb: 512
+execution:
+  locale: C
+  timezone: UTC
+  runtime_network: false
+acceptance:
+  version_regex: '^fastx_clipper 0[.]0[.]14$'
+  negative_exit_nonzero: true

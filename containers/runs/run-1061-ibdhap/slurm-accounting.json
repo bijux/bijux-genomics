@@ -1,0 +1,27 @@
+{
+  "collected_at_utc": "2026-08-02T21:03:04.145074+00:00",
+  "credential_reference_sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+  "governance_sha256": "d7c38500306b1d88b227b3acfc26ff9d212ebd729d62776f913c912eef12ecc2",
+  "pipeline_sha256": "5463c60e546954d0be326dbb269165d3d237d941fd53a5ad0437957dd4249dbc",
+  "rows": [
+    {
+      "AllocCPUS": "2",
+      "AveRSS": "",
+      "CPUTimeRAW": "18",
+      "Elapsed": "00:00:09",
+      "ElapsedRaw": "9",
+      "ExitCode": "1:0",
+      "JobID": "3457969",
+      "JobName": "vcf-ibd_state_probabilities-ibdhap-HG00096-HG00097",
+      "MaxRSS": "",
+      "NodeList": "cn046",
+      "ReqMem": "4G",
+      "State": "FAILED",
+      "TotalCPU": "00:00:00"
+    }
+  ],
+  "run_id": "run-1061",
+  "schema_version": "bijux.slurm.accounting.v1",
+  "slurm_job_id": "3457969",
+  "submit_script_sha256": "21b1bcc65a51151890d6c0ca62e2cf40d2993d0ca1e63e42a6c96e1274ec55f4"
+}

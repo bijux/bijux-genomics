@@ -1,0 +1,65 @@
+schema_version: bijux.container.pipeline.v1
+run:
+  id: run-1098
+  campaign: public-fastq-adapter-trim-qualification
+  corpus: ena-prjeb10854-err1021817-read-prefix-100000
+  sample: ERR1021817
+  domain: fastq
+  stage: fastq.trim_reads
+  tool: atropos
+  operator: bijan
+repository:
+  path: /home/bijan/bijux/bijux-genomics-runs/e3cd013e0ac489cab7f78dd7d15cb83bb4469086
+  commit: e3cd013e0ac489cab7f78dd7d15cb83bb4469086
+  clean: true
+image:
+  path: /home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/atropos-1.1.31-linux-amd64-7abde4206eef.sif
+  sha256: 7abde4206eefb82e42c633406936975c97363d74f1c5339f399375628550d385
+data:
+  inputs:
+    - id: ena-err1021817-read-prefix-100000-r1
+      kind: data
+      path: /home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb10854-err1021817/ERR1021817.read-prefix-100000_1.fastq.gz
+      sha256: 37e3200622685562d2fe7db41cd6b573eddfa23861719683026f1387e2bbeabc
+    - id: ena-err1021817-read-prefix-100000-r2
+      kind: data
+      path: /home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb10854-err1021817/ERR1021817.read-prefix-100000_2.fastq.gz
+      sha256: 14e65d2e2e43e8658bf04a9bf1f4ae90d2c41028b9ab0b86bafbfcc737d75fdf
+commands:
+  version: [atropos, --version]
+  help: [atropos, trim, --help]
+  real:
+    - atropos
+    - trim
+    - -a
+    - AGATCGGAAGAGCACACGTCTGAACTCCAGTCA
+    - -A
+    - AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGT
+    - -pe1
+    - /home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb10854-err1021817/ERR1021817.read-prefix-100000_1.fastq.gz
+    - -pe2
+    - /home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb10854-err1021817/ERR1021817.read-prefix-100000_2.fastq.gz
+    - -o
+    - /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/atropos/run-1098/trimmed.1.fastq.gz
+    - -p
+    - /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/atropos/run-1098/trimmed.2.fastq.gz
+  negative: [atropos, --governed-invalid-option]
+outputs:
+  result_root: /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/atropos/run-1098
+  required_files:
+    - trimmed.1.fastq.gz
+    - trimmed.2.fastq.gz
+resources:
+  account: lu2026-2-20
+  partition: lu48
+  cpus: 1
+  memory_mb: 2048
+  walltime: '00:15:00'
+  scratch_mb: 512
+execution:
+  locale: C
+  timezone: UTC
+  runtime_network: false
+acceptance:
+  version_regex: '^Atropos 1[.]1[.]31$'
+  negative_exit_nonzero: true

@@ -1,0 +1,64 @@
+schema_version: bijux.container.pipeline.v1
+run:
+  id: run-1003
+  campaign: horse-wgs-container-qualification
+  corpus: equcab3-gcf-002863925.1
+  sample: EquCab3.0
+  domain: reference
+  stage: reference.build_bwa_index
+  tool: bwa
+  operator: bijan
+repository:
+  path: /home/bijan/bijux/bijux-genomics-runs/8c93c770b8b1fe41c23f2ee6a47686c9722c16f7
+  commit: 8c93c770b8b1fe41c23f2ee6a47686c9722c16f7
+  clean: true
+image:
+  path: /home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/bwa-0.7.17-linux-amd64-64c8e0c32f1a.sif
+  sha256: 64c8e0c32f1adbee7f46ac4c4a52bad390577593881688023d02da4585f479c8
+data:
+  inputs:
+    - id: equcab3-gcf-002863925.1-genomic-reference
+      kind: reference
+      path: /home/bijan/lu2024-12-24/Dardel/STUDY/data/references/equcab3-gcf-002863925.1/GCF_002863925.1_EquCab3.0_genomic.fna
+      sha256: 3a60f0b912bad2d78d76add5eb93fc08cb2ad52e4afdb9181046c219671809b6
+commands:
+  version:
+    - bwa
+    - --version
+  help:
+    - bwa
+    - --help
+  real:
+    - bwa
+    - index
+    - -a
+    - bwtsw
+    - -p
+    - /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/bwa/run-1003/equcab3
+    - /home/bijan/lu2024-12-24/Dardel/STUDY/data/references/equcab3-gcf-002863925.1/GCF_002863925.1_EquCab3.0_genomic.fna
+  negative:
+    - bwa
+    - index
+    - /governed-missing-reference.fna
+outputs:
+  result_root: /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/bwa/run-1003
+  required_files:
+    - equcab3.amb
+    - equcab3.ann
+    - equcab3.bwt
+    - equcab3.pac
+    - equcab3.sa
+resources:
+  account: lu2026-2-20
+  partition: lu48
+  cpus: 4
+  memory_mb: 32768
+  walltime: 04:00:00
+  scratch_mb: 4096
+execution:
+  locale: C
+  timezone: UTC
+  runtime_network: false
+acceptance:
+  version_regex: '^0[.]7[.]17-r1188$'
+  negative_exit_nonzero: true

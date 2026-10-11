@@ -1,0 +1,111 @@
+{
+  "execution_status": "passed",
+  "failures": [],
+  "image": {
+    "path": "/lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/fastqvalidator-0.1.1-linux-amd64-5f311ba0cdfd.sif",
+    "sha256": "5f311ba0cdfd1da0487335c8aa668bb8b2550703dfdbc877fd926c7170cc43d0",
+    "size_bytes": 30797824
+  },
+  "repository_commit": "6fe3d23155fabf8514a844c43e5ebc9e4db63684",
+  "run_id": "run-1077",
+  "schema_version": "bijux.container.run_evidence_lock.v1",
+  "scientific_status": "not_assessed",
+  "slurm_job_id": "3458062",
+  "source_files": [
+    {
+      "path": "config-credential.yml",
+      "sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+      "size_bytes": 134
+    },
+    {
+      "path": "config-governance.yml",
+      "sha256": "d7c38500306b1d88b227b3acfc26ff9d212ebd729d62776f913c912eef12ecc2",
+      "size_bytes": 403
+    },
+    {
+      "path": "config-pipeline.yml",
+      "sha256": "123fa598469e063210b18de0ed8a844b873d6f725e6590aaa3eb880aae05f68f",
+      "size_bytes": 1670
+    },
+    {
+      "path": "evidence.json",
+      "sha256": "7aa724010e2e9b64e32bc2233f5f2c3c088d2c41d73b325a87bb23d9531c3ae8",
+      "size_bytes": 2989
+    },
+    {
+      "path": "help.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "help.stdout.log",
+      "sha256": "488f6a6e348ea30c8df2eda4d97d038e4d9406791a9484b11e57312edb3bbc4c",
+      "size_bytes": 45
+    },
+    {
+      "path": "negative.stderr.log",
+      "sha256": "a60f54cb476a2772c69c5ff0082124721451fb6f890693c6b0ebdd24a99fb2f4",
+      "size_bytes": 68
+    },
+    {
+      "path": "negative.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "real.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "real.stdout.log",
+      "sha256": "cd73ea0173b8c2077e35f7712a2d1c01a0d89be55e989606fb82706f1cdcd85f",
+      "size_bytes": 246
+    },
+    {
+      "path": "slurm-accounting.json",
+      "sha256": "95179c08055202a154528085f94ed24626308a82a243936a00e11e03b2bec5f8",
+      "size_bytes": 937
+    },
+    {
+      "path": "slurm-job-id.txt",
+      "sha256": "bd052d45f2603eed2cd67211e197033023ab1419c040dfacf38c0672e97b0a42",
+      "size_bytes": 8
+    },
+    {
+      "path": "submit.sh",
+      "sha256": "c6259fc06c49949a0b333bb1bfc5653edb778e1cd4fde8eed4462b95fa19d88c",
+      "size_bytes": 1099
+    },
+    {
+      "path": "version.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "version.stdout.log",
+      "sha256": "390f508b86f7514a46f45366a72681a4ecd71f4a274a1bd3cdceb219cae77444",
+      "size_bytes": 21
+    }
+  ],
+  "source_result": "results/container-validation/fastqvalidator/run-1077",
+  "tool": "fastqvalidator",
+  "tracked_files": {
+    "config-credential.yml": {
+      "sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+      "size_bytes": 134
+    },
+    "config-pipeline.yml": {
+      "sha256": "123fa598469e063210b18de0ed8a844b873d6f725e6590aaa3eb880aae05f68f",
+      "size_bytes": 1670
+    },
+    "evidence.json": {
+      "sha256": "7aa724010e2e9b64e32bc2233f5f2c3c088d2c41d73b325a87bb23d9531c3ae8",
+      "size_bytes": 2989
+    },
+    "slurm-accounting.json": {
+      "sha256": "95179c08055202a154528085f94ed24626308a82a243936a00e11e03b2bec5f8",
+      "size_bytes": 937
+    }
+  }
+}

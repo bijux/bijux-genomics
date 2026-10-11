@@ -1,0 +1,112 @@
+{
+  "checks": {
+    "help": {
+      "argv": [
+        "damageprofiler",
+        "--help"
+      ],
+      "exit_code": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "da829097f4f51e65626ba5228fc3a8b59f53f51c3168537db6886c3e306bc706"
+    },
+    "negative": {
+      "argv": [
+        "damageprofiler",
+        "-i",
+        "/governed-missing.sam",
+        "-o",
+        "/home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/damageprofiler/run-1113/negative"
+      ],
+      "exit_code": 66,
+      "stderr_sha256": "1707399336e491a0d650e5b8d4387ff07db9f0f230deb05d3c43dd2b30121c67",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "real": {
+      "argv": [
+        "damageprofiler",
+        "-i",
+        "/home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/samtools/run-1112/ERR2112767.calmd.sam",
+        "-o",
+        "/home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/damageprofiler/run-1113",
+        "-title",
+        "ERR2112767"
+      ],
+      "exit_code": 1,
+      "stderr_sha256": "2f7b4f92ac91a522e5f74680acd5bcec29d9eba6ae4cc9dec17a49597de2743a",
+      "stdout_sha256": "ae334c734da7b950d03872efab7eaa66a7061f329a81559c5e5923b032a309d7"
+    },
+    "version": {
+      "argv": [
+        "damageprofiler",
+        "--version"
+      ],
+      "exit_code": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "39dd8649e29e6c00d7318fec7b2fcb6f66c8146e8dd399ce50e5c53a1794daf6"
+    }
+  },
+  "credential_reference_sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+  "failure_class": "container_validation",
+  "failures": [
+    "real one-sample command failed"
+  ],
+  "governance_sha256": "d7c38500306b1d88b227b3acfc26ff9d212ebd729d62776f913c912eef12ecc2",
+  "image": {
+    "path": "/lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/damageprofiler-1.1-linux-amd64-eb310de6eefe.sif",
+    "sha256": "eb310de6eefec837f53969e20b164b9e813ed69d11e599bb231268b7962fdb52",
+    "size_bytes": 164499456
+  },
+  "inputs": [
+    {
+      "id": "ena-prjeb22390-err2112767-calmd-sam",
+      "kind": "upstream_result",
+      "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/samtools/run-1112/ERR2112767.calmd.sam",
+      "sha256": "8f6b56f8699512142726bf2f1911680897443ccd03f22affc56ebca614719716"
+    }
+  ],
+  "outputs": [
+    {
+      "path": "5pCtoT_freq.txt",
+      "sha256": "6b5c826376db1fa1518431b5999547dd2b93aee07ac63393d600e23c393e334b",
+      "size_bytes": 810
+    },
+    {
+      "path": "3pGtoA_freq.txt",
+      "sha256": "d7bec1c6af1c577ca0e80dcd9f9e06f96ae99499c39a0981828c3710c015f2ae",
+      "size_bytes": 802
+    },
+    {
+      "path": "misincorporation.txt",
+      "sha256": "f7e03e8116235db75854fcff9deeaebd8667be75080a6af08b1a5508e695a92b",
+      "size_bytes": 56925
+    },
+    {
+      "path": "dmgprof.json",
+      "sha256": "d019698f44e5fd8018000dea898dbe889c3c69aa9c19c09dadd82427b3e954eb",
+      "size_bytes": 5087
+    },
+    {
+      "path": "DamageProfiler.log",
+      "sha256": "57963a980194ebd11474ecc3cd58ee0865a0a18e30759aceb5c1f42c8e3d6b9b",
+      "size_bytes": 2677
+    }
+  ],
+  "pipeline_sha256": "2f67d3408e0f6ad975e9c65d19991041a8bbd3f4d9e26ffc89b52a28ff9bc6f6",
+  "repository_clean": true,
+  "repository_commit": "12514022891a719e82c87c8535fc9c40bc56eb6c",
+  "repository_path": "/home/bijan/bijux/bijux-genomics-runs/12514022891a719e82c87c8535fc9c40bc56eb6c",
+  "run_id": "run-1113",
+  "runtime": {
+    "apptainer_version": "apptainer version 1.5.2-1.el9",
+    "cpus": "1",
+    "host": "cn091",
+    "slurm_job_id": "3458155",
+    "started_at_utc": "2026-08-03T01:43:00.752478+00:00"
+  },
+  "schema_version": "bijux.container.evidence.v1",
+  "site": {
+    "host": "cn091",
+    "id": "lunarc"
+  },
+  "status": "failed"
+}

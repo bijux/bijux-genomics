@@ -1,0 +1,91 @@
+{
+  "checks": {
+    "help": {
+      "argv": [
+        "samtools",
+        "--help"
+      ],
+      "exit_code": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "c2683ee6f1b4c188b5ace5b3834b9b904224a239fe29f04e1e60d34d11251daf"
+    },
+    "negative": {
+      "argv": [
+        "samtools",
+        "faidx",
+        "/governed-missing.fasta",
+        "NC_009144.3:1-1000000"
+      ],
+      "exit_code": 1,
+      "stderr_sha256": "7f4d4b1ca80c837eeef609b8be0b79166605b949e017746389dbec8e1b672560",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "real": {
+      "argv": [
+        "sh",
+        "-c",
+        "set -eu; samtools faidx /home/bijan/lu2024-12-24/Dardel/STUDY/data/references/equcab3-gcf-002863925.1/GCF_002863925.1_EquCab3.0_genomic.fna NC_009144.3:1-1000000 > /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/samtools/run-1054/equcab3-nc_009144.3-1-1000000.fasta"
+      ],
+      "exit_code": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "version": {
+      "argv": [
+        "samtools",
+        "--version"
+      ],
+      "exit_code": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "74ced0742d39983660c8edd3752e77c9c339a736ee6204371b00a591fc21a7da"
+    }
+  },
+  "credential_reference_sha256": "9dda0d787caf2759ee964425049ef52c11ce16ada127cc7c594c8165e6e73d2e",
+  "failure_class": null,
+  "failures": [],
+  "governance_sha256": "3351dcd4b58d966ab6b5b35185b8f4bb4d87485583cc65eb072e623a03636e33",
+  "image": {
+    "path": "/lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/samtools-1.20-linux-amd64-5217bae01b27.sif",
+    "sha256": "5217bae01b27fc1703126d95437df39b05477095d3ff461aee2956f39a24972f",
+    "size_bytes": 122355712
+  },
+  "inputs": [
+    {
+      "id": "equcab3-gcf-002863925.1",
+      "kind": "reference",
+      "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/data/references/equcab3-gcf-002863925.1/GCF_002863925.1_EquCab3.0_genomic.fna",
+      "sha256": "3a60f0b912bad2d78d76add5eb93fc08cb2ad52e4afdb9181046c219671809b6"
+    },
+    {
+      "id": "equcab3-gcf-002863925.1-faidx",
+      "kind": "reference",
+      "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/data/references/equcab3-gcf-002863925.1/GCF_002863925.1_EquCab3.0_genomic.fna.fai",
+      "sha256": "fd9abaac2aa522291dbb792ab3d23d694809cf36a7e1c6a4aa471a652a807f01"
+    }
+  ],
+  "outputs": [
+    {
+      "path": "equcab3-nc_009144.3-1-1000000.fasta",
+      "sha256": "31c05c963f35d1c98fb95ef7872712ea005f95d9ebffeee35c1f7207a17bbd9a",
+      "size_bytes": 1012523
+    }
+  ],
+  "pipeline_sha256": "1162b6b84187431129f4aeef640516d5e7936bd7897935f77b9b4bcdcbb63889",
+  "repository_clean": true,
+  "repository_commit": "3151d5ae8139baf2035914c59d3830da3cadf62b",
+  "repository_path": "/home/bijan/bijux/bijux-genomics-runs/3151d5ae8139baf2035914c59d3830da3cadf62b",
+  "run_id": "run-1054",
+  "runtime": {
+    "apptainer_version": "apptainer version 1.5.2-1.el9",
+    "cpus": "1",
+    "host": "cn088",
+    "slurm_job_id": "3457877",
+    "started_at_utc": "2026-08-02T18:46:11.711652+00:00"
+  },
+  "schema_version": "bijux.container.evidence.v1",
+  "site": {
+    "host": "cn088",
+    "id": "lunarc"
+  },
+  "status": "passed"
+}

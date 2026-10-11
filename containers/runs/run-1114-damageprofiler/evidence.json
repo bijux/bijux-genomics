@@ -1,0 +1,114 @@
+{
+  "checks": {
+    "help": {
+      "argv": [
+        "damageprofiler",
+        "--help"
+      ],
+      "exit_code": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "da829097f4f51e65626ba5228fc3a8b59f53f51c3168537db6886c3e306bc706"
+    },
+    "negative": {
+      "argv": [
+        "damageprofiler",
+        "-i",
+        "/governed-missing.sam",
+        "-o",
+        "/home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/damageprofiler/run-1114/negative"
+      ],
+      "exit_code": 66,
+      "stderr_sha256": "1707399336e491a0d650e5b8d4387ff07db9f0f230deb05d3c43dd2b30121c67",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "real": {
+      "argv": [
+        "damageprofiler",
+        "-i",
+        "/home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/samtools/run-1112/ERR2112767.calmd.sam",
+        "-o",
+        "/home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/damageprofiler/run-1114",
+        "-title",
+        "ERR2112767"
+      ],
+      "exit_code": 1,
+      "stderr_sha256": "b32fabb7e3f0dc7a3b14e52ef095c1fcb6dd33a8642d92f4392bd6ca6927d393",
+      "stdout_sha256": "6ed8f23ffb43903444bcd905bee9c371c341af155125de10145d9268c08df2f2"
+    },
+    "version": {
+      "argv": [
+        "damageprofiler",
+        "--version"
+      ],
+      "exit_code": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "39dd8649e29e6c00d7318fec7b2fcb6f66c8146e8dd399ce50e5c53a1794daf6"
+    }
+  },
+  "credential_reference_sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+  "failure_class": "container_validation",
+  "failures": [
+    "real one-sample command failed",
+    "required output is absent or empty: DamagePlot_five_prime.svg",
+    "required output is absent or empty: DamagePlot_three_prime.svg"
+  ],
+  "governance_sha256": "d7c38500306b1d88b227b3acfc26ff9d212ebd729d62776f913c912eef12ecc2",
+  "image": {
+    "path": "/lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/damageprofiler-1.1-linux-amd64-4c135c9ca508.sif",
+    "sha256": "4c135c9ca508fa0edb68ae59472cb4dafd2fde99cfcfcb9e73f79e6607f60420",
+    "size_bytes": 167612416
+  },
+  "inputs": [
+    {
+      "id": "ena-prjeb22390-err2112767-calmd-sam",
+      "kind": "upstream_result",
+      "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/samtools/run-1112/ERR2112767.calmd.sam",
+      "sha256": "8f6b56f8699512142726bf2f1911680897443ccd03f22affc56ebca614719716"
+    }
+  ],
+  "outputs": [
+    {
+      "path": "5pCtoT_freq.txt",
+      "sha256": "6b5c826376db1fa1518431b5999547dd2b93aee07ac63393d600e23c393e334b",
+      "size_bytes": 810
+    },
+    {
+      "path": "3pGtoA_freq.txt",
+      "sha256": "d7bec1c6af1c577ca0e80dcd9f9e06f96ae99499c39a0981828c3710c015f2ae",
+      "size_bytes": 802
+    },
+    {
+      "path": "misincorporation.txt",
+      "sha256": "f7e03e8116235db75854fcff9deeaebd8667be75080a6af08b1a5508e695a92b",
+      "size_bytes": 56925
+    },
+    {
+      "path": "dmgprof.json",
+      "sha256": "d019698f44e5fd8018000dea898dbe889c3c69aa9c19c09dadd82427b3e954eb",
+      "size_bytes": 5087
+    },
+    {
+      "path": "DamageProfiler.log",
+      "sha256": "a4bbb9ed10af77544d476e535a805b54caa0d840a7ef67fae3e5399793b8b0b7",
+      "size_bytes": 2677
+    }
+  ],
+  "pipeline_sha256": "f676a10d396d76fd30dc21383b4a0873ace9e27ca8abc1150bac2723dd64055e",
+  "repository_clean": true,
+  "repository_commit": "cb582d90ed023a6cd54d1ee309e0ac404e8927f2",
+  "repository_path": "/home/bijan/bijux/bijux-genomics-runs/cb582d90ed023a6cd54d1ee309e0ac404e8927f2",
+  "run_id": "run-1114",
+  "runtime": {
+    "apptainer_version": "apptainer version 1.5.2-1.el9",
+    "cpus": "1",
+    "host": "cn091",
+    "slurm_job_id": "3458159",
+    "started_at_utc": "2026-08-03T01:45:26.816591+00:00"
+  },
+  "schema_version": "bijux.container.evidence.v1",
+  "site": {
+    "host": "cn091",
+    "id": "lunarc"
+  },
+  "status": "failed"
+}

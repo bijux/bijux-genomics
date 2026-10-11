@@ -1,0 +1,105 @@
+{
+  "checks": {
+    "help": {
+      "argv": [
+        "dada2",
+        "--help"
+      ],
+      "exit_code": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "37bda01c0b99e187e3d37537cf3a95db5f2739f478f968a538a87dd46872c14b"
+    },
+    "negative": {
+      "argv": [
+        "dada2",
+        "infer-asvs",
+        "--input",
+        "/governed-missing-r1.fastq.gz",
+        "--input-r2",
+        "/governed-missing-r2.fastq.gz",
+        "--output-dir",
+        "/home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/dada2/run-1057/negative"
+      ],
+      "exit_code": 1,
+      "stderr_sha256": "7444bfe8c6d3f50aae5b325dafca823b8c90ec10776d15f2d795e48542c6210d",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "real": {
+      "argv": [
+        "dada2",
+        "infer-asvs",
+        "--input",
+        "/home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjdb2953-drr021371/DRR021371_1.fastq.gz",
+        "--input-r2",
+        "/home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjdb2953-drr021371/DRR021371_2.fastq.gz",
+        "--output-dir",
+        "/home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/dada2/run-1057",
+        "--sample-id",
+        "DRR021371",
+        "--threads",
+        "4"
+      ],
+      "exit_code": 1,
+      "stderr_sha256": "7444bfe8c6d3f50aae5b325dafca823b8c90ec10776d15f2d795e48542c6210d",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "version": {
+      "argv": [
+        "dada2",
+        "--version"
+      ],
+      "exit_code": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "b714e21c0bf7ac53083483f9db46e8790ae5f84c58f76f40c1374cec9cfba2bc"
+    }
+  },
+  "credential_reference_sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+  "failure_class": "container_validation",
+  "failures": [
+    "real one-sample command failed",
+    "required output is absent or empty: asv-table.tsv",
+    "required output is absent or empty: asv-sequences.fasta",
+    "required output is absent or empty: taxonomy-ready.fasta",
+    "required output is absent or empty: taxonomy-ready.fastq.gz",
+    "required output is absent or empty: report.json"
+  ],
+  "governance_sha256": "d7c38500306b1d88b227b3acfc26ff9d212ebd729d62776f913c912eef12ecc2",
+  "image": {
+    "path": "/lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/dada2-1.30.0-linux-amd64-46ff3cf7673a.sif",
+    "sha256": "46ff3cf7673a5b100396db766159af6722deb6729f0381dcd21193e958bb9f4e",
+    "size_bytes": 243642368
+  },
+  "inputs": [
+    {
+      "id": "ena-prjdb2953-drr021371-r1",
+      "kind": "data",
+      "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjdb2953-drr021371/DRR021371_1.fastq.gz",
+      "sha256": "ba3197113665e58a249b15e252a7a86ab8eed477390fbd97cd9126c75778d8b4"
+    },
+    {
+      "id": "ena-prjdb2953-drr021371-r2",
+      "kind": "data",
+      "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjdb2953-drr021371/DRR021371_2.fastq.gz",
+      "sha256": "21ece829b28a9b18fa392445263e7c4c4e4ee3e51155b270d23f3a844b2f8195"
+    }
+  ],
+  "outputs": [],
+  "pipeline_sha256": "d4c8ce90809c089691a7f0babbf7ff20de9122e9dcfacb8a2565758670c3f302",
+  "repository_clean": true,
+  "repository_commit": "0ceb5ad9a96d0852d9fb30933e811b06248d1910",
+  "repository_path": "/home/bijan/bijux/bijux-genomics-runs/0ceb5ad9a96d0852d9fb30933e811b06248d1910",
+  "run_id": "run-1057",
+  "runtime": {
+    "apptainer_version": "apptainer version 1.5.2-1.el9",
+    "cpus": "4",
+    "host": "cn005",
+    "slurm_job_id": "3457889",
+    "started_at_utc": "2026-08-02T19:12:39.796769+00:00"
+  },
+  "schema_version": "bijux.container.evidence.v1",
+  "site": {
+    "host": "cn005",
+    "id": "lunarc"
+  },
+  "status": "failed"
+}

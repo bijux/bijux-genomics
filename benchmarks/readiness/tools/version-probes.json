@@ -1322,7 +1322,7 @@
       "version_cmd": "plink2 --version",
       "help_cmd": "plink2 --help",
       "version_parser_kind": "first_dotted_numeric_token",
-      "expected_version_regex": "plink2 [0-9]+([.][0-9]+)?",
+      "expected_version_regex": "PLINK v2[.]00a6",
       "expected_bin": "plink2",
       "declared_version": "2.00a5",
       "runtime_probe_paths": [

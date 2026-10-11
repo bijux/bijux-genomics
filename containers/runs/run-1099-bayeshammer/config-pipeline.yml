@@ -1,0 +1,67 @@
+schema_version: bijux.container.pipeline.v1
+run:
+  id: run-1099
+  campaign: public-fastq-error-correction-qualification
+  corpus: ena-prjeb10854-err1021817-read-prefix-100000
+  sample: ERR1021817
+  domain: fastq
+  stage: fastq.correct_errors
+  tool: bayeshammer
+  operator: bijan
+repository:
+  path: /home/bijan/bijux/bijux-genomics-runs/2bc6530df146c688168ce9894483b3774ab6c0eb
+  commit: 2bc6530df146c688168ce9894483b3774ab6c0eb
+  clean: true
+image:
+  path: /home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/bayeshammer-4.2.0-linux-amd64-29f135aa518c.sif
+  sha256: 29f135aa518c0b47a643167eb501f4430d1ab9a1d8b15cbec6336616c2212e99
+data:
+  inputs:
+    - id: ena-err1021817-read-prefix-100000-r1
+      kind: data
+      path: /home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb10854-err1021817/ERR1021817.read-prefix-100000_1.fastq.gz
+      sha256: 37e3200622685562d2fe7db41cd6b573eddfa23861719683026f1387e2bbeabc
+    - id: ena-err1021817-read-prefix-100000-r2
+      kind: data
+      path: /home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb10854-err1021817/ERR1021817.read-prefix-100000_2.fastq.gz
+      sha256: 14e65d2e2e43e8658bf04a9bf1f4ae90d2c41028b9ab0b86bafbfcc737d75fdf
+commands:
+  version: [bayeshammer, --version]
+  help: [bayeshammer, --help]
+  real:
+    - sh
+    - -c
+    - >-
+      set -eu;
+      output_root="$3";
+      bayeshammer -1 "$1" -2 "$2" -o "$output_root/work" -t 2 -m 8;
+      corrected_r1=$(find "$output_root/work/corrected" -maxdepth 1 -type f -name '*_1*.cor.fastq.gz' | head -n 1);
+      corrected_r2=$(find "$output_root/work/corrected" -maxdepth 1 -type f -name '*_2*.cor.fastq.gz' | head -n 1);
+      test -n "$corrected_r1";
+      test -n "$corrected_r2";
+      cp "$corrected_r1" "$output_root/corrected.1.fastq.gz";
+      cp "$corrected_r2" "$output_root/corrected.2.fastq.gz"
+    - bayeshammer-correction
+    - /home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb10854-err1021817/ERR1021817.read-prefix-100000_1.fastq.gz
+    - /home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb10854-err1021817/ERR1021817.read-prefix-100000_2.fastq.gz
+    - /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/bayeshammer/run-1099
+  negative: [bayeshammer, --governed-invalid-option]
+outputs:
+  result_root: /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/bayeshammer/run-1099
+  required_files:
+    - corrected.1.fastq.gz
+    - corrected.2.fastq.gz
+resources:
+  account: lu2026-2-20
+  partition: lu48
+  cpus: 2
+  memory_mb: 8192
+  walltime: '01:00:00'
+  scratch_mb: 2048
+execution:
+  locale: C
+  timezone: UTC
+  runtime_network: false
+acceptance:
+  version_regex: '^BayesHammer 4[.]2[.]0$'
+  negative_exit_nonzero: true

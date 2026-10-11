@@ -1,0 +1,48 @@
+schema_version: bijux.container.pipeline.v1
+run:
+  id: run-1077
+  campaign: public-fastq-structure-validation-qualification
+  corpus: ena-prjeb10854-err1021817-read-prefix-100000
+  sample: ERR1021817-R1
+  domain: fastq
+  stage: fastq.validate_reads
+  tool: fastqvalidator
+  operator: bijan
+repository:
+  path: /home/bijan/bijux/bijux-genomics-runs/6fe3d23155fabf8514a844c43e5ebc9e4db63684
+  commit: 6fe3d23155fabf8514a844c43e5ebc9e4db63684
+  clean: true
+image:
+  path: /home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/fastqvalidator-0.1.1-linux-amd64-5f311ba0cdfd.sif
+  sha256: 5f311ba0cdfd1da0487335c8aa668bb8b2550703dfdbc877fd926c7170cc43d0
+data:
+  inputs:
+    - id: ena-err1021817-read-prefix-100000-r1
+      kind: data
+      path: /home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb10854-err1021817/ERR1021817.read-prefix-100000_1.fastq.gz
+      sha256: 37e3200622685562d2fe7db41cd6b573eddfa23861719683026f1387e2bbeabc
+commands:
+  version: [fastqvalidator, --version]
+  help: [fastqvalidator, --help]
+  real:
+    - fastqvalidator
+    - --file
+    - /home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb10854-err1021817/ERR1021817.read-prefix-100000_1.fastq.gz
+  negative: [fastqvalidator, --governed-invalid-option]
+outputs:
+  result_root: /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/fastqvalidator/run-1077
+  required_files: [real.stdout.log]
+resources:
+  account: lu2026-2-20
+  partition: lu48
+  cpus: 2
+  memory_mb: 2048
+  walltime: '00:15:00'
+  scratch_mb: 512
+execution:
+  locale: C
+  timezone: UTC
+  runtime_network: false
+acceptance:
+  version_regex: '^fastqvalidator 0[.]1[.]1$'
+  negative_exit_nonzero: true

@@ -1,0 +1,115 @@
+{
+  "execution_status": "failed",
+  "failures": [
+    "real one-sample command failed",
+    "required output is absent or empty: trimmed.1.fastq.gz",
+    "required output is absent or empty: trimmed.2.fastq.gz"
+  ],
+  "image": {
+    "path": "/lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/atropos-1.1.31-linux-amd64-7abde4206eef.sif",
+    "sha256": "7abde4206eefb82e42c633406936975c97363d74f1c5339f399375628550d385",
+    "size_bytes": 53088256
+  },
+  "repository_commit": "e3cd013e0ac489cab7f78dd7d15cb83bb4469086",
+  "run_id": "run-1097",
+  "schema_version": "bijux.container.run_evidence_lock.v1",
+  "scientific_status": "not_assessed",
+  "slurm_job_id": "3458118",
+  "source_files": [
+    {
+      "path": "config-credential.yml",
+      "sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+      "size_bytes": 134
+    },
+    {
+      "path": "config-governance.yml",
+      "sha256": "d7c38500306b1d88b227b3acfc26ff9d212ebd729d62776f913c912eef12ecc2",
+      "size_bytes": 403
+    },
+    {
+      "path": "config-pipeline.yml",
+      "sha256": "1981aaa4cf1e175f25bdf07d7b7651d8dcce811c579fbf75332f554282b8d0e9",
+      "size_bytes": 2416
+    },
+    {
+      "path": "evidence.json",
+      "sha256": "34ef38805a772194fb9dc17eb1f16668c27733bace15bfe021a55d853c4ad395",
+      "size_bytes": 3869
+    },
+    {
+      "path": "help.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "help.stdout.log",
+      "sha256": "cc9238819f64f83397251a47836ab8b14cc63bc4baa9497a302686f70a391087",
+      "size_bytes": 23482
+    },
+    {
+      "path": "negative.stderr.log",
+      "sha256": "c0d12eb70a0f2e9336864a0227589092fa919b66e6247a307408f7bff10c3128",
+      "size_bytes": 61
+    },
+    {
+      "path": "negative.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "real.stderr.log",
+      "sha256": "1859be9dee15034cfad1dd970ef6a79522b12cae0143fc572a21242a297bd0e3",
+      "size_bytes": 221
+    },
+    {
+      "path": "real.stdout.log",
+      "sha256": "133539cf9a2befacc8e34667c269e075e275abc73c83f1e8f3449cd1617ab979",
+      "size_bytes": 73
+    },
+    {
+      "path": "slurm-accounting.json",
+      "sha256": "53b0083deb23211844e5f5060a3e1bf6226cf3e97471b50617ec82c1127434da",
+      "size_bytes": 920
+    },
+    {
+      "path": "slurm-job-id.txt",
+      "sha256": "14bc877c0f3d0b08ec38c348777e1cf775ffa494f2faae6d763a0fc4d587a655",
+      "size_bytes": 8
+    },
+    {
+      "path": "submit.sh",
+      "sha256": "161ce11ee42a8136a8f4e9ab22cc6e67c7f5c461870edc4b1c870a465263e90c",
+      "size_bytes": 1050
+    },
+    {
+      "path": "version.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "version.stdout.log",
+      "sha256": "d5af38c42a7471a571b114cabfcf1f96e4ca2333f44603e6ba5b4c7a96eb75a6",
+      "size_bytes": 15
+    }
+  ],
+  "source_result": "results/container-validation/atropos/run-1097",
+  "tool": "atropos",
+  "tracked_files": {
+    "config-credential.yml": {
+      "sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+      "size_bytes": 134
+    },
+    "config-pipeline.yml": {
+      "sha256": "1981aaa4cf1e175f25bdf07d7b7651d8dcce811c579fbf75332f554282b8d0e9",
+      "size_bytes": 2416
+    },
+    "evidence.json": {
+      "sha256": "34ef38805a772194fb9dc17eb1f16668c27733bace15bfe021a55d853c4ad395",
+      "size_bytes": 3869
+    },
+    "slurm-accounting.json": {
+      "sha256": "53b0083deb23211844e5f5060a3e1bf6226cf3e97471b50617ec82c1127434da",
+      "size_bytes": 920
+    }
+  }
+}

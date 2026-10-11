@@ -1,66 +1,59 @@
-# Container recipe license: GPL-3.0-only.
+# Container recipe license: MIT.
 # This container recipe is maintained by Bijux Genomics.
 # Bijux Genomics source code is licensed under Apache-2.0.
 # Copyright (C) 2026 Bijan Mousavi
-# BIJUX_TEMPLATE: v1
-
 # Tool ID: cutadapt
-# Version policy: pinned_or_registry_locked
-# Upstream source: see org.opencontainers.image.source label
-# Build date policy: org.opencontainers.image.created set by release pipeline
-# Network source policy: NETWORK_SOURCE_VERIFIED_BY_LOCK
-# Runtime UID policy: RUNTIME_UID_SAFE
+# Version policy: checksummed Cutadapt 4.9 source commit
+# Upstream source: https://github.com/marcelm/cutadapt
+# Build date policy: captured by immutable build evidence
+# Network source policy: build-only access to the locked source archive
+# NETWORK_SOURCE_VERIFIED_BY_LOCK
+# Runtime UID policy: non-root runtime with caller-owned output paths
+# VERSION_SOURCE: containers/contracts/catalog.toml
 
-# VERSION_SOURCE: containers/versions/versions.toml
 Bootstrap: docker
 From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
 
 %labels
-    MAINTAINER Bijan Mousavi <bijan@bijux.io>
-    VERSION Cutadapt-v4.9
-
-    org.opencontainers.image.source https://github.com/bijux/bijux-genomics
-    org.opencontainers.image.revision unknown
-    org.opencontainers.image.created unknown
-    org.opencontainers.image.licenses GPL-3.0
+    org.opencontainers.image.source https://github.com/marcelm/cutadapt
+    org.opencontainers.image.revision 9276a89d5df9282ff51602b042b40c3b48c98566
+    org.opencontainers.image.created governed-by-build-evidence
+    org.opencontainers.image.licenses MIT
     org.opencontainers.image.version 4.9
     org.opencontainers.image.tool cutadapt
     org.opencontainers.image.title cutadapt
 %environment
     export PATH=/opt/cutadapt-venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+    export LANG=C
     export LC_ALL=C
     export TZ=UTC
-    DEBIAN_FRONTEND=noninteractive
+    export PYTHONNOUSERSITE=1
+
+%files
+    containers/tools/cutadapt/install /opt/cutadapt-build/install
 
 %post
     set -eux
     umask 022
     export DEBIAN_FRONTEND=noninteractive
 
-    apt-get update -qq && \
-    apt-get install -y --no-install-recommends \
-        python3 \
-        python3-pip \
-        python3-venv \
-        python3-dev \
-        build-essential \
-        ca-certificates && \
-
-    python3 -m venv /opt/cutadapt-venv && \
-    /opt/cutadapt-venv/bin/pip install --no-cache-dir --upgrade pip setuptools wheel && \
-    /opt/cutadapt-venv/bin/pip install --no-cache-dir \
-        "cutadapt==4.9" \
-        numpy && \
-    ln -sf /opt/cutadapt-venv/bin/cutadapt /usr/local/bin/cutadapt && \
-
+    sed -i 's#http://archive.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubuntu/20260802T000000Z/#g; s#http://security.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubuntu/20260802T000000Z/#g' /etc/apt/sources.list.d/ubuntu.sources
+    apt-get -o Acquire::https::Verify-Peer=false -o Acquire::Check-Valid-Until=false update
+    apt-get -o Acquire::https::Verify-Peer=false install -y --no-install-recommends ca-certificates
+    apt-get -o Acquire::Check-Valid-Until=false update
+    apt-get install -y --no-install-recommends python3 python3-pip python3-venv python3-dev build-essential curl
+    /opt/cutadapt-build/install
+    apt-get purge -y python3-dev build-essential curl
+    apt-get autoremove -y
+    apt-get clean
     rm -rf /var/lib/apt/lists/*
 %runscript
-    if [ $# -eq 0 ]; then
-        exec cutadapt --help
-    else
-        exec cutadapt "$@"
-    fi
+    exec /opt/cutadapt-venv/bin/cutadapt "$@"
+
+%test
+    cutadapt --version | grep -Fx '4.9'
+    cutadapt --help >/dev/null
+    if cutadapt --governed-invalid-option >/dev/null 2>&1; then exit 1; fi
 
 %help
-    This Apptainer image provides Cutadapt version 4.9.
-    Run with arguments to execute cutadapt, or without arguments to display detailed help.
+    Cutadapt 4.9 built from its checksummed source commit.

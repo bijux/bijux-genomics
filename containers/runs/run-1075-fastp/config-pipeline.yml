@@ -1,0 +1,57 @@
+schema_version: bijux.container.pipeline.v1
+run:
+  id: run-1075
+  campaign: public-fastq-low-complexity-filter-qualification
+  corpus: ena-prjeb10854-err1021817-read-prefix-100000
+  sample: ERR1021817-R1
+  domain: fastq
+  stage: fastq.filter_low_complexity
+  tool: fastp
+  operator: bijan
+repository:
+  path: /home/bijan/bijux/bijux-genomics-runs/569a3098bea532d892a144ca7b73b6e56f2125e1
+  commit: 569a3098bea532d892a144ca7b73b6e56f2125e1
+  clean: true
+image:
+  path: /home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/fastp-0.23.4-linux-amd64-510fd454fd9c.sif
+  sha256: 510fd454fd9cdd2c1efe5f3e75ec280e98be5cfd1f0e496f0ade02554206e639
+data:
+  inputs:
+    - id: ena-err1021817-read-prefix-100000-r1
+      kind: data
+      path: /home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb10854-err1021817/ERR1021817.read-prefix-100000_1.fastq.gz
+      sha256: 37e3200622685562d2fe7db41cd6b573eddfa23861719683026f1387e2bbeabc
+commands:
+  version: [fastp, --version]
+  help: [fastp, --help]
+  real:
+    - fastp
+    - --in1
+    - /home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb10854-err1021817/ERR1021817.read-prefix-100000_1.fastq.gz
+    - --out1
+    - /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/fastp/run-1075/filtered.fastq.gz
+    - --json
+    - /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/fastp/run-1075/fastp.json
+    - --html
+    - /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/fastp/run-1075/fastp.html
+    - --low_complexity_filter
+    - --thread
+    - '2'
+  negative: [fastp, --governed-invalid-option]
+outputs:
+  result_root: /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/fastp/run-1075
+  required_files: [fastp.html, fastp.json, filtered.fastq.gz]
+resources:
+  account: lu2026-2-20
+  partition: lu48
+  cpus: 2
+  memory_mb: 2048
+  walltime: '00:15:00'
+  scratch_mb: 512
+execution:
+  locale: C
+  timezone: UTC
+  runtime_network: false
+acceptance:
+  version_regex: '^fastp 0[.]23[.]4$'
+  negative_exit_nonzero: true

@@ -30,8 +30,11 @@ RUN apt-get update && \
         python3-pip \
         python3-venv && \
     python3 -m venv /opt/multiqc-venv && \
-    /opt/multiqc-venv/bin/pip install --no-cache-dir multiqc==${VERSION_MULTIQC} && \
+    python3 -c 'import urllib.request; urllib.request.urlretrieve("https://files.pythonhosted.org/packages/70/47/ba71ed113c96221ce33113baaeac9d75a21e1dd0b5c76eb378ab6a61f87b/multiqc-1.24-py3-none-any.whl", "/tmp/multiqc-1.24-py3-none-any.whl")' && \
+    echo '991755ce91462b20aaa72fb78daa8b477b9c920ac099d434cef1b96394d099cb  /tmp/multiqc-1.24-py3-none-any.whl' | sha256sum -c - && \
+    /opt/multiqc-venv/bin/pip install --no-cache-dir /tmp/multiqc-1.24-py3-none-any.whl && \
     ln -sf /opt/multiqc-venv/bin/multiqc /usr/local/bin/multiqc && \
+    rm -f /tmp/multiqc-1.24-py3-none-any.whl && \
     rm -rf /var/lib/apt/lists/*
 
 WORKDIR /data

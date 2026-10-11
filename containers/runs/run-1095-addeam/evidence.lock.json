@@ -1,0 +1,115 @@
+{
+  "execution_status": "failed",
+  "failures": [
+    "real one-sample command failed",
+    "required output is absent or empty: profile-5p.prof",
+    "required output is absent or empty: profile-3p.prof"
+  ],
+  "image": {
+    "path": "/lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/addeam-1.0.0-linux-amd64-ab62b1957bb6.sif",
+    "sha256": "ab62b1957bb66c23aaf8cea8b2f8ba6982a67dfda4bc0468fd7242a13a7524fb",
+    "size_bytes": 417837056
+  },
+  "repository_commit": "555e96c43b87ad12b9eb057d43cca6a1c08ad4d6",
+  "run_id": "run-1095",
+  "schema_version": "bijux.container.run_evidence_lock.v1",
+  "scientific_status": "not_assessed",
+  "slurm_job_id": "3458116",
+  "source_files": [
+    {
+      "path": "config-credential.yml",
+      "sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+      "size_bytes": 134
+    },
+    {
+      "path": "config-governance.yml",
+      "sha256": "d7c38500306b1d88b227b3acfc26ff9d212ebd729d62776f913c912eef12ecc2",
+      "size_bytes": 403
+    },
+    {
+      "path": "config-pipeline.yml",
+      "sha256": "4bffba34e9520ac62f0eb2f4d79db4dbe79f8b291081f61aa51a845ad40ab83f",
+      "size_bytes": 2490
+    },
+    {
+      "path": "evidence.json",
+      "sha256": "1ede285c4ccbf36447d0341556dac8aee29259f56082114cb8c53b52e77a6ea7",
+      "size_bytes": 3862
+    },
+    {
+      "path": "help.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "help.stdout.log",
+      "sha256": "5139a52c8a925cda3ec7379bcf00c9ee85d7742bfc49aeaafffb16129b496515",
+      "size_bytes": 289
+    },
+    {
+      "path": "negative.stderr.log",
+      "sha256": "13b414396a745b4e695353cee68f40b557f4988b0b0fe50d9e71b640293400ca",
+      "size_bytes": 54
+    },
+    {
+      "path": "negative.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "real.stderr.log",
+      "sha256": "ad10b802b43e796a1669ecdfb8dccfc3524eaed90700f0c5795987e9d12ae723",
+      "size_bytes": 2059
+    },
+    {
+      "path": "real.stdout.log",
+      "sha256": "2d120d6337d09bbaf957d174e10caae87042910f7743488fcc9d494c432c81e1",
+      "size_bytes": 1467
+    },
+    {
+      "path": "slurm-accounting.json",
+      "sha256": "6ae943f0b32fde9b81e18b58f699d399c8dae43704e091a7dfa32be154eb3e71",
+      "size_bytes": 921
+    },
+    {
+      "path": "slurm-job-id.txt",
+      "sha256": "899d1e84939091d25ba923d069a5b569b34a6420b1db035d0fa28d30d8bb0a6a",
+      "size_bytes": 8
+    },
+    {
+      "path": "submit.sh",
+      "sha256": "a250580ec8daa4304345f0196bf2b1e9b88aa68e8b57c6e8f5937ab9e9e5ec43",
+      "size_bytes": 1046
+    },
+    {
+      "path": "version.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "version.stdout.log",
+      "sha256": "e6fa3f9707bbf26fb9dc818cda925f4585cbfd8f0f740133d4c4f7ef7306dd9d",
+      "size_bytes": 13
+    }
+  ],
+  "source_result": "results/container-validation/addeam/run-1095",
+  "tool": "addeam",
+  "tracked_files": {
+    "config-credential.yml": {
+      "sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+      "size_bytes": 134
+    },
+    "config-pipeline.yml": {
+      "sha256": "4bffba34e9520ac62f0eb2f4d79db4dbe79f8b291081f61aa51a845ad40ab83f",
+      "size_bytes": 2490
+    },
+    "evidence.json": {
+      "sha256": "1ede285c4ccbf36447d0341556dac8aee29259f56082114cb8c53b52e77a6ea7",
+      "size_bytes": 3862
+    },
+    "slurm-accounting.json": {
+      "sha256": "6ae943f0b32fde9b81e18b58f699d399c8dae43704e091a7dfa32be154eb3e71",
+      "size_bytes": 921
+    }
+  }
+}

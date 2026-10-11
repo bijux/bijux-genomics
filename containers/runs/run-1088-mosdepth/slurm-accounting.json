@@ -1,0 +1,27 @@
+{
+  "collected_at_utc": "2026-08-02T22:35:08.523035+00:00",
+  "credential_reference_sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+  "governance_sha256": "d7c38500306b1d88b227b3acfc26ff9d212ebd729d62776f913c912eef12ecc2",
+  "pipeline_sha256": "91b410817c8d1282ebc477c81fd02d39f92b20ee653057a2016d655951ea269c",
+  "rows": [
+    {
+      "AllocCPUS": "2",
+      "AveRSS": "",
+      "CPUTimeRAW": "32",
+      "Elapsed": "00:00:16",
+      "ElapsedRaw": "16",
+      "ExitCode": "0:0",
+      "JobID": "3458072",
+      "JobName": "bam-coverage-mosdepth-ERR1021817",
+      "MaxRSS": "",
+      "NodeList": "cn087",
+      "ReqMem": "4G",
+      "State": "COMPLETED",
+      "TotalCPU": "00:00:00"
+    }
+  ],
+  "run_id": "run-1088",
+  "schema_version": "bijux.slurm.accounting.v1",
+  "slurm_job_id": "3458072",
+  "submit_script_sha256": "fee3b0f178c6b9ceb5cf5d66c6c886d3a2b825388f6977ed269834b4fbf80bf5"
+}

@@ -1,0 +1,101 @@
+{
+  "checks": {
+    "help": {
+      "argv": [
+        "smartpca",
+        "--help"
+      ],
+      "exit_code": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "48447e9efa6fe7681407403b330c60f3e288f0783f30b17648507d04e1a8ddb7"
+    },
+    "negative": {
+      "argv": [
+        "smartpca",
+        "-p",
+        "/governed-missing-parameters.par"
+      ],
+      "exit_code": 134,
+      "stderr_sha256": "03b4143839304f3327ce736a3c69dbcb83f34cf1d8d080fece272950e57095fc",
+      "stdout_sha256": "b838cc4e26cdb06d1a4e3fc8315e1ef5167177c5fedb226489e540e234a7f5cc"
+    },
+    "real": {
+      "argv": [
+        "smartpca",
+        "-p",
+        "/home/bijan/lu2024-12-24/Dardel/STUDY/data/configs/eigensoft/chromosome-22-cohort-100.smartpca.par"
+      ],
+      "exit_code": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "191b9b723721a37d52010d885fbe8795d8159fbb699f971c2dc02f73932ea7d0"
+    },
+    "version": {
+      "argv": [
+        "smartpca",
+        "--version"
+      ],
+      "exit_code": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "ccdc6b2d303cc262f51a0bd9cb409113166259f2136ed8678b54eef2a055042e"
+    }
+  },
+  "credential_reference_sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+  "failure_class": null,
+  "failures": [],
+  "governance_sha256": "d7c38500306b1d88b227b3acfc26ff9d212ebd729d62776f913c912eef12ecc2",
+  "image": {
+    "path": "/lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/eigensoft-8.0.0-linux-amd64-b514b5c1541d.sif",
+    "sha256": "b514b5c1541d77b77b200ea90c8aa620592da77e4b45aab995d6735e84d23e18",
+    "size_bytes": 53198848
+  },
+  "inputs": [
+    {
+      "id": "chromosome-22-plink-ped",
+      "kind": "upstream_result",
+      "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/plink2/run-1064/panel.ped",
+      "sha256": "8b41fd461bd92fcb2479115838a6e15a8b27c7c48a541d137d4946c0b1e7967f"
+    },
+    {
+      "id": "chromosome-22-plink-map",
+      "kind": "upstream_result",
+      "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/plink2/run-1064/panel.map",
+      "sha256": "f2aa63ea1b97682ada7a75f753e17d7351c506361f0ca3aaff454fd39c195c29"
+    },
+    {
+      "id": "chromosome-22-cohort-100-smartpca-parameters",
+      "kind": "data",
+      "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/data/configs/eigensoft/chromosome-22-cohort-100.smartpca.par",
+      "sha256": "d8a2d435905bf1f786a8a39049c1837588a11b03f98c8b85a918f2f34c316dd5"
+    }
+  ],
+  "outputs": [
+    {
+      "path": "smartpca.evec",
+      "sha256": "25e766f8bbcb0bac1a2fb4046d72b9eabcf0c1ed79dbb016c5fffc19343f01a8",
+      "size_bytes": 15822
+    },
+    {
+      "path": "smartpca.eval",
+      "sha256": "759891c83d17cdcacec95e82f0d683be3658ea605f2174f876828d460eebd49d",
+      "size_bytes": 1300
+    }
+  ],
+  "pipeline_sha256": "7edf30f479913d143b651c82aad7386e0e848856240dee5e982fa3f41a4d316b",
+  "repository_clean": true,
+  "repository_commit": "e91d3dac0ccf34fba5f266ab175449ddeb5a7079",
+  "repository_path": "/home/bijan/bijux/bijux-genomics-runs/e91d3dac0ccf34fba5f266ab175449ddeb5a7079",
+  "run_id": "run-1070",
+  "runtime": {
+    "apptainer_version": "apptainer version 1.5.2-1.el9",
+    "cpus": "2",
+    "host": "cn005",
+    "slurm_job_id": "3457998",
+    "started_at_utc": "2026-08-02T21:13:36.301445+00:00"
+  },
+  "schema_version": "bijux.container.evidence.v1",
+  "site": {
+    "host": "cn005",
+    "id": "lunarc"
+  },
+  "status": "passed"
+}

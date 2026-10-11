@@ -1,0 +1,27 @@
+{
+  "collected_at_utc": "2026-08-03T01:06:24.527055+00:00",
+  "credential_reference_sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+  "governance_sha256": "d7c38500306b1d88b227b3acfc26ff9d212ebd729d62776f913c912eef12ecc2",
+  "pipeline_sha256": "0770c52320d597f3eb79f1c46c48840be9b6d23e7ff11e2f12a7936430263ec5",
+  "rows": [
+    {
+      "AllocCPUS": "2",
+      "AveRSS": "",
+      "CPUTimeRAW": "4",
+      "Elapsed": "00:00:02",
+      "ElapsedRaw": "2",
+      "ExitCode": "0:0",
+      "JobID": "3458128",
+      "JobName": "fastq-screen_taxonomy-centrifuge-ERR1021817",
+      "MaxRSS": "",
+      "NodeList": "cn091",
+      "ReqMem": "2G",
+      "State": "COMPLETED",
+      "TotalCPU": "00:00:00"
+    }
+  ],
+  "run_id": "run-1106",
+  "schema_version": "bijux.slurm.accounting.v1",
+  "slurm_job_id": "3458128",
+  "submit_script_sha256": "4ba074b4585c8e166c54306d99d6cc64ce68680d309b77b90ebc5bef5e0ce252"
+}

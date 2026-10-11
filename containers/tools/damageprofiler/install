@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+curl --fail --location --proto '=https' --tlsv1.2 --silent --show-error \
+  --output /opt/damageprofiler.jar \
+  'https://github.com/Integrative-Transcriptomics/DamageProfiler/releases/download/v1.1/DamageProfiler-1.1-java11.jar'
+printf '%s  %s\n' \
+  '009a5d6a638f73ef9b7f9e3cf0182e184a176d8b9e9344d33a850f2b7945a126' \
+  /opt/damageprofiler.jar | sha256sum --check --strict

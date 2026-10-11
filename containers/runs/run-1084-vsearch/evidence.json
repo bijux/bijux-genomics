@@ -1,0 +1,89 @@
+{
+  "checks": {
+    "help": {
+      "argv": [
+        "vsearch",
+        "--help"
+      ],
+      "exit_code": 0,
+      "stderr_sha256": "04843fca7ef62cb2525de94a31c6ec043d7f525ed2a382974b6153e275987d55",
+      "stdout_sha256": "29927815f4bf945bcb5dc77de89f3d6c40d46c403f25ecc6df170dfa5ff88516"
+    },
+    "negative": {
+      "argv": [
+        "vsearch",
+        "--governed-invalid-option"
+      ],
+      "exit_code": 2,
+      "stderr_sha256": "79c81da0496c4730efb34cd655d48001690edfec81c1e7168c417c6a344057fb",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "real": {
+      "argv": [
+        "vsearch",
+        "--cluster_fast",
+        "/home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb10854-err1021817/ERR1021817.read-prefix-100000_1.fastq",
+        "--id",
+        "0.97",
+        "--centroids",
+        "/home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/vsearch/run-1084/centroids.fasta",
+        "--threads",
+        "2"
+      ],
+      "exit_code": 0,
+      "stderr_sha256": "281f69919b685f27015947f0ea4e2867fdbe27bc6314a5e8e39b181ba69b5556",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "version": {
+      "argv": [
+        "vsearch",
+        "--version"
+      ],
+      "exit_code": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "03c26f1471e321b232113b8d799bfaad8c2f4b863288c182dee3a1d67770fdc2"
+    }
+  },
+  "credential_reference_sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+  "failure_class": null,
+  "failures": [],
+  "governance_sha256": "d7c38500306b1d88b227b3acfc26ff9d212ebd729d62776f913c912eef12ecc2",
+  "image": {
+    "path": "/lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/vsearch-2.29.3-linux-amd64-4d7794c15639.sif",
+    "sha256": "4d7794c1563989143c42b3a17772a6daf82837bc6c9ce3aca28dca7449f82180",
+    "size_bytes": 30986240
+  },
+  "inputs": [
+    {
+      "id": "ena-err1021817-read-prefix-100000-r1-uncompressed",
+      "kind": "data",
+      "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb10854-err1021817/ERR1021817.read-prefix-100000_1.fastq",
+      "sha256": "f95166df34bf2c3ce3b8641f62068a3ab1e3a9bbb1ec71c570035b7d844588e2"
+    }
+  ],
+  "outputs": [
+    {
+      "path": "centroids.fasta",
+      "sha256": "915560d31bb99057fb4d7698998c42e19b49b9fa2037488f97697a359ae94b1b",
+      "size_bytes": 5143891
+    }
+  ],
+  "pipeline_sha256": "0f82983c953f74781c884d547a27a17d91d1f039cd804465961710f4429ec0b1",
+  "repository_clean": true,
+  "repository_commit": "7c508db009352c0ce935b863bbde56806a48ad72",
+  "repository_path": "/home/bijan/bijux/bijux-genomics-runs/7c508db009352c0ce935b863bbde56806a48ad72",
+  "run_id": "run-1084",
+  "runtime": {
+    "apptainer_version": "apptainer version 1.5.2-1.el9",
+    "cpus": "2",
+    "host": "cn087",
+    "slurm_job_id": "3458068",
+    "started_at_utc": "2026-08-02T22:08:49.973981+00:00"
+  },
+  "schema_version": "bijux.container.evidence.v1",
+  "site": {
+    "host": "cn087",
+    "id": "lunarc"
+  },
+  "status": "passed"
+}

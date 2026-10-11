@@ -1,0 +1,58 @@
+schema_version: bijux.container.pipeline.v1
+run:
+  id: run-1070
+  campaign: public-chromosome-22-principal-component-qualification
+  corpus: 1000-genomes-phase3-chr22-biallelic-100-samples-full-chromosome
+  sample: cohort-100
+  domain: vcf
+  stage: vcf.principal_components
+  tool: eigensoft
+  operator: bijan
+repository:
+  path: /home/bijan/bijux/bijux-genomics-runs/e91d3dac0ccf34fba5f266ab175449ddeb5a7079
+  commit: e91d3dac0ccf34fba5f266ab175449ddeb5a7079
+  clean: true
+image:
+  path: /home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/eigensoft-8.0.0-linux-amd64-b514b5c1541d.sif
+  sha256: b514b5c1541d77b77b200ea90c8aa620592da77e4b45aab995d6735e84d23e18
+data:
+  inputs:
+    - id: chromosome-22-plink-ped
+      kind: upstream_result
+      path: /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/plink2/run-1064/panel.ped
+      sha256: 8b41fd461bd92fcb2479115838a6e15a8b27c7c48a541d137d4946c0b1e7967f
+    - id: chromosome-22-plink-map
+      kind: upstream_result
+      path: /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/plink2/run-1064/panel.map
+      sha256: f2aa63ea1b97682ada7a75f753e17d7351c506361f0ca3aaff454fd39c195c29
+    - id: chromosome-22-cohort-100-smartpca-parameters
+      kind: data
+      path: /home/bijan/lu2024-12-24/Dardel/STUDY/data/configs/eigensoft/chromosome-22-cohort-100.smartpca.par
+      sha256: d8a2d435905bf1f786a8a39049c1837588a11b03f98c8b85a918f2f34c316dd5
+commands:
+  version: [smartpca, --version]
+  help: [smartpca, --help]
+  real:
+    - smartpca
+    - -p
+    - /home/bijan/lu2024-12-24/Dardel/STUDY/data/configs/eigensoft/chromosome-22-cohort-100.smartpca.par
+  negative: [smartpca, -p, /governed-missing-parameters.par]
+outputs:
+  result_root: /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/eigensoft/run-1070
+  required_files:
+    - smartpca.evec
+    - smartpca.eval
+resources:
+  account: lu2026-2-20
+  partition: lu48
+  cpus: 2
+  memory_mb: 8192
+  walltime: '00:30:00'
+  scratch_mb: 2048
+execution:
+  locale: C
+  timezone: UTC
+  runtime_network: false
+acceptance:
+  version_regex: '^smartpca 8[.]0[.]0$'
+  negative_exit_nonzero: true

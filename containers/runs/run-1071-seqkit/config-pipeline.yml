@@ -1,0 +1,50 @@
+schema_version: bijux.container.pipeline.v1
+run:
+  id: run-1071
+  campaign: public-fastq-profile-qualification
+  corpus: ena-prjeb10854-err1021817-read-prefix-100000
+  sample: ERR1021817-R1
+  domain: fastq
+  stage: fastq.profile_reads
+  tool: seqkit
+  operator: bijan
+repository:
+  path: /home/bijan/bijux/bijux-genomics-runs/e2cec523eddef2db149374e7fbbbca29607e3912
+  commit: e2cec523eddef2db149374e7fbbbca29607e3912
+  clean: true
+image:
+  path: /home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/seqkit-2.8.2-linux-amd64-dbde247736f5.sif
+  sha256: dbde247736f5f4fc018a27b96afc0669c5e47226d6c00c3747edb00b9e809805
+data:
+  inputs:
+    - id: ena-err1021817-read-prefix-100000-r1
+      kind: data
+      path: /home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb10854-err1021817/ERR1021817.read-prefix-100000_1.fastq.gz
+      sha256: 37e3200622685562d2fe7db41cd6b573eddfa23861719683026f1387e2bbeabc
+commands:
+  version: [seqkit, --version]
+  help: [seqkit, --help]
+  real:
+    - seqkit
+    - stats
+    - -a
+    - -T
+    - /home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb10854-err1021817/ERR1021817.read-prefix-100000_1.fastq.gz
+  negative: [seqkit, stats, /governed-missing-reads.fastq.gz]
+outputs:
+  result_root: /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/seqkit/run-1071
+  required_files: [real.stdout.log]
+resources:
+  account: lu2026-2-20
+  partition: lu48
+  cpus: 2
+  memory_mb: 2048
+  walltime: '00:15:00'
+  scratch_mb: 512
+execution:
+  locale: C
+  timezone: UTC
+  runtime_network: false
+acceptance:
+  version_regex: '^seqkit v2[.]8[.]2$'
+  negative_exit_nonzero: true

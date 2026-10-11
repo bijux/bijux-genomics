@@ -1,0 +1,126 @@
+{
+  "execution_status": "passed",
+  "failures": [],
+  "image": {
+    "path": "/lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/alientrimmer-3.2-linux-amd64-02ee033035a2.sif",
+    "sha256": "02ee033035a2b16ddd68da3234dd3701a92e7939edf2d46ac3f66e127da16536",
+    "size_bytes": 177606656
+  },
+  "repository_commit": "00f23822e64a47d42396f6c9dc0c567746aa5ba8",
+  "run_id": "run-1091",
+  "schema_version": "bijux.container.run_evidence_lock.v1",
+  "scientific_status": "not_assessed",
+  "slurm_job_id": "3458077",
+  "source_files": [
+    {
+      "path": "config-credential.yml",
+      "sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+      "size_bytes": 134
+    },
+    {
+      "path": "config-governance.yml",
+      "sha256": "d7c38500306b1d88b227b3acfc26ff9d212ebd729d62776f913c912eef12ecc2",
+      "size_bytes": 403
+    },
+    {
+      "path": "config-pipeline.yml",
+      "sha256": "63ceebe0193425bd6dbb3304194cd6aabc77dd11b782638f8933840f358834bf",
+      "size_bytes": 2585
+    },
+    {
+      "path": "evidence.json",
+      "sha256": "da766773eb46b249fcf5dc931dd711fdfce6f55717fc103cd78d6277b32d634c",
+      "size_bytes": 4179
+    },
+    {
+      "path": "help.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "help.stdout.log",
+      "sha256": "89cccf3c14593fda1d389a25921f98c37fdb30bb0dcba76a4f5243fefbf28489",
+      "size_bytes": 2535
+    },
+    {
+      "path": "negative.stderr.log",
+      "sha256": "a22a9c041c113b386e8819df000302ff7b85fe10671a2eb8aa72e7c4bfcc4af3",
+      "size_bytes": 59
+    },
+    {
+      "path": "negative.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "real.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "real.stdout.log",
+      "sha256": "382e27c2523ba522b4237c0889f76eac81cb342f92eddf16d95cd26c8da942b2",
+      "size_bytes": 1605985
+    },
+    {
+      "path": "slurm-accounting.json",
+      "sha256": "17d512bc0dacf3cf29a46076240c9bd76cf0bda658ad1ab73fe6f58e0d265f5c",
+      "size_bytes": 930
+    },
+    {
+      "path": "slurm-job-id.txt",
+      "sha256": "8972c998ad840f4a1eb3c57b4603a8a91d7eb1778095d69b1d1d52d602e3003c",
+      "size_bytes": 8
+    },
+    {
+      "path": "submit.sh",
+      "sha256": "bcb3746a830e026cd2bf5445d0cd3c97457506c45cae92c9e84dfd35c1579b60",
+      "size_bytes": 1080
+    },
+    {
+      "path": "trimmed.1.fastq.gz",
+      "sha256": "fc4ec9d5aaa302f92c5e770c40161749ae026e2d9b1f6f217bc009d612e9d1d0",
+      "size_bytes": 8756213
+    },
+    {
+      "path": "trimmed.2.fastq.gz",
+      "sha256": "2a8d5253730925ff98913659afec68c57a867ce0edde07259a2c99ef9d95bc41",
+      "size_bytes": 9005796
+    },
+    {
+      "path": "trimmed.S.fastq.gz",
+      "sha256": "2e4774afbb0f910eba39150884623f614365a470fc2ce00d9f8be09244d0dd28",
+      "size_bytes": 262363
+    },
+    {
+      "path": "version.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "version.stdout.log",
+      "sha256": "81824dba6d71d2996baef3cc5f77008ebc34656848b502292277b3feffab5d82",
+      "size_bytes": 4
+    }
+  ],
+  "source_result": "results/container-validation/alientrimmer/run-1091",
+  "tool": "alientrimmer",
+  "tracked_files": {
+    "config-credential.yml": {
+      "sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+      "size_bytes": 134
+    },
+    "config-pipeline.yml": {
+      "sha256": "63ceebe0193425bd6dbb3304194cd6aabc77dd11b782638f8933840f358834bf",
+      "size_bytes": 2585
+    },
+    "evidence.json": {
+      "sha256": "da766773eb46b249fcf5dc931dd711fdfce6f55717fc103cd78d6277b32d634c",
+      "size_bytes": 4179
+    },
+    "slurm-accounting.json": {
+      "sha256": "17d512bc0dacf3cf29a46076240c9bd76cf0bda658ad1ab73fe6f58e0d265f5c",
+      "size_bytes": 930
+    }
+  }
+}

@@ -1,0 +1,27 @@
+{
+  "collected_at_utc": "2026-08-02T18:47:46.986895+00:00",
+  "credential_reference_sha256": "9dda0d787caf2759ee964425049ef52c11ce16ada127cc7c594c8165e6e73d2e",
+  "governance_sha256": "3351dcd4b58d966ab6b5b35185b8f4bb4d87485583cc65eb072e623a03636e33",
+  "pipeline_sha256": "32a1aa9fdbf90418fb2995cf1f6ce5c28da5138b99f9c292b60859d9e810abbe",
+  "rows": [
+    {
+      "AllocCPUS": "1",
+      "AveRSS": "",
+      "CPUTimeRAW": "1",
+      "Elapsed": "00:00:01",
+      "ElapsedRaw": "1",
+      "ExitCode": "0:0",
+      "JobID": "3457878",
+      "JobName": "reference-mask_low_complexity-dustmasker-chromosome-1-first-megabase",
+      "MaxRSS": "",
+      "NodeList": "cn088",
+      "ReqMem": "2G",
+      "State": "COMPLETED",
+      "TotalCPU": "00:00:00"
+    }
+  ],
+  "run_id": "run-1055",
+  "schema_version": "bijux.slurm.accounting.v1",
+  "slurm_job_id": "3457878",
+  "submit_script_sha256": "b3fab683141fa988d905375d2793d7aef18d8cc4946126dd12cf1b137c169c18"
+}

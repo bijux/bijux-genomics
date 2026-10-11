@@ -1,0 +1,146 @@
+{
+  "checks": {
+    "help": {
+      "argv": [
+        "ibdhap",
+        "--help"
+      ],
+      "exit_code": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "c3200e492a40ce31480dfc49e31d5b62e0c578b46ff59bcdc83c54b5b125ad6b"
+    },
+    "negative": {
+      "argv": [
+        "ibdhap",
+        "analyze-vcf",
+        "--vcf",
+        "/governed-missing-panel.vcf.gz",
+        "--genetic-map",
+        "/home/bijan/lu2024-12-24/Dardel/STUDY/data/references/eagle-genetic-maps/chr22.b37.shapeit5.gmap.gz",
+        "--sample",
+        "HG00096",
+        "--sample",
+        "HG00097",
+        "--region",
+        "22:20000000-22000000",
+        "--work-dir",
+        "/home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/ibdhap/run-1067/negative/work",
+        "--scores",
+        "/home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/ibdhap/run-1067/negative/ibd-state-probabilities.tsv",
+        "--identifiers",
+        "/home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/ibdhap/run-1067/negative/haplotype-identifiers.tsv",
+        "--summary",
+        "/home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/ibdhap/run-1067/negative/metrics.json"
+      ],
+      "exit_code": 2,
+      "stderr_sha256": "02e9433dd081a77086c3f42fb5fa735d27415ed78fb3dc3f4005f9c383237256",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "real": {
+      "argv": [
+        "ibdhap",
+        "analyze-vcf",
+        "--vcf",
+        "/home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/1000-genomes-phase3-chr22-biallelic-100-samples-full-chromosome/panel.vcf.gz",
+        "--genetic-map",
+        "/home/bijan/lu2024-12-24/Dardel/STUDY/data/references/eagle-genetic-maps/chr22.b37.shapeit5.gmap.gz",
+        "--sample",
+        "HG00096",
+        "--sample",
+        "HG00097",
+        "--region",
+        "22:20000000-22000000",
+        "--max-markers",
+        "500",
+        "--work-dir",
+        "/home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/ibdhap/run-1067/work",
+        "--scores",
+        "/home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/ibdhap/run-1067/ibd-state-probabilities.tsv",
+        "--identifiers",
+        "/home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/ibdhap/run-1067/haplotype-identifiers.tsv",
+        "--summary",
+        "/home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/ibdhap/run-1067/metrics.json"
+      ],
+      "exit_code": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "d826b0a27718e6b7e839965ef2c97c487ff8960425b10103deafa022f1d3a128"
+    },
+    "version": {
+      "argv": [
+        "ibdhap",
+        "--version"
+      ],
+      "exit_code": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "8b4000755bc1a1f1175e2d4cdb59b76b87fad4ce35a18b6f0353ebe8133aa4ab"
+    }
+  },
+  "credential_reference_sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+  "failure_class": null,
+  "failures": [],
+  "governance_sha256": "d7c38500306b1d88b227b3acfc26ff9d212ebd729d62776f913c912eef12ecc2",
+  "image": {
+    "path": "/lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/ibdhap-3.4-linux-amd64-5c34505e4602.sif",
+    "sha256": "5c34505e46021dbcddcbd0b0614f0fb9f818ef578613bb436c40ad61d934ca8a",
+    "size_bytes": 43503616
+  },
+  "inputs": [
+    {
+      "id": "1000-genomes-phase3-chr22-biallelic-100-samples",
+      "kind": "data",
+      "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/1000-genomes-phase3-chr22-biallelic-100-samples-full-chromosome/panel.vcf.gz",
+      "sha256": "343a756d611cb58c1187e9b8f6c9a15a297772ea4fc9691a51ad2a56457a91bb"
+    },
+    {
+      "id": "chromosome-22-shapeit5-genetic-map",
+      "kind": "reference",
+      "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/data/references/eagle-genetic-maps/chr22.b37.shapeit5.gmap.gz",
+      "sha256": "75b0026033139f7c2515eda80c330d93d1eb728374a31e0a713589c0d413b24f"
+    }
+  ],
+  "outputs": [
+    {
+      "path": "ibd-state-probabilities.tsv",
+      "sha256": "92e811282122e9598b3fa7de9ec8e77c4fc05c6158cff7090575ff9631ce6d7b",
+      "size_bytes": 70500
+    },
+    {
+      "path": "haplotype-identifiers.tsv",
+      "sha256": "b511c68b092cdf8f9263b89a6de73aec22bfae36bba2f37f542c6c74ae58b315",
+      "size_bytes": 53
+    },
+    {
+      "path": "metrics.json",
+      "sha256": "f4a3b8067352be7d8da8b3df707a6c19229f0f901d406ea45b5087c3d9890374",
+      "size_bytes": 863
+    },
+    {
+      "path": "work/analysis.par",
+      "sha256": "0806f01d4f5b6d74a5ffd296b53efc159889804963ba801962d0d3a7dc799a23",
+      "size_bytes": 331
+    },
+    {
+      "path": "work/markers.dat",
+      "sha256": "94b6cfc1c19c7608a3ec3c314d21ee360f27f65456493d3d2d20b6ed20fcb597",
+      "size_bytes": 46971
+    }
+  ],
+  "pipeline_sha256": "9c4aa671a70cef00fb58dc8e0194227bdfa0fd60afdbab3937f391b14c6d0c60",
+  "repository_clean": true,
+  "repository_commit": "17a6ee7ab1163f07b34a5619cc44b3679e9ccd03",
+  "repository_path": "/home/bijan/bijux/bijux-genomics-runs/17a6ee7ab1163f07b34a5619cc44b3679e9ccd03",
+  "run_id": "run-1067",
+  "runtime": {
+    "apptainer_version": "apptainer version 1.5.2-1.el9",
+    "cpus": "2",
+    "host": "cn005",
+    "slurm_job_id": "3457992",
+    "started_at_utc": "2026-08-02T21:08:06.964470+00:00"
+  },
+  "schema_version": "bijux.container.evidence.v1",
+  "site": {
+    "host": "cn005",
+    "id": "lunarc"
+  },
+  "status": "passed"
+}

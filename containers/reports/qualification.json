@@ -1,0 +1,2484 @@
+{
+  "schema_version": "bijux.container.qualification_report.v1",
+  "sources": {
+    "catalog": {
+      "path": "containers/contracts/catalog.toml",
+      "sha256": "b97340aa9eba6892ec3e068aecf60be8c79661d13dc17a605f482498b015e580"
+    },
+    "inventory": {
+      "path": "containers/reports/image-inventory.json",
+      "sha256": "0018c0780e42f1318cb823ffc1ae283dc7c70fc6ab0f1ed8bd462b0bb361ea65"
+    },
+    "runs": {
+      "path": "containers/reports/run-evidence.json",
+      "sha256": "36b5cbcac6c6a3e6613e8452436413a8674e9085cbd4e9dd34c568e7e468e4cd"
+    },
+    "runtime": {
+      "path": "containers/reports/runtime-verification.json",
+      "sha256": "7b69fce218db7b85925a1417e57fc7c28f614057ce5ecad588a3bdfc696cb74a"
+    }
+  },
+  "summary": {
+    "dimension_passes": {
+      "benchmark": 0,
+      "build": 87,
+      "catalog": 87,
+      "freshness": 87,
+      "real_data": 63,
+      "release": 0,
+      "runtime": 87,
+      "science": 0,
+      "security": 0,
+      "source": 87,
+      "stage": 63
+    },
+    "qualification": {
+      "unsupported": 2,
+      "unverified": 87
+    },
+    "tool_count": 89
+  },
+  "tools": [
+    {
+      "dimensions": {
+        "benchmark": "missing",
+        "build": "passed",
+        "catalog": "passed",
+        "freshness": "passed",
+        "real_data": "passed",
+        "release": "missing",
+        "runtime": "passed",
+        "science": "missing",
+        "security": "missing",
+        "source": "passed",
+        "stage": "passed"
+      },
+      "id": "adapterremoval",
+      "missing_dimensions": [
+        "science",
+        "benchmark",
+        "security",
+        "release"
+      ],
+      "qualification": "unverified",
+      "real_run_attempts": 2,
+      "real_run_passes": 1,
+      "support_disposition": "retained",
+      "version": "2.3.4"
+    },
+    {
+      "dimensions": {
+        "benchmark": "missing",
+        "build": "passed",
+        "catalog": "passed",
+        "freshness": "passed",
+        "real_data": "passed",
+        "release": "missing",
+        "runtime": "passed",
+        "science": "missing",
+        "security": "missing",
+        "source": "passed",
+        "stage": "passed"
+      },
+      "id": "addeam",
+      "missing_dimensions": [
+        "science",
+        "benchmark",
+        "security",
+        "release"
+      ],
+      "qualification": "unverified",
+      "real_run_attempts": 2,
+      "real_run_passes": 1,
+      "support_disposition": "retained",
+      "version": "1.0.0"
+    },
+    {
+      "dimensions": {
+        "benchmark": "missing",
+        "build": "passed",
+        "catalog": "passed",
+        "freshness": "passed",
+        "real_data": "passed",
+        "release": "missing",
+        "runtime": "passed",
+        "science": "missing",
+        "security": "missing",
+        "source": "passed",
+        "stage": "passed"
+      },
+      "id": "alientrimmer",
+      "missing_dimensions": [
+        "science",
+        "benchmark",
+        "security",
+        "release"
+      ],
+      "qualification": "unverified",
+      "real_run_attempts": 2,
+      "real_run_passes": 1,
+      "support_disposition": "retained",
+      "version": "3.2"
+    },
+    {
+      "dimensions": {
+        "benchmark": "missing",
+        "build": "passed",
+        "catalog": "passed",
+        "freshness": "passed",
+        "real_data": "passed",
+        "release": "missing",
+        "runtime": "passed",
+        "science": "missing",
+        "security": "missing",
+        "source": "passed",
+        "stage": "passed"
+      },
+      "id": "angsd",
+      "missing_dimensions": [
+        "science",
+        "benchmark",
+        "security",
+        "release"
+      ],
+      "qualification": "unverified",
+      "real_run_attempts": 1,
+      "real_run_passes": 1,
+      "support_disposition": "retained",
+      "version": "0.941"
+    },
+    {
+      "dimensions": {
+        "benchmark": "missing",
+        "build": "passed",
+        "catalog": "passed",
+        "freshness": "passed",
+        "real_data": "passed",
+        "release": "missing",
+        "runtime": "passed",
+        "science": "missing",
+        "security": "missing",
+        "source": "passed",
+        "stage": "passed"
+      },
+      "id": "atropos",
+      "missing_dimensions": [
+        "science",
+        "benchmark",
+        "security",
+        "release"
+      ],
+      "qualification": "unverified",
+      "real_run_attempts": 2,
+      "real_run_passes": 1,
+      "support_disposition": "retained",
+      "version": "1.1.31"
+    },
+    {
+      "dimensions": {
+        "benchmark": "missing",
+        "build": "passed",
+        "catalog": "passed",
+        "freshness": "passed",
+        "real_data": "passed",
+        "release": "missing",
+        "runtime": "passed",
+        "science": "missing",
+        "security": "missing",
+        "source": "passed",
+        "stage": "passed"
+      },
+      "id": "authenticct",
+      "missing_dimensions": [
+        "science",
+        "benchmark",
+        "security",
+        "release"
+      ],
+      "qualification": "unverified",
+      "real_run_attempts": 1,
+      "real_run_passes": 1,
+      "support_disposition": "retained",
+      "version": "1.0.0"
+    },
+    {
+      "dimensions": {
+        "benchmark": "missing",
+        "build": "passed",
+        "catalog": "passed",
+        "freshness": "passed",
+        "real_data": "passed",
+        "release": "missing",
+        "runtime": "passed",
+        "science": "missing",
+        "security": "missing",
+        "source": "passed",
+        "stage": "passed"
+      },
+      "id": "bamtools",
+      "missing_dimensions": [
+        "science",
+        "benchmark",
+        "security",
+        "release"
+      ],
+      "qualification": "unverified",
+      "real_run_attempts": 1,
+      "real_run_passes": 1,
+      "support_disposition": "retained",
+      "version": "2.5.2"
+    },
+    {
+      "dimensions": {
+        "benchmark": "missing",
+        "build": "passed",
+        "catalog": "passed",
+        "freshness": "passed",
+        "real_data": "passed",
+        "release": "missing",
+        "runtime": "passed",
+        "science": "missing",
+        "security": "missing",
+        "source": "passed",
+        "stage": "passed"
+      },
+      "id": "bamutil",
+      "missing_dimensions": [
+        "science",
+        "benchmark",
+        "security",
+        "release"
+      ],
+      "qualification": "unverified",
+      "real_run_attempts": 1,
+      "real_run_passes": 1,
+      "support_disposition": "retained",
+      "version": "1.0.15"
+    },
+    {
+      "dimensions": {
+        "benchmark": "missing",
+        "build": "passed",
+        "catalog": "passed",
+        "freshness": "passed",
+        "real_data": "passed",
+        "release": "missing",
+        "runtime": "passed",
+        "science": "missing",
+        "security": "missing",
+        "source": "passed",
+        "stage": "passed"
+      },
+      "id": "bayeshammer",
+      "missing_dimensions": [
+        "science",
+        "benchmark",
+        "security",
+        "release"
+      ],
+      "qualification": "unverified",
+      "real_run_attempts": 1,
+      "real_run_passes": 1,
+      "support_disposition": "retained",
+      "version": "4.2.0"
+    },
+    {
+      "dimensions": {
+        "benchmark": "missing",
+        "build": "passed",
+        "catalog": "passed",
+        "freshness": "passed",
+        "real_data": "passed",
+        "release": "missing",
+        "runtime": "passed",
+        "science": "missing",
+        "security": "missing",
+        "source": "passed",
+        "stage": "passed"
+      },
+      "id": "bbduk",
+      "missing_dimensions": [
+        "science",
+        "benchmark",
+        "security",
+        "release"
+      ],
+      "qualification": "unverified",
+      "real_run_attempts": 1,
+      "real_run_passes": 1,
+      "support_disposition": "retained",
+      "version": "39.06"
+    },
+    {
+      "dimensions": {
+        "benchmark": "missing",
+        "build": "passed",
+        "catalog": "passed",
+        "freshness": "passed",
+        "real_data": "passed",
+        "release": "missing",
+        "runtime": "passed",
+        "science": "missing",
+        "security": "missing",
+        "source": "passed",
+        "stage": "passed"
+      },
+      "id": "bbmerge",
+      "missing_dimensions": [
+        "science",
+        "benchmark",
+        "security",
+        "release"
+      ],
+      "qualification": "unverified",
+      "real_run_attempts": 1,
+      "real_run_passes": 1,
+      "support_disposition": "retained",
+      "version": "39.06"
+    },
+    {
+      "dimensions": {
+        "benchmark": "missing",
+        "build": "passed",
+        "catalog": "passed",
+        "freshness": "passed",
+        "real_data": "passed",
+        "release": "missing",
+        "runtime": "passed",
+        "science": "missing",
+        "security": "missing",
+        "source": "passed",
+        "stage": "passed"
+      },
+      "id": "bcftools",
+      "missing_dimensions": [
+        "science",
+        "benchmark",
+        "security",
+        "release"
+      ],
+      "qualification": "unverified",
+      "real_run_attempts": 3,
+      "real_run_passes": 3,
+      "support_disposition": "retained",
+      "version": "1.20"
+    },
+    {
+      "dimensions": {
+        "benchmark": "missing",
+        "build": "passed",
+        "catalog": "passed",
+        "freshness": "passed",
+        "real_data": "passed",
+        "release": "missing",
+        "runtime": "passed",
+        "science": "missing",
+        "security": "missing",
+        "source": "passed",
+        "stage": "passed"
+      },
+      "id": "beagle",
+      "missing_dimensions": [
+        "science",
+        "benchmark",
+        "security",
+        "release"
+      ],
+      "qualification": "unverified",
+      "real_run_attempts": 1,
+      "real_run_passes": 1,
+      "support_disposition": "retained",
+      "version": "5.4"
+    },
+    {
+      "dimensions": {
+        "benchmark": "missing",
+        "build": "passed",
+        "catalog": "passed",
+        "freshness": "passed",
+        "real_data": "passed",
+        "release": "missing",
+        "runtime": "passed",
+        "science": "missing",
+        "security": "missing",
+        "source": "passed",
+        "stage": "passed"
+      },
+      "id": "bedtools",
+      "missing_dimensions": [
+        "science",
+        "benchmark",
+        "security",
+        "release"
+      ],
+      "qualification": "unverified",
+      "real_run_attempts": 1,
+      "real_run_passes": 1,
+      "support_disposition": "retained",
+      "version": "2.31.1"
+    },
+    {
+      "dimensions": {
+        "benchmark": "missing",
+        "build": "passed",
+        "catalog": "passed",
+        "freshness": "passed",
+        "real_data": "missing",
+        "release": "missing",
+        "runtime": "passed",
+        "science": "missing",
+        "security": "missing",
+        "source": "passed",
+        "stage": "missing"
+      },
+      "id": "bijux_dna",
+      "missing_dimensions": [
+        "stage",
+        "real_data",
+        "science",
+        "benchmark",
+        "security",
+        "release"
+      ],
+      "qualification": "unverified",
+      "real_run_attempts": 0,
+      "real_run_passes": 0,
+      "support_disposition": "retained",
+      "version": "0.1.0"
+    },
+    {
+      "dimensions": {
+        "benchmark": "missing",
+        "build": "passed",
+        "catalog": "passed",
+        "freshness": "passed",
+        "real_data": "passed",
+        "release": "missing",
+        "runtime": "passed",
+        "science": "missing",
+        "security": "missing",
+        "source": "passed",
+        "stage": "passed"
+      },
+      "id": "bowtie2",
+      "missing_dimensions": [
+        "science",
+        "benchmark",
+        "security",
+        "release"
+      ],
+      "qualification": "unverified",
+      "real_run_attempts": 1,
+      "real_run_passes": 1,
+      "support_disposition": "retained",
+      "version": "2.5.4"
+    },
+    {
+      "dimensions": {
+        "benchmark": "missing",
+        "build": "passed",
+        "catalog": "passed",
+        "freshness": "passed",
+        "real_data": "passed",
+        "release": "missing",
+        "runtime": "passed",
+        "science": "missing",
+        "security": "missing",
+        "source": "passed",
+        "stage": "passed"
+      },
+      "id": "bowtie2_build",
+      "missing_dimensions": [
+        "science",
+        "benchmark",
+        "security",
+        "release"
+      ],
+      "qualification": "unverified",
+      "real_run_attempts": 1,
+      "real_run_passes": 1,
+      "support_disposition": "retained",
+      "version": "2.5.4"
+    },
+    {
+      "dimensions": {
+        "benchmark": "missing",
+        "build": "passed",
+        "catalog": "passed",
+        "freshness": "passed",
+        "real_data": "passed",
+        "release": "missing",
+        "runtime": "passed",
+        "science": "missing",
+        "security": "missing",
+        "source": "passed",
+        "stage": "passed"
+      },
+      "id": "bracken",
+      "missing_dimensions": [
+        "science",
+        "benchmark",
+        "security",
+        "release"
+      ],
+      "qualification": "unverified",
+      "real_run_attempts": 2,
+      "real_run_passes": 1,
+      "support_disposition": "retained",
+      "version": "2.9"
+    },
+    {
+      "dimensions": {
+        "benchmark": "missing",
+        "build": "passed",
+        "catalog": "passed",
+        "freshness": "passed",
+        "real_data": "passed",
+        "release": "missing",
+        "runtime": "passed",
+        "science": "missing",
+        "security": "missing",
+        "source": "passed",
+        "stage": "passed"
+      },
+      "id": "bwa",
+      "missing_dimensions": [
+        "science",
+        "benchmark",
+        "security",
+        "release"
+      ],
+      "qualification": "unverified",
+      "real_run_attempts": 2,
+      "real_run_passes": 2,
+      "support_disposition": "retained",
+      "version": "0.7.17"
+    },
+    {
+      "dimensions": {
+        "benchmark": "missing",
+        "build": "passed",
+        "catalog": "passed",
+        "freshness": "passed",
+        "real_data": "passed",
+        "release": "missing",
+        "runtime": "passed",
+        "science": "missing",
+        "security": "missing",
+        "source": "passed",
+        "stage": "passed"
+      },
+      "id": "centrifuge",
+      "missing_dimensions": [
+        "science",
+        "benchmark",
+        "security",
+        "release"
+      ],
+      "qualification": "unverified",
+      "real_run_attempts": 2,
+      "real_run_passes": 2,
+      "support_disposition": "retained",
+      "version": "1.0.4"
+    },
+    {
+      "dimensions": {
+        "benchmark": "missing",
+        "build": "passed",
+        "catalog": "passed",
+        "freshness": "passed",
+        "real_data": "passed",
+        "release": "missing",
+        "runtime": "passed",
+        "science": "missing",
+        "security": "missing",
+        "source": "passed",
+        "stage": "passed"
+      },
+      "id": "clumpify",
+      "missing_dimensions": [
+        "science",
+        "benchmark",
+        "security",
+        "release"
+      ],
+      "qualification": "unverified",
+      "real_run_attempts": 1,
+      "real_run_passes": 1,
+      "support_disposition": "retained",
+      "version": "39.06"
+    },
+    {
+      "dimensions": {
+        "benchmark": "missing",
+        "build": "passed",
+        "catalog": "passed",
+        "freshness": "passed",
+        "real_data": "passed",
+        "release": "missing",
+        "runtime": "passed",
+        "science": "missing",
+        "security": "missing",
+        "source": "passed",
+        "stage": "passed"
+      },
+      "id": "contammix",
+      "missing_dimensions": [
+        "science",
+        "benchmark",
+        "security",
+        "release"
+      ],
+      "qualification": "unverified",
+      "real_run_attempts": 1,
+      "real_run_passes": 1,
+      "support_disposition": "retained",
+      "version": "1.0.11"
+    },
+    {
+      "dimensions": {
+        "benchmark": "missing",
+        "build": "passed",
+        "catalog": "passed",
+        "freshness": "passed",
+        "real_data": "passed",
+        "release": "missing",
+        "runtime": "passed",
+        "science": "missing",
+        "security": "missing",
+        "source": "passed",
+        "stage": "passed"
+      },
+      "id": "cutadapt",
+      "missing_dimensions": [
+        "science",
+        "benchmark",
+        "security",
+        "release"
+      ],
+      "qualification": "unverified",
+      "real_run_attempts": 1,
+      "real_run_passes": 1,
+      "support_disposition": "retained",
+      "version": "4.9"
+    },
+    {
+      "dimensions": {
+        "benchmark": "missing",
+        "build": "passed",
+        "catalog": "passed",
+        "freshness": "passed",
+        "real_data": "passed",
+        "release": "missing",
+        "runtime": "passed",
+        "science": "missing",
+        "security": "missing",
+        "source": "passed",
+        "stage": "passed"
+      },
+      "id": "dada2",
+      "missing_dimensions": [
+        "science",
+        "benchmark",
+        "security",
+        "release"
+      ],
+      "qualification": "unverified",
+      "real_run_attempts": 5,
+      "real_run_passes": 2,
+      "support_disposition": "retained",
+      "version": "1.30.0"
+    },
+    {
+      "dimensions": {
+        "benchmark": "missing",
+        "build": "passed",
+        "catalog": "passed",
+        "freshness": "passed",
+        "real_data": "passed",
+        "release": "missing",
+        "runtime": "passed",
+        "science": "missing",
+        "security": "missing",
+        "source": "passed",
+        "stage": "passed"
+      },
+      "id": "damageprofiler",
+      "missing_dimensions": [
+        "science",
+        "benchmark",
+        "security",
+        "release"
+      ],
+      "qualification": "unverified",
+      "real_run_attempts": 4,
+      "real_run_passes": 1,
+      "support_disposition": "retained",
+      "version": "1.1"
+    },
+    {
+      "dimensions": {
+        "benchmark": "missing",
+        "build": "passed",
+        "catalog": "passed",
+        "freshness": "passed",
+        "real_data": "passed",
+        "release": "missing",
+        "runtime": "passed",
+        "science": "missing",
+        "security": "missing",
+        "source": "passed",
+        "stage": "passed"
+      },
+      "id": "diamond",
+      "missing_dimensions": [
+        "science",
+        "benchmark",
+        "security",
+        "release"
+      ],
+      "qualification": "unverified",
+      "real_run_attempts": 2,
+      "real_run_passes": 2,
+      "support_disposition": "retained",
+      "version": "2.1.10"
+    },
+    {
+      "dimensions": {
+        "benchmark": "missing",
+        "build": "passed",
+        "catalog": "passed",
+        "freshness": "passed",
+        "real_data": "passed",
+        "release": "missing",
+        "runtime": "passed",
+        "science": "missing",
+        "security": "missing",
+        "source": "passed",
+        "stage": "passed"
+      },
+      "id": "dustmasker",
+      "missing_dimensions": [
+        "science",
+        "benchmark",
+        "security",
+        "release"
+      ],
+      "qualification": "unverified",
+      "real_run_attempts": 1,
+      "real_run_passes": 1,
+      "support_disposition": "retained",
+      "version": "2.15.0"
+    },
+    {
+      "dimensions": {
+        "benchmark": "missing",
+        "build": "passed",
+        "catalog": "passed",
+        "freshness": "passed",
+        "real_data": "passed",
+        "release": "missing",
+        "runtime": "passed",
+        "science": "missing",
+        "security": "missing",
+        "source": "passed",
+        "stage": "passed"
+      },
+      "id": "eagle",
+      "missing_dimensions": [
+        "science",
+        "benchmark",
+        "security",
+        "release"
+      ],
+      "qualification": "unverified",
+      "real_run_attempts": 3,
+      "real_run_passes": 1,
+      "support_disposition": "retained",
+      "version": "2.4.1"
+    },
+    {
+      "dimensions": {
+        "benchmark": "missing",
+        "build": "passed",
+        "catalog": "passed",
+        "freshness": "passed",
+        "real_data": "passed",
+        "release": "missing",
+        "runtime": "passed",
+        "science": "missing",
+        "security": "missing",
+        "source": "passed",
+        "stage": "passed"
+      },
+      "id": "eigensoft",
+      "missing_dimensions": [
+        "science",
+        "benchmark",
+        "security",
+        "release"
+      ],
+      "qualification": "unverified",
+      "real_run_attempts": 1,
+      "real_run_passes": 1,
+      "support_disposition": "retained",
+      "version": "8.0.0"
+    },
+    {
+      "dimensions": {
+        "benchmark": "missing",
+        "build": "passed",
+        "catalog": "passed",
+        "freshness": "passed",
+        "real_data": "passed",
+        "release": "missing",
+        "runtime": "passed",
+        "science": "missing",
+        "security": "missing",
+        "source": "passed",
+        "stage": "passed"
+      },
+      "id": "fastp",
+      "missing_dimensions": [
+        "science",
+        "benchmark",
+        "security",
+        "release"
+      ],
+      "qualification": "unverified",
+      "real_run_attempts": 1,
+      "real_run_passes": 1,
+      "support_disposition": "retained",
+      "version": "0.23.4"
+    },
+    {
+      "dimensions": {
+        "benchmark": "missing",
+        "build": "passed",
+        "catalog": "passed",
+        "freshness": "passed",
+        "real_data": "passed",
+        "release": "missing",
+        "runtime": "passed",
+        "science": "missing",
+        "security": "missing",
+        "source": "passed",
+        "stage": "passed"
+      },
+      "id": "fastq_scan",
+      "missing_dimensions": [
+        "science",
+        "benchmark",
+        "security",
+        "release"
+      ],
+      "qualification": "unverified",
+      "real_run_attempts": 2,
+      "real_run_passes": 2,
+      "support_disposition": "retained",
+      "version": "1.0.1"
+    },
+    {
+      "dimensions": {
+        "benchmark": "missing",
+        "build": "passed",
+        "catalog": "passed",
+        "freshness": "passed",
+        "real_data": "missing",
+        "release": "missing",
+        "runtime": "passed",
+        "science": "missing",
+        "security": "missing",
+        "source": "passed",
+        "stage": "missing"
+      },
+      "id": "fastq_screen",
+      "missing_dimensions": [
+        "stage",
+        "real_data",
+        "science",
+        "benchmark",
+        "security",
+        "release"
+      ],
+      "qualification": "unverified",
+      "real_run_attempts": 0,
+      "real_run_passes": 0,
+      "support_disposition": "retained",
+      "version": "0.15.3"
+    },
+    {
+      "dimensions": {
+        "benchmark": "missing",
+        "build": "passed",
+        "catalog": "passed",
+        "freshness": "passed",
+        "real_data": "passed",
+        "release": "missing",
+        "runtime": "passed",
+        "science": "missing",
+        "security": "missing",
+        "source": "passed",
+        "stage": "passed"
+      },
+      "id": "fastqc",
+      "missing_dimensions": [
+        "science",
+        "benchmark",
+        "security",
+        "release"
+      ],
+      "qualification": "unverified",
+      "real_run_attempts": 1,
+      "real_run_passes": 1,
+      "support_disposition": "retained",
+      "version": "0.12.1"
+    },
+    {
+      "dimensions": {
+        "benchmark": "missing",
+        "build": "passed",
+        "catalog": "passed",
+        "freshness": "passed",
+        "real_data": "passed",
+        "release": "missing",
+        "runtime": "passed",
+        "science": "missing",
+        "security": "missing",
+        "source": "passed",
+        "stage": "passed"
+      },
+      "id": "fastqvalidator",
+      "missing_dimensions": [
+        "science",
+        "benchmark",
+        "security",
+        "release"
+      ],
+      "qualification": "unverified",
+      "real_run_attempts": 1,
+      "real_run_passes": 1,
+      "support_disposition": "retained",
+      "version": "0.1.1"
+    },
+    {
+      "dimensions": {
+        "benchmark": "not_applicable",
+        "build": "not_applicable",
+        "catalog": "not_applicable",
+        "freshness": "not_applicable",
+        "real_data": "not_applicable",
+        "release": "not_applicable",
+        "runtime": "not_applicable",
+        "science": "not_applicable",
+        "security": "not_applicable",
+        "source": "not_applicable",
+        "stage": "not_applicable"
+      },
+      "id": "fastuniq",
+      "missing_dimensions": [],
+      "qualification": "unsupported",
+      "real_run_attempts": 2,
+      "real_run_passes": 1,
+      "support_disposition": "unsupported",
+      "version": "1.1"
+    },
+    {
+      "dimensions": {
+        "benchmark": "missing",
+        "build": "passed",
+        "catalog": "passed",
+        "freshness": "passed",
+        "real_data": "passed",
+        "release": "missing",
+        "runtime": "passed",
+        "science": "missing",
+        "security": "missing",
+        "source": "passed",
+        "stage": "passed"
+      },
+      "id": "fastx_clipper",
+      "missing_dimensions": [
+        "science",
+        "benchmark",
+        "security",
+        "release"
+      ],
+      "qualification": "unverified",
+      "real_run_attempts": 3,
+      "real_run_passes": 2,
+      "support_disposition": "retained",
+      "version": "0.0.14"
+    },
+    {
+      "dimensions": {
+        "benchmark": "missing",
+        "build": "passed",
+        "catalog": "passed",
+        "freshness": "passed",
+        "real_data": "passed",
+        "release": "missing",
+        "runtime": "passed",
+        "science": "missing",
+        "security": "missing",
+        "source": "passed",
+        "stage": "passed"
+      },
+      "id": "flash2",
+      "missing_dimensions": [
+        "science",
+        "benchmark",
+        "security",
+        "release"
+      ],
+      "qualification": "unverified",
+      "real_run_attempts": 2,
+      "real_run_passes": 2,
+      "support_disposition": "retained",
+      "version": "2.2.00"
+    },
+    {
+      "dimensions": {
+        "benchmark": "missing",
+        "build": "passed",
+        "catalog": "passed",
+        "freshness": "passed",
+        "real_data": "passed",
+        "release": "missing",
+        "runtime": "passed",
+        "science": "missing",
+        "security": "missing",
+        "source": "passed",
+        "stage": "passed"
+      },
+      "id": "fqtools",
+      "missing_dimensions": [
+        "science",
+        "benchmark",
+        "security",
+        "release"
+      ],
+      "qualification": "unverified",
+      "real_run_attempts": 6,
+      "real_run_passes": 4,
+      "support_disposition": "retained",
+      "version": "2.3"
+    },
+    {
+      "dimensions": {
+        "benchmark": "missing",
+        "build": "passed",
+        "catalog": "passed",
+        "freshness": "passed",
+        "real_data": "missing",
+        "release": "missing",
+        "runtime": "passed",
+        "science": "missing",
+        "security": "missing",
+        "source": "passed",
+        "stage": "missing"
+      },
+      "id": "gatk",
+      "missing_dimensions": [
+        "stage",
+        "real_data",
+        "science",
+        "benchmark",
+        "security",
+        "release"
+      ],
+      "qualification": "unverified",
+      "real_run_attempts": 0,
+      "real_run_passes": 0,
+      "support_disposition": "retained",
+      "version": "4.6.2.0"
+    },
+    {
+      "dimensions": {
+        "benchmark": "missing",
+        "build": "passed",
+        "catalog": "passed",
+        "freshness": "passed",
+        "real_data": "passed",
+        "release": "missing",
+        "runtime": "passed",
+        "science": "missing",
+        "security": "missing",
+        "source": "passed",
+        "stage": "passed"
+      },
+      "id": "germline",
+      "missing_dimensions": [
+        "science",
+        "benchmark",
+        "security",
+        "release"
+      ],
+      "qualification": "unverified",
+      "real_run_attempts": 3,
+      "real_run_passes": 2,
+      "support_disposition": "retained",
+      "version": "1.5.3"
+    },
+    {
+      "dimensions": {
+        "benchmark": "missing",
+        "build": "passed",
+        "catalog": "passed",
+        "freshness": "passed",
+        "real_data": "missing",
+        "release": "missing",
+        "runtime": "passed",
+        "science": "missing",
+        "security": "missing",
+        "source": "passed",
+        "stage": "missing"
+      },
+      "id": "glimpse",
+      "missing_dimensions": [
+        "stage",
+        "real_data",
+        "science",
+        "benchmark",
+        "security",
+        "release"
+      ],
+      "qualification": "unverified",
+      "real_run_attempts": 0,
+      "real_run_passes": 0,
+      "support_disposition": "retained",
+      "version": "1.1.1"
+    },
+    {
+      "dimensions": {
+        "benchmark": "missing",
+        "build": "passed",
+        "catalog": "passed",
+        "freshness": "passed",
+        "real_data": "passed",
+        "release": "missing",
+        "runtime": "passed",
+        "science": "missing",
+        "security": "missing",
+        "source": "passed",
+        "stage": "passed"
+      },
+      "id": "ibdhap",
+      "missing_dimensions": [
+        "science",
+        "benchmark",
+        "security",
+        "release"
+      ],
+      "qualification": "unverified",
+      "real_run_attempts": 2,
+      "real_run_passes": 1,
+      "support_disposition": "retained",
+      "version": "3.4"
+    },
+    {
+      "dimensions": {
+        "benchmark": "missing",
+        "build": "passed",
+        "catalog": "passed",
+        "freshness": "passed",
+        "real_data": "passed",
+        "release": "missing",
+        "runtime": "passed",
+        "science": "missing",
+        "security": "missing",
+        "source": "passed",
+        "stage": "passed"
+      },
+      "id": "ibdne",
+      "missing_dimensions": [
+        "science",
+        "benchmark",
+        "security",
+        "release"
+      ],
+      "qualification": "unverified",
+      "real_run_attempts": 4,
+      "real_run_passes": 1,
+      "support_disposition": "retained",
+      "version": "23Apr20.ae9"
+    },
+    {
+      "dimensions": {
+        "benchmark": "missing",
+        "build": "passed",
+        "catalog": "passed",
+        "freshness": "passed",
+        "real_data": "passed",
+        "release": "missing",
+        "runtime": "passed",
+        "science": "missing",
+        "security": "missing",
+        "source": "passed",
+        "stage": "passed"
+      },
+      "id": "ibdseq",
+      "missing_dimensions": [
+        "science",
+        "benchmark",
+        "security",
+        "release"
+      ],
+      "qualification": "unverified",
+      "real_run_attempts": 2,
+      "real_run_passes": 2,
+      "support_disposition": "retained",
+      "version": "r1206"
+    },
+    {
+      "dimensions": {
+        "benchmark": "not_applicable",
+        "build": "not_applicable",
+        "catalog": "not_applicable",
+        "freshness": "not_applicable",
+        "real_data": "not_applicable",
+        "release": "not_applicable",
+        "runtime": "not_applicable",
+        "science": "not_applicable",
+        "security": "not_applicable",
+        "source": "not_applicable",
+        "stage": "not_applicable"
+      },
+      "id": "impute5",
+      "missing_dimensions": [],
+      "qualification": "unsupported",
+      "real_run_attempts": 0,
+      "real_run_passes": 0,
+      "support_disposition": "unsupported",
+      "version": "1.2.0"
+    },
+    {
+      "dimensions": {
+        "benchmark": "missing",
+        "build": "passed",
+        "catalog": "passed",
+        "freshness": "passed",
+        "real_data": "missing",
+        "release": "missing",
+        "runtime": "passed",
+        "science": "missing",
+        "security": "missing",
+        "source": "passed",
+        "stage": "missing"
+      },
+      "id": "kaiju",
+      "missing_dimensions": [
+        "stage",
+        "real_data",
+        "science",
+        "benchmark",
+        "security",
+        "release"
+      ],
+      "qualification": "unverified",
+      "real_run_attempts": 0,
+      "real_run_passes": 0,
+      "support_disposition": "retained",
+      "version": "1.10.0"
+    },
+    {
+      "dimensions": {
+        "benchmark": "missing",
+        "build": "passed",
+        "catalog": "passed",
+        "freshness": "passed",
+        "real_data": "missing",
+        "release": "missing",
+        "runtime": "passed",
+        "science": "missing",
+        "security": "missing",
+        "source": "passed",
+        "stage": "missing"
+      },
+      "id": "king",
+      "missing_dimensions": [
+        "stage",
+        "real_data",
+        "science",
+        "benchmark",
+        "security",
+        "release"
+      ],
+      "qualification": "unverified",
+      "real_run_attempts": 0,
+      "real_run_passes": 0,
+      "support_disposition": "retained",
+      "version": "2.3.0"
+    },
+    {
+      "dimensions": {
+        "benchmark": "missing",
+        "build": "passed",
+        "catalog": "passed",
+        "freshness": "passed",
+        "real_data": "passed",
+        "release": "missing",
+        "runtime": "passed",
+        "science": "missing",
+        "security": "missing",
+        "source": "passed",
+        "stage": "passed"
+      },
+      "id": "kraken2",
+      "missing_dimensions": [
+        "science",
+        "benchmark",
+        "security",
+        "release"
+      ],
+      "qualification": "unverified",
+      "real_run_attempts": 1,
+      "real_run_passes": 1,
+      "support_disposition": "retained",
+      "version": "2.1.3"
+    },
+    {
+      "dimensions": {
+        "benchmark": "missing",
+        "build": "passed",
+        "catalog": "passed",
+        "freshness": "passed",
+        "real_data": "missing",
+        "release": "missing",
+        "runtime": "passed",
+        "science": "missing",
+        "security": "missing",
+        "source": "passed",
+        "stage": "missing"
+      },
+      "id": "krakenuniq",
+      "missing_dimensions": [
+        "stage",
+        "real_data",
+        "science",
+        "benchmark",
+        "security",
+        "release"
+      ],
+      "qualification": "unverified",
+      "real_run_attempts": 0,
+      "real_run_passes": 0,
+      "support_disposition": "retained",
+      "version": "1.0.4"
+    },
+    {
+      "dimensions": {
+        "benchmark": "missing",
+        "build": "passed",
+        "catalog": "passed",
+        "freshness": "passed",
+        "real_data": "passed",
+        "release": "missing",
+        "runtime": "passed",
+        "science": "missing",
+        "security": "missing",
+        "source": "passed",
+        "stage": "passed"
+      },
+      "id": "leehom",
+      "missing_dimensions": [
+        "science",
+        "benchmark",
+        "security",
+        "release"
+      ],
+      "qualification": "unverified",
+      "real_run_attempts": 1,
+      "real_run_passes": 1,
+      "support_disposition": "retained",
+      "version": "1.2.18"
+    },
+    {
+      "dimensions": {
+        "benchmark": "missing",
+        "build": "passed",
+        "catalog": "passed",
+        "freshness": "passed",
+        "real_data": "missing",
+        "release": "missing",
+        "runtime": "passed",
+        "science": "missing",
+        "security": "missing",
+        "source": "passed",
+        "stage": "missing"
+      },
+      "id": "lighter",
+      "missing_dimensions": [
+        "stage",
+        "real_data",
+        "science",
+        "benchmark",
+        "security",
+        "release"
+      ],
+      "qualification": "unverified",
+      "real_run_attempts": 0,
+      "real_run_passes": 0,
+      "support_disposition": "retained",
+      "version": "1.1.2"
+    },
+    {
+      "dimensions": {
+        "benchmark": "missing",
+        "build": "passed",
+        "catalog": "passed",
+        "freshness": "passed",
+        "real_data": "passed",
+        "release": "missing",
+        "runtime": "passed",
+        "science": "missing",
+        "security": "missing",
+        "source": "passed",
+        "stage": "passed"
+      },
+      "id": "mapdamage2",
+      "missing_dimensions": [
+        "science",
+        "benchmark",
+        "security",
+        "release"
+      ],
+      "qualification": "unverified",
+      "real_run_attempts": 4,
+      "real_run_passes": 2,
+      "support_disposition": "retained",
+      "version": "2.2.2"
+    },
+    {
+      "dimensions": {
+        "benchmark": "missing",
+        "build": "passed",
+        "catalog": "passed",
+        "freshness": "passed",
+        "real_data": "missing",
+        "release": "missing",
+        "runtime": "passed",
+        "science": "missing",
+        "security": "missing",
+        "source": "passed",
+        "stage": "missing"
+      },
+      "id": "metaphlan",
+      "missing_dimensions": [
+        "stage",
+        "real_data",
+        "science",
+        "benchmark",
+        "security",
+        "release"
+      ],
+      "qualification": "unverified",
+      "real_run_attempts": 0,
+      "real_run_passes": 0,
+      "support_disposition": "retained",
+      "version": "4.1.1"
+    },
+    {
+      "dimensions": {
+        "benchmark": "missing",
+        "build": "passed",
+        "catalog": "passed",
+        "freshness": "passed",
+        "real_data": "missing",
+        "release": "missing",
+        "runtime": "passed",
+        "science": "missing",
+        "security": "missing",
+        "source": "passed",
+        "stage": "missing"
+      },
+      "id": "minimac4",
+      "missing_dimensions": [
+        "stage",
+        "real_data",
+        "science",
+        "benchmark",
+        "security",
+        "release"
+      ],
+      "qualification": "unverified",
+      "real_run_attempts": 0,
+      "real_run_passes": 0,
+      "support_disposition": "retained",
+      "version": "4.1.6"
+    },
+    {
+      "dimensions": {
+        "benchmark": "missing",
+        "build": "passed",
+        "catalog": "passed",
+        "freshness": "passed",
+        "real_data": "passed",
+        "release": "missing",
+        "runtime": "passed",
+        "science": "missing",
+        "security": "missing",
+        "source": "passed",
+        "stage": "passed"
+      },
+      "id": "mosdepth",
+      "missing_dimensions": [
+        "science",
+        "benchmark",
+        "security",
+        "release"
+      ],
+      "qualification": "unverified",
+      "real_run_attempts": 1,
+      "real_run_passes": 1,
+      "support_disposition": "retained",
+      "version": "0.3.11"
+    },
+    {
+      "dimensions": {
+        "benchmark": "missing",
+        "build": "passed",
+        "catalog": "passed",
+        "freshness": "passed",
+        "real_data": "missing",
+        "release": "missing",
+        "runtime": "passed",
+        "science": "missing",
+        "security": "missing",
+        "source": "passed",
+        "stage": "missing"
+      },
+      "id": "multiqc",
+      "missing_dimensions": [
+        "stage",
+        "real_data",
+        "science",
+        "benchmark",
+        "security",
+        "release"
+      ],
+      "qualification": "unverified",
+      "real_run_attempts": 0,
+      "real_run_passes": 0,
+      "support_disposition": "retained",
+      "version": "1.24"
+    },
+    {
+      "dimensions": {
+        "benchmark": "missing",
+        "build": "passed",
+        "catalog": "passed",
+        "freshness": "passed",
+        "real_data": "passed",
+        "release": "missing",
+        "runtime": "passed",
+        "science": "missing",
+        "security": "missing",
+        "source": "passed",
+        "stage": "passed"
+      },
+      "id": "musket",
+      "missing_dimensions": [
+        "science",
+        "benchmark",
+        "security",
+        "release"
+      ],
+      "qualification": "unverified",
+      "real_run_attempts": 1,
+      "real_run_passes": 1,
+      "support_disposition": "retained",
+      "version": "1.1"
+    },
+    {
+      "dimensions": {
+        "benchmark": "missing",
+        "build": "passed",
+        "catalog": "passed",
+        "freshness": "passed",
+        "real_data": "passed",
+        "release": "missing",
+        "runtime": "passed",
+        "science": "missing",
+        "security": "missing",
+        "source": "passed",
+        "stage": "passed"
+      },
+      "id": "ngsbriggs",
+      "missing_dimensions": [
+        "science",
+        "benchmark",
+        "security",
+        "release"
+      ],
+      "qualification": "unverified",
+      "real_run_attempts": 2,
+      "real_run_passes": 1,
+      "support_disposition": "retained",
+      "version": "0.01"
+    },
+    {
+      "dimensions": {
+        "benchmark": "missing",
+        "build": "passed",
+        "catalog": "passed",
+        "freshness": "passed",
+        "real_data": "passed",
+        "release": "missing",
+        "runtime": "passed",
+        "science": "missing",
+        "security": "missing",
+        "source": "passed",
+        "stage": "passed"
+      },
+      "id": "pear",
+      "missing_dimensions": [
+        "science",
+        "benchmark",
+        "security",
+        "release"
+      ],
+      "qualification": "unverified",
+      "real_run_attempts": 2,
+      "real_run_passes": 1,
+      "support_disposition": "retained",
+      "version": "0.9.6"
+    },
+    {
+      "dimensions": {
+        "benchmark": "missing",
+        "build": "passed",
+        "catalog": "passed",
+        "freshness": "passed",
+        "real_data": "missing",
+        "release": "missing",
+        "runtime": "passed",
+        "science": "missing",
+        "security": "missing",
+        "source": "passed",
+        "stage": "missing"
+      },
+      "id": "picard",
+      "missing_dimensions": [
+        "stage",
+        "real_data",
+        "science",
+        "benchmark",
+        "security",
+        "release"
+      ],
+      "qualification": "unverified",
+      "real_run_attempts": 0,
+      "real_run_passes": 0,
+      "support_disposition": "retained",
+      "version": "3.3.0"
+    },
+    {
+      "dimensions": {
+        "benchmark": "missing",
+        "build": "passed",
+        "catalog": "passed",
+        "freshness": "passed",
+        "real_data": "passed",
+        "release": "missing",
+        "runtime": "passed",
+        "science": "missing",
+        "security": "missing",
+        "source": "passed",
+        "stage": "passed"
+      },
+      "id": "plink",
+      "missing_dimensions": [
+        "science",
+        "benchmark",
+        "security",
+        "release"
+      ],
+      "qualification": "unverified",
+      "real_run_attempts": 1,
+      "real_run_passes": 1,
+      "support_disposition": "retained",
+      "version": "1.90b7.2"
+    },
+    {
+      "dimensions": {
+        "benchmark": "missing",
+        "build": "passed",
+        "catalog": "passed",
+        "freshness": "passed",
+        "real_data": "passed",
+        "release": "missing",
+        "runtime": "passed",
+        "science": "missing",
+        "security": "missing",
+        "source": "passed",
+        "stage": "passed"
+      },
+      "id": "plink2",
+      "missing_dimensions": [
+        "science",
+        "benchmark",
+        "security",
+        "release"
+      ],
+      "qualification": "unverified",
+      "real_run_attempts": 2,
+      "real_run_passes": 2,
+      "support_disposition": "retained",
+      "version": "2.00a6"
+    },
+    {
+      "dimensions": {
+        "benchmark": "missing",
+        "build": "passed",
+        "catalog": "passed",
+        "freshness": "passed",
+        "real_data": "missing",
+        "release": "missing",
+        "runtime": "passed",
+        "science": "missing",
+        "security": "missing",
+        "source": "passed",
+        "stage": "missing"
+      },
+      "id": "pmdtools",
+      "missing_dimensions": [
+        "stage",
+        "real_data",
+        "science",
+        "benchmark",
+        "security",
+        "release"
+      ],
+      "qualification": "unverified",
+      "real_run_attempts": 0,
+      "real_run_passes": 0,
+      "support_disposition": "retained",
+      "version": "0.60"
+    },
+    {
+      "dimensions": {
+        "benchmark": "missing",
+        "build": "passed",
+        "catalog": "passed",
+        "freshness": "passed",
+        "real_data": "missing",
+        "release": "missing",
+        "runtime": "passed",
+        "science": "missing",
+        "security": "missing",
+        "source": "passed",
+        "stage": "missing"
+      },
+      "id": "preseq",
+      "missing_dimensions": [
+        "stage",
+        "real_data",
+        "science",
+        "benchmark",
+        "security",
+        "release"
+      ],
+      "qualification": "unverified",
+      "real_run_attempts": 0,
+      "real_run_passes": 0,
+      "support_disposition": "retained",
+      "version": "3.2.0"
+    },
+    {
+      "dimensions": {
+        "benchmark": "missing",
+        "build": "passed",
+        "catalog": "passed",
+        "freshness": "passed",
+        "real_data": "passed",
+        "release": "missing",
+        "runtime": "passed",
+        "science": "missing",
+        "security": "missing",
+        "source": "passed",
+        "stage": "passed"
+      },
+      "id": "prinseq",
+      "missing_dimensions": [
+        "science",
+        "benchmark",
+        "security",
+        "release"
+      ],
+      "qualification": "unverified",
+      "real_run_attempts": 1,
+      "real_run_passes": 1,
+      "support_disposition": "retained",
+      "version": "1.2.4"
+    },
+    {
+      "dimensions": {
+        "benchmark": "missing",
+        "build": "passed",
+        "catalog": "passed",
+        "freshness": "passed",
+        "real_data": "missing",
+        "release": "missing",
+        "runtime": "passed",
+        "science": "missing",
+        "security": "missing",
+        "source": "passed",
+        "stage": "missing"
+      },
+      "id": "pydamage",
+      "missing_dimensions": [
+        "stage",
+        "real_data",
+        "science",
+        "benchmark",
+        "security",
+        "release"
+      ],
+      "qualification": "unverified",
+      "real_run_attempts": 0,
+      "real_run_passes": 0,
+      "support_disposition": "retained",
+      "version": "1.0"
+    },
+    {
+      "dimensions": {
+        "benchmark": "missing",
+        "build": "passed",
+        "catalog": "passed",
+        "freshness": "passed",
+        "real_data": "passed",
+        "release": "missing",
+        "runtime": "passed",
+        "science": "missing",
+        "security": "missing",
+        "source": "passed",
+        "stage": "passed"
+      },
+      "id": "qualimap",
+      "missing_dimensions": [
+        "science",
+        "benchmark",
+        "security",
+        "release"
+      ],
+      "qualification": "unverified",
+      "real_run_attempts": 3,
+      "real_run_passes": 1,
+      "support_disposition": "retained",
+      "version": "2.3"
+    },
+    {
+      "dimensions": {
+        "benchmark": "missing",
+        "build": "passed",
+        "catalog": "passed",
+        "freshness": "passed",
+        "real_data": "missing",
+        "release": "missing",
+        "runtime": "passed",
+        "science": "missing",
+        "security": "missing",
+        "source": "passed",
+        "stage": "missing"
+      },
+      "id": "rcorrector",
+      "missing_dimensions": [
+        "stage",
+        "real_data",
+        "science",
+        "benchmark",
+        "security",
+        "release"
+      ],
+      "qualification": "unverified",
+      "real_run_attempts": 0,
+      "real_run_passes": 0,
+      "support_disposition": "retained",
+      "version": "1.0.7"
+    },
+    {
+      "dimensions": {
+        "benchmark": "missing",
+        "build": "passed",
+        "catalog": "passed",
+        "freshness": "passed",
+        "real_data": "missing",
+        "release": "missing",
+        "runtime": "passed",
+        "science": "missing",
+        "security": "missing",
+        "source": "passed",
+        "stage": "missing"
+      },
+      "id": "rxy",
+      "missing_dimensions": [
+        "stage",
+        "real_data",
+        "science",
+        "benchmark",
+        "security",
+        "release"
+      ],
+      "qualification": "unverified",
+      "real_run_attempts": 0,
+      "real_run_passes": 0,
+      "support_disposition": "retained",
+      "version": "1.0.0"
+    },
+    {
+      "dimensions": {
+        "benchmark": "missing",
+        "build": "passed",
+        "catalog": "passed",
+        "freshness": "passed",
+        "real_data": "passed",
+        "release": "missing",
+        "runtime": "passed",
+        "science": "missing",
+        "security": "missing",
+        "source": "passed",
+        "stage": "passed"
+      },
+      "id": "samtools",
+      "missing_dimensions": [
+        "science",
+        "benchmark",
+        "security",
+        "release"
+      ],
+      "qualification": "unverified",
+      "real_run_attempts": 14,
+      "real_run_passes": 9,
+      "support_disposition": "retained",
+      "version": "1.20"
+    },
+    {
+      "dimensions": {
+        "benchmark": "missing",
+        "build": "passed",
+        "catalog": "passed",
+        "freshness": "passed",
+        "real_data": "missing",
+        "release": "missing",
+        "runtime": "passed",
+        "science": "missing",
+        "security": "missing",
+        "source": "passed",
+        "stage": "missing"
+      },
+      "id": "schmutzi",
+      "missing_dimensions": [
+        "stage",
+        "real_data",
+        "science",
+        "benchmark",
+        "security",
+        "release"
+      ],
+      "qualification": "unverified",
+      "real_run_attempts": 0,
+      "real_run_passes": 0,
+      "support_disposition": "retained",
+      "version": "1.5.4"
+    },
+    {
+      "dimensions": {
+        "benchmark": "missing",
+        "build": "passed",
+        "catalog": "passed",
+        "freshness": "passed",
+        "real_data": "passed",
+        "release": "missing",
+        "runtime": "passed",
+        "science": "missing",
+        "security": "missing",
+        "source": "passed",
+        "stage": "passed"
+      },
+      "id": "seqfu",
+      "missing_dimensions": [
+        "science",
+        "benchmark",
+        "security",
+        "release"
+      ],
+      "qualification": "unverified",
+      "real_run_attempts": 1,
+      "real_run_passes": 1,
+      "support_disposition": "retained",
+      "version": "1.26.0"
+    },
+    {
+      "dimensions": {
+        "benchmark": "missing",
+        "build": "passed",
+        "catalog": "passed",
+        "freshness": "passed",
+        "real_data": "passed",
+        "release": "missing",
+        "runtime": "passed",
+        "science": "missing",
+        "security": "missing",
+        "source": "passed",
+        "stage": "passed"
+      },
+      "id": "seqkit",
+      "missing_dimensions": [
+        "science",
+        "benchmark",
+        "security",
+        "release"
+      ],
+      "qualification": "unverified",
+      "real_run_attempts": 1,
+      "real_run_passes": 1,
+      "support_disposition": "retained",
+      "version": "2.8.2"
+    },
+    {
+      "dimensions": {
+        "benchmark": "missing",
+        "build": "passed",
+        "catalog": "passed",
+        "freshness": "passed",
+        "real_data": "passed",
+        "release": "missing",
+        "runtime": "passed",
+        "science": "missing",
+        "security": "missing",
+        "source": "passed",
+        "stage": "passed"
+      },
+      "id": "seqkit_stats",
+      "missing_dimensions": [
+        "science",
+        "benchmark",
+        "security",
+        "release"
+      ],
+      "qualification": "unverified",
+      "real_run_attempts": 1,
+      "real_run_passes": 1,
+      "support_disposition": "retained",
+      "version": "2.8.2"
+    },
+    {
+      "dimensions": {
+        "benchmark": "missing",
+        "build": "passed",
+        "catalog": "passed",
+        "freshness": "passed",
+        "real_data": "passed",
+        "release": "missing",
+        "runtime": "passed",
+        "science": "missing",
+        "security": "missing",
+        "source": "passed",
+        "stage": "passed"
+      },
+      "id": "seqprep",
+      "missing_dimensions": [
+        "science",
+        "benchmark",
+        "security",
+        "release"
+      ],
+      "qualification": "unverified",
+      "real_run_attempts": 1,
+      "real_run_passes": 1,
+      "support_disposition": "retained",
+      "version": "1.3.2"
+    },
+    {
+      "dimensions": {
+        "benchmark": "missing",
+        "build": "passed",
+        "catalog": "passed",
+        "freshness": "passed",
+        "real_data": "passed",
+        "release": "missing",
+        "runtime": "passed",
+        "science": "missing",
+        "security": "missing",
+        "source": "passed",
+        "stage": "passed"
+      },
+      "id": "seqpurge",
+      "missing_dimensions": [
+        "science",
+        "benchmark",
+        "security",
+        "release"
+      ],
+      "qualification": "unverified",
+      "real_run_attempts": 1,
+      "real_run_passes": 1,
+      "support_disposition": "retained",
+      "version": "2026_06"
+    },
+    {
+      "dimensions": {
+        "benchmark": "missing",
+        "build": "passed",
+        "catalog": "passed",
+        "freshness": "passed",
+        "real_data": "passed",
+        "release": "missing",
+        "runtime": "passed",
+        "science": "missing",
+        "security": "missing",
+        "source": "passed",
+        "stage": "passed"
+      },
+      "id": "seqtk",
+      "missing_dimensions": [
+        "science",
+        "benchmark",
+        "security",
+        "release"
+      ],
+      "qualification": "unverified",
+      "real_run_attempts": 1,
+      "real_run_passes": 1,
+      "support_disposition": "retained",
+      "version": "1.4"
+    },
+    {
+      "dimensions": {
+        "benchmark": "missing",
+        "build": "passed",
+        "catalog": "passed",
+        "freshness": "passed",
+        "real_data": "passed",
+        "release": "missing",
+        "runtime": "passed",
+        "science": "missing",
+        "security": "missing",
+        "source": "passed",
+        "stage": "passed"
+      },
+      "id": "shapeit",
+      "missing_dimensions": [
+        "science",
+        "benchmark",
+        "security",
+        "release"
+      ],
+      "qualification": "unverified",
+      "real_run_attempts": 1,
+      "real_run_passes": 1,
+      "support_disposition": "retained",
+      "version": "4.2.2"
+    },
+    {
+      "dimensions": {
+        "benchmark": "missing",
+        "build": "passed",
+        "catalog": "passed",
+        "freshness": "passed",
+        "real_data": "passed",
+        "release": "missing",
+        "runtime": "passed",
+        "science": "missing",
+        "security": "missing",
+        "source": "passed",
+        "stage": "passed"
+      },
+      "id": "shapeit5",
+      "missing_dimensions": [
+        "science",
+        "benchmark",
+        "security",
+        "release"
+      ],
+      "qualification": "unverified",
+      "real_run_attempts": 1,
+      "real_run_passes": 1,
+      "support_disposition": "retained",
+      "version": "5.1.1"
+    },
+    {
+      "dimensions": {
+        "benchmark": "missing",
+        "build": "passed",
+        "catalog": "passed",
+        "freshness": "passed",
+        "real_data": "passed",
+        "release": "missing",
+        "runtime": "passed",
+        "science": "missing",
+        "security": "missing",
+        "source": "passed",
+        "stage": "passed"
+      },
+      "id": "skewer",
+      "missing_dimensions": [
+        "science",
+        "benchmark",
+        "security",
+        "release"
+      ],
+      "qualification": "unverified",
+      "real_run_attempts": 1,
+      "real_run_passes": 1,
+      "support_disposition": "retained",
+      "version": "0.2.2"
+    },
+    {
+      "dimensions": {
+        "benchmark": "missing",
+        "build": "passed",
+        "catalog": "passed",
+        "freshness": "passed",
+        "real_data": "missing",
+        "release": "missing",
+        "runtime": "passed",
+        "science": "missing",
+        "security": "missing",
+        "source": "passed",
+        "stage": "missing"
+      },
+      "id": "sortmerna",
+      "missing_dimensions": [
+        "stage",
+        "real_data",
+        "science",
+        "benchmark",
+        "security",
+        "release"
+      ],
+      "qualification": "unverified",
+      "real_run_attempts": 0,
+      "real_run_passes": 0,
+      "support_disposition": "retained",
+      "version": "4.3.7"
+    },
+    {
+      "dimensions": {
+        "benchmark": "missing",
+        "build": "passed",
+        "catalog": "passed",
+        "freshness": "passed",
+        "real_data": "missing",
+        "release": "missing",
+        "runtime": "passed",
+        "science": "missing",
+        "security": "missing",
+        "source": "passed",
+        "stage": "missing"
+      },
+      "id": "spades",
+      "missing_dimensions": [
+        "stage",
+        "real_data",
+        "science",
+        "benchmark",
+        "security",
+        "release"
+      ],
+      "qualification": "unverified",
+      "real_run_attempts": 0,
+      "real_run_passes": 0,
+      "support_disposition": "retained",
+      "version": "4.2.0"
+    },
+    {
+      "dimensions": {
+        "benchmark": "missing",
+        "build": "passed",
+        "catalog": "passed",
+        "freshness": "passed",
+        "real_data": "missing",
+        "release": "missing",
+        "runtime": "passed",
+        "science": "missing",
+        "security": "missing",
+        "source": "passed",
+        "stage": "missing"
+      },
+      "id": "star",
+      "missing_dimensions": [
+        "stage",
+        "real_data",
+        "science",
+        "benchmark",
+        "security",
+        "release"
+      ],
+      "qualification": "unverified",
+      "real_run_attempts": 0,
+      "real_run_passes": 0,
+      "support_disposition": "retained",
+      "version": "2.7.11b"
+    },
+    {
+      "dimensions": {
+        "benchmark": "missing",
+        "build": "passed",
+        "catalog": "passed",
+        "freshness": "passed",
+        "real_data": "passed",
+        "release": "missing",
+        "runtime": "passed",
+        "science": "missing",
+        "security": "missing",
+        "source": "passed",
+        "stage": "passed"
+      },
+      "id": "trim_galore",
+      "missing_dimensions": [
+        "science",
+        "benchmark",
+        "security",
+        "release"
+      ],
+      "qualification": "unverified",
+      "real_run_attempts": 2,
+      "real_run_passes": 1,
+      "support_disposition": "retained",
+      "version": "0.6.10"
+    },
+    {
+      "dimensions": {
+        "benchmark": "missing",
+        "build": "passed",
+        "catalog": "passed",
+        "freshness": "passed",
+        "real_data": "passed",
+        "release": "missing",
+        "runtime": "passed",
+        "science": "missing",
+        "security": "missing",
+        "source": "passed",
+        "stage": "passed"
+      },
+      "id": "trimmomatic",
+      "missing_dimensions": [
+        "science",
+        "benchmark",
+        "security",
+        "release"
+      ],
+      "qualification": "unverified",
+      "real_run_attempts": 2,
+      "real_run_passes": 1,
+      "support_disposition": "retained",
+      "version": "0.39"
+    },
+    {
+      "dimensions": {
+        "benchmark": "missing",
+        "build": "passed",
+        "catalog": "passed",
+        "freshness": "passed",
+        "real_data": "missing",
+        "release": "missing",
+        "runtime": "passed",
+        "science": "missing",
+        "security": "missing",
+        "source": "passed",
+        "stage": "missing"
+      },
+      "id": "umi_tools",
+      "missing_dimensions": [
+        "stage",
+        "real_data",
+        "science",
+        "benchmark",
+        "security",
+        "release"
+      ],
+      "qualification": "unverified",
+      "real_run_attempts": 0,
+      "real_run_passes": 0,
+      "support_disposition": "retained",
+      "version": "1.1.6"
+    },
+    {
+      "dimensions": {
+        "benchmark": "missing",
+        "build": "passed",
+        "catalog": "passed",
+        "freshness": "passed",
+        "real_data": "missing",
+        "release": "missing",
+        "runtime": "passed",
+        "science": "missing",
+        "security": "missing",
+        "source": "passed",
+        "stage": "missing"
+      },
+      "id": "verifybamid2",
+      "missing_dimensions": [
+        "stage",
+        "real_data",
+        "science",
+        "benchmark",
+        "security",
+        "release"
+      ],
+      "qualification": "unverified",
+      "real_run_attempts": 0,
+      "real_run_passes": 0,
+      "support_disposition": "retained",
+      "version": "2.0.1"
+    },
+    {
+      "dimensions": {
+        "benchmark": "missing",
+        "build": "passed",
+        "catalog": "passed",
+        "freshness": "passed",
+        "real_data": "passed",
+        "release": "missing",
+        "runtime": "passed",
+        "science": "missing",
+        "security": "missing",
+        "source": "passed",
+        "stage": "passed"
+      },
+      "id": "vsearch",
+      "missing_dimensions": [
+        "science",
+        "benchmark",
+        "security",
+        "release"
+      ],
+      "qualification": "unverified",
+      "real_run_attempts": 1,
+      "real_run_passes": 1,
+      "support_disposition": "retained",
+      "version": "2.29.3"
+    },
+    {
+      "dimensions": {
+        "benchmark": "missing",
+        "build": "passed",
+        "catalog": "passed",
+        "freshness": "passed",
+        "real_data": "missing",
+        "release": "missing",
+        "runtime": "passed",
+        "science": "missing",
+        "security": "missing",
+        "source": "passed",
+        "stage": "missing"
+      },
+      "id": "yleaf",
+      "missing_dimensions": [
+        "stage",
+        "real_data",
+        "science",
+        "benchmark",
+        "security",
+        "release"
+      ],
+      "qualification": "unverified",
+      "real_run_attempts": 0,
+      "real_run_passes": 0,
+      "support_disposition": "retained",
+      "version": "4.1.4"
+    }
+  ]
+}

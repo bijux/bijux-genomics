@@ -1,0 +1,19 @@
+schema_version: bijux.container.pipeline.v1
+run: {id: run-1043, campaign: public-ancient-horse-container-qualification, corpus: ena-prjeb22390-err2112767-bam, sample: ERR2112767, domain: bam, stage: bam.damage, tool: ngsbriggs, operator: bijan}
+repository: {path: /home/bijan/bijux/bijux-genomics-runs/1ec0802ac10350906532028677026783fe00f940, commit: 1ec0802ac10350906532028677026783fe00f940, clean: true}
+image: {path: /home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/ngsbriggs-0.01-linux-amd64-35bc4bd47f97.sif, sha256: 35bc4bd47f97f2fba38448cedfc773ddf456b66079aca5d052ec55c9413229c2}
+data:
+  inputs:
+    - {id: ena-prjeb22390-err2112767-bam, kind: data, path: /home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb22390-err2112767/ERR2112767.sorted.bam, sha256: 1d9ca843614c66209de4618ba69ecfae236731f9999a1daa48622f061127fe87}
+    - {id: ena-prjeb22390-err2112767-bam-index, kind: data, path: /home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb22390-err2112767/ERR2112767.sorted.bam.bai, sha256: ab5d07b513a4a3f421a9a82aff5fc5767d41a7333693b67c9258b40a337276a3}
+    - {id: equcab3-gcf-002863925.1, kind: reference, path: /home/bijan/lu2024-12-24/Dardel/STUDY/data/references/equcab3-gcf-002863925.1/GCF_002863925.1_EquCab3.0_genomic.fna, sha256: 3a60f0b912bad2d78d76add5eb93fc08cb2ad52e4afdb9181046c219671809b6}
+    - {id: equcab3-gcf-002863925.1-faidx, kind: reference, path: /home/bijan/lu2024-12-24/Dardel/STUDY/data/references/equcab3-gcf-002863925.1/GCF_002863925.1_EquCab3.0_genomic.fna.fai, sha256: fd9abaac2aa522291dbb792ab3d23d694809cf36a7e1c6a4aa471a652a807f01}
+commands:
+  version: [ngsbriggs, --version]
+  help: [ngsbriggs, --help]
+  real: [ngsbriggs, -bam, /home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb22390-err2112767/ERR2112767.sorted.bam, -ref, /home/bijan/lu2024-12-24/Dardel/STUDY/data/references/equcab3-gcf-002863925.1/GCF_002863925.1_EquCab3.0_genomic.fna, -model, nb, -otab, /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/ngsbriggs/run-1043/misincorporation.tsv.gz, -oinf, /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/ngsbriggs/run-1043/inferred-parameters.txt.gz, -olen, /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/ngsbriggs/run-1043/read-lengths.txt.gz]
+  negative: [ngsbriggs, -bam, /governed-missing.bam, -ref, /home/bijan/lu2024-12-24/Dardel/STUDY/data/references/equcab3-gcf-002863925.1/GCF_002863925.1_EquCab3.0_genomic.fna, -model, nb]
+outputs: {result_root: /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/ngsbriggs/run-1043, required_files: [misincorporation.tsv.gz, inferred-parameters.txt.gz, read-lengths.txt.gz]}
+resources: {account: lu2026-2-20, partition: lu48, cpus: 4, memory_mb: 16384, walltime: '01:00:00', scratch_mb: 4096}
+execution: {locale: C, timezone: UTC, runtime_network: false}
+acceptance: {version_regex: '^ngsbriggs 0[.]01 [(]commit ab3b5ae8a388b9b1874dd2854fdec32bd9195f22[)]$', negative_exit_nonzero: true}

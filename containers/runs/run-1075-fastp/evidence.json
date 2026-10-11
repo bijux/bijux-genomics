@@ -1,0 +1,102 @@
+{
+  "checks": {
+    "help": {
+      "argv": [
+        "fastp",
+        "--help"
+      ],
+      "exit_code": 0,
+      "stderr_sha256": "97ad7a61d4a867b2704eaec6a234f7669409ab85e87d7648d5d75c0faadcce8a",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "negative": {
+      "argv": [
+        "fastp",
+        "--governed-invalid-option"
+      ],
+      "exit_code": 2,
+      "stderr_sha256": "b63df5b0a7d1a6e411557d37e163831cc600f0473e7dbf8ef9a0c02b84021176",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "real": {
+      "argv": [
+        "fastp",
+        "--in1",
+        "/home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb10854-err1021817/ERR1021817.read-prefix-100000_1.fastq.gz",
+        "--out1",
+        "/home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/fastp/run-1075/filtered.fastq.gz",
+        "--json",
+        "/home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/fastp/run-1075/fastp.json",
+        "--html",
+        "/home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/fastp/run-1075/fastp.html",
+        "--low_complexity_filter",
+        "--thread",
+        "2"
+      ],
+      "exit_code": 0,
+      "stderr_sha256": "34ff8ddcef400f8fdc978fa924412fe6905c646fc528d7352ff8aa072cfb3a0a",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "version": {
+      "argv": [
+        "fastp",
+        "--version"
+      ],
+      "exit_code": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "78c9f16cc130afcabb1232545c79cf96a43d42c11ea9df076dbe26ac645514ca"
+    }
+  },
+  "credential_reference_sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+  "failure_class": null,
+  "failures": [],
+  "governance_sha256": "d7c38500306b1d88b227b3acfc26ff9d212ebd729d62776f913c912eef12ecc2",
+  "image": {
+    "path": "/lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/fastp-0.23.4-linux-amd64-510fd454fd9c.sif",
+    "sha256": "510fd454fd9cdd2c1efe5f3e75ec280e98be5cfd1f0e496f0ade02554206e639",
+    "size_bytes": 34312192
+  },
+  "inputs": [
+    {
+      "id": "ena-err1021817-read-prefix-100000-r1",
+      "kind": "data",
+      "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb10854-err1021817/ERR1021817.read-prefix-100000_1.fastq.gz",
+      "sha256": "37e3200622685562d2fe7db41cd6b573eddfa23861719683026f1387e2bbeabc"
+    }
+  ],
+  "outputs": [
+    {
+      "path": "fastp.html",
+      "sha256": "704c8ac25d9cf09cc0b3b70ed495b8cc8fed6be751fa222213aee507ed87a1af",
+      "size_bytes": 225109
+    },
+    {
+      "path": "fastp.json",
+      "sha256": "018174a9a3fe1bbdc787d945dcc33088a96857824be9040d40813ab5cb99e0a2",
+      "size_bytes": 53445
+    },
+    {
+      "path": "filtered.fastq.gz",
+      "sha256": "710cc589573165e6389400c8e7d6c5c30d54a4fd6b14398fa700222be2037ba7",
+      "size_bytes": 7779954
+    }
+  ],
+  "pipeline_sha256": "f20455cc40284296cd27549b77db2904f54f880b76b631f1172dfffc5510ff0d",
+  "repository_clean": true,
+  "repository_commit": "569a3098bea532d892a144ca7b73b6e56f2125e1",
+  "repository_path": "/home/bijan/bijux/bijux-genomics-runs/569a3098bea532d892a144ca7b73b6e56f2125e1",
+  "run_id": "run-1075",
+  "runtime": {
+    "apptainer_version": "apptainer version 1.5.2-1.el9",
+    "cpus": "2",
+    "host": "cn087",
+    "slurm_job_id": "3458056",
+    "started_at_utc": "2026-08-02T21:39:36.730358+00:00"
+  },
+  "schema_version": "bijux.container.evidence.v1",
+  "site": {
+    "host": "cn087",
+    "id": "lunarc"
+  },
+  "status": "passed"
+}

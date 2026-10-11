@@ -1,0 +1,121 @@
+{
+  "execution_status": "passed",
+  "failures": [],
+  "image": {
+    "path": "/lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/fastx_clipper-0.0.14-linux-amd64-4fe414e042bf.sif",
+    "sha256": "4fe414e042bf61979c1c5fe82143bd1701dc977184750a54cb0d52abb4a2d440",
+    "size_bytes": 31559680
+  },
+  "repository_commit": "6678ba0be6451eca04e6cce7f777f6e34ca526e1",
+  "run_id": "run-1119",
+  "schema_version": "bijux.container.run_evidence_lock.v1",
+  "scientific_status": "not_assessed",
+  "slurm_job_id": "3458190",
+  "source_files": [
+    {
+      "path": "config-credential.yml",
+      "sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+      "size_bytes": 134
+    },
+    {
+      "path": "config-governance.yml",
+      "sha256": "d7c38500306b1d88b227b3acfc26ff9d212ebd729d62776f913c912eef12ecc2",
+      "size_bytes": 403
+    },
+    {
+      "path": "config-pipeline.yml",
+      "sha256": "8e403afc38466c31ad6ab6f60cd0d6c6a48ac4b12189af1032f7cc382164ef4f",
+      "size_bytes": 2629
+    },
+    {
+      "path": "evidence.json",
+      "sha256": "a2b88c22f51960b95429a3bf30a9d2f921dfd5f1c4dbf8d7ad960d2764bc3fa7",
+      "size_bytes": 4029
+    },
+    {
+      "path": "help.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "help.stdout.log",
+      "sha256": "32d9d36cfa7541768c7f5989c515c4311befa1f6d53149bcd53a9f168f302bcb",
+      "size_bytes": 1480
+    },
+    {
+      "path": "metrics.tsv",
+      "sha256": "ba356160f89f96a8908c2ca2b2ad90b8d0b7ab450a197d4d0cf34eade114d207",
+      "size_bytes": 98
+    },
+    {
+      "path": "negative.stderr.log",
+      "sha256": "3e6bd1b2631584ae927196c053678f6b79dbd424dabac3b06cc488557f18b600",
+      "size_bytes": 67
+    },
+    {
+      "path": "negative.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "real.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "real.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "slurm-accounting.json",
+      "sha256": "a2e5efe2321d218dca3a130f054df71d153bf250e0b1dda03f5223cc3381b1d3",
+      "size_bytes": 932
+    },
+    {
+      "path": "slurm-job-id.txt",
+      "sha256": "773da9f3c35c51ea7f827ca4723ced709c4b185060ad7fde4a079778a6b29808",
+      "size_bytes": 8
+    },
+    {
+      "path": "submit.sh",
+      "sha256": "14358a2bca395f8028a1494ad6a8a8493fac0cf0d3421acc5496a1fa656f74df",
+      "size_bytes": 1089
+    },
+    {
+      "path": "trimmed.fastq",
+      "sha256": "0229a5a3c62c7d2648fc99e66f38f0c5a6bf4eb25525b7e9869e29b38dc5b05a",
+      "size_bytes": 23421049
+    },
+    {
+      "path": "version.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "version.stdout.log",
+      "sha256": "70c731ce2a0812364d6d5cbb473b9598bdfd53c01b02ab25cdd7b3d05847454c",
+      "size_bytes": 21
+    }
+  ],
+  "source_result": "results/container-validation/fastx_clipper/run-1119",
+  "tool": "fastx_clipper",
+  "tracked_files": {
+    "config-credential.yml": {
+      "sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+      "size_bytes": 134
+    },
+    "config-pipeline.yml": {
+      "sha256": "8e403afc38466c31ad6ab6f60cd0d6c6a48ac4b12189af1032f7cc382164ef4f",
+      "size_bytes": 2629
+    },
+    "evidence.json": {
+      "sha256": "a2b88c22f51960b95429a3bf30a9d2f921dfd5f1c4dbf8d7ad960d2764bc3fa7",
+      "size_bytes": 4029
+    },
+    "slurm-accounting.json": {
+      "sha256": "a2e5efe2321d218dca3a130f054df71d153bf250e0b1dda03f5223cc3381b1d3",
+      "size_bytes": 932
+    }
+  }
+}

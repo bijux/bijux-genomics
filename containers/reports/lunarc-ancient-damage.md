@@ -1,7 +1,7 @@
 # LUNARC ancient-DNA damage validation
 
 This report records runtime and stage qualification of the ngsBriggs,
-mapDamage 2, AuthentiCT, and AdDeam containers on public ancient-horse run
+mapDamage 2, AuthentiCT, AdDeam, contamMix, and DamageProfiler containers on public ancient-horse run
 `ERR2112767`
 (`Borly4_PAVH8_4978`, BioSample `SAMEA104233654`) against EquCab3.0. The source
 alignment and reference were admitted by checksum. Every execution used an
@@ -30,6 +30,14 @@ from `containers/contracts/sites/lunarc.yml` and archived with each run.
 | measure terminal deamination | AuthentiCT 1.0.0 | `run-1093` | `3458079` | passed | 40s | 7,817-byte deamination table |
 | expose an omitted BAM-index bind | AdDeam 1.0.0 | `run-1095` | `3458116` | failed | 1s | native profiling rejected an inaccessible BAI |
 | generate terminal damage profiles | AdDeam 1.0.0 | `run-1096` | `3458117` | passed | 2s | native 5′ and 3′ substitution profiles for 244,634 mapped records |
+| isolate mitochondrial evidence | Samtools 1.20 | `run-1107` | `3458129` | passed | 1s | 28 checksum-admitted `NC_001640.1` records |
+| estimate mitochondrial mixture | contamMix 1.0.11 | `run-1108` | `3458130` | passed | 3s | three converged chains and native R diagnostics |
+| expose direct-BAM and negative-input defects | DamageProfiler 1.1 | `run-1110` | `3458152` | failed | 26s | unsafe success for a missing BAM and an upstream array failure |
+| expose the `calmd` help-exit convention | Samtools 1.20 | `run-1111` | `3458153` | failed | 17s | valid tagged SAM was retained despite the help-contract failure |
+| materialize recalculated MD/NM tags | Samtools 1.20 | `run-1112` | `3458154` | passed | 17s | 86,363,579-byte checksum-admitted SAM |
+| expose absent Java text shaping | DamageProfiler 1.1 | `run-1113` | `3458155` | failed | 7s | native tables passed before SVG rendering rejected absent HarfBuzz |
+| expose absent font configuration | DamageProfiler 1.1 | `run-1114` | `3458159` | failed | 7s | native tables passed before Java rejected the empty font catalog |
+| profile terminal damage and read lengths | DamageProfiler 1.1 | `run-1115` | `3458162` | passed | 9s | native tables, JSON, log, and SVG damage plots |
 
 The preparation command used `samtools view -b -F 5`: bit `0x1` removes paired
 records and bit `0x4` removes unmapped records. This is an explicit adapter to
@@ -83,6 +91,17 @@ admitted BAM, BAI, and one-line BAM list, then executes classic combined-strand
 profiling with mapping quality 20, minimum read length 30, ten terminal
 positions, and a declared convergence configuration.
 
+contamMix requires a mitochondrial alignment rather than the whole EquCab3
+reference. `run-1107` used the admitted Samtools image to extract all 28
+`NC_001640.1` records from the public ancient-horse BAM. The candidate panel is
+a coordinate-homologous alignment of three public NCBI mitochondrial records:
+the EquCab3 `NC_001640.1` consensus plus `OM869135.2` and `OM869133.2`, which
+differ from that consensus at 48 and 97 positions. Their accessions, retrieval
+URLs, lengths, ambiguity counts, substitutions, and SHA-256 digests are
+recorded in the governed data catalog. `run-1108` used the upstream default
+50,000 iterations across three chains with two worker threads and retained the
+complete R workspace and diagnostic PDF.
+
 ## Observed outputs
 
 The admitted result contains:
@@ -111,6 +130,36 @@ terminal combined-strand rates were `C→T (5′) = 0.00806452` and
 profile values under the declared convergence settings, not authenticity or
 damage-detection acceptance decisions.
 
+The contamMix posterior had a maximum-a-posteriori authentic fraction of
+`0.2705522` and a 95% interval from `0.02686201` to `0.7980419`, with an
+inferred error rate of `0.0054`. The Gelman diagnostic was `1.000006` with an
+upper confidence limit of `1.000031`, below the upstream `1.1` convergence
+threshold. This demonstrates that the container completes its real MCMC
+workflow and produces converged chains. The interval is deliberately reported
+in full: 28 mitochondrial reads and three modern-horse candidates do not
+support a biological contamination estimate.
+
+DamageProfiler's upstream CLI returned success for a missing BAM, so the
+production wrapper now validates declared input and reference paths before
+launching Java. `run-1110` also showed that recalculating MD/NM tags internally
+against this BAM can trigger an upstream array failure and generate a 67 MB
+per-read error log. `run-1112` therefore used the admitted Samtools image to
+materialize a complete SAM with recalculated MD/NM tags. The failed `run-1111`
+is retained because `samtools calmd` prints its usage with a non-zero exit when
+invoked without inputs; the corrected preparation run uses Samtools' general
+help surface while retaining the same real output digest.
+
+The tagged SAM allowed DamageProfiler to complete its primary tables and JSON,
+then exposed missing HarfBuzz and font configuration in successive images.
+Those failures remain archived as `run-1113` and `run-1114`. The final recipe
+declares both runtime requirements and verifies a DejaVu Sans match during the
+image build. `run-1115` then completed all tabular and graphical outputs. Its
+terminal rates were `C→T (5′) = 0.003997039230199852` and
+`G→A (3′) = 0.00367764238605438`; mean and median read lengths were
+`98.51771720264975` and `101` bases. These observations are close to, but do
+not establish equivalence with, rates produced by other profilers because
+their input transformations and counting models differ.
+
 The terminal rates in this deliberately small admitted slice were
 `C→T (5′) = 0.0` and `G→A (3′) = 0.0`. Those values demonstrate parsing and
 contract closure only. They are not evidence that the sample lacks ancient-DNA
@@ -123,8 +172,8 @@ reproduced those values. Reference merging did not change either rate.
 
 ## Claim boundary
 
-This evidence closes the ngsBriggs, mapDamage, AuthentiCT, and AdDeam runtime
-and real-stage contracts on LUNARC. It verifies immutable inputs,
+This evidence closes the ngsBriggs, mapDamage, AuthentiCT, AdDeam, contamMix,
+and DamageProfiler runtime and real-stage contracts on LUNARC. It verifies immutable inputs,
 negative-input behavior, native output retention, governed projection,
 independently recalculated rates, and Slurm provenance. AuthentiCT's qualified
 command measures its native
@@ -140,4 +189,9 @@ predeclared corpus, positive and negative controls, minimum informative-base
 counts, acceptance thresholds, and comparison with another retained damage
 profiler. AdDeam's qualified command generates native damage matrices; it does
 not establish that its early-convergence settings preserve every feature of a
-full-corpus profile.
+full-corpus profile. contamMix's qualified command establishes runtime and
+chain convergence only; the sparse mitochondrial slice and deliberately small
+candidate panel prohibit an authenticity or contamination conclusion.
+DamageProfiler's qualified command establishes its table, JSON, and plotting
+interfaces on the governed tagged-SAM derivative; it does not establish
+damage-detection sensitivity or interchangeable rates across profilers.

@@ -3,7 +3,17 @@
 <!-- GENERATED FILE - DO NOT EDIT -->
 <!-- source: cargo run -p bijux-dna-dev -- containers run generate-index -->
 
-Purpose: Authoritative tool/container index for container governance and CI checks.
+This page routes operators and reviewers to the evidence that supports each
+container claim. Recipe presence and planner lifecycle labels are not proof that
+an image builds, starts, processes real data, or produces scientifically useful
+output.
+
+## Current evidence
+
+- Image inventory: **current 87, unsupported 2** ([details](../reports/image-inventory.md)).
+- Version/help runtime campaign: **passed**, **87 images passed** ([details](../reports/runtime-verification.md)).
+- Governed real executions: **123 attempts**, **88 passed**; scientific status is tracked independently ([details](../reports/run-evidence.md)).
+- Build, runtime, real execution, science, benchmark, security, and release are independent evidence dimensions.
 
 ## Strict TOC
 - Root contract: [containers/README.md](../README.md)
@@ -27,15 +37,20 @@ Purpose: Authoritative tool/container index for container governance and CI chec
 - Tool ID contract: [containers/docs/TOOL_IDS_CONTRACT.md](TOOL_IDS_CONTRACT.md)
 
 ## Authority
-- Tool IDs + lifecycle status: [containers/TOOL_IDS.txt](../TOOL_IDS.txt) (generated from registry).
-- Registry SSoT: `configs/ci/registry/tool_registry*.toml` defines tool existence and lifecycle.
-- Container version metadata: [containers/versions/versions.toml](../versions/versions.toml) + [containers/versions/lock.json](../versions/lock.json).
+- Canonical container identity, support disposition, ownership, runtime support, and evidence requirements: [container catalog](../contracts/catalog.toml).
+- Immutable admitted images: [image inventory](../reports/image-inventory.md).
+- Planner registry labels: [containers/TOOL_IDS.txt](../TOOL_IDS.txt); these labels describe planner compatibility, not production qualification.
+- Container version metadata: [versions.toml](../versions/versions.toml) and its generated [lock.json](../versions/lock.json).
 - GHCR Docker arm64 matrix: `cargo run -q -p bijux-dna-dev -- containers run generate-ghcr-publish-matrix -- artifacts/containers/ghcr/docker-arm64-publish-matrix.json`.
 - GHCR Apptainer matrix: `cargo run -q -p bijux-dna-dev -- containers run generate-ghcr-apptainer-publish-matrix -- artifacts/containers/ghcr/apptainer-publish-matrix.json`.
 - Non-bijux provenance: [containers/docs/UPSTREAM_SOURCES.md](UPSTREAM_SOURCES.md).
-- Ownership authority: [containers/contracts/catalog.toml](../contracts/catalog.toml).
 
-## Tool Container Coverage
+## Planner compatibility surface
+
+This compatibility table is retained for workflow planning and build-matrix
+validation. Its `status` column is not a production or scientific claim; use the
+catalog and evidence reports above for those decisions.
+
 | tool_id | status | apptainer_source | docker_source |
 |---|---|---|---|
 | `adapterremoval` | `production` | `bijux` | `arm64` |
@@ -72,7 +87,7 @@ Purpose: Authoritative tool/container index for container governance and CI chec
 | `fastq_screen` | `experimental` | `bijux` | `arm64` |
 | `fastqc` | `production` | `bijux` | `arm64` |
 | `fastqvalidator` | `production` | `bijux` | `arm64` |
-| `fastuniq` | `production` | `bijux` | `arm64` |
+| `fastuniq` | `unsupported` | `none` | `none` |
 | `fastx_clipper` | `production` | `bijux` | `arm64` |
 | `flash2` | `production` | `bijux` | `arm64` |
 | `fqtools` | `production` | `bijux` | `arm64` |
@@ -92,7 +107,7 @@ Purpose: Authoritative tool/container index for container governance and CI chec
 | `mapdamage2` | `production` | `bijux` | `arm64` |
 | `metaphlan` | `experimental` | `bijux` | `arm64` |
 | `minimac4` | `planned` | `non-bijux` | `arm64` |
-| `mosdepth` | `production` | `bijux` | `arm64` |
+| `mosdepth` | `production` | `bijux` | `none` |
 | `multiqc` | `production` | `bijux` | `arm64` |
 | `musket` | `production` | `bijux` | `arm64` |
 | `ngsbriggs` | `experimental` | `bijux` | `arm64` |

@@ -1,0 +1,27 @@
+{
+  "collected_at_utc": "2026-08-03T01:43:18.325642+00:00",
+  "credential_reference_sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+  "governance_sha256": "d7c38500306b1d88b227b3acfc26ff9d212ebd729d62776f913c912eef12ecc2",
+  "pipeline_sha256": "2f67d3408e0f6ad975e9c65d19991041a8bbd3f4d9e26ffc89b52a28ff9bc6f6",
+  "rows": [
+    {
+      "AllocCPUS": "1",
+      "AveRSS": "",
+      "CPUTimeRAW": "7",
+      "Elapsed": "00:00:07",
+      "ElapsedRaw": "7",
+      "ExitCode": "1:0",
+      "JobID": "3458155",
+      "JobName": "bam-damage-damageprofiler-ERR2112767",
+      "MaxRSS": "",
+      "NodeList": "cn091",
+      "ReqMem": "8G",
+      "State": "FAILED",
+      "TotalCPU": "00:00:00"
+    }
+  ],
+  "run_id": "run-1113",
+  "schema_version": "bijux.slurm.accounting.v1",
+  "slurm_job_id": "3458155",
+  "submit_script_sha256": "a1c0fa668a94a7a60a567ff1ba97758506a49701812a75646769d360ca019d2b"
+}

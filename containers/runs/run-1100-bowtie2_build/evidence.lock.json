@@ -1,0 +1,141 @@
+{
+  "execution_status": "passed",
+  "failures": [],
+  "image": {
+    "path": "/lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/bowtie2_build-2.5.4-linux-amd64-a134b7012023.sif",
+    "sha256": "a134b7012023af66a0a313572bc355a54f67cdd0f3e45cb5559638d03294fef2",
+    "size_bytes": 93663232
+  },
+  "repository_commit": "b5a58ac70e8deb09184cc20535fa86d019147e3c",
+  "run_id": "run-1100",
+  "schema_version": "bijux.container.run_evidence_lock.v1",
+  "scientific_status": "not_assessed",
+  "slurm_job_id": "3458122",
+  "source_files": [
+    {
+      "path": "config-credential.yml",
+      "sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+      "size_bytes": 134
+    },
+    {
+      "path": "config-governance.yml",
+      "sha256": "d7c38500306b1d88b227b3acfc26ff9d212ebd729d62776f913c912eef12ecc2",
+      "size_bytes": 403
+    },
+    {
+      "path": "config-pipeline.yml",
+      "sha256": "1c15049ee7df36bfe00394971841b200b46acb5345509054f3d835839fc8e505",
+      "size_bytes": 2001
+    },
+    {
+      "path": "equcab3-first-megabase.1.bt2",
+      "sha256": "945f5044ebd8db69239aabff27c93076b9803c6c38a10e92b16f26d4ef2dd744",
+      "size_bytes": 4527567
+    },
+    {
+      "path": "equcab3-first-megabase.2.bt2",
+      "sha256": "427b2699b8344bb7bcd9dc0d069135a3e523388b52693fe9b4a4fc0469a48d11",
+      "size_bytes": 249752
+    },
+    {
+      "path": "equcab3-first-megabase.3.bt2",
+      "sha256": "a9b6e245ee52e756e9a37f7ff284df5f420ff79bc9bcc19602d7cac80fcefc33",
+      "size_bytes": 35
+    },
+    {
+      "path": "equcab3-first-megabase.4.bt2",
+      "sha256": "dc622d329ff6a15985bd4835cec68b89687eb2f23e33de54d59b70a8ddf0be6e",
+      "size_bytes": 249745
+    },
+    {
+      "path": "equcab3-first-megabase.rev.1.bt2",
+      "sha256": "08ef156df383cc0e1d838a4af7507acc85c7b19a809d7fab5e92fe47bd760e5a",
+      "size_bytes": 4527567
+    },
+    {
+      "path": "equcab3-first-megabase.rev.2.bt2",
+      "sha256": "8c06a53480c19c563e4d4343f4e413fdac442b901ed863f9cffa8b72e46f76f1",
+      "size_bytes": 249752
+    },
+    {
+      "path": "evidence.json",
+      "sha256": "cede01f4237554be2951ee2d34c31256208270756464f70ac4d8c4ba27dc5955",
+      "size_bytes": 4013
+    },
+    {
+      "path": "help.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "help.stdout.log",
+      "sha256": "97686a7612fd6d5da6763c8e667c8c4c3b4e5dab4eb24d3f081e6cd77987d4c7",
+      "size_bytes": 1921
+    },
+    {
+      "path": "negative.stderr.log",
+      "sha256": "a89ba643d02039b8578d22c4ebf6ac1cbe59d2845bea815c9e1d7a1b9176667f",
+      "size_bytes": 67
+    },
+    {
+      "path": "negative.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "real.stderr.log",
+      "sha256": "ee6443c787f80b211b22f63e8c3fc456ea63af369a545f5d6ffb33b54cf1d9ed",
+      "size_bytes": 1563
+    },
+    {
+      "path": "real.stdout.log",
+      "sha256": "114bb88fcae816bb9f07dde1d985f338b6824d01e76b27eac617cef32ba4f2f7",
+      "size_bytes": 19111
+    },
+    {
+      "path": "slurm-accounting.json",
+      "sha256": "74f0b6badaf69049b8de2b0a4853804c708cd07ab3d1c0aada1851cdd8376b3e",
+      "size_bytes": 945
+    },
+    {
+      "path": "slurm-job-id.txt",
+      "sha256": "0f217c88a793306e5aa7bb716468a161dbfa19f59b263e5ab0e1a935690c2ef3",
+      "size_bytes": 8
+    },
+    {
+      "path": "submit.sh",
+      "sha256": "734557e6c527d6ab47a97ee47db93165c6e4dd8a594c20a09ab49b340a6c5586",
+      "size_bytes": 1102
+    },
+    {
+      "path": "version.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "version.stdout.log",
+      "sha256": "73a027d5d7faef378a122e88467bc53441808493cd958a514f8ebb4ac06b0f90",
+      "size_bytes": 21
+    }
+  ],
+  "source_result": "results/container-validation/bowtie2_build/run-1100",
+  "tool": "bowtie2_build",
+  "tracked_files": {
+    "config-credential.yml": {
+      "sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+      "size_bytes": 134
+    },
+    "config-pipeline.yml": {
+      "sha256": "1c15049ee7df36bfe00394971841b200b46acb5345509054f3d835839fc8e505",
+      "size_bytes": 2001
+    },
+    "evidence.json": {
+      "sha256": "cede01f4237554be2951ee2d34c31256208270756464f70ac4d8c4ba27dc5955",
+      "size_bytes": 4013
+    },
+    "slurm-accounting.json": {
+      "sha256": "74f0b6badaf69049b8de2b0a4853804c708cd07ab3d1c0aada1851cdd8376b3e",
+      "size_bytes": 945
+    }
+  }
+}

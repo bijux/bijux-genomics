@@ -1,0 +1,27 @@
+{
+  "collected_at_utc": "2026-08-03T01:18:05.790953+00:00",
+  "credential_reference_sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+  "governance_sha256": "d7c38500306b1d88b227b3acfc26ff9d212ebd729d62776f913c912eef12ecc2",
+  "pipeline_sha256": "5a85e924dff118a67a0cad74a1ce98230947d0e83d075eb83e3de76a98975aa5",
+  "rows": [
+    {
+      "AllocCPUS": "2",
+      "AveRSS": "",
+      "CPUTimeRAW": "6",
+      "Elapsed": "00:00:03",
+      "ElapsedRaw": "3",
+      "ExitCode": "0:0",
+      "JobID": "3458130",
+      "JobName": "bam-contamination-contammix-ERR2112767",
+      "MaxRSS": "",
+      "NodeList": "cn091",
+      "ReqMem": "2G",
+      "State": "COMPLETED",
+      "TotalCPU": "00:00:00"
+    }
+  ],
+  "run_id": "run-1108",
+  "schema_version": "bijux.slurm.accounting.v1",
+  "slurm_job_id": "3458130",
+  "submit_script_sha256": "af026f04f826d8922901881c402bf2927847bd8bbb67c729277d4e40d59ce67e"
+}

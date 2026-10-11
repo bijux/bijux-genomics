@@ -1,0 +1,94 @@
+{
+  "checks": {
+    "help": {
+      "argv": [
+        "samtools",
+        "view",
+        "--help"
+      ],
+      "exit_code": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "7376c18b24a948f8680c17f7b05f3db774f0799405e4645021055919c16d4961"
+    },
+    "negative": {
+      "argv": [
+        "samtools",
+        "--governed-invalid-option"
+      ],
+      "exit_code": 1,
+      "stderr_sha256": "2a4ab4fc5bb5e38a0662eed7df6cc624e0089b98e6879d14850f7ff786dd7855",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "real": {
+      "argv": [
+        "samtools",
+        "view",
+        "-b",
+        "-o",
+        "/home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/samtools/run-1107/ERR2112767.NC_001640.1.bam",
+        "/home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb22390-err2112767/ERR2112767.sorted.bam",
+        "NC_001640.1"
+      ],
+      "exit_code": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "version": {
+      "argv": [
+        "samtools",
+        "--version"
+      ],
+      "exit_code": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "74ced0742d39983660c8edd3752e77c9c339a736ee6204371b00a591fc21a7da"
+    }
+  },
+  "credential_reference_sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+  "failure_class": null,
+  "failures": [],
+  "governance_sha256": "d7c38500306b1d88b227b3acfc26ff9d212ebd729d62776f913c912eef12ecc2",
+  "image": {
+    "path": "/lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/samtools-1.20-linux-amd64-5217bae01b27.sif",
+    "sha256": "5217bae01b27fc1703126d95437df39b05477095d3ff461aee2956f39a24972f",
+    "size_bytes": 122355712
+  },
+  "inputs": [
+    {
+      "id": "ena-err2112767-sorted-bam",
+      "kind": "data",
+      "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb22390-err2112767/ERR2112767.sorted.bam",
+      "sha256": "1d9ca843614c66209de4618ba69ecfae236731f9999a1daa48622f061127fe87"
+    },
+    {
+      "id": "ena-err2112767-bam-index",
+      "kind": "data",
+      "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb22390-err2112767/ERR2112767.sorted.bam.bai",
+      "sha256": "ab5d07b513a4a3f421a9a82aff5fc5767d41a7333693b67c9258b40a337276a3"
+    }
+  ],
+  "outputs": [
+    {
+      "path": "ERR2112767.NC_001640.1.bam",
+      "sha256": "340f22ee1509baf1cc172a276712f8c769c3362256498b14a689de202a455edc",
+      "size_bytes": 51791
+    }
+  ],
+  "pipeline_sha256": "65c765e49e4751675a7f28bd6ca7819c41678549c36cb93ae8bed15b6eb87b1a",
+  "repository_clean": true,
+  "repository_commit": "84651657741bfebe8ab25874e95139dcafd3c962",
+  "repository_path": "/home/bijan/bijux/bijux-genomics-runs/84651657741bfebe8ab25874e95139dcafd3c962",
+  "run_id": "run-1107",
+  "runtime": {
+    "apptainer_version": "apptainer version 1.5.2-1.el9",
+    "cpus": "1",
+    "host": "cn091",
+    "slurm_job_id": "3458129",
+    "started_at_utc": "2026-08-03T01:16:32.634964+00:00"
+  },
+  "schema_version": "bijux.container.evidence.v1",
+  "site": {
+    "host": "cn091",
+    "id": "lunarc"
+  },
+  "status": "passed"
+}

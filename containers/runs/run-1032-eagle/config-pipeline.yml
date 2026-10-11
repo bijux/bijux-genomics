@@ -1,0 +1,17 @@
+schema_version: bijux.container.pipeline.v1
+run: {id: run-1032, campaign: public-human-phasing-container-qualification, corpus: 1000-genomes-phase3-chr22, sample: 2504-sample-cohort, domain: vcf, stage: vcf.phasing, tool: eagle, operator: bijan}
+repository: {path: /home/bijan/bijux/bijux-genomics-runs/c07932e6374fc0ef1511a6341223fd8e0baf226c, commit: c07932e6374fc0ef1511a6341223fd8e0baf226c, clean: true}
+image: {path: /home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/eagle-2.4.1-linux-amd64-881f32028845.sif, sha256: 881f320288453eb577801a1caf738b4788fe2bcaa9816624a4f33125fb8aa7dd}
+data:
+  inputs:
+    - {id: 1000-genomes-phase3-chr22-v5b, kind: data, path: /home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/1000-genomes-phase3-chr22/ALL.chr22.phase3_shapeit2_mvncall_integrated_v5b.20130502.genotypes.vcf.gz, sha256: a90c16c4ff2b3196476d506ae13cb3047fae8670163c7c932c4b0239aef3daf5}
+    - {id: eagle-v2.4.1-hg19-genetic-map, kind: reference, path: /home/bijan/lu2024-12-24/Dardel/STUDY/data/references/eagle-genetic-maps/genetic_map_hg19_withX.txt.gz, sha256: 7398f142f02815bdf563e125a0c34770f4024eb250ba57cb6ef81570c109fbbf}
+commands:
+  version: [eagle, --version]
+  help: [eagle, --help]
+  real: [eagle, --vcf=/home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/1000-genomes-phase3-chr22/ALL.chr22.phase3_shapeit2_mvncall_integrated_v5b.20130502.genotypes.vcf.gz, --geneticMapFile=/home/bijan/lu2024-12-24/Dardel/STUDY/data/references/eagle-genetic-maps/genetic_map_hg19_withX.txt.gz, --chrom=22, --bpStart=20000000, --bpEnd=22000000, --Kpbwt=1000, --numThreads=8, --vcfOutFormat=z, --outPrefix=/home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/eagle/run-1032/phased]
+  negative: [eagle, --vcf=/governed-missing.vcf.gz, --geneticMapFile=/governed-missing-map.txt.gz, --chrom=22, --outPrefix=/home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/eagle/run-1032/missing]
+outputs: {result_root: /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/eagle/run-1032, required_files: [phased.vcf.gz]}
+resources: {account: lu2026-2-20, partition: lu48, cpus: 8, memory_mb: 16384, walltime: '01:00:00', scratch_mb: 2048}
+execution: {locale: C, timezone: UTC, runtime_network: false}
+acceptance: {version_regex: '^eagle 2[.]4[.]1 [(]commit dec140eefc0eda3b7f02233a3c02361eaeb8227c[)]$', negative_exit_nonzero: true}

@@ -1,0 +1,121 @@
+{
+  "execution_status": "passed",
+  "failures": [],
+  "image": {
+    "path": "/lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/prinseq-1.2.4-linux-amd64-9dfb7b78c971.sif",
+    "sha256": "9dfb7b78c971623caf9d791258525c7478aabcdf403cb364d9a871798817107d",
+    "size_bytes": 321945600
+  },
+  "repository_commit": "953e9a17bcc2ec15b82789a788f8b9301b5d9c56",
+  "run_id": "run-1018",
+  "schema_version": "bijux.container.run_evidence_lock.v1",
+  "scientific_status": "not_assessed",
+  "slurm_job_id": "3457639",
+  "source_files": [
+    {
+      "path": "config-credential.yml",
+      "sha256": "9dda0d787caf2759ee964425049ef52c11ce16ada127cc7c594c8165e6e73d2e",
+      "size_bytes": 134
+    },
+    {
+      "path": "config-governance.yml",
+      "sha256": "d7c38500306b1d88b227b3acfc26ff9d212ebd729d62776f913c912eef12ecc2",
+      "size_bytes": 403
+    },
+    {
+      "path": "config-pipeline.yml",
+      "sha256": "c853eefd997a589887337f245667d8082ff8be202e3d1ed3de841f6dcbc5b29c",
+      "size_bytes": 2486
+    },
+    {
+      "path": "evidence.json",
+      "sha256": "37eafb4a6467a817287fedcaa4958e100fe2533306b2a56b7dc2e9dd76ef253d",
+      "size_bytes": 4171
+    },
+    {
+      "path": "good_1.fastq",
+      "sha256": "8e2889c1140a15c0c7dd6d01875cca2ccf8d5c5abb8dc4fcf397680df382ae68",
+      "size_bytes": 25926223
+    },
+    {
+      "path": "good_2.fastq",
+      "sha256": "ba0768d63277bc97adec3a658cfabd7f41af6c660fff3be52668c2250dc91642",
+      "size_bytes": 25670907
+    },
+    {
+      "path": "help.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "help.stdout.log",
+      "sha256": "d605d7202909f07831b5f937ae4e3e62a0cfd939de2856e2d44b250c3a3a52b6",
+      "size_bytes": 5550
+    },
+    {
+      "path": "negative.stderr.log",
+      "sha256": "23c14b716f7b2dfc8db6919358ef91ca919602d54247165bd899942438f6a404",
+      "size_bytes": 47
+    },
+    {
+      "path": "negative.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "real.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "real.stdout.log",
+      "sha256": "6db7b1832a3db085e2e36c4179a9bab9eef0b9955d52ae08e467eb9098780946",
+      "size_bytes": 62
+    },
+    {
+      "path": "slurm-accounting.json",
+      "sha256": "193a180766a54a3036be69e4108ee2df931ec3b741a8fce00b09332f9584c7ae",
+      "size_bytes": 934
+    },
+    {
+      "path": "slurm-job-id.txt",
+      "sha256": "90670a2ec220436157ef5960b03a50b47c7ea50a914f1513bbd81f101c97ebab",
+      "size_bytes": 8
+    },
+    {
+      "path": "submit.sh",
+      "sha256": "f090dfe89cdc45ad56dfb02a93c33c63b103c2c2083fbc42c0f1002b1f2c24d5",
+      "size_bytes": 1061
+    },
+    {
+      "path": "version.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "version.stdout.log",
+      "sha256": "775b1d37e100c1ab83a8519d9857a82a21501bb930f2e66e8b3089845af94158",
+      "size_bytes": 16
+    }
+  ],
+  "source_result": "results/container-validation/prinseq/run-1018",
+  "tool": "prinseq",
+  "tracked_files": {
+    "config-credential.yml": {
+      "sha256": "9dda0d787caf2759ee964425049ef52c11ce16ada127cc7c594c8165e6e73d2e",
+      "size_bytes": 134
+    },
+    "config-pipeline.yml": {
+      "sha256": "c853eefd997a589887337f245667d8082ff8be202e3d1ed3de841f6dcbc5b29c",
+      "size_bytes": 2486
+    },
+    "evidence.json": {
+      "sha256": "37eafb4a6467a817287fedcaa4958e100fe2533306b2a56b7dc2e9dd76ef253d",
+      "size_bytes": 4171
+    },
+    "slurm-accounting.json": {
+      "sha256": "193a180766a54a3036be69e4108ee2df931ec3b741a8fce00b09332f9584c7ae",
+      "size_bytes": 934
+    }
+  }
+}

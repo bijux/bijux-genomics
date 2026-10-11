@@ -1,0 +1,87 @@
+{
+  "execution_status": "failed",
+  "failures": [
+    "Slurm job ended in FAILED with exit code 1:0 before the executor created the run result"
+  ],
+  "image": {
+    "path": "/lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/trim_galore-0.6.10-linux-amd64-25567e0ec95d.sif",
+    "sha256": "25567e0ec95dcb8914178d6daf3f0439a24e9e3cfd8832e88e79cc1154387b14",
+    "size_bytes": 382722048
+  },
+  "repository_commit": "9467d8db6d609815c4ffe1b5c8e4719b2be58b71",
+  "run_id": "run-1122",
+  "schema_version": "bijux.container.run_evidence_lock.v1",
+  "scientific_status": "not_assessed",
+  "slurm_job_id": "3458665",
+  "source_files": [
+    {
+      "path": "config-credential.yml",
+      "sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+      "size_bytes": 134
+    },
+    {
+      "path": "config-governance.yml",
+      "sha256": "5a48351cddde8a0251584de4bbbf01a524bf5a2ecb2a0c2034b6553a554ec37a",
+      "size_bytes": 424
+    },
+    {
+      "path": "config-pipeline.yml",
+      "sha256": "65ab1b3fa11f118c2d426844fe70589b189a74ba17e0b5fb724214e86fcfa740",
+      "size_bytes": 3089
+    },
+    {
+      "path": "evidence.json",
+      "sha256": "f729baef690a9fb5f974bcb4e3bc6ce142a9ff64776b80bdd03ac9fce1d14217",
+      "size_bytes": 2755
+    },
+    {
+      "path": "slurm-3458665.stderr.log",
+      "sha256": "200c1f3c0e283cda26879675af0f00305542d759b702aee6a1b7af07120387ac",
+      "size_bytes": 101
+    },
+    {
+      "path": "slurm-3458665.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "slurm-accounting.json",
+      "sha256": "ebaf4e5a9ff87721b59f930e8a419fe620cfad1cce5e0c0a14ed6a39b01f5f12",
+      "size_bytes": 924
+    },
+    {
+      "path": "slurm-job-id.txt",
+      "sha256": "ca53ebf1f114d893758a3fd2eb97464754e4c5bb9f492b00482ec5fa83349d17",
+      "size_bytes": 8
+    },
+    {
+      "path": "submit.sh",
+      "sha256": "c93727a15b7d111b2fcba35a1d1423c19a2929b9ed2f9a03ab70a4bd7096129d",
+      "size_bytes": 1410
+    }
+  ],
+  "source_result": "results/container-validation/run-1122-trim_galore",
+  "tool": "trim_galore",
+  "tracked_files": {
+    "config-credential.yml": {
+      "sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+      "size_bytes": 134
+    },
+    "config-governance.yml": {
+      "sha256": "5a48351cddde8a0251584de4bbbf01a524bf5a2ecb2a0c2034b6553a554ec37a",
+      "size_bytes": 424
+    },
+    "config-pipeline.yml": {
+      "sha256": "65ab1b3fa11f118c2d426844fe70589b189a74ba17e0b5fb724214e86fcfa740",
+      "size_bytes": 3089
+    },
+    "evidence.json": {
+      "sha256": "f729baef690a9fb5f974bcb4e3bc6ce142a9ff64776b80bdd03ac9fce1d14217",
+      "size_bytes": 2755
+    },
+    "slurm-accounting.json": {
+      "sha256": "ebaf4e5a9ff87721b59f930e8a419fe620cfad1cce5e0c0a14ed6a39b01f5f12",
+      "size_bytes": 924
+    }
+  }
+}

@@ -1,0 +1,78 @@
+schema_version: bijux.container.pipeline.v1
+run:
+  id: run-1012
+  campaign: horse-wgs-container-qualification
+  corpus: ena-prjeb10854-err1021817-read-prefix-100000
+  sample: ERR1021817
+  domain: fastq
+  stage: adapter-trimming
+  tool: seqpurge
+  operator: bijan
+repository:
+  path: /home/bijan/bijux/bijux-genomics-runs/58233a97a6ff6f4523cae1eb9d2b631f297d0520
+  commit: 58233a97a6ff6f4523cae1eb9d2b631f297d0520
+  clean: true
+image:
+  path: /home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/seqpurge-2026_06-linux-amd64-890faffc5519.sif
+  sha256: 890faffc55199eb4bbf40a2394d1ca6781f400e9c3e18e28a0de1f92de3ed705
+data:
+  inputs:
+    - id: err1021817-read-prefix-100000-r1
+      kind: data
+      path: /home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb10854-err1021817/ERR1021817.read-prefix-100000_1.fastq.gz
+      sha256: 37e3200622685562d2fe7db41cd6b573eddfa23861719683026f1387e2bbeabc
+    - id: err1021817-read-prefix-100000-r2
+      kind: data
+      path: /home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb10854-err1021817/ERR1021817.read-prefix-100000_2.fastq.gz
+      sha256: 14e65d2e2e43e8658bf04a9bf1f4ae90d2c41028b9ab0b86bafbfcc737d75fdf
+commands:
+  version:
+    - seqpurge
+    - --version
+  help:
+    - seqpurge
+    - --help
+  real:
+    - seqpurge
+    - -in1
+    - /home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb10854-err1021817/ERR1021817.read-prefix-100000_1.fastq.gz
+    - -in2
+    - /home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb10854-err1021817/ERR1021817.read-prefix-100000_2.fastq.gz
+    - -out1
+    - /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/seqpurge/run-1012/trimmed_1.fastq.gz
+    - -out2
+    - /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/seqpurge/run-1012/trimmed_2.fastq.gz
+    - -summary
+    - /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/seqpurge/run-1012/summary.txt
+    - -threads
+    - '4'
+  negative:
+    - seqpurge
+    - -in1
+    - /governed-missing-r1.fastq.gz
+    - -in2
+    - /governed-missing-r2.fastq.gz
+    - -out1
+    - /tmp/missing_1.fastq.gz
+    - -out2
+    - /tmp/missing_2.fastq.gz
+outputs:
+  result_root: /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/seqpurge/run-1012
+  required_files:
+    - trimmed_1.fastq.gz
+    - trimmed_2.fastq.gz
+    - summary.txt
+resources:
+  account: lu2026-2-20
+  partition: lu48
+  cpus: 4
+  memory_mb: 8192
+  walltime: 00:30:00
+  scratch_mb: 2048
+execution:
+  locale: C
+  timezone: UTC
+  runtime_network: false
+acceptance:
+  version_regex: '^seqpurge 2026_06$'
+  negative_exit_nonzero: true

@@ -1,0 +1,116 @@
+{
+  "execution_status": "passed",
+  "failures": [],
+  "image": {
+    "path": "/lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/bamtools-2.5.2-linux-amd64-003a62856bc4.sif",
+    "sha256": "003a62856bc4953cd87d1ffea6ddfe54ea45bd84ee5f906834f95c800f1f643c",
+    "size_bytes": 31379456
+  },
+  "repository_commit": "5ad3f4d9d22e53f03246b2d39b98ded1d8a79c76",
+  "run_id": "run-1086",
+  "schema_version": "bijux.container.run_evidence_lock.v1",
+  "scientific_status": "not_assessed",
+  "slurm_job_id": "3458069",
+  "source_files": [
+    {
+      "path": "config-credential.yml",
+      "sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+      "size_bytes": 134
+    },
+    {
+      "path": "config-governance.yml",
+      "sha256": "d7c38500306b1d88b227b3acfc26ff9d212ebd729d62776f913c912eef12ecc2",
+      "size_bytes": 403
+    },
+    {
+      "path": "config-pipeline.yml",
+      "sha256": "c3e5b3bcd7dfadfdeec5b802e44e577eecfe4540086b9440e3cea3f38df24e67",
+      "size_bytes": 1762
+    },
+    {
+      "path": "evidence.json",
+      "sha256": "92e11f38c462ac70f65b8f86a22f5408b7f3128eff40fe12c14233e84f81e8b8",
+      "size_bytes": 3145
+    },
+    {
+      "path": "help.stderr.log",
+      "sha256": "b8dce2adb2c898189d1276e9d79acfb787b224300d9a2efad28345026dc35c87",
+      "size_bytes": 1069
+    },
+    {
+      "path": "help.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "mapq20.filtered.bam",
+      "sha256": "12c777ff272d37ede2b1f47bc0e25a5d44d05225f2a8d43d393fc789635cf87a",
+      "size_bytes": 14707241
+    },
+    {
+      "path": "negative.stderr.log",
+      "sha256": "025eddcacd28e2f937dc89427bb573a708b954a393073e02ca656e73d2e9a6da",
+      "size_bytes": 62
+    },
+    {
+      "path": "negative.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "real.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "real.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "slurm-accounting.json",
+      "sha256": "482e72b12eabc81ac04c43f0910ce6c09797184eed1eb39a6e96cff0e645e14f",
+      "size_bytes": 918
+    },
+    {
+      "path": "slurm-job-id.txt",
+      "sha256": "c4908c8eabcc700ef920023cbc1d4660a549ff33889cd6aa3eadee890debb019",
+      "size_bytes": 8
+    },
+    {
+      "path": "submit.sh",
+      "sha256": "990777a89d6e678a9203a05baaeee600ad06c0707a25290a236575fea100077b",
+      "size_bytes": 1050
+    },
+    {
+      "path": "version.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "version.stdout.log",
+      "sha256": "b1da93d5a2193f4e83bb28eaa51ddad7a01cef795d9aed27b87291bdf6ee5c61",
+      "size_bytes": 15
+    }
+  ],
+  "source_result": "results/container-validation/bamtools/run-1086",
+  "tool": "bamtools",
+  "tracked_files": {
+    "config-credential.yml": {
+      "sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+      "size_bytes": 134
+    },
+    "config-pipeline.yml": {
+      "sha256": "c3e5b3bcd7dfadfdeec5b802e44e577eecfe4540086b9440e3cea3f38df24e67",
+      "size_bytes": 1762
+    },
+    "evidence.json": {
+      "sha256": "92e11f38c462ac70f65b8f86a22f5408b7f3128eff40fe12c14233e84f81e8b8",
+      "size_bytes": 3145
+    },
+    "slurm-accounting.json": {
+      "sha256": "482e72b12eabc81ac04c43f0910ce6c09797184eed1eb39a6e96cff0e645e14f",
+      "size_bytes": 918
+    }
+  }
+}

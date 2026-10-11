@@ -1,0 +1,111 @@
+{
+  "execution_status": "passed",
+  "failures": [],
+  "image": {
+    "path": "/lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/seqtk-1.4-linux-amd64-a45079003aba.sif",
+    "sha256": "a45079003abaabe29b1f4395b372d3fe00e6f1b7a5e2c0d78a1be9546c38b215",
+    "size_bytes": 30822400
+  },
+  "repository_commit": "e2cec523eddef2db149374e7fbbbca29607e3912",
+  "run_id": "run-1073",
+  "schema_version": "bijux.container.run_evidence_lock.v1",
+  "scientific_status": "not_assessed",
+  "slurm_job_id": "3458026",
+  "source_files": [
+    {
+      "path": "config-credential.yml",
+      "sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+      "size_bytes": 134
+    },
+    {
+      "path": "config-governance.yml",
+      "sha256": "d7c38500306b1d88b227b3acfc26ff9d212ebd729d62776f913c912eef12ecc2",
+      "size_bytes": 403
+    },
+    {
+      "path": "config-pipeline.yml",
+      "sha256": "adbcf3769b01f49f176528b707460b59f1dde12ad161c730516e73c5f2dd71be",
+      "size_bytes": 1593
+    },
+    {
+      "path": "evidence.json",
+      "sha256": "e22bdfd8333d891f4f00deaac52712aaf6f3293e6a4be2d28e2a16ea9d39ac53",
+      "size_bytes": 2958
+    },
+    {
+      "path": "help.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "help.stdout.log",
+      "sha256": "7655a7ab2943d8fe2233e3f11cca920c6b35e0705239a40d318f36bceacd7cc0",
+      "size_bytes": 1202
+    },
+    {
+      "path": "negative.stderr.log",
+      "sha256": "05b4813bfbe82e24c130fc48953901ff03ad5c951e1b7288a31381b2fa346472",
+      "size_bytes": 59
+    },
+    {
+      "path": "negative.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "real.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "real.stdout.log",
+      "sha256": "8133f2dc6bf0f1c368ea605a68f7003a81f4f1b6e1be0ccab392cd222fda33b2",
+      "size_bytes": 16023606
+    },
+    {
+      "path": "slurm-accounting.json",
+      "sha256": "4ca58a2403b44c0f63fadfe6f3c7580c25128b2898ec1b6d6ee57a3095a4eac3",
+      "size_bytes": 928
+    },
+    {
+      "path": "slurm-job-id.txt",
+      "sha256": "3eecd79e21dcc1e413444facdfdafb8ba01bd714d23d6182cc554c96e4f12265",
+      "size_bytes": 8
+    },
+    {
+      "path": "submit.sh",
+      "sha256": "067e3d8520545b480b85be8a29567c6f4f696223d9925b5edb004e755d9a92c6",
+      "size_bytes": 1015
+    },
+    {
+      "path": "version.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "version.stdout.log",
+      "sha256": "582fc0bab72233fcbb6659fb2a727894a86221b6890f06cc6f66929a81bad631",
+      "size_bytes": 10
+    }
+  ],
+  "source_result": "results/container-validation/seqtk/run-1073",
+  "tool": "seqtk",
+  "tracked_files": {
+    "config-credential.yml": {
+      "sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+      "size_bytes": 134
+    },
+    "config-pipeline.yml": {
+      "sha256": "adbcf3769b01f49f176528b707460b59f1dde12ad161c730516e73c5f2dd71be",
+      "size_bytes": 1593
+    },
+    "evidence.json": {
+      "sha256": "e22bdfd8333d891f4f00deaac52712aaf6f3293e6a4be2d28e2a16ea9d39ac53",
+      "size_bytes": 2958
+    },
+    "slurm-accounting.json": {
+      "sha256": "4ca58a2403b44c0f63fadfe6f3c7580c25128b2898ec1b6d6ee57a3095a4eac3",
+      "size_bytes": 928
+    }
+  }
+}

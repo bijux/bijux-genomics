@@ -35,13 +35,13 @@ execution_contract:
     - "validated_reads_manifest"
   forbidden_outputs: []
   forbid_unexpected_outputs: true
-upstream: "unknown"
+upstream: "https://github.com/alastair-droop/fqtools"
 versioning_strategy: "pinned"
 pin_strategy: "pinned"
-default_version: "latest-pinned"
+default_version: "2.3"
 install_kind: "container"
-license: "GPL-3.0"
-citation: "paper:https://pmc.ncbi.nlm.nih.gov/articles/PMC4908325/"
+license: "GPL-3.0-only"
+citation: "software:https://github.com/alastair-droop/fqtools/tree/63c6fa707fabc7569c2f256b8bcfc6ebb760f72a"
 stage_ids: ["fastq.validate_reads"]
 stage_contracts:
   fastq.validate_reads:

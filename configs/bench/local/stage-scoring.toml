@@ -3539,16 +3539,13 @@ allowed_row_statuses = ["present"]
 domain = "fastq"
 stage_id = "fastq.remove_duplicates"
 readiness_kind = "smoke"
-decision_mode = "multi_tool_ranking"
-active_tool_count = 2
-benchmark_ready_tool_count = 2
+decision_mode = "single_tool_acceptance"
+active_tool_count = 1
+benchmark_ready_tool_count = 1
 default_tool_id = "clumpify"
-benchmark_ready_tool_ids = [
-    "clumpify",
-    "fastuniq",
-]
+benchmark_ready_tool_ids = ["clumpify"]
 report_section_ids = ["read_cleanup"]
-recommendation_gate = "rank benchmark-ready tools only after completion and failure-class gates pass"
+recommendation_gate = "accept the benchmark-ready tool only after completion and failure-class gates pass"
 
 [rows.weights]
 correctness = 0.55

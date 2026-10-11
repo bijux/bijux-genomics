@@ -1,0 +1,52 @@
+schema_version: bijux.container.pipeline.v1
+run:
+  id: run-1080
+  campaign: public-fastq-adapter-clip-qualification
+  corpus: ena-prjeb10854-err1021817-read-prefix-100000
+  sample: ERR1021817-R1
+  domain: fastq
+  stage: fastq.trim_reads
+  tool: fastx_clipper
+  operator: bijan
+repository:
+  path: /home/bijan/bijux/bijux-genomics-runs/2b0acb2c14e60801cd7e94b13dbec2f39799bc82
+  commit: 2b0acb2c14e60801cd7e94b13dbec2f39799bc82
+  clean: true
+image:
+  path: /home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/fastx_clipper-0.0.14-linux-amd64-bc54cc233692.sif
+  sha256: bc54cc2336929e04879aed99e2a4eb4fdd25c824e760b9d49d7ad7a3e3c16aeb
+data:
+  inputs:
+    - id: ena-err1021817-read-prefix-100000-r1
+      kind: data
+      path: /home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb10854-err1021817/ERR1021817.read-prefix-100000_1.fastq.gz
+      sha256: 37e3200622685562d2fe7db41cd6b573eddfa23861719683026f1387e2bbeabc
+commands:
+  version: [fastx_clipper, --version]
+  help: [fastx_clipper, --help]
+  real:
+    - fastx_clipper
+    - -a
+    - AGATCGGAAGAGCACACGTCTGAACTCCAGTCAC
+    - -i
+    - /home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb10854-err1021817/ERR1021817.read-prefix-100000_1.fastq.gz
+    - -o
+    - /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/fastx_clipper/run-1080/trimmed.fastq
+  negative: [fastx_clipper, --governed-invalid-option]
+outputs:
+  result_root: /home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation/fastx_clipper/run-1080
+  required_files: [trimmed.fastq]
+resources:
+  account: lu2026-2-20
+  partition: lu48
+  cpus: 1
+  memory_mb: 2048
+  walltime: '00:15:00'
+  scratch_mb: 512
+execution:
+  locale: C
+  timezone: UTC
+  runtime_network: false
+acceptance:
+  version_regex: '^fastx_clipper 0[.]0[.]14$'
+  negative_exit_nonzero: true
