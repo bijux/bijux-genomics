@@ -1,9 +1,6 @@
 use serde::Serialize;
 use std::collections::BTreeMap;
-#[expect(
-    clippy::struct_excessive_bools,
-    reason = "Compatible readiness wire records expose independent observed surfaces and smoke facts."
-)]
+// Compatible readiness wire records expose independent observed surfaces and smoke facts.
 #[derive(Debug, Clone, Serialize)]
 pub struct VcfDamageFilterReadyRow {
     pub result_id: String,

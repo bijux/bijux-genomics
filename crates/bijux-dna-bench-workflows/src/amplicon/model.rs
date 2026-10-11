@@ -93,10 +93,7 @@ pub struct AmpliconMicroPipelineRow {
 }
 
 #[derive(Debug, Clone, Serialize)]
-#[expect(
-    clippy::struct_excessive_bools,
-    reason = "Persisted independent artifact observations must retain their wire fields"
-)]
+// Keep independent artifact observations as separate wire fields.
 pub struct AmpliconMicroPipelineHandoff {
     pub handoff_id: String,
     pub source_stage_id: String,
@@ -242,10 +239,7 @@ pub(crate) struct NormalizeAbundanceStageEvidence {
 }
 
 #[derive(Debug, Clone, Serialize)]
-#[expect(
-    clippy::struct_excessive_bools,
-    reason = "Persisted independent artifact observations must retain their wire fields"
-)]
+// Keep independent artifact observations as separate wire fields.
 pub(crate) struct AmpliconOutputJudgmentEvidence {
     pub(crate) schema_version: &'static str,
     pub(crate) stage_id: String,

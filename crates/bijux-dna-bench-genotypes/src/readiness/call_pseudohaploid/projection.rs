@@ -10,10 +10,7 @@ use bijux_dna_bench_vcf_evidence::{
     },
     snapshot::VcfStageReadinessBinding,
 };
-#[expect(
-    clippy::too_many_lines,
-    reason = "The compatible flat wire record projects admitted surfaces and stage-specific smoke fields; coverage policy is evaluated separately."
-)]
+// The compatible flat wire record projects admitted surfaces and stage-specific smoke fields; coverage policy is evaluated separately.
 pub(super) fn build_vcf_call_pseudohaploid_ready_row(
     command_report: &ReadinessCommandPaths,
     binding: VcfStageReadinessBinding,

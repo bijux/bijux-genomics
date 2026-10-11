@@ -3,10 +3,7 @@ use anyhow::{ensure, Result};
 pub use bijux_dna_bench_vcf_evidence::model::command_reports::VcfCommandPublicationPaths as ReadinessCommandPaths;
 use bijux_dna_bench_vcf_evidence::snapshot::{VcfEvidenceSnapshot, VcfStageReadinessBinding};
 
-#[expect(
-    clippy::struct_excessive_bools,
-    reason = "Independent evidence surfaces admit incomplete combinations."
-)]
+// Independent evidence surfaces admit incomplete combinations.
 pub(super) struct SurfaceAssessment {
     pub result_id: String,
     pub required_metric_names: Vec<String>,

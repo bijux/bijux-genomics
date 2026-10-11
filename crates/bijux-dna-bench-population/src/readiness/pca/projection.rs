@@ -7,10 +7,7 @@ use bijux_dna_bench_vcf_evidence::model::parsers::DEFAULT_VCF_PARSER_FIXTURE_COV
 use bijux_dna_bench_vcf_evidence::model::pca::PcaAdapterOutputProof;
 use bijux_dna_bench_vcf_evidence::model::reports::DEFAULT_VCF_REPORT_MAP_PATH;
 use bijux_dna_bench_vcf_evidence::snapshot::VcfStageReadinessBinding;
-#[expect(
-    clippy::too_many_lines,
-    reason = "The compatible flat wire record projects assessed surfaces and scientific smoke fields."
-)]
+// The compatible flat wire record projects assessed surfaces and scientific smoke fields.
 pub(super) fn build_vcf_pca_ready_row(
     command_report: &ReadinessCommandPaths,
     binding: VcfStageReadinessBinding,

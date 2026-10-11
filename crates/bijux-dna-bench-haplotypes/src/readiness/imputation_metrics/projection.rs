@@ -7,10 +7,7 @@ use bijux_dna_bench_vcf_evidence::model::outputs::DEFAULT_VCF_ADAPTER_OUTPUT_COV
 use bijux_dna_bench_vcf_evidence::model::parsers::DEFAULT_VCF_PARSER_FIXTURE_COVERAGE_PATH;
 use bijux_dna_bench_vcf_evidence::model::reports::DEFAULT_VCF_REPORT_MAP_PATH;
 use bijux_dna_bench_vcf_evidence::snapshot::VcfStageReadinessBinding;
-#[expect(
-    clippy::too_many_lines,
-    reason = "The compatible flat wire record projects independently assessed surfaces and stage smoke fields."
-)]
+// The compatible flat wire record projects independently assessed surfaces and stage smoke fields.
 pub(super) fn build_vcf_imputation_metrics_ready_row(
     command_report: &ReadinessCommandPaths,
     binding: &VcfStageReadinessBinding,

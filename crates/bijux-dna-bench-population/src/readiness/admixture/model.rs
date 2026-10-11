@@ -2,10 +2,7 @@ use crate::admixture::LocalVcfAdmixtureSmokeRow;
 use serde::Serialize;
 use std::collections::BTreeMap;
 #[derive(Debug, Clone, Serialize)]
-#[expect(
-    clippy::struct_excessive_bools,
-    reason = "The compatible report records independent observed surfaces."
-)]
+// The compatible report records independent observed surfaces.
 pub struct VcfAdmixtureReadyRow {
     pub result_id: String,
     pub stage_id: String,
