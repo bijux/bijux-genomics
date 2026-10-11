@@ -2,61 +2,61 @@
 # This container recipe is maintained by Bijux Genomics.
 # Bijux Genomics source code is licensed under Apache-2.0.
 # Copyright (C) 2026 Bijan Mousavi
-# BIJUX_TEMPLATE: v1
-
 # Tool ID: bracken
-# Version policy: pinned_or_registry_locked
-# Upstream source: see org.opencontainers.image.source label
-# Build date policy: org.opencontainers.image.created set by release pipeline
-# Network source policy: NETWORK_SOURCE_VERIFIED_BY_LOCK
-# Runtime UID policy: RUNTIME_UID_SAFE
+# Version policy: checksummed Bracken 2.9 source commit
+# Upstream source: https://github.com/jenniferlu717/Bracken
+# Build date policy: captured by immutable build evidence
+# Network source policy: build-only access to the locked source archive
+# NETWORK_SOURCE_VERIFIED_BY_LOCK
+# Runtime UID policy: non-root runtime with caller-owned output paths
+# VERSION_SOURCE: containers/contracts/catalog.toml
 
-# VERSION_SOURCE: containers/versions/versions.toml
 Bootstrap: docker
 From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
 
 %labels
-    VERSION unknown
-    org.opencontainers.image.source https://github.com/bijux/bijux-genomics
-    org.opencontainers.image.revision unknown
-    org.opencontainers.image.created unknown
-    org.opencontainers.image.licenses GPL-3.0
+    org.opencontainers.image.source https://github.com/jenniferlu717/Bracken
+    org.opencontainers.image.revision c5bfec1929fe30feef21afbde67b16bda44de448
+    org.opencontainers.image.created governed-by-build-evidence
+    org.opencontainers.image.licenses GPL-3.0-or-later
     org.opencontainers.image.version 2.9
     org.opencontainers.image.tool bracken
-    org.opencontainers.image.title bracken
+    org.opencontainers.image.title Bracken
+
+%files
+    containers/tools/bracken/install /opt/bracken-build/install
+    containers/tools/bracken/bracken /usr/local/bin/bracken
 
 %environment
-    export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+    export PATH=/usr/local/bin:/opt/bracken:/opt/bracken/src:/usr/bin:/bin
+    export LANG=C
     export LC_ALL=C
     export TZ=UTC
-    DEBIAN_FRONTEND=noninteractive
+    export PYTHONNOUSERSITE=1
 
 %post
     set -eux
     umask 022
     export DEBIAN_FRONTEND=noninteractive
-    apt-get update -qq && apt-get install -y --no-install-recommends \
-        git build-essential python3 ca-certificates && \
-        rm -rf /var/lib/apt/lists/*
+    sed -i 's#http://archive.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubuntu/20260802T000000Z/#g; s#http://security.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubuntu/20260802T000000Z/#g' /etc/apt/sources.list.d/ubuntu.sources
+    apt-get -o Acquire::https::Verify-Peer=false -o Acquire::Check-Valid-Until=false update
+    apt-get -o Acquire::https::Verify-Peer=false install -y --no-install-recommends ca-certificates
+    apt-get -o Acquire::Check-Valid-Until=false update
+    apt-get install -y --no-install-recommends build-essential curl libgomp1 python3 python-is-python3
+    /opt/bracken-build/install
+    apt-get purge -y build-essential curl g++ gcc make
+    apt-get autoremove -y
+    apt-get clean
+    rm -rf /var/lib/apt/lists/*
 
-    git clone https://github.com/jenniferlu717/Bracken.git /opt/bracken
-    cd /opt/bracken
-    git checkout c5bfec1929fe30feef21afbde67b16bda44de448
-    ./install_bracken.sh
-    mv /opt/bracken/bracken /usr/local/bin/bracken-bin
-    cat > /usr/local/bin/bracken <<'SH'
-#!/bin/sh
-set -eu
-if [ "${1:-}" = "--version" ]; then
-  echo "2.9"
-  exit 0
-fi
-exec /usr/local/bin/bracken-bin "$@"
-SH
-    chmod +x /usr/local/bin/bracken
 %runscript
     exec /usr/local/bin/bracken "$@"
 
+%test
+    bracken --version | grep -Fx 'Bracken 2.9'
+    bracken --help >/dev/null
+    python --version 2>&1 | grep -E '^Python 3[.]'
+    if bracken --governed-invalid-option >/dev/null 2>&1; then exit 1; fi
+
 %help
-    Apptainer image for Bracken.
-    Default runscript forwards arguments to bracken.
+    Bracken 2.9 built from its checksummed source commit.

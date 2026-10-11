@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+work_dir="$(mktemp -d)"
+trap 'rm -rf "$work_dir"' EXIT
+
+case "$(uname -m)" in
+  x86_64)
+    archive_url='https://github.com/BenLangmead/bowtie2/releases/download/v2.5.4/bowtie2-2.5.4-linux-x86_64.zip'
+    archive_sha256='32de7d9363124452296d45d7cb7da48d41c60e9ebaeebd2feafe1cc0418ae00c'
+    archive_root='bowtie2-2.5.4-linux-x86_64'
+    ;;
+  aarch64|arm64)
+    archive_url='https://github.com/BenLangmead/bowtie2/releases/download/v2.5.4/bowtie2-2.5.4-linux-aarch64.zip'
+    archive_sha256='2f1c45aa9d46943a8c9abb8c24b22c2178b20073a9ccdacbe6ecc8368a466e41'
+    archive_root='bowtie2-2.5.4-linux-aarch64'
+    ;;
+  *)
+    printf 'unsupported Bowtie 2 build architecture: %s\n' "$(uname -m)" >&2
+    exit 1
+    ;;
+esac
+
+archive="$work_dir/bowtie2.zip"
+curl --fail --location --proto '=https' --tlsv1.2 --silent --show-error \
+  --output "$archive" "$archive_url"
+printf '%s  %s\n' "$archive_sha256" "$archive" | sha256sum --check --strict
+unzip -q "$archive" -d "$work_dir"
+mv "$work_dir/$archive_root" /opt/bowtie2
+rm -rf /opt/bowtie2/example /opt/bowtie2/doc /opt/bowtie2/*-debug
+
+chmod 0755 /usr/local/bin/bowtie2 /usr/local/bin/bowtie2-build
+/usr/local/bin/bowtie2 --version | grep -Fx 'Bowtie 2 2.5.4'
+/usr/local/bin/bowtie2-build --version | grep -Fx 'Bowtie 2 Build 2.5.4'
+/usr/local/bin/bowtie2 --help >/dev/null
+/usr/local/bin/bowtie2-build --help >/dev/null

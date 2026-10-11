@@ -2,12 +2,12 @@
   "schema_version": "bijux.container.report_index.v1",
   "report_id": "lunarc-vcf-relatedness",
   "site": "lunarc",
-  "repository_commit": "c07932e6374fc0ef1511a6341223fd8e0baf226c",
-  "corpus": "1000-genomes-phase3-chr22-biallelic-100-samples",
+  "initial_repository_commit": "cd19ed5c31348a9786a7bb7fdebd546239fdeb24",
+  "corpus": "1000-genomes-phase3-chr22-biallelic-100-samples-full-chromosome",
   "evidence_root": "/home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation",
   "claims": {
-    "runtime": "partial",
-    "stage": "partial",
+    "runtime": "passed",
+    "stage": "passed",
     "science": "not_assessed",
     "benchmark": "not_assessed",
     "release": "not_qualified"
@@ -59,11 +59,77 @@
       "failure": "the narrow chromosome 22 interval contains no segments meeting IBDNe's 2 cM minimum",
       "evidence_sha256": "8afdd16cf00d2093c9e2d53b76ad14b50e4782fefab7c6677d56733b3ab08859",
       "accounting_sha256": "7cf1ac517c2e636ce4ee4c2f0bc233cc4605befad8d7bd8bc1e807f2ebfda93b"
+    },
+    {
+      "tool": "bcftools",
+      "run_id": "run-1051",
+      "slurm_job_id": "3457868",
+      "status": "passed",
+      "elapsed_seconds": 51,
+      "record_count": 1055454,
+      "sample_count": 100,
+      "evidence_sha256": "e988c8d99cf407ad6661d91f018ea8b8bd5aeecd452296139020c2c71fe833ee",
+      "accounting_sha256": "9dfb81750d28d927cf93e4ec49b1efc71a6e19d001615f7c10c4db6d731938bb",
+      "output_sha256": "343a756d611cb58c1187e9b8f6c9a15a297772ea4fc9691a51ad2a56457a91bb"
+    },
+    {
+      "tool": "ibdseq",
+      "run_id": "run-1052",
+      "slurm_job_id": "3457872",
+      "status": "passed",
+      "elapsed_seconds": 27,
+      "segment_count": 3282,
+      "evidence_sha256": "0cb52b45ea10a1dca1d097a45fd87e7e0741f3ed70639ffd9d81c15c767e9674",
+      "accounting_sha256": "4f824b40c42516972dca2f96b2c8095e2954db66046310de68cc09fb0ee70373",
+      "output_sha256": "f4ef35be66a00117b31dd34644482d677d8fd92f59983e3942f0c690842263d4"
+    },
+    {
+      "tool": "ibdne",
+      "run_id": "run-1053",
+      "slurm_job_id": "3457875",
+      "status": "passed",
+      "elapsed_seconds": 3,
+      "segments_read": 3282,
+      "segments_analyzed": 131,
+      "bootstrap_samples": 0,
+      "evidence_sha256": "8124c0e86f1d7b6c156825ecd8e0847f3460f77cc19e736645046363cd874dae",
+      "accounting_sha256": "a15319dafabdeafbb9cf26569996fb8354aa725453c8e87103e5c23650b96671",
+      "output_sha256": "66da6c7e1cab069a13775f7f045174c98299cee31a5875b51fd3d1b6ea94edec"
+    },
+    {
+      "tool": "ibdhap",
+      "run_id": "run-1067",
+      "repository_commit": "17a6ee7ab1163f07b34a5619cc44b3679e9ccd03",
+      "slurm_job_id": "3457992",
+      "status": "passed",
+      "elapsed_seconds": 7,
+      "eligible_marker_count": 41705,
+      "selected_marker_count": 500,
+      "state_count": 15,
+      "interpretation": "posterior four-gamete IBD-state probabilities, not called segments",
+      "evidence_sha256": "a3302397717e2d708c820e8adb0e5f076fc4972563a6a6a7a10c43eef2aa18e5",
+      "accounting_sha256": "76f465f584493c0a2a7bc8b6032a48fc5addc819b4c3a0507409c360da6f2652",
+      "output_sha256": "f4a3b8067352be7d8da8b3df707a6c19229f0f901d406ea45b5087c3d9890374"
+    },
+    {
+      "tool": "germline",
+      "run_id": "run-1069",
+      "repository_commit": "17a6ee7ab1163f07b34a5619cc44b3679e9ccd03",
+      "slurm_job_id": "3457995",
+      "status": "passed",
+      "elapsed_seconds": 3,
+      "sample_count": 100,
+      "segment_row_count": 18,
+      "interpretation": "candidate segments, not relatedness or accuracy validation",
+      "evidence_sha256": "fef316f289834a00b27f487d1b39f2e4091bcbbe10a796e6618197e7e10b4f85",
+      "accounting_sha256": "2f64b889d4135642ee6ea6648534dbf571346430a1c707380378d54fe0925fb5",
+      "output_sha256": "64e746d07343a8be7a78f806ec51d0e3cbc97d430f123ecc7059da7a5faf0879"
     }
   ],
-  "blocker": {
-    "required_input": "population-aware IBD segments spanning enough genetic distance to include segments of at least 2 cM",
-    "required_reference": "PLINK-format genetic map matching the segment coordinates",
-    "resolution": "admit a broader cohort and retain the documented 2 cM minimum; use multiple chromosomes before claiming bootstrap confidence intervals"
+  "science_boundary": {
+    "missing_input": "population-aware multi-chromosome cohort",
+    "disabled_capability": "chromosome bootstrap confidence intervals",
+    "prohibited_claim": "the run-1053 trajectory is not a demographic estimate for any named population",
+    "resolution": "admit a population-stratified whole-genome cohort before scientific interpretation"
   }
 }

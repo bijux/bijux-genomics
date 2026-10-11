@@ -3,10 +3,10 @@
 # Bijux Genomics source code is licensed under Apache-2.0.
 # Copyright (C) 2026 Bijan Mousavi
 # Tool ID: dada2
-# Version policy: verified Bioconductor source archive
+# Version policy: exact Ubuntu package from a dated snapshot
 # Upstream source: https://bioconductor.org/packages/3.18/bioc/html/dada2.html
 # Build date policy: captured by immutable build evidence
-# Network source policy: build-only access to the locked Ubuntu snapshot and release archive
+# Network source policy: build-only access to the locked Ubuntu snapshot
 # Runtime UID policy: non-root runtime with caller-owned output paths
 # VERSION_SOURCE: containers/contracts/catalog.toml
 
@@ -40,14 +40,13 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
     apt-get -o Acquire::https::Verify-Peer=false -o Acquire::Check-Valid-Until=false update
     apt-get -o Acquire::https::Verify-Peer=false install -y --no-install-recommends ca-certificates
     apt-get -o Acquire::Check-Valid-Until=false update
-    apt-get install -y --no-install-recommends build-essential curl r-base r-base-dev r-bioc-biocgenerics r-bioc-biostrings r-bioc-iranges r-bioc-shortread r-bioc-xvector r-cran-ggplot2 r-cran-rcpp r-cran-rcppparallel r-cran-reshape2
-    curl --fail --location --silent --show-error --output /opt/dada2_1.30.0.tar.gz https://bioconductor.org/packages/3.18/bioc/src/contrib/dada2_1.30.0.tar.gz
-    echo 'c6653fe77c3d62dd91207bbbf6641ec143fb8a498967e240a97af26de7e27667  /opt/dada2_1.30.0.tar.gz' | sha256sum --check --strict
-    R CMD INSTALL /opt/dada2_1.30.0.tar.gz
+    apt-get install -y --no-install-recommends dpkg-dev=1.22.6ubuntu6.6 r-bioc-dada2=1.30.0+dfsg-1
+    dpkg-query --show --showformat='${Version}\n' r-bioc-dada2 | grep -Fx '1.30.0+dfsg-1'
+    dpkg-query --show --showformat='${Version}\n' dpkg-dev | grep -Fx '1.22.6ubuntu6.6'
     Rscript -e 'stopifnot(as.character(packageVersion("dada2")) == "1.30.0")'
     chmod 0755 /usr/local/bin/dada2 /opt/dada2/infer-asvs.R
     dada2 --version | grep -Fx 'dada2 1.30.0'
-    rm /opt/dada2_1.30.0.tar.gz
+    apt-get clean
     rm -rf /var/lib/apt/lists/*
 
 %runscript
@@ -57,6 +56,7 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
     dada2 --version | grep -Fx 'dada2 1.30.0'
     dada2 --help >/dev/null
     Rscript -e 'stopifnot(as.character(packageVersion("dada2")) == "1.30.0")'
+    Rscript -e 'suppressPackageStartupMessages(library(dada2))'
 
 %help
-    DADA2 1.30.0 compiled from its verified Bioconductor source archive.
+    DADA2 1.30.0 installed from the exact package in the locked Ubuntu snapshot.

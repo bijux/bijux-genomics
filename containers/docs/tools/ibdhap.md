@@ -11,8 +11,8 @@ Purpose: generated per-tool container contract summary.
 - License index: [containers/licenses/README.md](../../licenses/README.md)
 - Tool license record: [containers/licenses/ibdhap.license.toml](../../licenses/ibdhap.license.toml)
 
-- Version: `0.1.0`
-- License: `unknown`
+- Version: `3.4`
+- License: `LicenseRef-MORGAN-2006`
 - Runtime support: `docker-arm64, apptainer`
 - Smoke status: `unknown`
 

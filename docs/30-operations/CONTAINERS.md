@@ -56,13 +56,20 @@ records a real horse WGS trimming, alignment, sorting, indexing, and QC chain.
 The [LUNARC ancient-DNA damage report](container-evidence/ANCIENT_DAMAGE.md)
 records ngsBriggs input-contract correction and real Slurm execution on a
 public ancient-horse alignment.
+The [LUNARC reference-complexity report](container-evidence/REFERENCE_COMPLEXITY.md)
+records real EquCab3.0 interval extraction and DustMasker execution.
+The [LUNARC amplicon ASV report](container-evidence/AMPLICON_ASV.md) records
+single-end and overlapping paired-end DADA2 inference, including the preserved
+runtime-dependency and incompatible-corpus failures that shaped the final
+contract.
 The [LUNARC VCF phasing report](container-evidence/VCF_PHASING.md)
 records a real 2,504-sample BCFtools, SHAPEIT4, SHAPEIT5, and Eagle execution
 chain. The
 [LUNARC VCF relatedness report](container-evidence/VCF_RELATEDNESS.md)
-records a passing IBDseq run and the incompatible-input boundary that prevents
-an honest IBDNe claim. The reports explain why stage success is not yet a
-scientific accuracy or release claim.
+records passing chromosome-wide IBDseq and IBDNe stage execution while
+preserving the population and multi-chromosome requirements for scientific
+interpretation. The reports explain why stage success is not yet a scientific
+accuracy or release claim.
 
 ## Failure modes
 

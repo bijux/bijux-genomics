@@ -192,8 +192,20 @@ children = [
   "docs/30-operations/TRACEABILITY_PROOF_FRONTEND.md",
   "docs/30-operations/VCF_DOWNSTREAM_READINESS_CHECKLIST.md",
   "docs/30-operations/VCF_REFERENCE_CACHE_POLICY.md",
+  "docs/30-operations/container-evidence/index.md",
   "docs/30-operations/corpus-01.md",
   "docs/30-operations/vcf-downstream-triage.md",
+]
+
+[[edge]]
+from = "docs/30-operations/container-evidence/index.md"
+children = [
+  "docs/30-operations/container-evidence/AMPLICON_ASV.md",
+  "docs/30-operations/container-evidence/ANCIENT_DAMAGE.md",
+  "docs/30-operations/container-evidence/FASTQ_BAM.md",
+  "docs/30-operations/container-evidence/REFERENCE_COMPLEXITY.md",
+  "docs/30-operations/container-evidence/VCF_PHASING.md",
+  "docs/30-operations/container-evidence/VCF_RELATEDNESS.md",
 ]
 
 [[edge]]

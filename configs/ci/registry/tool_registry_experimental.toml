@@ -1,13 +1,12 @@
-# GENERATED - DO NOT EDIT - source: domain/**
-# source_commit: 1d2b65af4fa02dc2f3c0de2f629daa6400aa0b76
+# GENERATED - DO NOT EDIT - source: domain/** + containers/contracts/catalog.toml
+# source_commit: 30956eea7138fdd3fa12628064c00684c7e6aae2
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
 # owner = bijux-dna-domain-compiler
-# purpose = Contract config generated from domain/** sources
+# purpose = Contract config generated from domain/** + containers/contracts/catalog.toml
 # authority = bijux-dna-domain-compiler
 # stability = stable
 # last_updated = 2026-02-14
 
 tools = []
-

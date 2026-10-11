@@ -2,7 +2,6 @@
   "schema_version": "bijux.container.report_index.v1",
   "report_id": "lunarc-vcf-phasing",
   "site": "lunarc",
-  "repository_commit": "c07932e6374fc0ef1511a6341223fd8e0baf226c",
   "corpus": "1000-genomes-phase3-chr22",
   "evidence_root": "/home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation",
   "claims": {
@@ -16,6 +15,7 @@
     {
       "tool": "shapeit5",
       "run_id": "run-1033",
+      "repository_commit": "c07932e6374fc0ef1511a6341223fd8e0baf226c",
       "slurm_job_id": "3457723",
       "status": "passed",
       "elapsed_seconds": 282,
@@ -26,6 +26,7 @@
     {
       "tool": "eagle",
       "run_id": "run-1034",
+      "repository_commit": "c07932e6374fc0ef1511a6341223fd8e0baf226c",
       "slurm_job_id": "3457724",
       "status": "failed",
       "failure": "multiallelic input requires governed normalization",
@@ -36,6 +37,7 @@
     {
       "tool": "bcftools",
       "run_id": "run-1035",
+      "repository_commit": "c07932e6374fc0ef1511a6341223fd8e0baf226c",
       "slurm_job_id": "3457731",
       "status": "passed",
       "elapsed_seconds": 6,
@@ -46,6 +48,7 @@
     {
       "tool": "eagle",
       "run_id": "run-1036",
+      "repository_commit": "c07932e6374fc0ef1511a6341223fd8e0baf226c",
       "slurm_job_id": "3457739",
       "status": "passed",
       "elapsed_seconds": 179,
@@ -56,12 +59,26 @@
     {
       "tool": "shapeit",
       "run_id": "run-1037",
+      "repository_commit": "c07932e6374fc0ef1511a6341223fd8e0baf226c",
       "slurm_job_id": "3457752",
       "status": "passed",
       "elapsed_seconds": 640,
       "evidence_sha256": "bb8642eab60615e4e5181b323cc1292d82f8fc6faccd82e1f58e2277a091b733",
       "accounting_sha256": "0a2bdb8a65a00794c107d14019e91690d98d01382ce43fcc9cf402c1efccf725",
       "output_sha256": "1f7dbdc685af7961c96d54cbbaf535d3018e3bb9acce665a65951790d85fdb7c"
+    },
+    {
+      "tool": "beagle",
+      "run_id": "run-1062",
+      "repository_commit": "5b6f49a03cbd13c1b3a5c06fa39d2e18a7749a30",
+      "slurm_job_id": "3457945",
+      "status": "passed",
+      "elapsed_seconds": 7,
+      "record_count": 41924,
+      "sample_count": 100,
+      "evidence_sha256": "eb19207ac26212ca4e88a5e21d4869679d36209ec4e5f069f8324e91183feee5",
+      "accounting_sha256": "12b64ffd33211391c8baad074bc6ca741cad92315c081e43fd33c0625280a832",
+      "output_sha256": "6a254883f1c5be69b116f59dc608e568dab82efeee91b29178a16f64599dff9c"
     }
   ]
 }

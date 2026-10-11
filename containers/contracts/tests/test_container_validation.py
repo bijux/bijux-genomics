@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import importlib.util
 from pathlib import Path
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -72,6 +73,98 @@ class GovernanceContractTests(unittest.TestCase):
         with self.assertRaisesRegex(container_validation.ContractError, "numeric job id"):
             container_validation.parse_sbatch_job_id("submission failed")
 
+    def test_repository_freeze_produces_a_clean_commit_checkout(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            governance = self.governance(root)
+            repository = root / "active-repository"
+            subprocess.run(
+                ["git", "init", "--quiet", "--initial-branch", "main", str(repository)],
+                check=True,
+            )
+            subprocess.run(
+                ["git", "-C", str(repository), "config", "user.name", "Bijux Test"],
+                check=True,
+            )
+            subprocess.run(
+                [
+                    "git",
+                    "-C",
+                    str(repository),
+                    "config",
+                    "user.email",
+                    "test@bijux.io",
+                ],
+                check=True,
+            )
+            contract_directory = repository / "containers" / "contracts"
+            contract_directory.mkdir(parents=True)
+            (contract_directory / "tracked.txt").write_text(
+                "governed\n",
+                encoding="utf-8",
+            )
+            unselected_directory = repository / "other"
+            unselected_directory.mkdir()
+            (unselected_directory / "unselected.txt").write_text(
+                "complete tree\n",
+                encoding="utf-8",
+            )
+            subprocess.run(
+                [
+                    "git",
+                    "-C",
+                    str(repository),
+                    "add",
+                    "containers/contracts/tracked.txt",
+                    "other/unselected.txt",
+                ],
+                check=True,
+            )
+            subprocess.run(
+                ["git", "-C", str(repository), "commit", "--quiet", "-m", "fixture"],
+                check=True,
+            )
+            commit = subprocess.run(
+                ["git", "-C", str(repository), "rev-parse", "HEAD"],
+                check=True,
+                capture_output=True,
+                text=True,
+            ).stdout.strip()
+            governance_path = root / "governance.yml"
+            governance_path.write_text(
+                container_validation.yaml.safe_dump(governance, sort_keys=False),
+                encoding="utf-8",
+            )
+
+            with mock.patch.object(
+                container_validation.socket,
+                "gethostname",
+                return_value="worker-7",
+            ):
+                frozen = container_validation.freeze_repository(
+                    commit,
+                    governance_path,
+                )
+
+            self.assertEqual(frozen.name, commit)
+            self.assertEqual(
+                (frozen / "containers" / "contracts" / "tracked.txt").read_text(),
+                "governed\n",
+            )
+            self.assertFalse((frozen / "other" / "unselected.txt").exists())
+            self.assertEqual(
+                container_validation.git_output(
+                    frozen,
+                    "show",
+                    "HEAD:other/unselected.txt",
+                ),
+                "complete tree",
+            )
+            self.assertEqual(
+                container_validation.git_output(frozen, "status", "--porcelain"),
+                "",
+            )
+
 
 class BuildAdmissionTests(unittest.TestCase):
     def test_immutable_name_carries_runtime_and_content_identity(self) -> None:
@@ -85,6 +178,27 @@ class BuildAdmissionTests(unittest.TestCase):
             name,
             "adapterremoval-2.3.4-linux-amd64-aaaaaaaaaaaa.sif",
         )
+
+    def test_definition_file_sources_are_repository_relative(self) -> None:
+        definition = b"""Bootstrap: docker
+%files
+    containers/tools/tool/wrapper /usr/local/bin/tool
+    containers/tools/tool/data /opt/tool/data
+
+%post
+    true
+"""
+        self.assertEqual(
+            container_build.definition_file_sources(definition),
+            [
+                Path("containers/tools/tool/wrapper"),
+                Path("containers/tools/tool/data"),
+            ],
+        )
+
+    def test_definition_file_sources_reject_parent_traversal(self) -> None:
+        with self.assertRaisesRegex(container_build.ContractError, "repository-relative"):
+            container_build.definition_file_sources(b"%files\n    ../secret /opt/secret\n")
 
 
 if __name__ == "__main__":

@@ -3,14 +3,12 @@
 #
 # Container definition license: GPL-3.0.
 # Bijux Genomics source code is licensed under Apache-2.0.
-# VERSION_SOURCE: containers/versions/versions.toml
+# VERSION_SOURCE: containers/contracts/catalog.toml
 FROM ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
-ARG OCI_REVISION=unknown
-ARG OCI_CREATED=unknown
 ARG TOOL_VERSION=3.2
 LABEL org.opencontainers.image.source="https://gitlab.pasteur.fr/GIPhy/AlienTrimmer" \
-      org.opencontainers.image.revision="${OCI_REVISION}" \
-      org.opencontainers.image.created="${OCI_CREATED}" \
+      org.opencontainers.image.revision="3.2" \
+      org.opencontainers.image.created="governed-by-build-evidence" \
       org.opencontainers.image.licenses="GPL-3.0" \
       org.opencontainers.image.version="${TOOL_VERSION}"
 LABEL org.opencontainers.image.tool="alientrimmer"
@@ -22,16 +20,18 @@ ARG ALIENTRIMMER_VERSION=3.2
 ARG ALIENTRIMMER_SHA256=5f28255e356253b1ff97d4940b637c7f4d7b13da62e603167c3d355a55eb0730
 ENV DEBIAN_FRONTEND=noninteractive
 
-RUN apt-get update -qq && \
+RUN sed -i 's#http://archive.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubuntu/20260802T000000Z/#g; s#http://security.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubuntu/20260802T000000Z/#g' /etc/apt/sources.list.d/ubuntu.sources && \
+    apt-get -o Acquire::https::Verify-Peer=false -o Acquire::Check-Valid-Until=false update && \
+    apt-get -o Acquire::https::Verify-Peer=false install -y --no-install-recommends ca-certificates && \
+    apt-get -o Acquire::Check-Valid-Until=false update && \
     apt-get install -y --no-install-recommends \
         bash \
-        ca-certificates \
         curl \
         openjdk-17-jdk-headless && \
-    curl -L "https://gitlab.pasteur.fr/GIPhy/AlienTrimmer/-/archive/${ALIENTRIMMER_VERSION}/AlienTrimmer-${ALIENTRIMMER_VERSION}.tar.gz" \
+    curl --fail --location --silent --show-error "https://gitlab.pasteur.fr/GIPhy/AlienTrimmer/-/archive/${ALIENTRIMMER_VERSION}/AlienTrimmer-${ALIENTRIMMER_VERSION}.tar.gz" \
         -o /tmp/alientrimmer.tar.gz && \
-    echo "${ALIENTRIMMER_SHA256}  /tmp/alientrimmer.tar.gz" | sha256sum -c - && \
-    tar -xzf /tmp/alientrimmer.tar.gz -C /opt && \
+    echo "${ALIENTRIMMER_SHA256}  /tmp/alientrimmer.tar.gz" | sha256sum --check --strict && \
+    tar --extract --gzip --file /tmp/alientrimmer.tar.gz --directory /opt && \
     cd "/opt/AlienTrimmer-${ALIENTRIMMER_VERSION}/src" && \
     javac AlienTrimmer.java && \
     printf 'Main-Class: AlienTrimmer\n' > MANIFEST.MF && \
@@ -82,6 +82,12 @@ case "${1:-}" in
     ;;
   --help|-h)
     exec "${java_bin}" "${java_args[@]}" -jar "${jar_path}"
+    ;;
+  --a1|--a2|--p64)
+    ;;
+  --*)
+    printf 'unsupported AlienTrimmer option: %s\n' "$1" >&2
+    exit 2
     ;;
 esac
 

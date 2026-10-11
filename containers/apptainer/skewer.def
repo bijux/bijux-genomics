@@ -2,67 +2,67 @@
 # This container recipe is maintained by Bijux Genomics.
 # Bijux Genomics source code is licensed under Apache-2.0.
 # Copyright (C) 2026 Bijan Mousavi
-# BIJUX_TEMPLATE: v1
-
 # Tool ID: skewer
-# Version policy: pinned_or_registry_locked
-# Upstream source: see org.opencontainers.image.source label
-# Build date policy: org.opencontainers.image.created set by release pipeline
-# Network source policy: NETWORK_SOURCE_VERIFIED_BY_LOCK
-# Runtime UID policy: RUNTIME_UID_SAFE
-
-# VERSION_SOURCE: containers/versions/versions.toml
+# Version policy: exact upstream commit archive with a governed SHA-256 digest
+# Upstream source: https://github.com/relipmoc/skewer/tree/0.2.2
+# Build date policy: captured by immutable build evidence
+# Network source policy: build-only access to the locked Ubuntu snapshot and source archive
+# Runtime UID policy: non-root runtime with caller-owned output paths
+# VERSION_SOURCE: containers/contracts/catalog.toml
 Bootstrap: docker
 From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
 
 %labels
-    VERSION unknown
-    org.opencontainers.image.source https://github.com/bijux/bijux-genomics
-    org.opencontainers.image.revision unknown
-    org.opencontainers.image.created unknown
-    org.opencontainers.image.licenses GPL-3.0
+    org.opencontainers.image.source https://github.com/relipmoc/skewer
+    org.opencontainers.image.revision 978e8e46cba44595ece623e5387749284a86b74b
+    org.opencontainers.image.created governed-by-build-evidence
+    org.opencontainers.image.licenses MIT
     org.opencontainers.image.version 0.2.2
     org.opencontainers.image.tool skewer
-    org.opencontainers.image.title skewer
+    org.opencontainers.image.title Skewer
+
 %environment
-    export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+    export PATH=/usr/local/bin:/usr/bin:/bin
+    export LANG=C
     export LC_ALL=C
     export TZ=UTC
-    DEBIAN_FRONTEND=noninteractive
+
+%files
+    containers/tools/skewer/skewer /usr/local/bin/skewer
+    containers/tools/skewer/gcc-compatibility.patch /opt/skewer-gcc-compatibility.patch
 
 %post
     set -eux
     umask 022
     export DEBIAN_FRONTEND=noninteractive
-    apt-get update -qq && apt-get install -y --no-install-recommends \
-        git build-essential g++-10 zlib1g-dev ca-certificates && \
-        rm -rf /var/lib/apt/lists/*
-    git clone https://github.com/relipmoc/skewer.git /opt/skewer
-    cd /opt/skewer
-    git checkout 978e8e46cba44595ece623e5387749284a86b74b
-    make CXX=g++-10 -j"$(nproc)"
-    cp /opt/skewer/skewer /usr/local/bin/skewer-bin
-    cat > /usr/local/bin/skewer <<'EOS'
-#!/usr/bin/env sh
-set -eu
-case "${1:-}" in
-  --version)
-    exec /usr/local/bin/skewer-bin --version
-    ;;
-  --help|-h|"")
-    /usr/local/bin/skewer-bin --help 2>&1 || true
-    exit 0
-    ;;
-  --__bijux_invalid_flag__*)
-    echo "error: skewer does not support ${1}" >&2
-    exit 2
-    ;;
-esac
-exec /usr/local/bin/skewer-bin "$@"
-EOS
-    chmod +x /usr/local/bin/skewer
+    sed -i 's#http://archive.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubuntu/20260802T000000Z/#g; s#http://security.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubuntu/20260802T000000Z/#g' /etc/apt/sources.list.d/ubuntu.sources
+    apt-get -o Acquire::https::Verify-Peer=false -o Acquire::Check-Valid-Until=false update
+    apt-get -o Acquire::https::Verify-Peer=false install -y --no-install-recommends ca-certificates
+    apt-get -o Acquire::Check-Valid-Until=false update
+    apt-get install -y --no-install-recommends zlib1g
+    apt-get install -y --no-install-recommends curl g++ make patch zlib1g-dev
+    curl --fail --location --proto '=https' --tlsv1.2 --output /opt/skewer.tar.gz https://codeload.github.com/relipmoc/skewer/tar.gz/978e8e46cba44595ece623e5387749284a86b74b
+    echo '695c5f714e23ba5572e2525b7445439b632f52653e28ea46ed9988fc2f765169  /opt/skewer.tar.gz' | sha256sum --check --strict
+    tar --extract --gzip --file /opt/skewer.tar.gz --directory /opt
+    patch --directory /opt/skewer-978e8e46cba44595ece623e5387749284a86b74b --strip=1 --input /opt/skewer-gcc-compatibility.patch
+    make --directory /opt/skewer-978e8e46cba44595ece623e5387749284a86b74b -j2
+    install -d -m 0755 /opt/skewer/bin
+    install -m 0755 /opt/skewer-978e8e46cba44595ece623e5387749284a86b74b/skewer /opt/skewer/bin/skewer-native
+    chmod 0755 /usr/local/bin/skewer
+    skewer --version | grep -Fx 'skewer 0.2.2'
+    skewer --help >/dev/null
+    rm -rf /opt/skewer.tar.gz /opt/skewer-gcc-compatibility.patch /opt/skewer-978e8e46cba44595ece623e5387749284a86b74b
+    apt-get purge -y --auto-remove curl g++ make patch zlib1g-dev
+    apt-get clean
+    rm -rf /var/lib/apt/lists/*
+
 %runscript
     exec /usr/local/bin/skewer "$@"
 
+%test
+    skewer --version | grep -Fx 'skewer 0.2.2'
+    skewer --help >/dev/null
+    test -x /opt/skewer/bin/skewer-native
+
 %help
-    Apptainer image for skewer.
+    Skewer 0.2.2 built from the exact checksummed upstream commit archive.

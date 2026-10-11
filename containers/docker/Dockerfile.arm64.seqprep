@@ -1,36 +1,50 @@
-# SPDX-License-Identifier: GPL-3.0
+# SPDX-License-Identifier: GPL-3.0-only
 # Copyright (C) 2026 Bijan Mousavi
-#
-# Container definition license: GPL-3.0.
+# Container definition license: GPL-3.0-only.
 # Bijux Genomics source code is licensed under Apache-2.0.
-# VERSION_SOURCE: containers/versions/versions.toml
+# VERSION_SOURCE: containers/contracts/catalog.toml
+FROM ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b AS builder
+ENV DEBIAN_FRONTEND=noninteractive
+RUN sed -i 's#http://archive.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubuntu/20260802T000000Z/#g; s#http://security.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubuntu/20260802T000000Z/#g' /etc/apt/sources.list.d/ubuntu.sources && \
+    apt-get -o Acquire::https::Verify-Peer=false -o Acquire::Check-Valid-Until=false update && \
+    apt-get -o Acquire::https::Verify-Peer=false install -y --no-install-recommends ca-certificates && \
+    apt-get -o Acquire::Check-Valid-Until=false update && \
+    apt-get install -y --no-install-recommends curl gcc make zlib1g-dev && \
+    curl --fail --location --proto '=https' --tlsv1.2 --output /opt/seqprep.tar.gz https://codeload.github.com/jstjohn/SeqPrep/tar.gz/575507b0b9c94701bdf67bb592da8ba91ba9639c && \
+    echo 'f45d466650f40b66a83f6ccaa8dbfee104d142ca2cc69c5014b14a92c7b76cb8  /opt/seqprep.tar.gz' | sha256sum -c - && \
+    tar --extract --gzip --file /opt/seqprep.tar.gz --directory /opt && \
+    make --directory /opt/SeqPrep-575507b0b9c94701bdf67bb592da8ba91ba9639c -j2 && \
+    install -d -m 0755 /opt/seqprep/bin && \
+    install -m 0755 /opt/SeqPrep-575507b0b9c94701bdf67bb592da8ba91ba9639c/SeqPrep /opt/seqprep/bin/seqprep-native
+
 FROM ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
-ARG OCI_REVISION=unknown
-ARG OCI_CREATED=unknown
-ARG TOOL_VERSION=unknown
-LABEL org.opencontainers.image.source="https://github.com/bijux/bijux-genomics" \
-      org.opencontainers.image.revision="${OCI_REVISION}" \
+ARG OCI_CREATED=governed-by-build-evidence
+ARG TOOL_VERSION=1.3.2
+LABEL org.opencontainers.image.source="https://github.com/jstjohn/SeqPrep" \
+      org.opencontainers.image.revision="575507b0b9c94701bdf67bb592da8ba91ba9639c" \
       org.opencontainers.image.created="${OCI_CREATED}" \
-      org.opencontainers.image.licenses="GPL-3.0" \
+      org.opencontainers.image.licenses="MIT" \
       org.opencontainers.image.version="${TOOL_VERSION}"
 LABEL org.opencontainers.image.tool="seqprep"
-LABEL org.opencontainers.image.title="seqprep"
+LABEL org.opencontainers.image.title="SeqPrep"
 LABEL org.opencontainers.image.base.name="ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b"
 LABEL org.opencontainers.image.base.digest="sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b"
-ENV DEBIAN_FRONTEND=noninteractive
+ENV LANG=C LC_ALL=C TZ=UTC DEBIAN_FRONTEND=noninteractive
+RUN sed -i 's#http://archive.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubuntu/20260802T000000Z/#g; s#http://security.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubuntu/20260802T000000Z/#g' /etc/apt/sources.list.d/ubuntu.sources && \
+    apt-get -o Acquire::https::Verify-Peer=false -o Acquire::Check-Valid-Until=false update && \
+    apt-get -o Acquire::https::Verify-Peer=false install -y --no-install-recommends ca-certificates && \
+    apt-get -o Acquire::Check-Valid-Until=false update && \
+    apt-get install -y --no-install-recommends zlib1g && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/* && \
+    useradd --system --uid 65532 --home-dir /work --create-home bijux
+COPY --from=builder /opt/seqprep /opt/seqprep
+COPY containers/tools/seqprep/seqprep /usr/local/bin/seqprep
+RUN chmod 0755 /usr/local/bin/seqprep /opt/seqprep/bin/seqprep-native && \
+    seqprep --version | grep -Fx 'seqprep 1.3.2' && \
+    seqprep --help >/dev/null
 
-ARG VERSION_SEQPREP=1.3.2
-ENV VERSION_SEQPREP=${VERSION_SEQPREP}
-
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends seqkit=2.3.1+ds-2ubuntu0.3 && \
-    printf '#!/bin/sh\n' > /usr/local/bin/seqprep && \
-    printf 'if [ "$1" = "--version" ]; then echo "$VERSION_SEQPREP"; exit 0; fi\n' >> /usr/local/bin/seqprep && \
-    printf 'if [ "$1" = "-h" ] || [ "$1" = "--help" ] || [ "$#" -eq 0 ]; then echo "seqprep compatibility wrapper"; exit 0; fi\n' >> /usr/local/bin/seqprep && \
-    printf 'exec seqkit stats "$@"\n' >> /usr/local/bin/seqprep && \
-    chmod +x /usr/local/bin/seqprep && \
-    rm -rf /var/lib/apt/lists/*
-
-WORKDIR /data
+USER 65532:65532
+WORKDIR /work
 ENTRYPOINT ["seqprep"]
-CMD ["-h"]
+CMD ["--help"]

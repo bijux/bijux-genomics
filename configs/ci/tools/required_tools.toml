@@ -1,14 +1,13 @@
 # GENERATED - DO NOT EDIT - source: domain/**
-# source_commit: 1d2b65af4fa02dc2f3c0de2f629daa6400aa0b76
+# source_commit: 30956eea7138fdd3fa12628064c00684c7e6aae2
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
 # owner = bijux-dna-domain-compiler
-# purpose = Contract config generated from domain/** sources
+# purpose = Contract config generated from domain/**
 # authority = bijux-dna-domain-compiler
 # stability = stable
 # last_updated = 2026-02-14
 
 schema_version = "bijux.required_tools.v1"
 required_tools = ["angsd", "authenticct", "bamutil", "bbduk", "bijux_dna", "bowtie2", "bowtie2_build", "bwa", "clumpify", "cutadapt", "dada2", "fastp", "fastqc", "fastqvalidator", "gatk", "king", "kraken2", "mapdamage2", "mosdepth", "multiqc", "pear", "picard", "preseq", "rcorrector", "rxy", "samtools", "schmutzi", "seqkit", "seqkit_stats", "sortmerna", "umi_tools", "vsearch", "yleaf"]
-

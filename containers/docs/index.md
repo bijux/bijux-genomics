@@ -79,7 +79,7 @@ Purpose: Authoritative tool/container index for container governance and CI chec
 | `gatk` | `experimental` | `bijux` | `arm64` |
 | `germline` | `experimental` | `non-bijux` | `arm64` |
 | `glimpse` | `planned` | `non-bijux` | `arm64` |
-| `ibdhap` | `planned` | `non-bijux` | `arm64` |
+| `ibdhap` | `experimental` | `non-bijux` | `arm64` |
 | `ibdne` | `planned` | `non-bijux` | `arm64` |
 | `ibdseq` | `planned` | `bijux` | `arm64` |
 | `impute5` | `unsupported` | `none` | `none` |

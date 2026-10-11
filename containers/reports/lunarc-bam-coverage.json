@@ -1,0 +1,30 @@
+{
+  "schema_version": "bijux.container.report_index.v1",
+  "report_id": "lunarc-bam-coverage",
+  "site": "lunarc",
+  "corpus": "ena-prjeb22390-err2112767-bam",
+  "evidence_root": "/home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation",
+  "claims": {
+    "runtime": "passed",
+    "stage": "passed",
+    "science": "not_assessed",
+    "benchmark": "not_assessed",
+    "release": "not_qualified"
+  },
+  "runs": [
+    {
+      "tool": "bedtools",
+      "run_id": "run-1074",
+      "repository_commit": "f909c78337c345d853aa11a003e9e9e005bc4ff3",
+      "slurm_job_id": "3458053",
+      "status": "passed",
+      "elapsed_seconds": 77,
+      "image_sha256": "e74534c14624fff630e0fc50a8c1f167c847424b9884c6b23a99823734ce664b",
+      "build_evidence_sha256": "949cb23be1e68a98e6cd19a7ff6f6d0a4ecab3a21f9b7b01d06596d2fe4c8259",
+      "evidence_sha256": "91f2d2084a21c760bd2f8f5450e2a5281a339549dfc40ed47a3386cb4421b842",
+      "accounting_sha256": "1d16640ff25d4bbbb07c2c544acbeefc116edc25227a3f540c25e8669439c9cb",
+      "output_sha256": "c46cef7b31b06a833c2dadc785c7b1469804a95c63e9bce1f256ea3a25351973",
+      "output_bytes": 234720
+    }
+  ]
+}

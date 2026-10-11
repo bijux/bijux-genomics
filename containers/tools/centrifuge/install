@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+work_dir="$(mktemp -d)"
+trap 'rm -rf "$work_dir"' EXIT
+archive="$work_dir/centrifuge.tar.gz"
+source_dir="$work_dir/source"
+
+curl --fail --location --proto '=https' --tlsv1.2 --silent --show-error \
+  --output "$archive" \
+  'https://github.com/DaehwanKimLab/centrifuge/archive/92d6e7969afd786ba196b019620453a965a46cdd.tar.gz'
+printf '%s  %s\n' \
+  '43b07cf2adcd8ad8b4b79721db6512cc5d3fe53f80ed306ece65fe468fe021cb' \
+  "$archive" | sha256sum --check --strict
+mkdir -p "$source_dir"
+tar --extract --gzip --file "$archive" --directory "$source_dir" \
+  --strip-components=1
+
+find "$source_dir" -type f \( -name '*.cpp' -o -name '*.h' \) \
+  -exec sed -i 's/[“”]/"/g' {} +
+sed -i 's/-m32//g' "$source_dir/Makefile"
+sed -i 's/-1/(char)-1/g' "$source_dir/alphabet.cpp"
+if [[ -f "$source_dir/version" && ! -f "$source_dir/VERSION" ]]; then
+  mv "$source_dir/version" "$source_dir/VERSION"
+fi
+if [[ "$(uname -m)" == aarch64 ]]; then
+  sed -i 's/-msse2//g; s/-DPOPCNT_CAPABILITY//g' "$source_dir/Makefile"
+  printf '%s\n' \
+    '#pragma once' \
+    '#include <stdint.h>' \
+    'static inline void __cpuid(int32_t, int32_t*, int32_t*, int32_t*, int32_t*) {}' \
+    'static inline void __get_cpuid(unsigned int, unsigned int*, unsigned int*, unsigned int*, unsigned int*) {}' \
+    'static inline void __get_cpuid_count(unsigned int, unsigned int, unsigned int*, unsigned int*, unsigned int*, unsigned int*) {}' \
+    > "$source_dir/third_party/cpuid.h"
+fi
+
+make -C "$source_dir" -j"$(nproc)" CXXFLAGS='-O3'
+make -C "$source_dir" prefix=/opt/centrifuge install
+
+/usr/local/bin/centrifuge --version | grep -Fx 'Centrifuge 1.0.4'
+/usr/local/bin/centrifuge --help >/dev/null

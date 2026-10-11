@@ -1,0 +1,42 @@
+#!/usr/bin/env sh
+set -eu
+
+export MPLCONFIGDIR="${MPLCONFIGDIR:-${TMPDIR:-/tmp}/addeam-matplotlib}"
+mkdir -p "$MPLCONFIGDIR"
+
+case "${1:-}" in
+  --version)
+    printf '%s\n' 'AdDeam 1.0.0'
+    exit 0
+    ;;
+  --help|-h|"")
+    printf '%s\n' \
+      'AdDeam 1.0.0' \
+      'usage: addeam {profile|cluster|bam2prof|diffprof} [arguments]' \
+      '  profile   generate damage profiles from a BAM path list' \
+      '  cluster   cluster generated damage profiles' \
+      '  bam2prof  invoke the pinned native profiling engine' \
+      '  diffprof  invoke the pinned native profile comparator'
+    exit 0
+    ;;
+  profile)
+    shift
+    exec /opt/addeam-venv/bin/python /opt/addeam/addeam-bam2prof.py "$@"
+    ;;
+  cluster)
+    shift
+    exec /opt/addeam-venv/bin/python /opt/addeam/addeam-cluster.py "$@"
+    ;;
+  bam2prof)
+    shift
+    exec /usr/local/bin/bam2prof "$@"
+    ;;
+  diffprof)
+    shift
+    exec /usr/local/bin/diffprof "$@"
+    ;;
+  *)
+    printf 'unsupported AdDeam command: %s\n' "$1" >&2
+    exit 2
+    ;;
+esac

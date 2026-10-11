@@ -12,7 +12,7 @@ Purpose: generated per-tool container contract summary.
 - Tool license record: [containers/licenses/fastx_clipper.license.toml](../../licenses/fastx_clipper.license.toml)
 
 - Version: `0.0.14`
-- License: `NOASSERTION`
+- License: `AGPL-3.0-or-later`
 - Runtime support: `docker-arm64, apptainer`
 - Smoke status: `unknown`
 

@@ -124,7 +124,7 @@ stage_id = "bam.coverage"
 tool_id = "mosdepth"
 execution_mode = "containerized"
 install_kind = "container"
-container_id = "bijuxdna/mosdepth:0.3.10"
+container_id = "bijuxdna/mosdepth:0.3.11"
 command_entrypoint = "mosdepth"
 declaration_origin = "runtime_probe_with_primary_operator_runtime"
 

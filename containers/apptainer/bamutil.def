@@ -2,54 +2,68 @@
 # This container recipe is maintained by Bijux Genomics.
 # Bijux Genomics source code is licensed under Apache-2.0.
 # Copyright (C) 2026 Bijan Mousavi
-# BIJUX_TEMPLATE: v1
-
 # Tool ID: bamutil
-# Version policy: pinned_or_registry_locked
-# Upstream source: see org.opencontainers.image.source label
-# Build date policy: org.opencontainers.image.created set by release pipeline
-# Network source policy: NETWORK_SOURCE_VERIFIED_BY_LOCK
-# Runtime UID policy: RUNTIME_UID_SAFE
-
-# VERSION_SOURCE: containers/versions/versions.toml
+# Version policy: exact upstream tag archives with governed SHA-256 digests
+# Upstream source: https://github.com/statgen/bamUtil/tree/v1.0.15
+# Build date policy: deterministic native build metadata and immutable build evidence
+# Network source policy: build-only access to the locked Ubuntu snapshot and source archives
+# Runtime UID policy: non-root runtime with caller-owned output paths
+# VERSION_SOURCE: containers/contracts/catalog.toml
 Bootstrap: docker
 From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
 
 %labels
     org.opencontainers.image.source https://github.com/statgen/bamUtil
-    org.opencontainers.image.title bamutil
-    org.opencontainers.image.revision unknown
-    org.opencontainers.image.created unknown
-    org.opencontainers.image.licenses GPL-3.0
+    org.opencontainers.image.revision 3ad3980a3a3a3fc35eca3636b7206676c8303ce6
+    org.opencontainers.image.created governed-by-build-evidence
+    org.opencontainers.image.licenses GPL-3.0-or-later
     org.opencontainers.image.version 1.0.15
     org.opencontainers.image.tool bamutil
+    org.opencontainers.image.title bamUtil
+
 %environment
-    export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+    export PATH=/usr/local/bin:/usr/bin:/bin
+    export LANG=C
     export LC_ALL=C
     export TZ=UTC
-    export VERSION_BAMUTIL=1.0.15
+
+%files
+    containers/tools/bamutil/bamutil /usr/local/bin/bamutil
+
 %post
     set -eux
     umask 022
     export DEBIAN_FRONTEND=noninteractive
-    apt-get update
-    apt-get install -y --no-install-recommends samtools
-    cat > /usr/local/bin/bamutil <<'EOS'
-#!/usr/bin/env sh
-set -eu
-case "${1:-}" in
-  --version) echo "${VERSION_BAMUTIL}"; exit 0 ;;
-  --help|-h|"") exec samtools --help ;;
-esac
-exec samtools "$@"
-EOS
+    sed -i 's#http://archive.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubuntu/20260802T000000Z/#g; s#http://security.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubuntu/20260802T000000Z/#g' /etc/apt/sources.list.d/ubuntu.sources
+    apt-get -o Acquire::https::Verify-Peer=false -o Acquire::Check-Valid-Until=false update
+    apt-get -o Acquire::https::Verify-Peer=false install -y --no-install-recommends ca-certificates
+    apt-get -o Acquire::Check-Valid-Until=false update
+    apt-get install -y --no-install-recommends libstdc++6 zlib1g
+    apt-get install -y --no-install-recommends curl g++ make zlib1g-dev
+    curl --fail --location --proto '=https' --tlsv1.2 --output /opt/bamutil.tar.gz https://codeload.github.com/statgen/bamUtil/tar.gz/refs/tags/v1.0.15
+    echo '24ac4bdb81eded6e33f60dba85ec3d32ebdb06d42f75df775c2632bbfbd8cce9  /opt/bamutil.tar.gz' | sha256sum --check --strict
+    curl --fail --location --proto '=https' --tlsv1.2 --output /opt/libstatgen.tar.gz https://codeload.github.com/statgen/libStatGen/tar.gz/refs/tags/v1.0.15
+    echo '075dcd891409c48d76c0c66186c0cc479bc3cd50bba093e7f318e1d1d19961ff  /opt/libstatgen.tar.gz' | sha256sum --check --strict
+    tar --extract --gzip --file /opt/bamutil.tar.gz --directory /opt
+    tar --extract --gzip --file /opt/libstatgen.tar.gz --directory /opt
+    make --directory /opt/bamUtil-1.0.15 --jobs 2 LIB_PATH_GENERAL=/opt/libStatGen-1.0.15 DATE=1970-01-01T00:00:00Z USER=bijux USER_COMPILE_VARS=-D_NO_PHONEHOME
+    install -d -m 0755 /opt/bamutil/bin
+    install -m 0755 /opt/bamUtil-1.0.15/bin/bam /opt/bamutil/bin/bam-native
     chmod 0755 /usr/local/bin/bamutil
+    bamutil --version | grep -Fx 'bamutil 1.0.15'
+    bamutil --help >/dev/null
+    rm -rf /opt/bamutil.tar.gz /opt/libstatgen.tar.gz /opt/bamUtil-1.0.15 /opt/libStatGen-1.0.15
+    apt-get purge -y --auto-remove curl g++ make zlib1g-dev
+    apt-get clean
     rm -rf /var/lib/apt/lists/*
+
 %runscript
-    if [ $# -eq 0 ]; then
-        exec bamutil --help
-    else
-        exec bamutil "$@"
-    fi
+    exec /usr/local/bin/bamutil "$@"
+
+%test
+    bamutil --version | grep -Fx 'bamutil 1.0.15'
+    bamutil --help >/dev/null
+    test -x /opt/bamutil/bin/bam-native
+
 %help
-    bamutil compatibility wrapper image.
+    bamUtil 1.0.15 built from its exact checksummed tag and matching libStatGen release.

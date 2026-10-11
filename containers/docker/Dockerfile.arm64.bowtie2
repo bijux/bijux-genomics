@@ -1,47 +1,46 @@
-# SPDX-License-Identifier: GPL-3.0
+# SPDX-License-Identifier: GPL-3.0-only
 # Copyright (C) 2026 Bijan Mousavi
-#
-# Container definition license: GPL-3.0.
+# Container definition license: GPL-3.0-only.
 # Bijux Genomics source code is licensed under Apache-2.0.
-# VERSION_SOURCE: containers/versions/versions.toml
+# VERSION_SOURCE: containers/contracts/catalog.toml
+FROM ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b AS builder
+ENV DEBIAN_FRONTEND=noninteractive
+RUN sed -i 's#http://archive.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubuntu/20260802T000000Z/#g; s#http://security.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubuntu/20260802T000000Z/#g' /etc/apt/sources.list.d/ubuntu.sources && \
+    apt-get -o Acquire::https::Verify-Peer=false -o Acquire::Check-Valid-Until=false update && \
+    apt-get -o Acquire::https::Verify-Peer=false install -y --no-install-recommends ca-certificates && \
+    apt-get -o Acquire::Check-Valid-Until=false update && \
+    apt-get install -y --no-install-recommends curl unzip
+COPY containers/tools/bowtie2/install /opt/bowtie2-build/install
+COPY containers/tools/bowtie2/bowtie2 /usr/local/bin/bowtie2
+COPY containers/tools/bowtie2/bowtie2-build /usr/local/bin/bowtie2-build
+RUN chmod 0755 /opt/bowtie2-build/install /usr/local/bin/bowtie2 /usr/local/bin/bowtie2-build && \
+    /opt/bowtie2-build/install
+
 FROM ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
-ARG OCI_REVISION=unknown
-ARG OCI_CREATED=unknown
-ARG TOOL_VERSION=unknown
-LABEL org.opencontainers.image.source="https://github.com/bijux/bijux-genomics" \
-      org.opencontainers.image.revision="${OCI_REVISION}" \
+ARG OCI_CREATED=governed-by-build-evidence
+ARG TOOL_VERSION=2.5.4
+LABEL org.opencontainers.image.source="https://github.com/BenLangmead/bowtie2" \
+      org.opencontainers.image.revision="4cf8d526f4b7ec6519a79ed4c6f826caf09e0bba" \
       org.opencontainers.image.created="${OCI_CREATED}" \
-      org.opencontainers.image.licenses="GPL-3.0" \
+      org.opencontainers.image.licenses="GPL-3.0-only" \
       org.opencontainers.image.version="${TOOL_VERSION}"
 LABEL org.opencontainers.image.tool="bowtie2"
-LABEL org.opencontainers.image.title="bowtie2"
+LABEL org.opencontainers.image.title="Bowtie 2"
 LABEL org.opencontainers.image.base.name="ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b"
 LABEL org.opencontainers.image.base.digest="sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b"
-ENV DEBIAN_FRONTEND=noninteractive
-
-ARG VERSION_BOWTIE2=2.5.4
-ENV VERSION_BOWTIE2=${VERSION_BOWTIE2}
-
-# Install dependencies and precompiled Bowtie2 ARM64 binary
+ENV LANG=C LC_ALL=C TZ=UTC PATH=/usr/local/bin:/opt/bowtie2:/usr/bin:/bin
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
-        perl \
-        curl \
-        wget \
-        unzip \
-        ca-certificates \
-        make \
-        gcc && \
-    curl -L https://cpanmin.us | perl - --self-upgrade && \
-    cpanm Sys::Hostname && \
-    wget -q https://github.com/BenLangmead/bowtie2/releases/download/v${VERSION_BOWTIE2}/bowtie2-${VERSION_BOWTIE2}-linux-aarch64.zip -O /tmp/bowtie2.zip && \
-    unzip -q /tmp/bowtie2.zip -d /opt && \
-    cp /opt/bowtie2-${VERSION_BOWTIE2}-linux-aarch64/bowtie2* /usr/local/bin/ && \
-    rm -rf /tmp/bowtie2.zip /opt/bowtie2-${VERSION_BOWTIE2}-linux-aarch64 && \
-    apt-get purge -y curl unzip wget && \
-    apt-get autoremove -y && \
-    rm -rf /var/lib/apt/lists/*
+    apt-get install -y --no-install-recommends libstdc++6 perl python3 zlib1g && \
+    rm -rf /var/lib/apt/lists/* && \
+    useradd --system --uid 65532 --home-dir /work --create-home bijux
+COPY --from=builder /opt/bowtie2 /opt/bowtie2
+COPY containers/tools/bowtie2/bowtie2 /usr/local/bin/bowtie2
+COPY containers/tools/bowtie2/bowtie2-build /usr/local/bin/bowtie2-build
+RUN chmod 0755 /usr/local/bin/bowtie2 /usr/local/bin/bowtie2-build && \
+    bowtie2 --version | grep -Fx 'Bowtie 2 2.5.4' && \
+    bowtie2 --help >/dev/null
 
-WORKDIR /data
+USER 65532:65532
+WORKDIR /work
 ENTRYPOINT ["bowtie2"]
-CMD []
+CMD ["--help"]

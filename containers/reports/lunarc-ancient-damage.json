@@ -2,7 +2,7 @@
   "schema_version": "bijux.container.report_index.v1",
   "report_id": "lunarc-ancient-damage",
   "site": "lunarc",
-  "corpus": "ena-prjeb22390-err2112767-ngsbriggs-input",
+  "corpus": "ena-prjeb22390-err2112767",
   "evidence_root": "/home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation",
   "claims": {
     "runtime": "passed",
@@ -175,6 +175,95 @@
         "c_to_t_denominator": 40628,
         "g_to_a_numerator": 139,
         "g_to_a_denominator": 40794
+      }
+    },
+    {
+      "tool": "samtools",
+      "run_id": "run-1090",
+      "repository_commit": "00f23822e64a47d42396f6c9dc0c567746aa5ba8",
+      "slurm_job_id": "3458076",
+      "status": "failed",
+      "failure_class": "acceptance_contract",
+      "elapsed_seconds": 1,
+      "image_sha256": "5217bae01b27fc1703126d95437df39b05477095d3ff461aee2956f39a24972f",
+      "evidence_sha256": "873433e54a7037001ca4e92c7ec01116004cc443253dc44fdf4c8e88440f9bd9",
+      "accounting_sha256": "cda75d936febb2b9c584847295321a60f950a2577890d33169a32f5111545124"
+    },
+    {
+      "tool": "samtools",
+      "run_id": "run-1092",
+      "repository_commit": "00f23822e64a47d42396f6c9dc0c567746aa5ba8",
+      "slurm_job_id": "3458078",
+      "status": "passed",
+      "elapsed_seconds": 1,
+      "image_sha256": "5217bae01b27fc1703126d95437df39b05477095d3ff461aee2956f39a24972f",
+      "build_evidence_sha256": "9f0b39e8c8b5947f92e4c519d540fe2eb025b469f175c9dbecd518a2052fe0aa0",
+      "evidence_sha256": "ca7e41e707187f0765ad2fc42844300402df22d1882bc3f17ed49bffa15ef538",
+      "accounting_sha256": "21cf427a87ada49e2875be1df2a45b121fc525e2dedd11346a363a06b479c050",
+      "output_sha256": "48ae3c01d4375d4f1cce407b143d7c2dc4d8e9b680ae1085c4e330f4ba644fbc",
+      "output_bytes": 86363583
+    },
+    {
+      "tool": "authenticct",
+      "run_id": "run-1093",
+      "repository_commit": "4b9d91ac251cd2e854ec18f48fbad891b10eddca",
+      "slurm_job_id": "3458079",
+      "status": "passed",
+      "elapsed_seconds": 40,
+      "image_sha256": "0a349f5cd7bebfa719ccaa681b94f7c0b3d1bd292e017a541fb25fd11c14923b",
+      "build_evidence_sha256": "367d7070c8fc3c0d51b45e1148aa4f0d663999bd37a9f362aac46432003b455c",
+      "evidence_sha256": "923cda52b1880a374d09a1493c557ad4bcc3b951a4134fb7d0d3588378ff019c",
+      "accounting_sha256": "6afac77f4c3fe8cbeeaddaeb0116ade42f40553a9cd9b764a1107d7b529de117",
+      "output_sha256": "9b69ca380e01a07f8f6aae103e64ad042618bec826cbf94db3f96123b733eb0f",
+      "output_bytes": 7817,
+      "observations": {
+        "terminal_minus_one_rate": 0.0019827326573637187,
+        "terminal_minus_one_derived": 79,
+        "terminal_minus_one_total": 39844,
+        "terminal_plus_one_rate": 0.003279650170648464,
+        "terminal_plus_one_derived": 123,
+        "terminal_plus_one_total": 37504
+      }
+    },
+    {
+      "tool": "addeam",
+      "run_id": "run-1095",
+      "repository_commit": "555e96c43b87ad12b9eb057d43cca6a1c08ad4d6",
+      "slurm_job_id": "3458116",
+      "status": "failed",
+      "failure_class": "missing_bam_index_bind",
+      "elapsed_seconds": 1,
+      "image_sha256": "ab62b1957bb66c23aaf8cea8b2f8ba6982a67dfda4bc0468fd7242a13a7524fb",
+      "evidence_sha256": "1ede285c4ccbf36447d0341556dac8aee29259f56082114cb8c53b52e77a6ea7",
+      "accounting_sha256": "6ae943f0b32fde9b81e18b58f699d399c8dae43704e091a7dfa32be154eb3e71"
+    },
+    {
+      "tool": "addeam",
+      "run_id": "run-1096",
+      "repository_commit": "555e96c43b87ad12b9eb057d43cca6a1c08ad4d6",
+      "slurm_job_id": "3458117",
+      "status": "passed",
+      "elapsed_seconds": 2,
+      "image_sha256": "ab62b1957bb66c23aaf8cea8b2f8ba6982a67dfda4bc0468fd7242a13a7524fb",
+      "image_size_bytes": 417837056,
+      "build_evidence_sha256": "778aca6cc74a4181a2b975eed6daa78227c0c8bf27c6801919e825c45f91054c",
+      "input_bam_sha256": "1d9ca843614c66209de4618ba69ecfae236731f9999a1daa48622f061127fe87",
+      "input_index_sha256": "ab5d07b513a4a3f421a9a82aff5fc5767d41a7333693b67c9258b40a337276a3",
+      "input_list_sha256": "94a9b50836ee78a922693be8cef0aea8c8523ebb02444ee2af3b1c98657f2a84",
+      "evidence_sha256": "1d0aa5c0976ecdd2535c85ac0c1f9574d3f4e26829298af51d81f11512813d72",
+      "accounting_sha256": "7cf03065f48c889b3b2281f781a15e0d3362199c895e8a0066e99bf67d3bdb4f",
+      "outputs": {
+        "profile_5p_sha256": "765766098e02e70d81ff3d23eccbd1b8097387961532ccabb8267a1260ac925c",
+        "profile_5p_bytes": 540,
+        "profile_3p_sha256": "e8fc4d548e6cd5973ae0ce872bcc20d2fcf2c411881b9767247accd94597002d",
+        "profile_3p_bytes": 560
+      },
+      "observations": {
+        "mapped_records": 244634,
+        "c_to_t_5p": 0.00806452,
+        "g_to_a_3p": 0.00694444,
+        "minimum_mapping_quality": 20,
+        "minimum_read_length": 30
       }
     }
   ]

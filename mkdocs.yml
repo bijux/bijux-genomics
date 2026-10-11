@@ -84,9 +84,14 @@ nav:
       - Explainability: 30-operations/EXPLAINABILITY.md
       - Containers: 30-operations/CONTAINERS.md
       - Container Evidence:
+          - Evidence Index: 30-operations/container-evidence/index.md
           - Ancient DNA Damage: 30-operations/container-evidence/ANCIENT_DAMAGE.md
+          - Amplicon ASV: 30-operations/container-evidence/AMPLICON_ASV.md
+          - BAM Coverage: 30-operations/container-evidence/BAM_COVERAGE.md
+          - Reference Complexity: 30-operations/container-evidence/REFERENCE_COMPLEXITY.md
           - FASTQ to BAM: 30-operations/container-evidence/FASTQ_BAM.md
           - VCF Phasing: 30-operations/container-evidence/VCF_PHASING.md
+          - VCF Quality Control: 30-operations/container-evidence/VCF_QC.md
           - VCF Relatedness: 30-operations/container-evidence/VCF_RELATEDNESS.md
       - Apptainer QA Matrix: 30-operations/APPTAINER_QA_MATRIX.md
       - Security: 30-operations/SECURITY.md

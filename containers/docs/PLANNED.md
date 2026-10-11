@@ -30,7 +30,6 @@ Contracts:
 | `angsd` | `vcf.call_gl`, `vcf.call_pseudohaploid`, `vcf.damage_filter`, `vcf.gl_propagation` | `docker_apptainer` | Low-coverage genotype-likelihood and pseudohaploid path needed for aDNA-oriented calling workflows. | `@bijux-genomics` |
 | `shapeit` | `vcf.phasing` | `apptainer_only` | Alternate phasing lineage for scientific comparability against `beagle`, `shapeit5`, and `eagle`. | `@bijux-genomics` |
 | `ibdseq` | `vcf.ibd` | `apptainer_only` | Alternate IBD segment inference path for cross-method relatedness checks. | `@bijux-genomics` |
-| `ibdhap` | `vcf.ibd` | `docker_apptainer` | Haplotype-oriented IBD analysis path kept planned until wrapper behavior is validated. | `@bijux-genomics` |
 | `ibdne` | `vcf.ibd`, `vcf.demography` | `docker_apptainer` | IBD-derived demographic inference path that depends on stable IBD segment inputs. | `@bijux-genomics` |
 | `glimpse` | `vcf.impute`, `vcf.imputation_metrics` | `docker_apptainer` | Low-coverage imputation baseline needed for genotype-likelihood workflows. | `@bijux-genomics` |
 | `minimac4` | `vcf.impute`, `vcf.imputation_metrics` | `docker_apptainer` | Widely used imputation path that should stay visible until scientific validation is wired. | `@bijux-genomics` |
@@ -51,7 +50,6 @@ For each tool below, promotion from `planned` to `experimental`/`production` req
 | `angsd` | bijux apptainer + docker arm64 | keep status planned until aDNA calling smoke fixtures and scientific acceptance thresholds are committed |
 | `shapeit` | bijux apptainer wrapper | keep apptainer-only wrapper status until phasing fixtures and scientific acceptance thresholds are governed |
 | `ibdseq` | bijux apptainer wrapper | keep apptainer-only wrapper status until IBD fixtures and scientific acceptance thresholds are governed |
-| `ibdhap` | non-bijux apptainer + docker arm64 | confirm wrapper contract and scientific comparability before promotion |
 | `ibdne` | non-bijux apptainer + docker arm64 | confirm wrapper contract and demography-specific acceptance criteria before promotion |
 | `glimpse` | non-bijux apptainer + docker arm64 | add imputation smoke fixtures and acceptance thresholds before promotion |
 | `minimac4` | non-bijux apptainer + docker arm64 | add imputation smoke fixtures and acceptance thresholds before promotion |

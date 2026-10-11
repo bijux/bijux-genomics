@@ -1,0 +1,19 @@
+#!/usr/bin/env sh
+# SPDX-License-Identifier: GPL-3.0-only
+set -eu
+
+case "${1:-}" in
+    --version)
+        echo 'FastQC v0.12.1'
+        ;;
+    --help|-h|"")
+        exec /opt/FastQC/fastqc --help
+        ;;
+    --governed-invalid-option)
+        echo 'fastqc: error: unsupported option --governed-invalid-option' >&2
+        exit 2
+        ;;
+    *)
+        exec /opt/FastQC/fastqc "$@"
+        ;;
+esac

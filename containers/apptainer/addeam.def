@@ -2,75 +2,60 @@
 # This container recipe is maintained by Bijux Genomics.
 # Bijux Genomics source code is licensed under Apache-2.0.
 # Copyright (C) 2026 Bijan Mousavi
-# BIJUX_TEMPLATE: v1
-
 # Tool ID: addeam
-# Version policy: pinned_or_registry_locked
-# Upstream source: see org.opencontainers.image.source label
-# Build date policy: org.opencontainers.image.created set by release pipeline
-# Network source policy: NETWORK_SOURCE_VERIFIED_BY_LOCK
-# Runtime UID policy: RUNTIME_UID_SAFE
+# Version policy: immutable source graph and hashed Python lock
+# Upstream source: https://github.com/LouisPwr/AdDeam
+# Build date policy: captured by immutable build evidence
+# Network source policy: build-only access to locked snapshots and source archives
+# NETWORK_SOURCE_VERIFIED_BY_LOCK
+# Runtime UID policy: non-root runtime with caller-owned output paths
+# VERSION_SOURCE: containers/contracts/catalog.toml
 
-# VERSION_SOURCE: containers/versions/versions.toml
 Bootstrap: docker
 From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
 
 %labels
-    VERSION unknown
-    org.opencontainers.image.source https://github.com/bijux/bijux-genomics
-    org.opencontainers.image.revision unknown
-    org.opencontainers.image.created unknown
-    org.opencontainers.image.licenses GPL-3.0
+    org.opencontainers.image.source https://github.com/LouisPwr/AdDeam
+    org.opencontainers.image.revision 8122b9a99d560ef8ea8abdd5b1aacccd00ea0cdd
+    org.opencontainers.image.created governed-by-build-evidence
+    org.opencontainers.image.licenses GPL-3.0-only
     org.opencontainers.image.version 1.0.0
     org.opencontainers.image.tool addeam
-    org.opencontainers.image.title addeam
+    org.opencontainers.image.title AdDeam
+
+%files
+    containers/tools/addeam/requirements.lock /opt/addeam-build/requirements.lock
+    containers/tools/addeam/bam2prof-offline-build.patch /opt/addeam-build/bam2prof-offline-build.patch
+    containers/tools/addeam/profile-execution.patch /opt/addeam-build/profile-execution.patch
+    containers/tools/addeam/install /opt/addeam-build/install
+    containers/tools/addeam/addeam /usr/local/bin/addeam
 
 %environment
-    export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+    export PATH=/opt/addeam-venv/bin:/usr/local/bin:/usr/bin:/bin
+    export LANG=C
     export LC_ALL=C
     export TZ=UTC
-    DEBIAN_FRONTEND=noninteractive
+    export PYTHONNOUSERSITE=1
 
 %post
     set -eux
     umask 022
     export DEBIAN_FRONTEND=noninteractive
-    apt-get update -qq && apt-get install -y --no-install-recommends \
-        git python3 python3-pip ca-certificates && \
-        rm -rf /var/lib/apt/lists/*
+    sed -i 's#http://archive.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubuntu/20260802T000000Z/#g; s#http://security.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubuntu/20260802T000000Z/#g' /etc/apt/sources.list.d/ubuntu.sources
+    apt-get -o Acquire::https::Verify-Peer=false -o Acquire::Check-Valid-Until=false update
+    apt-get -o Acquire::https::Verify-Peer=false install -y --no-install-recommends ca-certificates
+    apt-get -o Acquire::Check-Valid-Until=false update
+    apt-get install -y --no-install-recommends build-essential curl libbz2-dev libcurl4-openssl-dev libgsl-dev liblzma-dev libncurses-dev libssl-dev patch python3 python3-pip python3-venv zlib1g-dev
+    /opt/addeam-build/install
+    rm -rf /var/lib/apt/lists/*
 
-    git clone --depth 1 https://github.com/LouisPwr/AdDeam.git /opt/AdDeam
-    cd /opt/AdDeam
-    git checkout f1dd2a5e530975cab1df48e47a1d51ea76bf183a
-    cat > /usr/local/bin/addeam <<'SH'
-#!/bin/sh
-set -eu
-if [ "${1:-}" = "--version" ]; then
-  echo "1.0.0"
-  exit 0
-fi
-entry=""
-for candidate in \
-  /opt/AdDeam/AdDeam.py \
-  /opt/AdDeam/addeam.py \
-  /opt/AdDeam/src/AdDeam.py \
-  /opt/AdDeam/src/addeam.py
-do
-  if [ -f "$candidate" ]; then
-    entry="$candidate"
-    break
-  fi
-done
-if [ -z "$entry" ]; then
-  entry="$(find /opt/AdDeam -maxdepth 3 -type f \( -name '*deam*.py' -o -name '*Deam*.py' \) | head -n 1 || true)"
-fi
-[ -n "$entry" ] || { echo "AdDeam entry script not found" >&2; exit 127; }
-exec python3 "$entry" "$@"
-SH
-    chmod +x /usr/local/bin/addeam
 %runscript
     exec /usr/local/bin/addeam "$@"
 
+%test
+    addeam --version | grep -Fx 'AdDeam 1.0.0'
+    addeam --help >/dev/null
+    if addeam --governed-invalid-command >/dev/null 2>&1; then exit 1; fi
+
 %help
-    Apptainer image for AdDeam.
-    Default runscript forwards arguments to addeam.
+    AdDeam 1.0.0 with its exact native source graph and hashed Python dependencies.

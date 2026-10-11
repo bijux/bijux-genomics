@@ -1,0 +1,90 @@
+{
+  "schema_version": "bijux.container.report_index.v1",
+  "report_id": "lunarc-amplicon-asv",
+  "site": "lunarc",
+  "repository_commit": "0402016c18e5c932e6af6338094bf250cd3ba97b",
+  "evidence_root": "/home/bijan/lu2024-12-24/Dardel/STUDY/results/container-validation",
+  "claims": {
+    "runtime": "passed",
+    "stage": "passed",
+    "science": "not_assessed",
+    "benchmark": "not_assessed",
+    "release": "not_qualified"
+  },
+  "image": {
+    "tool": "dada2",
+    "version": "1.30.0",
+    "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/containers/apptainer/dada2-1.30.0-linux-amd64-912e10759d87.sif",
+    "sha256": "912e10759d87d3f64492b39db9c06f14af8504235f69ac3a92dafe76a2fd5114",
+    "size_bytes": 261373952,
+    "build_evidence_sha256": "e6fb22b9f7852073bfdf70366d6472e6b903f742b646709b81495acbc8d5ecae",
+    "inspection_sha256": "066fcd9d4c3138495d82043ba731c777834e23197e8cab478de3c402f56304de",
+    "build_log_sha256": "89fe94f65f04440fd21bff7c11a1b9286c130ea38e2102e81aad045b7f84db73"
+  },
+  "runs": [
+    {
+      "run_id": "run-1058",
+      "slurm_job_id": "3457911",
+      "status": "passed",
+      "layout": "single",
+      "corpus": "ena-prjdb4000-drr037766",
+      "sample": "DRR037766",
+      "elapsed_seconds": 21,
+      "reads_in": 16337,
+      "reads_filtered": 16327,
+      "nonchimeric_reads": 15594,
+      "asv_count": 54,
+      "evidence_sha256": "f3e588c6043f9d2c2fe266a8e1fc8d315071553c1e3cf590b0652d220974887c",
+      "accounting_sha256": "2f5be0d2a6e82383e850d272dbf866e513a6973d39c287d5bb679ad8a812f004",
+      "asv_table_sha256": "e37319e4ae3c2b19dba49511fea6bcbdb4b1f503f2e9a06b97af3b8573a2206a",
+      "representative_sequences_sha256": "841cdb725f7b9c9725c93321bb570ded495ab64c2a7c78d721e9516d1e9751b5"
+    },
+    {
+      "run_id": "run-1060",
+      "slurm_job_id": "3457916",
+      "status": "passed",
+      "layout": "paired",
+      "corpus": "mothur-miseq-sop-f3d0",
+      "corpus_catalog_sha256": "2b10bbac4d669566109c798d52d6946d352185379a336544ba7b32e9a8aff9b0",
+      "sample": "F3D0",
+      "elapsed_seconds": 23,
+      "reads_in": 7793,
+      "reads_filtered": 5592,
+      "nonchimeric_reads": 4741,
+      "asv_count": 85,
+      "evidence_sha256": "ced05ecf42babce8845f32688bc974ef51df2b5638ead1e8c05064db341923f1",
+      "accounting_sha256": "91d791400306c7835bef5f5e4cbf803100137807200d89f07024cfaeeec60049",
+      "asv_table_sha256": "df35c9193bb7e296d6d38b84a1c635b4f1bcc5aca63a3547f7d94f1a56f62e7f",
+      "representative_sequences_sha256": "f135ef8e136b7903f310f6a20fc2d2cc3a4fe280e364003eb55f4e431d600884",
+      "taxonomy_ready_fasta_sha256": "c0df52cde5d7f2e0a22bad230bf46cf6313acf9dfc71a7465ad295da4a5b2975",
+      "taxonomy_ready_fastq_sha256": "dc8b02bf2d30565f05d6f68b91d8b92d538cf07fbaa1f08421edea05bfd63a4f"
+    }
+  ],
+  "preserved_failures": [
+    {
+      "run_id": "run-1056",
+      "slurm_job_id": "3457890",
+      "classification": "container_runtime_dependency",
+      "evidence_sha256": "9752f5e1b2ba7ab9b365de0b4018b842e83b1128acc2dd765e26acdfbf0e6f63",
+      "accounting_sha256": "43b903a066c3974144cda3db2dcb30eceeba37bb938a7ff2e62a99240d6de349"
+    },
+    {
+      "run_id": "run-1057",
+      "slurm_job_id": "3457889",
+      "classification": "container_runtime_dependency",
+      "evidence_sha256": "e9c3f004cda4450567c2caf223d1492a695b63296fd4358846c2ed36468e4483",
+      "accounting_sha256": "b2db6b45ee344233eae717501ce289c89bbfc570a6c8488bad7e463de71da1e5"
+    },
+    {
+      "run_id": "run-1059",
+      "slurm_job_id": "3457912",
+      "classification": "corpus_method_incompatibility_no_read_overlap",
+      "evidence_sha256": "8cf06b0b6c779a5c9683f74a1b0567f3ca818c3d9ba4dfb1782c7e446f421834",
+      "accounting_sha256": "7c7ab88b16324ef535265f03f40427ffca09614256261041918757eb3531cddb"
+    }
+  ],
+  "science_boundary": {
+    "missing_scope": "mock-community truth, taxonomy references, multi-sample inference, and predefined accuracy criteria",
+    "prohibited_claim": "the passing runs do not establish taxonomy accuracy, ecological interpretation, or benchmark superiority"
+  }
+}

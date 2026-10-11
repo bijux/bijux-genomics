@@ -2,77 +2,60 @@
 # This container recipe is maintained by Bijux Genomics.
 # Bijux Genomics source code is licensed under Apache-2.0.
 # Copyright (C) 2026 Bijan Mousavi
-# BIJUX_TEMPLATE: v1
-
 # Tool ID: bowtie2
-# Version policy: pinned_or_registry_locked
-# Upstream source: see org.opencontainers.image.source label
-# Build date policy: org.opencontainers.image.created set by release pipeline
-# Network source policy: NETWORK_SOURCE_VERIFIED_BY_LOCK
-# Runtime UID policy: RUNTIME_UID_SAFE
+# Version policy: checksummed Bowtie 2 2.5.4 release artifact
+# Upstream source: https://github.com/BenLangmead/bowtie2
+# Build date policy: captured by immutable build evidence
+# Network source policy: build-only access to locked release artifacts
+# NETWORK_SOURCE_VERIFIED_BY_LOCK
+# Runtime UID policy: non-root runtime with caller-owned output paths
+# VERSION_SOURCE: containers/contracts/catalog.toml
 
-# VERSION_SOURCE: containers/versions/versions.toml
 Bootstrap: docker
 From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
 
 %labels
-    MAINTAINER Bijan Mousavi <bijan@bijux.io>
-    VERSION Bowtie2-v2.5.4
-
-    org.opencontainers.image.source https://github.com/bijux/bijux-genomics
-    org.opencontainers.image.revision unknown
-    org.opencontainers.image.created unknown
-    org.opencontainers.image.licenses GPL-3.0
+    org.opencontainers.image.source https://github.com/BenLangmead/bowtie2
+    org.opencontainers.image.revision 4cf8d526f4b7ec6519a79ed4c6f826caf09e0bba
+    org.opencontainers.image.created governed-by-build-evidence
+    org.opencontainers.image.licenses GPL-3.0-only
     org.opencontainers.image.version 2.5.4
     org.opencontainers.image.tool bowtie2
-    org.opencontainers.image.title bowtie2
+    org.opencontainers.image.title Bowtie_2
+
+%files
+    containers/tools/bowtie2/install /opt/bowtie2-build/install
+    containers/tools/bowtie2/bowtie2 /usr/local/bin/bowtie2
+    containers/tools/bowtie2/bowtie2-build /usr/local/bin/bowtie2-build
+
 %environment
-    export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+    export PATH=/usr/local/bin:/opt/bowtie2:/usr/bin:/bin
+    export LANG=C
     export LC_ALL=C
     export TZ=UTC
-    DEBIAN_FRONTEND=noninteractive
 
 %post
     set -eux
     umask 022
     export DEBIAN_FRONTEND=noninteractive
-
-    apt-get update && \
-    apt-get install -y --no-install-recommends \
-        perl \
-        curl \
-        wget \
-        unzip \
-        ca-certificates \
-        make \
-        gcc && \
-
-    curl -L https://cpanmin.us | perl - --self-upgrade && \
-    cpanm Sys::Hostname && \
-
-    VERSION=2.5.4 && \
-    ARCH=$(uname -m) && \
-    if [ "$ARCH" = "x86_64" ]; then \
-        SUFFIX=linux-x86_64; \
-    elif [ "$ARCH" = "aarch64" ]; then \
-        SUFFIX=linux-aarch64; \
-    else \
-        echo "Unsupported architecture: $ARCH" >&2; \
-        exit 1; \
-    fi && \
-    wget -q https://github.com/BenLangmead/bowtie2/releases/download/v${VERSION}/bowtie2-${VERSION}-${SUFFIX}.zip -O /tmp/bowtie2.zip && \
-    unzip -q /tmp/bowtie2.zip -d /opt && \
-    cp /opt/bowtie2-${VERSION}-${SUFFIX}/bowtie2* /usr/local/bin/ && \
-    rm -rf /tmp/bowtie2.zip /opt/bowtie2-${VERSION}-${SUFFIX} && \
-
+    sed -i 's#http://archive.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubuntu/20260802T000000Z/#g; s#http://security.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubuntu/20260802T000000Z/#g' /etc/apt/sources.list.d/ubuntu.sources
+    apt-get -o Acquire::https::Verify-Peer=false -o Acquire::Check-Valid-Until=false update
+    apt-get -o Acquire::https::Verify-Peer=false install -y --no-install-recommends ca-certificates
+    apt-get -o Acquire::Check-Valid-Until=false update
+    apt-get install -y --no-install-recommends curl libstdc++6 perl python3 unzip zlib1g
+    /opt/bowtie2-build/install
+    apt-get purge -y curl unzip
+    apt-get autoremove -y
+    apt-get clean
     rm -rf /var/lib/apt/lists/*
+
 %runscript
-    if [ $# -eq 0 ]; then
-        exec /usr/local/bin/bowtie2 --help
-    else
-        exec /usr/local/bin/bowtie2 "$@"
-    fi
+    exec /usr/local/bin/bowtie2 "$@"
+
+%test
+    bowtie2 --version | grep -Fx 'Bowtie 2 2.5.4'
+    bowtie2 --help >/dev/null
+    if bowtie2 --governed-invalid-option >/dev/null 2>&1; then exit 1; fi
 
 %help
-    This Apptainer image provides Bowtie2 version 2.5.4 with precompiled binaries matching the build host architecture (x86_64 or aarch64).
-    Run with arguments to execute bowtie2, or without arguments to display detailed help.
+    Bowtie 2 2.5.4 from a checksummed architecture-specific upstream release.

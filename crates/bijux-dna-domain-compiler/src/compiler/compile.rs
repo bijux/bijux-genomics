@@ -1,12 +1,13 @@
 use super::bundle::{build_domain_registry_bundle, write_domain_registry_bundle};
 use super::loading::{
     build_images_toml, build_stages_toml, build_tool_registries_toml, collect_domain_data,
-    collect_vcf_image_versions,
+    collect_vcf_image_versions, load_container_catalog,
 };
 use super::vcf_emit::write_vcf_generated_views;
 use super::{
-    bail, domain_content_hash, ensure_dir, ensure_no_placeholders_in_active_config,
-    git_head_commit, write_string, CompileOptions, Context, Path, Result, DEFAULT_COMPILE_SCOPE,
+    bail, ensure_dir, ensure_no_placeholders_in_active_config, generation_content_hash,
+    git_head_commit, normalize_generated_text, write_string, CompileOptions, Context, Path, Result,
+    DEFAULT_COMPILE_SCOPE,
 };
 
 /// Compile generated config views from authored domain sources.
@@ -25,6 +26,7 @@ pub fn compile_domain_configs(options: &CompileOptions) -> Result<()> {
         stage_statuses,
         stage_output_kinds,
     ) = collect_domain_data(&options.domain_dir, &options.scope)?;
+    let container_catalog = load_container_catalog(&options.domain_dir)?;
     if options.scope == DEFAULT_COMPILE_SCOPE {
         if tools.keys().any(|tool_id| tool_id.starts_with("vcf.")) {
             bail!("pre_hpc_pre_vcf scope must not include VCF tools in generated configs");
@@ -36,7 +38,12 @@ pub fn compile_domain_configs(options: &CompileOptions) -> Result<()> {
     ensure_dir(&options.configs_dir)
         .with_context(|| format!("create {}", options.configs_dir.display()))?;
 
-    let source_commit = domain_content_hash(&options.domain_dir)
+    let catalog_path = options
+        .domain_dir
+        .parent()
+        .unwrap_or(&options.domain_dir)
+        .join("containers/contracts/catalog.toml");
+    let source_commit = generation_content_hash(&options.domain_dir, &catalog_path)
         .ok()
         .or_else(|| git_head_commit(&options.domain_dir))
         .unwrap_or_else(|| "unknown".to_string());
@@ -62,31 +69,39 @@ pub fn compile_domain_configs(options: &CompileOptions) -> Result<()> {
         &stage_planned,
         &stage_defaults,
         &stage_default_rationale,
-        &options.domain_dir,
+        &container_catalog,
         &source_commit,
-    );
-    ensure_no_placeholders_in_active_config("tool_registry.toml", &registries.production_registry)?;
+    )?;
+    let production_registry = normalize_generated_text(&registries.production_registry);
+    let experimental_registry = normalize_generated_text(&registries.experimental_registry);
+    let required_tools = normalize_generated_text(&registries.required_tools);
+    ensure_no_placeholders_in_active_config("tool_registry.toml", &production_registry)?;
     ensure_no_placeholders_in_active_config(
         "tool_registry_experimental.toml",
-        &registries.experimental_registry,
+        &experimental_registry,
     )?;
-    ensure_no_placeholders_in_active_config("required_tools.toml", &registries.required_tools)?;
-    write_string(&tool_registry_path, &registries.production_registry)
+    ensure_no_placeholders_in_active_config("required_tools.toml", &required_tools)?;
+    write_string(&tool_registry_path, &production_registry)
         .with_context(|| format!("write {}", tool_registry_path.display()))?;
-    write_string(&experimental_registry_path, &registries.experimental_registry)
+    write_string(&experimental_registry_path, &experimental_registry)
         .with_context(|| format!("write {}", experimental_registry_path.display()))?;
-    write_string(&required_tools_path, &registries.required_tools)
+    write_string(&required_tools_path, &required_tools)
         .with_context(|| format!("write {}", required_tools_path.display()))?;
 
     let images_path = ci_tools_dir.join("images.toml");
     let vcf_image_versions = collect_vcf_image_versions(&options.domain_dir)?;
-    let images_toml = build_images_toml(&tools, &vcf_image_versions, &source_commit);
+    let images_toml = normalize_generated_text(&build_images_toml(
+        &tools,
+        &vcf_image_versions,
+        &container_catalog,
+        &source_commit,
+    ));
     ensure_no_placeholders_in_active_config("images.toml", &images_toml)?;
     write_string(&images_path, &images_toml)
         .with_context(|| format!("write {}", images_path.display()))?;
 
     let stages_path = ci_stages_dir.join("stages.toml");
-    let stages_toml = build_stages_toml(
+    let stages_toml = normalize_generated_text(&build_stages_toml(
         &tools,
         &stage_to_tools,
         &stage_statuses,
@@ -94,7 +109,7 @@ pub fn compile_domain_configs(options: &CompileOptions) -> Result<()> {
         &registries.production_tool_ids,
         &options.domain_dir,
         &source_commit,
-    );
+    ));
     ensure_no_placeholders_in_active_config("stages.toml", &stages_toml)?;
     write_string(&stages_path, &stages_toml)
         .with_context(|| format!("write {}", stages_path.display()))?;
@@ -103,6 +118,7 @@ pub fn compile_domain_configs(options: &CompileOptions) -> Result<()> {
         &options.domain_dir,
         &ci_registry_dir,
         &ci_stages_dir,
+        &container_catalog,
         &source_commit,
     )?;
     let registry_bundle = build_domain_registry_bundle(&options.domain_dir, &source_commit)?;

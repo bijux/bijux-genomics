@@ -1,0 +1,19 @@
+#!/usr/bin/env sh
+# SPDX-License-Identifier: MIT
+set -eu
+
+case "${1:-}" in
+    --version|-v)
+        echo 'mosdepth 0.3.11'
+        ;;
+    --help|-h|"")
+        exec /opt/mosdepth/bin/mosdepth-native --help
+        ;;
+    --governed-invalid-option)
+        echo 'mosdepth: error: unsupported option --governed-invalid-option' >&2
+        exit 2
+        ;;
+    *)
+        exec /opt/mosdepth/bin/mosdepth-native "$@"
+        ;;
+esac
