@@ -92,9 +92,25 @@ fn bench_readiness_stage_tool_containers_writes_governed_toml_file() {
             && row.get("command_entrypoint").and_then(toml::Value::as_str) == Some("yleaf")
             && row.get("container_id").and_then(toml::Value::as_str) == Some("bijuxdna/yleaf")
     }));
-    assert!(rows.iter().all(|row| {
-        !matches!(row.get("tool_id").and_then(toml::Value::as_str), Some("angsd" | "ngsbriggs"))
-    }));
+    let external_artifact_rows = rows
+        .iter()
+        .filter(|row| row.get("execution_mode").and_then(toml::Value::as_str) == Some("external"))
+        .collect::<Vec<_>>();
+    assert_eq!(external_artifact_rows.len(), 4);
+    for (stage_id, tool_id) in [
+        ("bam.damage", "ngsbriggs"),
+        ("bam.kinship", "angsd"),
+        ("bam.sex", "angsd"),
+        ("fastq.remove_duplicates", "fastuniq"),
+    ] {
+        let expected_container_id = format!("external-artifact://{tool_id}");
+        assert!(external_artifact_rows.iter().any(|row| {
+            row.get("stage_id").and_then(toml::Value::as_str) == Some(stage_id)
+                && row.get("tool_id").and_then(toml::Value::as_str) == Some(tool_id)
+                && row.get("container_id").and_then(toml::Value::as_str)
+                    == Some(expected_container_id.as_str())
+        }));
+    }
     assert!(rows.iter().any(|row| {
         row.get("stage_id").and_then(toml::Value::as_str) == Some("bam.kinship")
             && row.get("tool_id").and_then(toml::Value::as_str) == Some("king")
@@ -234,7 +250,7 @@ fn bench_readiness_stage_tool_containers_writes_governed_toml_file() {
     }));
     for (tool_id, command_entrypoint, container_id) in [
         ("bedtools", "bedtools", "bijuxdna/bedtools:2.31.1"),
-        ("mosdepth", "mosdepth", "bijuxdna/mosdepth:0.3.10"),
+        ("mosdepth", "mosdepth", "bijuxdna/mosdepth:0.3.11"),
         ("samtools", "samtools", "bijuxdna/samtools:1.21"),
     ] {
         assert!(rows.iter().any(|row| {
@@ -402,16 +418,14 @@ fn bench_readiness_stage_tool_containers_writes_governed_toml_file() {
                     "bijuxdna/prinseq@sha256:7216ffecd7913edaea33ec76b3775ab0cb0d60064f31e96c63e043d578a3f971"
                 )
     }));
-    for tool_id in ["clumpify", "fastuniq"] {
-        assert!(rows.iter().any(|row| {
-            row.get("stage_id").and_then(toml::Value::as_str) == Some("fastq.remove_duplicates")
-                && row.get("tool_id").and_then(toml::Value::as_str) == Some(tool_id)
-                && row.get("execution_mode").and_then(toml::Value::as_str) == Some("containerized")
-                && row.get("command_entrypoint").and_then(toml::Value::as_str) == Some("bash")
-                && row
-                    .get("container_id")
-                    .and_then(toml::Value::as_str)
-                    .is_some_and(|value| value.starts_with(&format!("bijuxdna/{tool_id}@sha256:")))
-        }));
-    }
+    assert!(rows.iter().any(|row| {
+        row.get("stage_id").and_then(toml::Value::as_str) == Some("fastq.remove_duplicates")
+            && row.get("tool_id").and_then(toml::Value::as_str) == Some("clumpify")
+            && row.get("execution_mode").and_then(toml::Value::as_str) == Some("containerized")
+            && row.get("command_entrypoint").and_then(toml::Value::as_str) == Some("bash")
+            && row
+                .get("container_id")
+                .and_then(toml::Value::as_str)
+                .is_some_and(|value| value.starts_with("bijuxdna/clumpify@sha256:"))
+    }));
 }

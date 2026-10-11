@@ -10,7 +10,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_BAM_COMMAND_ADAPTER_COVERAGE_PATH: &str =
-    "benchmarks/readiness/bam-command-adapter-coverage.tsv";
+    "artifacts/benchmark-smoke/readiness/bam/bam-command-adapter-coverage.tsv";
 const BAM_COMMAND_ADAPTER_COVERAGE_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.bam_command_adapter_coverage.v1";
 
@@ -307,9 +307,16 @@ mod tests {
         assert_eq!(report.benchmark_ready_row_count, report.row_count);
         assert_eq!(report.benchmark_ready_adapter_covered_row_count, report.row_count);
         assert_eq!(report.benchmark_ready_adapter_missing_row_count, 0);
-        for unsupported_tool_id in ["angsd", "ngsbriggs"] {
-            assert!(report.rows.iter().all(|row| row.tool_id != unsupported_tool_id));
-        }
+        assert!(report.rows.iter().any(|row| {
+            row.tool_id == "angsd"
+                && row.stage_id == "bam.kinship"
+                && super::benchmark_status_label(row.benchmark_status) == "benchmark_ready"
+        }));
+        assert!(report.rows.iter().any(|row| {
+            row.tool_id == "ngsbriggs"
+                && row.stage_id == "bam.damage"
+                && super::benchmark_status_label(row.benchmark_status) == "benchmark_ready"
+        }));
         assert!(report.readiness_gap_counts.get("parser").is_none());
         assert!(
             report.readiness_gap_counts.get("support").is_none(),

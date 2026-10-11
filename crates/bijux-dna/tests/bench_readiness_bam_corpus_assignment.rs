@@ -34,7 +34,7 @@ fn bench_readiness_bam_corpus_assignment_prints_governed_output_path() {
     );
     assert_eq!(
         String::from_utf8_lossy(&output.stdout).trim(),
-        "benchmarks/readiness/bam-corpus-assignment.tsv"
+        "artifacts/benchmark-smoke/readiness/bam/bam-corpus-assignment.tsv"
     );
 }
 
@@ -75,9 +75,6 @@ fn bench_readiness_bam_corpus_assignment_json_reports_governed_stage_contracts()
         payload.get("row_count").and_then(Value::as_u64),
         Some(u64::try_from(rows.len()).expect("row count fits u64"))
     );
-    assert!(rows.iter().all(|row| {
-        !matches!(row.get("tool_id").and_then(Value::as_str), Some("angsd" | "ngsbriggs"))
-    }));
     let find_row = |tool_id: &str, stage_id: &str| {
         rows.iter()
             .find(|row| {
@@ -86,6 +83,15 @@ fn bench_readiness_bam_corpus_assignment_json_reports_governed_stage_contracts()
             })
             .unwrap_or_else(|| panic!("missing {stage_id} / {tool_id} row"))
     };
+
+    for (tool_id, stage_id, fixture_id) in [
+        ("angsd", "bam.kinship", "corpus-01-kinship-mini"),
+        ("ngsbriggs", "bam.damage", "corpus-01-adna-damage-mini"),
+    ] {
+        let row = find_row(tool_id, stage_id);
+        assert_eq!(row.get("benchmark_status").and_then(Value::as_str), Some("benchmark_ready"));
+        assert_eq!(row.get("fixture_id").and_then(Value::as_str), Some(fixture_id));
+    }
 
     let authenticity = find_row("authenticct", "bam.authenticity");
     assert_eq!(authenticity.get("sample_id").and_then(Value::as_str), Some("adna_damage_non_udg"));

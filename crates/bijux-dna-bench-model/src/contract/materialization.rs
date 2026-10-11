@@ -7,18 +7,125 @@ use chrono::{DateTime, FixedOffset};
 
 use crate::diagnostics::BenchError;
 use crate::model::{
-    CorpusAcquisitionFile, CorpusAcquisitionLayout, CorpusAcquisitionPlan, GovernedDataCatalog,
-    GovernedDataCatalogFile,
+    BenchmarkCorpusClass, CorpusAcquisitionFile, CorpusAcquisitionLayout, CorpusAcquisitionPlan,
+    CorpusSourcePolicy, FastqCorpusSourceSpec, GovernedDataCatalog, GovernedDataCatalogDocument,
+    GovernedDataCatalogFile, GovernedPreservedDataCatalog,
 };
 
-use super::{CORPUS_ACQUISITION_SCHEMA_V1, GOVERNED_DATA_CATALOG_SCHEMA_V1};
+use super::{
+    CORPUS_ACQUISITION_SCHEMA_V2, FASTQ_CORPUS_SOURCE_SCHEMA_V1, GOVERNED_DATA_CATALOG_SCHEMA_V2,
+};
+
+/// Validate a production FASTQ source declaration before archive resolution or acquisition.
+///
+/// # Errors
+/// Returns an error when identity, production class, access, truth, projection, or sample closure
+/// is incomplete or internally inconsistent.
+pub fn validate_fastq_corpus_source_spec(spec: &FastqCorpusSourceSpec) -> Result<(), BenchError> {
+    if spec.schema_version != FASTQ_CORPUS_SOURCE_SCHEMA_V1 {
+        return Err(invalid("FASTQ corpus source schema mismatch"));
+    }
+    validate_identifier(&spec.corpus_id, "corpus")?;
+    validate_identifier(&spec.portfolio_id, "portfolio")?;
+    if !matches!(
+        spec.policy.class,
+        BenchmarkCorpusClass::ProductionReal | BenchmarkCorpusClass::QualificationReal
+    ) {
+        return Err(invalid("FASTQ corpus source class is not publishable real data"));
+    }
+    for (value, label) in [
+        (&spec.species, "species"),
+        (&spec.description, "description"),
+        (&spec.source_authority, "source authority"),
+        (&spec.policy.access_classification, "access classification"),
+        (&spec.policy.redistribution_classification, "redistribution classification"),
+        (&spec.policy.attribution, "attribution"),
+        (&spec.policy.projection_basis, "projection basis"),
+        (&spec.policy.truth_strategy, "truth strategy"),
+    ] {
+        validate_nonempty(value, label)?;
+    }
+    for (value, label) in [
+        (spec.species_id.as_deref(), "species identifier"),
+        (spec.preferred_root.as_deref(), "preferred root"),
+    ] {
+        if let Some(value) = value {
+            validate_nonempty(value, label)?;
+        }
+    }
+    validate_https(&spec.policy.access_terms_url, "access terms")?;
+    if spec.policy.projected_storage_bytes == 0 || spec.policy.projected_cpu_hours == 0 {
+        return Err(invalid("FASTQ corpus storage and compute projections must be positive"));
+    }
+    validate_nonempty_list(&spec.policy.truth_roles, "truth role")?;
+    validate_nonempty_list(&spec.policy.known_limitations, "known limitation")?;
+    if spec.samples.is_empty() || spec.samples.len() != spec.target_total {
+        return Err(invalid("FASTQ corpus target total disagrees with samples"));
+    }
+    let cohort_targets = [
+        spec.target_ancient_se,
+        spec.target_ancient_pe,
+        spec.target_modern_se,
+        spec.target_modern_pe,
+    ];
+    if cohort_targets.iter().any(Option::is_some)
+        && (cohort_targets.iter().any(Option::is_none)
+            || cohort_targets.into_iter().flatten().sum::<usize>() != spec.target_total)
+    {
+        return Err(invalid("FASTQ corpus cohort targets do not close over target total"));
+    }
+    let mut accessions = BTreeSet::new();
+    for sample in &spec.samples {
+        if !accessions.insert(sample.accession.as_str()) {
+            return Err(invalid("FASTQ corpus source repeats a run accession"));
+        }
+        for (value, label) in [
+            (&sample.accession, "run accession"),
+            (&sample.study_accession, "study accession"),
+            (&sample.era, "era"),
+            (&sample.size_band, "size band"),
+            (&sample.reason, "selection reason"),
+        ] {
+            validate_nonempty(value, label)?;
+        }
+        if !matches!(sample.era.as_str(), "ancient" | "modern") {
+            return Err(invalid("FASTQ corpus sample era is unsupported"));
+        }
+    }
+    Ok(())
+}
+
+pub(super) fn validate_source_policy(policy: &CorpusSourcePolicy) -> Result<(), BenchError> {
+    if !matches!(
+        policy.class,
+        BenchmarkCorpusClass::ProductionReal | BenchmarkCorpusClass::QualificationReal
+    ) {
+        return Err(invalid("corpus source policy class is not publishable real data"));
+    }
+    for (value, label) in [
+        (&policy.access_classification, "access classification"),
+        (&policy.redistribution_classification, "redistribution classification"),
+        (&policy.attribution, "attribution"),
+        (&policy.projection_basis, "projection basis"),
+        (&policy.truth_strategy, "truth strategy"),
+    ] {
+        validate_nonempty(value, label)?;
+    }
+    validate_https(&policy.access_terms_url, "access terms")?;
+    if policy.projected_storage_bytes == 0 || policy.projected_cpu_hours == 0 {
+        return Err(invalid("corpus source storage and compute projections must be positive"));
+    }
+    validate_nonempty_list(&policy.truth_roles, "truth role")?;
+    validate_nonempty_list(&policy.known_limitations, "known limitation")?;
+    Ok(())
+}
 
 /// Validate acquisition identity, source checksums, sample context, and aggregate closure.
 ///
 /// # Errors
 /// Returns an error when a source plan cannot safely authorize corpus materialization.
 pub fn validate_corpus_acquisition_plan(plan: &CorpusAcquisitionPlan) -> Result<(), BenchError> {
-    if plan.schema_version != CORPUS_ACQUISITION_SCHEMA_V1 {
+    if plan.schema_version != CORPUS_ACQUISITION_SCHEMA_V2 {
         return Err(invalid("corpus acquisition schema mismatch"));
     }
     validate_identifier(&plan.corpus_id, "corpus")?;
@@ -27,11 +134,13 @@ pub fn validate_corpus_acquisition_plan(plan: &CorpusAcquisitionPlan) -> Result<
         (&plan.species, "species"),
         (&plan.source_authority, "source authority"),
         (&plan.source_spec, "source specification"),
+        (&plan.description, "description"),
     ] {
         validate_nonempty(value, label)?;
     }
     validate_utc_timestamp(&plan.retrieved_at_utc, "retrieval")?;
     validate_sha256(&plan.source_spec_sha256, "source specification")?;
+    validate_source_policy(&plan.policy)?;
     if plan.samples.is_empty() {
         return Err(invalid("corpus acquisition contains no samples"));
     }
@@ -99,16 +208,13 @@ pub fn validate_corpus_acquisition_plan(plan: &CorpusAcquisitionPlan) -> Result<
 /// # Errors
 /// Returns an error when the catalog cannot authorize benchmark corpus consumption.
 pub fn validate_governed_data_catalog(catalog: &GovernedDataCatalog) -> Result<(), BenchError> {
-    if catalog.schema_version != GOVERNED_DATA_CATALOG_SCHEMA_V1 {
+    if catalog.schema_version != GOVERNED_DATA_CATALOG_SCHEMA_V2 {
         return Err(invalid("governed data catalog schema mismatch"));
     }
     validate_identifier(&catalog.id, "catalog")?;
     for (value, label) in [
         (&catalog.purpose, "catalog purpose"),
         (&catalog.source, "catalog source"),
-        (&catalog.access_classification, "access classification"),
-        (&catalog.redistribution_classification, "redistribution classification"),
-        (&catalog.access_terms, "access terms"),
         (&catalog.scientific_name, "scientific name"),
     ] {
         validate_nonempty(value, label)?;
@@ -117,16 +223,9 @@ pub fn validate_governed_data_catalog(catalog: &GovernedDataCatalog) -> Result<(
     validate_sha256(&catalog.source_record_sha256, "source record")?;
     validate_utc_timestamp(&catalog.retrieved_at_utc, "retrieval")?;
     validate_utc_timestamp(&catalog.admitted_at_utc, "admission")?;
+    validate_source_policy(&catalog.policy)?;
     if catalog.samples.is_empty() || catalog.files.is_empty() {
         return Err(invalid("governed data catalog must contain samples and files"));
-    }
-    if catalog.known_limitations.is_empty()
-        || catalog
-            .known_limitations
-            .iter()
-            .any(|value| validate_nonempty(value, "known limitation").is_err())
-    {
-        return Err(invalid("governed data catalog limitations are incomplete"));
     }
 
     let mut samples = BTreeMap::new();
@@ -194,6 +293,71 @@ pub fn validate_governed_data_catalog(catalog: &GovernedDataCatalog) -> Result<(
     Ok(())
 }
 
+/// Validate either native v2 materialization or an exact preservation of a historical catalog.
+///
+/// # Errors
+/// Returns an error when either representation violates its identity or provenance contract.
+pub fn validate_governed_data_catalog_document(
+    catalog: &GovernedDataCatalogDocument,
+) -> Result<(), BenchError> {
+    match catalog {
+        GovernedDataCatalogDocument::Materialized(catalog) => {
+            validate_governed_data_catalog(catalog)
+        }
+        GovernedDataCatalogDocument::Preserved(catalog) => {
+            validate_governed_preserved_data_catalog(catalog)
+        }
+    }
+}
+
+/// Validate the preservation envelope used for heterogeneous v1 catalog authorities.
+///
+/// # Errors
+/// Returns an error when the source identity, timestamp, or embedded v1 document is malformed.
+pub fn validate_governed_preserved_data_catalog(
+    catalog: &GovernedPreservedDataCatalog,
+) -> Result<(), BenchError> {
+    if catalog.schema_version != GOVERNED_DATA_CATALOG_SCHEMA_V2 {
+        return Err(invalid("preserved data catalog schema mismatch"));
+    }
+    validate_catalog_identifier(&catalog.id)?;
+    let expected_path = format!("study://data/catalog/{}.json", catalog.id);
+    if catalog.source_catalog_path != expected_path {
+        return Err(invalid("preserved data catalog source path disagrees with identity"));
+    }
+    validate_sha256(&catalog.source_catalog_sha256, "source catalog")?;
+    if catalog.source_catalog_size_bytes == 0 {
+        return Err(invalid("preserved data catalog source size is zero"));
+    }
+    if catalog.source_catalog_schema_version != super::GOVERNED_DATA_CATALOG_SCHEMA_V1 {
+        return Err(invalid("preserved data catalog source schema is not v1"));
+    }
+    validate_utc_timestamp(&catalog.preserved_at_utc, "catalog preservation")?;
+    let preserved = catalog
+        .preserved_catalog
+        .as_object()
+        .ok_or_else(|| invalid("preserved data catalog payload is not an object"))?;
+    if preserved.get("schema_version").and_then(serde_json::Value::as_str)
+        != Some(super::GOVERNED_DATA_CATALOG_SCHEMA_V1)
+        || preserved.get("id").and_then(serde_json::Value::as_str) != Some(catalog.id.as_str())
+    {
+        return Err(invalid("preserved data catalog payload identity disagrees with envelope"));
+    }
+    for field in ["purpose", "access_classification", "redistribution_classification"] {
+        if preserved.get(field).and_then(serde_json::Value::as_str).is_none_or(str::is_empty) {
+            return Err(invalid("preserved data catalog payload lacks required policy fields"));
+        }
+    }
+    if preserved
+        .get("known_limitations")
+        .and_then(serde_json::Value::as_array)
+        .is_none_or(Vec::is_empty)
+    {
+        return Err(invalid("preserved data catalog payload lacks known limitations"));
+    }
+    Ok(())
+}
+
 fn validate_layout_files(
     layout: CorpusAcquisitionLayout,
     files: &[CorpusAcquisitionFile],
@@ -209,6 +373,18 @@ fn validate_layout_files(
         }
         _ => Err(invalid("acquisition file count or mate identity disagrees with layout")),
     }
+}
+
+fn validate_catalog_identifier(value: &str) -> Result<(), BenchError> {
+    let mut bytes = value.bytes();
+    if !bytes.next().is_some_and(|byte| byte.is_ascii_lowercase() || byte.is_ascii_digit())
+        || !bytes.all(|byte| {
+            byte.is_ascii_lowercase() || byte.is_ascii_digit() || matches!(byte, b'.' | b'_' | b'-')
+        })
+    {
+        return Err(invalid("preserved data catalog identity is malformed"));
+    }
+    Ok(())
 }
 
 fn validate_acquisition_file(file: &CorpusAcquisitionFile) -> Result<(), BenchError> {
@@ -273,7 +449,7 @@ fn validate_fastq_name(value: &str) -> Result<(), BenchError> {
     Ok(())
 }
 
-fn validate_identifier(value: &str, label: &str) -> Result<(), BenchError> {
+pub(super) fn validate_identifier(value: &str, label: &str) -> Result<(), BenchError> {
     let mut bytes = value.bytes();
     if !bytes.next().is_some_and(|byte| byte.is_ascii_lowercase() || byte.is_ascii_digit())
         || !bytes.all(|byte| byte.is_ascii_lowercase() || byte.is_ascii_digit() || byte == b'-')
@@ -283,14 +459,24 @@ fn validate_identifier(value: &str, label: &str) -> Result<(), BenchError> {
     Ok(())
 }
 
-fn validate_nonempty(value: &str, label: &str) -> Result<(), BenchError> {
+pub(super) fn validate_nonempty(value: &str, label: &str) -> Result<(), BenchError> {
     if value.trim().is_empty() || value != value.trim() {
         return Err(invalid(&format!("{label} is empty or malformed")));
     }
     Ok(())
 }
 
-fn validate_https(value: &str, label: &str) -> Result<(), BenchError> {
+pub(super) fn validate_nonempty_list(values: &[String], label: &str) -> Result<(), BenchError> {
+    if values.is_empty() {
+        return Err(invalid(&format!("{label} list is empty")));
+    }
+    for value in values {
+        validate_nonempty(value, label)?;
+    }
+    Ok(())
+}
+
+pub(super) fn validate_https(value: &str, label: &str) -> Result<(), BenchError> {
     if value.strip_prefix("https://").is_none_or(str::is_empty)
         || value.chars().any(|ch| ch.is_ascii_whitespace() || ch == '\0')
     {

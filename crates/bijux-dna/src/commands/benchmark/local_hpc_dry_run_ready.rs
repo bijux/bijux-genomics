@@ -49,7 +49,7 @@ use crate::commands::cli::render;
 
 const LOCAL_HPC_DRY_RUN_READY_SCHEMA_VERSION: &str = "bijux.bench.local_hpc_dry_run_ready.v1";
 pub(crate) const DEFAULT_HPC_DRY_RUN_READY_PATH: &str =
-    "benchmarks/readiness/hpc/HPC_DRY_RUN_LOCAL_READY.json";
+    "artifacts/benchmark-smoke/readiness/hpc/HPC_DRY_RUN_LOCAL_READY.json";
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub(crate) struct LocalHpcDryRunReadyGoalCheck {

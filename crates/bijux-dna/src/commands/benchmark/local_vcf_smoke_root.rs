@@ -325,7 +325,7 @@ mod tests {
         let repo_root = repo_root();
         let error = render_vcf_smoke_root(
             &repo_root,
-            PathBuf::from("benchmarks/readiness/local-ready/vcf-smoke-root.json"),
+            PathBuf::from("artifacts/benchmark-smoke/readiness/local-ready/vcf-smoke-root.json"),
         )
         .expect_err("readiness-root smoke manifests must be refused");
 

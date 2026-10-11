@@ -13,7 +13,7 @@ use super::contracts::{
     CORPUS_MATERIALIZATION_PREPARED_JOB_SCHEMA_V1,
 };
 use super::validation::{
-    canonical_directory, ensure_json_identity, require_utc_timestamp,
+    canonical_directory, catalog_snapshot_path, ensure_json_identity, require_utc_timestamp,
     validate_catalog_precondition, validate_specification,
 };
 use crate::backend::slurm::{SlurmDependencyCondition, SlurmSubmitRequest};
@@ -69,7 +69,7 @@ fn render_script(spec: &CorpusMaterializationSlurmSpec, specification_sha256: &s
     let scheduler_root = spec.evidence_root.join("scheduler");
     let publication = spec.evidence_root.join("materialization-publication.json");
     let completion = scheduler_root.join("completed.json");
-    let catalog = spec.data_root.join("catalog").join(format!("{}.json", spec.portfolio_id));
+    let catalog = catalog_snapshot_path(&spec.data_root, spec);
     let catalog_precondition = spec.existing_catalog_sha256.as_ref().map_or_else(
         || "test ! -e \"${CATALOG}\" && test ! -L \"${CATALOG}\"".to_string(),
         |sha256| {
@@ -87,6 +87,8 @@ fn render_script(spec: &CorpusMaterializationSlurmSpec, specification_sha256: &s
         shell_quote(&spec.plan_path),
         "'--data-root'".to_string(),
         shell_quote(&spec.data_root),
+        "'--repository-commit'".to_string(),
+        shell_quote(&spec.repository_commit),
         "'--jobs'".to_string(),
         shell_quote(spec.maximum_parallelism.to_string()),
         "'--retries'".to_string(),

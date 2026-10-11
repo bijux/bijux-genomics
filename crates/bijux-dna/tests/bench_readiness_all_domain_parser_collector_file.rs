@@ -42,7 +42,8 @@ fn bench_readiness_all_domain_parser_collector_writes_governed_report_and_fixtur
     ]);
     let repo_root = sandbox.path();
 
-    let report_path = repo_root.join("benchmarks/readiness/parser-collector-all-domains.json");
+    let report_path =
+        repo_root.join("artifacts/benchmark-smoke/readiness/parser-collector-all-domains.json");
     assert!(report_path.is_file(), "collector report must exist");
 
     let persisted: serde_json::Value =
@@ -50,7 +51,7 @@ fn bench_readiness_all_domain_parser_collector_writes_governed_report_and_fixtur
             .expect("parse parser collector report");
     assert_eq!(
         persisted.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/parser-collector-all-domains.json")
+        Some("artifacts/benchmark-smoke/readiness/parser-collector-all-domains.json")
     );
     let rows = persisted.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
     assert_eq!(
@@ -58,7 +59,9 @@ fn bench_readiness_all_domain_parser_collector_writes_governed_report_and_fixtur
         Some(u64::try_from(rows.len()).expect("row count fits u64"))
     );
 
-    let fixture_root = repo_root.join("runs/bench/readiness-probes/all-domains/parser-collector");
+    let fixture_root = repo_root.join(
+        "artifacts/benchmark-smoke/simulated-runs/readiness-probes/all-domains/parser-collector",
+    );
     assert!(fixture_root.is_dir(), "collector fixture root must exist");
     let fake_run_root = fixture_root.join("fake-runs");
     assert!(fake_run_root.is_dir(), "collector fake-run root must exist");

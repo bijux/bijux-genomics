@@ -32,7 +32,10 @@ fn bench_readiness_vcf_prepare_reference_panel_ready_writes_governed_json_file()
     );
 
     let rendered_path = String::from_utf8(output.stdout).expect("stdout utf8");
-    assert_eq!(rendered_path.trim(), "benchmarks/readiness/vcf/prepare-reference-panel-ready.json");
+    assert_eq!(
+        rendered_path.trim(),
+        "artifacts/benchmark-smoke/readiness/vcf/prepare-reference-panel-ready.json"
+    );
 
     let payload = std::fs::read_to_string(repo_root.join(rendered_path.trim()))
         .expect("read VCF prepare_reference_panel readiness report");
@@ -74,7 +77,7 @@ fn bench_readiness_vcf_prepare_reference_panel_ready_writes_governed_json_file()
         outputs.iter().any(|value| {
             value.as_str()
                 == Some(
-                    "prepared_panel=benchmarks/readiness/adapters/bcftools/vcf.prepare_reference_panel/prepared_panel.vcf.gz",
+                    "prepared_panel=artifacts/benchmark-smoke/readiness/adapters/bcftools/vcf.prepare_reference_panel/prepared_panel.vcf.gz",
                 )
         })
     }));
@@ -84,7 +87,7 @@ fn bench_readiness_vcf_prepare_reference_panel_ready_writes_governed_json_file()
             .is_some_and(|outputs| outputs.iter().any(|value| {
                 value.as_str()
                     == Some(
-                        "prepared_panel_tbi=benchmarks/readiness/adapters/bcftools/vcf.prepare_reference_panel/prepared_panel.vcf.gz.tbi",
+                        "prepared_panel_tbi=artifacts/benchmark-smoke/readiness/adapters/bcftools/vcf.prepare_reference_panel/prepared_panel.vcf.gz.tbi",
                     )
             }))
     );

@@ -25,7 +25,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_BAM_DAMAGE_AUTHENTICITY_READY_PATH: &str =
-    "benchmarks/readiness/bam/damage-authenticity-ready.json";
+    "artifacts/benchmark-smoke/readiness/bam/damage-authenticity-ready.json";
 const BAM_DAMAGE_AUTHENTICITY_READY_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.bam_damage_authenticity_ready.v1";
 const COVERAGE_STATUS_COMPLETE: &str = "complete";

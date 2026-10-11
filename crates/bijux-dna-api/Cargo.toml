@@ -36,6 +36,7 @@ bijux-dna-pipelines.workspace = true
 bijux-dna-policies.workspace = true
 bijux-dna-infra = { workspace = true, features = ["tracing"] }
 bijux-dna-runtime.workspace = true
+bijux-dna-science.workspace = true
 
 [features]
 bam_downstream = ["bijux-dna-planner-bam/bam_downstream", "bijux-dna-pipelines/bam_downstream"]

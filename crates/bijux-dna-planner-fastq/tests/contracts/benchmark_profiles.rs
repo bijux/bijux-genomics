@@ -251,11 +251,11 @@ fn benchmark_cohorts_surface_governed_toolsets_per_fairness_scenario() {
     assert_eq!(dedup_cohorts[0].scenario_id, "dedup_fairness");
     assert_eq!(
         dedup_cohorts[0].tool_ids.iter().map(ToolId::as_str).collect::<Vec<_>>(),
-        vec!["clumpify"]
+        vec!["clumpify", "fastuniq"]
     );
     assert_eq!(
         dedup_cohorts[0].observer_specialized_tools.iter().map(ToolId::as_str).collect::<Vec<_>>(),
-        vec!["clumpify"]
+        vec!["clumpify", "fastuniq"]
     );
 
     let read_length_stage = StageId::from_static("fastq.profile_read_lengths");

@@ -96,6 +96,7 @@ fn assert_evidence_and_test_trees(root: &Path) {
         dir_entries(&root.join("src/qualification")),
         entries([
             "OWNER.toml",
+            "decision.rs",
             "evaluation.rs",
             "mod.rs",
             "model.rs",

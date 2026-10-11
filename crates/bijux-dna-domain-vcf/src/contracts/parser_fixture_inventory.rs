@@ -91,18 +91,6 @@ const VCF_PARSER_FIXTURE_INVENTORY: &[VcfParserFixtureInventoryRow] = &[
         fixture_path: "benchmarks/tests/fixtures/bench/parsers/vcf/angsd/vcf.call_pseudohaploid",
     },
     VcfParserFixtureInventoryRow {
-        tool_id: "angsd",
-        stage: VcfDomainStage::DamageFilter,
-        parser_id: "parse_angsd_damage_filter_metrics",
-        fixture_path: "benchmarks/tests/fixtures/bench/parsers/vcf/angsd/vcf.damage_filter",
-    },
-    VcfParserFixtureInventoryRow {
-        tool_id: "angsd",
-        stage: VcfDomainStage::GlPropagation,
-        parser_id: "parse_angsd_gl_propagation_metrics",
-        fixture_path: "benchmarks/tests/fixtures/bench/parsers/vcf/angsd/vcf.gl_propagation",
-    },
-    VcfParserFixtureInventoryRow {
         tool_id: "plink",
         stage: VcfDomainStage::Qc,
         parser_id: "parse_plink_qc_metrics",

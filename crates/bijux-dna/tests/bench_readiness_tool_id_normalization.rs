@@ -44,7 +44,7 @@ fn bench_readiness_tool_id_normalization_reports_empty_governed_alias_set() {
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/tool-id-normalization.tsv")
+        Some("artifacts/benchmark-smoke/readiness/tool-id-normalization.tsv")
     );
     assert_eq!(payload.get("cluster_count").and_then(serde_json::Value::as_u64), Some(0));
     assert_eq!(payload.get("ok").and_then(serde_json::Value::as_bool), Some(true));

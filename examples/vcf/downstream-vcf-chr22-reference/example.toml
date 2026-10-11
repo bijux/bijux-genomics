@@ -1,0 +1,10 @@
+id = "vcf_downstream_chr22_reference"
+domain = "vcf"
+corpus_required = "corpus-01-mini"
+corpus_id = "corpus-01-mini"
+mini_supported = true
+expected_outputs = ["plan.json", "explain.json", "report.json"]
+reference_panel_id = "hsapiens_grch38_1kg_3202_chr22"
+reference_map_id = "hsapiens_grch38_glimpse_chr22"
+coverage_decision = "decision.coverage_regime"
+coverage_profile = "adna_lowcov_shotgun"

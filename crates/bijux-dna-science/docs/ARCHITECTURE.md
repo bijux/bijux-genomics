@@ -13,6 +13,9 @@ src/
 │   └── mod.rs       # CLI command coordination and governed write destinations
 ├── cli.rs           # command-line arguments and subcommands
 ├── compile.rs       # authored YAML loading, cross-reference checks, and evidence derivation
+├── decision/
+│   ├── benchmark_gate.rs # fail-closed benchmark science gate evaluation
+│   └── mod.rs             # scientific decision facade
 ├── domain/
 │   └── mod.rs       # science data structures and typed science identifiers
 ├── evidence/
@@ -35,8 +38,9 @@ src/
 2. `app` dispatches the command and chooses whether files may be written.
 3. `compile` loads authored specs and governed upstream evidence, validates cross
    references, and produces `CompiledScience`.
-4. `render` converts compiled rows into stable TSV and JSON text.
-5. `app` writes governed generated outputs for `build`; `release` writes immutable
+4. `decision` evaluates measured benchmark evidence without reading or writing runtime state.
+5. `render` converts compiled rows into stable TSV and JSON text.
+6. `app` writes governed generated outputs for `build`; `release` writes immutable
    release bundles for `release`.
 
 ## Source Layout Contract

@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/vcf/** + containers/contracts/catalog.toml
-# source_commit: 612475f7096a976dc2327b1fb157340e2acbea30
+# source_commit: 8ac9ff518ae6c91938467194190d5b8856bf949c
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -14,7 +14,7 @@ id = "angsd"
 tool_id = "angsd"
 domain = "vcf"
 status = "unsupported"
-stage_ids = ["vcf.call_gl", "vcf.call_pseudohaploid", "vcf.damage_filter", "vcf.gl_propagation"]
+stage_ids = ["vcf.call_gl", "vcf.call_pseudohaploid"]
 version = "0.941"
 default_version = "0.941"
 upstream = "https://github.com/ANGSD/angsd"
@@ -33,7 +33,7 @@ smoke_help_cmd = "angsd --help"
 expected_version_regex = "v?[0-9]+[.][0-9]+([.-][0-9A-Za-z]+)?"
 healthcheck_cmd = "angsd --help"
 expected_bin = "angsd"
-expected_artifacts = ["gl_vcf", "damage_report", "gl_provenance", "pseudohaploid_sampling_log", "gl_propagation_report", "damage_bias_audit_report"]
+expected_artifacts = ["gl_vcf", "gl_provenance", "pseudohaploid_sampling_log"]
 metrics_schema = "bijux.vcf.gl.v1"
 comparability_notes = "Upstream publishes no license grant, so Bijux Genomics cannot lawfully redistribute ANGSD in a container; scientific integration remains available for operator-provided installations."
 dockerfile = ""

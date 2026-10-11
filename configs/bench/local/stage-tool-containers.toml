@@ -171,6 +171,16 @@ declaration_origin = "runtime_probe_with_primary_operator_runtime"
 [[rows]]
 domain = "bam"
 stage_id = "bam.damage"
+tool_id = "ngsbriggs"
+execution_mode = "external"
+install_kind = "external"
+container_id = "external-artifact://ngsbriggs"
+command_entrypoint = "ngsbriggs"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.damage"
 tool_id = "pmdtools"
 execution_mode = "python"
 install_kind = "container"
@@ -264,7 +274,7 @@ stage_id = "bam.genotyping"
 tool_id = "bcftools"
 execution_mode = "containerized"
 install_kind = "container"
-container_id = "bijuxdna/bcftools:1.20"
+container_id = "quay.io/biocontainers/bcftools:1.20--h8b25389_0@sha256:67f54df47f501f6ddef08e3b9ad89cf693952f9a89de0d74df6e39fce15f1ff6"
 command_entrypoint = "bcftools"
 declaration_origin = "runtime_probe_with_primary_operator_runtime"
 
@@ -286,6 +296,16 @@ execution_mode = "java"
 install_kind = "container"
 container_id = "bijuxdna/picard:3.3.0"
 command_entrypoint = "picard"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.kinship"
+tool_id = "angsd"
+execution_mode = "external"
+install_kind = "external"
+container_id = "external-artifact://angsd"
+command_entrypoint = "angsd"
 declaration_origin = "runtime_probe_with_primary_operator_runtime"
 
 [[rows]]
@@ -416,6 +436,16 @@ execution_mode = "java"
 install_kind = "container"
 container_id = "bijuxdna/gatk:4.6.2.0"
 command_entrypoint = "gatk"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "bam"
+stage_id = "bam.sex"
+tool_id = "angsd"
+execution_mode = "external"
+install_kind = "external"
+container_id = "external-artifact://angsd"
+command_entrypoint = "angsd"
 declaration_origin = "runtime_probe_with_primary_operator_runtime"
 
 [[rows]]
@@ -865,6 +895,16 @@ tool_id = "clumpify"
 execution_mode = "containerized"
 install_kind = "container"
 container_id = "bijuxdna/clumpify@sha256:fa8159777183edae8355363ba8cc5e8f8f069bee09cb6f2fb70a7ca4220a5c81"
+command_entrypoint = "bash"
+declaration_origin = "runtime_probe_with_primary_operator_runtime"
+
+[[rows]]
+domain = "fastq"
+stage_id = "fastq.remove_duplicates"
+tool_id = "fastuniq"
+execution_mode = "external"
+install_kind = "external"
+container_id = "external-artifact://fastuniq"
 command_entrypoint = "bash"
 declaration_origin = "runtime_probe_with_primary_operator_runtime"
 

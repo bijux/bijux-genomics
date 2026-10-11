@@ -1,0 +1,50 @@
+# owner = bijux-genomics-benchmarks
+# purpose = Source authorities for amplicon community truth
+# authority = bijux-genomics-benchmarks
+# stability = stable
+# last_updated = 2026-08-08
+
+schema_version = "bijux.benchmark.data_source.v1"
+portfolio_id = "amplicon-community-challenge"
+class = "production_real"
+access_classification = "public"
+redistribution_classification = "accession-referenced-source-copy"
+access_terms_url = "https://www.ncbi.nlm.nih.gov/home/about/policies/"
+attribution = "Cite the HMP mock-community project, the Extreme Mock Community study, and NCBI SRA."
+projected_storage_bytes = 25000000000
+projected_cpu_hours = 500
+projection_basis = "The selection reserves 25 GB and 500 CPU-hours for at least ten replicated HMP amplicon runs, the Extreme Mock run, expected-composition records, and validation outputs."
+truth_roles = ["amplicon_truth"]
+truth_strategy = "real_mock_communities_with_known_composition"
+known_limitations = [
+  "Technical replicates do not constitute ten biologically independent communities.",
+  "Expected input composition does not eliminate extraction, amplification, primer, and copy-number bias.",
+  "Exact reference sequences, primer regions, expected abundance tables, and negative controls remain unmaterialized.",
+]
+description = "Replicated HMP mock-community amplicons plus the abundance-extreme Stanford community define real sequencing authorities for ASV, OTU, chimera, and normalization evaluation."
+data_types = ["amplicon_reference", "fastq"]
+target_sample_count = 10
+
+[[collections]]
+id = "extreme-mock-community"
+authority = "NCBI Sequence Read Archive"
+accession = "SRX1478507;SRR2990088;PRJNA292120"
+source_url = "https://www.ncbi.nlm.nih.gov/sra/SRX1478507"
+access_terms_url = "https://www.ncbi.nlm.nih.gov/home/about/policies/"
+data_types = ["amplicon_reference", "fastq"]
+planned_sample_count = 1
+selection_scope = "The single paired-end MiSeq run and its declared 27-isolate composition spanning six orders of abundance."
+truth_basis = "The archive record declares isolate membership, fine-scale 16S differences, and designed frequency range."
+known_limitations = ["One run cannot establish cross-batch or cross-laboratory repeatability."]
+
+[[collections]]
+id = "hmp-amplicon-mock"
+authority = "NCBI BioProject and Sequence Read Archive"
+accession = "PRJNA48341;SRP002397"
+source_url = "https://www.ncbi.nlm.nih.gov/bioproject/48341"
+access_terms_url = "https://www.ncbi.nlm.nih.gov/home/about/policies/"
+data_types = ["amplicon_reference", "fastq"]
+planned_sample_count = 10
+selection_scope = "Ten protocol-validation runs selected across HMP centers, amplified regions, and replicates with exact accessions frozen at acquisition."
+truth_basis = "A common mock material with known organism membership supports membership and cross-center consistency measurements."
+known_limitations = ["Expected relative abundance and reference-copy-number corrections require a separately checksummed truth table."]

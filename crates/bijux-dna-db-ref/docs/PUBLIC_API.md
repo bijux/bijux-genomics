@@ -20,12 +20,14 @@ The remaining source modules are crate-private implementation namespaces:
 - model records: `BuildId`, `ContigMap`, `ContigNormalizationPolicy`,
   `GeneticMapBankEntry`, `OrganellarPolicy`, `ParRegion`,
   `ReferenceBankEntry`, `ReferenceBundle`, `ReferenceProvenance`,
-  `ReferenceSet`, `ResolvedSpeciesContext`, `SexChromosomeRule`,
+  `ReferenceSet`, `ReferenceSourceLock`, `ReferenceSourceLockEntry`,
+  `ResolvedSpeciesContext`, `SexChromosomeRule`,
   `SpeciesAuthorityEntry`, and `SupportedFeatures`
 - provider traits and runtime provider: `RefService`, `ReferenceProvider`,
   `PanelProvider`, `MapProvider`, `RuntimeRefService`, and `ref_service`
 - resolution operations such as `resolve_species_context`,
   `resolve_reference_bundle`, `resolve_panel`, `resolve_map`,
+  `resolve_reference_source_lock`,
   `resolve_species_alias`, `normalize_contig_name`,
   `enforce_declared_build_and_contigs`, and
   `validate_imputation_tool_compatibility`
@@ -39,3 +41,4 @@ The remaining source modules are crate-private implementation namespaces:
    `docs/ARCHITECTURE.md`, this file, and boundary tests.
 4. Do not expose planner, runner, stage, environment, CLI, or API behavior
    through this crate.
+5. Do not expose materialization or fixture-writing operations; this crate is read-only.

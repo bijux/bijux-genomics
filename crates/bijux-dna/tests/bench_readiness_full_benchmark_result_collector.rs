@@ -47,7 +47,7 @@ fn bench_readiness_full_benchmark_result_collector_merges_all_governed_surfaces(
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/full-result-collector-test.json")
+        Some("artifacts/benchmark-smoke/readiness/full-result-collector-test.json")
     );
     let row_count = support::json_u64(&payload, "row_count").expect("row_count");
     let benchmark_expected_row_count = support::json_u64(&payload, "benchmark_expected_row_count")
@@ -153,9 +153,9 @@ fn bench_readiness_full_benchmark_result_collector_merges_all_governed_surfaces(
     );
 
     let domain_counts = support::json_object(&payload, "domain_counts");
-    assert_eq!(domain_counts.get("fastq").and_then(serde_json::Value::as_u64), Some(314));
+    assert_eq!(domain_counts.get("fastq").and_then(serde_json::Value::as_u64), Some(306));
     assert_eq!(domain_counts.get("bam").and_then(serde_json::Value::as_u64), Some(228));
-    assert_eq!(domain_counts.get("vcf").and_then(serde_json::Value::as_u64), Some(121));
+    assert_eq!(domain_counts.get("vcf").and_then(serde_json::Value::as_u64), Some(133));
     assert_eq!(support::object_u64_sum(domain_counts), row_count);
 
     let rows = support::json_array(&payload, "rows");

@@ -39,7 +39,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_OUTPUT_CONTRACT_TESTS_PATH: &str =
-    "benchmarks/readiness/tools/output-contract-tests.json";
+    "artifacts/benchmark-smoke/readiness/tools/output-contract-tests.json";
 const OUTPUT_CONTRACT_TESTS_SCHEMA_VERSION: &str = "bijux.bench.readiness.output_contract_audit.v1";
 const PROOF_SURFACE_SHARED_STAGE_SMOKE: &str = "shared_stage_smoke";
 const PROOF_SURFACE_DIRECT_TOOL_SMOKE: &str = "direct_tool_smoke";
@@ -51,7 +51,7 @@ const PROOF_SURFACE_MISSING_TOOL_STAGE_SMOKE: &str = "missing_tool_stage_smoke";
 const RUNTIME_PROOF_SURFACE_EXPECTED_RESULT_PATHS: &str = "expected_benchmark_result_paths";
 const RUNTIME_PROOF_SURFACE_DECLARED_VCF_PATHS: &str = "declared_vcf_result_paths";
 const DIRECT_OUTPUT_CONTRACT_PROOF_ROOT: &str =
-    "runs/bench/readiness-probes/tools/output-contract-tests";
+    "artifacts/benchmark-smoke/simulated-runs/readiness-probes/tools/output-contract-tests";
 
 #[derive(Debug, Clone, Serialize)]
 pub(crate) struct OutputContractTestRow {
@@ -1147,13 +1147,16 @@ mod tests {
     #[test]
     fn local_stage_proof_output_path_isolated_from_plan_evidence() {
         let root = tempfile::tempdir().expect("tempdir");
-        let stage_root = root.path().join("benchmarks/readiness/local-ready/bam.contamination");
+        let stage_root =
+            root.path().join("artifacts/benchmark-smoke/readiness/local-ready/bam.contamination");
         fs::create_dir_all(&stage_root).expect("create stage root");
         let plan_path = stage_root.join("plan.json");
         let output_path = stage_root.join("summary.json");
         fs::write(&plan_path, b"governed plan").expect("write plan");
         fs::write(&output_path, b"stale output").expect("write output");
-        let proof_root = root.path().join("runs/bench/readiness-probes/output-contracts");
+        let proof_root = root
+            .path()
+            .join("artifacts/benchmark-smoke/simulated-runs/readiness-probes/output-contracts");
 
         let proof_output = local_stage_proof_output_path(root.path(), &proof_root, &output_path)
             .expect("derive isolated proof output");
@@ -1178,7 +1181,7 @@ mod tests {
 
         assert_eq!(report.schema_version, "bijux.bench.readiness.output_contract_audit.v1");
         assert_eq!(report.output_path, DEFAULT_OUTPUT_CONTRACT_TESTS_PATH);
-        assert_eq!(report.row_count, 138);
+        assert_eq!(report.row_count, 142);
         assert!(report.passed_row_count > 0, "report should keep real passing rows");
         assert!(
             report.output_proof_surface_counts.contains_key("shared_stage_smoke"),

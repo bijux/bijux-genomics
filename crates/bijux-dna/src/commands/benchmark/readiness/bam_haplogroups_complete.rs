@@ -12,7 +12,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_BAM_HAPLOGROUPS_COMPLETE_PATH: &str =
-    "benchmarks/readiness/bam/stages/bam.haplogroups.complete.json";
+    "artifacts/benchmark-smoke/readiness/bam/stages/bam.haplogroups.complete.json";
 const BAM_HAPLOGROUPS_COMPLETE_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.bam_haplogroups_complete.v1";
 const EXPECTED_STAGE_ID: &str = "bam.haplogroups";

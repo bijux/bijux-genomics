@@ -34,7 +34,7 @@ fn bench_readiness_all_domain_active_stage_tool_matrix_writes_governed_tsv_file(
     let rendered_path = String::from_utf8(output.stdout).expect("stdout utf8");
     assert_eq!(
         rendered_path.trim(),
-        "benchmarks/readiness/all-domains/active-stage-tool-matrix.tsv"
+        "artifacts/benchmark-smoke/readiness/all-domains/active-stage-tool-matrix.tsv"
     );
 
     let payload = std::fs::read_to_string(repo_root.join(rendered_path.trim()))

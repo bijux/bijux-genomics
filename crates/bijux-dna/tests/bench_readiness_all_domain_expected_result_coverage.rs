@@ -49,7 +49,7 @@ fn bench_readiness_all_domain_expected_result_coverage_reports_complete_active_r
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/all-domains/expected-result-coverage.tsv")
+        Some("artifacts/benchmark-smoke/readiness/all-domains/expected-result-coverage.tsv")
     );
     let rows = support::json_array(&payload, "rows");
     let row_count = u64::try_from(rows.len()).expect("row count fits u64");

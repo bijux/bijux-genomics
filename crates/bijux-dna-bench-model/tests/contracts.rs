@@ -11,8 +11,12 @@ mod mod_contracts_benchmark_planning_rs;
 mod mod_contracts_campaign_engine_rs;
 #[path = "contracts/compatibility.rs"]
 mod mod_contracts_compatibility_rs;
+#[path = "contracts/data_catalog_registry.rs"]
+mod mod_contracts_data_catalog_registry_rs;
 #[path = "contracts/data_index.rs"]
 mod mod_contracts_data_index_rs;
+#[path = "contracts/data_portfolio_audit.rs"]
+mod mod_contracts_data_portfolio_audit_rs;
 #[path = "contracts/fastq_expectations.rs"]
 mod mod_contracts_fastq_expectations_rs;
 #[path = "contracts/materialization.rs"]
@@ -25,6 +29,8 @@ mod mod_contracts_protocol_rs;
 mod mod_contracts_publication_rs;
 #[path = "contracts/replay.rs"]
 mod mod_contracts_replay_rs;
+#[path = "contracts/source_authority.rs"]
+mod mod_contracts_source_authority_rs;
 #[path = "contracts/stage_result.rs"]
 mod mod_contracts_stage_result_rs;
 #[path = "contracts/suite_validation.rs"]

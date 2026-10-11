@@ -32,7 +32,7 @@ fn bench_readiness_vcf_stats_ready_writes_governed_json_file() {
     );
 
     let rendered_path = String::from_utf8(output.stdout).expect("stdout utf8");
-    assert_eq!(rendered_path.trim(), "benchmarks/readiness/vcf/stats-ready.json");
+    assert_eq!(rendered_path.trim(), "artifacts/benchmark-smoke/readiness/vcf/stats-ready.json");
 
     let payload = std::fs::read_to_string(repo_root.join(rendered_path.trim()))
         .expect("read VCF stats readiness report");
@@ -71,7 +71,7 @@ fn bench_readiness_vcf_stats_ready_writes_governed_json_file() {
             .is_some_and(|outputs| outputs.iter().any(|value| {
                 value.as_str()
                     == Some(
-                        "bcftools_stats_txt=benchmarks/readiness/adapters/bcftools/vcf.stats/bcftools_stats.txt",
+                        "bcftools_stats_txt=artifacts/benchmark-smoke/readiness/adapters/bcftools/vcf.stats/bcftools_stats.txt",
                     )
             }))
     );
@@ -81,7 +81,7 @@ fn bench_readiness_vcf_stats_ready_writes_governed_json_file() {
         .is_some_and(|outputs| outputs.iter().any(|value| {
             value.as_str()
                 == Some(
-                    "stats_json=benchmarks/readiness/adapters/bcftools/vcf.stats/stats_json.json",
+                    "stats_json=artifacts/benchmark-smoke/readiness/adapters/bcftools/vcf.stats/stats_json.json",
                 )
         })));
     assert_eq!(

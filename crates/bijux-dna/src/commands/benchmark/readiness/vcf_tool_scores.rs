@@ -16,11 +16,12 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 use crate::commands::numeric::checked_f64_from_u64;
 
-pub(crate) const DEFAULT_VCF_TOOL_SCORES_PATH: &str = "runs/bench/micro/vcf/VCF_TOOL_SCORES.tsv";
+pub(crate) const DEFAULT_VCF_TOOL_SCORES_PATH: &str =
+    "artifacts/benchmark-smoke/micro/vcf/VCF_TOOL_SCORES.tsv";
 
 const VCF_TOOL_SCORES_SCHEMA_VERSION: &str = "bijux.bench.readiness.vcf_tool_scores.v1";
 const DEFAULT_FULL_BENCHMARK_REPORT_PATH: &str =
-    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json";
+    "artifacts/benchmark-smoke/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json";
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "snake_case")]

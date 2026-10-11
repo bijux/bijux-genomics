@@ -97,7 +97,7 @@ pub(crate) fn handle_meta_commands(
                     let index = bijux_dna_api::v1::api::bench::publish_benchmark_data_index(
                         &bijux_dna_api::v1::api::bench::BenchmarkDataIndexPublicationRequest {
                             index: bijux_dna_api::v1::api::bench::BenchmarkDataIndexRequest {
-                                catalog_root: args.catalog_root.clone(),
+                                catalog_registry_path: args.catalog_registry.clone(),
                                 data_root: args.data_root.clone(),
                                 created_at_utc: args.created_at_utc.clone(),
                             },
@@ -110,6 +110,18 @@ pub(crate) fn handle_meta_commands(
                     println!("index={}", args.output.display());
                     println!("report={}", args.report.display());
                 }
+                BenchCommand::CatalogRegistry { command } => match command {
+                    cli::BenchCatalogRegistryCommand::Publish(args) => {
+                        let publication =
+                            bijux_dna_api::v1::api::bench::publish_governed_data_catalog_registry(
+                                &bijux_dna_api::v1::api::bench::GovernedDataCatalogRegistryPublicationRequest {
+                                    data_root: args.data_root.clone(),
+                                    source_commit: args.source_commit.clone(),
+                                },
+                            )?;
+                        crate::commands::cli::render::json::print_pretty(&publication)?;
+                    }
+                },
                 BenchCommand::AcquireFastqCorpus(args) => {
                     let plan = bijux_dna_api::v1::api::bench::acquire_fastq_corpus(
                         &bijux_dna_api::v1::api::bench::CorpusAcquisitionRequest {
@@ -126,6 +138,7 @@ pub(crate) fn handle_meta_commands(
                             &bijux_dna_api::v1::api::bench::CorpusMaterializationRequest {
                                 plan_path: args.plan.clone(),
                                 data_root: args.data_root.clone(),
+                                repository_commit: args.repository_commit.clone(),
                                 maximum_parallelism: args.jobs,
                                 retries: args.retries,
                                 timeout_seconds: args.timeout_seconds,
@@ -177,6 +190,20 @@ pub(crate) fn handle_meta_commands(
                             &args.collected_at_utc,
                         )?;
                         crate::commands::cli::render::json::print_pretty(&collection)?;
+                    }
+                    cli::BenchCorpusMaterializationCommand::CorrectEvidence(args) => {
+                        let correction = bijux_dna_api::v1::api::bench::publish_corpus_materialization_evidence_correction(
+                            &bijux_dna_api::v1::api::bench::CorpusMaterializationEvidenceCorrectionRequest {
+                                evidence_path: args.evidence.clone(),
+                                output_path: args.output.clone(),
+                                observed_local_time: args.observed_local_time.clone(),
+                                source_timezone: args.source_timezone.clone(),
+                                corrected_at_utc: args.corrected_at_utc.clone(),
+                                source_commit: args.source_commit.clone(),
+                                reason: args.reason.clone(),
+                            },
+                        )?;
+                        crate::commands::cli::render::json::print_pretty(&correction)?;
                     }
                 },
                 BenchCommand::Status => {

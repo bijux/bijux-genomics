@@ -7,8 +7,8 @@ use schemars::{json_schema, JsonSchema, Schema, SchemaGenerator};
 use serde::{de::Error as _, Deserialize, Deserializer, Serialize};
 
 use crate::contract::{
-    BENCHMARK_DATA_INDEX_SCHEMA_V1, BUNDLE_SCHEMA_V1, CORPUS_SCHEMA_V1,
-    FASTQ_PROFILE_READS_EXPECTATIONS_SCHEMA_V1,
+    BENCHMARK_DATA_INDEX_SCHEMA_V1, BENCHMARK_DATA_INDEX_SCHEMA_V2, BUNDLE_SCHEMA_V1,
+    CORPUS_SCHEMA_V1, FASTQ_PROFILE_READS_EXPECTATIONS_SCHEMA_V1,
 };
 
 #[derive(
@@ -81,6 +81,10 @@ pub struct BenchmarkDataIndex {
     pub schema_version: String,
     pub created_at_utc: String,
     pub data_root: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub catalog_registry_path: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub catalog_registry_sha256: Option<String>,
     pub summary: BenchmarkDataIndexSummary,
     pub records: Vec<BenchmarkDataIndexRecord>,
 }
@@ -306,7 +310,10 @@ pub fn fastq_profile_reads_expectations_schema() -> Schema {
 }
 
 fn benchmark_data_index_schema_version(_: &mut SchemaGenerator) -> Schema {
-    json_schema!({"type": "string", "const": BENCHMARK_DATA_INDEX_SCHEMA_V1})
+    json_schema!({
+        "type": "string",
+        "enum": [BENCHMARK_DATA_INDEX_SCHEMA_V1, BENCHMARK_DATA_INDEX_SCHEMA_V2]
+    })
 }
 
 fn benchmark_corpus_schema_version(_: &mut SchemaGenerator) -> Schema {

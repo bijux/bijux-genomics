@@ -158,7 +158,8 @@ validated pipeline DAGs, and scratch layout:
 make bench-hpc-pipeline-node-array-validate
 ```
 
-Render the governed final HPC dry-run readiness gate under `benchmarks/readiness/hpc/`:
+Render the governed final HPC dry-run readiness gate under
+`artifacts/benchmark-smoke/readiness/hpc/`:
 
 ```bash
 make bench-hpc-dry-run-ready-render
@@ -180,16 +181,16 @@ bijux-dna bench local validate-hpc-asset-staging-manifest \
   --manifest runs/bench/hpc-dry-run/asset-staging-manifest.json
 
 bijux-dna bench local render-hpc-candidate-run-manifest \
-  --output benchmarks/readiness/hpc/FIRST_HPC_CANDIDATE_RUN.json
+  --output artifacts/benchmark-smoke/readiness/hpc/FIRST_HPC_CANDIDATE_RUN.json
 
 bijux-dna bench local validate-hpc-candidate-run-manifest \
-  --manifest benchmarks/readiness/hpc/FIRST_HPC_CANDIDATE_RUN.json
+  --manifest artifacts/benchmark-smoke/readiness/hpc/FIRST_HPC_CANDIDATE_RUN.json
 
 bijux-dna bench local render-hpc-dry-run-ready \
-  --output benchmarks/readiness/hpc/HPC_DRY_RUN_LOCAL_READY.json
+  --output artifacts/benchmark-smoke/readiness/hpc/HPC_DRY_RUN_LOCAL_READY.json
 
 bijux-dna bench local validate-hpc-dry-run-ready \
-  --manifest benchmarks/readiness/hpc/HPC_DRY_RUN_LOCAL_READY.json
+  --manifest artifacts/benchmark-smoke/readiness/hpc/HPC_DRY_RUN_LOCAL_READY.json
 
 bijux-dna bench local render-hpc-scratch-layout \
   --output runs/bench/hpc-dry-run/scratch-layout.json

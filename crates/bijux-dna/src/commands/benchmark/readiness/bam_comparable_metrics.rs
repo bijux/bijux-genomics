@@ -13,7 +13,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_BAM_COMPARABLE_METRICS_PATH: &str =
-    "benchmarks/readiness/bam-comparable-metrics.tsv";
+    "artifacts/benchmark-smoke/readiness/bam/bam-comparable-metrics.tsv";
 const BAM_COMPARABLE_METRICS_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.bam_comparable_metrics.v1";
 

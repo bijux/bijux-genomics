@@ -19,7 +19,7 @@ The mini validator must enforce all checks listed below against the runnable exa
 - Output summary: `artifacts/domain/frontend-mini-validation/summary.json`
 
 ## What Is Validated
-- FASTQ mini path (`fastq_edna_mini`) and VCF mini paths (`vcf_damage_aware_genotype_mini`, `vcf_downstream_vcf_full_mini`, `vcf_downstream_demography_mini`, `vcf_imputation_mini`) are executed through the example harness.
+- FASTQ mini path (`fastq_edna_mini`) and VCF paths (`vcf_damage_aware_genotype_mini`, `vcf_downstream_chr22_reference`, `vcf_downstream_demography_mini`, `vcf_imputation_mini`) are executed through the example harness.
 - Example outputs are compared against committed golden `plan.json`, `explain.json`, and
   `report.json` under the bundle rules defined in
   [EXAMPLE_RUNNER_CONTRACT.md](../50-reference/EXAMPLE_RUNNER_CONTRACT.md).

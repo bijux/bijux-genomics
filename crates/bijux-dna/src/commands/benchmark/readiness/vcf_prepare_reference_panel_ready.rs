@@ -24,7 +24,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_VCF_PREPARE_REFERENCE_PANEL_READY_PATH: &str =
-    "benchmarks/readiness/vcf/prepare-reference-panel-ready.json";
+    "artifacts/benchmark-smoke/readiness/vcf/prepare-reference-panel-ready.json";
 const VCF_PREPARE_REFERENCE_PANEL_READY_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.vcf_prepare_reference_panel_ready.v1";
 const VCF_PREPARE_REFERENCE_PANEL_STAGE_ID: &str = "vcf.prepare_reference_panel";

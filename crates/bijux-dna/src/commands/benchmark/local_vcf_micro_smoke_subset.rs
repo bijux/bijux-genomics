@@ -36,7 +36,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_VCF_MICRO_SMOKE_SUMMARY_PATH: &str =
-    "runs/bench/micro/vcf/MICRO_VCF_SUMMARY.json";
+    "artifacts/benchmark-smoke/micro/vcf/MICRO_VCF_SUMMARY.json";
 const VCF_MICRO_SMOKE_SUMMARY_SCHEMA_VERSION: &str = "bijux.bench.local_vcf_micro_smoke_subset.v1";
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]

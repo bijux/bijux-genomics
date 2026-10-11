@@ -1,9 +1,11 @@
+mod catalog;
 mod model;
 mod projection;
 mod registry;
 mod rendering;
 mod validation;
 
+pub use catalog::canonical_external_artifact_tool_bindings;
 pub use model::{
     BindingInputV1, BindingOutputV1, BindingParameterV1, OutputDiscoveryV1, ToolArtifactSourceV1,
     ToolBinding, ToolBindingRenderContext, ToolBindingV1, TOOL_BINDING_SCHEMA_V1,

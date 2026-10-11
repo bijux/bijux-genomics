@@ -32,9 +32,10 @@ Applies to manifest/lock/hash-based replay and contract-level reproducibility ch
 - Panel catalog entries must include pinned `version`, pinned `url`, and `checksum_sha256`.
 - Floating URLs are forbidden for panel artifacts.
 - Panel metadata must include `population_set`, `genome_build`, and `variant_set_compatibility` to prevent ancestry/build mismatches.
-- Canonical lock outputs are
-  [configs/vcf/panels/locks/lock.json](../../configs/vcf/panels/locks/lock.json) and
-  [configs/vcf/panels/locks/lock.json.sha256](../../configs/vcf/panels/locks/lock.json.sha256).
+- Canonical repository locks are
+  [configs/vcf/panels/locks/panel_locks.toml](../../configs/vcf/panels/locks/panel_locks.toml) and
+  [configs/vcf/maps/locks/map_locks.toml](../../configs/vcf/maps/locks/map_locks.toml). Acquisition
+  commands publish observed-byte manifests under the configured artifact root.
 
 ## HPC Forward-compat
 - Enabling HPC profile changes physical data/container/output roots, not contract semantics.

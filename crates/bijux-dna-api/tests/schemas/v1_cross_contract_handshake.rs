@@ -12,7 +12,7 @@ use bijux_dna_api::v1::api::bench::{
 };
 use bijux_dna_api::v1::api::qualification::{
     render_qualification_assessment_schema, render_qualification_report_schema,
-    QUALIFICATION_ASSESSMENT_SCHEMA_V1, QUALIFICATION_REPORT_SCHEMA_V2,
+    QUALIFICATION_ASSESSMENT_SCHEMA_V2, QUALIFICATION_REPORT_SCHEMA_V3,
 };
 
 fn load_fixture(path: &std::path::Path) -> Value {
@@ -174,12 +174,12 @@ fn checked_qualification_schema_matches_rust_type() -> anyhow::Result<()> {
         .and_then(std::path::Path::parent)
         .ok_or_else(|| anyhow::anyhow!("resolve repository root from API crate"))?;
     let checked: Value = serde_json::from_str(&fs::read_to_string(
-        repository_root.join("containers/contracts/schemas/qualification-assessment.v1.json"),
+        repository_root.join("containers/contracts/schemas/qualification-assessment.v2.json"),
     )?)?;
     let generated = render_qualification_assessment_schema();
     assert_eq!(
         generated.pointer("/properties/schema_version/const").and_then(Value::as_str),
-        Some(QUALIFICATION_ASSESSMENT_SCHEMA_V1)
+        Some(QUALIFICATION_ASSESSMENT_SCHEMA_V2)
     );
     assert_eq!(
         generated.pointer("/$defs/QualificationClaim/enum"),
@@ -209,7 +209,7 @@ fn qualification_report_schema_is_owned_by_rust_types() {
     let generated = render_qualification_report_schema();
     assert_eq!(
         generated.pointer("/properties/schema_version/const").and_then(Value::as_str),
-        Some(QUALIFICATION_REPORT_SCHEMA_V2)
+        Some(QUALIFICATION_REPORT_SCHEMA_V3)
     );
     assert_eq!(generated.pointer("/additionalProperties"), Some(&Value::Bool(false)));
 }

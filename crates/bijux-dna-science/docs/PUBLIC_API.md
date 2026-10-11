@@ -7,6 +7,7 @@ The crate root exports these modules from `src/lib.rs`:
 - `app`
 - `cli`
 - `compile`
+- `decision`
 - `domain`
 - `evidence`
 - `errors`
@@ -25,6 +26,8 @@ The crate root exports these modules from `src/lib.rs`:
 - `compile::load_specs` loads and validates authored science specs.
 - `compile::compile_workspace` compiles authored specs into deterministic science rows.
 - `compile::compile_loaded` compiles already loaded specs.
+- `decision::evaluate_benchmark_gate_policy` evaluates measured benchmark metrics against a stage-aware scientific policy.
+- `decision::validate_benchmark_gate_policy` rejects policy metrics without governed or explicit semantics.
 - `release::cut_release` writes a science release bundle.
 
 ## Data Surface
@@ -32,6 +35,7 @@ The crate root exports these modules from `src/lib.rs`:
 `domain` owns typed science identifiers, authored spec structs, compiled row structs,
 `ScienceIndex`, `FastqClosureSummary`, `FastqEvidenceSummary`, and `CompiledScience`. `evidence`
 owns independent FASTQ read-length truth through `derive_fastq_read_length_truth`.
+`decision` owns pure benchmark science gate validation and evaluation over persisted model inputs.
 `render` owns TSV and JSON rendering for the compiled rows. `schema` owns the accepted
 authored spec schema version constants.
 

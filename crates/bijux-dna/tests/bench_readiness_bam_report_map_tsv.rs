@@ -32,7 +32,7 @@ fn bench_readiness_bam_report_map_writes_governed_tsv_columns() {
     );
 
     let rendered_path = String::from_utf8(output.stdout).expect("stdout utf8");
-    assert_eq!(rendered_path.trim(), "benchmarks/readiness/bam/bam-report-map.tsv");
+    assert_eq!(rendered_path.trim(), "artifacts/benchmark-smoke/readiness/bam/bam-report-map.tsv");
 
     let tsv = std::fs::read_to_string(repo_root.join(rendered_path.trim()))
         .expect("read BAM report map TSV");
@@ -45,9 +45,18 @@ fn bench_readiness_bam_report_map_writes_governed_tsv_columns() {
     );
     let rows = lines.collect::<Vec<_>>();
     assert!(!rows.is_empty(), "TSV must retain BAM benchmark-ready result rows");
-    assert!(rows
-        .iter()
-        .all(|row| { !matches!(row.split('\t').nth(2), Some("angsd" | "ngsbriggs")) }));
+    assert!(rows.iter().any(|row| {
+        let columns = row.split('\t').collect::<Vec<_>>();
+        columns[1] == "bam.kinship" && columns[2] == "angsd"
+    }));
+    assert!(rows.iter().any(|row| {
+        let columns = row.split('\t').collect::<Vec<_>>();
+        columns[1] == "bam.damage" && columns[2] == "ngsbriggs"
+    }));
+    assert!(rows.iter().all(|row| {
+        let columns = row.split('\t').collect::<Vec<_>>();
+        !(columns[1] == "bam.genotyping" && columns[2] == "angsd")
+    }));
     assert!(
         rows.iter().any(|row| {
             row.contains(

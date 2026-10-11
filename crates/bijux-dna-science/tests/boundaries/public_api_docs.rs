@@ -17,8 +17,8 @@ fn public_api_doc_matches_science_root_surface() {
     assert_eq!(
         modules,
         entries([
-            "app", "cli", "compile", "domain", "evidence", "errors", "io", "release", "render",
-            "schema",
+            "app", "cli", "compile", "decision", "domain", "evidence", "errors", "io", "release",
+            "render", "schema",
         ]),
         "src/lib.rs must expose the documented science modules"
     );
@@ -39,6 +39,8 @@ fn public_api_doc_matches_science_root_surface() {
         "compile::load_specs",
         "compile::compile_workspace",
         "compile::compile_loaded",
+        "decision::evaluate_benchmark_gate_policy",
+        "decision::validate_benchmark_gate_policy",
         "release::cut_release",
     ] {
         assert!(

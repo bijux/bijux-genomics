@@ -43,7 +43,7 @@ fn bench_readiness_bam_damage_authenticity_ready_reports_complete_governed_rows(
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/bam/damage-authenticity-ready.json")
+        Some("artifacts/benchmark-smoke/readiness/bam/damage-authenticity-ready.json")
     );
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows");
     let active_row_count = u64::try_from(rows.len()).expect("row count fits u64");

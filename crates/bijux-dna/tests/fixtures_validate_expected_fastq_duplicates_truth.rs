@@ -74,9 +74,9 @@ fn fixtures_validate_expected_fastq_duplicates_truth_reports_governed_duplicate_
         .collect::<Vec<_>>();
     assert_eq!(checked_cases.len(), 3);
     assert!(checked_cases
-        .contains(&"fastq.detect_duplicates_premerge:human_like_pe_duplicate_signals:bijux"));
+        .contains(&"fastq.detect_duplicates_premerge:human_like_pe_duplicate_signals:bijux_dna"));
     assert!(checked_cases
-        .contains(&"fastq.detect_duplicates_premerge:human_like_pe_distinct_pairs:bijux"));
+        .contains(&"fastq.detect_duplicates_premerge:human_like_pe_distinct_pairs:bijux_dna"));
     assert!(
         checked_cases.contains(&"fastq.remove_duplicates:human_like_pe_duplicate_signals:bijux")
     );

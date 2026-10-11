@@ -352,3 +352,63 @@ fn execution_spec_rejects_seed_policy_without_exact_seed() {
     seeded.runtime.random_seed = Some(42);
     assert!(validate_execution_spec(&seeded).is_ok());
 }
+
+#[test]
+fn execution_spec_rejects_disposable_production_roots() {
+    const DISPOSABLE_ROOTS: &[&str] = &[
+        "assets/toy",
+        "benchmarks/tests/fixtures",
+        "configs/bench/local",
+        "runs/bench/local-fake-runs",
+        "runs/bench/readiness-probes",
+        "artifacts/benchmark-smoke",
+    ];
+    const RESULT_SUFFIX: &str = "run-2042-fastq-profile-read-lengths/seqkit/attempts/\
+        human-short-read-length-comparison/attempt-001";
+
+    for root in DISPOSABLE_ROOTS {
+        let mut input = specification();
+        input.inputs[0].path = format!("/study/{root}/input.fastq.gz");
+        assert_disposable_root_rejected(&input, root);
+
+        let mut parameter = specification();
+        parameter.parameters.overrides_path = format!("{root}/parameters.yml");
+        assert_disposable_root_rejected(&parameter, root);
+
+        let mut result = specification();
+        result.outputs.result_root = format!("/study/{root}/results/{RESULT_SUFFIX}");
+        assert_disposable_root_rejected(&result, root);
+    }
+}
+
+#[test]
+fn execution_spec_rejects_disposable_root_embedded_in_command() {
+    let mut spec = specification();
+    spec.commands.measured = vec![
+        "sh".to_string(),
+        "-c".to_string(),
+        "seqkit stats /study/benchmarks/tests/fixtures/input.fastq.gz".to_string(),
+    ];
+
+    assert_disposable_root_rejected(&spec, "benchmarks/tests/fixtures");
+}
+
+#[test]
+fn execution_spec_allows_similarly_named_production_roots() {
+    let mut spec = specification();
+    spec.inputs[0].path = "/study/data/assets/toybox/input.fastq.gz".to_string();
+    spec.commands.measured = vec![
+        "sh".to_string(),
+        "-c".to_string(),
+        "seqkit stats /input/benchmark-smokehouse.fastq.gz".to_string(),
+    ];
+
+    assert!(validate_execution_spec(&spec).is_ok());
+}
+
+fn assert_disposable_root_rejected(spec: &BenchmarkExecutionSpec, root: &str) {
+    assert!(validate_execution_spec(spec).is_err_and(|error| {
+        let message = error.to_string();
+        message.contains("disposable production root") && message.contains(root)
+    }));
+}

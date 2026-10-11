@@ -25,7 +25,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_BAM_CONTAMINATION_SEX_HAPLOGROUPS_READY_PATH: &str =
-    "benchmarks/readiness/bam/contamination-sex-haplogroups-ready.json";
+    "artifacts/benchmark-smoke/readiness/bam/contamination-sex-haplogroups-ready.json";
 const BAM_CONTAMINATION_SEX_HAPLOGROUPS_READY_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.bam_contamination_sex_haplogroups_ready.v1";
 const COVERAGE_STATUS_COMPLETE: &str = "complete";
@@ -97,14 +97,14 @@ const CONTAMINATION_REQUIRED_LOCAL_PROOF_COMMAND_FRAGMENTS: [&str; 4] = [
     "adna_contamination_panel_screen.sam.bai",
     "adna_bam_reference.fasta",
     "adna_contamination_panel.dat",
-    "benchmarks/readiness/local-ready/bam.contamination/contamination.summary.json",
+    "artifacts/benchmark-smoke/readiness/local-ready/bam.contamination/contamination.summary.json",
 ];
 const HAPLOGROUPS_REQUIRED_LOCAL_PROOF_COMMAND_FRAGMENTS: [&str; 5] = [
     "adna_y_haplogroup_panel.sam",
     "adna_y_haplogroup_panel.sam.bai",
     "adna_y_haplogroup_panel.tsv",
     "--reference_genome hg38",
-    "benchmarks/readiness/local-ready/bam.haplogroups/haplogroups",
+    "artifacts/benchmark-smoke/readiness/local-ready/bam.haplogroups/haplogroups",
 ];
 
 fn bam_binding_specs() -> Vec<BamBindingSpec> {

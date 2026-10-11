@@ -42,8 +42,8 @@ callers can trace outliers back to replicate ids.
   parameter grouping.
 - Callers normalize non-stationary or unit-incompatible metrics before invoking
   this crate.
-- Statistical helpers do not validate metric semantics; gate policy resolves
-  metric direction separately.
+- Statistical helpers do not validate metric semantics; the science gate
+  evaluator resolves metric direction separately.
 
 ## Verification
 

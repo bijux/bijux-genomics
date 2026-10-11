@@ -23,7 +23,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_VCF_CALL_PSEUDOHAPLOID_READY_PATH: &str =
-    "benchmarks/readiness/vcf/call-pseudohaploid-ready.json";
+    "artifacts/benchmark-smoke/readiness/vcf/call-pseudohaploid-ready.json";
 const VCF_CALL_PSEUDOHAPLOID_READY_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.vcf_call_pseudohaploid_ready.v1";
 const VCF_CALL_PSEUDOHAPLOID_STAGE_ID: &str = "vcf.call_pseudohaploid";
@@ -360,7 +360,8 @@ fn build_vcf_call_pseudohaploid_ready_row(
         retained_scope_proof_path: binding.retained_row.scope_proof_path,
         all_domain_active_row_present,
         all_domain_active_row_proof_path:
-            "benchmarks/readiness/all-domains/active-stage-tool-matrix.tsv".to_string(),
+            "artifacts/benchmark-smoke/readiness/all-domains/active-stage-tool-matrix.tsv"
+                .to_string(),
         command_ready,
         command_source: binding
             .command_row

@@ -46,11 +46,11 @@ fn bench_readiness_fastq_rendered_commands_report_tracks_active_rows() {
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/fastq/fastq-rendered-commands.sh")
+        Some("artifacts/benchmark-smoke/readiness/fastq/fastq-rendered-commands.sh")
     );
     assert_eq!(
         payload.get("argv_output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/fastq/fastq-rendered-commands.argv.jsonl")
+        Some("artifacts/benchmark-smoke/readiness/fastq/fastq-rendered-commands.argv.jsonl")
     );
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
     let row_count = u64::try_from(rows.len()).expect("row count fits u64");
@@ -134,7 +134,8 @@ fn bench_readiness_fastq_rendered_commands_report_tracks_active_rows() {
 
     let repo_root = support::repo_root().expect("repo root");
     let argv_jsonl = std::fs::read_to_string(
-        repo_root.join("benchmarks/readiness/fastq/fastq-rendered-commands.argv.jsonl"),
+        repo_root
+            .join("artifacts/benchmark-smoke/readiness/fastq/fastq-rendered-commands.argv.jsonl"),
     )
     .expect("read FASTQ rendered command argv jsonl");
     let argv_rows = argv_jsonl.lines().collect::<Vec<_>>();

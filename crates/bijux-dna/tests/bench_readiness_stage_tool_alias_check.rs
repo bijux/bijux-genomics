@@ -43,7 +43,7 @@ fn bench_readiness_stage_tool_alias_check_reports_migration_only_aliases() {
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/all-domains/stage-tool-alias-check.json")
+        Some("artifacts/benchmark-smoke/readiness/all-domains/stage-tool-alias-check.json")
     );
     assert_eq!(
         payload.get("migration_validation_stage_alias_count").and_then(serde_json::Value::as_u64),

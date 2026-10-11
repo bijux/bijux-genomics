@@ -332,6 +332,7 @@ fn run_phasing_stage_inner(
     if params.threads == 0 {
         bail!("phasing requires threads > 0");
     }
+    let parsed_region = params.region.as_deref().map(parse_region_bounds).transpose()?;
 
     let raw = read_vcf_text_runtime(input_vcf)?;
     let resolved_backend = resolve_phasing_backend(params, &raw);
@@ -515,8 +516,7 @@ fn run_phasing_stage_inner(
                 "--outPrefix".to_string(),
                 out_dir.join("eagle.out").to_string_lossy().to_string(),
             ];
-            if let Some(region) = &params.region {
-                let (_chr, start_bp, end_bp) = parse_region_bounds(region)?;
+            if let Some((_chr, start_bp, end_bp)) = parsed_region {
                 argv.push("--bpStart".to_string());
                 argv.push(start_bp.to_string());
                 argv.push("--bpEnd".to_string());

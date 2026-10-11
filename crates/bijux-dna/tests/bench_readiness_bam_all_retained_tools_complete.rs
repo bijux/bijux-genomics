@@ -1,3 +1,4 @@
+#![cfg(feature = "bam_downstream")]
 #![allow(clippy::expect_used, clippy::too_many_lines)]
 
 #[path = "contracts/banks/bank_fixtures.rs"]
@@ -42,7 +43,7 @@ fn bench_readiness_bam_all_retained_tools_complete_reports_governed_pass_state()
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/bam/BAM_ALL_RETAINED_TOOLS_COMPLETE.json")
+        Some("artifacts/benchmark-smoke/readiness/bam/BAM_ALL_RETAINED_TOOLS_COMPLETE.json")
     );
     assert_eq!(payload.get("checked_goal_count").and_then(serde_json::Value::as_u64), Some(19));
     assert_eq!(payload.get("passed_goal_count").and_then(serde_json::Value::as_u64), Some(19));
@@ -84,8 +85,13 @@ fn bench_readiness_bam_all_retained_tools_complete_reports_governed_pass_state()
         .get("local_smoke_host_stage_row_count")
         .and_then(serde_json::Value::as_u64)
         .expect("host smoke rows");
-    let expected_container_smoke_row_count =
-        retained_row_count - expected_host_stage_smoke_row_count;
+    let expected_external_artifact_row_count = payload
+        .get("local_smoke_external_artifact_row_count")
+        .and_then(serde_json::Value::as_u64)
+        .expect("external artifact smoke rows");
+    let expected_container_smoke_row_count = retained_row_count
+        - expected_host_stage_smoke_row_count
+        - expected_external_artifact_row_count;
     assert_eq!(
         payload.get("local_smoke_host_stage_row_count").and_then(serde_json::Value::as_u64),
         Some(expected_host_stage_smoke_row_count)
@@ -94,6 +100,7 @@ fn bench_readiness_bam_all_retained_tools_complete_reports_governed_pass_state()
         payload.get("local_smoke_container_row_count").and_then(serde_json::Value::as_u64),
         Some(expected_container_smoke_row_count)
     );
+    assert_eq!(expected_external_artifact_row_count, 3);
     assert_eq!(
         payload.get("report_map_row_count").and_then(serde_json::Value::as_u64),
         Some(retained_row_count)

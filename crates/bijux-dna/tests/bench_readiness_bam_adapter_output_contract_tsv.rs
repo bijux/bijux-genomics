@@ -31,7 +31,8 @@ fn bench_readiness_bam_adapter_output_contract_writes_governed_tsv_columns() {
         String::from_utf8_lossy(&output.stderr)
     );
 
-    let tsv_path = repo_root.join("benchmarks/readiness/bam-adapter-output-contract.tsv");
+    let tsv_path =
+        repo_root.join("artifacts/benchmark-smoke/readiness/bam/bam-adapter-output-contract.tsv");
     assert!(tsv_path.is_file(), "BAM adapter output contract TSV must exist");
 
     let tsv = std::fs::read_to_string(&tsv_path).expect("read BAM adapter output contract");
@@ -44,9 +45,6 @@ fn bench_readiness_bam_adapter_output_contract_writes_governed_tsv_columns() {
     );
     let rows = lines.collect::<Vec<_>>();
     assert!(!rows.is_empty());
-    assert!(rows
-        .iter()
-        .all(|row| { !matches!(row.split('\t').next(), Some("angsd" | "ngsbriggs")) }));
     let has_row = |tool_id: &str,
                    stage_id: &str,
                    adapter_status: &str,
@@ -67,6 +65,14 @@ fn bench_readiness_bam_adapter_output_contract_writes_governed_tsv_columns() {
     assert!(
         has_row("samtools", "bam.validate", "runnable", "complete", "validation_report", "",),
         "TSV must retain the governed samtools validate contract row"
+    );
+    assert!(
+        has_row("angsd", "bam.kinship", "runnable", "complete", "kinship_report", "",),
+        "TSV must retain the governed ANGSD kinship contract row"
+    );
+    assert!(
+        has_row("ngsbriggs", "bam.damage", "runnable", "complete", "damage_report", "",),
+        "TSV must retain the governed ngsBriggs damage contract row"
     );
     assert!(
         has_row(

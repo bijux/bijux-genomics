@@ -15,7 +15,7 @@ Applies to panel/map acquisition, cache layout, and runtime reuse for VCF downst
 
 VCF panel/map assets are acquired once according to
 [configs/vcf/panels/panels.toml](../../configs/vcf/panels/panels.toml), locked through
-[configs/vcf/panels/locks/lock.json](../../configs/vcf/panels/locks/lock.json), and reused by
+[configs/vcf/panels/locks/panel_locks.toml](../../configs/vcf/panels/locks/panel_locks.toml), and reused by
 pipelines.
 
 Rules:

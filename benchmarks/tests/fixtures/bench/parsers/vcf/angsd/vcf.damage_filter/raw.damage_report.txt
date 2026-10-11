@@ -1,7 +1,0 @@
-input_variants	4
-removed_variants	2
-retained_variants	2
-low_quality_filtered_variants	1
-damage_ratio_filtered_variants	1
-terminal_damage_filtered_variants	1
-sample_count	1

@@ -18,15 +18,15 @@ use crate::commands::benchmark::local_all_domain_fake_runs::{
 use crate::commands::benchmark::local_stage_fake_runs::path_relative_to_repo;
 use crate::commands::benchmark::local_stage_result_manifest::load_validated_stage_result_manifest_path;
 use crate::commands::benchmark::path_resolution::{
-    ensure_path_stays_within_benchmark_runs_root, BenchmarkPathResolver,
+    ensure_path_stays_within_benchmark_simulated_run_root, BenchmarkPathResolver,
 };
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_ALL_DOMAIN_MISSING_RESULT_TEST_PATH: &str =
-    "benchmarks/readiness/missing-result-test-all-domains.json";
+    "artifacts/benchmark-smoke/readiness/missing-result-test-all-domains.json";
 const DEFAULT_ALL_DOMAIN_MISSING_RESULT_FIXTURE_ROOT: &str =
-    "runs/bench/readiness-probes/all-domains/missing-result-test";
+    "artifacts/benchmark-smoke/simulated-runs/readiness-probes/all-domains/missing-result-test";
 const ALL_DOMAIN_MISSING_RESULT_TEST_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.all_domain_missing_result_audit.v1";
 
@@ -113,7 +113,7 @@ pub(crate) fn render_all_domain_missing_result_audit(
 
     let fixture_root =
         benchmark_paths.benchmark_readiness_probe_root().join("all-domains/missing-result-test");
-    ensure_path_stays_within_benchmark_runs_root(
+    ensure_path_stays_within_benchmark_simulated_run_root(
         repo_root,
         &fixture_root,
         "all-domain missing-result fixture root",
@@ -493,7 +493,7 @@ mod tests {
         assert_eq!(report.output_path, DEFAULT_ALL_DOMAIN_MISSING_RESULT_TEST_PATH);
         assert_eq!(
             report.fake_result_root,
-            "runs/bench/readiness-probes/all-domains/missing-result-test"
+            "artifacts/benchmark-smoke/simulated-runs/readiness-probes/all-domains/missing-result-test"
         );
         assert_eq!(
             report.present_result_row_count + report.missing_result_row_count,

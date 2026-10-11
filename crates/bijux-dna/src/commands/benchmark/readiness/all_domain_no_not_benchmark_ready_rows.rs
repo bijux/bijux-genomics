@@ -14,7 +14,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_ALL_DOMAIN_NO_NOT_BENCHMARK_READY_ROWS_PATH: &str =
-    "benchmarks/readiness/all-domains/no-not-benchmark-ready-rows.json";
+    "artifacts/benchmark-smoke/readiness/all-domains/no-not-benchmark-ready-rows.json";
 const ALL_DOMAIN_NO_NOT_BENCHMARK_READY_ROWS_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.all_domain_no_not_benchmark_ready_rows.v1";
 

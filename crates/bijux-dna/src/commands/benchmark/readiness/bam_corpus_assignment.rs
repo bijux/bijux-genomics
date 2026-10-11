@@ -34,7 +34,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_BAM_CORPUS_ASSIGNMENT_PATH: &str =
-    "benchmarks/readiness/bam-corpus-assignment.tsv";
+    "artifacts/benchmark-smoke/readiness/bam/bam-corpus-assignment.tsv";
 const BAM_CORPUS_ASSIGNMENT_SCHEMA_VERSION: &str = "bijux.bench.readiness.bam_corpus_assignment.v3";
 const DEFAULT_LOCAL_AUTHENTICITY_CONFIG_PATH: &str = "configs/bench/local/bam-authenticity.toml";
 const DEFAULT_LOCAL_CONTAMINATION_CONFIG_PATH: &str = "configs/bench/local/bam-contamination.toml";
@@ -1167,7 +1167,7 @@ mod tests {
         }));
         assert!(report.rows.iter().any(|row| {
             row.stage_id == "bam.genotyping"
-                && row.tool_id == "angsd"
+                && row.tool_id == "bcftools"
                 && row.corpus_family_id == "corpus-01-genotyping"
                 && row.fixture_id == "corpus-01-genotyping-mini"
                 && row.sample_id == "human_like_genotyping_candidate_panel"

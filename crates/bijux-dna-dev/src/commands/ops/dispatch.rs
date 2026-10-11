@@ -135,6 +135,18 @@ pub(super) fn run_native_ops_command(
         NativeOpsCommandKey::ToolingBenchmarkCampaignCycle => {
             tooling::tooling_benchmark_campaign_cycle(workspace, args)
         }
+        NativeOpsCommandKey::ToolingBenchmarkDataCatalogSnapshots => {
+            tooling::tooling_benchmark_data_catalog_snapshots(workspace, args)
+        }
+        NativeOpsCommandKey::ToolingBenchmarkDataPortfolioAudit => {
+            tooling::tooling_benchmark_data_portfolio_audit(workspace, args)
+        }
+        NativeOpsCommandKey::ToolingBenchmarkPublicationRegistry => {
+            tooling::tooling_benchmark_publication_registry(workspace, args)
+        }
+        NativeOpsCommandKey::ToolingBenchmarkRunRegistry => {
+            tooling::tooling_benchmark_run_registry(workspace, args)
+        }
         NativeOpsCommandKey::ToolingBenchmarkScientificReadiness => {
             tooling::tooling_benchmark_scientific_readiness(workspace, args)
         }

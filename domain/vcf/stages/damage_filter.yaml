@@ -25,7 +25,7 @@ metrics:
   - name: "pmd_filtered_reads"
   - name: "damage_strategy_applied"
   - name: "damage_bias_before_after_summary"
-compatible_tools: ["bcftools", "angsd"]
+compatible_tools: ["bcftools"]
 defaults_source: "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md"
 assumptions:
   - "C>T/G>A and PMD thresholds are explicit and versioned."

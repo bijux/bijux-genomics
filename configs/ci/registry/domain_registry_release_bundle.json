@@ -1,7 +1,7 @@
 {
   "schema_version": "bijux.domain.registry.release_bundle.v1",
-  "source_commit": "612475f7096a976dc2327b1fb157340e2acbea30",
-  "bundle_checksum_sha256": "09c75ca9ca7c879d698fc6284c42b981f9e0b4cf52e890a31197aba754382831",
+  "source_commit": "8ac9ff518ae6c91938467194190d5b8856bf949c",
+  "bundle_checksum_sha256": "e4703559009c7e800cc563a752fde7dfb88f388e15c345fe482dc6f8699dc421",
   "domains": [
     {
       "domain_id": "bam",
@@ -2592,7 +2592,7 @@
         },
         {
           "tool_id": "angsd",
-          "status": "planned",
+          "status": "supported",
           "scope": "pre_hpc_pre_vcf",
           "role": "",
           "default_version": "0.941",
@@ -2616,7 +2616,7 @@
           "metrics_schema_id": "bijux.bam.population.v1",
           "comparability_notes": "Comparable only within same stage contract and input constraints.",
           "container": {
-            "image": "external",
+            "image": "external-artifact://angsd",
             "digest": ""
           }
         },
@@ -2746,8 +2746,8 @@
           "metrics_schema_id": "bijux.bam.genotyping.v1",
           "comparability_notes": "Compare only when reference, candidate sites, regions, ploidy, and calling parameters are identical.",
           "container": {
-            "image": "bijuxdna/bcftools:1.20",
-            "digest": ""
+            "image": "quay.io/biocontainers/bcftools:1.20--h8b25389_0",
+            "digest": "sha256:67f54df47f501f6ddef08e3b9ad89cf693952f9a89de0d74df6e39fce15f1ff6"
           }
         },
         {
@@ -3070,7 +3070,7 @@
         },
         {
           "tool_id": "ngsbriggs",
-          "status": "planned",
+          "status": "supported",
           "scope": "pre_hpc_pre_vcf",
           "role": "",
           "default_version": "0.01",
@@ -3095,7 +3095,7 @@
           "metrics_schema_id": "bijux.bam.damage.v1",
           "comparability_notes": "Comparable only within same stage contract and input constraints.",
           "container": {
-            "image": "external",
+            "image": "external-artifact://ngsbriggs",
             "digest": ""
           }
         },
@@ -4444,7 +4444,7 @@
         }
       ],
       "deprecations": [],
-      "checksum_sha256": "a070545d0640575c87166588ac01f26624a791a4594228a7b3810fe2fb289893"
+      "checksum_sha256": "e7568f1493d94b00675683e5662c3e3fab0d2fc84c3bd422eb3965d9744123cc"
     },
     {
       "domain_id": "fastq",
@@ -8404,7 +8404,8 @@
           ],
           "tool_capability_requirements": [],
           "compatible_tools": [
-            "clumpify"
+            "clumpify",
+            "fastuniq"
           ],
           "assumptions": [
             "paired-end input may emit r1+r2 outputs; single-end may omit r2 artifact.",
@@ -8423,9 +8424,7 @@
           "bank_hooks": [
             "none"
           ],
-          "planned_out_of_scope": [
-            "fastuniq"
-          ]
+          "planned_out_of_scope": []
         },
         {
           "stage_id": "fastq.repair_pairs",
@@ -10558,7 +10557,7 @@
         },
         {
           "tool_id": "fastuniq",
-          "status": "planned",
+          "status": "supported",
           "scope": "pre_hpc_pre_vcf",
           "role": "",
           "default_version": "1.1",
@@ -10583,10 +10582,10 @@
             "PE"
           ],
           "metrics_schema_id": "bijux.stage.metrics.v1",
-          "comparability_notes": "Upstream does not publish a software license grant, so FastUniq remains an external planned option and is excluded from governed execution and comparison.",
+          "comparability_notes": "Execution and comparison require a governed operator-provided artifact because upstream does not publish a software license grant.",
           "container": {
-            "image": "external",
-            "digest": "external"
+            "image": "external-artifact://fastuniq",
+            "digest": ""
           }
         },
         {
@@ -11244,7 +11243,7 @@
           "license": "GPL-3.0",
           "citation": "paper:https://academic.oup.com/bioinformatics/article/28/24/3211/246053",
           "version_cmd": "sortmerna --version",
-          "help_cmd": "sortmerna --help",
+          "help_cmd": "sortmerna -h",
           "stage_ids": [
             "fastq.deplete_rrna"
           ],
@@ -13424,6 +13423,11 @@
           "fixture_path": "domain/fastq/fixtures/fastq.remove_duplicates/clumpify.txt"
         },
         {
+          "stage_id": "fastq.remove_duplicates",
+          "tool_id": "fastuniq",
+          "fixture_path": "domain/fastq/fixtures/fastq.remove_duplicates/fastuniq.txt"
+        },
+        {
           "stage_id": "fastq.report_qc",
           "tool_id": "multiqc",
           "fixture_path": "domain/fastq/fixtures/fastq.report_qc/multiqc.txt"
@@ -13565,7 +13569,7 @@
         }
       ],
       "deprecations": [],
-      "checksum_sha256": "a1ae82c85965798e9eec42081f6fdaad5c1e847d6cf8764779cd8b3a75fb0fbc"
+      "checksum_sha256": "4546e557104dbbeb0f57049c31ce69b28a95661fa3bbae09a275b1f591179e3a"
     },
     {
       "domain_id": "vcf",
@@ -14078,7 +14082,6 @@
           ],
           "tool_capability_requirements": [],
           "compatible_tools": [
-            "angsd",
             "bcftools"
           ],
           "assumptions": [
@@ -14298,7 +14301,6 @@
           ],
           "tool_capability_requirements": [],
           "compatible_tools": [
-            "angsd",
             "bcftools"
           ],
           "assumptions": [
@@ -15193,7 +15195,7 @@
       "tools": [
         {
           "tool_id": "angsd",
-          "status": "planned",
+          "status": "supported",
           "scope": "post_vcf",
           "role": "analysis",
           "default_version": "0.941",
@@ -15201,19 +15203,14 @@
           "pin_strategy": "external_tool",
           "license": "NOASSERTION",
           "citation": "paper:https://bmcbioinformatics.biomedcentral.com/articles/10.1186/s12859-014-0356-4",
-          "version_cmd": "angsd 2>&1 | head -n 1",
-          "help_cmd": "angsd -h",
+          "version_cmd": "angsd --version",
+          "help_cmd": "angsd --help",
           "stage_ids": [
             "vcf.call_gl",
-            "vcf.call_pseudohaploid",
-            "vcf.damage_filter",
-            "vcf.gl_propagation"
+            "vcf.call_pseudohaploid"
           ],
           "planned_stage_ids": [],
           "expected_artifacts": [
-            "damage_bias_audit_report",
-            "damage_report",
-            "gl_propagation_report",
             "gl_provenance",
             "gl_vcf",
             "pseudohaploid_sampling_log"
@@ -15225,8 +15222,11 @@
             "damage_aware"
           ],
           "metrics_schema_id": "bijux.vcf.gl.v1",
-          "comparability_notes": "Comparable only when GL model, PMD filters, and reference build are identical.",
-          "container": null
+          "comparability_notes": "Comparable only when GL model, PMD filters, reference build, and governed external artifact identity are identical.",
+          "container": {
+            "image": "external-artifact://angsd",
+            "digest": ""
+          }
         },
         {
           "tool_id": "bcftools",
@@ -15308,7 +15308,7 @@
           "metrics_schema_id": "bijux.vcf.phasing.v1",
           "comparability_notes": "Comparable only when panel build, genetic map, and pinned Beagle profile stay identical.",
           "container": {
-            "image": "containers/apptainer/lunarc/beagle.def",
+            "image": "containers/apptainer/beagle.def",
             "digest": "sha256:220b8f1687f32f6f04cb4e85b0d6ab4ecd2e98f6f5147064c4c2420ddfdd5b3f"
           }
         },
@@ -15371,7 +15371,7 @@
           "metrics_schema_id": "bijux.vcf.population_structure.v1",
           "comparability_notes": "Comparable only when the EIGENSTRAT conversion path, smartpca projection settings, and reference build stay identical.",
           "container": {
-            "image": "containers/apptainer/lunarc/eigensoft.def",
+            "image": "containers/apptainer/eigensoft.def",
             "digest": "sha256:fbe67c1ff5eb3487bb0fb74b24166b618b7f92c72f0c6f369f7bc0f8ceeb4ed9"
           }
         },
@@ -15533,7 +15533,7 @@
         },
         {
           "tool_id": "impute5",
-          "status": "planned",
+          "status": "supported",
           "scope": "post_vcf",
           "role": "analysis",
           "default_version": "1.2.0",
@@ -15556,10 +15556,10 @@
             "SE"
           ],
           "metrics_schema_id": "bijux.vcf.imputation_metrics.v1",
-          "comparability_notes": "External planned tool pending container policy and licensing review.",
+          "comparability_notes": "Execution requires a governed operator-provided artifact under the institution's Oxford academic-use license.",
           "container": {
-            "image": "external",
-            "digest": "external"
+            "image": "external-artifact://impute5",
+            "digest": ""
           }
         },
         {
@@ -16653,11 +16653,6 @@
         },
         {
           "stage_id": "vcf.damage_filter",
-          "tool_id": "angsd",
-          "fixture_path": "domain/vcf/fixtures/vcf.damage_filter/angsd.txt"
-        },
-        {
-          "stage_id": "vcf.damage_filter",
           "tool_id": "bcftools",
           "fixture_path": "domain/vcf/fixtures/vcf.damage_filter/bcftools.txt"
         },
@@ -16808,7 +16803,7 @@
         }
       ],
       "deprecations": [],
-      "checksum_sha256": "69f96eeb52890aee0b6181dc3e73690fa9e09ab2346832add21e904eeacf191b"
+      "checksum_sha256": "1794cd711ce4089284b80f5fb265b3dc3e25da5710195d411b498ccad1dbad97"
     }
   ]
 }

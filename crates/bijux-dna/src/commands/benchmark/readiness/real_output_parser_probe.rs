@@ -27,10 +27,11 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_REAL_OUTPUT_PARSER_SMOKE_PATH: &str =
-    "benchmarks/readiness/tools/real-output-parser-smoke.json";
+    "artifacts/benchmark-smoke/readiness/tools/real-output-parser-smoke.json";
 const REAL_OUTPUT_PARSER_SMOKE_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.real_output_parser_smoke.v1";
-const DEFAULT_PROBE_ROOT: &str = "runs/bench/readiness-probes/tools/real-output-parser-smoke";
+const DEFAULT_PROBE_ROOT: &str =
+    "artifacts/benchmark-smoke/simulated-runs/readiness-probes/tools/real-output-parser-smoke";
 const LOCAL_BAM_GENOTYPING_CONFIG_PATH: &str = "configs/bench/local/bam-genotyping.toml";
 const LOCAL_BAM_KINSHIP_CONFIG_PATH: &str = "configs/bench/local/bam-kinship.toml";
 const LOCAL_BAM_SEX_CONFIG_PATH: &str = "configs/bench/local/bam-sex.toml";
@@ -1952,7 +1953,7 @@ mod tests {
         let _cwd = CurrentDirGuard::switch_to(&repo_root)?;
         let output_path = repo_root.join(DEFAULT_REAL_OUTPUT_PARSER_SMOKE_PATH);
         let probe_root =
-            repo_root.join("runs/bench/readiness-probes/tests/real-output-parser-smoke");
+            repo_root.join("artifacts/benchmark-smoke/simulated-runs/readiness-probes/tests/real-output-parser-smoke");
         if probe_root.exists() {
             std::fs::remove_dir_all(&probe_root)?;
         }

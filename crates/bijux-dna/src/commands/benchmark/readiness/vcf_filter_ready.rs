@@ -22,7 +22,8 @@ use crate::commands::benchmark::local_vcf_filter_smoke::{
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
-pub(crate) const DEFAULT_VCF_FILTER_READY_PATH: &str = "benchmarks/readiness/vcf/filter-ready.json";
+pub(crate) const DEFAULT_VCF_FILTER_READY_PATH: &str =
+    "artifacts/benchmark-smoke/readiness/vcf/filter-ready.json";
 const VCF_FILTER_READY_SCHEMA_VERSION: &str = "bijux.bench.readiness.vcf_filter_ready.v1";
 const VCF_FILTER_STAGE_ID: &str = "vcf.filter";
 const REQUIRED_METRIC_NAMES: [&str; 8] = [
@@ -361,7 +362,8 @@ fn build_vcf_filter_ready_row(
         retained_scope_proof_path: binding.retained_row.scope_proof_path,
         all_domain_active_row_present,
         all_domain_active_row_proof_path:
-            "benchmarks/readiness/all-domains/active-stage-tool-matrix.tsv".to_string(),
+            "artifacts/benchmark-smoke/readiness/all-domains/active-stage-tool-matrix.tsv"
+                .to_string(),
         command_ready,
         command_source: binding
             .command_row

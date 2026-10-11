@@ -43,7 +43,7 @@ fn bench_readiness_removed_from_scope_reports_only_non_active_bindings() {
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/removed-from-scope.tsv")
+        Some("artifacts/benchmark-smoke/readiness/removed-from-scope.tsv")
     );
     assert_eq!(
         payload.get("full_benchmark_report_check_source").and_then(serde_json::Value::as_str),

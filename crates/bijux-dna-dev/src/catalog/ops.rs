@@ -351,6 +351,26 @@ pub fn tooling_registry() -> Vec<OpsCommandDefinition> {
             NativeOpsCommandKey::ToolingBenchmarkCampaignCycle,
         ),
         native(
+            "benchmark-data-catalog-snapshots",
+            "Preserve flat catalog authorities and publish a complete source-addressed registry.",
+            NativeOpsCommandKey::ToolingBenchmarkDataCatalogSnapshots,
+        ),
+        native(
+            "benchmark-data-portfolio-audit",
+            "Publish a typed audit joining benchmark corpora to governed STUDY data.",
+            NativeOpsCommandKey::ToolingBenchmarkDataPortfolioAudit,
+        ),
+        native(
+            "benchmark-publication-registry",
+            "Generate or check current, historical, and quarantined benchmark publications.",
+            NativeOpsCommandKey::ToolingBenchmarkPublicationRegistry,
+        ),
+        native(
+            "benchmark-run-registry",
+            "Generate or check the permanent benchmark run namespace and stage mapping.",
+            NativeOpsCommandKey::ToolingBenchmarkRunRegistry,
+        ),
+        native(
             "benchmark-scientific-readiness",
             "Generate or check scientific benchmark readiness from typed admitted evidence.",
             NativeOpsCommandKey::ToolingBenchmarkScientificReadiness,

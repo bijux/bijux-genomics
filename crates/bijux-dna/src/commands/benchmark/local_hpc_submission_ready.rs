@@ -73,23 +73,23 @@ use crate::commands::cli::SlurmSubmitCampaignArgs;
 use crate::commands::hpc::{campaign_dry_run, prepare_foundation, submit_campaign};
 
 pub(crate) const DEFAULT_HPC_SUBMISSION_READY_REPORT_PATH: &str =
-    "benchmarks/readiness/local-ready/HPC_SUBMISSION_READY.json";
+    "artifacts/benchmark-smoke/readiness/local-ready/HPC_SUBMISSION_READY.json";
 const LOCAL_HPC_SUBMISSION_READY_SCHEMA_VERSION: &str = "bijux.bench.local_hpc_submission_ready.v1";
 const DEFAULT_STAGE_COMMANDS_PATH: &str =
-    "benchmarks/readiness/local-ready/rendered-stage-commands.sh";
+    "artifacts/benchmark-smoke/readiness/local-ready/rendered-stage-commands.sh";
 const DEFAULT_STAGE_OUTPUT_COMPLETION_REPORT_PATH: &str =
-    "benchmarks/readiness/local-ready/output-completion-report.json";
+    "artifacts/benchmark-smoke/readiness/local-ready/output-completion-report.json";
 const DEFAULT_STAGE_MANIFEST_COMPLETION_REPORT_PATH: &str =
-    "benchmarks/readiness/local-ready/manifest-completion-report.json";
+    "artifacts/benchmark-smoke/readiness/local-ready/manifest-completion-report.json";
 const DEFAULT_RUNTIME_METRICS_REPORT_PATH: &str =
-    "benchmarks/readiness/local-ready/runtime-metrics.json";
+    "artifacts/benchmark-smoke/readiness/local-ready/runtime-metrics.json";
 const DEFAULT_TOOL_COMPARISON_TEMPLATE_PATH: &str =
-    "benchmarks/readiness/local-ready/tool-comparison-template.tsv";
+    "artifacts/benchmark-smoke/readiness/local-ready/tool-comparison-template.tsv";
 const DEFAULT_BENCHMARK_SUMMARY_JSON_PATH: &str =
-    "benchmarks/readiness/local-ready/benchmark-summary.json";
+    "artifacts/benchmark-smoke/readiness/local-ready/benchmark-summary.json";
 const DEFAULT_BENCHMARK_SUMMARY_MARKDOWN_PATH: &str =
-    "benchmarks/readiness/local-ready/benchmark-summary.md";
-const DEFAULT_LOCAL_STAGE_FAILURE_ROOT: &str = "runs/bench/local-fake-runs/failures";
+    "artifacts/benchmark-smoke/readiness/local-ready/benchmark-summary.md";
+const DEFAULT_LOCAL_STAGE_FAILURE_ROOT: &str = "artifacts/benchmark-smoke/simulated-runs/failures";
 const DEFAULT_SLURM_DRY_RUN_ROOT: &str = "runs/bench/slurm-dry-run";
 const DEFAULT_SLURM_SUBMIT_MANIFEST_PATH: &str = "runs/bench/slurm-dry-run/submit-manifest.json";
 const DEFAULT_SLURM_DEPENDENCY_CHECK_REPORT_PATH: &str =
@@ -98,11 +98,15 @@ const DEFAULT_SLURM_SHELL_SYNTAX_REPORT_PATH: &str = "runs/bench/slurm-dry-run/b
 const DEFAULT_SLURM_SCRIPT_BODY_REPORT_PATH: &str =
     "runs/bench/slurm-dry-run/no-placeholder-report.json";
 const DEFAULT_CORPUS_SKIP_REPORT_PATH: &str =
-    "benchmarks/readiness/local-ready/corpus-skip-report.json";
+    "artifacts/benchmark-smoke/readiness/local-ready/corpus-skip-report.json";
 const DEFAULT_HPC_SUPPORT_ROOT: &str = "artifacts/hpc/hpc-submission-ready";
 
 const FASTQ_STAGE_GOALS: &[(&str, u32, &str)] = &[
-    ("fastq.index_reference", 2, "benchmarks/readiness/local-ready/fastq.index_reference"),
+    (
+        "fastq.index_reference",
+        2,
+        "artifacts/benchmark-smoke/readiness/local-ready/fastq.index_reference",
+    ),
     ("fastq.validate_reads", 3, "runs/bench/local-smoke/fastq.validate_reads"),
     ("fastq.profile_read_lengths", 4, "runs/bench/local-smoke/fastq.profile_read_lengths"),
     ("fastq.detect_adapters", 5, "runs/bench/local-smoke/fastq.detect_adapters"),
@@ -122,15 +126,23 @@ const FASTQ_STAGE_GOALS: &[(&str, u32, &str)] = &[
     ("fastq.trim_reads", 11, "runs/bench/local-smoke/fastq.trim_reads"),
     ("fastq.filter_reads", 12, "runs/bench/local-smoke/fastq.filter_reads"),
     ("fastq.profile_reads", 13, "runs/bench/local-smoke/fastq.profile_reads"),
-    ("fastq.deplete_rrna", 14, "benchmarks/readiness/local-ready/fastq.deplete_rrna"),
+    (
+        "fastq.deplete_rrna",
+        14,
+        "artifacts/benchmark-smoke/readiness/local-ready/fastq.deplete_rrna",
+    ),
     ("fastq.merge_pairs", 15, "runs/bench/local-smoke/fastq.merge_pairs"),
     ("fastq.remove_duplicates", 16, "runs/bench/local-smoke/fastq.remove_duplicates"),
     ("fastq.filter_low_complexity", 17, "runs/bench/local-smoke/fastq.filter_low_complexity"),
-    ("fastq.deplete_host", 18, "benchmarks/readiness/local-ready/fastq.deplete_host"),
+    (
+        "fastq.deplete_host",
+        18,
+        "artifacts/benchmark-smoke/readiness/local-ready/fastq.deplete_host",
+    ),
     (
         "fastq.deplete_reference_contaminants",
         19,
-        "benchmarks/readiness/local-ready/fastq.deplete_reference_contaminants",
+        "artifacts/benchmark-smoke/readiness/local-ready/fastq.deplete_reference_contaminants",
     ),
     ("fastq.correct_errors", 20, "runs/bench/local-smoke/fastq.correct_errors"),
     ("fastq.extract_umis", 21, "runs/bench/local-smoke/fastq.extract_umis"),
@@ -143,11 +155,15 @@ const FASTQ_STAGE_GOALS: &[(&str, u32, &str)] = &[
     ("fastq.infer_asvs", 24, "runs/bench/local-smoke/fastq.infer_asvs"),
     ("fastq.cluster_otus", 25, "runs/bench/local-smoke/fastq.cluster_otus"),
     ("fastq.normalize_abundance", 26, "runs/bench/local-smoke/fastq.normalize_abundance"),
-    ("fastq.screen_taxonomy", 27, "benchmarks/readiness/local-ready/fastq.screen_taxonomy"),
+    (
+        "fastq.screen_taxonomy",
+        27,
+        "artifacts/benchmark-smoke/readiness/local-ready/fastq.screen_taxonomy",
+    ),
 ];
 
 const BAM_STAGE_GOALS: &[(&str, u32, &str)] = &[
-    ("bam.align", 29, "benchmarks/readiness/local-ready/bam.align"),
+    ("bam.align", 29, "artifacts/benchmark-smoke/readiness/local-ready/bam.align"),
     ("bam.validate", 30, "runs/bench/local-smoke/bam.validate"),
     ("bam.qc_pre", 31, "runs/bench/local-smoke/bam.qc_pre"),
     ("bam.mapping_summary", 32, "runs/bench/local-smoke/bam.mapping_summary"),
@@ -164,12 +180,12 @@ const BAM_STAGE_GOALS: &[(&str, u32, &str)] = &[
     ("bam.overlap_correction", 43, "runs/bench/local-smoke/bam.overlap_correction"),
     ("bam.damage", 44, "runs/bench/local-smoke/bam.damage"),
     ("bam.authenticity", 45, "runs/bench/local-smoke/bam.authenticity"),
-    ("bam.contamination", 46, "benchmarks/readiness/local-ready/bam.contamination"),
+    ("bam.contamination", 46, "artifacts/benchmark-smoke/readiness/local-ready/bam.contamination"),
     ("bam.sex", 47, "runs/bench/local-smoke/bam.sex"),
     ("bam.bias_mitigation", 48, "runs/bench/local-smoke/bam.bias_mitigation"),
     ("bam.recalibration", 49, "runs/bench/local-smoke/bam.recalibration"),
-    ("bam.haplogroups", 50, "benchmarks/readiness/local-ready/bam.haplogroups"),
-    ("bam.genotyping", 51, "benchmarks/readiness/local-ready/bam.genotyping"),
+    ("bam.haplogroups", 50, "artifacts/benchmark-smoke/readiness/local-ready/bam.haplogroups"),
+    ("bam.genotyping", 51, "artifacts/benchmark-smoke/readiness/local-ready/bam.genotyping"),
     ("bam.kinship", 52, "runs/bench/local-smoke/bam.kinship"),
 ];
 
@@ -177,52 +193,52 @@ const PIPELINE_DAG_GOALS: &[(u32, &str, &str)] = &[
     (
         77,
         "benchmarks/configs/pipelines/local/fastq-core-preprocess.toml",
-        "benchmarks/readiness/local-ready/pipeline-dag/fastq-core-preprocess.json",
+        "artifacts/benchmark-smoke/readiness/local-ready/pipeline-dag/fastq-core-preprocess.json",
     ),
     (
         78,
         "benchmarks/configs/pipelines/local/fastq-paired-merge.toml",
-        "benchmarks/readiness/local-ready/pipeline-dag/fastq-paired-merge.json",
+        "artifacts/benchmark-smoke/readiness/local-ready/pipeline-dag/fastq-paired-merge.json",
     ),
     (
         79,
         "benchmarks/configs/pipelines/local/fastq-edna-taxonomy.toml",
-        "benchmarks/readiness/local-ready/pipeline-dag/fastq-edna-taxonomy.json",
+        "artifacts/benchmark-smoke/readiness/local-ready/pipeline-dag/fastq-edna-taxonomy.json",
     ),
     (
         80,
         "benchmarks/configs/pipelines/local/fastq-amplicon.toml",
-        "benchmarks/readiness/local-ready/pipeline-dag/fastq-amplicon.json",
+        "artifacts/benchmark-smoke/readiness/local-ready/pipeline-dag/fastq-amplicon.json",
     ),
     (
         81,
         "benchmarks/configs/pipelines/local/fastq-umi.toml",
-        "benchmarks/readiness/local-ready/pipeline-dag/fastq-umi.json",
+        "artifacts/benchmark-smoke/readiness/local-ready/pipeline-dag/fastq-umi.json",
     ),
     (
         82,
         "benchmarks/configs/pipelines/local/bam-core-qc.toml",
-        "benchmarks/readiness/local-ready/pipeline-dag/bam-core-qc.json",
+        "artifacts/benchmark-smoke/readiness/local-ready/pipeline-dag/bam-core-qc.json",
     ),
     (
         83,
         "benchmarks/configs/pipelines/local/bam-authenticity.toml",
-        "benchmarks/readiness/local-ready/pipeline-dag/bam-authenticity.json",
+        "artifacts/benchmark-smoke/readiness/local-ready/pipeline-dag/bam-authenticity.json",
     ),
     (
         84,
         "benchmarks/configs/pipelines/local/bam-genotyping.toml",
-        "benchmarks/readiness/local-ready/pipeline-dag/bam-genotyping.json",
+        "artifacts/benchmark-smoke/readiness/local-ready/pipeline-dag/bam-genotyping.json",
     ),
     (
         85,
         "benchmarks/configs/pipelines/local/bam-kinship.toml",
-        "benchmarks/readiness/local-ready/pipeline-dag/bam-kinship.json",
+        "artifacts/benchmark-smoke/readiness/local-ready/pipeline-dag/bam-kinship.json",
     ),
     (
         86,
         "benchmarks/configs/pipelines/local/fastq-to-bam.toml",
-        "benchmarks/readiness/local-ready/pipeline-dag/fastq-to-bam.json",
+        "artifacts/benchmark-smoke/readiness/local-ready/pipeline-dag/fastq-to-bam.json",
     ),
 ];
 
@@ -515,14 +531,15 @@ fn evaluate_benchmark_harness_goals(
                     format!("{err:#}"),
                 ));
                 checks.push(fail_check(
-                    55,
-                    "benchmark_harness",
-                    "rendered stage command manifest carries declared fields for every stage",
-                    Some(
-                        "benchmarks/readiness/local-ready/rendered-stage-commands.json".to_string(),
-                    ),
-                    "stage command rendering failed earlier".to_string(),
-                ));
+                55,
+                "benchmark_harness",
+                "rendered stage command manifest carries declared fields for every stage",
+                Some(
+                    "artifacts/benchmark-smoke/readiness/local-ready/rendered-stage-commands.json"
+                        .to_string(),
+                ),
+                "stage command rendering failed earlier".to_string(),
+            ));
                 None
             }
         };
@@ -866,7 +883,7 @@ fn evaluate_stage_result_manifest_goal(
             60,
             "benchmark_harness",
             "stage-result manifests validate the governed runtime contract",
-            Some("runs/bench/local-fake-runs/stages/*/stage-result.json".to_string()),
+            Some("artifacts/benchmark-smoke/simulated-runs/stages/*/stage-result.json".to_string()),
             "fake-run stage generation failed earlier".to_string(),
         ));
         return;
@@ -884,7 +901,7 @@ fn evaluate_stage_result_manifest_goal(
             60,
             "benchmark_harness",
             "stage-result manifests validate the governed runtime contract",
-            Some("runs/bench/local-fake-runs/stages/*/stage-result.json".to_string()),
+            Some("artifacts/benchmark-smoke/simulated-runs/stages/*/stage-result.json".to_string()),
             format!("validated {} governed stage-result manifests", fake_run_manifest.stage_count),
         ));
     } else {
@@ -892,7 +909,7 @@ fn evaluate_stage_result_manifest_goal(
             60,
             "benchmark_harness",
             "stage-result manifests validate the governed runtime contract",
-            Some("runs/bench/local-fake-runs/stages/*/stage-result.json".to_string()),
+            Some("artifacts/benchmark-smoke/simulated-runs/stages/*/stage-result.json".to_string()),
             validation_errors.join("; "),
         ));
     }
@@ -939,7 +956,7 @@ fn evaluate_resource_metrics_goal(
             62,
             "benchmark_harness",
             "stage-result manifests carry explicit resource metric provenance",
-            Some("runs/bench/local-fake-runs/stages/*/stage-result.json".to_string()),
+            Some("artifacts/benchmark-smoke/simulated-runs/stages/*/stage-result.json".to_string()),
             "fake-run stage generation failed earlier".to_string(),
         ));
         return;
@@ -962,7 +979,7 @@ fn evaluate_resource_metrics_goal(
             62,
             "benchmark_harness",
             "stage-result manifests carry explicit resource metric provenance",
-            Some("runs/bench/local-fake-runs/stages/*/stage-result.json".to_string()),
+            Some("artifacts/benchmark-smoke/simulated-runs/stages/*/stage-result.json".to_string()),
             format!(
                 "resource_metrics.source is explicit for {} governed stage results",
                 fake_run_manifest.stage_count
@@ -973,7 +990,7 @@ fn evaluate_resource_metrics_goal(
             62,
             "benchmark_harness",
             "stage-result manifests carry explicit resource metric provenance",
-            Some("runs/bench/local-fake-runs/stages/*/stage-result.json".to_string()),
+            Some("artifacts/benchmark-smoke/simulated-runs/stages/*/stage-result.json".to_string()),
             invalid_sources.join("; "),
         ));
     }

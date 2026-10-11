@@ -44,11 +44,11 @@ fn bench_readiness_missing_result_report_tracks_governed_missing_row() {
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/missing-result-report-test.json")
+        Some("artifacts/benchmark-smoke/readiness/missing-result/fastq-bam/report.json")
     );
     assert_eq!(
         payload.get("fake_result_root").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/missing-result-report-fixture")
+        Some("artifacts/benchmark-smoke/readiness/missing-result/fastq-bam/results")
     );
     let expected_row_count = payload
         .get("expected_row_count")

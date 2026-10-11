@@ -30,7 +30,7 @@ fn impute_stage_runs_glimpse_for_lowcov_gl_input() {
             species_id: "Homo sapiens".to_string(),
             build_id: "GRCh38".to_string(),
             backend: ImputeBackend::Impute5,
-            panel_id: Some("hsapiens_grch38_mini".to_string()),
+            panel_id: Some("hsapiens_grch38_1kg_3202_chr22".to_string()),
             map_id: None,
             threads: 2,
             seed: 42,
@@ -81,7 +81,7 @@ fn impute_stage_refuses_minimac_without_phased_gt() {
             species_id: "Homo sapiens".to_string(),
             build_id: "GRCh38".to_string(),
             backend: ImputeBackend::Minimac4,
-            panel_id: Some("hsapiens_grch38_mini".to_string()),
+            panel_id: Some("hsapiens_grch38_1kg_3202_chr22".to_string()),
             map_id: None,
             threads: 2,
             seed: 42,
@@ -132,7 +132,7 @@ fn imputation_qc_schema_is_stable_across_backends() {
             species_id: "Homo sapiens".to_string(),
             build_id: "GRCh38".to_string(),
             backend: ImputeBackend::Impute5,
-            panel_id: Some("hsapiens_grch38_mini".to_string()),
+            panel_id: Some("hsapiens_grch38_1kg_3202_chr22".to_string()),
             map_id: None,
             threads: 2,
             seed: 42,
@@ -153,7 +153,7 @@ fn imputation_qc_schema_is_stable_across_backends() {
             species_id: "Homo sapiens".to_string(),
             build_id: "GRCh38".to_string(),
             backend: ImputeBackend::Impute5,
-            panel_id: Some("hsapiens_grch38_mini".to_string()),
+            panel_id: Some("hsapiens_grch38_1kg_3202_chr22".to_string()),
             map_id: None,
             threads: 2,
             seed: 42,
@@ -215,7 +215,7 @@ fn impute_manifest_contains_chunk_plan_mode_and_chunk_manifests() {
             species_id: species.species_id.clone(),
             build_id: species.build_id.clone(),
             backend: ImputeBackend::Beagle,
-            panel_id: Some("hsapiens_grch38_mini".to_string()),
+            panel_id: Some("hsapiens_grch38_1kg_3202_chr22".to_string()),
             map_id: None,
             threads: 2,
             seed: 42,
@@ -277,7 +277,7 @@ fn impute_backend_selector_prefers_glimpse_for_gl_regime_when_requested_beagle()
             species_id: species.species_id.clone(),
             build_id: species.build_id.clone(),
             backend: ImputeBackend::Beagle,
-            panel_id: Some("hsapiens_grch38_mini".to_string()),
+            panel_id: Some("hsapiens_grch38_1kg_3202_chr22".to_string()),
             map_id: None,
             threads: 2,
             seed: 42,
@@ -299,7 +299,7 @@ fn impute_backend_selector_prefers_glimpse_for_gl_regime_when_requested_beagle()
 }
 
 #[test]
-fn impute_backend_selector_prefers_minimac4_for_phased_panel_when_requested_beagle() {
+fn impute_backend_selector_prefers_impute5_when_panel_lacks_m3vcf() {
     let dir = tempfile::tempdir().unwrap_or_else(|err| panic!("tempdir: {err}"));
     let input = dir.path().join("phased_gt_input.vcf");
     std::fs::write(
@@ -324,54 +324,7 @@ fn impute_backend_selector_prefers_minimac4_for_phased_panel_when_requested_beag
             species_id: species.species_id.clone(),
             build_id: species.build_id.clone(),
             backend: ImputeBackend::Beagle,
-            panel_id: Some("hsapiens_grch38_mini".to_string()),
-            map_id: None,
-            threads: 2,
-            seed: 42,
-            emit_ds: true,
-            emit_gp: true,
-            truth_vcf: None,
-            imputation_accept_mode: ImputationAcceptMode::MarkNonProduction,
-            chunk_window_bp: None,
-            chunk_overlap_bp: 0,
-        },
-    )
-    .unwrap_or_else(|err| panic!("run minimac selector test: {err}"));
-    let manifest_raw = std::fs::read_to_string(&out.imputation_manifest_json)
-        .unwrap_or_else(|err| panic!("read imputation manifest: {err}"));
-    let manifest: serde_json::Value = serde_json::from_str(&manifest_raw)
-        .unwrap_or_else(|err| panic!("parse imputation manifest: {err}"));
-    assert_eq!(manifest.get("backend").and_then(|v| v.as_str()).unwrap_or_default(), "minimac4");
-    assert!(manifest.get("minimac_reference_conversion_cache").is_some());
-}
-
-#[test]
-fn impute_backend_selector_prefers_impute5_when_minimac_not_supported() {
-    let dir = tempfile::tempdir().unwrap_or_else(|err| panic!("tempdir: {err}"));
-    let input = dir.path().join("phased_gt_input.vcf");
-    std::fs::write(
-            &input,
-            "##fileformat=VCFv4.2\n##reference=GRCh38\n#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\ts1\n1\t100\t.\tA\tG\t60\tPASS\t.\tGT\t0|1\n",
-        )
-        .unwrap_or_else(|err| panic!("write input: {err}"));
-    let species = SpeciesContext {
-        species_id: "Homo sapiens".to_string(),
-        build_id: "GRCh38".to_string(),
-        contig_set_digest: "x".repeat(64),
-        contigs: vec![ContigSpec { name: "1".to_string(), length_bp: 248_956_422 }],
-        sex_system: "xy".to_string(),
-        par_policy: "grch38_par".to_string(),
-        default_coverage_regime: None,
-    };
-    let out = run_impute_stage(
-        &input,
-        dir.path(),
-        &species,
-        &ImputeStageParams {
-            species_id: species.species_id.clone(),
-            build_id: species.build_id.clone(),
-            backend: ImputeBackend::Beagle,
-            panel_id: Some("hsapiens_grch38_full".to_string()),
+            panel_id: Some("hsapiens_grch38_1kg_3202_chr22".to_string()),
             map_id: None,
             threads: 2,
             seed: 42,
@@ -389,6 +342,49 @@ fn impute_backend_selector_prefers_impute5_when_minimac_not_supported() {
     let manifest: serde_json::Value = serde_json::from_str(&manifest_raw)
         .unwrap_or_else(|err| panic!("parse imputation manifest: {err}"));
     assert_eq!(manifest.get("backend").and_then(|v| v.as_str()).unwrap_or_default(), "impute5");
+    assert!(manifest["minimac_reference_conversion_cache"].is_null());
+}
+
+#[test]
+fn impute_stage_refuses_unknown_panel_id() {
+    let dir = tempfile::tempdir().unwrap_or_else(|err| panic!("tempdir: {err}"));
+    let input = dir.path().join("phased_gt_input.vcf");
+    std::fs::write(
+            &input,
+            "##fileformat=VCFv4.2\n##reference=GRCh38\n#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\ts1\n1\t100\t.\tA\tG\t60\tPASS\t.\tGT\t0|1\n",
+        )
+        .unwrap_or_else(|err| panic!("write input: {err}"));
+    let species = SpeciesContext {
+        species_id: "Homo sapiens".to_string(),
+        build_id: "GRCh38".to_string(),
+        contig_set_digest: "x".repeat(64),
+        contigs: vec![ContigSpec { name: "1".to_string(), length_bp: 248_956_422 }],
+        sex_system: "xy".to_string(),
+        par_policy: "grch38_par".to_string(),
+        default_coverage_regime: None,
+    };
+    let err = run_impute_stage(
+        &input,
+        dir.path(),
+        &species,
+        &ImputeStageParams {
+            species_id: species.species_id.clone(),
+            build_id: species.build_id.clone(),
+            backend: ImputeBackend::Beagle,
+            panel_id: Some("missing_hsapiens_grch38_panel".to_string()),
+            map_id: None,
+            threads: 2,
+            seed: 42,
+            emit_ds: true,
+            emit_gp: true,
+            truth_vcf: None,
+            imputation_accept_mode: ImputationAcceptMode::MarkNonProduction,
+            chunk_window_bp: None,
+            chunk_overlap_bp: 0,
+        },
+    )
+    .expect_err("an unknown panel identifier must fail closed");
+    assert!(err.to_string().contains("no panel found"));
 }
 
 #[test]
@@ -415,7 +411,7 @@ fn imputation_wrapper_runs_orchestration_and_emits_wrapper_manifest() {
             species_id: species.species_id.clone(),
             build_id: species.build_id.clone(),
             backend: ImputeBackend::Beagle,
-            panel_id: Some("hsapiens_grch38_mini".to_string()),
+            panel_id: Some("hsapiens_grch38_1kg_3202_chr22".to_string()),
             map_id: None,
             threads: 2,
             seed: 42,
@@ -458,8 +454,8 @@ fn impute_stage_refuses_unsupported_ploidy_models() {
             species_id: "Homo sapiens".to_string(),
             build_id: "GRCh38".to_string(),
             backend: ImputeBackend::Impute5,
-            panel_id: Some("hsapiens_grch38_mini".to_string()),
-            map_id: Some("hsapiens_grch38_chr_map".to_string()),
+            panel_id: Some("hsapiens_grch38_1kg_3202_chr22".to_string()),
+            map_id: Some("hsapiens_grch38_glimpse_chr22".to_string()),
             threads: 2,
             seed: 42,
             emit_ds: true,
@@ -475,7 +471,7 @@ fn impute_stage_refuses_unsupported_ploidy_models() {
 }
 
 #[test]
-fn minimac_path_emits_reference_conversion_cache_marker() {
+fn minimac_path_refuses_panel_without_m3vcf_support() {
     let dir = tempfile::tempdir().unwrap_or_else(|err| panic!("tempdir: {err}"));
     let input = dir.path().join("phased_input.vcf");
     std::fs::write(
@@ -492,7 +488,7 @@ fn minimac_path_emits_reference_conversion_cache_marker() {
         par_policy: "grch38_par".to_string(),
         default_coverage_regime: None,
     };
-    let out = run_impute_stage(
+    let err = run_impute_stage(
         &input,
         dir.path(),
         &species,
@@ -500,8 +496,8 @@ fn minimac_path_emits_reference_conversion_cache_marker() {
             species_id: species.species_id.clone(),
             build_id: species.build_id.clone(),
             backend: ImputeBackend::Minimac4,
-            panel_id: Some("hsapiens_grch38_mini".to_string()),
-            map_id: Some("hsapiens_grch38_chr_map".to_string()),
+            panel_id: Some("hsapiens_grch38_1kg_3202_chr22".to_string()),
+            map_id: Some("hsapiens_grch38_glimpse_chr22".to_string()),
             threads: 2,
             seed: 42,
             emit_ds: true,
@@ -512,17 +508,8 @@ fn minimac_path_emits_reference_conversion_cache_marker() {
             chunk_overlap_bp: 0,
         },
     )
-    .unwrap_or_else(|err| panic!("run minimac path: {err}"));
-    let manifest_raw = std::fs::read_to_string(&out.imputation_manifest_json)
-        .unwrap_or_else(|err| panic!("read imputation manifest: {err}"));
-    let manifest: serde_json::Value = serde_json::from_str(&manifest_raw)
-        .unwrap_or_else(|err| panic!("parse imputation manifest: {err}"));
-    let cache = manifest
-        .get("minimac_reference_conversion_cache")
-        .and_then(|v| v.as_str())
-        .unwrap_or_default();
-    assert!(!cache.is_empty(), "missing minimac reference conversion cache marker");
-    assert!(std::path::Path::new(cache).exists(), "cache marker path does not exist");
+    .expect_err("Minimac4 must reject a panel without an M3VCF representation");
+    assert!(err.to_string().contains("not compatible with tool minimac4"));
 }
 
 #[test]
@@ -567,7 +554,7 @@ fn beagle_impute_fills_masked_truth_site_from_donor_support() {
             species_id: species.species_id.clone(),
             build_id: species.build_id.clone(),
             backend: ImputeBackend::Beagle,
-            panel_id: Some("hsapiens_grch38_mini".to_string()),
+            panel_id: Some("hsapiens_grch38_1kg_3202_chr22".to_string()),
             map_id: None,
             threads: 2,
             seed: 42,
@@ -653,7 +640,7 @@ fn beagle_impute_reports_not_imputable_reason_without_donor_support() {
             species_id: species.species_id.clone(),
             build_id: species.build_id.clone(),
             backend: ImputeBackend::Beagle,
-            panel_id: Some("hsapiens_grch38_mini".to_string()),
+            panel_id: Some("hsapiens_grch38_1kg_3202_chr22".to_string()),
             map_id: None,
             threads: 2,
             seed: 42,

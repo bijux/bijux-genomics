@@ -18,5 +18,5 @@ capabilities: ["SE", "PE"]
 metrics_schema_id: "bijux.vcf.population_structure.v1"
 comparability_notes: "Comparable only when the EIGENSTRAT conversion path, smartpca projection settings, and reference build stay identical."
 container:
-  image: "containers/apptainer/lunarc/eigensoft.def"
+  image: "containers/apptainer/eigensoft.def"
   digest: "sha256:fbe67c1ff5eb3487bb0fb74b24166b618b7f92c72f0c6f369f7bc0f8ceeb4ed9"

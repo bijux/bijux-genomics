@@ -32,7 +32,10 @@ fn bench_readiness_bam_comparable_metrics_writes_governed_tsv_columns() {
     );
 
     let rendered_path = String::from_utf8(output.stdout).expect("stdout utf8");
-    assert_eq!(rendered_path.trim(), "benchmarks/readiness/bam-comparable-metrics.tsv");
+    assert_eq!(
+        rendered_path.trim(),
+        "artifacts/benchmark-smoke/readiness/bam/bam-comparable-metrics.tsv"
+    );
 
     let tsv = std::fs::read_to_string(repo_root.join(rendered_path.trim()))
         .expect("read BAM comparable metrics TSV");
@@ -59,7 +62,7 @@ fn bench_readiness_bam_comparable_metrics_writes_governed_tsv_columns() {
     );
     assert!(
         rows.iter().any(|row| {
-            row == &"bam.damage\tdeclared\t5\taddeam,damageprofiler,mapdamage2,pmdtools,pydamage\tmapdamage2\tfixture:corpus-01-adna-damage-mini\t3\tterminal_c_to_t_5p,terminal_g_to_a_3p,damage_signal\tstage `bam.damage` publishes governed shared comparable metrics `terminal_c_to_t_5p, terminal_g_to_a_3p, damage_signal` for same-stage tool comparison while corpus routing remains `fixture:corpus-01-adna-damage-mini`"
+            row == &"bam.damage\tdeclared\t6\taddeam,damageprofiler,mapdamage2,ngsbriggs,pmdtools,pydamage\tmapdamage2\tfixture:corpus-01-adna-damage-mini\t3\tterminal_c_to_t_5p,terminal_g_to_a_3p,damage_signal\tstage `bam.damage` publishes governed shared comparable metrics `terminal_c_to_t_5p, terminal_g_to_a_3p, damage_signal` for same-stage tool comparison while corpus routing remains `fixture:corpus-01-adna-damage-mini`"
         }),
         "TSV must retain the governed BAM damage comparable row"
     );

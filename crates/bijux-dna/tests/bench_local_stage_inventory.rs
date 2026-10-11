@@ -123,15 +123,15 @@ fn bench_local_render_stage_commands_json_reports_governed_51_command_slice() {
     );
     assert_eq!(
         payload.get("script_output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/local-ready/rendered-stage-commands.sh")
+        Some("artifacts/benchmark-smoke/readiness/local-ready/rendered-stage-commands.sh")
     );
     assert_eq!(
         payload.get("manifest_output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/local-ready/rendered-stage-commands.json")
+        Some("artifacts/benchmark-smoke/readiness/local-ready/rendered-stage-commands.json")
     );
     assert_eq!(
         payload.get("argv_output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/local-ready/rendered-stage-commands.argv.jsonl")
+        Some("artifacts/benchmark-smoke/readiness/local-ready/rendered-stage-commands.argv.jsonl")
     );
     assert_eq!(payload.get("command_count").and_then(serde_json::Value::as_u64), Some(51));
     assert_eq!(
@@ -1472,7 +1472,9 @@ fn bench_local_materialize_stage_bam_contamination_json_writes_governed_plan_bun
     );
     assert_eq!(
         payload.get("artifact_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/local-ready/bam.contamination/contamination.json")
+        Some(
+            "artifacts/benchmark-smoke/readiness/local-ready/bam.contamination/contamination.json"
+        )
     );
 
     let contamination_report_path = repo_root.join(
@@ -1492,7 +1494,8 @@ fn bench_local_materialize_stage_bam_contamination_json_writes_governed_plan_bun
         "bam.contamination materialize-stage must emit a JSON report object"
     );
 
-    let plan_path = repo_root.join("benchmarks/readiness/local-ready/bam.contamination/plan.json");
+    let plan_path = repo_root
+        .join("artifacts/benchmark-smoke/readiness/local-ready/bam.contamination/plan.json");
     let plan: serde_json::Value = serde_json::from_str(
         &std::fs::read_to_string(&plan_path).expect("read bam.contamination plan"),
     )
@@ -1502,7 +1505,7 @@ fn bench_local_materialize_stage_bam_contamination_json_writes_governed_plan_bun
     assert_eq!(plan.get("tool_id").and_then(serde_json::Value::as_str), Some("verifybamid2"));
     assert_eq!(
         plan.get("out_dir").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/local-ready/bam.contamination")
+        Some("artifacts/benchmark-smoke/readiness/local-ready/bam.contamination")
     );
     assert_eq!(
         plan.get("params").and_then(|params| params.get("sample_id")),
@@ -1531,12 +1534,14 @@ fn bench_local_materialize_stage_bam_contamination_json_writes_governed_plan_bun
         });
     assert_eq!(
         contamination_report["path"],
-        serde_json::json!("benchmarks/readiness/local-ready/bam.contamination/contamination.json")
+        serde_json::json!(
+            "artifacts/benchmark-smoke/readiness/local-ready/bam.contamination/contamination.json"
+        )
     );
     for path in [
-        "benchmarks/readiness/local-ready/bam.contamination/contamination.estimate.json",
-        "benchmarks/readiness/local-ready/bam.contamination/contamination.summary.json",
-        "benchmarks/readiness/local-ready/bam.contamination/stage.metrics.json",
+        "artifacts/benchmark-smoke/readiness/local-ready/bam.contamination/contamination.estimate.json",
+        "artifacts/benchmark-smoke/readiness/local-ready/bam.contamination/contamination.summary.json",
+        "artifacts/benchmark-smoke/readiness/local-ready/bam.contamination/stage.metrics.json",
     ] {
         assert!(
             repo_root.join(path).is_file(),
@@ -1553,7 +1558,7 @@ fn bench_local_materialize_stage_bam_contamination_json_writes_governed_plan_bun
                 ) && shell.contains(
                     "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_contamination_panel.dat"
                 )
-                    && shell.contains("benchmarks/readiness/local-ready/bam.contamination/contamination.summary.json")
+                    && shell.contains("artifacts/benchmark-smoke/readiness/local-ready/bam.contamination/contamination.summary.json")
             })
         )),
         "CLI materialized contamination plan must carry the governed BAI, reference, panel, and summary output paths"
@@ -1578,7 +1583,7 @@ fn bench_local_materialize_stage_bam_haplogroups_json_writes_governed_plan_bundl
     );
     assert_eq!(
         payload.get("artifact_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/local-ready/bam.haplogroups/plan.json")
+        Some("artifacts/benchmark-smoke/readiness/local-ready/bam.haplogroups/plan.json")
     );
 
     let artifact_path = repo_root.join(
@@ -1593,7 +1598,7 @@ fn bench_local_materialize_stage_bam_haplogroups_json_writes_governed_plan_bundl
     assert_eq!(plan.get("tool_id").and_then(serde_json::Value::as_str), Some("yleaf"));
     assert_eq!(
         plan.get("out_dir").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/local-ready/bam.haplogroups")
+        Some("artifacts/benchmark-smoke/readiness/local-ready/bam.haplogroups")
     );
     assert_eq!(
         plan.get("params").and_then(|params| params.get("sample_id")),
@@ -1616,7 +1621,9 @@ fn bench_local_materialize_stage_bam_haplogroups_json_writes_governed_plan_bundl
         .unwrap_or_else(|| panic!("haplogroups output missing from CLI materialized plan"));
     assert_eq!(
         haplogroups_report["path"],
-        serde_json::json!("benchmarks/readiness/local-ready/bam.haplogroups/haplogroups.json")
+        serde_json::json!(
+            "artifacts/benchmark-smoke/readiness/local-ready/bam.haplogroups/haplogroups.json"
+        )
     );
     assert!(
         plan["command"]["template"].as_array().is_some_and(|command| command.iter().any(
@@ -1629,7 +1636,7 @@ fn bench_local_materialize_stage_bam_haplogroups_json_writes_governed_plan_bundl
                     "benchmarks/tests/fixtures/corpora/corpus-01-adna-bam-mini/reference/adna_y_haplogroup_panel.tsv"
                 )
                     && shell.contains("--reference_genome hg38")
-                    && shell.contains("benchmarks/readiness/local-ready/bam.haplogroups/haplogroups")
+                    && shell.contains("artifacts/benchmark-smoke/readiness/local-ready/bam.haplogroups/haplogroups")
             })
         )),
         "CLI materialized haplogroups plan must carry the governed BAM, BAI, panel, reference build, and assignment output prefix"
@@ -1651,7 +1658,7 @@ fn bench_local_materialize_stage_bam_genotyping_json_writes_governed_plan_bundle
     assert_eq!(payload.get("stage_id").and_then(serde_json::Value::as_str), Some("bam.genotyping"));
     assert_eq!(
         payload.get("artifact_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/local-ready/bam.genotyping/plan.json")
+        Some("artifacts/benchmark-smoke/readiness/local-ready/bam.genotyping/plan.json")
     );
 
     let artifact_path = repo_root.join(
@@ -1666,7 +1673,7 @@ fn bench_local_materialize_stage_bam_genotyping_json_writes_governed_plan_bundle
     assert_eq!(plan.get("tool_id").and_then(serde_json::Value::as_str), Some("bcftools"));
     assert_eq!(
         plan.get("out_dir").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/local-ready/bam.genotyping")
+        Some("artifacts/benchmark-smoke/readiness/local-ready/bam.genotyping")
     );
     assert_eq!(
         plan.get("params").and_then(|params| params.get("sample_id")),
@@ -1675,10 +1682,10 @@ fn bench_local_materialize_stage_bam_genotyping_json_writes_governed_plan_bundle
     assert_eq!(
         plan.get("params").and_then(|params| params.get("producer_contract")),
         Some(&serde_json::json!({
-            "bcf": "benchmarks/readiness/local-ready/bam.genotyping/genotyping.bcf",
-            "gl": "benchmarks/readiness/local-ready/bam.genotyping/genotyping.gl.json",
-            "tbi": "benchmarks/readiness/local-ready/bam.genotyping/genotyping.vcf.gz.tbi",
-            "vcf": "benchmarks/readiness/local-ready/bam.genotyping/genotyping.vcf.gz"
+            "bcf": "artifacts/benchmark-smoke/readiness/local-ready/bam.genotyping/genotyping.bcf",
+            "gl": "artifacts/benchmark-smoke/readiness/local-ready/bam.genotyping/genotyping.gl.json",
+            "tbi": "artifacts/benchmark-smoke/readiness/local-ready/bam.genotyping/genotyping.vcf.gz.tbi",
+            "vcf": "artifacts/benchmark-smoke/readiness/local-ready/bam.genotyping/genotyping.vcf.gz"
         }))
     );
 
@@ -1690,7 +1697,9 @@ fn bench_local_materialize_stage_bam_genotyping_json_writes_governed_plan_bundle
         .unwrap_or_else(|| panic!("genotyping_bcf output missing from CLI materialized plan"));
     assert_eq!(
         genotyping_bcf["path"],
-        serde_json::json!("benchmarks/readiness/local-ready/bam.genotyping/genotyping.bcf")
+        serde_json::json!(
+            "artifacts/benchmark-smoke/readiness/local-ready/bam.genotyping/genotyping.bcf"
+        )
     );
     assert!(
         plan["command"]["template"].as_array().is_some_and(|command| command.iter().any(
@@ -1710,8 +1719,8 @@ fn bench_local_materialize_stage_bam_genotyping_json_writes_governed_plan_bundle
                     && shell.contains(
                         "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/regions/human_like_genotyping_target_regions.txt"
                     )
-                    && shell.contains("benchmarks/readiness/local-ready/bam.genotyping/genotyping.bcf")
-                    && shell.contains("benchmarks/readiness/local-ready/bam.genotyping/genotyping.vcf.gz")
+                    && shell.contains("artifacts/benchmark-smoke/readiness/local-ready/bam.genotyping/genotyping.bcf")
+                    && shell.contains("artifacts/benchmark-smoke/readiness/local-ready/bam.genotyping/genotyping.vcf.gz")
             })
         )),
         "CLI materialized genotyping plan must carry the governed BAM, BAI, reference, sites, regions, and variant output paths"
@@ -1891,11 +1900,12 @@ fn bench_local_render_stage_commands_writes_bash_parseable_51_command_script() {
         String::from_utf8_lossy(&output.stderr)
     );
 
-    let script_path = repo_root.join("benchmarks/readiness/local-ready/rendered-stage-commands.sh");
-    let manifest_path =
-        repo_root.join("benchmarks/readiness/local-ready/rendered-stage-commands.json");
-    let argv_path =
-        repo_root.join("benchmarks/readiness/local-ready/rendered-stage-commands.argv.jsonl");
+    let script_path = repo_root
+        .join("artifacts/benchmark-smoke/readiness/local-ready/rendered-stage-commands.sh");
+    let manifest_path = repo_root
+        .join("artifacts/benchmark-smoke/readiness/local-ready/rendered-stage-commands.json");
+    let argv_path = repo_root
+        .join("artifacts/benchmark-smoke/readiness/local-ready/rendered-stage-commands.argv.jsonl");
     assert!(script_path.is_file(), "rendered script must exist");
     assert!(manifest_path.is_file(), "rendered JSON manifest must exist");
     assert!(argv_path.is_file(), "rendered argv JSONL companion must exist");

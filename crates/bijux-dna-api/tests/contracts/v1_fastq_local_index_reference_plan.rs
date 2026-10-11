@@ -31,7 +31,8 @@ fn repo_root() -> Result<PathBuf> {
 fn write_local_index_reference_plan_materializes_governed_target_output() -> Result<()> {
     let repo_root = repo_root()?;
     let _guard = RepoRootOverrideGuard::install(&repo_root);
-    let output_dir = repo_root.join("benchmarks/readiness/local-ready/fastq.index_reference");
+    let output_dir =
+        repo_root.join("artifacts/benchmark-smoke/readiness/local-ready/fastq.index_reference");
     if output_dir.exists() {
         std::fs::remove_dir_all(&output_dir)?;
     }
@@ -39,7 +40,9 @@ fn write_local_index_reference_plan_materializes_governed_target_output() -> Res
     let plan_path = bijux_dna_api::v1::api::fastq::write_local_index_reference_plan()?;
     assert_eq!(
         plan_path,
-        repo_root.join("benchmarks/readiness/local-ready/fastq.index_reference/plan.json")
+        repo_root.join(
+            "artifacts/benchmark-smoke/readiness/local-ready/fastq.index_reference/plan.json"
+        )
     );
     assert!(plan_path.is_file(), "local-ready plan artifact must exist");
 

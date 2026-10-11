@@ -20,7 +20,7 @@
     },
     "schema_version": {
       "type": "string",
-      "const": "bijux.benchmark.scientific_readiness.v1"
+      "const": "bijux.benchmark.scientific_readiness.v2"
     },
     "stages": {
       "type": "array",
@@ -42,6 +42,18 @@
     "stages"
   ],
   "$defs": {
+    "BenchmarkCorpusClass": {
+      "type": "string",
+      "enum": [
+        "production_real",
+        "qualification_real",
+        "test_fixture",
+        "toy",
+        "synthetic",
+        "smoke",
+        "local_development"
+      ]
+    },
     "BenchmarkCorpusStatus": {
       "type": "string",
       "enum": [
@@ -101,6 +113,9 @@
     "BenchmarkScientificReadinessCorpus": {
       "type": "object",
       "properties": {
+        "class": {
+          "$ref": "#/$defs/BenchmarkCorpusClass"
+        },
         "evidence_scope": {
           "$ref": "#/$defs/BenchmarkEvidenceScope"
         },
@@ -130,6 +145,7 @@
         "id",
         "status",
         "evidence_scope",
+        "class",
         "sample_count",
         "truth_strategy",
         "roles"

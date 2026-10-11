@@ -1,0 +1,39 @@
+# owner = bijux-genomics-benchmarks
+# purpose = Source authority for comparative ancient-population analyses
+# authority = bijux-genomics-benchmarks
+# stability = stable
+# last_updated = 2026-08-08
+
+schema_version = "bijux.benchmark.data_source.v1"
+portfolio_id = "ancient-population-panel"
+class = "production_real"
+access_classification = "public-with-record-level-restrictions"
+redistribution_classification = "release-referenced-derived-results"
+access_terms_url = "https://dataverse.harvard.edu/terms"
+attribution = "Cite the Allen Ancient DNA Resource release, every contributing study used by the selected cohort, and Harvard Dataverse."
+projected_storage_bytes = 200000000000
+projected_cpu_hours = 3000
+projection_basis = "The projection reserves 200 GB and 3,000 CPU-hours for at least one hundred selected AADR individuals, release metadata, genotype-likelihood derivation where supported, sensitivity matrices, and validation."
+truth_roles = ["population_inference_truth", "ancient_population_diversity"]
+truth_strategy = "real_cohort_with_independent_metadata_and_sensitivity_analysis"
+known_limitations = [
+  "AADR harmonizes published genotype data but does not make inferred ancestry, demography, kinship, or admixture labels into experimental ground truth.",
+  "Pseudo-haploid capture and shotgun data, UDG treatment, coverage, missingness, and study processing differ across individuals.",
+  "Genotype likelihoods are not uniformly distributed by AADR and must be derived only where source reads and declared models permit.",
+  "Study-specific ethical, consent, and redistribution constraints must be reviewed at individual selection time.",
+]
+description = "A release-addressed AADR cohort with independently published archaeological and biological metadata defines the real-data basis for sensitivity-driven ancient-population benchmarks."
+data_types = ["genotype_likelihoods", "sample_metadata", "vcf"]
+target_sample_count = 100
+
+[[collections]]
+id = "allen-ancient-dna-resource"
+authority = "Reich Laboratory and Harvard Dataverse"
+accession = "doi:10.7910/DVN/FFIDCW"
+source_url = "https://doi.org/10.7910/DVN/FFIDCW"
+access_terms_url = "https://dataverse.harvard.edu/terms"
+data_types = ["genotype_likelihoods", "sample_metadata", "vcf"]
+planned_sample_count = 100
+selection_scope = "At least one hundred ancient individuals selected from one frozen AADR release across age, sex, geography, ancestry context, coverage, library treatment, and missingness strata."
+truth_basis = "AADR curates published genome-wide ancient human genotypes and harmonized metadata for cross-study analysis; sensitivity expectations derive from held-out metadata and perturbation protocols, not software agreement."
+known_limitations = ["The exact AADR release, individual IDs, contributing citations, allowed-use decisions, and any source-read links remain to be frozen in an acquisition plan."]

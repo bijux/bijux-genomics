@@ -1,0 +1,49 @@
+# owner = bijux-genomics-benchmarks
+# purpose = Source authorities for comparative ancient-DNA BAM diversity
+# authority = bijux-genomics-benchmarks
+# stability = stable
+# last_updated = 2026-08-08
+
+schema_version = "bijux.benchmark.data_source.v1"
+portfolio_id = "ancient-dna-bam-diversity"
+class = "production_real"
+access_classification = "public"
+redistribution_classification = "accession-referenced-derived-alignments"
+access_terms_url = "https://www.ebi.ac.uk/ena/browser/about/policies"
+attribution = "Cite each original ancient-DNA study, every ENA run accession, ENA, and the GRCh38 reference assembly."
+projected_storage_bytes = 250000000000
+projected_cpu_hours = 3000
+projection_basis = "The projection reserves 250 GB and 3,000 CPU-hours for ten already selected ancient runs, GRCh38, independently parameterized alignments, authentication evidence, indexes, and validation."
+truth_roles = ["bam_diversity", "ancient_damage_truth"]
+truth_strategy = "real_ancient_libraries_with_orthogonal_authentication"
+known_limitations = [
+  "The selected archive runs are source reads; comparable BAMs and indexes remain derived artifacts that must be checksum-admitted.",
+  "Archive metadata alone does not establish endogenous content, contamination, or terminal-damage truth.",
+  "Orthogonal authentication observations and study-level ethical constraints must be bound before comparative use.",
+]
+description = "The ten ancient human runs already selected across four ENA studies define a reproducible source cohort for diverse low-coverage ancient-DNA BAM materialization."
+data_types = ["bam", "fasta"]
+target_sample_count = 10
+
+[[collections]]
+id = "ena-ancient-human-runs"
+authority = "European Nucleotide Archive"
+accession = "PRJEB8448+PRJEB38152+PRJEB80740+PRJEB101287"
+source_url = "https://www.ebi.ac.uk/ena/browser/view/PRJEB8448"
+access_terms_url = "https://www.ebi.ac.uk/ena/browser/about/policies"
+data_types = ["bam"]
+planned_sample_count = 10
+selection_scope = "ERR769610, ERR769594, ERR769585, ERR769590, ERR769591, ERR4210542, ERR4210492, ERR15108349, ERR15886307, and ERR15886310, materialized under one declared alignment protocol."
+truth_basis = "Study publications and archive metadata establish ancient provenance; independent mapDamage, endogenous-content, contamination, and library-context evidence must be admitted separately."
+known_limitations = ["Cross-study library preparation and capture differences require stratified analysis and prevent naive pooling."]
+
+[[collections]]
+id = "grch38-reference"
+authority = "NCBI Genome Reference Consortium assembly record"
+accession = "GCF_000001405.40"
+source_url = "https://www.ncbi.nlm.nih.gov/datasets/genome/GCF_000001405.40/"
+access_terms_url = "https://www.ncbi.nlm.nih.gov/home/about/policies/"
+data_types = ["fasta"]
+selection_scope = "One exact GRCh38 assembly package and declared alternate/decoy policy shared by every derived alignment."
+truth_basis = "The assembly accession and checksummed package will freeze the alignment coordinate authority."
+known_limitations = ["Reference choice and decoy policy can alter mapping, contamination, and damage observations."]

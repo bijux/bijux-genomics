@@ -1,23 +1,71 @@
 use std::collections::BTreeMap;
 
 use bijux_dna_bench_model::contract::{
-    validate_benchmark_portfolio, validate_portfolio_campaign_alignment,
-    validate_scientific_readiness, validate_stage_campaign_registry, validate_stage_coverage,
-    validate_stage_universe, BENCHMARK_PORTFOLIO_SCHEMA_V1, BENCHMARK_STAGE_CAMPAIGNS_SCHEMA_V1,
+    validate_benchmark_portfolio, validate_benchmark_publication_registry,
+    validate_portfolio_campaign_alignment, validate_scientific_readiness,
+    validate_stage_campaign_registry, validate_stage_coverage, validate_stage_universe,
+    BENCHMARK_PORTFOLIO_SCHEMA_V2, BENCHMARK_STAGE_CAMPAIGNS_SCHEMA_V1,
 };
 use bijux_dna_bench_model::{
-    BenchmarkCachePolicy, BenchmarkComparisonMetricTolerance, BenchmarkCorpusContract,
-    BenchmarkCorpusStatus, BenchmarkDisposition, BenchmarkEvidenceScope, BenchmarkEvidenceTier,
-    BenchmarkExecutionRuntime, BenchmarkExecutionScheduler, BenchmarkMeasurementContract,
-    BenchmarkPortfolio, BenchmarkProfileAssignment, BenchmarkScientificProfile,
+    BenchmarkCachePolicy, BenchmarkComparisonMetricTolerance, BenchmarkCorpusClass,
+    BenchmarkCorpusContract, BenchmarkCorpusStatus, BenchmarkCurrentPublication,
+    BenchmarkDisposition, BenchmarkEvidenceScope, BenchmarkEvidenceTier, BenchmarkExecutionRuntime,
+    BenchmarkExecutionScheduler, BenchmarkMeasurementContract, BenchmarkPortfolio,
+    BenchmarkProfileAssignment, BenchmarkPublicationRegistry, BenchmarkPublicationRegistrySummary,
+    BenchmarkQuarantinedPublicationSurface, BenchmarkScientificProfile,
     BenchmarkScientificReadinessCorpus, BenchmarkScientificReadinessDomain,
     BenchmarkScientificReadinessReport, BenchmarkScientificReadinessStage,
     BenchmarkScientificReadinessStatus, BenchmarkScientificReadinessSummary,
     BenchmarkStageCampaignRegistry, BenchmarkStageCampaignSpec, BenchmarkStageCoverage,
     BenchmarkStageCoverageRow, BenchmarkStageCoverageSummary, BenchmarkStageDefinitionStatus,
-    BenchmarkStageExecutionStatus, BenchmarkStageInterfaceStatus, BenchmarkStageUniverse,
-    BenchmarkStageUniverseRow, BenchmarkStageUniverseSummary,
+    BenchmarkStageExecutionStatus, BenchmarkStageInterfaceStatus, BenchmarkStagePublication,
+    BenchmarkStagePublicationDisposition, BenchmarkStageUniverse, BenchmarkStageUniverseRow,
+    BenchmarkStageUniverseSummary,
 };
+
+const TEST_SHA256: &str = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+const TEST_COMMIT: &str = "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb";
+
+#[test]
+fn benchmark_publication_registry_rejects_summary_drift() -> anyhow::Result<()> {
+    let mut registry = BenchmarkPublicationRegistry::v1(
+        BenchmarkPublicationRegistrySummary {
+            current_product_count: 1,
+            active_stage_report_count: 0,
+            historical_stage_report_count: 1,
+            quarantined_surface_count: 1,
+            quarantined_file_count: 3,
+        },
+        vec![BenchmarkCurrentPublication {
+            product_id: "coverage".into(),
+            json_path: "benchmarks/reports/coverage.json".into(),
+            json_sha256: TEST_SHA256.into(),
+            markdown_path: "benchmarks/reports/coverage.md".into(),
+            markdown_sha256: TEST_SHA256.into(),
+        }],
+        vec![BenchmarkStagePublication {
+            run_id: "run-2001".into(),
+            stage_id: "bam.genotyping".into(),
+            source_commit: TEST_COMMIT.into(),
+            disposition: BenchmarkStagePublicationDisposition::Historical,
+            json_path: format!("benchmarks/reports/historical/{TEST_COMMIT}/run-2001.json"),
+            json_sha256: TEST_SHA256.into(),
+            markdown_path: format!("benchmarks/reports/historical/{TEST_COMMIT}/run-2001.md"),
+            markdown_sha256: TEST_SHA256.into(),
+        }],
+        vec![BenchmarkQuarantinedPublicationSurface {
+            path_prefix: "benchmarks/readiness/".into(),
+            disposition: "quarantined_legacy_readiness".into(),
+            tracked_file_count: 3,
+            tree_sha256: TEST_SHA256.into(),
+            authority_policy: "migration evidence only".into(),
+        }],
+    );
+    validate_benchmark_publication_registry(&registry)?;
+    registry.summary.historical_stage_report_count = 0;
+    assert!(validate_benchmark_publication_registry(&registry).is_err());
+    Ok(())
+}
 
 fn stage_campaign_registry() -> BenchmarkStageCampaignRegistry {
     BenchmarkStageCampaignRegistry {
@@ -76,7 +124,7 @@ fn stage_campaign_registry() -> BenchmarkStageCampaignRegistry {
 
 fn benchmark_portfolio() -> BenchmarkPortfolio {
     BenchmarkPortfolio {
-        schema_version: BENCHMARK_PORTFOLIO_SCHEMA_V1.to_string(),
+        schema_version: BENCHMARK_PORTFOLIO_SCHEMA_V2.to_string(),
         measurement: BenchmarkMeasurementContract {
             warmup_repetitions: 1,
             measured_repetitions: 3,
@@ -106,7 +154,7 @@ fn benchmark_portfolio() -> BenchmarkPortfolio {
             id: "human-short-read-diversity".to_string(),
             status: BenchmarkCorpusStatus::Admitted,
             evidence_scope: BenchmarkEvidenceScope::Comparative,
-            real_data: true,
+            class: BenchmarkCorpusClass::ProductionReal,
             sample_count: 20,
             minimum_sample_count: Some(10),
             data_types: vec!["fastq".to_string()],
@@ -145,6 +193,17 @@ fn benchmark_planning_contracts_accept_aligned_registry_and_portfolio() -> anyho
 }
 
 #[test]
+fn benchmark_portfolio_rejects_fixture_class_from_production_namespace() {
+    let mut portfolio = benchmark_portfolio();
+    portfolio.corpora[0].class = BenchmarkCorpusClass::TestFixture;
+
+    let error = validate_benchmark_portfolio(&portfolio).err().map(|error| error.to_string());
+    assert!(error
+        .as_deref()
+        .is_some_and(|message| message.contains("class and evidence scope disagree")));
+}
+
+#[test]
 fn benchmark_stage_campaign_registry_rejects_slug_drift() {
     let mut registry = stage_campaign_registry();
     registry.campaigns[0].slug = "wrong-slug".to_string();
@@ -167,6 +226,14 @@ fn checked_planning_schemas_match_model_authority() -> anyhow::Result<()> {
         (
             "portfolio.schema.json",
             serde_json::to_value(bijux_dna_bench_model::benchmark_portfolio_schema())?,
+        ),
+        (
+            "run-registry.schema.json",
+            serde_json::to_value(bijux_dna_bench_model::benchmark_run_registry_schema())?,
+        ),
+        (
+            "publication-registry.schema.json",
+            serde_json::to_value(bijux_dna_bench_model::benchmark_publication_registry_schema())?,
         ),
         (
             "stage-universe.schema.json",
@@ -209,7 +276,7 @@ fn benchmark_planning_alignment_rejects_run_id_drift() {
 
 fn scientific_readiness() -> BenchmarkScientificReadinessReport {
     let portfolio = benchmark_portfolio();
-    BenchmarkScientificReadinessReport::v1(
+    BenchmarkScientificReadinessReport::v2(
         BenchmarkScientificReadinessSummary {
             stage_count: 1,
             reserved_run_count: 1,
@@ -251,6 +318,7 @@ fn scientific_readiness() -> BenchmarkScientificReadinessReport {
             id: "human-short-read-diversity".to_string(),
             status: BenchmarkCorpusStatus::Admitted,
             evidence_scope: BenchmarkEvidenceScope::Comparative,
+            class: BenchmarkCorpusClass::ProductionReal,
             sample_count: 20,
             truth_strategy: "observational_only".to_string(),
             roles: vec!["short_read_diversity".to_string()],

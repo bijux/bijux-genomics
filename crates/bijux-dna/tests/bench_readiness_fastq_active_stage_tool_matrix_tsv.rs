@@ -34,7 +34,7 @@ fn bench_readiness_fastq_active_stage_tool_matrix_writes_governed_tsv_file() {
     let rendered_path = String::from_utf8(output.stdout).expect("stdout utf8");
     assert_eq!(
         rendered_path.trim(),
-        "benchmarks/readiness/fastq/fastq-active-stage-tool-matrix.tsv"
+        "artifacts/benchmark-smoke/readiness/fastq/fastq-active-stage-tool-matrix.tsv"
     );
 
     let payload = std::fs::read_to_string(repo_root.join(rendered_path.trim()))
@@ -53,28 +53,28 @@ fn bench_readiness_fastq_active_stage_tool_matrix_writes_governed_tsv_file() {
         let mut columns = row.split('\t');
         let stage_id = columns.next();
         let tool_id = columns.next();
-        tool_id != Some("fastuniq")
-            && (stage_id != Some("fastq.profile_read_lengths")
-                || matches!(tool_id, Some("seqfu" | "seqkit")))
+        stage_id != Some("fastq.profile_read_lengths")
+            || matches!(tool_id, Some("seqfu" | "seqkit"))
     }));
+    assert!(rows.iter().any(|row| row.starts_with("fastq.remove_duplicates\tfastuniq\t")));
     assert!(rows.iter().any(|row| {
         row.starts_with(
-            "fastq.screen_taxonomy\tkraken2\tcorpus-02-edna-mini\tdatabase_artifact_id+taxonomy_database_root\tfastq.adapter.screen_taxonomy\tfastq.parser.screen_taxonomy\tfastq_screen_taxonomy_v1\tbenchmark_ready\tgoverned_benchmark_cohort\trunnable\tbenchmark_normalized\tfixture:corpus-02-edna-mini\tbenchmarks/readiness/all-domains/active-stage-tool-matrix.tsv\tbinding `fastq.screen_taxonomy` / `kraken2` remains in governed FASTQ active scope because it is benchmark_ready"
+            "fastq.screen_taxonomy\tkraken2\tcorpus-02-edna-mini\tdatabase_artifact_id+taxonomy_database_root\tfastq.adapter.screen_taxonomy\tfastq.parser.screen_taxonomy\tfastq_screen_taxonomy_v1\tbenchmark_ready\tgoverned_benchmark_cohort\trunnable\tbenchmark_normalized\tfixture:corpus-02-edna-mini\tartifacts/benchmark-smoke/readiness/all-domains/active-stage-tool-matrix.tsv\tbinding `fastq.screen_taxonomy` / `kraken2` remains in governed FASTQ active scope because it is benchmark_ready"
         )
     }));
     assert!(rows.iter().any(|row| {
         row.starts_with(
-            "fastq.trim_reads\ttrimmomatic\tcorpus-01-mini\tcorpus_only\tfastq.adapter.trim_reads\tfastq.parser.trim_reads\tfastq_trim_reads_v2\tbenchmark_ready\tgoverned_benchmark_cohort\trunnable\tbenchmark_normalized\tfixture:corpus-01-mini\tbenchmarks/readiness/all-domains/active-stage-tool-matrix.tsv\tbinding `fastq.trim_reads` / `trimmomatic` remains in governed FASTQ active scope because it is benchmark_ready"
+            "fastq.trim_reads\ttrimmomatic\tcorpus-01-mini\tcorpus_only\tfastq.adapter.trim_reads\tfastq.parser.trim_reads\tfastq_trim_reads_v2\tbenchmark_ready\tgoverned_benchmark_cohort\trunnable\tbenchmark_normalized\tfixture:corpus-01-mini\tartifacts/benchmark-smoke/readiness/all-domains/active-stage-tool-matrix.tsv\tbinding `fastq.trim_reads` / `trimmomatic` remains in governed FASTQ active scope because it is benchmark_ready"
         )
     }));
     assert!(rows.iter().any(|row| {
         row.starts_with(
-            "fastq.index_reference\tbowtie2_build\treference-index-assets\treference_fasta+reference_index_output\tfastq.adapter.index_reference\tfastq.parser.index_reference\tfastq_index_reference_v1\tbenchmark_ready\tobserver_specialized_benchmark\trunnable\tcomparable\tasset:reference-index-assets\tbenchmarks/readiness/all-domains/active-stage-tool-matrix.tsv\tbinding `fastq.index_reference` / `bowtie2_build` remains in governed FASTQ active scope because it is benchmark_ready"
+            "fastq.index_reference\tbowtie2_build\treference-index-assets\treference_fasta+reference_index_output\tfastq.adapter.index_reference\tfastq.parser.index_reference\tfastq_index_reference_v1\tbenchmark_ready\tobserver_specialized_benchmark\trunnable\tcomparable\tasset:reference-index-assets\tartifacts/benchmark-smoke/readiness/all-domains/active-stage-tool-matrix.tsv\tbinding `fastq.index_reference` / `bowtie2_build` remains in governed FASTQ active scope because it is benchmark_ready"
         )
     }));
     assert!(rows.iter().any(|row| {
         row.starts_with(
-            "fastq.profile_overrepresented_sequences\tfastqc\tcorpus-01-mini\tcorpus_only\tfastq.adapter.profile_overrepresented_sequences\tfastq.parser.profile_overrepresented_sequences\tfastq_profile_overrepresented_sequences_v1\tbenchmark_ready\tobserver_specialized_benchmark\trunnable\tcomparable\tfixture:corpus-01-mini\tbenchmarks/readiness/all-domains/active-stage-tool-matrix.tsv\tbinding `fastq.profile_overrepresented_sequences` / `fastqc` remains in governed FASTQ active scope because it is benchmark_ready"
+            "fastq.profile_overrepresented_sequences\tfastqc\tcorpus-01-mini\tcorpus_only\tfastq.adapter.profile_overrepresented_sequences\tfastq.parser.profile_overrepresented_sequences\tfastq_profile_overrepresented_sequences_v1\tbenchmark_ready\tobserver_specialized_benchmark\trunnable\tcomparable\tfixture:corpus-01-mini\tartifacts/benchmark-smoke/readiness/all-domains/active-stage-tool-matrix.tsv\tbinding `fastq.profile_overrepresented_sequences` / `fastqc` remains in governed FASTQ active scope because it is benchmark_ready"
         )
     }));
     assert!(rows.iter().all(|row| {

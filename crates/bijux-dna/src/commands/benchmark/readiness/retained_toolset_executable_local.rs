@@ -29,7 +29,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_RETAINED_TOOLSET_EXECUTABLE_LOCAL_PATH: &str =
-    "benchmarks/readiness/tools/RETAINED_TOOLSET_EXECUTABLE_LOCAL.json";
+    "artifacts/benchmark-smoke/readiness/tools/RETAINED_TOOLSET_EXECUTABLE_LOCAL.json";
 const RETAINED_TOOLSET_EXECUTABLE_LOCAL_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.retained_toolset_executable_local.v1";
 

@@ -15,9 +15,9 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 const DEFAULT_RENDERED_STAGE_COMMANDS_PATH: &str =
-    "benchmarks/readiness/local-ready/rendered-stage-commands.sh";
+    "artifacts/benchmark-smoke/readiness/local-ready/rendered-stage-commands.sh";
 const DEFAULT_OUTPUT_COMPLETION_REPORT_PATH: &str =
-    "benchmarks/readiness/local-ready/output-completion-report.json";
+    "artifacts/benchmark-smoke/readiness/local-ready/output-completion-report.json";
 const LOCAL_STAGE_OUTPUT_COMPLETION_REPORT_SCHEMA_VERSION: &str =
     "bijux.bench.local_stage_output_completion.v1";
 
@@ -203,10 +203,12 @@ mod tests {
     #[test]
     fn output_completion_reports_stage_incomplete_when_declared_output_is_missing() {
         let root = repo_root();
-        let fake_run_root =
-            PathBuf::from("runs/bench/local-fake-runs/stages-output-completion-missing");
-        let report_output_path =
-            PathBuf::from("benchmarks/readiness/local-ready/output-completion-report.missing.json");
+        let fake_run_root = PathBuf::from(
+            "artifacts/benchmark-smoke/simulated-runs/stages-output-completion-missing",
+        );
+        let report_output_path = PathBuf::from(
+            "artifacts/benchmark-smoke/readiness/local-ready/output-completion-report.missing.json",
+        );
         let fake_runs = fake_run_local_stage_commands(&root, fake_run_root.clone())
             .expect("fake-run local stage commands");
         let missing_path = root.join(

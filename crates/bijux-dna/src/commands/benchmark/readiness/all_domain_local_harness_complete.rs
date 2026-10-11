@@ -51,7 +51,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_ALL_DOMAIN_LOCAL_HARNESS_COMPLETE_PATH: &str =
-    "benchmarks/readiness/all-domains/ALL_DOMAIN_LOCAL_HARNESS_COMPLETE.json";
+    "artifacts/benchmark-smoke/readiness/all-domains/ALL_DOMAIN_LOCAL_HARNESS_COMPLETE.json";
 const ALL_DOMAIN_LOCAL_HARNESS_COMPLETE_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.all_domain_local_harness_complete.v1";
 

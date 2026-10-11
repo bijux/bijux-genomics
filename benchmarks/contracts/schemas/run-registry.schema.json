@@ -1,0 +1,229 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "BenchmarkRunRegistry",
+  "type": "object",
+  "properties": {
+    "namespace": {
+      "$ref": "#/$defs/BenchmarkRunNamespacePolicy"
+    },
+    "runs": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/BenchmarkRunRegistryRow"
+      }
+    },
+    "schema_version": {
+      "type": "string",
+      "const": "bijux.benchmark.run_registry.v1"
+    },
+    "source_contract_sha256": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "summary": {
+      "$ref": "#/$defs/BenchmarkRunRegistrySummary"
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "namespace",
+    "source_contract_sha256",
+    "summary",
+    "runs"
+  ],
+  "$defs": {
+    "BenchmarkRunNamespacePolicy": {
+      "type": "object",
+      "properties": {
+        "allocation_policy": {
+          "type": "string"
+        },
+        "identity_policy": {
+          "type": "string"
+        },
+        "maximum": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        },
+        "minimum": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        },
+        "next_run_number": {
+          "type": "integer",
+          "format": "uint32",
+          "minimum": 0
+        },
+        "prefix": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "prefix",
+        "minimum",
+        "maximum",
+        "next_run_number",
+        "allocation_policy",
+        "identity_policy"
+      ]
+    },
+    "BenchmarkRunRegistryRow": {
+      "type": "object",
+      "properties": {
+        "acceptance_policy_id": {
+          "type": "string"
+        },
+        "accepted_input_contracts": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "domain": {
+          "type": "string"
+        },
+        "introduced_at_commit": {
+          "type": "string"
+        },
+        "measurement_policy_id": {
+          "type": "string"
+        },
+        "normalized_result_contract": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "output_contract": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "owner": {
+          "type": "string"
+        },
+        "profile_id": {
+          "type": "string"
+        },
+        "purpose": {
+          "type": "string"
+        },
+        "required_corpus_roles": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "run_id": {
+          "type": "string"
+        },
+        "slug": {
+          "type": "string"
+        },
+        "stage_id": {
+          "type": "string"
+        },
+        "state": {
+          "$ref": "#/$defs/BenchmarkRunRegistryState"
+        },
+        "state_reason": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "superseded_by_run_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "supersedes_run_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "title": {
+          "type": "string"
+        },
+        "tool_exclusion_policy": {
+          "type": "string"
+        },
+        "tool_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "run_id",
+        "stage_id",
+        "domain",
+        "title",
+        "slug",
+        "owner",
+        "purpose",
+        "profile_id",
+        "tool_ids",
+        "tool_exclusion_policy",
+        "required_corpus_roles",
+        "accepted_input_contracts",
+        "measurement_policy_id",
+        "acceptance_policy_id",
+        "state",
+        "supersedes_run_ids",
+        "introduced_at_commit"
+      ]
+    },
+    "BenchmarkRunRegistryState": {
+      "type": "string",
+      "enum": [
+        "active",
+        "reserved",
+        "retired"
+      ]
+    },
+    "BenchmarkRunRegistrySummary": {
+      "type": "object",
+      "properties": {
+        "active_count": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0
+        },
+        "reserved_count": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0
+        },
+        "retired_count": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0
+        },
+        "run_count": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "run_count",
+        "active_count",
+        "reserved_count",
+        "retired_count"
+      ]
+    }
+  }
+}

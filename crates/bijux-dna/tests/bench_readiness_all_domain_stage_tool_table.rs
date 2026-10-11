@@ -44,7 +44,7 @@ fn bench_readiness_all_domain_stage_tool_table_reports_governed_rows() {
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/all-domain-stage-tool-table.tsv")
+        Some("artifacts/benchmark-smoke/readiness/all-domain-stage-tool-table.tsv")
     );
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
     let row_count = u64::try_from(rows.len()).expect("row count fits u64");
@@ -65,13 +65,15 @@ fn bench_readiness_all_domain_stage_tool_table_reports_governed_rows() {
     }));
     assert_eq!(support::object_u64_sum(ready_domain_counts), benchmark_ready_row_count);
 
-    assert!(rows.iter().all(|row| {
-        !(row.get("domain").and_then(serde_json::Value::as_str) == Some("bam")
-            && matches!(
-                row.get("tool_id").and_then(serde_json::Value::as_str),
-                Some("angsd" | "ngsbriggs")
-            ))
-    }));
+    for (stage_id, tool_id) in [("bam.kinship", "angsd"), ("bam.damage", "ngsbriggs")] {
+        assert!(rows.iter().any(|row| {
+            row.get("domain").and_then(serde_json::Value::as_str) == Some("bam")
+                && row.get("stage_id").and_then(serde_json::Value::as_str) == Some(stage_id)
+                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some(tool_id)
+                && row.get("benchmark_status").and_then(serde_json::Value::as_str)
+                    == Some("benchmark_ready")
+        }));
+    }
 
     assert!(rows.iter().any(|row| {
         row.get("domain").and_then(serde_json::Value::as_str) == Some("fastq")

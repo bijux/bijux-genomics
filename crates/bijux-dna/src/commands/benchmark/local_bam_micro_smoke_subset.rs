@@ -18,7 +18,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_BAM_MICRO_SMOKE_SUMMARY_PATH: &str =
-    "runs/bench/micro/bam/MICRO_BAM_SUMMARY.json";
+    "artifacts/benchmark-smoke/micro/bam/MICRO_BAM_SUMMARY.json";
 const BAM_MICRO_SMOKE_SUMMARY_SCHEMA_VERSION: &str = "bijux.bench.local_bam_micro_smoke_subset.v2";
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]

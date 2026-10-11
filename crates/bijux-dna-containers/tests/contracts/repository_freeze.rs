@@ -149,9 +149,10 @@ fn repository_freeze_materializes_scoped_self_contained_snapshots() -> Result<()
     assert_eq!(std::fs::read_to_string(sources.join("other/source.txt"))?, "complete tree\n");
     assert!(!sources.join("containers/contracts/governance.yml").exists());
     assert_eq!(
-        complete.parent().and_then(Path::file_name).and_then(|value| value.to_str()),
-        Some("image-builds")
+        contracts.parent().and_then(Path::file_name).and_then(|value| value.to_str()),
+        Some("contract-snapshots")
     );
+    assert_eq!(complete.parent(), Some(governance.paths.frozen_repositories.as_path()));
     assert_eq!(
         sources.parent().and_then(Path::file_name).and_then(|value| value.to_str()),
         Some("source-freezes")
@@ -209,10 +210,14 @@ fn checked_site_governance_loads_through_container_policy() -> Result<()> {
         load_container_governance(&repository.join("containers/contracts/sites/lunarc.yml"))?;
     assert_eq!(policy.schema_version, CONTAINER_GOVERNANCE_SCHEMA_V1);
     assert_eq!(policy.site.id, "lunarc");
-    assert_eq!(
-        policy.paths.frozen_repositories,
-        Path::new("/home/bijan/lu2024-12-24/Dardel/STUDY/data/evidence/source-checkouts")
-    );
+    let study_root = Path::new("/lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY");
+    assert_eq!(policy.paths.study_root, study_root);
+    assert_eq!(policy.paths.containers_root, study_root.join("containers"));
+    assert_eq!(policy.paths.data_root, study_root.join("data"));
+    assert_eq!(policy.paths.results_root, study_root.join("results"));
+    assert_eq!(policy.paths.finalization_root, study_root.join("evidence/finalization"));
+    assert_eq!(policy.paths.active_repository, Path::new("/home/bijan/bijux/bijux-genomics"));
+    assert_eq!(policy.paths.frozen_repositories, study_root.join("data/evidence/source-checkouts"));
     for hostname in ["cosmos1", "cosmos1.int.lunarc", "cn076", "cn076.int", "cn076.int.lunarc"] {
         validate_container_governance_host(&policy, hostname)?;
     }

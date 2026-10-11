@@ -13,11 +13,6 @@ const ANGSD_TOOL_ID: &str = "angsd";
 const RAW_COMMAND_NAME: &str = "raw.command.json";
 const RAW_CALL_GL_VCF_NAME: &str = "raw.gl_sites.vcf";
 const RAW_PSEUDOHAPLOID_VCF_NAME: &str = "raw.pseudohaploid.vcf";
-const RAW_DAMAGE_REPORT_NAME: &str = "raw.damage_report.txt";
-const RAW_DAMAGE_AUDIT_NAME: &str = "raw.damage_bias_audit_report.json";
-const RAW_GL_PROPAGATION_INPUT_NAME: &str = "raw.input.vcf";
-const RAW_GL_PROPAGATION_OUTPUT_NAME: &str = "raw.gl_propagated.vcf";
-const RAW_GL_PROPAGATION_REPORT_NAME: &str = "raw.gl_propagation_report.json";
 
 #[derive(Debug, Clone)]
 struct ParsedVcfRecord {
@@ -39,12 +34,6 @@ struct LikelihoodSummary {
     missing_likelihoods: u64,
 }
 
-#[derive(Debug, Clone)]
-struct LikelihoodFieldSetSummary {
-    fields: BTreeSet<String>,
-    site_count: u64,
-}
-
 /// Normalize the governed raw `angsd` artifact set for a retained VCF stage.
 ///
 /// # Errors
@@ -56,8 +45,6 @@ pub fn parse_angsd_stage_metrics(
     match stage {
         VcfDomainStage::CallGl => parse_call_gl_metrics(artifact_root),
         VcfDomainStage::CallPseudohaploid => parse_call_pseudohaploid_metrics(artifact_root),
-        VcfDomainStage::DamageFilter => parse_damage_filter_metrics(artifact_root),
-        VcfDomainStage::GlPropagation => parse_gl_propagation_metrics(artifact_root),
         other => bail!("unsupported angsd VCF parser stage `{}`", other.as_str()),
     }
 }
@@ -135,59 +122,6 @@ fn parse_call_pseudohaploid_metrics(root: &Path) -> Result<serde_json::Value> {
     }))
 }
 
-fn parse_damage_filter_metrics(root: &Path) -> Result<serde_json::Value> {
-    let command = read_json(&root.join(RAW_COMMAND_NAME))?;
-    validate_stage_command(&command, "vcf.damage_filter", &["-doDamage", "-pmd"])?;
-    let audit = read_json(&root.join(RAW_DAMAGE_AUDIT_NAME))?;
-    let counts = read_key_value_report(&root.join(RAW_DAMAGE_REPORT_NAME))?;
-
-    Ok(serde_json::json!({
-        "schema_version": "bijux.vcf.damage_filter.v1",
-        "stage_id": "vcf.damage_filter",
-        "tool_id": ANGSD_TOOL_ID,
-        "input_variants": lookup_report_u64(&counts, "input_variants")?,
-        "removed_variants": lookup_report_u64(&counts, "removed_variants")?,
-        "retained_variants": lookup_report_u64(&counts, "retained_variants")?,
-        "low_quality_filtered_variants": lookup_report_u64(&counts, "low_quality_filtered_variants")?,
-        "damage_ratio_filtered_variants": lookup_report_u64(&counts, "damage_ratio_filtered_variants")?,
-        "terminal_damage_filtered_variants": lookup_report_u64(&counts, "terminal_damage_filtered_variants")?,
-        "damage_context_rule": format_damage_context_rule(&command)?,
-        "terminal_context_count": json_u64(&audit, "/terminal_context_count", "terminal_context_count")?,
-        "sample_count": lookup_report_u64(&counts, "sample_count")?,
-    }))
-}
-
-fn parse_gl_propagation_metrics(root: &Path) -> Result<serde_json::Value> {
-    let command = read_json(&root.join(RAW_COMMAND_NAME))?;
-    validate_stage_command(&command, "vcf.gl_propagation", &["-vcf-gl", "-doPost", "-doVcf"])?;
-    let report = read_json(&root.join(RAW_GL_PROPAGATION_REPORT_NAME))?;
-
-    let input = summarize_likelihood_field_set(&root.join(RAW_GL_PROPAGATION_INPUT_NAME))?;
-    let output = summarize_likelihood_field_set(&root.join(RAW_GL_PROPAGATION_OUTPUT_NAME))?;
-    let lost_fields = input.fields.difference(&output.fields).cloned().collect::<Vec<_>>();
-    let reported_lost_fields =
-        json_string_array(&report, "/lost_fields", "lost_fields").unwrap_or_default();
-    if lost_fields != reported_lost_fields {
-        bail!(
-            "angsd gl_propagation lost field drifted: parser saw {lost_fields:?}, report declared {reported_lost_fields:?}"
-        );
-    }
-    let sample_count =
-        parse_vcf_document(&root.join(RAW_GL_PROPAGATION_OUTPUT_NAME))?.sample_ids.len();
-
-    Ok(serde_json::json!({
-        "schema_version": "bijux.vcf.gl_propagation.v1",
-        "stage_id": "vcf.gl_propagation",
-        "tool_id": ANGSD_TOOL_ID,
-        "input_likelihood_fields": input.fields.into_iter().collect::<Vec<_>>(),
-        "output_likelihood_fields": output.fields.into_iter().collect::<Vec<_>>(),
-        "lost_fields": lost_fields,
-        "site_count_before": input.site_count,
-        "site_count_after": output.site_count,
-        "sample_count": sample_count,
-    }))
-}
-
 fn validate_stage_command(
     command: &serde_json::Value,
     stage_id: &str,
@@ -208,48 +142,6 @@ fn validate_stage_command(
         }
     }
     Ok(())
-}
-
-fn format_damage_context_rule(command: &serde_json::Value) -> Result<String> {
-    let mode = json_string(command, "/masking_strategy/mode", "masking_strategy.mode")?;
-    let max_damage_ratio =
-        json_f64(command, "/thresholds/max_damage_ratio", "thresholds.max_damage_ratio")?;
-    let terminal_threshold = json_f64(
-        command,
-        "/thresholds/terminal_damage_threshold",
-        "thresholds.terminal_damage_threshold",
-    )?;
-    let pmd_min = json_f64(command, "/thresholds/pmd_min", "thresholds.pmd_min")?;
-    Ok(format!(
-        "{mode}_ct_ga_with_ratio_gt_{max_damage_ratio:.2}_or_terminal_signal_ge_{terminal_threshold:.2}_or_pmd_lt_{pmd_min:.1}"
-    ))
-}
-
-fn lookup_report_u64(
-    report: &std::collections::BTreeMap<String, String>,
-    key: &str,
-) -> Result<u64> {
-    report
-        .get(key)
-        .ok_or_else(|| anyhow!("raw report is missing `{key}`"))?
-        .parse::<u64>()
-        .with_context(|| format!("raw report field `{key}` is not a valid u64"))
-}
-
-fn read_key_value_report(path: &Path) -> Result<std::collections::BTreeMap<String, String>> {
-    let raw = read_text(path)?;
-    let mut rows = std::collections::BTreeMap::new();
-    for line in raw.lines() {
-        let line = line.trim();
-        if line.is_empty() || line.starts_with('#') {
-            continue;
-        }
-        let Some((key, value)) = line.split_once('\t') else {
-            bail!("raw report row is not tab-separated: {line}");
-        };
-        rows.insert(key.to_string(), value.to_string());
-    }
-    Ok(rows)
 }
 
 fn parse_vcf_document(path: &Path) -> Result<ParsedVcfDocument> {
@@ -353,28 +245,6 @@ fn summarize_likelihood_values(path: &Path) -> Result<LikelihoodSummary> {
     })
 }
 
-fn summarize_likelihood_field_set(path: &Path) -> Result<LikelihoodFieldSetSummary> {
-    let raw = read_text(path)?;
-    let mut fields = BTreeSet::<String>::new();
-    let mut site_count = 0_u64;
-    for line in raw.lines() {
-        if line.trim().is_empty() || line.starts_with('#') {
-            continue;
-        }
-        let parts = line.split('\t').collect::<Vec<_>>();
-        if parts.len() < 10 {
-            bail!("angsd gl_propagation raw VCF row is missing FORMAT/sample fields: {line}");
-        }
-        site_count += 1;
-        for token in parts[8].split(':') {
-            if ["GL", "GP", "PL"].contains(&token) {
-                fields.insert(token.to_string());
-            }
-        }
-    }
-    Ok(LikelihoodFieldSetSummary { fields, site_count })
-}
-
 fn extract_sample_field<'a>(format: &'a str, sample: &'a str, field_name: &str) -> Result<&'a str> {
     let keys = format.split(':').collect::<Vec<_>>();
     let index = keys
@@ -433,13 +303,6 @@ fn json_u64(value: &serde_json::Value, pointer: &str, name: &str) -> Result<u64>
     value
         .pointer(pointer)
         .and_then(serde_json::Value::as_u64)
-        .ok_or_else(|| anyhow!("raw artifact is missing `{name}`"))
-}
-
-fn json_f64(value: &serde_json::Value, pointer: &str, name: &str) -> Result<f64> {
-    value
-        .pointer(pointer)
-        .and_then(serde_json::Value::as_f64)
         .ok_or_else(|| anyhow!("raw artifact is missing `{name}`"))
 }
 

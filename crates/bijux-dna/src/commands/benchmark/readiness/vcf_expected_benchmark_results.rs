@@ -23,7 +23,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_VCF_EXPECTED_BENCHMARK_RESULTS_PATH: &str =
-    "benchmarks/readiness/vcf-expected-benchmark-results.tsv";
+    "artifacts/benchmark-smoke/readiness/vcf/vcf-expected-benchmark-results.tsv";
 const VCF_EXPECTED_BENCHMARK_RESULTS_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.vcf_expected_benchmark_results.v1";
 

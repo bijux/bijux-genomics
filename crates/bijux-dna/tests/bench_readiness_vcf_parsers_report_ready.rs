@@ -41,7 +41,7 @@ fn bench_readiness_vcf_parsers_report_ready_reports_governed_pass_state() {
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/VCF_PARSERS_REPORT_READY.json")
+        Some("artifacts/benchmark-smoke/readiness/vcf/VCF_PARSERS_REPORT_READY.json")
     );
     assert_eq!(payload.get("checked_goal_count").and_then(serde_json::Value::as_u64), Some(15));
     assert_eq!(payload.get("passed_goal_count").and_then(serde_json::Value::as_u64), Some(15));
@@ -52,7 +52,7 @@ fn bench_readiness_vcf_parsers_report_ready_reports_governed_pass_state() {
     );
     assert_eq!(
         payload.get("parser_fixture_row_count").and_then(serde_json::Value::as_u64),
-        Some(39)
+        Some(37)
     );
     assert_eq!(
         payload.get("active_parser_fixture_row_count").and_then(serde_json::Value::as_u64),
@@ -65,7 +65,7 @@ fn bench_readiness_vcf_parsers_report_ready_reports_governed_pass_state() {
     assert_eq!(payload.get("report_map_row_count").and_then(serde_json::Value::as_u64), Some(24));
     assert_eq!(
         payload.get("comparable_metric_row_count").and_then(serde_json::Value::as_u64),
-        Some(35)
+        Some(29)
     );
     assert_eq!(payload.get("ok"), Some(&serde_json::Value::Bool(true)));
 

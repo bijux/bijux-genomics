@@ -42,7 +42,7 @@ fn bench_local_edna_micro_pipeline_reports_taxonomy_handoffs() {
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("runs/bench/micro/pipelines/edna/MICRO_EDNA_SUMMARY.json")
+        Some("artifacts/benchmark-smoke/micro/pipelines/edna/MICRO_EDNA_SUMMARY.json")
     );
     assert_eq!(
         payload.get("pipeline_id").and_then(serde_json::Value::as_str),

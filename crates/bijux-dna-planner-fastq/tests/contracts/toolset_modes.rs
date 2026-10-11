@@ -43,7 +43,7 @@ fn benchmark_toolsets_can_be_requested_per_fairness_scenario() {
     );
     assert_eq!(
         default_benchmark_tools.iter().map(bijux_dna_core::ids::ToolId::as_str).collect::<Vec<_>>(),
-        vec!["clumpify"]
+        vec!["clumpify", "fastuniq"]
     );
 
     let dedup_tools = bijux_dna_planner_fastq::stage_api::toolset_for_stage_benchmark_scenario(
@@ -52,7 +52,7 @@ fn benchmark_toolsets_can_be_requested_per_fairness_scenario() {
     );
     assert_eq!(
         dedup_tools.iter().map(bijux_dna_core::ids::ToolId::as_str).collect::<Vec<_>>(),
-        vec!["clumpify"]
+        vec!["clumpify", "fastuniq"]
     );
 
     let unknown_tools = bijux_dna_planner_fastq::stage_api::toolset_for_stage_benchmark_scenario(

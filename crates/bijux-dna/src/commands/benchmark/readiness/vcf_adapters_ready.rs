@@ -45,7 +45,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_VCF_ADAPTERS_READY_PATH: &str =
-    "benchmarks/readiness/VCF_ADAPTERS_READY.json";
+    "artifacts/benchmark-smoke/readiness/vcf/VCF_ADAPTERS_READY.json";
 const VCF_ADAPTERS_READY_SCHEMA_VERSION: &str = "bijux.bench.readiness.vcf_adapters_ready.v1";
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
@@ -182,7 +182,7 @@ pub(crate) fn render_vcf_adapters_ready(
                 repo_root,
                 PathBuf::from(DEFAULT_VCF_UNDERCOVERED_STAGES_PATH),
             )?;
-            if report.stage_count != 20 || report.undercovered_stage_count != 9 {
+            if report.stage_count != 20 || report.undercovered_stage_count != 7 {
                 bail!(
                     "VCF undercovered-stage report drifted: stage_count={}, undercovered_stage_count={}",
                     report.stage_count,
@@ -193,13 +193,13 @@ pub(crate) fn render_vcf_adapters_ready(
                 report.decision_counts.get("future_not_benchmark_ready").copied().unwrap_or(0);
             let limit_to_specialized_tool =
                 report.decision_counts.get("limit_to_specialized_tool").copied().unwrap_or(0);
-            if future_not_benchmark_ready != 7 || limit_to_specialized_tool != 2 {
+            if future_not_benchmark_ready != 5 || limit_to_specialized_tool != 2 {
                 bail!(
                     "VCF undercovered-stage decisions drifted: future_not_benchmark_ready={future_not_benchmark_ready}, limit_to_specialized_tool={limit_to_specialized_tool}"
                 );
             }
             Ok(
-                "validated 9 governed undercovered VCF stages with explicit future vs specialized decisions"
+                "validated 7 governed undercovered VCF stages with explicit future vs specialized decisions"
                     .to_string(),
             )
         },
@@ -220,7 +220,7 @@ pub(crate) fn render_vcf_adapters_ready(
             if report.get("passes_gate").and_then(serde_json::Value::as_bool) != Some(true)
                 || report.get("stage_count").and_then(serde_json::Value::as_u64) != Some(20)
                 || report.get("matrix_row_count").and_then(serde_json::Value::as_u64) != Some(24)
-                || report.get("registry_pair_count").and_then(serde_json::Value::as_u64) != Some(41)
+                || report.get("registry_pair_count").and_then(serde_json::Value::as_u64) != Some(39)
                 || report
                     .get("benchmark_ready_registry_pair_count")
                     .and_then(serde_json::Value::as_u64)
@@ -286,12 +286,12 @@ pub(crate) fn render_vcf_adapters_ready(
         || {
             let report =
                 render_vcf_angsd_adapter(repo_root, PathBuf::from(DEFAULT_VCF_ANGSD_ADAPTER_PATH))?;
-            if report.row_count != 4
-                || report.supported_stage_row_count != 4
+            if report.row_count != 2
+                || report.supported_stage_row_count != 2
                 || report.benchmark_ready_row_count != 0
                 || report.argv_valid_row_count != report.row_count
                 || report.missing_input_test_passed_row_count != report.row_count
-                || report.bam_list_row_count != 3
+                || report.bam_list_row_count != 2
                 || report.parser_output_row_count != report.row_count
             {
                 bail!(
@@ -307,7 +307,7 @@ pub(crate) fn render_vcf_adapters_ready(
         &mut checks,
         237,
         "vcf plink family adapters",
-        Some("benchmarks/readiness/adapters/plink.vcf.json".to_string()),
+        Some("artifacts/benchmark-smoke/readiness/adapters/plink.vcf.json".to_string()),
         || {
             let plink_report = render_vcf_plink_family_adapter(
                 repo_root,
@@ -498,12 +498,12 @@ pub(crate) fn render_vcf_adapters_ready(
                 repo_root,
                 PathBuf::from(DEFAULT_VCF_ADAPTER_OUTPUT_COVERAGE_PATH),
             )?;
-            if report.row_count != 40
+            if report.row_count != 38
                 || report.benchmark_ready_row_count != 24
                 || report.benchmark_ready_complete_row_count != 24
                 || report.benchmark_ready_incomplete_row_count != 0
-                || report.complete_row_count != 36
-                || report.incomplete_row_count != 4
+                || report.complete_row_count != 35
+                || report.incomplete_row_count != 3
             {
                 bail!("VCF adapter output coverage report drifted from the governed completeness contract");
             }
@@ -911,7 +911,9 @@ mod tests {
             VcfAdaptersReadyGoalCheck {
                 goal_id: 231,
                 surface: "vcf tool-serving map".to_string(),
-                output_path: Some("benchmarks/readiness/vcf-tool-serving-map.tsv".to_string()),
+                output_path: Some(
+                    "artifacts/benchmark-smoke/readiness/vcf/vcf-tool-serving-map.tsv".to_string(),
+                ),
                 ok: true,
                 detail: "ok".to_string(),
             },

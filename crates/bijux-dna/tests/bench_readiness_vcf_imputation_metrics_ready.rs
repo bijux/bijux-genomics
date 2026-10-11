@@ -44,7 +44,7 @@ fn bench_readiness_vcf_imputation_metrics_ready_reports_active_quality_gate() {
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/vcf/imputation-metrics-ready.json")
+        Some("artifacts/benchmark-smoke/readiness/vcf/imputation-metrics-ready.json")
     );
     assert_eq!(payload.get("retained_row_count").and_then(serde_json::Value::as_u64), Some(1));
     assert_eq!(payload.get("active_row_count").and_then(serde_json::Value::as_u64), Some(1));

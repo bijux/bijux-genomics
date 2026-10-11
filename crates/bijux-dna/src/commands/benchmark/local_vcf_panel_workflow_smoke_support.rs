@@ -1,9 +1,14 @@
+use std::fs;
 use std::path::Path;
 use std::sync::{Mutex, OnceLock};
 
 use anyhow::{anyhow, bail, Result};
-use bijux_dna_db_ref::public_api::{materialize_vcf_panel_assets, VcfPanelMaterializationReport};
+use bijux_dna_db_ref::public_api::{
+    resolve_map, resolve_map_lock, resolve_panel, resolve_panel_lock,
+    validate_imputation_tool_compatibility,
+};
 use bijux_dna_domain_vcf::contracts::{ContigSpec, SpeciesContext};
+use serde::Serialize;
 
 use super::local_stage_result_manifest::{
     path_relative_to_repo, BenchStageResultCommandV1, BenchStageResultManifestV1,
@@ -15,8 +20,8 @@ use super::local_vcf_stage_matrix::build_vcf_stage_matrix_rows;
 
 pub(crate) const GOVERNED_VCF_PANEL_SPECIES_ID: &str = "Homo sapiens";
 pub(crate) const GOVERNED_VCF_PANEL_BUILD_ID: &str = "GRCh38";
-pub(crate) const GOVERNED_VCF_PANEL_ID: &str = "hsapiens_grch38_mini";
-pub(crate) const GOVERNED_VCF_MAP_ID: &str = "hsapiens_grch38_chr_map";
+pub(crate) const GOVERNED_VCF_PANEL_ID: &str = "hsapiens_grch38_1kg_3202_chr22";
+pub(crate) const GOVERNED_VCF_MAP_ID: &str = "hsapiens_grch38_glimpse_chr22";
 pub(crate) const DEFAULT_STAGE_RESULT_NAME: &str = "stage-result.json";
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -26,6 +31,27 @@ pub(crate) struct GovernedVcfPanelWorkflowSmokeContract {
     pub(crate) corpus_id: String,
     pub(crate) panel_id: String,
     pub(crate) map_id: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+pub(crate) struct ResolvedVcfPanelAssetContract {
+    pub(crate) schema_version: &'static str,
+    pub(crate) fixture_class: &'static str,
+    pub(crate) species_id: String,
+    pub(crate) build_id: String,
+    pub(crate) panel_id: String,
+    pub(crate) map_id: String,
+    pub(crate) panel_files: Vec<String>,
+    pub(crate) map_files: Vec<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+pub(crate) struct LocalVcfPanelFixtureReport {
+    pub(crate) schema_version: &'static str,
+    pub(crate) fixture_class: &'static str,
+    pub(crate) panel_id: String,
+    pub(crate) map_id: String,
+    pub(crate) materialized_files: Vec<String>,
 }
 
 pub(crate) fn resolve_governed_vcf_panel_workflow_smoke_contract(
@@ -73,25 +99,79 @@ pub(crate) fn resolve_governed_vcf_panel_workflow_smoke_contract(
     })
 }
 
-pub(crate) fn materialize_governed_vcf_panel_assets(
-    materialization_root: &Path,
-) -> Result<VcfPanelMaterializationReport> {
-    materialize_vcf_panel_assets(
+pub(crate) fn resolve_governed_vcf_panel_asset_contract() -> Result<ResolvedVcfPanelAssetContract> {
+    let panel = resolve_panel(
         GOVERNED_VCF_PANEL_SPECIES_ID,
         GOVERNED_VCF_PANEL_BUILD_ID,
         Some(GOVERNED_VCF_PANEL_ID),
+    )?;
+    let map = resolve_map(
+        GOVERNED_VCF_PANEL_SPECIES_ID,
+        GOVERNED_VCF_PANEL_BUILD_ID,
         Some(GOVERNED_VCF_MAP_ID),
-        materialization_root,
-    )
+    )?;
+    let panel_lock = resolve_panel_lock(&panel)?;
+    let map_lock = resolve_map_lock(&map)?;
+    validate_imputation_tool_compatibility("glimpse", &panel, &map)?;
+
+    Ok(ResolvedVcfPanelAssetContract {
+        schema_version: "bijux.local_vcf_panel_asset_contract.v1",
+        fixture_class: "local_smoke_metadata_only",
+        species_id: panel.species_id,
+        build_id: panel.build_id,
+        panel_id: panel.id,
+        map_id: map.id,
+        panel_files: panel_lock.files.into_iter().map(|file| file.path).collect(),
+        map_files: map_lock.files.into_iter().map(|file| file.path).collect(),
+    })
 }
 
-pub(crate) fn with_governed_vcf_panel_materialization_lock<T>(
+pub(crate) fn materialize_local_vcf_panel_fixture(
+    materialization_root: &Path,
+) -> Result<LocalVcfPanelFixtureReport> {
+    let contract = resolve_governed_vcf_panel_asset_contract()?;
+    let fixture_root = materialization_root.join("fixtures");
+    let panel_root = fixture_root.join("panels").join(&contract.panel_id);
+    let map_root = fixture_root.join("maps").join(&contract.map_id);
+    let mut materialized_files = Vec::new();
+
+    for (root, paths, asset_kind) in
+        [(&panel_root, &contract.panel_files, "panel"), (&map_root, &contract.map_files, "map")]
+    {
+        for relative in paths {
+            let target = root.join(relative);
+            write_local_smoke_marker(&target, asset_kind, relative)?;
+            materialized_files.push(target.display().to_string());
+        }
+    }
+
+    Ok(LocalVcfPanelFixtureReport {
+        schema_version: "bijux.local_vcf_panel_fixture.v1",
+        fixture_class: "local_smoke",
+        panel_id: contract.panel_id,
+        map_id: contract.map_id,
+        materialized_files,
+    })
+}
+
+fn write_local_smoke_marker(target: &Path, asset_kind: &str, relative: &str) -> Result<()> {
+    let parent = target
+        .parent()
+        .ok_or_else(|| anyhow!("local VCF fixture path has no parent: {}", target.display()))?;
+    fs::create_dir_all(parent)?;
+    fs::write(
+        target,
+        format!("fixture_class=local_smoke\nasset_kind={asset_kind}\nrelative_path={relative}\n"),
+    )?;
+    Ok(())
+}
+
+pub(crate) fn with_local_vcf_panel_fixture_lock<T>(
     action: impl FnOnce() -> Result<T>,
 ) -> Result<T> {
     static MATERIALIZATION_LOCK: OnceLock<Mutex<()>> = OnceLock::new();
     let lock = MATERIALIZATION_LOCK.get_or_init(|| Mutex::new(()));
-    let _guard =
-        lock.lock().map_err(|_| anyhow!("governed VCF panel materialization lock is poisoned"))?;
+    let _guard = lock.lock().map_err(|_| anyhow!("local VCF panel fixture lock is poisoned"))?;
     action()
 }
 
@@ -157,7 +237,8 @@ pub(crate) fn build_stage_result_manifest(
 #[cfg(test)]
 mod tests {
     use super::{
-        governed_vcf_panel_species_context, materialize_governed_vcf_panel_assets,
+        governed_vcf_panel_species_context, materialize_local_vcf_panel_fixture,
+        resolve_governed_vcf_panel_asset_contract,
         resolve_governed_vcf_panel_workflow_smoke_contract,
     };
 
@@ -172,17 +253,26 @@ mod tests {
         assert_eq!(contract.stage_id, "vcf.phasing");
         assert_eq!(contract.tool_id, "shapeit5");
         assert_eq!(contract.corpus_id, "vcf_production_regression");
-        assert_eq!(contract.panel_id, "hsapiens_grch38_mini");
-        assert_eq!(contract.map_id, "hsapiens_grch38_chr_map");
+        assert_eq!(contract.panel_id, "hsapiens_grch38_1kg_3202_chr22");
+        assert_eq!(contract.map_id, "hsapiens_grch38_glimpse_chr22");
     }
 
     #[test]
-    fn governed_panel_workflow_assets_materialize_from_owned_locks() {
+    fn governed_panel_workflow_asset_contract_resolves_without_materialization() {
+        let report = resolve_governed_vcf_panel_asset_contract().expect("resolve asset contract");
+        assert_eq!(report.panel_id, "hsapiens_grch38_1kg_3202_chr22");
+        assert_eq!(report.map_id, "hsapiens_grch38_glimpse_chr22");
+        assert_eq!(report.fixture_class, "local_smoke_metadata_only");
+        assert!(!report.panel_files.is_empty());
+        assert!(!report.map_files.is_empty());
+    }
+
+    #[test]
+    fn local_panel_fixture_is_explicitly_classified() {
         let dir = tempfile::tempdir().expect("tempdir");
-        let report = materialize_governed_vcf_panel_assets(dir.path()).expect("materialize assets");
-        assert_eq!(report.panel_id, "hsapiens_grch38_mini");
-        assert_eq!(report.map_id, "hsapiens_grch38_chr_map");
-        assert!(!report.materialized_files.is_empty());
+        let report = materialize_local_vcf_panel_fixture(dir.path()).expect("materialize fixture");
+        assert_eq!(report.fixture_class, "local_smoke");
+        assert!(report.materialized_files.iter().all(|path| std::path::Path::new(path).is_file()));
     }
 
     #[test]

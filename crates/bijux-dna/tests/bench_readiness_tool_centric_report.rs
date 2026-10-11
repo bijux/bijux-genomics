@@ -46,7 +46,7 @@ fn bench_readiness_tool_centric_report_tracks_named_tool_stage_lists() {
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/tool-centric-report.md")
+        Some("artifacts/benchmark-smoke/readiness/tool-centric-report.md")
     );
     assert!(payload
         .get("tool_count")

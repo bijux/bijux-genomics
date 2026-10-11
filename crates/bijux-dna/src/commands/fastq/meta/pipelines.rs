@@ -124,7 +124,7 @@ pub(crate) fn handle_pipelines_command(
                     pipeline_id,
                 )?;
                 let output_path = output.clone().unwrap_or_else(|| {
-                    PathBuf::from("benchmarks/readiness/local-ready/pipeline-dag")
+                    PathBuf::from("artifacts/benchmark-smoke/readiness/local-ready/pipeline-dag")
                         .join(format!("{pipeline_id}.json"))
                 });
                 let report =
@@ -307,14 +307,14 @@ fn validate_all_local_pipelines(
     let output_path = absolute_or_repo_relative(
         repo_root,
         output.unwrap_or_else(|| {
-            Path::new("benchmarks/readiness/local-ready/pipeline-dag/all-benchmark-pipelines.json")
+            Path::new("artifacts/benchmark-smoke/readiness/local-ready/pipeline-dag/all-benchmark-pipelines.json")
         }),
     );
     let mut pipelines = Vec::with_capacity(config_paths.len());
     for config_path in config_paths {
         let pipeline_id = local_pipeline_id_for_path(&config_path)?;
         let pipeline_output_path = repo_root
-            .join("benchmarks/readiness/local-ready/pipeline-dag")
+            .join("artifacts/benchmark-smoke/readiness/local-ready/pipeline-dag")
             .join(format!("{pipeline_id}.json"));
         let report = crate::commands::benchmark::local_pipeline_dag::validate_pipeline_dag_path(
             repo_root,

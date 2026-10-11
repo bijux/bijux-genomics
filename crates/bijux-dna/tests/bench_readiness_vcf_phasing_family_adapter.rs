@@ -46,7 +46,7 @@ fn bench_readiness_vcf_shapeit5_adapter_reports_governed_row() {
     assert_eq!(payload.get("tool_status").and_then(serde_json::Value::as_str), Some("production"));
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/adapters/shapeit5.vcf.json")
+        Some("artifacts/benchmark-smoke/readiness/adapters/shapeit5.vcf.json")
     );
     assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(1));
     assert_eq!(
@@ -70,11 +70,11 @@ fn bench_readiness_vcf_shapeit5_adapter_reports_governed_row() {
     );
     assert_eq!(
         row.get("panel_id").and_then(serde_json::Value::as_str),
-        Some("hsapiens_grch38_mini")
+        Some("hsapiens_grch38_1kg_3202_chr22")
     );
     assert_eq!(
         row.get("map_id").and_then(serde_json::Value::as_str),
-        Some("hsapiens_grch38_chr_map")
+        Some("hsapiens_grch38_glimpse_chr22")
     );
     assert_eq!(
         row.get("parser_output_ids").and_then(serde_json::Value::as_array),
@@ -111,7 +111,7 @@ fn bench_readiness_vcf_eagle_adapter_reports_governed_row() {
     assert_eq!(payload.get("tool_status").and_then(serde_json::Value::as_str), Some("planned"));
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/adapters/eagle.vcf.json")
+        Some("artifacts/benchmark-smoke/readiness/adapters/eagle.vcf.json")
     );
     assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(1));
     assert_eq!(
@@ -163,7 +163,7 @@ fn bench_readiness_vcf_beagle_adapter_reports_governed_row() {
     assert_eq!(payload.get("tool_status").and_then(serde_json::Value::as_str), Some("production"));
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/adapters/beagle.vcf.json")
+        Some("artifacts/benchmark-smoke/readiness/adapters/beagle.vcf.json")
     );
     assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(3));
     assert_eq!(

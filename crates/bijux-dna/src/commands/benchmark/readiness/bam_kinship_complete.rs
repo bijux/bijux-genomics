@@ -23,7 +23,7 @@ use crate::commands::cli::render;
 use std::fs;
 
 pub(crate) const DEFAULT_BAM_KINSHIP_COMPLETE_PATH: &str =
-    "benchmarks/readiness/bam/stages/bam.kinship.complete.json";
+    "artifacts/benchmark-smoke/readiness/bam/stages/bam.kinship.complete.json";
 const BAM_KINSHIP_COMPLETE_SCHEMA_VERSION: &str = "bijux.bench.readiness.bam_kinship_complete.v1";
 const EXPECTED_STAGE_ID: &str = "bam.kinship";
 const EXPECTED_READY_CASE_SAMPLE_ID: &str = "human_like_kinship_related_pair";
@@ -287,15 +287,15 @@ fn build_bam_kinship_complete_report(
         repo_root,
         PathBuf::from(DEFAULT_REAL_OUTPUT_PARSER_SMOKE_PATH),
     )?;
-    let bam_pipeline_report_path =
-        repo_root.join("benchmarks/readiness/local-ready/pipeline-dag/bam-kinship.json");
+    let bam_pipeline_report_path = repo_root
+        .join("artifacts/benchmark-smoke/readiness/local-ready/pipeline-dag/bam-kinship.json");
     let bam_pipeline = validate_pipeline_dag_path(
         repo_root,
         &benchmark_local_pipeline_config_path(repo_root, EXPECTED_BAM_PIPELINE_ID),
         &bam_pipeline_report_path,
     )?;
     let vcf_pipeline_report_path = repo_root.join(
-        "benchmarks/readiness/local-ready/pipeline-dag/bam-genotyping-to-vcf-downstream.json",
+        "artifacts/benchmark-smoke/readiness/local-ready/pipeline-dag/bam-genotyping-to-vcf-downstream.json",
     );
     let vcf_pipeline = validate_pipeline_dag_path(
         repo_root,

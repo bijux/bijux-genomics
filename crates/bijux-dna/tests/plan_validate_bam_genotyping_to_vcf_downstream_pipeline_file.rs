@@ -14,7 +14,7 @@ fn plan_validate_bam_genotyping_to_vcf_downstream_pipeline_writes_governed_repor
     let repo_root = support::repo_root().expect("repo root");
     let home = tempfile::tempdir().expect("tempdir");
     let output_path = repo_root.join(
-        "benchmarks/readiness/local-ready/pipeline-dag/bam-genotyping-to-vcf-downstream.json",
+        "artifacts/benchmark-smoke/readiness/local-ready/pipeline-dag/bam-genotyping-to-vcf-downstream.json",
     );
 
     if output_path.exists() {
@@ -40,7 +40,7 @@ fn plan_validate_bam_genotyping_to_vcf_downstream_pipeline_writes_governed_repor
     );
     assert_eq!(
         String::from_utf8(output.stdout).expect("stdout utf8").trim(),
-        "benchmarks/readiness/local-ready/pipeline-dag/bam-genotyping-to-vcf-downstream.json"
+        "artifacts/benchmark-smoke/readiness/local-ready/pipeline-dag/bam-genotyping-to-vcf-downstream.json"
     );
 
     let payload = fs::read_to_string(&output_path).expect("read output file");

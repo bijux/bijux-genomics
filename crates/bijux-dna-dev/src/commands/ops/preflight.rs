@@ -23,6 +23,7 @@ use crate::runtime::process::ProcessRunner;
 use crate::runtime::workspace::Workspace;
 
 const PREFLIGHT_SCHEMA_V1: &str = "bijux.site_cycle_preflight.v1";
+const DATA_INDEX_SCHEMAS: [&str; 2] = ["bijux.data_index.v1", "bijux.data_index.v2"];
 const USAGE: &str = "Usage: cargo run -p bijux-dna-dev -- hpc run site-cycle-preflight -- --cycle <container-build|container-qualification|benchmark> --expected-commit <sha> --expected-catalog-sha256 <sha256> [--policy <path>] [--output-dir <path>] [--data-index <path> --data-index-sha256 <sha256>] [--image-inventory <path> --image-inventory-sha256 <sha256>]";
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
@@ -82,6 +83,14 @@ struct AuthorityObservation {
     repository_commit: Option<String>,
     catalog_sha256: Option<String>,
     error: Option<String>,
+}
+
+fn authority_schema_matches(schema: &str, prefix: &str, exact_schemas: &[&str]) -> bool {
+    if exact_schemas.is_empty() {
+        schema.starts_with(prefix)
+    } else {
+        exact_schemas.contains(&schema)
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

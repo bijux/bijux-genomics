@@ -264,20 +264,23 @@ const CRATE_CYCLE_CATEGORIES: &[CrateCycleCategorySpec] = &[
 ];
 
 const DEFAULT_CRATE_DEPENDENCY_MAP_PATH: &str =
-    "benchmarks/readiness/crates/crate-dependency-map.json";
+    "artifacts/benchmark-smoke/readiness/crates/crate-dependency-map.json";
 const DEFAULT_DOMAIN_NO_EXECUTION_PATH: &str =
-    "benchmarks/readiness/crates/domain-no-execution.json";
+    "artifacts/benchmark-smoke/readiness/crates/domain-no-execution.json";
 const DEFAULT_PARSER_NO_EXECUTION_PATH: &str =
-    "benchmarks/readiness/crates/parser-no-execution.json";
-const DEFAULT_PLANNER_NO_PARSER_PATH: &str = "benchmarks/readiness/crates/planner-no-parser.json";
+    "artifacts/benchmark-smoke/readiness/crates/parser-no-execution.json";
+const DEFAULT_PLANNER_NO_PARSER_PATH: &str =
+    "artifacts/benchmark-smoke/readiness/crates/planner-no-parser.json";
 const DEFAULT_RUNNER_OWNS_PROCESS_EXECUTION_PATH: &str =
-    "benchmarks/readiness/crates/runner-owns-process-execution.json";
-const DEFAULT_METRIC_REGISTRY_PATH: &str = "benchmarks/readiness/crates/metric-registry.tsv";
+    "artifacts/benchmark-smoke/readiness/crates/runner-owns-process-execution.json";
+const DEFAULT_METRIC_REGISTRY_PATH: &str =
+    "artifacts/benchmark-smoke/readiness/crates/metric-registry.tsv";
 const DEFAULT_RESULT_ID_STABILITY_PATH: &str =
-    "benchmarks/readiness/crates/result-id-stability.json";
-const DEFAULT_NO_CRATE_CYCLES_PATH: &str = "benchmarks/readiness/crates/no-crate-cycles.json";
+    "artifacts/benchmark-smoke/readiness/crates/result-id-stability.json";
+const DEFAULT_NO_CRATE_CYCLES_PATH: &str =
+    "artifacts/benchmark-smoke/readiness/crates/no-crate-cycles.json";
 const DEFAULT_CRATE_SHAPE_GATE_PATH: &str =
-    "benchmarks/readiness/crates/CRATE_SHAPE_FOR_BENCHMARKING_READY.json";
+    "artifacts/benchmark-smoke/readiness/crates/CRATE_SHAPE_FOR_BENCHMARKING_READY.json";
 const DEFAULT_CRATE_SHAPE_GATE_TARGET_DIR: &str = "artifacts/rust/crate-shape-gate-target";
 const TYPED_ARTIFACT_HANDOFF_TEST_COMMAND: &str =
     "cargo test -p bijux-dna-api typed_artifact_handoff_rejects_wrong_stage_inputs -- --nocapture";
@@ -2693,7 +2696,7 @@ mod tests {
         let report = build_benchmarking_ready_crate_shape_gate_report(
             Path::new("/workspace"),
             Path::new(
-                "/workspace/benchmarks/readiness/crates/CRATE_SHAPE_FOR_BENCHMARKING_READY.json",
+                "/workspace/artifacts/benchmark-smoke/readiness/crates/CRATE_SHAPE_FOR_BENCHMARKING_READY.json",
             ),
             Path::new("/workspace/artifacts/rust/crate-shape-gate-target"),
             vec![
@@ -2717,7 +2720,7 @@ mod tests {
         assert_eq!(report.failed_goal_ids, vec!["416".to_string()]);
         assert_eq!(
             report.output_path,
-            "benchmarks/readiness/crates/CRATE_SHAPE_FOR_BENCHMARKING_READY.json"
+            "artifacts/benchmark-smoke/readiness/crates/CRATE_SHAPE_FOR_BENCHMARKING_READY.json"
         );
         assert_eq!(report.cargo_target_dir, "artifacts/rust/crate-shape-gate-target");
     }

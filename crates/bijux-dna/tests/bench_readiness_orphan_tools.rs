@@ -44,7 +44,7 @@ fn bench_readiness_orphan_tools_reports_governed_decisions() {
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/orphan-tools.tsv")
+        Some("artifacts/benchmark-smoke/readiness/orphan-tools.tsv")
     );
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
     assert_eq!(
@@ -73,11 +73,5 @@ fn bench_readiness_orphan_tools_reports_governed_decisions() {
             && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("seqpurge")
             && row.get("decision").and_then(serde_json::Value::as_str) == Some("future_tool")
     }));
-    for (domain, tool_id) in [("bam", "angsd"), ("bam", "ngsbriggs"), ("fastq", "fastuniq")] {
-        assert!(rows.iter().any(|row| {
-            row.get("domain").and_then(serde_json::Value::as_str) == Some(domain)
-                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some(tool_id)
-                && row.get("decision").and_then(serde_json::Value::as_str) == Some("future_tool")
-        }));
-    }
+    assert_eq!(rows.len(), 2);
 }

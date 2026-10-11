@@ -88,13 +88,16 @@ fn generated_tool_registries_use_container_catalog_metadata() -> Result<()> {
             }
         }
         if relative == "ci/registry/tool_registry.toml" {
-            assert_production_stage_bindings(&registry)?;
+            assert_production_stage_bindings(&registry, &contracts)?;
         }
     }
     Ok(())
 }
 
-fn assert_production_stage_bindings(registry: &toml::Value) -> Result<()> {
+fn assert_production_stage_bindings(
+    registry: &toml::Value,
+    contracts: &BTreeMap<&str, &toml::Value>,
+) -> Result<()> {
     let tool_stage_ids = registry
         .get("tools")
         .and_then(toml::Value::as_array)
@@ -126,11 +129,24 @@ fn assert_production_stage_bindings(registry: &toml::Value) -> Result<()> {
                 .iter()
                 .map(|value| value.as_str().context("tool id is not text"))
             {
+                let tool_id = tool_id?;
+                let packaged_binding = tool_stage_ids
+                    .get(tool_id)
+                    .is_some_and(|stage_ids| stage_ids.contains(&stage_id));
+                let external_binding = contracts.get(tool_id).is_some_and(|contract| {
+                    contract
+                        .get("external_artifact_supported")
+                        .and_then(toml::Value::as_bool)
+                        .unwrap_or(false)
+                        && contract.get("stage_ids").and_then(toml::Value::as_array).is_some_and(
+                            |stage_ids| {
+                                stage_ids.iter().any(|value| value.as_str() == Some(stage_id))
+                            },
+                        )
+                });
                 assert!(
-                    tool_stage_ids
-                        .get(tool_id?)
-                        .is_some_and(|stage_ids| stage_ids.contains(&stage_id)),
-                    "{stage_id}: {field} contains a tool without an authored stage binding"
+                    packaged_binding || external_binding,
+                    "{stage_id}: {field} contains a tool without a packaged or external-artifact stage binding"
                 );
             }
         }

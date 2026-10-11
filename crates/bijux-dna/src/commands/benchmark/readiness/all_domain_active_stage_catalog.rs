@@ -23,7 +23,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_ALL_DOMAIN_ACTIVE_STAGE_CATALOG_PATH: &str =
-    "benchmarks/readiness/all-domains/active-stage-catalog.tsv";
+    "artifacts/benchmark-smoke/readiness/all-domains/active-stage-catalog.tsv";
 const ALL_DOMAIN_ACTIVE_STAGE_CATALOG_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.all_domain_active_stage_catalog.v1";
 const NO_VALUES: &str = "none";

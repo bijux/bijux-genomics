@@ -1,3 +1,4 @@
+#![cfg(feature = "bam_downstream")]
 #![allow(clippy::expect_used, clippy::too_many_lines)]
 
 use std::collections::BTreeSet;
@@ -36,7 +37,7 @@ fn bench_readiness_bam_all_retained_tools_complete_writes_governed_json_file() {
     let rendered_path = String::from_utf8(output.stdout).expect("stdout utf8");
     assert_eq!(
         rendered_path.trim(),
-        "benchmarks/readiness/bam/BAM_ALL_RETAINED_TOOLS_COMPLETE.json"
+        "artifacts/benchmark-smoke/readiness/bam/BAM_ALL_RETAINED_TOOLS_COMPLETE.json"
     );
 
     let payload = std::fs::read_to_string(repo_root.join(rendered_path.trim()))
@@ -60,9 +61,13 @@ fn bench_readiness_bam_all_retained_tools_complete_writes_governed_json_file() {
         .collect::<BTreeSet<_>>();
     assert_eq!(goal_ids, (431_u64..=449_u64).collect::<BTreeSet<_>>());
 
-    let expected_container_smoke_row_count = if cfg!(feature = "bam_downstream") { 29 } else { 31 };
+    let expected_container_smoke_row_count = if cfg!(feature = "bam_downstream") { 26 } else { 28 };
     assert_eq!(
         report.get("local_smoke_container_row_count").and_then(serde_json::Value::as_u64),
         Some(expected_container_smoke_row_count)
+    );
+    assert_eq!(
+        report.get("local_smoke_external_artifact_row_count").and_then(serde_json::Value::as_u64),
+        Some(3)
     );
 }

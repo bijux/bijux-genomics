@@ -36,7 +36,7 @@ fn bench_readiness_micro_benchmark_execution_ready_writes_gate_file() {
     let rendered_path = String::from_utf8(output.stdout).expect("stdout utf8");
     assert_eq!(
         rendered_path.trim(),
-        "benchmarks/readiness/micro/MICRO_BENCHMARK_EXECUTION_READY.json"
+        "artifacts/benchmark-smoke/readiness/micro/MICRO_BENCHMARK_EXECUTION_READY.json"
     );
 
     let payload: serde_json::Value = serde_json::from_slice(

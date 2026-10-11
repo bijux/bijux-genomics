@@ -32,7 +32,7 @@ fn bench_readiness_fastq_corpus_assignment_prints_governed_output_path() {
     );
     assert_eq!(
         String::from_utf8_lossy(&output.stdout).trim(),
-        "benchmarks/readiness/fastq-corpus-assignment.tsv"
+        "artifacts/benchmark-smoke/readiness/fastq/fastq-corpus-assignment.tsv"
     );
 }
 

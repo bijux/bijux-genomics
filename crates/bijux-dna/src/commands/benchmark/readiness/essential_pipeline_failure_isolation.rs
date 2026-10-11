@@ -20,9 +20,9 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_ESSENTIAL_PIPELINE_FAILURE_ISOLATION_REPORT_PATH: &str =
-    "benchmarks/readiness/essential-pipeline-failure-isolation.json";
+    "artifacts/benchmark-smoke/readiness/pipelines/essential-pipeline-failure-isolation.json";
 const DEFAULT_ESSENTIAL_PIPELINE_FAILURE_ISOLATION_SIMULATION_ROOT: &str =
-    "runs/bench/local-fake-runs/pipelines/essential-failure-isolation";
+    "artifacts/benchmark-smoke/simulated-runs/pipelines/essential-failure-isolation";
 const ESSENTIAL_PIPELINE_FAILURE_ISOLATION_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.essential_pipeline_failure_isolation.v1";
 const SEEDED_FAILED_PIPELINE_ID: &str = "relatedness-segments-vcf";
@@ -202,7 +202,7 @@ fn collect_failure_isolation_rows(
                 pipeline_id,
             ),
             &repo_root
-                .join("benchmarks/readiness/local-ready/pipeline-dag")
+                .join("artifacts/benchmark-smoke/readiness/local-ready/pipeline-dag")
                 .join(format!("{pipeline_id}.json")),
         )?;
         let nodes_by_id = dag_report

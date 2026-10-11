@@ -381,12 +381,17 @@ mod tests {
                 && row.tool_id == "bcftools"
                 && row.execution_mode == "containerized"
                 && row.command_entrypoint.as_deref() == Some("bcftools")
-                && row.container_id.as_deref() == Some("bijuxdna/bcftools:1.20")
+                && row.container_id.as_deref()
+                    == Some("quay.io/biocontainers/bcftools:1.20--h8b25389_0@sha256:67f54df47f501f6ddef08e3b9ad89cf693952f9a89de0d74df6e39fce15f1ff6")
         }));
-        assert!(report
-            .rows
-            .iter()
-            .all(|row| { !matches!(row.tool_id.as_str(), "angsd" | "fastuniq" | "ngsbriggs") }));
+        for external_tool_id in ["angsd", "fastuniq", "ngsbriggs"] {
+            let expected_container = format!("external-artifact://{external_tool_id}");
+            assert!(report.rows.iter().any(|row| {
+                row.tool_id == external_tool_id
+                    && row.execution_mode == "external"
+                    && row.container_id.as_deref() == Some(expected_container.as_str())
+            }));
+        }
         assert!(report.rows.iter().any(|row| {
             row.stage_id == "bam.overlap_correction"
                 && row.tool_id == "bamutil"
@@ -445,7 +450,7 @@ mod tests {
         }));
         for (tool_id, container_id) in [
             ("bedtools", "bijuxdna/bedtools:2.31.1"),
-            ("mosdepth", "bijuxdna/mosdepth:0.3.10"),
+            ("mosdepth", "bijuxdna/mosdepth:0.3.11"),
             ("samtools", "bijuxdna/samtools:1.21"),
         ] {
             assert!(report.rows.iter().any(|row| {
@@ -525,12 +530,17 @@ mod tests {
                 && row.tool_id == "bcftools"
                 && row.execution_mode == "containerized"
                 && row.command_entrypoint.as_deref() == Some("bcftools")
-                && row.container_id.as_deref() == Some("bijuxdna/bcftools:1.20")
+                && row.container_id.as_deref()
+                    == Some("quay.io/biocontainers/bcftools:1.20--h8b25389_0@sha256:67f54df47f501f6ddef08e3b9ad89cf693952f9a89de0d74df6e39fce15f1ff6")
         }));
-        assert!(config
-            .rows
-            .iter()
-            .all(|row| { !matches!(row.tool_id.as_str(), "angsd" | "fastuniq" | "ngsbriggs") }));
+        for external_tool_id in ["angsd", "fastuniq", "ngsbriggs"] {
+            let expected_container = format!("external-artifact://{external_tool_id}");
+            assert!(config.rows.iter().any(|row| {
+                row.tool_id == external_tool_id
+                    && row.execution_mode == "external"
+                    && row.container_id.as_deref() == Some(expected_container.as_str())
+            }));
+        }
         assert!(config.rows.iter().any(|row| {
             row.stage_id == "fastq.detect_adapters"
                 && row.tool_id == "fastqc"
@@ -599,7 +609,7 @@ mod tests {
         }));
         for (tool_id, container_id) in [
             ("bedtools", "bijuxdna/bedtools:2.31.1"),
-            ("mosdepth", "bijuxdna/mosdepth:0.3.10"),
+            ("mosdepth", "bijuxdna/mosdepth:0.3.11"),
             ("samtools", "bijuxdna/samtools:1.21"),
         ] {
             assert!(config.rows.iter().any(|row| {

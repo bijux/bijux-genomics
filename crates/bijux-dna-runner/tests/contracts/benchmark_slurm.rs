@@ -1,6 +1,4 @@
 use std::collections::BTreeMap;
-#[cfg(unix)]
-use std::os::unix::fs::PermissionsExt as _;
 use std::path::PathBuf;
 use std::process::Command;
 
@@ -18,6 +16,9 @@ use bijux_dna_runner::api::{
     load_benchmark_slurm_job_handle, prepare_benchmark_slurm_job, submit_prepared_benchmark_job,
     SlurmClientPaths,
 };
+
+#[cfg(unix)]
+use crate::scheduler_executable::write_executable;
 
 struct Fixture {
     root: tempfile::TempDir,
@@ -271,7 +272,7 @@ fn unresolved_submission_intent_blocks_duplicate_scheduler_effects() -> anyhow::
     let paths = scheduler_client(fixture.root.path(), "echo rejected >&2\nexit 1\n")?;
     assert!(submit_prepared_benchmark_job(&paths, &prepared).is_err());
 
-    write_executable(&paths.sbatch, "printf '999999\\n'\n")?;
+    write_executable(&paths.sbatch, "#!/bin/sh\nprintf '999999\\n'\n")?;
     assert!(submit_prepared_benchmark_job(&paths, &prepared)
         .is_err_and(|error| error.to_string().contains("reconcile scheduler state")));
     let scheduler_root =
@@ -289,17 +290,8 @@ fn scheduler_client(root: &std::path::Path, sbatch_body: &str) -> anyhow::Result
         sacct: root.join("sacct"),
         scancel: root.join("scancel"),
     };
-    write_executable(&paths.sbatch, sbatch_body)?;
+    write_executable(&paths.sbatch, &format!("#!/bin/sh\n{sbatch_body}"))?;
     Ok(paths)
-}
-
-#[cfg(unix)]
-fn write_executable(path: &std::path::Path, body: &str) -> anyhow::Result<()> {
-    std::fs::write(path, format!("#!/bin/sh\n{body}"))?;
-    let mut permissions = std::fs::metadata(path)?.permissions();
-    permissions.set_mode(0o755);
-    std::fs::set_permissions(path, permissions)?;
-    Ok(())
 }
 
 fn shell_literal(path: &std::path::Path) -> String {

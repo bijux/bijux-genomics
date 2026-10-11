@@ -10,7 +10,8 @@ use crate::commands::benchmark::local_vcf_stage_matrix::build_vcf_stage_matrix_r
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
-pub(crate) const DEFAULT_VCF_ORPHAN_TOOLS_PATH: &str = "benchmarks/readiness/vcf-orphan-tools.tsv";
+pub(crate) const DEFAULT_VCF_ORPHAN_TOOLS_PATH: &str =
+    "artifacts/benchmark-smoke/readiness/vcf/vcf-orphan-tools.tsv";
 const VCF_ORPHAN_TOOLS_SCHEMA_VERSION: &str = "bijux.bench.readiness.vcf_orphan_tools.v1";
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
@@ -327,10 +328,10 @@ mod tests {
 
         assert_eq!(report.schema_version, VCF_ORPHAN_TOOLS_SCHEMA_VERSION);
         assert_eq!(report.domain, "vcf");
-        assert_eq!(report.orphan_count, 8);
+        assert_eq!(report.orphan_count, 7);
         assert_eq!(report.required_tool_count, 16);
         assert_eq!(report.registered_tool_count, 16);
-        assert_eq!(report.served_tool_count, 8);
+        assert_eq!(report.served_tool_count, 9);
         assert!(report.rows.iter().all(|row| row.served_stage_count == 0));
         assert!(report.rows.iter().all(|row| row.decision == "future_not_benchmark_ready"));
         assert!(report.rows.iter().any(|row| {

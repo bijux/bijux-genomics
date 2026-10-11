@@ -43,7 +43,7 @@ fn bench_readiness_bam_overlap_correction_complete_reports_governed_metrics() {
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/bam/stages/bam.overlap_correction.complete.json")
+        Some("artifacts/benchmark-smoke/readiness/bam/stages/bam.overlap_correction.complete.json")
     );
     assert_eq!(payload.get("active_row_count").and_then(serde_json::Value::as_u64), Some(1));
     assert_eq!(payload.get("complete_row_count").and_then(serde_json::Value::as_u64), Some(1));

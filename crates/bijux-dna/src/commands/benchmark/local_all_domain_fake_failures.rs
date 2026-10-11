@@ -10,7 +10,7 @@ use super::local_all_domain_fake_runs::{
 };
 use super::local_stage_fake_runs::path_relative_to_repo;
 use super::path_resolution::{
-    ensure_path_stays_outside_benchmark_readiness_root, BenchmarkPathResolver,
+    ensure_path_stays_within_benchmark_simulated_run_root, BenchmarkPathResolver,
 };
 use super::readiness::all_domain_expected_benchmark_results::{
     collect_all_domain_expected_benchmark_result_rows, AllDomainExpectedBenchmarkResultRow,
@@ -26,7 +26,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_ALL_DOMAIN_FAKE_FAILURE_ROOT: &str =
-    "runs/bench/local-fake-runs/all-domains-failures";
+    "artifacts/benchmark-smoke/simulated-runs/all-domains-failures";
 const ALL_DOMAIN_FAKE_FAILURE_MANIFEST_SCHEMA_VERSION: &str =
     "bijux.bench.local_all_domain_fake_failures.v1";
 const ALL_DOMAIN_FAKE_FAILURE_RECORD_SCHEMA_VERSION: &str =
@@ -97,7 +97,7 @@ pub(crate) fn fake_run_all_domain_failures(
     exit_code: i32,
 ) -> Result<AllDomainFakeFailuresManifest> {
     let absolute_output_root = repo_relative_path(repo_root, &output_root);
-    ensure_path_stays_outside_benchmark_readiness_root(
+    ensure_path_stays_within_benchmark_simulated_run_root(
         repo_root,
         &absolute_output_root,
         "all-domain fake-failure output root",

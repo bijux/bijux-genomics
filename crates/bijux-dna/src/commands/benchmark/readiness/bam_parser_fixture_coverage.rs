@@ -12,7 +12,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_BAM_PARSER_FIXTURE_COVERAGE_PATH: &str =
-    "benchmarks/readiness/bam/bam-parser-fixture-coverage.tsv";
+    "artifacts/benchmark-smoke/readiness/bam/bam-parser-fixture-coverage.tsv";
 const BAM_PARSER_FIXTURE_COVERAGE_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.bam_parser_fixture_coverage.v1";
 const FIXTURE_REFERENCE_KIND_CORPUS: &str = "fixture_corpus";
@@ -259,7 +259,7 @@ mod tests {
 
         assert_eq!(report.schema_version, BAM_PARSER_FIXTURE_COVERAGE_SCHEMA_VERSION);
         assert_eq!(report.stage_count, 24);
-        assert_eq!(report.tool_count, 25);
+        assert_eq!(report.tool_count, 26);
         assert_eq!(report.row_count, 49);
         assert_eq!(report.covered_row_count, 49);
         assert_eq!(report.missing_row_count, 0);
@@ -283,7 +283,7 @@ mod tests {
                 && row.parser_fixture_reference == "fixture:corpus-01-adna-damage-mini"
         }));
         assert!(report.rows.iter().any(|row| {
-            row.tool_id == "angsd"
+            row.tool_id == "bcftools"
                 && row.stage_id == "bam.genotyping"
                 && row.parser_fixture_reference == "fixture:corpus-01-genotyping-mini"
         }));
@@ -334,7 +334,7 @@ mod tests {
         assert!(
             rows.iter().any(|row| {
                 row.starts_with(
-                    "angsd\tbam.genotyping\tfixture_corpus\tfixture:corpus-01-genotyping-mini\tcovered\tparser_fixture_validated\tsupported\trunnable\t"
+                    "bcftools\tbam.genotyping\tfixture_corpus\tfixture:corpus-01-genotyping-mini\tcovered\tparser_fixture_validated\tsupported\trunnable\t"
                 )
             }),
             "the governed BAM genotyping row must retain parser fixture coverage"

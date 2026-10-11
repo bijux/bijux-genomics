@@ -15,7 +15,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_VCF_ADAPTER_MISSING_INPUT_TESTS_PATH: &str =
-    "benchmarks/readiness/vcf-adapter-missing-input-tests.json";
+    "artifacts/benchmark-smoke/readiness/vcf/vcf-adapter-missing-input-tests.json";
 const VCF_ADAPTER_MISSING_INPUT_TESTS_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.vcf_adapter_missing_input_audit.v1";
 
@@ -388,7 +388,7 @@ fn run_missing_input_probe(
     let mut mutated_inputs = inputs.to_vec();
     if let Some(probe) = mutated_inputs.iter_mut().find(|input| input.artifact_id == artifact_id) {
         probe.path = format!(
-            "artifacts/bench-readiness/adapters/probes/{stage_id}/{}.missing",
+            "artifacts/benchmark-smoke/readiness/adapters/probes/{stage_id}/{}.missing",
             probe.artifact_id
         );
     }

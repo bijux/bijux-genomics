@@ -23,7 +23,9 @@ boundary suite enforces that documentation layout.
 - Source or docs tree changes: run `boundaries`.
 - Suite validation changes: run `contracts`.
 - Public exports, schemas, or public docs: run `schemas`.
-- Gate policy, metric semantics, or rationale trace changes: run `semantics`.
+- Gate policy records or rationale trace contracts: run `semantics`.
+- Scientific gate evaluation or metric semantics: run the
+  `bijux-dna-science` `benchmark_gate` test target.
 - Bootstrap, randomness, or ordering changes: run `determinism`.
 
 ## Commands

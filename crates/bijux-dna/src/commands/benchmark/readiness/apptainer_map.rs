@@ -17,7 +17,8 @@ use crate::commands::cli::env::expected_registry_digest_from_parts;
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
-pub(crate) const DEFAULT_APPTAINER_MAP_PATH: &str = "benchmarks/readiness/tools/apptainer-map.tsv";
+pub(crate) const DEFAULT_APPTAINER_MAP_PATH: &str =
+    "artifacts/benchmark-smoke/readiness/tools/apptainer-map.tsv";
 const APPTAINER_MAP_SCHEMA_VERSION: &str = "bijux.bench.readiness.apptainer_map.v1";
 const GOVERNED_TOOL_REGISTRY_PATHS: [&str; 3] = [
     "configs/ci/registry/tool_registry.toml",

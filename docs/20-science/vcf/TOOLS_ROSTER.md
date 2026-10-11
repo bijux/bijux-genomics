@@ -21,9 +21,9 @@ The VCF science layer needs a readable tool inventory that mirrors the stage man
 | vcf.call_diploid | supported | bcftools | Diploid baseline remains the currently governed production call surface. |
 | vcf.call_gl | supported | angsd, bcftools | GL-first calling keeps both the current governed baseline and the planned low-coverage alternative visible. |
 | vcf.call_pseudohaploid | supported | angsd, bcftools | Pseudohaploid calling keeps the low-coverage alternative explicit without hiding the current baseline. |
-| vcf.damage_filter | supported | bcftools, angsd | Damage-aware filtering remains coupled to GL-aware evidence families. |
+| vcf.damage_filter | supported | bcftools | VCF damage filtering remains a deterministic VCF-to-VCF transformation; read-level ANGSD damage analysis is not interchangeable with this stage contract. |
 | vcf.filter | supported | bcftools | Deterministic filtering is still a single admitted normalization path. |
-| vcf.gl_propagation | supported | bcftools, angsd | GL/PL retention is governed across both the baseline and planned low-coverage tool families. |
+| vcf.gl_propagation | supported | bcftools | GL/PL retention requires a VCF-to-VCF transformation; ANGSD likelihood analysis is not a propagation backend. |
 | vcf.stats | supported | bcftools | Required VCF summary metrics remain bound to the current production baseline. |
 | vcf.qc | supported | bcftools, plink, plink2 | Cohort-level QC is governed on the admitted deterministic and cohort-analysis backends so missingness and frequency gates stay explicit before downstream inference. |
 | vcf.pca | supported | plink2, eigensoft | PCA support is governed across the admitted PLINK2 and EIGENSOFT structure-analysis families so sample-complete projections stay comparative. |

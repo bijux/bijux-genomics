@@ -258,11 +258,7 @@ fn vcf_planner_renders_executable_eigensoft_stage_templates_when_overridden() {
 
 #[test]
 fn vcf_planner_renders_executable_phasing_stage_templates_for_retained_backends() {
-    let cases = [
-        (CoverageRegime::Diploid, "shapeit5"),
-        (CoverageRegime::Diploid, "eagle"),
-        (CoverageRegime::Diploid, "beagle"),
-    ];
+    let cases = [(CoverageRegime::Diploid, "shapeit5")];
 
     for (regime, tool_id) in cases {
         let mut input = base_inputs(regime);
@@ -289,7 +285,7 @@ fn vcf_planner_renders_executable_phasing_stage_templates_for_retained_backends(
             phasing_plan.command.template
         );
         assert!(
-            joined.contains("map.tsv.gz"),
+            joined.contains("chr22.b38.gmap.gz"),
             "phasing backend {tool_id} must keep genetic-map wiring: {:?}",
             phasing_plan.command.template
         );
@@ -309,25 +305,6 @@ fn vcf_planner_renders_executable_phasing_stage_templates_for_retained_backends(
                 assert!(joined.contains("--reference"));
                 assert!(joined.contains("--map"));
             }
-            "eagle" => {
-                assert!(
-                    joined.contains("eagle"),
-                    "eagle phasing must render eagle command: {:?}",
-                    phasing_plan.command.template
-                );
-                assert!(joined.contains("--vcfTarget"));
-                assert!(joined.contains("--geneticMapFile"));
-            }
-            "beagle" => {
-                assert!(
-                    joined.contains("beagle"),
-                    "beagle phasing must render beagle command: {:?}",
-                    phasing_plan.command.template
-                );
-                assert!(joined.contains("gt='") || joined.contains("gt="));
-                assert!(joined.contains("ref='") || joined.contains("ref="));
-                assert!(joined.contains("map='") || joined.contains("map="));
-            }
             other => panic!("unexpected phasing backend {other}"),
         }
     }
@@ -336,14 +313,10 @@ fn vcf_planner_renders_executable_phasing_stage_templates_for_retained_backends(
 #[test]
 fn vcf_planner_renders_executable_imputation_stage_templates_for_supported_backends() {
     let cases = [
-        (CoverageRegime::Diploid, "vcf.imputation_metrics", "beagle"),
         (CoverageRegime::LowCovGl, "vcf.imputation_metrics", "glimpse"),
         (CoverageRegime::Diploid, "vcf.imputation_metrics", "impute5"),
-        (CoverageRegime::Diploid, "vcf.imputation_metrics", "minimac4"),
-        (CoverageRegime::Diploid, "vcf.impute", "beagle"),
         (CoverageRegime::LowCovGl, "vcf.impute", "glimpse"),
         (CoverageRegime::Diploid, "vcf.impute", "impute5"),
-        (CoverageRegime::Diploid, "vcf.impute", "minimac4"),
     ];
 
     for (regime, stage_id, tool_id) in cases {
@@ -377,13 +350,11 @@ fn vcf_planner_renders_executable_imputation_stage_templates_for_supported_backe
             "imputation backend {tool_id} on {stage_id} must keep panel input wiring: {:?}",
             stage_plan.command.template
         );
-        if tool_id != "minimac4" || stage_id == "vcf.imputation_metrics" {
-            assert!(
-                joined.contains("recombination_map.tsv.gz"),
-                "imputation backend {tool_id} on {stage_id} must keep map wiring: {:?}",
-                stage_plan.command.template
-            );
-        }
+        assert!(
+            joined.contains("chr22.b38.gmap.gz"),
+            "imputation backend {tool_id} on {stage_id} must keep map wiring: {:?}",
+            stage_plan.command.template
+        );
 
         if stage_id == "vcf.imputation_metrics" {
             assert!(
@@ -646,8 +617,8 @@ fn vcf_downstream_snapshot_pseudohaploid_default() {
 #[test]
 fn vcf_downstream_snapshot_diploid_override_tools() {
     let mut input = base_inputs(CoverageRegime::Diploid);
-    input.stage_tool_overrides.insert("vcf.phasing".to_string(), "eagle".to_string());
-    input.stage_tool_overrides.insert("vcf.impute".to_string(), "minimac4".to_string());
+    input.stage_tool_overrides.insert("vcf.phasing".to_string(), "shapeit5".to_string());
+    input.stage_tool_overrides.insert("vcf.impute".to_string(), "glimpse".to_string());
     snapshot_plan_and_explain("vcf_downstream_diploid_override_tools", &input);
 }
 
@@ -784,8 +755,8 @@ fn vcf_reference_context_report_surfaces_build_alias_and_checksum_contracts() {
     assert!(!report.contig_naming_scheme.is_empty());
     assert_eq!(report.fasta_sha256.len(), 64);
     assert!(report.alias_count > 0);
-    assert_eq!(report.panel_id, "hsapiens_grch38_mini");
-    assert_eq!(report.map_id, "hsapiens_grch38_chr_map");
+    assert_eq!(report.panel_id, "hsapiens_grch38_1kg_3202_chr22");
+    assert_eq!(report.map_id, "hsapiens_grch38_glimpse_chr22");
     assert!(report.vcf_index_required);
 }
 

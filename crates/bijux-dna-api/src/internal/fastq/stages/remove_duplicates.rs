@@ -1067,20 +1067,27 @@ mod tests {
     }
 
     #[test]
-    fn implicit_dedup_selection_rejects_unsupported_tools() {
-        let error = resolve_remove_duplicates_tools(
+    fn implicit_single_end_selection_omits_pair_only_fastuniq() {
+        let tools = resolve_remove_duplicates_tools(
             &["fastuniq".to_string(), "clumpify".to_string()],
             true,
             false,
         )
-        .expect_err("unsupported tools must fail before layout filtering");
-        assert!(error.to_string().contains("unsupported"));
+        .expect("implicit selection must retain compatible tools");
+        assert_eq!(tools, ["clumpify"]);
     }
 
     #[test]
-    fn explicit_fastuniq_request_fails_as_unsupported() {
+    fn explicit_single_end_fastuniq_request_fails_layout_admission() {
         let error = resolve_remove_duplicates_tools(&["fastuniq".to_string()], false, false)
-            .expect_err("explicit unsupported tool request must fail");
-        assert!(error.to_string().contains("unsupported"));
+            .expect_err("pair-only FastUniq must reject single-end input");
+        assert!(error.to_string().contains("no governed tools for single-end input layout"));
+    }
+
+    #[test]
+    fn explicit_paired_end_fastuniq_request_is_admitted() {
+        let tools = resolve_remove_duplicates_tools(&["fastuniq".to_string()], false, true)
+            .expect("external-artifact FastUniq must be selectable for paired-end input");
+        assert_eq!(tools, ["fastuniq"]);
     }
 }

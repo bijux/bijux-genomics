@@ -1,12 +1,11 @@
 use bijux_dna_db_ref::public_api::{
-    enforce_declared_build_and_contigs, materialize_contaminant_databases,
-    materialize_taxonomy_database, materialize_vcf_panel_assets, normalize_contig_name,
-    resolve_contig_aliases_for_assets, resolve_default_reference_set, resolve_genetic_map_bank,
-    resolve_map, resolve_map_lock, resolve_organellar_policy, resolve_panel, resolve_panel_lock,
-    resolve_reference_bank, resolve_reference_bundle, resolve_reference_bundle_contract,
+    enforce_declared_build_and_contigs, normalize_contig_name, resolve_contig_aliases_for_assets,
+    resolve_default_reference_set, resolve_genetic_map_bank, resolve_map, resolve_map_lock,
+    resolve_organellar_policy, resolve_panel, resolve_panel_lock, resolve_reference_bank,
+    resolve_reference_bundle, resolve_reference_bundle_contract, resolve_reference_source_lock,
     resolve_sex_chromosome_rule, resolve_sex_par_organellar_assets, resolve_species_authority,
-    resolve_species_context, validate_imputation_tool_compatibility, validate_reference_index_qa,
-    CatalogCompatibility, PanelCatalogEntry,
+    resolve_species_context, validate_imputation_tool_compatibility, CatalogCompatibility,
+    PanelCatalogEntry,
 };
 use bijux_dna_domain_vcf::taxonomy::CoverageRegime;
 
@@ -27,7 +26,18 @@ fn species_context_and_bundle_resolve() {
 
     let bank = resolve_reference_bank("Homo sapiens", "GRCh38")
         .unwrap_or_else(|err| panic!("resolve reference bank: {err}"));
+    assert_eq!(bank.source_accession, "GCF_000001405.40");
+    assert_eq!(bank.fasta_md5, "c30471567037b2b2389d43c908c653e1");
     assert!(!bank.required_indexes.is_empty());
+}
+
+#[test]
+fn reference_source_lock_closes_over_every_bank_entry() {
+    let lock = resolve_reference_source_lock()
+        .unwrap_or_else(|err| panic!("resolve reference source lock: {err}"));
+    assert_eq!(lock.schema_version, 2);
+    assert_eq!(lock.references.len(), 3);
+    assert!(lock.references.iter().all(|entry| entry.size_bytes > 0));
 }
 
 #[test]
@@ -55,13 +65,13 @@ fn panel_and_map_resolution_work() {
 }
 
 #[test]
-fn minimac_requires_m3vcf_support() {
-    let panel = resolve_panel("Homo sapiens", "GRCh38", Some("hsapiens_grch38_full"))
+fn minimac_requires_declared_panel_support() {
+    let panel = resolve_panel("Homo sapiens", "GRCh38", Some("hsapiens_grch38_1kg_3202_chr22"))
         .unwrap_or_else(|err| panic!("resolve panel: {err}"));
-    let map = resolve_map("Homo sapiens", "GRCh38", Some("hsapiens_grch38_chr_map"))
+    let map = resolve_map("Homo sapiens", "GRCh38", Some("hsapiens_grch38_glimpse_chr22"))
         .unwrap_or_else(|err| panic!("resolve map: {err}"));
     let err = match validate_imputation_tool_compatibility("minimac4", &panel, &map) {
-        Ok(()) => panic!("full panel must refuse minimac4"),
+        Ok(()) => panic!("panel without minimac4 support must refuse minimac4"),
         Err(err) => err,
     };
     assert!(err.to_string().contains("minimac4"));
@@ -109,7 +119,7 @@ fn declared_build_guard_rejects_mismatch() {
 fn map_sex_organellar_and_reference_set_resolve() {
     let map = resolve_genetic_map_bank("Homo sapiens", "GRCh38", None)
         .unwrap_or_else(|err| panic!("resolve genetic map bank: {err}"));
-    assert_eq!(map.map_id, "hsapiens_grch38_chr_map");
+    assert_eq!(map.map_id, "hsapiens_grch38_glimpse_chr22");
 
     let sex = resolve_sex_chromosome_rule("Homo sapiens", "GRCh38")
         .unwrap_or_else(|err| panic!("resolve sex chromosome rule: {err}"));
@@ -129,15 +139,15 @@ fn reference_bundle_resolver_contract_captures_panel_map_identity() {
     let report = resolve_reference_bundle_contract(
         "Homo sapiens",
         "GRCh38",
-        Some("hsapiens_grch38_mini"),
-        Some("hsapiens_grch38_chr_map"),
+        Some("hsapiens_grch38_1kg_3202_chr22"),
+        Some("hsapiens_grch38_glimpse_chr22"),
         Some("glimpse"),
     )
     .unwrap_or_else(|err| panic!("resolve bundle contract: {err}"));
 
     assert_eq!(report.bundle_id, "hsapiens_grch38_primary");
-    assert_eq!(report.panel_id.as_deref(), Some("hsapiens_grch38_mini"));
-    assert_eq!(report.map_id.as_deref(), Some("hsapiens_grch38_chr_map"));
+    assert_eq!(report.panel_id.as_deref(), Some("hsapiens_grch38_1kg_3202_chr22"));
+    assert_eq!(report.map_id.as_deref(), Some("hsapiens_grch38_glimpse_chr22"));
 }
 
 #[test]
@@ -147,33 +157,6 @@ fn reference_bundle_resolver_contract_refuses_tool_validation_without_assets() {
             .err()
             .unwrap_or_else(|| panic!("missing panel/map must fail"));
     assert!(err.to_string().contains("requires a resolved panel"));
-}
-
-#[test]
-fn reference_index_qa_reports_all_required_tiny_indexes() {
-    let temp =
-        std::env::temp_dir().join(format!("bijux-db-ref-runtime-provider-{}", std::process::id()));
-    std::fs::create_dir_all(&temp)
-        .unwrap_or_else(|err| panic!("create temp directory {}: {err}", temp.display()));
-    let report = validate_reference_index_qa("Homo sapiens", "GRCh38", &temp)
-        .unwrap_or_else(|err| panic!("validate index qa: {err}"));
-    assert_eq!(report.verified_artifacts.len(), 6);
-}
-
-#[test]
-fn vcf_panel_materialization_contract_reports_materialized_files() {
-    let temp = std::env::temp_dir().join(format!("bijux-db-ref-vcf-assets-{}", std::process::id()));
-    std::fs::create_dir_all(&temp)
-        .unwrap_or_else(|err| panic!("create temp directory {}: {err}", temp.display()));
-    let report = materialize_vcf_panel_assets(
-        "Homo sapiens",
-        "GRCh38",
-        Some("hsapiens_grch38_mini"),
-        Some("hsapiens_grch38_chr_map"),
-        &temp,
-    )
-    .unwrap_or_else(|err| panic!("materialize vcf panel assets: {err}"));
-    assert!(!report.materialized_files.is_empty());
 }
 
 #[test]
@@ -204,6 +187,8 @@ fn horse_runtime_reference_contracts_resolve_equcab3_assets() {
 
     let bank = resolve_reference_bank("Equus caballus", "EquCab3")
         .unwrap_or_else(|err| panic!("resolve horse reference bank: {err}"));
+    assert_eq!(bank.source_accession, "GCF_002863925.1");
+    assert_eq!(bank.fasta_md5, "68f8c3faca75f1e198170a560dad5632");
     assert!(bank.fasta_url.contains("GCF_002863925.1_EquCab3.0_genomic.fna.gz"));
 
     let organellar = resolve_organellar_policy("Equus caballus", "EquCab3")
@@ -236,26 +221,4 @@ fn sex_par_organellar_assets_contract_exposes_required_policy_fields() {
         .unwrap_or_else(|err| panic!("resolve sex/par/organellar assets: {err}"));
     assert!(report.par_region_count > 0);
     assert_eq!(report.mitochondrion_id, "MT");
-}
-
-#[test]
-fn contaminant_db_materialization_contract_emits_three_depletion_bundles() {
-    let temp = std::env::temp_dir()
-        .join(format!("bijux-db-ref-contaminant-assets-{}", std::process::id()));
-    std::fs::create_dir_all(&temp)
-        .unwrap_or_else(|err| panic!("create temp directory {}: {err}", temp.display()));
-    let report = materialize_contaminant_databases(&temp)
-        .unwrap_or_else(|err| panic!("materialize contaminant databases: {err}"));
-    assert_eq!(report.bundles.len(), 3);
-}
-
-#[test]
-fn taxonomy_db_materialization_contract_marks_advisory_only_outputs() {
-    let temp =
-        std::env::temp_dir().join(format!("bijux-db-ref-taxonomy-assets-{}", std::process::id()));
-    std::fs::create_dir_all(&temp)
-        .unwrap_or_else(|err| panic!("create temp directory {}: {err}", temp.display()));
-    let report = materialize_taxonomy_database(&temp)
-        .unwrap_or_else(|err| panic!("materialize taxonomy database: {err}"));
-    assert!(report.advisory_only);
 }

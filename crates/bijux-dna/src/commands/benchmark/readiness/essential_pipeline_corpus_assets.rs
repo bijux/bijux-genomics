@@ -17,7 +17,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_ESSENTIAL_PIPELINE_CORPUS_ASSETS_PATH: &str =
-    "benchmarks/readiness/essential-pipeline-corpus-assets.tsv";
+    "artifacts/benchmark-smoke/readiness/pipelines/essential-pipeline-corpus-assets.tsv";
 const ESSENTIAL_PIPELINE_CORPUS_ASSETS_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.essential_pipeline_corpus_assets.v1";
 pub(crate) const ESSENTIAL_PIPELINE_IDS: &[&str] = &[
@@ -151,7 +151,7 @@ pub(crate) fn collect_essential_pipeline_corpus_asset_rows(
                 pipeline_id,
             );
         let report_path = repo_root
-            .join("benchmarks/readiness/local-ready/pipeline-dag")
+            .join("artifacts/benchmark-smoke/readiness/local-ready/pipeline-dag")
             .join(format!("{pipeline_id}.json"));
         let report = validate_pipeline_dag_path(repo_root, &config_path, &report_path)?;
         for node in &report.nodes {

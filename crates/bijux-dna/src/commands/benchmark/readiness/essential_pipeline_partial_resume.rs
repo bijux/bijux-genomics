@@ -20,9 +20,9 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_ESSENTIAL_PIPELINE_PARTIAL_RESUME_REPORT_PATH: &str =
-    "benchmarks/readiness/essential-pipeline-partial-resume.json";
+    "artifacts/benchmark-smoke/readiness/pipelines/essential-pipeline-partial-resume.json";
 const DEFAULT_ESSENTIAL_PIPELINE_PARTIAL_RESUME_SIMULATION_ROOT: &str =
-    "runs/bench/local-fake-runs/pipelines/essential-partial-resume";
+    "artifacts/benchmark-smoke/simulated-runs/pipelines/essential-partial-resume";
 const ESSENTIAL_PIPELINE_PARTIAL_RESUME_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.essential_pipeline_partial_resume.v1";
 const SEEDED_INVALID_PIPELINE_ID: &str = "relatedness-segments-vcf";
@@ -196,7 +196,7 @@ fn collect_partial_resume_rows(
                 pipeline_id,
             ),
             &repo_root
-                .join("benchmarks/readiness/local-ready/pipeline-dag")
+                .join("artifacts/benchmark-smoke/readiness/local-ready/pipeline-dag")
                 .join(format!("{pipeline_id}.json")),
         )?;
         let nodes_by_id = dag_report

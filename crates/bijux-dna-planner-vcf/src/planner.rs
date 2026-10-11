@@ -82,7 +82,7 @@ pub fn plan_vcf_stage_plans(inputs: &VcfPipelineInputs) -> Result<Vec<StagePlanV
             continue;
         }
         let (tool, selection_rule) =
-            choose_tool(stage, inputs, resolved_coverage, &panel_catalog, &stages)?;
+            choose_tool(stage, inputs, resolved_coverage, &panel_catalog, &map_catalog, &stages)?;
         if !required_tools.contains(&tool) {
             bail!(
                 "planner refusal: tool {} for {} is not declared in required_tools_vcf(_downstream).toml",

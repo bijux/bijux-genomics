@@ -115,7 +115,7 @@ mod tests {
 
     use super::{render_qualification_report_json, render_qualification_report_markdown};
     use crate::qualification::{
-        EvidenceDecision, EvidenceVerdict, PublicationDisposition, QualificationAssessment,
+        EvidenceDecision, PublicationDisposition, QualificationAssessment,
         QualificationEvidenceSource, QualificationReport, SupportDisposition,
         REQUIRED_EVIDENCE_DIMENSIONS,
     };
@@ -126,15 +126,17 @@ mod tests {
             .map(|dimension| {
                 (
                     dimension,
-                    EvidenceDecision {
-                        verdict: EvidenceVerdict::Passed,
-                        evidence_sha256: Some("a".repeat(64)),
-                        reasons: Vec::new(),
-                    },
+                    EvidenceDecision::passed(
+                        "qualification.render.test.v1",
+                        BTreeMap::from([("evidence_state".to_string(), "passed".to_string())]),
+                        BTreeMap::from([("required_state".to_string(), "passed".to_string())]),
+                        "a".repeat(64),
+                        "test evidence passes",
+                    ),
                 )
             })
             .collect();
-        QualificationReport::v2(
+        QualificationReport::v3(
             BTreeMap::from([(
                 "catalog".to_string(),
                 QualificationEvidenceSource {
@@ -142,7 +144,7 @@ mod tests {
                     sha256: "b".repeat(64),
                 },
             )]),
-            vec![QualificationAssessment::v1(
+            vec![QualificationAssessment::v2(
                 "samtools".to_string(),
                 SupportDisposition::Retained,
                 PublicationDisposition::Current,

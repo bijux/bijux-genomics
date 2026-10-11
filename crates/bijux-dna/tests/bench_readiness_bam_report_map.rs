@@ -46,7 +46,7 @@ fn bench_readiness_bam_report_map_reports_governed_stage_sections() {
     assert_eq!(payload.get("domain").and_then(serde_json::Value::as_str), Some("bam"));
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/bam/bam-report-map.tsv")
+        Some("artifacts/benchmark-smoke/readiness/bam/bam-report-map.tsv")
     );
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
     assert_eq!(
@@ -57,11 +57,17 @@ fn bench_readiness_bam_report_map_reports_governed_stage_sections() {
         payload.get("row_count").and_then(serde_json::Value::as_u64),
         Some(rows.len() as u64)
     );
+    assert!(rows.iter().any(|row| {
+        row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.kinship")
+            && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("angsd")
+    }));
+    assert!(rows.iter().any(|row| {
+        row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.damage")
+            && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("ngsbriggs")
+    }));
     assert!(rows.iter().all(|row| {
-        !matches!(
-            row.get("tool_id").and_then(serde_json::Value::as_str),
-            Some("angsd" | "ngsbriggs")
-        )
+        !(row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.genotyping")
+            && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("angsd"))
     }));
 
     let align = rows

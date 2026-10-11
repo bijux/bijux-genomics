@@ -43,7 +43,7 @@ fn bench_readiness_input_preflight_audit_report_governed_retained_tool_coverage(
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/tools/input-preflight-tests.json")
+        Some("artifacts/benchmark-smoke/readiness/tools/input-preflight-tests.json")
     );
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
     let row_count = rows.len() as u64;
@@ -199,7 +199,10 @@ fn bench_readiness_input_preflight_audit_write_governed_json_file() {
     );
 
     let rendered_path = String::from_utf8(output.stdout).expect("stdout utf8");
-    assert_eq!(rendered_path.trim(), "benchmarks/readiness/tools/input-preflight-tests.json");
+    assert_eq!(
+        rendered_path.trim(),
+        "artifacts/benchmark-smoke/readiness/tools/input-preflight-tests.json"
+    );
 
     let report_path = repo_root.join(rendered_path.trim());
     assert!(report_path.is_file(), "input preflight report JSON must exist");

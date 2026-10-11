@@ -47,7 +47,7 @@ fn bench_readiness_adapter_missing_input_audit_report_structured_failures() {
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/adapter-missing-input-tests.json")
+        Some("artifacts/benchmark-smoke/readiness/adapter-missing-input-tests.json")
     );
     assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(33));
     assert_eq!(payload.get("passed_row_count").and_then(serde_json::Value::as_u64), Some(33));

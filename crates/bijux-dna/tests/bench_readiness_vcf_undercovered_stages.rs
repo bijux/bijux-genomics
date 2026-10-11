@@ -44,19 +44,19 @@ fn bench_readiness_vcf_undercovered_stages_reports_governed_stage_slice() {
     assert_eq!(payload.get("domain").and_then(serde_json::Value::as_str), Some("vcf"));
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/vcf-undercovered-stages.tsv")
+        Some("artifacts/benchmark-smoke/readiness/vcf/vcf-undercovered-stages.tsv")
     );
     assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(20));
     assert_eq!(
         payload.get("undercovered_stage_count").and_then(serde_json::Value::as_u64),
-        Some(9)
+        Some(7)
     );
     assert_eq!(
         payload
             .get("decision_counts")
             .and_then(|value| value.get("future_not_benchmark_ready"))
             .and_then(serde_json::Value::as_u64),
-        Some(7)
+        Some(5)
     );
     assert_eq!(
         payload
@@ -67,7 +67,7 @@ fn bench_readiness_vcf_undercovered_stages_reports_governed_stage_slice() {
     );
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 9);
+    assert_eq!(rows.len(), 7);
 
     let has_row = |stage_id: &str,
                    valid_tool_classes: &[&str],
@@ -107,20 +107,6 @@ fn bench_readiness_vcf_undercovered_stages_reports_governed_stage_slice() {
     ));
     assert!(has_row(
         "vcf.call_pseudohaploid",
-        &["genotype_likelihood_calling", "variant_processing"],
-        &["bcftools"],
-        &["angsd"],
-        "future_not_benchmark_ready",
-    ));
-    assert!(has_row(
-        "vcf.damage_filter",
-        &["genotype_likelihood_calling", "variant_processing"],
-        &["bcftools"],
-        &["angsd"],
-        "future_not_benchmark_ready",
-    ));
-    assert!(has_row(
-        "vcf.gl_propagation",
         &["genotype_likelihood_calling", "variant_processing"],
         &["bcftools"],
         &["angsd"],

@@ -32,7 +32,7 @@ fn bench_readiness_vcf_call_gl_ready_writes_governed_json_file() {
     );
 
     let rendered_path = String::from_utf8(output.stdout).expect("stdout utf8");
-    assert_eq!(rendered_path.trim(), "benchmarks/readiness/vcf/call-gl-ready.json");
+    assert_eq!(rendered_path.trim(), "artifacts/benchmark-smoke/readiness/vcf/call-gl-ready.json");
 
     let payload = std::fs::read_to_string(repo_root.join(rendered_path.trim()))
         .expect("read VCF call_gl readiness report");
@@ -70,7 +70,7 @@ fn bench_readiness_vcf_call_gl_ready_writes_governed_json_file() {
             .is_some_and(|outputs| outputs.iter().any(|value| {
                 value.as_str()
                     == Some(
-                        "gl_sites_vcf=benchmarks/readiness/adapters/bcftools/vcf.call_gl/gl_sites_vcf.vcf.gz",
+                        "gl_sites_vcf=artifacts/benchmark-smoke/readiness/adapters/bcftools/vcf.call_gl/gl_sites_vcf.vcf.gz",
                     )
             }))
     );
@@ -80,7 +80,7 @@ fn bench_readiness_vcf_call_gl_ready_writes_governed_json_file() {
             .is_some_and(|outputs| outputs.iter().any(|value| {
                 value.as_str()
                     == Some(
-                        "gl_sites_vcf_tbi=benchmarks/readiness/adapters/bcftools/vcf.call_gl/gl_sites_vcf.vcf.gz.tbi",
+                        "gl_sites_vcf_tbi=artifacts/benchmark-smoke/readiness/adapters/bcftools/vcf.call_gl/gl_sites_vcf.vcf.gz.tbi",
                     )
             }))
     );

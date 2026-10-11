@@ -27,7 +27,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_ESSENTIAL_PIPELINES_READY_PATH: &str =
-    "benchmarks/readiness/ESSENTIAL_PIPELINES_READY.json";
+    "artifacts/benchmark-smoke/readiness/pipelines/ESSENTIAL_PIPELINES_READY.json";
 const ESSENTIAL_PIPELINES_READY_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.essential_pipelines_ready.v1";
 
@@ -210,7 +210,7 @@ pub(crate) fn render_essential_pipelines_ready(
 
     for expectation in PIPELINE_GOAL_EXPECTATIONS {
         let output_path = format!(
-            "benchmarks/readiness/local-ready/pipeline-dag/{}.json",
+            "artifacts/benchmark-smoke/readiness/local-ready/pipeline-dag/{}.json",
             expectation.pipeline_id
         );
         record_goal_check(
@@ -226,7 +226,7 @@ pub(crate) fn render_essential_pipelines_ready(
                         expectation.pipeline_id,
                     ),
                     &repo_root
-                        .join("benchmarks/readiness/local-ready/pipeline-dag")
+                        .join("artifacts/benchmark-smoke/readiness/local-ready/pipeline-dag")
                         .join(format!("{}.json", expectation.pipeline_id)),
                 )?;
                 if !report.valid
@@ -400,7 +400,7 @@ pub(crate) fn render_essential_pipelines_ready(
             )?;
             if report.pipeline_count != 10
                 || report.stage_count != 45
-                || report.tool_count != 26
+                || report.tool_count != 25
                 || report.row_count != 267
                 || report.report_section_count != 22
                 || report.failure_column_count != 1

@@ -46,11 +46,11 @@ fn bench_readiness_benchmark_readiness_dashboard_tracks_governed_summary_counts(
     );
     assert_eq!(
         payload.get("markdown_output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/FASTQ_BAM_BENCHMARK_READINESS.md")
+        Some("artifacts/benchmark-smoke/readiness/FASTQ_BAM_BENCHMARK_READINESS.md")
     );
     assert_eq!(
         payload.get("json_output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/FASTQ_BAM_BENCHMARK_READINESS.json")
+        Some("artifacts/benchmark-smoke/readiness/FASTQ_BAM_BENCHMARK_READINESS.json")
     );
     let expected_pair_count = payload
         .get("expected_pair_count")

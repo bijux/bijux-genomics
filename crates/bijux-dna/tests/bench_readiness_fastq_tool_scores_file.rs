@@ -48,7 +48,7 @@ fn bench_readiness_fastq_tool_scores_writes_governed_tsv_columns() {
     );
 
     let rendered_path = String::from_utf8(output.stdout).expect("stdout utf8");
-    assert_eq!(rendered_path.trim(), "runs/bench/micro/fastq/FASTQ_TOOL_SCORES.tsv");
+    assert_eq!(rendered_path.trim(), "artifacts/benchmark-smoke/micro/fastq/FASTQ_TOOL_SCORES.tsv");
 
     let tsv =
         fs::read_to_string(repo_root.join(rendered_path.trim())).expect("read FASTQ score TSV");

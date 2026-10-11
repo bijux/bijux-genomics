@@ -51,7 +51,7 @@ fn bench_validate_all_domain_schemas_reports_benchmark_root_pass_state() {
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/all-domain-schema-validation.json")
+        Some("artifacts/benchmark-smoke/readiness/all-domain-schema-validation.json")
     );
     assert_eq!(
         payload.get("schema_root").and_then(serde_json::Value::as_str),

@@ -15,7 +15,9 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_ALL_DOMAIN_RENDERED_COMMANDS_PATH: &str =
-    "benchmarks/readiness/rendered-commands-all-domains.sh";
+    "artifacts/benchmark-smoke/readiness/all-domains/rendered-commands-all-domains.sh";
+pub(crate) const DEFAULT_ALL_DOMAIN_RENDERED_COMMANDS_ARGV_PATH: &str =
+    "artifacts/benchmark-smoke/readiness/all-domains/rendered-commands-all-domains.argv.jsonl";
 const ALL_DOMAIN_RENDERED_COMMANDS_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.all_domain_rendered_commands.v1";
 
@@ -118,7 +120,8 @@ pub(crate) fn render_all_domain_commands(
         fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
     }
 
-    let rendered_script = render_all_domain_commands_shell_script(&rows);
+    let repo_root_ascent = repo_root_ascent_from_output(repo_root, &output_path)?;
+    let rendered_script = render_all_domain_commands_shell_script(&rows, &repo_root_ascent);
     bijux_dna_infra::atomic_write_bytes(&output_path, rendered_script.as_bytes())?;
     let argv_jsonl = render_all_domain_command_argv_jsonl(&rows)
         .context("render all-domain command argv JSONL")?;
@@ -433,9 +436,41 @@ fn require_rendered_row(
     Ok(())
 }
 
-fn render_all_domain_commands_shell_script(rows: &[AllDomainRenderedCommandRow]) -> String {
+fn repo_root_ascent_from_output(repo_root: &Path, output_path: &Path) -> Result<String> {
+    let output_parent = output_path.parent().ok_or_else(|| {
+        anyhow!("all-domain rendered command output must have a parent directory")
+    })?;
+    let relative_parent = output_parent.strip_prefix(repo_root).with_context(|| {
+        format!(
+            "all-domain rendered command output `{}` must stay within repository root `{}`",
+            output_path.display(),
+            repo_root.display()
+        )
+    })?;
+    if relative_parent
+        .components()
+        .any(|component| !matches!(component, std::path::Component::Normal(_)))
+    {
+        return Err(anyhow!(
+            "all-domain rendered command output parent must be a normalized repository path"
+        ));
+    }
+    let depth = relative_parent.components().count();
+    Ok(if depth == 0 {
+        ".".to_string()
+    } else {
+        (0..depth).map(|_| "..").collect::<Vec<_>>().join("/")
+    })
+}
+
+fn render_all_domain_commands_shell_script(
+    rows: &[AllDomainRenderedCommandRow],
+    repo_root_ascent: &str,
+) -> String {
     let mut rendered = String::from("#!/usr/bin/env bash\nset -euo pipefail\n");
-    rendered.push_str("repo_root=\"$(cd \"$(dirname \"${BASH_SOURCE[0]}\")/../..\" && pwd)\"\n");
+    rendered.push_str(&format!(
+        "repo_root=\"$(cd \"$(dirname \"${{BASH_SOURCE[0]}}\")/{repo_root_ascent}\" && pwd)\"\n"
+    ));
     rendered.push_str("cd \"$repo_root\"\n\n");
     for (index, row) in rows.iter().enumerate() {
         rendered.push_str(&format!(
@@ -576,15 +611,18 @@ mod tests {
         .expect("render all-domain commands");
 
         assert_eq!(report.schema_version, "bijux.bench.readiness.all_domain_rendered_commands.v1");
-        assert_eq!(report.output_path, "benchmarks/readiness/rendered-commands-all-domains.sh");
+        assert_eq!(
+            report.output_path,
+            "artifacts/benchmark-smoke/readiness/all-domains/rendered-commands-all-domains.sh"
+        );
         assert_eq!(
             report.argv_output_path,
-            "benchmarks/readiness/rendered-commands-all-domains.argv.jsonl"
+            "artifacts/benchmark-smoke/readiness/all-domains/rendered-commands-all-domains.argv.jsonl"
         );
         assert_eq!(report.result_id_count, report.row_count);
         assert!(report.domain_counts.contains_key("fastq"));
         assert!(report.domain_counts.contains_key("bam"));
-        assert_eq!(report.domain_counts.get("vcf"), Some(&21));
+        assert_eq!(report.domain_counts.get("vcf"), Some(&24));
         assert_eq!(report.benchmark_status_counts.get("benchmark_ready"), Some(&report.row_count));
         let fastq_bam_count = report.domain_counts["fastq"] + report.domain_counts["bam"];
         assert_eq!(
@@ -596,7 +634,7 @@ mod tests {
         assert_eq!(report.command_source_counts.get("vcf_imputation_family_adapter"), Some(&2));
         assert_eq!(report.command_source_counts.get("vcf_phasing_family_adapter"), Some(&1));
         assert_eq!(report.command_source_counts.get("vcf_plink_family_adapter"), Some(&5));
-        assert_eq!(report.command_source_counts.get("vcf_descent_family_adapter"), Some(&1));
+        assert_eq!(report.command_source_counts.get("vcf_descent_family_adapter"), Some(&4));
         assert!(report.rows.iter().all(|row| !row.command_steps.is_empty()));
     }
 }

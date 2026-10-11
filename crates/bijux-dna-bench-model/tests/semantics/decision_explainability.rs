@@ -1,24 +1,20 @@
-use std::collections::BTreeMap;
-
-use bijux_dna_bench_model::{GateDecision, GatePolicy};
+use bijux_dna_bench_model::GateDecision;
 use bijux_dna_core::contract::canonical::to_canonical_json_bytes;
 
 #[test]
 fn gate_decision_includes_rationale_and_is_stable() -> anyhow::Result<()> {
-    let policy = GatePolicy {
-        objective: "runtime".to_string(),
-        required_metrics: vec!["runtime_s".to_string()],
-        thresholds: BTreeMap::from([("runtime_s".to_string(), 2.0)]),
-        allowed_regressions: BTreeMap::new(),
-        must_not_regress: Vec::new(),
-        semantics_overrides: BTreeMap::new(),
-        stage_overrides: BTreeMap::new(),
+    let decision = GateDecision {
+        schema_version: "bijux.bench.gate.v1".to_string(),
+        dataset_id: "dataset-1".to_string(),
+        stage_id: "fastq.trim_reads".to_string(),
+        tool_id: "fastp".to_string(),
+        params_hash: "params-a".to_string(),
+        passes: true,
+        violations: Vec::new(),
+        missing_metrics: Vec::new(),
+        completeness_score: 1.0,
+        rationale_trace: vec!["metric:runtime_s:1 threshold:2".to_string()],
     };
-    policy.validate()?;
-    let mut metrics = BTreeMap::new();
-    metrics.insert("runtime_s".to_string(), 1.0);
-    let decision: GateDecision =
-        policy.decide("dataset-1", "fastq.trim_reads", "fastp", "params-a", &metrics);
     assert!(!decision.rationale_trace.is_empty(), "decision must include rationale trace");
     let canon_a = to_canonical_json_bytes(&decision)?;
     let canon_b = to_canonical_json_bytes(&decision)?;

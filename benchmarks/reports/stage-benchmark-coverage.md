@@ -12,7 +12,7 @@ truth strategy, cohort size, output contract, and downstream substitution probes
 - Qualification-only campaigns: **6**
 - Comparative campaigns: **3**
 - Admitted campaigns: **0**
-- Stale campaigns: **4**
+- Stale campaigns: **0**
 - Failed campaigns: **0**
 - Missing campaigns: **62**
 
@@ -29,12 +29,12 @@ truth strategy, cohort size, output contract, and downstream substitution probes
 | `bam.endogenous_content` | `samtools` | `run-2003` | qualification | not_admitted |
 | `bam.filter` | `bamtools`, `bedtools`, `samtools` | - | missing | not_defined |
 | `bam.gc_bias` | `picard` | - | missing | not_defined |
-| `bam.genotyping` | `bcftools` | `run-2001` | qualification | stale |
+| `bam.genotyping` | `bcftools` | `run-2001` | qualification | not_admitted |
 | `bam.haplogroups` | `yleaf` | - | missing | not_defined |
 | `bam.insert_size` | `picard` | - | missing | not_defined |
 | `bam.kinship` | `king` | - | missing | not_defined |
 | `bam.length_filter` | `picard`, `samtools` | - | missing | not_defined |
-| `bam.mapping_summary` | `picard`, `samtools` | `run-2004` | qualification | stale |
+| `bam.mapping_summary` | `picard`, `samtools` | `run-2004` | qualification | not_admitted |
 | `bam.mapq_filter` | `bamtools`, `samtools` | - | missing | not_defined |
 | `bam.markdup` | `picard`, `samtools` | - | missing | not_defined |
 | `bam.overlap_correction` | `bamutil` | - | missing | not_defined |
@@ -59,8 +59,8 @@ truth strategy, cohort size, output contract, and downstream substitution probes
 | `fastq.normalize_abundance` | `seqkit` | - | missing | not_defined |
 | `fastq.normalize_primers` | `cutadapt` | - | missing | not_defined |
 | `fastq.profile_overrepresented_sequences` | `fastq_scan`, `fastqc`, `seqkit` | - | missing | not_defined |
-| `fastq.profile_read_lengths` | `seqfu`, `seqkit` | `run-2042` | comparative | stale |
-| `fastq.profile_reads` | `seqfu`, `seqkit`, `seqkit_stats` | `run-2043` | comparative | stale |
+| `fastq.profile_read_lengths` | `seqfu`, `seqkit` | `run-2042` | comparative | not_admitted |
+| `fastq.profile_reads` | `seqfu`, `seqkit`, `seqkit_stats` | `run-2043` | comparative | not_admitted |
 | `fastq.remove_chimeras` | `vsearch` | - | missing | not_defined |
 | `fastq.remove_duplicates` | `clumpify` | - | missing | not_defined |
 | `fastq.report_qc` | `multiqc` | - | missing | not_defined |

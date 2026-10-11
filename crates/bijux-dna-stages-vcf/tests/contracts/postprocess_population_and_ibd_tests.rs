@@ -345,11 +345,8 @@ fn population_structure_refuses_without_metadata_manifest() {
 fn population_structure_refuses_without_consumed_admixture() {
     let dir = tempfile::tempdir().unwrap_or_else(|err| panic!("tempdir: {err}"));
     let metadata = dir.path().join("population_labels.json");
-    std::fs::write(
-        &metadata,
-        r#"{"samples":[{"sample":"sample1","population":"POP_A"}]}"#,
-    )
-    .unwrap_or_else(|err| panic!("write metadata: {err}"));
+    std::fs::write(&metadata, r#"{"samples":[{"sample":"sample1","population":"POP_A"}]}"#)
+        .unwrap_or_else(|err| panic!("write metadata: {err}"));
     let err = run_population_structure_stage(
         Path::new("tests/fixtures/vcf/default/input.vcf"),
         dir.path(),
@@ -397,7 +394,9 @@ fn admixture_stage_emits_q_matrix_and_selection_artifacts() {
         let total = row
             .split('\t')
             .skip(1)
-            .map(|value| value.parse::<f64>().unwrap_or_else(|err| panic!("parse cluster value: {err}")))
+            .map(|value| {
+                value.parse::<f64>().unwrap_or_else(|err| panic!("parse cluster value: {err}"))
+            })
             .sum::<f64>();
         assert!((total - 1.0).abs() <= 1e-6, "expected admixture row `{row}` to sum to 1.0");
     }
@@ -516,12 +515,10 @@ fn roh_stage_emits_segments_and_metrics() {
         roh_json.get("segment_count").and_then(serde_json::Value::as_u64),
         Some((rows.len() - 1) as u64)
     );
-    assert!(
-        roh_json
-            .get("total_length_bp")
-            .and_then(serde_json::Value::as_u64)
-            .is_some_and(|value| value > 0)
-    );
+    assert!(roh_json
+        .get("total_length_bp")
+        .and_then(serde_json::Value::as_u64)
+        .is_some_and(|value| value > 0));
 
     let per_sample_raw = std::fs::read_to_string(&out.roh_per_sample_tsv)
         .unwrap_or_else(|err| panic!("read roh per-sample summary: {err}"));
@@ -862,7 +859,7 @@ fn imputed_vcf_to_roh_pca_ibd_integration_mini() {
             species_id: species.species_id.clone(),
             build_id: species.build_id.clone(),
             backend: ImputeBackend::Beagle,
-            panel_id: Some("hsapiens_grch38_mini".to_string()),
+            panel_id: Some("hsapiens_grch38_1kg_3202_chr22".to_string()),
             map_id: None,
             threads: 2,
             seed: 42,

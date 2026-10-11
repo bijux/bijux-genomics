@@ -15,7 +15,8 @@ persistence without defining a parallel state machine.
   fixtures or prior benchmark artifacts.
 - Run manifests, metric payloads, and run metadata that have already been
   materialized by lower-level crates.
-- Governed STUDY data-index and corpus-catalog authorities plus their exact declared files.
+- Governed STUDY data-index, catalog-registry, and immutable catalog-snapshot authorities plus
+  their exact declared files.
 
 ## Allowed Effects
 

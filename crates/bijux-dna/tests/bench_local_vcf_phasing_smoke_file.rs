@@ -93,16 +93,25 @@ fn bench_local_vcf_phasing_smoke_writes_governed_files() {
         serde_json::from_str(&panel_assets_raw).expect("parse panel assets");
     assert_eq!(
         panel_assets.get("panel_id").and_then(serde_json::Value::as_str),
-        Some("hsapiens_grch38_mini")
+        Some("hsapiens_grch38_1kg_3202_chr22")
     );
     assert_eq!(
         panel_assets.get("map_id").and_then(serde_json::Value::as_str),
-        Some("hsapiens_grch38_chr_map")
+        Some("hsapiens_grch38_glimpse_chr22")
+    );
+    assert_eq!(
+        panel_assets.get("fixture_class").and_then(serde_json::Value::as_str),
+        Some("local_smoke_metadata_only")
     );
     assert!(panel_assets
-        .get("materialized_files")
+        .get("panel_files")
         .and_then(serde_json::Value::as_array)
         .is_some_and(|rows| !rows.is_empty()));
+    assert!(panel_assets
+        .get("map_files")
+        .and_then(serde_json::Value::as_array)
+        .is_some_and(|rows| !rows.is_empty()));
+    assert!(panel_assets.get("materialized_files").is_none());
 
     let phasing_manifest_raw =
         std::fs::read_to_string(&phasing_manifest_path).expect("read phasing manifest");
@@ -114,7 +123,7 @@ fn bench_local_vcf_phasing_smoke_writes_governed_files() {
     );
     assert_eq!(
         phasing_manifest.pointer("/map/map_id").and_then(serde_json::Value::as_str),
-        Some("hsapiens_grch38_chr_map")
+        Some("hsapiens_grch38_glimpse_chr22")
     );
 
     let manifest_raw = std::fs::read_to_string(&manifest_path).expect("read manifest");

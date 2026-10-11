@@ -31,7 +31,8 @@ fn bench_readiness_vcf_adapter_missing_input_audit_writes_governed_json_file() {
         String::from_utf8_lossy(&output.stderr)
     );
 
-    let report_path = repo_root.join("benchmarks/readiness/vcf-adapter-missing-input-tests.json");
+    let report_path = repo_root
+        .join("artifacts/benchmark-smoke/readiness/vcf/vcf-adapter-missing-input-tests.json");
     assert!(report_path.is_file(), "VCF missing-input report JSON must exist");
 
     let payload: serde_json::Value =

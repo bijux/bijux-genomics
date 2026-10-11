@@ -45,7 +45,7 @@ fn bench_readiness_bam_adapter_output_contract_reports_governed_rows() {
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/bam-adapter-output-contract.tsv")
+        Some("artifacts/benchmark-smoke/readiness/bam/bam-adapter-output-contract.tsv")
     );
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
     assert_eq!(
@@ -69,12 +69,18 @@ fn bench_readiness_bam_adapter_output_contract_reports_governed_rows() {
         Some(0)
     );
 
-    assert!(rows.iter().all(|row| {
-        !matches!(
-            row.get("tool_id").and_then(serde_json::Value::as_str),
-            Some("angsd" | "ngsbriggs")
-        )
-    }));
+    for (tool_id, stage_id, metrics_id) in
+        [("angsd", "bam.kinship", "kinship_report"), ("ngsbriggs", "bam.damage", "damage_report")]
+    {
+        assert!(rows.iter().any(|row| {
+            row.get("tool_id").and_then(serde_json::Value::as_str) == Some(tool_id)
+                && row.get("stage_id").and_then(serde_json::Value::as_str) == Some(stage_id)
+                && row.get("output_contract_status").and_then(serde_json::Value::as_str)
+                    == Some("complete")
+                && row.get("normalized_metrics_output_id").and_then(serde_json::Value::as_str)
+                    == Some(metrics_id)
+        }));
+    }
     assert!(
         rows.iter().any(|row| {
             row.get("tool_id").and_then(serde_json::Value::as_str) == Some("samtools")

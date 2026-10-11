@@ -31,14 +31,14 @@ fn bench_readiness_all_domain_rendered_commands_write_bash_parseable_script() {
         String::from_utf8_lossy(&output.stderr)
     );
 
-    let script_path = repo_root.join("benchmarks/readiness/rendered-commands-all-domains.sh");
+    let script_path = repo_root
+        .join("artifacts/benchmark-smoke/readiness/all-domains/rendered-commands-all-domains.sh");
     assert!(script_path.is_file(), "all-domain rendered command script must exist");
 
     let script = std::fs::read_to_string(&script_path).expect("read all-domain rendered script");
     assert!(script.starts_with("#!/usr/bin/env bash\nset -euo pipefail\n"));
-    assert!(
-        script.contains("repo_root=\"$(cd \"$(dirname \"${BASH_SOURCE[0]}\")/../..\" && pwd)\"")
-    );
+    assert!(script
+        .contains("repo_root=\"$(cd \"$(dirname \"${BASH_SOURCE[0]}\")/../../../..\" && pwd)\""));
     assert!(script.contains("# fastq:corpus-02-edna-mini:fastq.screen_taxonomy:sample-set:kraken2 / fastq / fastq.screen_taxonomy / kraken2"));
     assert!(script.contains(
         "# bam:corpus-01-kinship-mini:bam.kinship:sample-set:king / bam / bam.kinship / king"

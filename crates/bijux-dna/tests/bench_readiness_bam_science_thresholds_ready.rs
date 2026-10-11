@@ -46,7 +46,7 @@ fn bench_readiness_bam_science_thresholds_ready_reports_governed_metric_contract
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/bam/BAM_SCIENCE_THRESHOLDS_READY.json")
+        Some("artifacts/benchmark-smoke/readiness/bam/BAM_SCIENCE_THRESHOLDS_READY.json")
     );
     assert_eq!(payload.get("comparable_stage_count").and_then(serde_json::Value::as_u64), Some(15));
     assert_eq!(payload.get("stage_row_count").and_then(serde_json::Value::as_u64), Some(15));

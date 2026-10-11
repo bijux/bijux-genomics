@@ -10,6 +10,7 @@ Layout:
 - `configs/ci/tools/`: required tools and image catalog.
 - `configs/ci/params/`: parameter schema registries.
 - `configs/ci/lints/`: clippy allowlist contracts.
+- `configs/ci/budgets/`: fast-tier command and wall-clock budget policy.
 
 Rule:
 - Keep governed config collections in named subdirectories with their own `index.md`.

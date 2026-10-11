@@ -34,7 +34,7 @@ fn bench_readiness_all_domain_no_placeholder_command_check_writes_governed_json_
     let rendered_path = String::from_utf8(output.stdout).expect("stdout utf8");
     assert_eq!(
         rendered_path.trim(),
-        "benchmarks/readiness/all-domains/no-placeholder-command-check.json"
+        "artifacts/benchmark-smoke/readiness/all-domains/no-placeholder-command-check.json"
     );
 
     let payload = std::fs::read_to_string(repo_root.join(rendered_path.trim()))

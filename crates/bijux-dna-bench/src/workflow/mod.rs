@@ -14,6 +14,7 @@ mod campaign_lifecycle;
 mod campaign_material;
 mod corpus_acquisition;
 mod corpus_materialization;
+mod data_portfolio_audit;
 mod evaluation;
 mod fastq_detect_adapters;
 mod fastq_expectations;
@@ -21,9 +22,12 @@ mod fastq_profile_read_lengths;
 mod fastq_profile_reads;
 mod fastq_validate_reads;
 mod options;
+mod publication_registry;
 mod report_load;
+mod run_registry;
 mod run_suite;
 mod scientific_readiness;
+mod source_authority;
 mod stage_coverage;
 mod stage_report;
 mod stage_universe;
@@ -89,10 +93,16 @@ pub use campaign_material::{
     BenchmarkCampaignMaterialRequest, BenchmarkCampaignReportPublication,
 };
 pub use corpus_acquisition::{
-    acquire_fastq_corpus, derive_fastq_corpus_acquisition_plan, CorpusAcquisitionRequest,
+    acquire_fastq_corpus, derive_fastq_corpus_acquisition_plan, load_fastq_corpus_source_spec,
+    CorpusAcquisitionRequest,
 };
 pub use corpus_materialization::{
     materialize_fastq_corpus, CorpusMaterializationPublication, CorpusMaterializationRequest,
+};
+pub use data_portfolio_audit::{
+    derive_benchmark_data_portfolio_audit, publish_benchmark_data_portfolio_audit,
+    render_benchmark_data_portfolio_audit_markdown, BenchmarkDataPortfolioAuditPublicationRequest,
+    BenchmarkDataPortfolioAuditRequest,
 };
 pub use evaluation::{compare, gate};
 pub use fastq_detect_adapters::{
@@ -122,13 +132,22 @@ pub use fastq_validate_reads::{
     FastqValidateReadsMaterial, FastqValidateReadsStageReportPublication,
 };
 pub use options::BenchRunOptions;
+pub use publication_registry::{
+    derive_benchmark_publication_registry, publish_checked_in_benchmark_publication_registry,
+    render_benchmark_publication_registry_markdown, BenchmarkPublicationRegistryWriteMode,
+};
 pub use report_load::{
     load_checked_in_stage_reports, load_stage_report, load_stage_reports_from_dir,
+};
+pub use run_registry::{
+    derive_benchmark_run_registry, publish_checked_in_benchmark_run_registry,
+    render_benchmark_run_registry_markdown, BenchmarkRunRegistryWriteMode,
 };
 pub use scientific_readiness::{
     derive_scientific_readiness, publish_checked_in_scientific_readiness,
     render_scientific_readiness_markdown,
 };
+pub use source_authority::load_benchmark_data_source_spec;
 pub use stage_coverage::{
     derive_stage_coverage, publish_checked_in_stage_coverage, render_stage_coverage_markdown,
     BenchmarkCoverageWriteMode,

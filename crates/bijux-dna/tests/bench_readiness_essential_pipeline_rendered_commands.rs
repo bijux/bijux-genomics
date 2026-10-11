@@ -39,7 +39,7 @@ fn run_cli_json(args: &[&str]) -> serde_json::Value {
 fn bench_readiness_essential_pipeline_rendered_commands_report_tracks_governed_nodes() {
     let payload =
         run_cli_json(&["bench", "readiness", "render-essential-pipeline-commands", "--json"]);
-    let expected_tool_id = if cfg!(feature = "bam_downstream") { "angsd" } else { "bijux-dna" };
+    let expected_tool_id = if cfg!(feature = "bam_downstream") { "bcftools" } else { "bijux-dna" };
     let expected_command_source = if cfg!(feature = "bam_downstream") {
         "bam_governed_stage_command"
     } else {
@@ -52,11 +52,11 @@ fn bench_readiness_essential_pipeline_rendered_commands_report_tracks_governed_n
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/essential-pipelines-rendered-commands.sh")
+        Some("artifacts/benchmark-smoke/readiness/pipelines/essential-pipelines-rendered-commands.sh")
     );
     assert_eq!(
         payload.get("argv_output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/essential-pipelines-rendered-commands.argv.jsonl")
+        Some("artifacts/benchmark-smoke/readiness/pipelines/essential-pipelines-rendered-commands.argv.jsonl")
     );
     assert_eq!(payload.get("pipeline_count").and_then(serde_json::Value::as_u64), Some(10));
     assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(93));
@@ -169,7 +169,7 @@ fn bench_readiness_essential_pipeline_rendered_commands_report_tracks_governed_n
             .is_some_and(|commands| commands.iter().any(|item| {
                 item.as_str().is_some_and(|command| {
                     if cfg!(feature = "bam_downstream") {
-                        command.contains("angsd -i")
+                        command.contains("bcftools mpileup")
                             && command.contains("genotyping.bcf")
                             && command.contains("genotyping.vcf.gz")
                     } else {

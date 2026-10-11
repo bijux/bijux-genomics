@@ -45,14 +45,12 @@ pub(crate) fn load_local_hpc_selected_jobs(
     repo_root: &Path,
 ) -> Result<Vec<BenchLocalAllDomainSlurmSubmitJob>> {
     let path = repo_root.join(DEFAULT_ALL_DOMAIN_SLURM_SUBMIT_MANIFEST_PATH);
-    if !path.is_file() {
-        render_all_domain_slurm_submit_manifest(
-            repo_root,
-            DEFAULT_ALL_DOMAIN_SLURM_DRY_RUN_ROOT.into(),
-            DEFAULT_ALL_DOMAIN_SLURM_SUBMIT_MANIFEST_PATH.into(),
-        )
-        .with_context(|| format!("render {}", path.display()))?;
-    }
+    render_all_domain_slurm_submit_manifest(
+        repo_root,
+        DEFAULT_ALL_DOMAIN_SLURM_DRY_RUN_ROOT.into(),
+        DEFAULT_ALL_DOMAIN_SLURM_SUBMIT_MANIFEST_PATH.into(),
+    )
+    .with_context(|| format!("render {}", path.display()))?;
     let raw = fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?;
     let loaded = serde_json::from_str::<LoadedAllDomainSlurmSubmitManifest>(&raw)
         .with_context(|| format!("parse {}", path.display()))?;

@@ -391,7 +391,11 @@ acquire-reference
 architecture-report
 artifact-contracts
 benchmark-campaign-cycle
+benchmark-data-catalog-snapshots
+benchmark-data-portfolio-audit
 benchmark-integrity-mini
+benchmark-publication-registry
+benchmark-run-registry
 benchmark-scientific-readiness
 benchmark-smoke-level1
 benchmark-stage-coverage
@@ -447,6 +451,22 @@ setup-docs-venv
 simulate-coverage-regime
 validate-frontend-mini-domain-stacks
 ```
+
+`benchmark-data-catalog-snapshots publish` preserves each flat v1 governed catalog inside a
+digest-bound v2 authority, retains current v2 records from an explicit prior registry, and
+publishes the complete source-addressed registry. Existing identical publications are replayed;
+conflicting snapshot or registry bytes are rejected without replacement.
+
+`benchmark-data-portfolio-audit` publishes an immutable typed join between the benchmark portfolio
+and one exact governed STUDY data index. It records catalog identity, access and redistribution
+classes, access terms, observed sample-count authority, verified storage, source projections,
+unbound holdings, and suspected toy, fixture, synthetic, or smoke contamination without promoting
+index eligibility to scientific admission.
+
+`benchmark-publication-registry` generates or checks the crate-owned classification of current
+governance products, active and historical stage reports, and quarantined legacy readiness files.
+It fails when stale stage evidence remains in the active namespace or historical report paths lose
+their source-commit identity.
 
 `benchmark-campaign-cycle prepare` composes benchmark-owned corpus and execution-spec preparation
 with runner-owned Slurm materialization. It selects crate-owned material by the source-locked run

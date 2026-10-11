@@ -7,7 +7,7 @@
       "cases": [
         {
           "sample_id": "human_like_pe_distinct_pairs",
-          "tool_id": "bijux",
+          "tool_id": "bijux_dna",
           "planned_tool_id": null,
           "layout": "paired_end",
           "reads_in": 4,
@@ -21,7 +21,7 @@
         },
         {
           "sample_id": "human_like_pe_duplicate_signals",
-          "tool_id": "bijux",
+          "tool_id": "bijux_dna",
           "planned_tool_id": null,
           "layout": "paired_end",
           "reads_in": 6,

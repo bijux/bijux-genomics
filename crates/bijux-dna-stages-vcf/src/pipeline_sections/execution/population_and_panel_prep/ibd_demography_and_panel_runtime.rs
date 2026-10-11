@@ -201,7 +201,7 @@ pub fn run_demography_stage(
 }
 
 /// # Errors
-/// Returns an error when panel/map/species contracts are violated or artifacts cannot be written.
+/// Returns an error when panel/species contracts are violated or artifacts cannot be written.
 pub fn run_prepare_reference_panel_stage(
     input_vcf: &Path,
     panel_vcf: &Path,
@@ -215,32 +215,11 @@ pub fn run_prepare_reference_panel_stage(
         bail!("species/build mismatch between stage params and SpeciesContext");
     }
     let panel = resolve_panel(&params.species_id, &params.build_id, params.panel_id.as_deref())?;
-    let map = resolve_map(&params.species_id, &params.build_id, params.map_id.as_deref())?;
     if panel.species_id != species_context.species_id || panel.build_id != species_context.build_id
     {
         bail!("panel species/build does not match SpeciesContext");
     }
-    if map.species_id != species_context.species_id || map.build_id != species_context.build_id {
-        bail!("map species/build does not match SpeciesContext");
-    }
     let panel_lock = resolve_panel_lock(&panel)?;
-    let map_lock = resolve_map_lock(&map)?;
-    for backend in ["glimpse", "impute5", "minimac4"] {
-        validate_imputation_tool_compatibility(backend, &panel, &map).map_err(|err| {
-            anyhow!(
-                "prepare_reference_panel refusal: panel/map compatibility failed for backend {backend}: {err}"
-            )
-        })?;
-    }
-    if !panel.compatibility.tool_tags.iter().any(|t| t == "beagle") {
-        bail!(
-            "prepare_reference_panel refusal: panel {} does not advertise beagle support",
-            panel.id
-        );
-    }
-    if !panel.compatibility.supports_gl_input {
-        bail!("prepare_reference_panel refusal: beagle compatibility requires GL input support");
-    }
     if !panel.status.eq_ignore_ascii_case("production") {
         bail!(
             "prepare_reference_panel refusal: panel {} is not enabled (status={})",
@@ -248,11 +227,6 @@ pub fn run_prepare_reference_panel_stage(
             panel.status
         );
     }
-    let required_map_files = map.files.iter().filter(|f| f.required).count();
-    if required_map_files == 0 {
-        bail!("prepare_reference_panel refusal: map {} declares no required files", map.id);
-    }
-
     let panel_parent = panel_vcf
         .parent()
         .ok_or_else(|| anyhow!("panel path has no parent: {}", panel_vcf.display()))?;
@@ -305,18 +279,10 @@ pub fn run_prepare_reference_panel_stage(
     let has_gt = format_keys.contains("GT");
     let has_gl_like =
         format_keys.contains("GL") || format_keys.contains("GP") || format_keys.contains("PL");
-    let backend_contracts = [
-        ("minimac4", has_gt, "requires GT format"),
-        ("impute5", has_gt, "requires GT format"),
-        ("glimpse", has_gl_like || has_gt, "requires GL/GP/PL or GT format"),
-        ("beagle", has_gl_like || has_gt, "requires GL/GP/PL or GT format"),
-    ];
-    for (backend, ok, requirement) in backend_contracts {
-        if !ok {
-            bail!(
-                "prepare_reference_panel refusal: backend {backend} panel compatibility failed ({requirement})"
-            );
-        }
+    if !has_gt && !has_gl_like {
+        bail!(
+            "prepare_reference_panel refusal: panel contains no genotype-bearing GT/GL/GP/PL FORMAT field"
+        );
     }
     let chunk_plan = plan_regions_deterministic(species_context, &ChunkingPlanParams::default())?;
     let mut input_keys = std::collections::BTreeSet::<String>::new();
@@ -402,12 +368,15 @@ pub fn run_prepare_reference_panel_stage(
 
     bijux_dna_infra::ensure_dir(out_dir)?;
     let lock_seed = format!(
-        "{}|{}|{}|{}|{}",
+        "{}|{}|{}",
         panel.id,
         panel.version,
-        panel_lock.files.iter().map(|f| f.checksum_sha256.as_str()).collect::<Vec<_>>().join(","),
-        map.id,
-        map_lock.files.iter().map(|f| f.checksum_sha256.as_str()).collect::<Vec<_>>().join(","),
+        panel_lock
+            .files
+            .iter()
+            .map(|file| file.checksum_sha256.as_str())
+            .collect::<Vec<_>>()
+            .join(","),
     );
     let lock_hash = checksum_hex(lock_seed.as_bytes());
     let panel_root = out_dir.join("panels").join(panel.id.clone()).join(&lock_hash);
@@ -553,15 +522,6 @@ pub fn run_prepare_reference_panel_stage(
                 "has_contig_header": has_contig_header,
             },
         },
-        "map": {
-            "id": map.id,
-            "version": map.version,
-            "status": map.status,
-            "lock_ref": map.lock_ref,
-            "file_count": map.files.len(),
-            "lock_files": map_lock.files,
-            "compatibility": map.compatibility,
-        },
         "contigs": species_context.contigs,
     });
     atomic_write_json(&panel_manifest_json, &manifest)?;
@@ -649,16 +609,6 @@ pub fn run_prepare_reference_panel_stage(
         "chunks": chunk_rows,
     });
     atomic_write_json(&chunks_json, &chunks_payload)?;
-
-    let relevant_tools = ["bcftools", "shapeit5", "impute5", "glimpse", "beagle", "minimac4"];
-    for tool in relevant_tools {
-        if !license_metadata_for_tool_exists(tool) {
-            bail!(
-                "panel license policy refusal: missing containers/licenses/{}.license.toml",
-                tool
-            );
-        }
-    }
 
     Ok(PrepareReferencePanelOutputs {
         panel_root,

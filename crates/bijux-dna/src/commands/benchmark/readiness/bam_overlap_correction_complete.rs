@@ -12,7 +12,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_BAM_OVERLAP_CORRECTION_COMPLETE_PATH: &str =
-    "benchmarks/readiness/bam/stages/bam.overlap_correction.complete.json";
+    "artifacts/benchmark-smoke/readiness/bam/stages/bam.overlap_correction.complete.json";
 const BAM_OVERLAP_CORRECTION_COMPLETE_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.bam_overlap_correction_complete.v1";
 const EXPECTED_STAGE_ID: &str = "bam.overlap_correction";

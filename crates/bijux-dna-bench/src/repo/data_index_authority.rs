@@ -7,15 +7,17 @@ use std::path::{Path, PathBuf};
 
 use anyhow::{bail, Context, Result};
 use bijux_dna_bench_model::{
-    validate_benchmark_data_index, BenchmarkDataIndex, BenchmarkDataIndexFile,
+    validate_benchmark_data_index, validate_governed_data_catalog_document,
+    validate_governed_data_catalog_registry, BenchmarkDataIndex, BenchmarkDataIndexFile,
     BenchmarkDataIndexRecord, BenchmarkDataIndexSummary, BenchmarkEligibility,
-    BenchmarkTemporalProvenance, DataIntegrityStatus, BENCHMARK_DATA_INDEX_SCHEMA_V1,
+    BenchmarkTemporalProvenance, DataIntegrityStatus, GovernedDataCatalogDocument,
+    GovernedDataCatalogRegistry, GovernedDataCatalogSnapshot, BENCHMARK_DATA_INDEX_SCHEMA_V2,
+    GOVERNED_DATA_CATALOG_SCHEMA_V1, GOVERNED_DATA_CATALOG_SCHEMA_V2,
 };
 use chrono::{DateTime, FixedOffset};
 use serde_json::{Map, Value};
 use walkdir::WalkDir;
 
-const DATA_CATALOG_SCHEMA_V1: &str = "bijux.data_catalog.v1";
 const TEMPORAL_FIELDS: [&str; 4] = [
     "retrieved_at_utc",
     "admitted_at_utc",
@@ -30,7 +32,7 @@ const PATH_CONTRACTS: [(&str, &str, &str); 3] = [
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct BenchmarkDataIndexRequest {
-    pub catalog_root: PathBuf,
+    pub catalog_registry_path: PathBuf,
     pub data_root: PathBuf,
     pub created_at_utc: String,
 }
@@ -52,22 +54,27 @@ pub fn build_benchmark_data_index(
 ) -> Result<BenchmarkDataIndex> {
     validate_utc_timestamp(&request.created_at_utc, "index creation")?;
     let data_root = canonical_directory(&request.data_root, "data root")?;
-    let catalog_root = canonical_directory(&request.catalog_root, "catalog root")?;
-    require_under(&catalog_root, &data_root, "catalog root")?;
+    let registry_path =
+        governed_regular_file(&request.catalog_registry_path, &data_root, "catalog registry")?;
+    let registry_bytes = fs::read(&registry_path)
+        .with_context(|| format!("read catalog registry {}", registry_path.display()))?;
+    let registry: GovernedDataCatalogRegistry = serde_json::from_slice(&registry_bytes)
+        .with_context(|| format!("parse catalog registry {}", registry_path.display()))?;
+    validate_governed_data_catalog_registry(&registry)
+        .context("validate governed data catalog registry")?;
     let files_by_name = basename_index(&data_root)?;
-    let mut catalog_paths = fs::read_dir(&catalog_root)
-        .with_context(|| format!("read catalog root {}", catalog_root.display()))?
-        .map(|entry| entry.context("read catalog entry").map(|entry| entry.path()))
-        .collect::<Result<Vec<_>>>()?;
-    catalog_paths.retain(|path| path.extension().and_then(|value| value.to_str()) == Some("json"));
-    catalog_paths.sort();
-    if catalog_paths.is_empty() {
-        bail!("no data catalogs found under {}", catalog_root.display());
-    }
-
-    let mut records = catalog_paths
+    let mut records = registry
+        .records
         .iter()
-        .map(|path| normalize_record(path, &data_root, &files_by_name))
+        .map(|record| {
+            let snapshot = record
+                .snapshots
+                .iter()
+                .find(|snapshot| snapshot.catalog_sha256 == record.current_catalog_sha256)
+                .context("validated current catalog snapshot is absent")?;
+            let path = resolve_study_data_uri(&snapshot.catalog_path, &data_root)?;
+            normalize_record(&path, &data_root, &files_by_name, &record.id, snapshot)
+        })
         .collect::<Result<Vec<_>>>()?;
     records.sort_by(|left, right| left.id.cmp(&right.id));
     let mut ids = BTreeSet::new();
@@ -77,9 +84,11 @@ pub fn build_benchmark_data_index(
 
     let summary = summarize_records(&records)?;
     let index = BenchmarkDataIndex {
-        schema_version: BENCHMARK_DATA_INDEX_SCHEMA_V1.to_string(),
+        schema_version: BENCHMARK_DATA_INDEX_SCHEMA_V2.to_string(),
         created_at_utc: request.created_at_utc.clone(),
         data_root: "study://data".to_string(),
+        catalog_registry_path: Some(stable_data_path(&registry_path, &data_root)?),
+        catalog_registry_sha256: Some(bijux_dna_infra::hash_bytes_sha256(&registry_bytes)),
         summary,
         records,
     };
@@ -129,6 +138,14 @@ pub fn render_benchmark_data_index_markdown(index: &BenchmarkDataIndex) -> Strin
         "This report proves file identity and exposes provenance gaps. It does not".to_string(),
         "turn incomplete metadata into scientific acceptance.".to_string(),
         String::new(),
+    ];
+    if let (Some(path), Some(digest)) =
+        (index.catalog_registry_path.as_deref(), index.catalog_registry_sha256.as_deref())
+    {
+        lines.push(format!("- Catalog registry: `{path}`"));
+        lines.push(format!("- Catalog registry SHA-256: `{digest}`"));
+    }
+    lines.extend([
         format!("- Catalog records: **{}**", index.summary.record_count),
         format!("- Verified governed files: **{}**", index.summary.file_count),
         format!("- Verified bytes: **{}**", index.summary.size_bytes),
@@ -136,7 +153,7 @@ pub fn render_benchmark_data_index_markdown(index: &BenchmarkDataIndex) -> Strin
         String::new(),
         "| Data ID | Files | Integrity | Benchmark use | Missing provenance |".to_string(),
         "|---|---:|---|---|---|".to_string(),
-    ];
+    ]);
     for record in &index.records {
         let integrity = match record.integrity_status {
             DataIntegrityStatus::Verified => "verified",
@@ -165,6 +182,8 @@ fn normalize_record(
     catalog_path: &Path,
     data_root: &Path,
     files_by_name: &BTreeMap<String, Vec<PathBuf>>,
+    registry_id: &str,
+    snapshot: &GovernedDataCatalogSnapshot,
 ) -> Result<BenchmarkDataIndexRecord> {
     let metadata = fs::symlink_metadata(catalog_path)
         .with_context(|| format!("inspect data catalog {}", catalog_path.display()))?;
@@ -177,12 +196,40 @@ fn normalize_record(
         .with_context(|| format!("parse data catalog {}", catalog_path.display()))?;
     let record = value.as_object().context("data catalog root must be an object")?;
     let id = required_text(record, "id", "data catalog")?;
-    if record.get("schema_version").and_then(Value::as_str) != Some(DATA_CATALOG_SCHEMA_V1)
-        || !valid_identifier(id)
+    let schema_version = record.get("schema_version").and_then(Value::as_str);
+    let catalog_sha256 = bijux_dna_infra::hash_bytes_sha256(&bytes);
+    if !matches!(
+        schema_version,
+        Some(GOVERNED_DATA_CATALOG_SCHEMA_V1 | GOVERNED_DATA_CATALOG_SCHEMA_V2)
+    ) || !valid_identifier(id)
         || catalog_path.file_stem().and_then(|value| value.to_str()) != Some(id)
+        || id != registry_id
     {
-        bail!("catalog identity is invalid: {}", catalog_path.display());
+        bail!("catalog snapshot identity is invalid: {}", catalog_path.display());
     }
+    if schema_version != Some(snapshot.catalog_schema_version.as_str()) {
+        bail!("catalog snapshot schema drifted: {}", catalog_path.display());
+    }
+    if catalog_sha256 != snapshot.catalog_sha256 {
+        bail!("catalog snapshot digest drifted: {}", catalog_path.display());
+    }
+    if stable_data_path(catalog_path, data_root)? != snapshot.catalog_path {
+        bail!("catalog snapshot path drifted: {}", catalog_path.display());
+    }
+    let document: GovernedDataCatalogDocument = serde_json::from_value(value.clone())
+        .with_context(|| {
+            format!("parse governed v2 catalog document {}", catalog_path.display())
+        })?;
+    validate_governed_data_catalog_document(&document).with_context(|| {
+        format!("validate governed v2 catalog document {}", catalog_path.display())
+    })?;
+    let record = match &document {
+        GovernedDataCatalogDocument::Preserved(catalog) => catalog
+            .preserved_catalog
+            .as_object()
+            .context("preserved catalog payload is not an object")?,
+        GovernedDataCatalogDocument::Materialized(_) => record,
+    };
     let purpose = required_text(record, "purpose", id)?.to_string();
     let access_classification = required_text(record, "access_classification", id)?.to_string();
     let redistribution_classification =
@@ -217,7 +264,7 @@ fn normalize_record(
     Ok(BenchmarkDataIndexRecord {
         id: id.to_string(),
         catalog_path: stable_data_path(catalog_path, data_root)?,
-        catalog_sha256: bijux_dna_infra::hash_bytes_sha256(&bytes),
+        catalog_sha256,
         purpose,
         source_identities,
         access_classification,
@@ -513,6 +560,18 @@ fn stable_data_path(path: &Path, data_root: &Path) -> Result<String> {
         format!("governed data path escapes {}: {}", data_root.display(), path.display())
     })?;
     Ok(format!("study://data/{}", relative.to_string_lossy()))
+}
+
+fn resolve_study_data_uri(value: &str, data_root: &Path) -> Result<PathBuf> {
+    let relative = value
+        .strip_prefix("study://data/")
+        .with_context(|| format!("catalog snapshot path is not study-data relative: {value}"))?;
+    if relative.is_empty()
+        || relative.split('/').any(|part| part.is_empty() || matches!(part, "." | ".."))
+    {
+        bail!("catalog snapshot path is not normalized: {value}");
+    }
+    governed_regular_file(&data_root.join(relative), data_root, "catalog snapshot")
 }
 
 fn require_under(path: &Path, root: &Path, label: &str) -> Result<()> {

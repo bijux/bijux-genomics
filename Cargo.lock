@@ -335,6 +335,7 @@ dependencies = [
  "bijux-dna-policies",
  "bijux-dna-runner",
  "bijux-dna-runtime",
+ "bijux-dna-science",
  "bijux-dna-stage-contract",
  "bijux-dna-stages-vcf",
  "bijux-dna-testkit",
@@ -412,6 +413,7 @@ dependencies = [
  "bijux-dna-core",
  "bijux-dna-infra",
  "bijux-dna-policies",
+ "bijux-dna-stage-contract",
  "bijux-dna-testkit",
  "regex",
  "schemars",
@@ -491,6 +493,7 @@ dependencies = [
  "bijux-dna-domain-vcf",
  "bijux-dna-policies",
  "serde",
+ "serde_json",
  "toml",
 ]
 
@@ -755,6 +758,7 @@ dependencies = [
  "bijux-dna-runtime",
  "bijux-dna-testkit",
  "cargo_metadata",
+ "chrono",
  "regex",
  "serde",
  "serde_json",
@@ -792,6 +796,8 @@ name = "bijux-dna-science"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "bijux-dna-bench-model",
+ "bijux-dna-core",
  "bijux-dna-infra",
  "bijux-dna-policies",
  "clap",

@@ -50,7 +50,9 @@ fn bench_readiness_essential_pipelines_local_complete_reports_governed_pass_stat
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/pipelines/ESSENTIAL_PIPELINES_LOCAL_COMPLETE.json")
+        Some(
+            "artifacts/benchmark-smoke/readiness/pipelines/ESSENTIAL_PIPELINES_LOCAL_COMPLETE.json"
+        )
     );
     assert_eq!(payload.get("pipeline_count").and_then(serde_json::Value::as_u64), Some(10));
     assert_eq!(payload.get("node_count").and_then(serde_json::Value::as_u64), Some(93));

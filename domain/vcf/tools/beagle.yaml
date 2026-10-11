@@ -18,5 +18,5 @@ capabilities: ["SE", "PE"]
 metrics_schema_id: "bijux.vcf.phasing.v1"
 comparability_notes: "Comparable only when panel build, genetic map, and pinned Beagle profile stay identical."
 container:
-  image: "containers/apptainer/lunarc/beagle.def"
+  image: "containers/apptainer/beagle.def"
   digest: "sha256:220b8f1687f32f6f04cb4e85b0d6ab4ecd2e98f6f5147064c4c2420ddfdd5b3f"

@@ -1,17 +1,31 @@
-# schema_version = 1
 # owner = bijux-genomics-benchmarks
 # purpose = Stable real human FASTQ cohort for comparative stage campaigns
 # authority = bijux-genomics-benchmarks
 # stability = stable
-# last_updated = 2026-08-03
+# last_updated = 2026-08-08
 
-schema_version = "bijux.corpus_spec.v1"
+schema_version = "bijux.benchmark.fastq_corpus_source.v1"
 corpus_id = "corpus-01"
 portfolio_id = "human-short-read-diversity"
+class = "production_real"
 species = "Homo sapiens"
 species_id = "homo_sapiens"
 preferred_root = "${BIJUX_CORPUS_01_ROOT}"
 description = "Human FASTQ benchmark corpus for Lunarc with balanced ancient and modern DNA cohorts."
+source_authority = "European Nucleotide Archive"
+access_classification = "public"
+redistribution_classification = "public-accession-referenced-source-copy"
+access_terms_url = "https://www.ebi.ac.uk/ena/browser/about/policies"
+attribution = "Cite the original studies, ENA run and study accessions, and the ENA service."
+projected_storage_bytes = 5457128348
+projected_cpu_hours = 240
+projection_basis = "The admitted 20-run catalog occupies 3638085565 bytes; storage reserves 50 percent for immutable acquisition metadata and validation outputs, and compute reserves 12 CPU-hours per sample for integrity and baseline profiling."
+truth_roles = ["short_read_diversity", "ancient_and_modern_reads", "single_and_paired_reads"]
+truth_strategy = "observational_only"
+known_limitations = [
+  "Archive metadata and cohort strata support observational diversity claims, not ground-truth base or variant accuracy.",
+  "EMBL-EBI imposes no additional sequence-record restrictions, but users remain responsible for rights asserted by original data owners.",
+]
 target_total = 20
 target_ancient_se = 5
 target_ancient_pe = 5

@@ -36,7 +36,10 @@ fn bench_readiness_missing_result_report_writes_self_describing_report() {
     );
 
     let rendered_path = String::from_utf8(output.stdout).expect("stdout utf8");
-    assert_eq!(rendered_path.trim(), "benchmarks/readiness/missing-result-report-test.json");
+    assert_eq!(
+        rendered_path.trim(),
+        "artifacts/benchmark-smoke/readiness/missing-result/fastq-bam/report.json"
+    );
 
     let repo_root = support::repo_root().expect("repo root");
     let payload = std::fs::read_to_string(repo_root.join(rendered_path.trim()))

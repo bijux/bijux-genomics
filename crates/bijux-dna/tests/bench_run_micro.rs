@@ -42,7 +42,7 @@ fn bench_run_micro_includes_fastq_family_component() {
     );
     assert_eq!(
         payload.get("manifest_path").and_then(serde_json::Value::as_str),
-        Some("runs/bench/micro/MICRO_BENCHMARK_RUN.json")
+        Some("artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_RUN.json")
     );
     assert_eq!(
         payload.get("passes_behavior_test").and_then(serde_json::Value::as_bool),
@@ -74,42 +74,42 @@ fn bench_run_micro_includes_fastq_family_component() {
         component.get("component_id").and_then(serde_json::Value::as_str)
             == Some("fastq_micro_smoke_subset")
             && component.get("report_path").and_then(serde_json::Value::as_str)
-                == Some("runs/bench/micro/fastq/MICRO_FASTQ_SUMMARY.json")
+                == Some("artifacts/benchmark-smoke/micro/fastq/MICRO_FASTQ_SUMMARY.json")
     }));
     assert!(components.iter().any(|component| {
         component.get("component_id").and_then(serde_json::Value::as_str)
             == Some("bam_micro_smoke_subset")
             && component.get("report_path").and_then(serde_json::Value::as_str)
-                == Some("runs/bench/micro/bam/MICRO_BAM_SUMMARY.json")
+                == Some("artifacts/benchmark-smoke/micro/bam/MICRO_BAM_SUMMARY.json")
     }));
     assert!(components.iter().any(|component| {
         component.get("component_id").and_then(serde_json::Value::as_str)
             == Some("vcf_micro_smoke_subset")
             && component.get("report_path").and_then(serde_json::Value::as_str)
-                == Some("runs/bench/micro/vcf/MICRO_VCF_SUMMARY.json")
+                == Some("artifacts/benchmark-smoke/micro/vcf/MICRO_VCF_SUMMARY.json")
     }));
     assert!(components.iter().any(|component| {
         component.get("component_id").and_then(serde_json::Value::as_str)
             == Some("amplicon_micro_pipeline")
             && component.get("report_path").and_then(serde_json::Value::as_str)
-                == Some("runs/bench/micro/pipelines/amplicon/MICRO_AMPLICON_SUMMARY.json")
+                == Some("artifacts/benchmark-smoke/micro/pipelines/amplicon/MICRO_AMPLICON_SUMMARY.json")
     }));
     assert!(components.iter().any(|component| {
         component.get("component_id").and_then(serde_json::Value::as_str)
             == Some("adna_micro_pipeline")
             && component.get("report_path").and_then(serde_json::Value::as_str)
-                == Some("runs/bench/micro/pipelines/adna/MICRO_ADNA_SUMMARY.json")
+                == Some("artifacts/benchmark-smoke/micro/pipelines/adna/MICRO_ADNA_SUMMARY.json")
     }));
     assert!(components.iter().any(|component| {
         component.get("component_id").and_then(serde_json::Value::as_str)
             == Some("edna_micro_pipeline")
             && component.get("report_path").and_then(serde_json::Value::as_str)
-                == Some("runs/bench/micro/pipelines/edna/MICRO_EDNA_SUMMARY.json")
+                == Some("artifacts/benchmark-smoke/micro/pipelines/edna/MICRO_EDNA_SUMMARY.json")
     }));
     assert!(components.iter().any(|component| {
         component.get("component_id").and_then(serde_json::Value::as_str)
             == Some("core_germline_micro_pipeline")
             && component.get("report_path").and_then(serde_json::Value::as_str)
-                == Some("runs/bench/micro/pipelines/core-germline/MICRO_PIPELINE_SUMMARY.json")
+                == Some("artifacts/benchmark-smoke/micro/pipelines/core-germline/MICRO_PIPELINE_SUMMARY.json")
     }));
 }

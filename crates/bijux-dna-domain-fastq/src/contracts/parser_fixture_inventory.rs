@@ -436,6 +436,8 @@ const FASTQ_PARSER_FIXTURE_CASES: &[FastqParserFixtureCase] = &[
 mod tests {
     use std::collections::BTreeSet;
 
+    use crate::observer::observer_specialization_contracts;
+
     use super::{
         fastq_parser_fixture_bindings, fastq_parser_fixture_cases,
         find_fastq_parser_fixture_binding, find_fastq_parser_fixture_case,
@@ -444,7 +446,7 @@ mod tests {
     #[test]
     fn fastq_parser_fixture_inventory_covers_governed_active_bindings() {
         let rows = fastq_parser_fixture_bindings();
-        assert_eq!(rows.len(), 72);
+        assert_eq!(rows.len(), observer_specialization_contracts().len() + 2);
 
         let unique_rows = rows
             .iter()

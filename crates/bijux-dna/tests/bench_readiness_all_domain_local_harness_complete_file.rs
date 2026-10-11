@@ -36,7 +36,7 @@ fn bench_readiness_all_domain_local_harness_complete_writes_gate_file() {
     let rendered_path = String::from_utf8(output.stdout).expect("stdout utf8");
     assert_eq!(
         rendered_path.trim(),
-        "benchmarks/readiness/all-domains/ALL_DOMAIN_LOCAL_HARNESS_COMPLETE.json"
+        "artifacts/benchmark-smoke/readiness/all-domains/ALL_DOMAIN_LOCAL_HARNESS_COMPLETE.json"
     );
 
     let payload: serde_json::Value = serde_json::from_slice(

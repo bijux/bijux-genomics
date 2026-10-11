@@ -43,7 +43,7 @@ fn bench_readiness_bam_damage_complete_reports_governed_rows() {
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/bam/stages/bam.damage.complete.json")
+        Some("artifacts/benchmark-smoke/readiness/bam/stages/bam.damage.complete.json")
     );
     let active_row_count =
         payload.get("active_row_count").and_then(serde_json::Value::as_u64).expect("active rows");

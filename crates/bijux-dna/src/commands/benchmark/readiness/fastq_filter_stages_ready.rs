@@ -34,7 +34,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_FASTQ_FILTER_STAGES_READY_PATH: &str =
-    "benchmarks/readiness/fastq/filter-stages-ready.json";
+    "artifacts/benchmark-smoke/readiness/fastq/filter-stages-ready.json";
 const FASTQ_FILTER_STAGES_READY_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.fastq_filter_stages_ready.v1";
 const COVERAGE_STATUS_COMPLETE: &str = "complete";

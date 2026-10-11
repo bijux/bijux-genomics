@@ -32,7 +32,10 @@ fn bench_readiness_all_domain_stage_tool_table_writes_governed_tsv_file() {
     );
 
     let rendered_path = String::from_utf8(output.stdout).expect("stdout utf8");
-    assert_eq!(rendered_path.trim(), "benchmarks/readiness/all-domain-stage-tool-table.tsv");
+    assert_eq!(
+        rendered_path.trim(),
+        "artifacts/benchmark-smoke/readiness/all-domain-stage-tool-table.tsv"
+    );
 
     let payload = std::fs::read_to_string(repo_root.join(rendered_path.trim()))
         .expect("read all-domain stage tool table");
@@ -46,8 +49,11 @@ fn bench_readiness_all_domain_stage_tool_table_writes_governed_tsv_file() {
 
     let rows = lines.collect::<Vec<_>>();
     assert!(!rows.is_empty());
-    assert!(rows.iter().all(|row| {
-        !row.starts_with("bam\t") || (!row.contains("\tangsd\t") && !row.contains("\tngsbriggs\t"))
+    assert!(rows.iter().any(|row| {
+        row == &"bam\tbam.kinship\tangsd\tcorpus-01-kinship-mini\tcorpus_only\tbam.adapter.kinship\tbam.parser.kinship\tbenchmark_ready"
+    }));
+    assert!(rows.iter().any(|row| {
+        row == &"bam\tbam.damage\tngsbriggs\tcorpus-01-adna-damage-mini\tcorpus_only\tbam.adapter.damage\tbam.parser.damage\tbenchmark_ready"
     }));
     assert!(rows.iter().any(|row| {
         row == &"fastq\tfastq.screen_taxonomy\tkraken2\tcorpus-02-edna-mini\tdatabase_artifact_id+taxonomy_database_root\tfastq.adapter.screen_taxonomy\tfastq.parser.screen_taxonomy\tbenchmark_ready"

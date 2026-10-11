@@ -12,6 +12,13 @@ requirements. `stage-campaigns.toml` contains only executable campaigns whose
 complete retained-tool closure, inputs, parameters, resource measurements,
 quality metrics, interpretation, and limitations have been reviewed.
 
+`run-registry.json` is the generated permanent namespace authority for
+`run-2001` through `run-2071`. It records lifecycle, retained-tool closure,
+scientific profile and corpus roles, interface contracts, supersession fields,
+the immutable introduction commit, and the monotonic allocation frontier. Its
+reviewed bytes are bound by `run-registry.sha256`; regenerate or check all
+registry surfaces with `bijux-dna-dev tooling run benchmark-run-registry`.
+
 `stage-universe.json` is generated from the authoritative BAM, FASTQ, and VCF
 stage YAML contracts. It records an explicit benchmark disposition and rationale
 for every stage and binds every `benchmark_required` stage to exactly one
@@ -41,6 +48,23 @@ historical report identities as `stale`; only a passing report from the required
 repository commit is counted as admitted.
 `schemas/stage-universe.schema.json` is generated from the typed canonical-stage
 registry and must drift whenever a stage is added, removed, or reclassified.
+
+`schemas/fastq-corpus-source.schema.json` is generated from the model-owned
+production FASTQ source contract. A source declaration records its production
+class, archive authority, access and redistribution terms, attribution,
+scientific truth limits, and bounded storage and compute projection before
+live metadata resolution or materialization.
+
+`schemas/corpus-acquisition.schema.json` and
+`schemas/governed-data-catalog.schema.json` preserve that same source policy in
+v2 acquisition and admission records. Historical v1 catalogs remain readable,
+but new materialization cannot reconstruct or override policy with local
+hardcoded values.
+
+`schemas/governed-data-catalog-registry.schema.json` selects current immutable
+catalog snapshots without replacing historical authorities. Snapshot paths are
+source-addressed, exact hashes are mandatory, and only a v2 snapshot can be
+selected for a newly derived production data index.
 
 The checked `suite`, `corpus`, `bundle`, `observation`, `summary`, and `decision`
 schemas are also generated from `bijux-dna-bench-model`. `GateDecision` is the

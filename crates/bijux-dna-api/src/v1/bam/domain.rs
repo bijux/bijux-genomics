@@ -5,7 +5,7 @@ use std::path::{Path, PathBuf};
 
 /// Materialize the governed local-ready `bam.align` dry-run plan.
 ///
-/// The written artifact lives at `benchmarks/readiness/local-ready/bam.align/plan.json` under the active
+/// The written artifact lives at `artifacts/benchmark-smoke/readiness/local-ready/bam.align/plan.json` under the active
 /// repository root.
 ///
 /// # Errors
@@ -23,7 +23,7 @@ pub fn write_local_align_plan() -> Result<PathBuf> {
 
 /// Materialize the governed local-ready `bam.contamination` dry-run plan.
 ///
-/// The written artifact lives at `benchmarks/readiness/local-ready/bam.contamination/plan.json` under the
+/// The written artifact lives at `artifacts/benchmark-smoke/readiness/local-ready/bam.contamination/plan.json` under the
 /// active repository root.
 ///
 /// # Errors
@@ -54,7 +54,7 @@ pub fn write_local_contamination_smoke_report() -> Result<PathBuf> {
 
 /// Materialize the governed local-ready `bam.haplogroups` dry-run plan.
 ///
-/// The written artifact lives at `benchmarks/readiness/local-ready/bam.haplogroups/plan.json` under the active
+/// The written artifact lives at `artifacts/benchmark-smoke/readiness/local-ready/bam.haplogroups/plan.json` under the active
 /// repository root.
 ///
 /// # Errors
@@ -95,7 +95,7 @@ pub fn write_local_haplogroups_smoke_report() -> Result<PathBuf> {
 
 /// Materialize the governed local-ready `bam.genotyping` dry-run plan.
 ///
-/// The written artifact lives at `benchmarks/readiness/local-ready/bam.genotyping/plan.json` under the active
+/// The written artifact lives at `artifacts/benchmark-smoke/readiness/local-ready/bam.genotyping/plan.json` under the active
 /// repository root.
 ///
 /// # Errors

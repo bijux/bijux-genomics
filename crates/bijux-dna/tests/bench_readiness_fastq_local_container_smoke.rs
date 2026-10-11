@@ -45,7 +45,7 @@ fn bench_readiness_fastq_local_container_smoke_reports_retained_wrapper_paths() 
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/fastq/fastq-local-container-smoke.tsv")
+        Some("artifacts/benchmark-smoke/readiness/fastq/fastq-local-container-smoke.tsv")
     );
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
     let row_count = u64::try_from(rows.len()).expect("row count fits u64");
@@ -72,17 +72,33 @@ fn bench_readiness_fastq_local_container_smoke_reports_retained_wrapper_paths() 
     );
     assert_eq!(
         payload.get("container_smoke_row_count").and_then(serde_json::Value::as_u64),
-        Some(row_count)
+        Some(row_count - 1)
+    );
+    assert_eq!(
+        payload.get("external_artifact_row_count").and_then(serde_json::Value::as_u64),
+        Some(1)
     );
 
     let runtime_counts = payload
         .get("runtime_counts")
         .and_then(serde_json::Value::as_object)
         .expect("runtime counts");
-    assert_eq!(
-        runtime_counts.get("docker-arm64").and_then(serde_json::Value::as_u64),
-        Some(row_count)
-    );
+    let docker_row_count =
+        runtime_counts.get("docker-arm64").and_then(serde_json::Value::as_u64).unwrap_or_default();
+    let apptainer_row_count =
+        runtime_counts.get("apptainer").and_then(serde_json::Value::as_u64).unwrap_or_default();
+    assert_eq!(docker_row_count + apptainer_row_count, row_count - 1);
+    assert_eq!(runtime_counts.get("external").and_then(serde_json::Value::as_u64), Some(1));
+
+    assert!(rows.iter().any(|row| {
+        row.get("stage_id").and_then(serde_json::Value::as_str) == Some("fastq.remove_duplicates")
+            && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("fastuniq")
+            && row.get("smoke_path_kind").and_then(serde_json::Value::as_str)
+                == Some("external_artifact_admission")
+            && row.get("smoke_runtime").and_then(serde_json::Value::as_str) == Some("external")
+            && row.get("smoke_support_path").and_then(serde_json::Value::as_str)
+                == Some("containers/contracts/catalog.toml")
+    }));
 
     assert!(rows.iter().any(|row| {
         row.get("stage_id").and_then(serde_json::Value::as_str)

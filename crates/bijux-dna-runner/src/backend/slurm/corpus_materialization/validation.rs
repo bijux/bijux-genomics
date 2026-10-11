@@ -101,7 +101,7 @@ pub(super) fn validate_specification(
 
 pub(super) fn validate_catalog_precondition(spec: &CorpusMaterializationSlurmSpec) -> Result<()> {
     let data_root = canonical_directory(&spec.data_root, "governed data root")?;
-    let catalog_path = data_root.join("catalog").join(format!("{}.json", spec.portfolio_id));
+    let catalog_path = catalog_snapshot_path(&data_root, spec);
     match &spec.existing_catalog_sha256 {
         Some(sha256) => {
             require_exact_file(&catalog_path, sha256, "existing governed data catalog")?;
@@ -115,7 +115,7 @@ pub(super) fn validate_catalog_closure(
     spec: &CorpusMaterializationSlurmSpec,
     plan: &CorpusAcquisitionPlan,
 ) -> Result<(PathBuf, String)> {
-    let catalog_path = spec.data_root.join("catalog").join(format!("{}.json", spec.portfolio_id));
+    let catalog_path = catalog_snapshot_path(&spec.data_root, spec);
     let catalog: GovernedDataCatalog = read_json(&catalog_path)?;
     validate_governed_data_catalog(&catalog).context("validate governed data catalog")?;
     let expected_file_count =
@@ -163,6 +163,16 @@ pub(super) fn validate_catalog_closure(
     let catalog_sha256 =
         bijux_dna_infra::hash_file_sha256(&catalog_path).context("hash governed data catalog")?;
     Ok((catalog_path, catalog_sha256))
+}
+
+pub(super) fn catalog_snapshot_path(
+    data_root: &Path,
+    spec: &CorpusMaterializationSlurmSpec,
+) -> PathBuf {
+    data_root
+        .join("catalog/snapshots")
+        .join(&spec.repository_commit)
+        .join(format!("{}.json", spec.portfolio_id))
 }
 
 pub(super) fn require_utc_timestamp(value: &str, label: &str) -> Result<()> {

@@ -3,8 +3,6 @@ tool_id: "angsd"
 stage_ids:
   - "vcf.call_gl"
   - "vcf.call_pseudohaploid"
-  - "vcf.damage_filter"
-  - "vcf.gl_propagation"
 role: "analysis"
 authoritative: false
 strict_capable: true
@@ -17,7 +15,7 @@ license: "NOASSERTION"
 citation: "paper:https://bmcbioinformatics.biomedcentral.com/articles/10.1186/s12859-014-0356-4"
 version_cmd: "angsd --version"
 help_cmd: "angsd --help"
-expected_artifacts: ["gl_vcf", "damage_report", "gl_provenance", "pseudohaploid_sampling_log", "gl_propagation_report", "damage_bias_audit_report"]
+expected_artifacts: ["gl_vcf", "gl_provenance", "pseudohaploid_sampling_log"]
 capabilities: ["SE", "PE", "GL", "damage_aware"]
 metrics_schema_id: "bijux.vcf.gl.v1"
 comparability_notes: "Comparable only when GL model, PMD filters, reference build, and governed external artifact identity are identical."

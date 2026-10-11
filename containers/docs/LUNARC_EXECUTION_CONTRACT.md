@@ -119,7 +119,7 @@ labels; and verifies that identity before the SIF can be reused:
 
 ```console
 cargo run -p bijux-dna -- env ensure-images \
-  --hpc-root /home/bijan/lu2024-12-24/Dardel/STUDY \
+  --hpc-root /lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY \
   --tool bijux_dna \
   --json
 ```

@@ -13,7 +13,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_VCF_PARSER_FAILURE_TESTS_PATH: &str =
-    "benchmarks/readiness/vcf-parser-failure-tests.json";
+    "artifacts/benchmark-smoke/readiness/vcf/vcf-parser-failure-tests.json";
 const VCF_PARSER_FAILURE_TESTS_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.vcf_parser_failure_audit.v1";
 

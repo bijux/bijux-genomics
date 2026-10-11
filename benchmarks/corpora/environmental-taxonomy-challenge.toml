@@ -1,0 +1,61 @@
+# owner = bijux-genomics-benchmarks
+# purpose = Source authorities for environmental taxonomy and depletion truth
+# authority = bijux-genomics-benchmarks
+# stability = stable
+# last_updated = 2026-08-08
+
+schema_version = "bijux.benchmark.data_source.v1"
+portfolio_id = "environmental-taxonomy-challenge"
+class = "production_real"
+access_classification = "public"
+redistribution_classification = "accession-referenced-source-copy"
+access_terms_url = "https://www.ncbi.nlm.nih.gov/home/about/policies/"
+attribution = "Cite the Human Microbiome Project mock-community study, NCBI, and every database snapshot authority."
+projected_storage_bytes = 100000000000
+projected_cpu_hours = 2000
+projection_basis = "The selection reserves 100 GB and 2,000 CPU-hours for ten Tara Oceans libraries, ten HMP mock-community runs, exact host/rRNA/taxonomy reference snapshots, indexing, and validation."
+truth_roles = ["environmental_taxonomy_truth", "host_and_rrna_challenge"]
+truth_strategy = "real_edna_with_mock_community_and_orthogonal_assays"
+known_limitations = [
+  "The HMP mock community is a laboratory community rather than natural eDNA.",
+  "Known membership does not by itself establish extraction efficiency or environmental matrix effects.",
+  "Negative controls, host spike-ins, and orthogonal rRNA assays remain required before admission.",
+]
+description = "A source-defined mock-community anchor and immutable reference-database authority for taxonomy, host depletion, and rRNA depletion benchmarks."
+data_types = ["fastq", "taxonomy_database"]
+target_sample_count = 10
+
+[[collections]]
+id = "ena-tara-oceans"
+authority = "European Nucleotide Archive"
+accession = "PRJEB402"
+source_url = "https://www.ebi.ac.uk/ena/browser/view/PRJEB402"
+access_terms_url = "https://www.ebi.ac.uk/ena/browser/about/policies"
+data_types = ["fastq"]
+planned_sample_count = 10
+selection_scope = "Ten size-fractionated Tara Oceans libraries selected across stations, depth, physicochemical context, and barcoding or shotgun strategies with exact run accessions frozen during acquisition."
+truth_basis = "Standardized global-ocean sampling, morphological and physicochemical contextual measurements, and published barcoding and metagenomic analyses establish real environmental diversity context."
+known_limitations = ["Environmental community composition is observational and cannot be scored as complete taxonomic ground truth."]
+
+[[collections]]
+id = "hmp-mock-community"
+authority = "NCBI BioProject and Sequence Read Archive"
+accession = "PRJNA48341;SRP002397"
+source_url = "https://www.ncbi.nlm.nih.gov/bioproject/48341"
+access_terms_url = "https://www.ncbi.nlm.nih.gov/home/about/policies/"
+data_types = ["fastq"]
+planned_sample_count = 10
+selection_scope = "Ten public HMP mock-community runs spanning sequencing centers, amplified regions, and technical replicates, frozen by exact run accession during acquisition."
+truth_basis = "The HMP mock material has declared organism membership and cross-center protocol-validation replication."
+known_limitations = ["The source does not supply a representative environmental matrix or complete host and rRNA negative-control truth."]
+
+[[collections]]
+id = "ncbi-reference-database"
+authority = "NCBI Reference Sequence and Taxonomy"
+accession = "RefSeq+NCBI-Taxonomy"
+source_url = "https://www.ncbi.nlm.nih.gov/refseq/"
+access_terms_url = "https://www.ncbi.nlm.nih.gov/home/about/policies/"
+data_types = ["taxonomy_database"]
+selection_scope = "One date-addressed database snapshot containing selected microbial, host, and ribosomal reference records with taxonomy identifiers."
+truth_basis = "NCBI accession and taxonomy records provide the external sequence and lineage authority; a manifest will freeze exact records and release dates."
+known_limitations = ["A mutable live database is not admissible; exact files, release identity, checksums, and exclusions remain to be materialized."]

@@ -18,6 +18,25 @@ pub enum BenchCorpusMaterializationCommand {
     Submit(BenchCorpusMaterializationSubmitArgs),
     Status(BenchCorpusMaterializationStatusArgs),
     Collect(BenchCorpusMaterializationCollectArgs),
+    CorrectEvidence(BenchCorpusMaterializationCorrectEvidenceArgs),
+}
+
+#[derive(Debug, Args)]
+pub struct BenchCorpusMaterializationCorrectEvidenceArgs {
+    #[arg(long)]
+    pub evidence: PathBuf,
+    #[arg(long)]
+    pub output: PathBuf,
+    #[arg(long)]
+    pub observed_local_time: String,
+    #[arg(long)]
+    pub source_timezone: String,
+    #[arg(long)]
+    pub corrected_at_utc: String,
+    #[arg(long)]
+    pub source_commit: String,
+    #[arg(long)]
+    pub reason: String,
 }
 
 #[derive(Debug, Args)]
@@ -74,6 +93,8 @@ pub struct BenchMaterializeFastqCorpusArgs {
     pub plan: PathBuf,
     #[arg(long)]
     pub data_root: PathBuf,
+    #[arg(long)]
+    pub repository_commit: String,
     #[arg(long, default_value_t = 4)]
     pub jobs: usize,
     #[arg(long, default_value_t = 2)]

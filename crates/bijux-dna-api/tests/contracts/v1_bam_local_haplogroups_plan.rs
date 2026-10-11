@@ -36,7 +36,8 @@ fn write_local_haplogroups_plan_materializes_governed_target_output() -> Result<
     let _lock = crate::support::bench_output_lock()
         .unwrap_or_else(|err| panic!("repo lock BAM haplogroups plan output: {err}"));
     let _guard = RepoRootOverrideGuard::install(&repo_root);
-    let output_dir = repo_root.join("benchmarks/readiness/local-ready/bam.haplogroups");
+    let output_dir =
+        repo_root.join("artifacts/benchmark-smoke/readiness/local-ready/bam.haplogroups");
     if output_dir.exists() {
         std::fs::remove_dir_all(&output_dir)?;
     }
@@ -44,7 +45,7 @@ fn write_local_haplogroups_plan_materializes_governed_target_output() -> Result<
     let plan_path = bijux_dna_api::v1::api::bam::write_local_haplogroups_plan()?;
     assert_eq!(
         plan_path,
-        repo_root.join("benchmarks/readiness/local-ready/bam.haplogroups/plan.json")
+        repo_root.join("artifacts/benchmark-smoke/readiness/local-ready/bam.haplogroups/plan.json")
     );
     assert!(plan_path.is_file(), "local-ready plan artifact must exist");
 
@@ -132,7 +133,9 @@ fn write_local_haplogroups_plan_materializes_governed_target_output() -> Result<
         });
     assert_eq!(
         haplogroups_report["path"],
-        serde_json::json!("benchmarks/readiness/local-ready/bam.haplogroups/haplogroups.json")
+        serde_json::json!(
+            "artifacts/benchmark-smoke/readiness/local-ready/bam.haplogroups/haplogroups.json"
+        )
     );
     let summary = outputs
         .iter()
@@ -143,7 +146,7 @@ fn write_local_haplogroups_plan_materializes_governed_target_output() -> Result<
     assert_eq!(
         summary["path"],
         serde_json::json!(
-            "benchmarks/readiness/local-ready/bam.haplogroups/haplogroups.summary.json"
+            "artifacts/benchmark-smoke/readiness/local-ready/bam.haplogroups/haplogroups.summary.json"
         )
     );
     let stage_metrics = outputs
@@ -154,7 +157,9 @@ fn write_local_haplogroups_plan_materializes_governed_target_output() -> Result<
         });
     assert_eq!(
         stage_metrics["path"],
-        serde_json::json!("benchmarks/readiness/local-ready/bam.haplogroups/stage.metrics.json")
+        serde_json::json!(
+            "artifacts/benchmark-smoke/readiness/local-ready/bam.haplogroups/stage.metrics.json"
+        )
     );
 
     assert!(
@@ -172,7 +177,7 @@ fn write_local_haplogroups_plan_materializes_governed_target_output() -> Result<
             })
         ) && command.iter().any(
             |part| part.as_str().is_some_and(|shell| {
-                shell.contains("benchmarks/readiness/local-ready/bam.haplogroups/haplogroups")
+                shell.contains("artifacts/benchmark-smoke/readiness/local-ready/bam.haplogroups/haplogroups")
             })
         )),
         "local-ready haplogroups command must carry the governed BAI, panel, and output prefix"
@@ -186,7 +191,8 @@ fn write_local_haplogroups_plan_preserves_governed_command_metadata() -> Result<
     let _lock = crate::support::bench_output_lock()
         .unwrap_or_else(|err| panic!("repo lock BAM haplogroups plan output: {err}"));
     let _guard = RepoRootOverrideGuard::install(&repo_root);
-    let output_dir = repo_root.join("benchmarks/readiness/local-ready/bam.haplogroups");
+    let output_dir =
+        repo_root.join("artifacts/benchmark-smoke/readiness/local-ready/bam.haplogroups");
     if output_dir.exists() {
         std::fs::remove_dir_all(&output_dir)?;
     }
@@ -196,7 +202,7 @@ fn write_local_haplogroups_plan_preserves_governed_command_metadata() -> Result<
 
     assert_eq!(
         payload["out_dir"],
-        serde_json::json!("benchmarks/readiness/local-ready/bam.haplogroups")
+        serde_json::json!("artifacts/benchmark-smoke/readiness/local-ready/bam.haplogroups")
     );
     assert_eq!(payload["effective_params"]["min_coverage"], serde_json::json!(2.0));
     assert_eq!(payload["effective_params"]["reference_build"], serde_json::json!("hg38"));
@@ -226,11 +232,11 @@ fn write_local_haplogroups_plan_preserves_governed_command_metadata() -> Result<
         )
             && command.contains("--reference_genome hg38")
             && command.contains(
-                "benchmarks/readiness/local-ready/bam.haplogroups/haplogroups.summary.json"
+                "artifacts/benchmark-smoke/readiness/local-ready/bam.haplogroups/haplogroups.summary.json"
             )
             && command.contains("\"population_scope\":\"adna_y_haplogroup_panel\"")
             && command.contains("\"min_coverage\":2.0")
-            && command.contains("\"assignment_output_prefix\":\"benchmarks/readiness/local-ready/bam.haplogroups/haplogroups\""),
+            && command.contains("\"assignment_output_prefix\":\"artifacts/benchmark-smoke/readiness/local-ready/bam.haplogroups/haplogroups\""),
         "local-ready haplogroups command must preserve the governed tool, reference build, summary, population scope, coverage gate, and assignment output prefix"
     );
 

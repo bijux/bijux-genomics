@@ -17,11 +17,10 @@ planning and runtime provenance.
 - Pipeline planning.
 - Stage execution.
 - Runtime backend orchestration.
-- Network access, downloads, and filesystem writes.
+- Network access, downloads, fixture generation, index creation, database materialization, and
+  filesystem writes.
 - CLI command parsing and product API handlers.
 
 ## Policy Reference
 
-- Workspace style and boundary policy:
-  `README.md`, `README.md`, and
-  repository `docs/40-policies/STYLE.md`.
+- Repository style and boundary policy: `README.md` and `docs/40-policies/STYLE.md`.

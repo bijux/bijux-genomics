@@ -15,7 +15,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_MISSING_BENCHMARK_PAIRS_PATH: &str =
-    "benchmarks/readiness/missing-benchmark-pairs.tsv";
+    "artifacts/benchmark-smoke/readiness/missing-benchmark-pairs.tsv";
 const MISSING_BENCHMARK_PAIRS_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.missing_benchmark_pairs.v1";
 

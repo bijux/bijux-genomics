@@ -31,7 +31,10 @@ fn bench_readiness_all_domain_active_scope_complete_writes_governed_json_file() 
     );
 
     let rendered_path = String::from_utf8(output.stdout).expect("stdout utf8");
-    assert_eq!(rendered_path.trim(), "benchmarks/readiness/all-domains/ACTIVE_SCOPE_COMPLETE.json");
+    assert_eq!(
+        rendered_path.trim(),
+        "artifacts/benchmark-smoke/readiness/all-domains/ACTIVE_SCOPE_COMPLETE.json"
+    );
 
     let payload =
         std::fs::read_to_string(repo_root.join(rendered_path.trim())).expect("read gate json");
@@ -52,7 +55,7 @@ fn bench_readiness_all_domain_active_scope_complete_writes_governed_json_file() 
             && check.get("proof_paths").and_then(serde_json::Value::as_array).is_some_and(|paths| {
                 paths.iter().any(|path| {
                     path.as_str()
-                        == Some("benchmarks/readiness/all-domains/active-stage-tool-matrix.tsv")
+                        == Some("artifacts/benchmark-smoke/readiness/all-domains/active-stage-tool-matrix.tsv")
                 })
             })
     }));

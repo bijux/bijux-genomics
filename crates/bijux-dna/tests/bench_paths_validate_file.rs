@@ -73,7 +73,10 @@ fn bench_paths_validate_writes_governed_validation_report() {
     );
 
     let rendered_path = String::from_utf8(output.stdout).expect("stdout utf8");
-    assert_eq!(rendered_path.trim(), "benchmarks/readiness/benchmark-paths-validation.json");
+    assert_eq!(
+        rendered_path.trim(),
+        "artifacts/benchmark-smoke/readiness/benchmark-paths-validation.json"
+    );
 
     let payload: serde_json::Value = serde_json::from_slice(
         &std::fs::read(repo_root.join(rendered_path.trim()))
@@ -83,33 +86,35 @@ fn bench_paths_validate_writes_governed_validation_report() {
 
     assert_eq!(
         payload.get("schema_version").and_then(serde_json::Value::as_str),
-        Some("bijux.bench.paths_validate.v2")
+        Some("bijux.bench.paths_validate.v3")
     );
     assert_eq!(payload.get("ok").and_then(serde_json::Value::as_bool), Some(true));
     assert_eq!(payload.get("violation_count").and_then(serde_json::Value::as_u64), Some(0));
-    assert!(payload
-        .get("readiness_tsv_snapshot_count")
-        .and_then(serde_json::Value::as_u64)
-        .is_some_and(|count| count >= 1));
-    assert!(payload
-        .get("readiness_json_snapshot_count")
-        .and_then(serde_json::Value::as_u64)
-        .is_some_and(|count| count >= 1));
+    assert_eq!(
+        payload.get("readiness_tsv_snapshot_count").and_then(serde_json::Value::as_u64),
+        Some(0)
+    );
+    assert_eq!(
+        payload.get("readiness_json_snapshot_count").and_then(serde_json::Value::as_u64),
+        Some(0)
+    );
     let readiness_snapshots = payload
         .get("readiness_snapshots")
         .and_then(serde_json::Value::as_array)
         .expect("readiness snapshots array");
-    assert!(readiness_snapshots.iter().any(|value| {
-        value.as_str() == Some("benchmarks/readiness/all-domain-stage-tool-table.tsv")
-    }));
+    assert!(readiness_snapshots.is_empty());
 
     let target_root = repo_root.join("target");
     if target_root.exists() {
         std::fs::remove_dir_all(&target_root).expect("remove target");
     }
 
-    assert!(repo_root.join("benchmarks/readiness/benchmark-paths-validation.json").is_file());
-    assert!(repo_root.join("benchmarks/readiness/all-domain-stage-tool-table.tsv").is_file());
+    assert!(repo_root
+        .join("artifacts/benchmark-smoke/readiness/benchmark-paths-validation.json")
+        .is_file());
+    assert!(repo_root
+        .join("artifacts/benchmark-smoke/readiness/all-domain-stage-tool-table.tsv")
+        .is_file());
 
     let rerun_output = sandbox
         .bijux_dna_command()

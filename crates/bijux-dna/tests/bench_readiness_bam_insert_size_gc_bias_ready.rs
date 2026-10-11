@@ -43,7 +43,7 @@ fn bench_readiness_bam_insert_size_gc_bias_ready_reports_complete_governed_rows(
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/bam/insert-size-gc-bias-ready.json")
+        Some("artifacts/benchmark-smoke/readiness/bam/insert-size-gc-bias-ready.json")
     );
     assert_eq!(payload.get("active_row_count").and_then(serde_json::Value::as_u64), Some(2));
     assert_eq!(payload.get("complete_row_count").and_then(serde_json::Value::as_u64), Some(2));

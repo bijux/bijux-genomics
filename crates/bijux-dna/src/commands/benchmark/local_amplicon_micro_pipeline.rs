@@ -23,7 +23,7 @@ use crate::commands::cli::parse;
 use crate::commands::fixtures::expected::amplicon::validate_amplicon_truth_manifest_path;
 
 pub(crate) const DEFAULT_AMPLICON_MICRO_PIPELINE_PATH: &str =
-    "runs/bench/micro/pipelines/amplicon/MICRO_AMPLICON_SUMMARY.json";
+    "artifacts/benchmark-smoke/micro/pipelines/amplicon/MICRO_AMPLICON_SUMMARY.json";
 const GOVERNED_MICRO_STARTED_AT: &str = "1704067200";
 const GOVERNED_MICRO_FINISHED_AT: &str = "1704067201";
 const GOVERNED_MICRO_ELAPSED_SECONDS: f64 = 1.0;
@@ -847,7 +847,7 @@ fn run_remove_chimeras_stage(
         BTreeMap::from([
             (
                 "asv_representatives".to_string(),
-                "runs/bench/micro/pipelines/amplicon/artifacts/fastq.infer_asvs/representatives.fasta"
+                "artifacts/benchmark-smoke/micro/pipelines/amplicon/artifacts/fastq.infer_asvs/representatives.fasta"
                     .to_string(),
             ),
             (
@@ -962,7 +962,7 @@ fn run_cluster_otus_stage(
             ),
             (
                 "non_chimeric_representatives".to_string(),
-                "runs/bench/micro/pipelines/amplicon/artifacts/fastq.remove_chimeras/non_chimeric.fasta"
+                "artifacts/benchmark-smoke/micro/pipelines/amplicon/artifacts/fastq.remove_chimeras/non_chimeric.fasta"
                     .to_string(),
             ),
         ]),
@@ -1384,7 +1384,7 @@ fn run_fixture_backed_remove_chimeras_stage(
         BTreeMap::from([
             (
                 "asv_representatives".to_string(),
-                "runs/bench/micro/pipelines/amplicon/artifacts/fastq.infer_asvs/representatives.fasta"
+                "artifacts/benchmark-smoke/micro/pipelines/amplicon/artifacts/fastq.infer_asvs/representatives.fasta"
                     .to_string(),
             ),
             (
@@ -1515,7 +1515,7 @@ fn run_fixture_backed_cluster_otus_stage(
             ),
             (
                 "non_chimeric_representatives".to_string(),
-                "runs/bench/micro/pipelines/amplicon/artifacts/fastq.remove_chimeras/non_chimeric.fasta"
+                "artifacts/benchmark-smoke/micro/pipelines/amplicon/artifacts/fastq.remove_chimeras/non_chimeric.fasta"
                     .to_string(),
             ),
         ]),

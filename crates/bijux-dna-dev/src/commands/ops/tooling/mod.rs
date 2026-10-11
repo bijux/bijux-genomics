@@ -23,6 +23,10 @@ use super::{
 mod acquisition;
 mod artifact_contracts;
 mod benchmark_campaign_cycle;
+mod benchmark_data_catalog_snapshots;
+mod benchmark_data_portfolio_audit;
+mod benchmark_publication_registry;
+mod benchmark_run_registry;
 mod benchmark_scientific_readiness;
 mod benchmark_stage_coverage;
 mod benchmark_stage_universe;
@@ -41,6 +45,10 @@ pub(super) use self::acquisition::{
 };
 pub(super) use self::artifact_contracts::tooling_artifact_contracts;
 pub(super) use self::benchmark_campaign_cycle::tooling_benchmark_campaign_cycle;
+pub(super) use self::benchmark_data_catalog_snapshots::tooling_benchmark_data_catalog_snapshots;
+pub(super) use self::benchmark_data_portfolio_audit::tooling_benchmark_data_portfolio_audit;
+pub(super) use self::benchmark_publication_registry::tooling_benchmark_publication_registry;
+pub(super) use self::benchmark_run_registry::tooling_benchmark_run_registry;
 pub(super) use self::benchmark_scientific_readiness::tooling_benchmark_scientific_readiness;
 pub(super) use self::benchmark_stage_coverage::tooling_benchmark_stage_coverage;
 pub(super) use self::benchmark_stage_universe::tooling_benchmark_stage_universe;

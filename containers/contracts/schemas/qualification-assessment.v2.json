@@ -1,0 +1,182 @@
+{
+  "$defs": {
+    "DecisionAudit": {
+      "additionalProperties": false,
+      "properties": {
+        "measured_values": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "type": "object"
+        },
+        "outcome": {
+          "$ref": "#/$defs/EvidenceVerdict"
+        },
+        "reason": {
+          "type": "string"
+        },
+        "rule_version": {
+          "type": "string"
+        },
+        "thresholds": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "type": "object"
+        }
+      },
+      "required": [
+        "rule_version",
+        "measured_values",
+        "thresholds",
+        "outcome",
+        "reason"
+      ],
+      "type": "object"
+    },
+    "EvidenceDecision": {
+      "additionalProperties": false,
+      "properties": {
+        "audit": {
+          "$ref": "#/$defs/DecisionAudit"
+        },
+        "evidence_sha256": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "reasons": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "verdict": {
+          "$ref": "#/$defs/EvidenceVerdict"
+        }
+      },
+      "required": [
+        "verdict",
+        "audit"
+      ],
+      "type": "object"
+    },
+    "EvidenceVerdict": {
+      "enum": [
+        "passed",
+        "failed",
+        "blocked",
+        "missing",
+        "not_applicable"
+      ],
+      "type": "string"
+    },
+    "PublicationDisposition": {
+      "enum": [
+        "current",
+        "superseded"
+      ],
+      "type": "string"
+    },
+    "QualificationClaim": {
+      "enum": [
+        "unsupported",
+        "planned",
+        "built",
+        "runtime_verified",
+        "stage_verified",
+        "real_data_verified",
+        "science_verified",
+        "benchmark_verified",
+        "security_verified",
+        "release_verified",
+        "qualified",
+        "failed",
+        "superseded",
+        "blocked"
+      ],
+      "type": "string"
+    },
+    "SupportDisposition": {
+      "enum": [
+        "retained",
+        "unsupported"
+      ],
+      "type": "string"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "claims": {
+      "items": {
+        "$ref": "#/$defs/QualificationClaim"
+      },
+      "type": "array",
+      "uniqueItems": true
+    },
+    "dimensions": {
+      "additionalProperties": false,
+      "properties": {
+        "benchmark": {
+          "$ref": "#/$defs/EvidenceDecision"
+        },
+        "build": {
+          "$ref": "#/$defs/EvidenceDecision"
+        },
+        "catalog": {
+          "$ref": "#/$defs/EvidenceDecision"
+        },
+        "freshness": {
+          "$ref": "#/$defs/EvidenceDecision"
+        },
+        "real_data": {
+          "$ref": "#/$defs/EvidenceDecision"
+        },
+        "release": {
+          "$ref": "#/$defs/EvidenceDecision"
+        },
+        "runtime": {
+          "$ref": "#/$defs/EvidenceDecision"
+        },
+        "science": {
+          "$ref": "#/$defs/EvidenceDecision"
+        },
+        "security": {
+          "$ref": "#/$defs/EvidenceDecision"
+        },
+        "source": {
+          "$ref": "#/$defs/EvidenceDecision"
+        },
+        "stage": {
+          "$ref": "#/$defs/EvidenceDecision"
+        }
+      },
+      "type": "object"
+    },
+    "publication_disposition": {
+      "$ref": "#/$defs/PublicationDisposition"
+    },
+    "schema_version": {
+      "const": "bijux.container.qualification_assessment.v2",
+      "type": "string"
+    },
+    "subject_id": {
+      "type": "string"
+    },
+    "support_disposition": {
+      "$ref": "#/$defs/SupportDisposition"
+    }
+  },
+  "required": [
+    "schema_version",
+    "subject_id",
+    "support_disposition",
+    "publication_disposition",
+    "dimensions",
+    "claims"
+  ],
+  "title": "QualificationAssessment",
+  "type": "object"
+}

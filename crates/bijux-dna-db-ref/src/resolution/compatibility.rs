@@ -80,6 +80,10 @@ mod tests {
                 format: "m3vcf.gz".to_string(),
                 url: "https://example.org/panel.m3vcf.gz".to_string(),
                 checksum_sha256: "a".repeat(64),
+                size_bytes: 1,
+                source_checksum_algorithm: "md5".to_string(),
+                source_checksum: "a".repeat(32),
+                source_authority_url: "https://authority.example/panel.md5".to_string(),
                 required: true,
             }],
             compatibility: CatalogCompatibility {

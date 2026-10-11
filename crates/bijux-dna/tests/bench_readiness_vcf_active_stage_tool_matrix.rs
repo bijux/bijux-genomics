@@ -70,7 +70,7 @@ fn bench_readiness_vcf_active_stage_tool_matrix_reports_every_retained_binding()
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/vcf/vcf-active-stage-tool-matrix.tsv")
+        Some("artifacts/benchmark-smoke/readiness/vcf/vcf-active-stage-tool-matrix.tsv")
     );
     let row_count = payload["row_count"].as_u64().expect("row count");
     let active_row_count = payload["active_row_count"].as_u64().expect("active row count");
@@ -141,7 +141,9 @@ fn bench_readiness_vcf_active_stage_tool_matrix_reports_every_retained_binding()
             && row.get("scope_state").and_then(serde_json::Value::as_str) == Some("active")
             && row.get("scope_detail").and_then(serde_json::Value::as_str) == Some("active")
             && row.get("scope_proof_path").and_then(serde_json::Value::as_str)
-                == Some("benchmarks/readiness/all-domains/active-stage-tool-matrix.tsv")
+                == Some(
+                    "artifacts/benchmark-smoke/readiness/all-domains/active-stage-tool-matrix.tsv",
+                )
     }));
     assert!(rows.iter().any(|row| {
         row.get("stage_id").and_then(serde_json::Value::as_str) == Some("vcf.pca")
@@ -152,7 +154,9 @@ fn bench_readiness_vcf_active_stage_tool_matrix_reports_every_retained_binding()
             && row.get("scope_state").and_then(serde_json::Value::as_str) == Some("active")
             && row.get("scope_detail").and_then(serde_json::Value::as_str) == Some("active")
             && row.get("scope_proof_path").and_then(serde_json::Value::as_str)
-                == Some("benchmarks/readiness/all-domains/active-stage-tool-matrix.tsv")
+                == Some(
+                    "artifacts/benchmark-smoke/readiness/all-domains/active-stage-tool-matrix.tsv",
+                )
     }));
     assert!(rows.iter().any(|row| {
         row.get("stage_id").and_then(serde_json::Value::as_str) == Some("vcf.pca")
@@ -163,7 +167,9 @@ fn bench_readiness_vcf_active_stage_tool_matrix_reports_every_retained_binding()
             && row.get("scope_state").and_then(serde_json::Value::as_str) == Some("active")
             && row.get("scope_detail").and_then(serde_json::Value::as_str) == Some("active")
             && row.get("scope_proof_path").and_then(serde_json::Value::as_str)
-                == Some("benchmarks/readiness/all-domains/active-stage-tool-matrix.tsv")
+                == Some(
+                    "artifacts/benchmark-smoke/readiness/all-domains/active-stage-tool-matrix.tsv",
+                )
     }));
     assert!(rows.iter().any(|row| {
         row.get("stage_id").and_then(serde_json::Value::as_str) == Some("vcf.call")
@@ -174,7 +180,9 @@ fn bench_readiness_vcf_active_stage_tool_matrix_reports_every_retained_binding()
             && row.get("scope_state").and_then(serde_json::Value::as_str) == Some("active")
             && row.get("scope_detail").and_then(serde_json::Value::as_str) == Some("active")
             && row.get("scope_proof_path").and_then(serde_json::Value::as_str)
-                == Some("benchmarks/readiness/all-domains/active-stage-tool-matrix.tsv")
+                == Some(
+                    "artifacts/benchmark-smoke/readiness/all-domains/active-stage-tool-matrix.tsv",
+                )
     }));
     assert!(rows.iter().all(|row| {
         row.get("tool_status").and_then(serde_json::Value::as_str) != Some("unsupported")
@@ -191,7 +199,9 @@ fn bench_readiness_vcf_active_stage_tool_matrix_reports_every_retained_binding()
             && row.get("scope_state").and_then(serde_json::Value::as_str) == Some("active")
             && row.get("scope_detail").and_then(serde_json::Value::as_str) == Some("active")
             && row.get("scope_proof_path").and_then(serde_json::Value::as_str)
-                == Some("benchmarks/readiness/all-domains/active-stage-tool-matrix.tsv")
+                == Some(
+                    "artifacts/benchmark-smoke/readiness/all-domains/active-stage-tool-matrix.tsv",
+                )
     }));
     assert!(rows.iter().any(|row| {
         row.get("stage_id").and_then(serde_json::Value::as_str) == Some("vcf.qc")
@@ -202,7 +212,9 @@ fn bench_readiness_vcf_active_stage_tool_matrix_reports_every_retained_binding()
             && row.get("scope_state").and_then(serde_json::Value::as_str) == Some("active")
             && row.get("scope_detail").and_then(serde_json::Value::as_str) == Some("active")
             && row.get("scope_proof_path").and_then(serde_json::Value::as_str)
-                == Some("benchmarks/readiness/all-domains/active-stage-tool-matrix.tsv")
+                == Some(
+                    "artifacts/benchmark-smoke/readiness/all-domains/active-stage-tool-matrix.tsv",
+                )
     }));
     assert!(rows.iter().any(|row| {
         row.get("stage_id").and_then(serde_json::Value::as_str) == Some("vcf.imputation_metrics")
@@ -213,7 +225,9 @@ fn bench_readiness_vcf_active_stage_tool_matrix_reports_every_retained_binding()
             && row.get("scope_state").and_then(serde_json::Value::as_str) == Some("active")
             && row.get("scope_detail").and_then(serde_json::Value::as_str) == Some("active")
             && row.get("scope_proof_path").and_then(serde_json::Value::as_str)
-                == Some("benchmarks/readiness/all-domains/active-stage-tool-matrix.tsv")
+                == Some(
+                    "artifacts/benchmark-smoke/readiness/all-domains/active-stage-tool-matrix.tsv",
+                )
     }));
     assert!(rows.iter().any(|row| {
         row.get("stage_id").and_then(serde_json::Value::as_str) == Some("vcf.impute")
@@ -224,7 +238,9 @@ fn bench_readiness_vcf_active_stage_tool_matrix_reports_every_retained_binding()
             && row.get("scope_state").and_then(serde_json::Value::as_str) == Some("active")
             && row.get("scope_detail").and_then(serde_json::Value::as_str) == Some("active")
             && row.get("scope_proof_path").and_then(serde_json::Value::as_str)
-                == Some("benchmarks/readiness/all-domains/active-stage-tool-matrix.tsv")
+                == Some(
+                    "artifacts/benchmark-smoke/readiness/all-domains/active-stage-tool-matrix.tsv",
+                )
     }));
     assert!(rows.iter().any(|row| {
         row.get("stage_id").and_then(serde_json::Value::as_str) == Some("vcf.roh")
@@ -235,7 +251,9 @@ fn bench_readiness_vcf_active_stage_tool_matrix_reports_every_retained_binding()
             && row.get("scope_state").and_then(serde_json::Value::as_str) == Some("active")
             && row.get("scope_detail").and_then(serde_json::Value::as_str) == Some("active")
             && row.get("scope_proof_path").and_then(serde_json::Value::as_str)
-                == Some("benchmarks/readiness/all-domains/active-stage-tool-matrix.tsv")
+                == Some(
+                    "artifacts/benchmark-smoke/readiness/all-domains/active-stage-tool-matrix.tsv",
+                )
     }));
     assert!(rows.iter().any(|row| {
         row.get("stage_id").and_then(serde_json::Value::as_str) == Some("vcf.phasing")
@@ -248,6 +266,6 @@ fn bench_readiness_vcf_active_stage_tool_matrix_reports_every_retained_binding()
             && row.get("scope_detail").and_then(serde_json::Value::as_str)
                 == Some("benchmark_not_ready")
             && row.get("scope_proof_path").and_then(serde_json::Value::as_str)
-                == Some("benchmarks/readiness/all-domains/no-not-benchmark-ready-rows.json")
+                == Some("artifacts/benchmark-smoke/readiness/all-domains/no-not-benchmark-ready-rows.json")
     }));
 }

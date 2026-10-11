@@ -43,7 +43,7 @@ fn bench_readiness_vcf_filter_ready_reports_complete_active_retained_callers() {
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/vcf/filter-ready.json")
+        Some("artifacts/benchmark-smoke/readiness/vcf/filter-ready.json")
     );
     assert_eq!(payload.get("retained_row_count").and_then(serde_json::Value::as_u64), Some(1));
     assert_eq!(payload.get("active_row_count").and_then(serde_json::Value::as_u64), Some(1));

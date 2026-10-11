@@ -12,7 +12,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_STAGE_REGISTRY_EXTRA_PAIRS_PATH: &str =
-    "benchmarks/readiness/stage-registry-extra-pairs.tsv";
+    "artifacts/benchmark-smoke/readiness/stage-registry-extra-pairs.tsv";
 const STAGE_REGISTRY_EXTRA_PAIRS_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.stage_registry_extra_pairs.v1";
 

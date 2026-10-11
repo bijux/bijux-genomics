@@ -80,6 +80,7 @@ Materialize the resolved plan under the governed data root:
 bijux-dna bench materialize-fastq-corpus \
   --plan "$STUDY/data/evidence/acquisition-plans/$commit/human-short-read-diversity.json" \
   --data-root "$STUDY/data" \
+  --repository-commit "$commit" \
   --jobs 4 \
   --retries 2 \
   --timeout-seconds 120 \
@@ -93,7 +94,9 @@ repository path and commit, Linux `bijux-dna` executable path and SHA-256,
 acquisition plan path and SHA-256, governed data and evidence roots, scheduler
 resources, transfer limits, and admission timestamp. For an idempotent replay
 of an admitted corpus, `existing_catalog_sha256` binds the exact governed
-catalog that must already exist; omit it only for first admission.
+`data/catalog/snapshots/<repository-commit>/<portfolio-id>.json` catalog that
+must already exist; omit it only for first admission. Legacy flat catalog
+authorities remain immutable and are never replaced by materialization.
 
 Prepare immutable scheduler material from that specification, then submit it
 exactly once without waiting:
@@ -146,22 +149,40 @@ counts, computes SHA-256, makes the admitted raw files read-only, and writes
 the scientific catalog only after the complete cohort passes. Existing bytes
 are never trusted by path alone, and an existing catalog is never replaced.
 
-After materialization and format validation, build the path-stable scientific
-data index from the study catalog:
+After materialization and format validation, publish source-addressed catalog
+registry authority from
+`$STUDY/data/evidence/catalog-registries/$commit/registry.json`:
+
+```console
+bijux-dna bench catalog-registry publish \
+  --data-root "$STUDY/data" \
+  --source-commit "$commit"
+```
+
+The Rust publisher re-hashes every declared snapshot and verifies its exact
+source-addressed path, catalog ID, schema, and digest before publishing
+`data/catalog/registries/<source-commit>.json`. Existing equivalent authority
+is revalidated without mutation; conflicting authority is rejected.
+
+After materialization and registry publication, publish source-addressed catalog
+snapshots and a checked registry that identifies the current v2 snapshot for
+each corpus. Build the path-stable scientific data index from that registry:
 
 ```console
 commit=$(git rev-parse HEAD)
 evidence="$STUDY/data/evidence/indexes/$commit"
 cargo run -q -p bijux-dna -- bench data-index \
-  --catalog-root "$STUDY/data/catalog" \
+  --catalog-registry "$STUDY/data/catalog/registries/$commit.json" \
   --data-root "$STUDY/data" \
   --output "$evidence/data-index.json" \
   --report "$evidence/data-index.md" \
   --created-at-utc "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 ```
 
-The `bijux-dna-bench` authority re-hashes every admitted file and publishes
-only `study://data/...` identities. A record remains ineligible when file
+The registry retains historical v1 snapshot paths and hashes for replay, but
+only a source-addressed v2 snapshot may be current. The `bijux-dna-bench`
+authority verifies the registry, re-hashes each selected catalog and every
+admitted file, and publishes only `study://data/...` identities. A record remains ineligible when file
 integrity, source identity, retrieval or admission time, access classification,
 redistribution policy, or known limitations are missing.
 
