@@ -396,7 +396,7 @@ citation = "planned"
 pinned_commit = "sha256:1162eca207ecec12b03397a3a9be5eed0527f5d21c173dc24335340ddd191bc3"
 pin_strategy = "source_sha256"
 container_ref = "bijuxdna/plink:1.90b7.2"
-runtimes = ["docker", "apptainer"]
+runtimes = ["apptainer"]
 container = true
 version_cmd = "plink --version"
 help_cmd = "plink --help"
@@ -408,7 +408,7 @@ expected_bin = "plink"
 expected_artifacts = ["qc_report", "admixture_report", "population_structure_report", "metrics.json"]
 metrics_schema = "bijux.vcf.population_structure.v1"
 comparability_notes = "Planned tool; compare only within pinned profile and reference build."
-dockerfile = "containers/docker/Dockerfile.arm64.plink"
+dockerfile = ""
 apptainer_def = "containers/apptainer/plink.def"
 require_labels = true
 

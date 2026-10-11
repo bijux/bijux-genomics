@@ -1,0 +1,229 @@
+{
+  "checks": {
+    "help": {
+      "argv": [
+        "bcftools",
+        "--help"
+      ],
+      "exit_code": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "7e63e570bf2f0833a0ef85dd89d9ab270561910ce3342ac105cc15f36d14ccd6"
+    },
+    "negative": {
+      "argv": [
+        "bcftools",
+        "mpileup",
+        "-f",
+        "/input/EquCab3.0.fna",
+        "/input/governed-missing.bam"
+      ],
+      "exit_code": 1,
+      "stderr_sha256": "6fbf8487dc73a81be38e31f6ddd5894bd60befa7cd9d7e2f4393b07f24470b88",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "real": {
+      "argv": [
+        "sh",
+        "-c",
+        "set -eu; { bcftools mpileup --threads 3 -f /input/EquCab3.0.fna -R /input/known-sites.bed -q 20 -Q 20 -a FORMAT/DP,FORMAT/AD -Ou /input/ERR2112767.sorted.bam | bcftools call --threads 3 -A -i -m -C alleles -T /input/known-sites.alleles.tsv -Oz -o /result/ERR2112767.known-sites.vcf.gz; bcftools index -f /result/ERR2112767.known-sites.vcf.gz; bcftools stats /result/ERR2112767.known-sites.vcf.gz > /result/ERR2112767.known-sites.stats.txt; bcftools query -f '[%GT\\t%DP\\n]' /result/ERR2112767.known-sites.vcf.gz | awk 'BEGIN {total=0; covered=0; called=0; alternate=0; depth=0} {total++; if ($2 != \".\" && $2 + 0 > 0) {covered++; depth += $2} if ($1 != \".\" && $1 != \"./.\" && $1 != \".|.\") called++; if ($1 ~ /1/) alternate++} END {mean=(covered > 0 ? depth / covered : 0); printf \"{\\\"total_records\\\":%d,\\\"covered_sites\\\":%d,\\\"called_genotypes\\\":%d,\\\"alternate_genotypes\\\":%d,\\\"mean_depth_at_covered_sites\\\":%.6f}\\n\", total, covered, called, alternate, mean}' > /result/metrics.json; bcftools view -h /result/ERR2112767.known-sites.vcf.gz | grep -q '^##contig=<ID=NC_009144.3'; } > /result/bcftools.stdout.log 2> /result/bcftools.stderr.log"
+      ],
+      "exit_code": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "version": {
+      "argv": [
+        "bcftools",
+        "--version"
+      ],
+      "exit_code": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "2f0708a9210a04f2e6add5d9fcddd92853688e85391ac65eb5c48bef42863a40"
+    }
+  },
+  "credential_reference_sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+  "dependencies": [],
+  "execution": {
+    "cache_policy": "cold",
+    "determinism": "deterministic",
+    "locale": "C",
+    "random_seed": null,
+    "runtime_network": false,
+    "threads": 4,
+    "timezone": "UTC"
+  },
+  "failure_class": null,
+  "failures": [],
+  "governance_sha256": "32872b169364b600c0b2dbe08060c27147ccffa8254b4cbd654a7ed72e10a507",
+  "image": {
+    "path": "/lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/bcftools-1.20-linux-amd64-408eeb428a48.sif",
+    "sha256": "408eeb428a48286e9f8160571db10e4cb1b519fea336983a41e7bcab4551e761",
+    "size_bytes": 63156224
+  },
+  "inputs": [
+    {
+      "id": "err2112767_bam",
+      "kind": "data",
+      "mount_path": "/input/ERR2112767.sorted.bam",
+      "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb22390-err2112767/ERR2112767.sorted.bam",
+      "sha256": "1d9ca843614c66209de4618ba69ecfae236731f9999a1daa48622f061127fe87"
+    },
+    {
+      "id": "err2112767_bam_index",
+      "kind": "data",
+      "mount_path": "/input/ERR2112767.sorted.bam.bai",
+      "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb22390-err2112767/ERR2112767.sorted.bam.bai",
+      "sha256": "ab5d07b513a4a3f421a9a82aff5fc5767d41a7333693b67c9258b40a337276a3"
+    },
+    {
+      "id": "err2112767_catalog",
+      "kind": "data",
+      "mount_path": "/input/ERR2112767.catalog.json",
+      "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/data/catalog/ena-prjeb22390-err2112767-bam.json",
+      "sha256": "2e30dda04f4f1b3e44e97973d007420347a6cdc7f01b1637307ec8f9368ca6ff"
+    },
+    {
+      "id": "equcab3_reference",
+      "kind": "reference",
+      "mount_path": "/input/EquCab3.0.fna",
+      "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/data/references/equcab3-gcf-002863925.1/GCF_002863925.1_EquCab3.0_genomic.fna",
+      "sha256": "3a60f0b912bad2d78d76add5eb93fc08cb2ad52e4afdb9181046c219671809b6"
+    },
+    {
+      "id": "equcab3_reference_index",
+      "kind": "reference",
+      "mount_path": "/input/EquCab3.0.fna.fai",
+      "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/data/references/equcab3-gcf-002863925.1/GCF_002863925.1_EquCab3.0_genomic.fna.fai",
+      "sha256": "fd9abaac2aa522291dbb792ab3d23d694809cf36a7e1c6a4aa471a652a807f01"
+    },
+    {
+      "id": "equcab3_reference_catalog",
+      "kind": "reference",
+      "mount_path": "/input/EquCab3.0.catalog.json",
+      "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/data/catalog/equcab3-gcf-002863925.1.json",
+      "sha256": "f26f2abf91cc718eef7f82bbf41c2417cbc9200c8a82ab61f3d51eec5358ff7f"
+    },
+    {
+      "id": "ensembl_113_known_sites",
+      "kind": "database",
+      "mount_path": "/input/known-sites.vcf.gz",
+      "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/data/databases/ensembl-113-equcab3-refseq-known-sites-10mb/known-sites.vcf.gz",
+      "sha256": "82347b2f251d35daa712f9af722ca4c6b1a45ff7095219744ed3b20f3cbddf68"
+    },
+    {
+      "id": "ensembl_113_known_sites_index",
+      "kind": "database",
+      "mount_path": "/input/known-sites.vcf.gz.csi",
+      "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/data/databases/ensembl-113-equcab3-refseq-known-sites-10mb/known-sites.vcf.gz.csi",
+      "sha256": "c147a0f08d43f96e743350208368a98659e8e2c8c3d0fe847ccbfbf002d19466"
+    },
+    {
+      "id": "ensembl_113_known_sites_regions",
+      "kind": "database",
+      "mount_path": "/input/known-sites.bed",
+      "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/data/databases/ensembl-113-equcab3-refseq-known-sites-10mb/known-sites.bed",
+      "sha256": "5b7d66827570d4a3d40c5dcff82e903bde5acd58c3f7adde56fe73885fcbde72"
+    },
+    {
+      "id": "ensembl_113_known_sites_alleles",
+      "kind": "database",
+      "mount_path": "/input/known-sites.alleles.tsv",
+      "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/data/databases/ensembl-113-equcab3-refseq-known-sites-10mb/known-sites.alleles.tsv",
+      "sha256": "529fccd7a2a9beb7f2f41340f6a4806063d5bb785379e066ae5540e4743b08ff"
+    },
+    {
+      "id": "ensembl_113_known_sites_catalog",
+      "kind": "database",
+      "mount_path": "/input/known-sites.catalog.json",
+      "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/data/catalog/ensembl-113-equcab3-refseq-known-sites-10mb.json",
+      "sha256": "3e1d7f5b7739b70a7ad4f3171041bdc270d62e1484db0611a9f002bd140e0be3"
+    },
+    {
+      "id": "ensembl_113_genotyping_inputs_catalog",
+      "kind": "database",
+      "mount_path": "/input/genotyping-inputs.catalog.json",
+      "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/data/catalog/ensembl-113-equcab3-refseq-genotyping-inputs-10mb.json",
+      "sha256": "8a79b4c395541b245afcf1dcdb03de7e4e11790a85e75cf8fd09c69bd5462dd4"
+    }
+  ],
+  "metrics": [
+    {
+      "expected": 139907,
+      "id": "expected_known_site_records",
+      "json_pointer": "/total_records",
+      "observed": 139907,
+      "operator": "eq",
+      "path": "metrics.json",
+      "status": "passed",
+      "unit": "sites"
+    },
+    {
+      "expected": 0,
+      "id": "observed_known_sites",
+      "json_pointer": "/covered_sites",
+      "observed": 21,
+      "operator": "gt",
+      "path": "metrics.json",
+      "status": "passed",
+      "unit": "sites"
+    },
+    {
+      "expected": 0,
+      "id": "emitted_genotypes",
+      "json_pointer": "/called_genotypes",
+      "observed": 21,
+      "operator": "gt",
+      "path": "metrics.json",
+      "status": "passed",
+      "unit": "genotypes"
+    }
+  ],
+  "outputs": [
+    {
+      "path": "outputs/ERR2112767.known-sites.vcf.gz",
+      "sha256": "7c24d026f8d80187473081c60661c73e73fc0144ee38869d398aa463270a8068",
+      "size_bytes": 577463
+    },
+    {
+      "path": "outputs/ERR2112767.known-sites.vcf.gz.csi",
+      "sha256": "e0f82248b9ba3a10d6fc6d4e1bc1e54f27c7ade62ae7dec92b925bdff268e94b",
+      "size_bytes": 4760
+    },
+    {
+      "path": "outputs/ERR2112767.known-sites.stats.txt",
+      "sha256": "8fa8a6d3cb097416d448c143b0a928ecb15eb12bb103bb3ac026c920140bd7b4",
+      "size_bytes": 3052
+    },
+    {
+      "path": "outputs/bcftools.stderr.log",
+      "sha256": "94f2b4b3bfff6cb9802275aff0d84b9cdbf711d5fc66fda7b408b11a38bc634f",
+      "size_bytes": 194
+    },
+    {
+      "path": "outputs/metrics.json",
+      "sha256": "ae7f92724f0f37759eafff94de9e8a5795fd3b3bd9cfc231df16c6bcba8ca04c",
+      "size_bytes": 129
+    }
+  ],
+  "pipeline_schema_version": "bijux.container.pipeline.v2",
+  "pipeline_sha256": "9317a364de9e1c72558a14f2594a904c666abd1e26bf1a1b60be9a644ee39e7e",
+  "repository_clean": true,
+  "repository_commit": "44075982cd29ee95315f23992794684d314eae0b",
+  "repository_path": "/home/bijan/bijux/bijux-genomics-runs/44075982cd29ee95315f23992794684d314eae0b",
+  "run_id": "run-1140",
+  "runtime": {
+    "apptainer_version": "apptainer version 1.5.2-1.el9",
+    "cpus": "4",
+    "finished_at_utc": "2026-08-03T16:30:35.160090+00:00",
+    "host": "cn284",
+    "scratch_path": "/local/slurmtmp.3459720/bijux-genomics-3459720-jaISUF",
+    "slurm_job_id": "3459720",
+    "started_at_utc": "2026-08-03T16:30:26.271264+00:00"
+  },
+  "schema_version": "bijux.container.evidence.v2",
+  "site": {
+    "host": "cn284",
+    "id": "lunarc"
+  },
+  "status": "passed"
+}

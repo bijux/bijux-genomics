@@ -1,8 +1,16 @@
 #!/usr/bin/env sh
 set -eu
 
+native_version() {
+    native_output="$(Rscript -e 'cat(as.character(packageVersion("dada2")))' 2>&1)"
+    if [ "$native_output" != '1.30.0' ]; then
+        printf 'error: unexpected DADA2 package version: %s\n' "$native_output" >&2
+        exit 70
+    fi
+}
+
 case "${1:-}" in
-    --version) echo 'dada2 1.30.0' ;;
+    --version) native_version; printf 'dada2 %s\n' "$native_output" ;;
     --help|-h|"")
         printf '%s\n' \
             'usage: dada2 infer-asvs --input INPUT_R1.fastq[.gz] [--input-r2 INPUT_R2.fastq[.gz]] --output-dir DIR [--sample-id ID] [--threads N]' \

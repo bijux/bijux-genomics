@@ -1,0 +1,34 @@
+#!/usr/bin/env sh
+set -eu
+
+native_bin=/usr/local/bin/verifybamid2-bin
+
+case "${1:-}" in
+    --version)
+        set +e
+        native_output="$("$native_bin" --version 2>&1)"
+        native_status=$?
+        set -e
+        if [ "$native_status" -ne 255 ] || ! printf '%s\n' "$native_output" | grep -Fq 'Version:2.0.1'; then
+            printf 'error: unexpected VerifyBamID2 version probe (status=%s)\n' "$native_status" >&2
+            exit 70
+        fi
+        printf 'verifybamid2 2.0.1\n'
+        ;;
+    --help|-h|"")
+        set +e
+        native_output="$("$native_bin" --help 2>&1)"
+        native_status=$?
+        set -e
+        if [ "$native_status" -ne 1 ] || ! printf '%s\n' "$native_output" | grep -Fq 'Detailed instructions of parameters'; then
+            printf 'error: unexpected VerifyBamID2 help probe (status=%s)\n' "$native_status" >&2
+            exit 70
+        fi
+        printf '%s\n' "$native_output"
+        ;;
+    --__bijux_invalid_flag__*)
+        printf 'error: verifybamid2 does not support %s\n' "$1" >&2
+        exit 2
+        ;;
+    *) exec "$native_bin" "$@" ;;
+esac

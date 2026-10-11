@@ -16,9 +16,6 @@ outputs:
   - name: "kinship_report"
     data_type: "json"
     cardinality: "One"
-  - name: "genotyping_report"
-    data_type: "json"
-    cardinality: "One"
   - name: "summary"
     data_type: "json"
     cardinality: "One"
@@ -34,13 +31,12 @@ execution_contract:
   expected_outputs:
     - "sex_report"
     - "kinship_report"
-    - "genotyping_report"
     - "summary"
     - "stage_metrics"
     - "population_metrics"
   forbidden_outputs: []
   forbid_unexpected_outputs: true
-stage_ids: ["bam.sex","bam.kinship","bam.genotyping"]
+stage_ids: ["bam.sex","bam.kinship"]
 planned_stage_ids: []
 status: "supported"
 scope: "pre_hpc_pre_vcf"
@@ -63,15 +59,6 @@ stage_contracts:
       - "stage_metrics"
       - "population_metrics"
     notes: "ANGSD kinship inference preserves the governed kinship report outputs while retaining the native population metrics table as backend evidence."
-  bam.genotyping:
-    required_inputs:
-      - "bam"
-    expected_artifacts:
-      - "genotyping_report"
-      - "summary"
-      - "stage_metrics"
-      - "population_metrics"
-    notes: "ANGSD genotyping preserves the governed genotyping report outputs while retaining the native population metrics table as backend evidence."
 expected_artifacts: ["population_metrics"]
 metrics_schema_id: "bijux.bam.population.v1"
 metrics_schema: "bijux.bam.population.v1"

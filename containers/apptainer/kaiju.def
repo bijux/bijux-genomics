@@ -2,83 +2,66 @@
 # This container recipe is maintained by Bijux Genomics.
 # Bijux Genomics source code is licensed under Apache-2.0.
 # Copyright (C) 2026 Bijan Mousavi
-# BIJUX_TEMPLATE: v1
-
 # Tool ID: kaiju
-# Version policy: pinned_or_registry_locked
-# Upstream source: see org.opencontainers.image.source label
+# Version policy: exact upstream commit archive with a governed SHA-256 digest
+# Upstream source: https://github.com/bioinformatics-centre/kaiju
 # Build date policy: captured by immutable build evidence
-# Network source policy: NETWORK_SOURCE_VERIFIED_BY_LOCK
-# Runtime UID policy: RUNTIME_UID_SAFE
-
-# VERSION_SOURCE: containers/versions/versions.toml
+# Network source policy: build-only access to the locked Ubuntu snapshot and source archive
+# Runtime UID policy: caller identity with caller-owned output paths
+# VERSION_SOURCE: containers/contracts/catalog.toml
 Bootstrap: docker
 From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
 
 %labels
-    MAINTAINER Bijan Mousavi <bijan@bijux.io>
-    VERSION Kaiju-v1.10.0
     org.opencontainers.image.source https://github.com/bioinformatics-centre/kaiju
-
     org.opencontainers.image.revision 4653635b1321f5779707adc79c054012ed28b221
     org.opencontainers.image.created governed-by-build-evidence
     org.opencontainers.image.licenses GPL-3.0
     org.opencontainers.image.version 1.10.0
     io.bijux.tool.version 1.10.0
     org.opencontainers.image.tool kaiju
-    org.opencontainers.image.title kaiju
+    org.opencontainers.image.title Kaiju
+
 %environment
-    export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+    export PATH=/usr/local/bin:/opt/kaiju/bin:/usr/bin:/bin
+    export LANG=C
     export LC_ALL=C
     export TZ=UTC
-    DEBIAN_FRONTEND=noninteractive
+
+%files
+    containers/contracts/configure-apt-snapshot /usr/local/sbin/bijux-configure-apt-snapshot
+    containers/tools/kaiju/kaiju /usr/local/bin/kaiju
 
 %post
     set -eux
     umask 022
     export DEBIAN_FRONTEND=noninteractive
-
-    apt-get update && \
-    apt-get install -y --no-install-recommends \
-        wget \
-        ca-certificates \
-        build-essential \
-        zlib1g-dev && \
-
-    wget -q https://github.com/bioinformatics-centre/kaiju/archive/v1.10.0.tar.gz -O /tmp/kaiju.tar.gz && \
-    tar -xzf /tmp/kaiju.tar.gz -C /opt && \
-    cd /opt/kaiju-1.10.0/src && \
-    make && \
-    mv ../bin/kaiju /usr/local/bin/kaiju-bin && \
-    mv ../bin/* /usr/local/bin/ && \
-
-    # Create a wrapper script with version override and help handling.
-    cat > /usr/local/bin/kaiju <<'EOF'
-#!/bin/sh
-if [ "$1" = "--version" ]; then
-    echo "1.10.0"
-    exit 0
-elif [ "$1" = "--help" ]; then
-    /usr/local/bin/kaiju-bin --help
-    exit 0
-else
-    /usr/local/bin/kaiju-bin "$@"
-fi
-EOF
-    chmod +x /usr/local/bin/kaiju && \
-
-    cd / && \
-    rm -rf /tmp/kaiju.tar.gz /opt/kaiju-1.10.0 && \
+    /bin/sh /usr/local/sbin/bijux-configure-apt-snapshot
+    apt-get install -y --no-install-recommends zlib1g
+    apt-get install -y --no-install-recommends curl g++ make zlib1g-dev
+    curl --fail --location --proto '=https' --tlsv1.2 --output /opt/kaiju.tar.gz https://codeload.github.com/bioinformatics-centre/kaiju/tar.gz/4653635b1321f5779707adc79c054012ed28b221
+    echo 'b750e692e4ad8bab1dbde836e6e2813812cb2806865ef086f9bbf92b0e1b65a1  /opt/kaiju.tar.gz' | sha256sum --check --strict
+    tar --extract --gzip --file /opt/kaiju.tar.gz --directory /opt
+    make --directory /opt/kaiju-4653635b1321f5779707adc79c054012ed28b221/src -j2
+    install -d -m 0755 /opt/kaiju/bin
+    install -m 0755 /opt/kaiju-4653635b1321f5779707adc79c054012ed28b221/bin/kaiju /opt/kaiju/bin/kaiju-native
+    find /opt/kaiju-4653635b1321f5779707adc79c054012ed28b221/bin -maxdepth 1 -type f ! -name kaiju -exec install -m 0755 {} /opt/kaiju/bin/ \;
+    chmod 0755 /usr/local/bin/kaiju
+    kaiju --version | grep -Fx '1.10.0'
+    kaiju --help | grep -F 'Kaiju 1.10.0' >/dev/null
+    rm -rf /opt/kaiju.tar.gz /opt/kaiju-4653635b1321f5779707adc79c054012ed28b221
+    apt-get purge -y --auto-remove curl g++ make zlib1g-dev
+    apt-get clean
     rm -rf /var/lib/apt/lists/*
+
 %runscript
-    if [ $# -eq 0 ]; then
-        exec /usr/local/bin/kaiju --help
-    else
-        exec /usr/local/bin/kaiju "$@"
-    fi
+    exec /usr/local/bin/kaiju "$@"
+
+%test
+    kaiju --version | grep -Fx '1.10.0'
+    kaiju --help | grep -F 'Kaiju 1.10.0' >/dev/null
+    test -x /opt/kaiju/bin/kaiju-native
 
 %help
-    This Apptainer image provides Kaiju version 1.10.0, compiled from source.
-    All Kaiju tools (kaiju, kaiju2table, etc.) are available.
-    The default command is 'kaiju' (with wrapper for consistent --version output).
-    Run without arguments to display help.
+    Kaiju 1.10.0 from the exact checksummed upstream commit archive.
+    Version and help probes validate the native binary before normalization.

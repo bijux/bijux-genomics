@@ -1,7 +1,7 @@
 {
   "schema_version": "bijux.container.catalog_lock.v1",
   "source": "containers/contracts/catalog.toml",
-  "source_sha256": "f6bc6e79b1c5e0403c1c0a63d0b9d536a7cd35bbf7b7d524be5d64355dd2ec24",
+  "source_sha256": "39734e0f2eba75efee1b4266c3901b8210d52cf45cb55259bcd45901a20501a8",
   "owner": "Bijan Mousavi",
   "contact": "bijan@bijux.io",
   "repository": "https://github.com/bijux/bijux-genomics",
@@ -84,7 +84,7 @@
       "pinned_commit": "b3099ed756e7aff87d2d1dd4fd30cdf36998380b",
       "apptainer_definition": "",
       "dockerfile": "",
-      "contract_sha256": "9dc3b5859b8d483497f4187315df045d85660a34c459490d987ec579985ca091"
+      "contract_sha256": "aeb6b4f306007ea4a9073fcf36f6a8712636d5a56c463788231219fc0160b6da"
     },
     {
       "id": "atropos",
@@ -196,7 +196,7 @@
       "pinned_commit": "02ee548d77916357dcd3699eab88273acd8f9f7c",
       "apptainer_definition": "containers/apptainer/bcftools.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.bcftools",
-      "contract_sha256": "b333cc8b43d02c16fcc53833251ee22251f076b434009e8e016ab062edef3d47"
+      "contract_sha256": "267a7dec8dd1cefdaea418b8ecec5c4999159250670cfed5722a2aa539eff5c7"
     },
     {
       "id": "beagle",
@@ -471,12 +471,12 @@
       "support_disposition": "retained",
       "support_reason": "",
       "upstream": "https://github.com/StevenWingett/FastQ-Screen",
-      "license": "GPL-3.0-only",
-      "source_sha256": "",
+      "license": "GPL-3.0-or-later",
+      "source_sha256": "79a66b7265374c1c1b34ca166eede564bfa7ec58e17c3ba9a0e1de9bbe1c2448",
       "pinned_commit": "6dfa1eef0d3103dd7829eb1f586b4d8a121f911b",
       "apptainer_definition": "containers/apptainer/fastq_screen.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.fastq_screen",
-      "contract_sha256": "66b109c85f9543e05dbec0e8770537fd7b60ba42b8f8e68a9384c85bdd399701"
+      "contract_sha256": "0f8f88dcf335e6e4193607ac00bf450aca8faf9cbb9b4a6d84f968705cccdb8a"
     },
     {
       "id": "fastqc",
@@ -668,11 +668,11 @@
       "support_reason": "",
       "upstream": "https://github.com/bioinformatics-centre/kaiju",
       "license": "GPL-3.0",
-      "source_sha256": "",
+      "source_sha256": "b750e692e4ad8bab1dbde836e6e2813812cb2806865ef086f9bbf92b0e1b65a1",
       "pinned_commit": "4653635b1321f5779707adc79c054012ed28b221",
       "apptainer_definition": "containers/apptainer/kaiju.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.kaiju",
-      "contract_sha256": "18369e64ed37b01f4369aa81c7a99fc0da60466566f038711053bbae13e4d631"
+      "contract_sha256": "394833505885c62781369b7c07a39814362e97ee2b3d2fa41bc415a76b3265de"
     },
     {
       "id": "king",
@@ -709,12 +709,12 @@
       "support_disposition": "retained",
       "support_reason": "",
       "upstream": "https://github.com/fbreitwieser/krakenuniq",
-      "license": "GPL-3.0",
-      "source_sha256": "",
+      "license": "GPL-3.0-or-later",
+      "source_sha256": "aa11c4d015516dcfdd58bc38234cfb4f0473833be49c2a6dc12da384540bead9",
       "pinned_commit": "d3305ac7d7fddbd3e62240ab62869aded869f133",
       "apptainer_definition": "containers/apptainer/krakenuniq.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.krakenuniq",
-      "contract_sha256": "b615c330285bd0adef79216bd76a0b8b6fc66ac4216ceec10924dd5b1f68d626"
+      "contract_sha256": "201bee391aa607bc6bb096b7043b14f779b0e32e4f5f5a072ef784fee491ed81"
     },
     {
       "id": "leehom",
@@ -881,8 +881,8 @@
       "source_sha256": "1162eca207ecec12b03397a3a9be5eed0527f5d21c173dc24335340ddd191bc3",
       "pinned_commit": "",
       "apptainer_definition": "containers/apptainer/plink.def",
-      "dockerfile": "containers/docker/Dockerfile.arm64.plink",
-      "contract_sha256": "a85ee313b7e23b6d0d99027cc0d5ff9852df1765e6ea91b36ccb6d30cbaa461f"
+      "dockerfile": "",
+      "contract_sha256": "9479d9958f81c4c7ac3bf6258cfc3ecbbe82dc70fadac13fc598460cd3f4de87"
     },
     {
       "id": "plink2",
@@ -1186,11 +1186,11 @@
       "support_reason": "",
       "upstream": "https://github.com/alexdobin/STAR",
       "license": "GPL-3.0",
-      "source_sha256": "",
+      "source_sha256": "65976afe9b8c5dbda05282c7c02ba27d0f908a7eb83ec12e3fca86ed5eb91cac",
       "pinned_commit": "b1edc1208d91a53bf40ebae8669f71d50b994851",
       "apptainer_definition": "containers/apptainer/star.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.star",
-      "contract_sha256": "3538e2343fae19b7a36c8daf46f0fd8fb3eab38c9b26b282817d05bc3d857131"
+      "contract_sha256": "eb754c68350940862fe9c1d66606be6ba1e557e47869a05794246e23a5ae21a7"
     },
     {
       "id": "trim_galore",
@@ -1200,11 +1200,11 @@
       "support_reason": "",
       "upstream": "https://github.com/FelixKrueger/TrimGalore",
       "license": "GPL-3.0",
-      "source_sha256": "",
+      "source_sha256": "dc5d24ab37c3cfed8038b8c2546948e52e3e769b912ccfd5c9d28c34546f5e2c",
       "pinned_commit": "4edff97d22f3837d42a29e4afbfaeb6e07ffb11b",
       "apptainer_definition": "containers/apptainer/trim_galore.def",
       "dockerfile": "containers/docker/Dockerfile.arm64.trim_galore",
-      "contract_sha256": "8ba276bced7ee987fb30e06ab61aa00d62db92cdc4a5d19d856f99af89df72f3"
+      "contract_sha256": "0489f29ede74334aa8d226e0883cb7aa2c962fcaadf1f9493b227ed6392c2840"
     },
     {
       "id": "trimmomatic",

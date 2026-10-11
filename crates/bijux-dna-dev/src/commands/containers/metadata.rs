@@ -157,6 +157,7 @@ fn generate_container_index_content(workspace: &Workspace) -> Result<String> {
     let inventory = read_json(&workspace.path("containers/reports/image-inventory.json"))?;
     let storage = read_json(&workspace.path("containers/reports/image-storage.json"))?;
     let rebuild = read_json(&workspace.path("containers/reports/lunarc-image-rebuild.json"))?;
+    let refresh = read_json(&workspace.path("containers/reports/lunarc-image-refresh.json"))?;
     let runtime = read_json(&workspace.path("containers/reports/runtime-verification.json"))?;
     let runs = read_json(&workspace.path("containers/reports/run-evidence.json"))?;
     let qualification = read_json(&workspace.path("containers/reports/qualification.json"))?;
@@ -177,10 +178,16 @@ fn generate_container_index_content(workspace: &Workspace) -> Result<String> {
         storage.get("verdict").and_then(serde_json::Value::as_str).unwrap_or("unavailable");
     let storage_moved =
         storage.get("moved_file_count").and_then(serde_json::Value::as_u64).unwrap_or(0);
+    let storage_image_noun = if storage_moved == 1 { "image" } else { "images" };
     let rebuild_verdict =
         rebuild.get("verdict").and_then(serde_json::Value::as_str).unwrap_or("unavailable");
     let rebuild_tools =
         rebuild.get("selected_tool_count").and_then(serde_json::Value::as_u64).unwrap_or(0);
+    let refresh_verdict =
+        refresh.get("verdict").and_then(serde_json::Value::as_str).unwrap_or("unavailable");
+    let refresh_tools =
+        refresh.get("selected_tool_count").and_then(serde_json::Value::as_u64).unwrap_or(0);
+    let refresh_recipe_noun = if refresh_tools == 1 { "recipe" } else { "recipes" };
     let runtime_passed =
         runtime.pointer("/summary/passed").and_then(serde_json::Value::as_u64).unwrap_or(0);
     let governed_runs =
@@ -218,6 +225,11 @@ fn generate_container_index_content(workspace: &Workspace) -> Result<String> {
                 .all(|link| links.get(*link).and_then(serde_json::Value::as_bool) == Some(true))
         });
     let evidence_chain_status = if evidence_chain_current { "current" } else { "stale" };
+    let inventory_context = if evidence_chain_current {
+        "their published identities support the current qualification chain"
+    } else {
+        "these counts are historical while the qualification chain is stale"
+    };
     let mut lines = vec![
         "# Containers Docs Index".to_string(),
         String::new(),
@@ -232,11 +244,12 @@ fn generate_container_index_content(workspace: &Workspace) -> Result<String> {
         "## Published evidence and current qualification".to_string(),
         String::new(),
         format!("- Qualification evidence chain: **{evidence_chain_status}**; the current catalog recognizes **{qualified_builds} build**, **{qualified_runtimes} runtime**, and **{qualified_freshness} freshness** passes ([details](../reports/qualification.md))."),
-        format!("- Published image inventory records **{inventory_states}**; these counts are historical when the qualification chain is stale ([details](../reports/image-inventory.md))."),
-        format!("- Published canonical storage report: **{storage_verdict}**, **{storage_moved} obsolete images quarantined reversibly** ([details](../reports/image-storage.md))."),
+        format!("- Published image inventory records **{inventory_states}**; {inventory_context} ([details](../reports/image-inventory.md))."),
+        format!("- Published canonical storage report: **{storage_verdict}**, **{storage_moved} obsolete {storage_image_noun} quarantined reversibly** ([details](../reports/image-storage.md))."),
         format!("- Published isolated rebuild: **{rebuild_verdict}**, **{rebuild_tools} retained images at that campaign commit** ([details](../reports/lunarc-image-rebuild.md))."),
+        format!("- Published targeted image refresh: **{refresh_verdict}**, **{refresh_tools} changed {refresh_recipe_noun} rebuilt and readmitted** ([details](../reports/lunarc-image-refresh.md))."),
         format!("- Published version/help campaign: **{runtime_status}**, **{runtime_passed} images passed at that campaign commit** ([details](../reports/runtime-verification.md))."),
-        format!("- Final run records: **{governed_runs} tools**, **{passed_runs} execution passes**; **{declared_stage_passes}** retained tools pass their declared real-data stage and **{scientific_passes}** have scientific acceptance ([runs](../reports/run-evidence.md), [qualification](../reports/qualification.md))."),
+        format!("- Final run records: **{governed_runs} records**, **{passed_runs} execution passes**; **{declared_stage_passes}** retained tools pass their declared real-data stage and **{scientific_passes}** have scientific acceptance ([runs](../reports/run-evidence.md), [qualification](../reports/qualification.md))."),
         "- Build, runtime, real execution, science, benchmark, security, and release are independent evidence dimensions.".to_string(),
         String::new(),
         "## Strict TOC".to_string(),

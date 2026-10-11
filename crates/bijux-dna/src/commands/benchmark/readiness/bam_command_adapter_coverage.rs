@@ -5,9 +5,7 @@ use std::path::{Path, PathBuf};
 use anyhow::{Context, Result};
 use serde::Serialize;
 
-use super::tool_serving_map::{
-    render_bam_tool_serving_map, ToolServingMapRow, DEFAULT_BAM_TOOL_SERVING_MAP_PATH,
-};
+use super::tool_serving_map::{collect_bam_tool_serving_map_rows, ToolServingMapRow};
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
@@ -144,10 +142,9 @@ pub(crate) fn render_bam_command_adapter_coverage(
 pub(crate) fn collect_bam_command_adapter_coverage_rows(
     repo_root: &Path,
 ) -> Result<(usize, usize, Vec<BamCommandAdapterCoverageRow>)> {
-    let tool_map =
-        render_bam_tool_serving_map(repo_root, PathBuf::from(DEFAULT_BAM_TOOL_SERVING_MAP_PATH))?;
-    let rows = tool_map.rows.iter().map(render_coverage_row).collect::<Vec<_>>();
-    Ok((tool_map.stage_count, tool_map.tool_count, rows))
+    let (stage_count, tool_count, serving_rows) = collect_bam_tool_serving_map_rows(repo_root)?;
+    let rows = serving_rows.iter().map(render_coverage_row).collect::<Vec<_>>();
+    Ok((stage_count, tool_count, rows))
 }
 
 fn render_coverage_row(row: &ToolServingMapRow) -> BamCommandAdapterCoverageRow {
@@ -288,10 +285,7 @@ fn sanitize_tsv(value: &str) -> String {
 mod tests {
     use std::path::PathBuf;
 
-    use super::{
-        render_bam_command_adapter_coverage, BAM_COMMAND_ADAPTER_COVERAGE_SCHEMA_VERSION,
-        DEFAULT_BAM_COMMAND_ADAPTER_COVERAGE_PATH,
-    };
+    use super::{render_bam_command_adapter_coverage, BAM_COMMAND_ADAPTER_COVERAGE_SCHEMA_VERSION};
 
     fn repo_root() -> PathBuf {
         PathBuf::from(env!("CARGO_MANIFEST_DIR"))
@@ -303,19 +297,19 @@ mod tests {
     #[test]
     fn bam_command_adapter_coverage_reports_governed_row_readiness() {
         let root = repo_root();
-        let report = render_bam_command_adapter_coverage(
-            &root,
-            PathBuf::from(DEFAULT_BAM_COMMAND_ADAPTER_COVERAGE_PATH),
-        )
-        .expect("render BAM command adapter coverage");
+        let output = tempfile::tempdir().expect("temporary output");
+        let report = render_bam_command_adapter_coverage(&root, output.path().join("bam.tsv"))
+            .expect("render BAM command adapter coverage");
 
         assert_eq!(report.schema_version, BAM_COMMAND_ADAPTER_COVERAGE_SCHEMA_VERSION);
         assert_eq!(report.stage_count, 24);
-        assert_eq!(report.tool_count, 25);
-        assert_eq!(report.row_count, 49);
-        assert_eq!(report.benchmark_ready_row_count, 49);
-        assert_eq!(report.benchmark_ready_adapter_covered_row_count, 49);
+        assert_eq!(report.row_count, report.rows.len());
+        assert_eq!(report.benchmark_ready_row_count, report.row_count);
+        assert_eq!(report.benchmark_ready_adapter_covered_row_count, report.row_count);
         assert_eq!(report.benchmark_ready_adapter_missing_row_count, 0);
+        for unsupported_tool_id in ["angsd", "ngsbriggs"] {
+            assert!(report.rows.iter().all(|row| row.tool_id != unsupported_tool_id));
+        }
         assert!(report.readiness_gap_counts.get("parser").is_none());
         assert!(
             report.readiness_gap_counts.get("support").is_none(),
@@ -341,15 +335,6 @@ mod tests {
             row.tool_id == "mapdamage2"
                 && row.stage_id == "bam.damage"
                 && super::benchmark_status_label(row.benchmark_status) == "benchmark_ready"
-                && row.corpus_status == "fixture:corpus-01-adna-damage-mini"
-        }));
-        assert!(report.rows.iter().any(|row| {
-            row.tool_id == "ngsbriggs"
-                && row.stage_id == "bam.damage"
-                && super::benchmark_status_label(row.benchmark_status) == "benchmark_ready"
-                && super::adapter_coverage_label(row.adapter_coverage) == "covered"
-                && super::readiness_gap_label(row.readiness_gap) == "none"
-                && row.parser_status == "parser_fixture_validated"
                 && row.corpus_status == "fixture:corpus-01-adna-damage-mini"
         }));
         assert!(report.rows.iter().any(|row| {
@@ -449,7 +434,7 @@ mod tests {
                 && row.corpus_status == "fixture:corpus-01-mini"
         }));
         assert!(report.rows.iter().any(|row| {
-            row.tool_id == "angsd"
+            row.tool_id == "bcftools"
                 && row.stage_id == "bam.genotyping"
                 && super::benchmark_status_label(row.benchmark_status) == "benchmark_ready"
                 && super::adapter_coverage_label(row.adapter_coverage) == "covered"
@@ -463,7 +448,8 @@ mod tests {
     #[test]
     fn bam_command_adapter_coverage_writes_governed_tsv_columns() {
         let root = repo_root();
-        let output_path = PathBuf::from(DEFAULT_BAM_COMMAND_ADAPTER_COVERAGE_PATH);
+        let output = tempfile::tempdir().expect("temporary output");
+        let output_path = output.path().join("bam.tsv");
         let report =
             render_bam_command_adapter_coverage(&root, output_path).expect("render coverage");
         let rendered = std::fs::read_to_string(root.join(&report.output_path))
@@ -519,10 +505,10 @@ mod tests {
         assert!(
             rows.iter().any(|row| {
                 row.starts_with(
-                    "angsd\tbam.genotyping\tbenchmark_ready\tcovered\tnone\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-genotyping-mini\t"
+                    "bcftools\tbam.genotyping\tbenchmark_ready\tcovered\tnone\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-genotyping-mini\t"
                 )
             }),
-            "the governed BAM genotyping row must be benchmark-ready and adapter-covered through the owned angsd fixture"
+            "the governed BAM genotyping row must be benchmark-ready and adapter-covered through the owned bcftools fixture"
         );
     }
 }

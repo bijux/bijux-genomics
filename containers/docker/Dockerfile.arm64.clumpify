@@ -3,6 +3,7 @@
 # VERSION_SOURCE: containers/contracts/catalog.toml
 FROM ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
 COPY --chmod=0555 containers/contracts/configure-apt-snapshot /usr/local/sbin/bijux-configure-apt-snapshot
+COPY --chmod=0555 containers/tools/bbmap/bbmap-interface /usr/local/bin/clumpify
 
 ARG OCI_CREATED=governed-by-build-evidence
 ARG TOOL_VERSION=39.06
@@ -15,6 +16,7 @@ LABEL org.opencontainers.image.source="https://sourceforge.net/projects/bbmap/" 
       org.opencontainers.image.title="Clumpify" \
       org.opencontainers.image.base.name="ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b" \
       org.opencontainers.image.base.digest="sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b"
+LABEL io.bijux.tool.version="39.06"
 
 ENV LANG=C LC_ALL=C TZ=UTC DEBIAN_FRONTEND=noninteractive
 RUN /usr/local/sbin/bijux-configure-apt-snapshot && \
@@ -25,13 +27,11 @@ RUN /usr/local/sbin/bijux-configure-apt-snapshot && \
       'https://downloads.sourceforge.net/project/bbmap/BBMap_39.06.tar.gz?download' && \
     echo '61d45bd59a543b90a143c5c7dbfec0ff6163dce54194b8c4b648fb6aac67d42e  /tmp/bbmap.tar.gz' | sha256sum --check --strict && \
     mkdir -p /opt && tar --extract --gzip --file /tmp/bbmap.tar.gz --directory /opt && \
-    printf '%s\n' '#!/usr/bin/env sh' 'set -eu' \
-      'case "${1:-}" in' \
-      '  --version) printf "%s\\n" "BBMap 39.06 (Clumpify)" ;;' \
-      '  --help|-h|"") exec /opt/bbmap/clumpify.sh ;;' \
-      '  *) exec /opt/bbmap/clumpify.sh "$@" ;;' 'esac' > /usr/local/bin/clumpify && \
-    chmod 0755 /usr/local/bin/clumpify && \
-    test "$(clumpify --version)" = 'BBMap 39.06 (Clumpify)' && \
+    clumpify --version > /tmp/clumpify.version && \
+    grep -Fx 'BBMap 39.06 (Clumpify)' /tmp/clumpify.version && \
+    clumpify --help > /tmp/clumpify.help && \
+    grep -F 'Usage:   clumpify.sh ' /tmp/clumpify.help && \
+    rm -f /tmp/clumpify.version /tmp/clumpify.help && \
     rm -f /tmp/bbmap.tar.gz && rm -rf /var/lib/apt/lists/* && \
     useradd --system --uid 65532 --home-dir /work --create-home bijux
 

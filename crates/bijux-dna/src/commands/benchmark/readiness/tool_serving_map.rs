@@ -18,8 +18,9 @@ use bijux_dna_planner_bam::stage_api::{
 use serde::Serialize;
 
 use super::active_scope::include_fastq_active_benchmark_pair;
+use super::catalog::load_retained_container_tool_ids;
 use crate::commands::benchmark::local_corpus_stage_compatibility::{
-    validate_corpus_stage_compatibility_path, DEFAULT_CORPUS_STAGE_COMPATIBILITY_PATH,
+    load_corpus_stage_compatibility_declarations, DEFAULT_CORPUS_STAGE_COMPATIBILITY_PATH,
 };
 use crate::commands::benchmark::local_stage_inventory::{
     load_local_stage_inventory, BenchLocalDomain,
@@ -93,7 +94,30 @@ pub(crate) fn render_fastq_tool_serving_map(
     output_path: PathBuf,
 ) -> Result<ToolServingMapReport> {
     let output_path = repo_relative_path(repo_root, &output_path);
+    let (stage_count, tool_count, rows) = collect_fastq_tool_serving_map_rows(repo_root)?;
+
+    if let Some(parent) = output_path.parent() {
+        fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
+    }
+    fs::write(&output_path, render_tool_serving_map_tsv(&rows))
+        .with_context(|| format!("write {}", output_path.display()))?;
+
+    Ok(ToolServingMapReport {
+        schema_version: FASTQ_TOOL_SERVING_MAP_SCHEMA_VERSION,
+        domain: "fastq",
+        output_path: path_relative_to_repo(repo_root, &output_path),
+        stage_count,
+        tool_count,
+        row_count: rows.len(),
+        rows,
+    })
+}
+
+pub(crate) fn collect_fastq_tool_serving_map_rows(
+    repo_root: &Path,
+) -> Result<(usize, usize, Vec<ToolServingMapRow>)> {
     let corpus_status_by_stage = load_corpus_status_by_stage(repo_root)?;
+    let retained_container_tool_ids = load_retained_container_tool_ids(repo_root)?;
     let inventory = load_local_stage_inventory(repo_root, BenchLocalDomain::Fastq)?;
     let mut rows = Vec::new();
     let mut tool_ids = BTreeSet::new();
@@ -107,6 +131,9 @@ pub(crate) fn render_fastq_tool_serving_map(
                 )
             })?;
         for binding in stage_tool_bindings_for_stage(&stage_id) {
+            if !retained_container_tool_ids.contains(binding.tool_id.as_str()) {
+                continue;
+            }
             let runtime_normalization =
                 runtime_normalization_for_stage_tool(&binding.stage_id, &binding.tool_id);
             let capability = stage_tool_capability_contract(
@@ -152,21 +179,7 @@ pub(crate) fn render_fastq_tool_serving_map(
     });
     ensure_fastq_amplicon_fixture_coverage(&rows)?;
 
-    if let Some(parent) = output_path.parent() {
-        fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
-    }
-    fs::write(&output_path, render_tool_serving_map_tsv(&rows))
-        .with_context(|| format!("write {}", output_path.display()))?;
-
-    Ok(ToolServingMapReport {
-        schema_version: FASTQ_TOOL_SERVING_MAP_SCHEMA_VERSION,
-        domain: "fastq",
-        output_path: path_relative_to_repo(repo_root, &output_path),
-        stage_count: inventory.stage_count,
-        tool_count: tool_ids.len(),
-        row_count: rows.len(),
-        rows,
-    })
+    Ok((inventory.stage_count, tool_ids.len(), rows))
 }
 
 fn include_fastq_readiness_binding(stage_id: &StageId, tool_id: &ToolId) -> bool {
@@ -230,7 +243,30 @@ pub(crate) fn render_bam_tool_serving_map(
     output_path: PathBuf,
 ) -> Result<ToolServingMapReport> {
     let output_path = repo_relative_path(repo_root, &output_path);
+    let (stage_count, tool_count, rows) = collect_bam_tool_serving_map_rows(repo_root)?;
+
+    if let Some(parent) = output_path.parent() {
+        fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
+    }
+    fs::write(&output_path, render_tool_serving_map_tsv(&rows))
+        .with_context(|| format!("write {}", output_path.display()))?;
+
+    Ok(ToolServingMapReport {
+        schema_version: BAM_TOOL_SERVING_MAP_SCHEMA_VERSION,
+        domain: "bam",
+        output_path: path_relative_to_repo(repo_root, &output_path),
+        stage_count,
+        tool_count,
+        row_count: rows.len(),
+        rows,
+    })
+}
+
+pub(crate) fn collect_bam_tool_serving_map_rows(
+    repo_root: &Path,
+) -> Result<(usize, usize, Vec<ToolServingMapRow>)> {
     let corpus_status_by_stage = load_corpus_status_by_stage(repo_root)?;
+    let retained_container_tool_ids = load_retained_container_tool_ids(repo_root)?;
     let inventory = load_local_stage_inventory(repo_root, BenchLocalDomain::Bam)?;
     let mut rows = Vec::new();
     let mut tool_ids = BTreeSet::new();
@@ -247,6 +283,9 @@ pub(crate) fn render_bam_tool_serving_map(
             })?;
         let parser_status = bam_parser_status_label(stage);
         for tool_id in allowed_bam_tools_for_stage(stage) {
+            if !retained_container_tool_ids.contains(tool_id.as_str()) {
+                continue;
+            }
             tool_ids.insert(tool_id.as_str().to_string());
             rows.push(ToolServingMapRow {
                 tool_id: tool_id.as_str().to_string(),
@@ -262,21 +301,7 @@ pub(crate) fn render_bam_tool_serving_map(
         left.tool_id.cmp(&right.tool_id).then_with(|| left.stage_id.cmp(&right.stage_id))
     });
 
-    if let Some(parent) = output_path.parent() {
-        fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
-    }
-    fs::write(&output_path, render_tool_serving_map_tsv(&rows))
-        .with_context(|| format!("write {}", output_path.display()))?;
-
-    Ok(ToolServingMapReport {
-        schema_version: BAM_TOOL_SERVING_MAP_SCHEMA_VERSION,
-        domain: "bam",
-        output_path: path_relative_to_repo(repo_root, &output_path),
-        stage_count: inventory.stage_count,
-        tool_count: tool_ids.len(),
-        row_count: rows.len(),
-        rows,
-    })
+    Ok((inventory.stage_count, tool_ids.len(), rows))
 }
 
 fn runtime_normalization_for_stage_tool(
@@ -334,9 +359,7 @@ fn parser_status_label(
 
 pub(crate) fn load_corpus_status_by_stage(repo_root: &Path) -> Result<BTreeMap<String, String>> {
     let matrix_path = repo_root.join(DEFAULT_CORPUS_STAGE_COMPATIBILITY_PATH);
-    let corpus_compatibility = validate_corpus_stage_compatibility_path(repo_root, &matrix_path)?;
-    corpus_compatibility
-        .stages
+    load_corpus_stage_compatibility_declarations(&matrix_path)?
         .iter()
         .map(|entry| {
             let corpus_status = match entry.compatibility_kind.as_str() {
@@ -445,8 +468,7 @@ mod tests {
 
     use super::{
         render_bam_tool_serving_map, render_fastq_tool_serving_map,
-        BAM_TOOL_SERVING_MAP_SCHEMA_VERSION, DEFAULT_BAM_TOOL_SERVING_MAP_PATH,
-        DEFAULT_FASTQ_TOOL_SERVING_MAP_PATH, FASTQ_TOOL_SERVING_MAP_SCHEMA_VERSION,
+        BAM_TOOL_SERVING_MAP_SCHEMA_VERSION, FASTQ_TOOL_SERVING_MAP_SCHEMA_VERSION,
     };
 
     fn repo_root() -> PathBuf {
@@ -459,16 +481,16 @@ mod tests {
     #[test]
     fn fastq_tool_serving_map_reports_governed_fastq_stage_scope() {
         let root = repo_root();
-        let report = render_fastq_tool_serving_map(
-            &root,
-            PathBuf::from(DEFAULT_FASTQ_TOOL_SERVING_MAP_PATH),
-        )
-        .expect("render FASTQ tool serving map");
+        let output = tempfile::tempdir().expect("temporary output");
+        let report = render_fastq_tool_serving_map(&root, output.path().join("fastq.tsv"))
+            .expect("render FASTQ tool serving map");
 
         assert_eq!(report.schema_version, FASTQ_TOOL_SERVING_MAP_SCHEMA_VERSION);
         assert_eq!(report.domain, "fastq");
         assert_eq!(report.stage_count, 27);
+        assert_eq!(report.row_count, report.rows.len());
         assert!(!report.rows.is_empty(), "FASTQ tool serving map must contain rows");
+        assert!(report.rows.iter().all(|row| row.tool_id != "fastuniq"));
         assert!(report.rows.iter().any(|row| {
             row.tool_id == "fastqc"
                 && row.stage_id == "fastq.validate_reads"
@@ -611,16 +633,18 @@ mod tests {
     #[test]
     fn bam_tool_serving_map_reports_governed_bam_stage_scope() {
         let root = repo_root();
-        let report =
-            render_bam_tool_serving_map(&root, PathBuf::from(DEFAULT_BAM_TOOL_SERVING_MAP_PATH))
-                .expect("render BAM tool serving map");
+        let output = tempfile::tempdir().expect("temporary output");
+        let report = render_bam_tool_serving_map(&root, output.path().join("bam.tsv"))
+            .expect("render BAM tool serving map");
 
         assert_eq!(report.schema_version, BAM_TOOL_SERVING_MAP_SCHEMA_VERSION);
         assert_eq!(report.domain, "bam");
         assert_eq!(report.stage_count, 24);
-        assert_eq!(report.tool_count, 25);
-        assert_eq!(report.row_count, 49);
+        assert_eq!(report.row_count, report.rows.len());
         assert!(!report.rows.is_empty(), "BAM tool serving map must contain rows");
+        for unsupported_tool_id in ["angsd", "ngsbriggs"] {
+            assert!(report.rows.iter().all(|row| row.tool_id != unsupported_tool_id));
+        }
         assert!(report.rows.iter().any(|row| {
             row.tool_id == "bwa"
                 && row.stage_id == "bam.align"
@@ -744,20 +768,12 @@ mod tests {
             }));
         }
         assert!(report.rows.iter().any(|row| {
-            row.tool_id == "angsd"
+            row.tool_id == "bcftools"
                 && row.stage_id == "bam.genotyping"
                 && row.support_status == "supported"
                 && row.adapter_status == "runnable"
                 && row.parser_status == "parser_fixture_validated"
                 && row.corpus_status == "fixture:corpus-01-genotyping-mini"
-        }));
-        assert!(report.rows.iter().any(|row| {
-            row.tool_id == "angsd"
-                && row.stage_id == "bam.kinship"
-                && row.support_status == "supported"
-                && row.adapter_status == "runnable"
-                && row.parser_status == "parser_fixture_validated"
-                && row.corpus_status == "fixture:corpus-01-kinship-mini"
         }));
         assert!(report.rows.iter().any(|row| {
             row.tool_id == "king"

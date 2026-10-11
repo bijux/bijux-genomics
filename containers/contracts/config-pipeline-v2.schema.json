@@ -23,6 +23,7 @@
       "required": ["id", "campaign", "corpus", "sample", "domain", "stage", "tool", "operator", "submitted_at_utc"],
       "properties": {
         "id": {"type": "string", "pattern": "^run-[1-9][0-9]{3,}$"},
+        "kind": {"enum": ["qualification", "benchmark"]},
         "campaign": {"type": "string", "minLength": 1},
         "corpus": {"type": "string", "minLength": 1},
         "sample": {"type": "string", "minLength": 1},

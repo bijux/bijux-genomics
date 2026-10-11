@@ -25,6 +25,14 @@ and terminal Slurm accounting. A run must execute from the commit-addressed
 worktree named in its pipeline contract, so later commits cannot change a
 queued job.
 
+Qualification runs use the flat
+`results/container-validation/run-<id>-<tool>` boundary. A benchmark pipeline
+sets `run.kind: benchmark` and writes to
+`results/benchmarks/run-<id>-<domain>-<stage>/<tool>`. This keeps each tool's
+raw evidence independent while giving one stage campaign a shared comparison
+root. The validator derives that path from the declared run, stage, and tool;
+changing a path alone cannot turn qualification output into benchmark evidence.
+
 Use the executor explicitly:
 
 ```console
@@ -51,6 +59,20 @@ to overwrite an existing result or accounting record.
 result paths for a corrected attempt with the same stable run identity. It
 requires failed terminal evidence and matching accounting, hashes the complete
 attempt, and performs same-filesystem moves into the governed failure root.
+
+A scheduler-passed attempt whose evidence is later found scientifically or
+structurally invalid must not be relabelled as failed or deleted. Archive it
+with a substantive reason before correcting and resubmitting the stable run:
+
+```console
+python3 containers/contracts/container_validation.py archive-superseded \
+  --manifest MANIFEST \
+  --reason "resource measurements did not satisfy the declared TSV evidence format"
+```
+
+This preserves the immutable submission and result trees under the governed
+superseded root, records their hashes and disposition, and frees only their
+canonical execution paths.
 
 Current pipeline contracts separate host storage from paths visible inside the
 contained runtime. Governed input files mount as unique, safe filenames beneath

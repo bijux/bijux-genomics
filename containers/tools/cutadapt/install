@@ -3,23 +3,125 @@ set -euo pipefail
 
 work_dir="$(mktemp -d)"
 trap 'rm -rf "$work_dir"' EXIT
-archive="$work_dir/cutadapt.tar.gz"
 
-curl --fail --location --proto '=https' --tlsv1.2 --silent --show-error \
-  --output "$archive" \
-  'https://github.com/marcelm/cutadapt/archive/9276a89d5df9282ff51602b042b40c3b48c98566.tar.gz'
-printf '%s  %s\n' \
-  'ca893162f11dbe31cb1956e7611334d6f5fee91a54d4ddd2272ecf427da776dd' \
-  "$archive" | sha256sum --check --strict
+fetch() {
+  local filename="$1"
+  local digest="$2"
+  local url="$3"
+  local destination="$work_dir/$filename"
+
+  curl --fail --location --proto '=https' --tlsv1.2 --silent --show-error \
+    --output "$destination" "$url"
+  printf '%s  %s\n' "$digest" "$destination" | sha256sum --check --strict
+}
+
+fetch \
+  pip-25.2-py3-none-any.whl \
+  6d67a2b4e7f14d8b31b8b52648866fa717f45a1eb70e83002f4331d07e953717 \
+  https://files.pythonhosted.org/packages/b7/3f/945ef7ab14dc4f9d7f40288d2df998d1837ee0888ec3659c813487572faa/pip-25.2-py3-none-any.whl
+fetch \
+  setuptools-80.9.0-py3-none-any.whl \
+  062d34222ad13e0cc312a4c02d73f059e86a4acbfbdea8f8f76b28c99f306922 \
+  https://files.pythonhosted.org/packages/a3/dc/17031897dae0efacfea57dfd3a82fdd2a2aeb58e0ff71b77b87e44edc772/setuptools-80.9.0-py3-none-any.whl
+fetch \
+  wheel-0.45.1-py3-none-any.whl \
+  708e7481cc80179af0e556bbf0cc00b8444c7321e2700b8d8580231d13017248 \
+  https://files.pythonhosted.org/packages/0b/2c/87f3254fd8ffd29e4c02732eee68a83a1d3c346ae39bc6822dcbcb697f2b/wheel-0.45.1-py3-none-any.whl
+fetch \
+  packaging-26.2-py3-none-any.whl \
+  5fc45236b9446107ff2415ce77c807cee2862cb6fac22b8a73826d0693b0980e \
+  https://files.pythonhosted.org/packages/df/b2/87e62e8c3e2f4b32e5fe99e0b86d576da1312593b39f47d8ceef365e95ed/packaging-26.2-py3-none-any.whl
+fetch \
+  setuptools_scm-8.3.1-py3-none-any.whl \
+  332ca0d43791b818b841213e76b1971b7711a960761c5bea5fc5cdb5196fbce3 \
+  https://files.pythonhosted.org/packages/ab/ac/8f96ba9b4cfe3e4ea201f23f4f97165862395e9331a424ed325ae37024a8/setuptools_scm-8.3.1-py3-none-any.whl
+fetch \
+  dnaio-1.2.4.tar.gz \
+  a7570311f29e8b3c1ea39a60f57b7baf8dad8f2508595c58d4278c5571463166 \
+  https://files.pythonhosted.org/packages/a9/f2/3b4d7f4ac4fc25742fde4c5b50ed1bc60ab731cf8cabd3089dd11e4ea1c9/dnaio-1.2.4.tar.gz
+fetch \
+  xopen-2.1.0-py3-none-any.whl \
+  0d01d2183e7496594cbed022b1d89a0a7f4e03900da1b8d59047322a5140a66d \
+  https://files.pythonhosted.org/packages/c1/d7/f27df80071464ea76f092f77e6801534f36c83ab1c24efed885e36166cc1/xopen-2.1.0-py3-none-any.whl
+fetch \
+  cutadapt.tar.gz \
+  ca893162f11dbe31cb1956e7611334d6f5fee91a54d4ddd2272ecf427da776dd \
+  https://github.com/marcelm/cutadapt/archive/9276a89d5df9282ff51602b042b40c3b48c98566.tar.gz
+
+case "$(dpkg --print-architecture)" in
+  amd64)
+    cython_wheel=cython-3.1.2-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
+    fetch \
+      "$cython_wheel" \
+      f6e7188df8709be32cfdfadc7c3782e361c929df9132f95e1bbc90a340dca3c7 \
+      https://files.pythonhosted.org/packages/6b/c8/383ad1851fb272920a152c5a30bb6f08c3471b5438079d9488fc3074a170/cython-3.1.2-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl
+    isal_wheel=isal-1.8.0-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl
+    fetch \
+      "$isal_wheel" \
+      d3c28ff61f2f300e498ea0f50cb1528d8c14631fce4cdfce191ed05775952de3 \
+      https://files.pythonhosted.org/packages/29/92/c10343738c170c31a5e25f0a1d024f8160ec107c5a2935a1a07587821100/isal-1.8.0-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl
+    zlib_ng_wheel=zlib_ng-1.0.0-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl
+    fetch \
+      "$zlib_ng_wheel" \
+      5332f9452b2fc27e47a1ca78fc150689ed9c51c7f449a5467bf41c4b206c439f \
+      https://files.pythonhosted.org/packages/6a/ed/5baf549131c47cbf5a00c35c7db7a78d5aa3c405605255a1496160a96a87/zlib_ng-1.0.0-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl
+    zstd_wheel=backports_zstd-1.6.0-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl
+    fetch \
+      "$zstd_wheel" \
+      1a99710fbb225d459d66def4dc2bb2cd4a9a0bdc8b799fc0621cfdd863be9c93 \
+      https://files.pythonhosted.org/packages/6b/b2/d17b2722c636d64b4e77ddc68d8d0625719d39f94021be8719a218af4c0a/backports_zstd-1.6.0-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl
+    ;;
+  arm64)
+    cython_wheel=cython-3.1.2-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.whl
+    fetch \
+      "$cython_wheel" \
+      c05111f89db1ca98edc0675cfaa62be47b3ff519a29876eb095532a9f9e052b8 \
+      https://files.pythonhosted.org/packages/f8/34/637771d8e10ebabc34a34cdd0d63fe797b66c334e150189955bf6442d710/cython-3.1.2-cp312-cp312-manylinux_2_17_aarch64.manylinux2014_aarch64.whl
+    isal_wheel=isal-1.8.0-cp312-cp312-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl
+    fetch \
+      "$isal_wheel" \
+      fa279aa6b7d6b6e99cceab84f7a8d53e755d2954ad95e14548e94460b7f4c0f2 \
+      https://files.pythonhosted.org/packages/93/87/1ef86dd9419a0ab350a4dc0078c0ca7e5d9d96dea2978361d1d2cde22084/isal-1.8.0-cp312-cp312-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl
+    zlib_ng_wheel=zlib_ng-1.0.0-cp312-cp312-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl
+    fetch \
+      "$zlib_ng_wheel" \
+      611a85b2dcb206a3cf8cdaa4323dbf9dbefe6c92e83d2da86333050f33a4318e \
+      https://files.pythonhosted.org/packages/50/97/9836a0ec483786803c1a9925f6249cbb5dbd408fcc100bd8b4cd615c012d/zlib_ng-1.0.0-cp312-cp312-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl
+    zstd_wheel=backports_zstd-1.6.0-cp312-cp312-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl
+    fetch \
+      "$zstd_wheel" \
+      7c2b1f4a640c51130caa92cef5bf72bd3c3dbbcfbf814c37403aa0601b1811b0 \
+      https://files.pythonhosted.org/packages/03/95/7ed25c90369360f96f8bfa961540845e063377c32a43b775201af66a588c/backports_zstd-1.6.0-cp312-cp312-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl
+    ;;
+  *)
+    printf 'unsupported Cutadapt build architecture: %s\n' \
+      "$(dpkg --print-architecture)" >&2
+    exit 1
+    ;;
+esac
 
 python3 -m venv /opt/cutadapt-venv
-/opt/cutadapt-venv/bin/pip install --no-cache-dir --upgrade \
-  'pip==25.2' \
-  'setuptools==80.9.0' \
-  'wheel==0.45.1' \
-  'Cython==3.1.2'
+python=/opt/cutadapt-venv/bin/python
+
+"$python" -m pip install --no-cache-dir --no-deps --no-index \
+  "$work_dir/pip-25.2-py3-none-any.whl"
+"$python" -m pip install --no-cache-dir --no-deps --no-index \
+  "$work_dir/setuptools-80.9.0-py3-none-any.whl" \
+  "$work_dir/wheel-0.45.1-py3-none-any.whl" \
+  "$work_dir/packaging-26.2-py3-none-any.whl" \
+  "$work_dir/setuptools_scm-8.3.1-py3-none-any.whl" \
+  "$work_dir/$cython_wheel"
+"$python" -m pip install --no-cache-dir --no-deps --no-index \
+  "$work_dir/$isal_wheel" \
+  "$work_dir/$zlib_ng_wheel" \
+  "$work_dir/$zstd_wheel" \
+  "$work_dir/xopen-2.1.0-py3-none-any.whl"
+"$python" -m pip install --no-cache-dir --no-deps --no-index \
+  --no-build-isolation "$work_dir/dnaio-1.2.4.tar.gz"
 SETUPTOOLS_SCM_PRETEND_VERSION_FOR_CUTADAPT=4.9 \
-  /opt/cutadapt-venv/bin/pip install --no-cache-dir "$archive"
+  "$python" -m pip install --no-cache-dir --no-deps --no-index \
+  --no-build-isolation "$work_dir/cutadapt.tar.gz"
 
 /opt/cutadapt-venv/bin/cutadapt --version | grep -Fx '4.9'
 /opt/cutadapt-venv/bin/cutadapt --help >/dev/null
+"$python" -m pip check

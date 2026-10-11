@@ -20,6 +20,7 @@ import yaml
 
 PIPELINE_SCHEMA_V1 = "bijux.container.pipeline.v1"
 PIPELINE_SCHEMA_V2 = "bijux.container.pipeline.v2"
+ISOLATED_RUNTIME_HOSTNAME = "bijux-runtime"
 PIPELINE_SCHEMAS = {PIPELINE_SCHEMA_V1, PIPELINE_SCHEMA_V2}
 CREDENTIAL_SCHEMA = "bijux.container.credential_reference.v1"
 GOVERNANCE_SCHEMA = "bijux.container.governance.v1"
@@ -327,11 +328,23 @@ def freeze_repository(
     commit: str,
     governance_path: Path,
     checkout_scope: str = "contracts",
+    checkout_paths: tuple[str, ...] = (),
 ) -> Path:
     if not re.fullmatch(r"[0-9a-f]{40}", commit):
         raise ContractError("frozen repository commit must be a full Git commit")
-    if checkout_scope not in {"contracts", "complete"}:
-        raise ContractError("frozen repository scope must be contracts or complete")
+    if checkout_scope not in {"contracts", "sources", "complete"}:
+        raise ContractError(
+            "frozen repository scope must be contracts, sources, or complete"
+        )
+    if checkout_scope == "sources":
+        if not checkout_paths:
+            raise ContractError("source freeze requires at least one checkout path")
+        for value in checkout_paths:
+            path = Path(value)
+            if path.is_absolute() or ".." in path.parts or not path.parts:
+                raise ContractError(f"source freeze path is unsafe: {value}")
+    elif checkout_paths:
+        raise ContractError("checkout paths are valid only for a source freeze")
     governance = load_governance(governance_path)
     active_repository: Path = governance["active_repository"]
     frozen_repositories: Path = governance["frozen_repositories"]
@@ -340,11 +353,15 @@ def freeze_repository(
             "active LUNARC repository must be clean before freezing a run"
         )
     git_output(active_repository, "cat-file", "-e", f"{commit}^{{commit}}")
-    target = (
-        frozen_repositories / commit
-        if checkout_scope == "contracts"
-        else frozen_repositories / "image-builds" / commit
-    )
+    if checkout_scope == "contracts":
+        target = frozen_repositories / commit
+    elif checkout_scope == "sources":
+        source_identity = hashlib.sha256(
+            "\0".join(sorted(set(checkout_paths))).encode("utf-8")
+        ).hexdigest()[:12]
+        target = frozen_repositories / "image-builds" / f"{commit}-{source_identity}"
+    else:
+        target = frozen_repositories / "image-builds" / commit
     if target.exists():
         if git_output(target, "rev-parse", "HEAD") != commit:
             raise ContractError(
@@ -362,7 +379,7 @@ def freeze_repository(
         "add",
         "--detach",
     ]
-    if checkout_scope == "contracts":
+    if checkout_scope in {"contracts", "sources"}:
         worktree_arguments.append("--no-checkout")
     worktree_arguments.extend([str(target), commit])
     completed = subprocess.run(
@@ -379,15 +396,20 @@ def freeze_repository(
         raise ContractError(
             f"cannot create frozen worktree: {completed.stderr.strip()}{cleanup_note}"
         )
+    sparse_paths = (
+        FROZEN_CHECKOUT_PATHS
+        if checkout_scope == "contracts"
+        else tuple(sorted(set(checkout_paths)))
+    )
     checkout_commands = (
         (
             (
-                ("sparse-checkout", "set", "--cone", *FROZEN_CHECKOUT_PATHS),
+                ("sparse-checkout", "set", "--cone", *sparse_paths),
                 "configure frozen sparse checkout",
             ),
             (("read-tree", "-mu", "HEAD"), "populate frozen sparse checkout"),
         )
-        if checkout_scope == "contracts"
+        if checkout_scope in {"contracts", "sources"}
         else ()
     )
     for arguments, label in checkout_commands:
@@ -572,11 +594,17 @@ def validate_pipeline(
     }
     if is_current:
         run_fields.add("submitted_at_utc")
-    require_keys(
-        run,
-        run_fields,
-        "run",
-    )
+    missing_run_fields = run_fields.difference(run)
+    optional_run_fields = {"kind"} if is_current else set()
+    unknown_run_fields = set(run).difference(run_fields | optional_run_fields)
+    if missing_run_fields:
+        raise ContractError(
+            f"run is missing required fields: {sorted(missing_run_fields)}"
+        )
+    if unknown_run_fields:
+        raise ContractError(
+            f"run contains unknown fields: {sorted(unknown_run_fields)}"
+        )
     run_id = require_text(run, "id")
     if not RUN_ID_PATTERN.fullmatch(run_id):
         raise ContractError("run.id must use the run-1001 provenance sequence")
@@ -584,6 +612,11 @@ def validate_pipeline(
         require_text(run, key)
     if is_current:
         require_utc_timestamp(run, "submitted_at_utc", "run")
+    evidence_kind = (
+        run.get("kind", "qualification") if is_current else "qualification"
+    )
+    if evidence_kind not in {"qualification", "benchmark"}:
+        raise ContractError("run.kind must be qualification or benchmark")
 
     dependencies: list[dict[str, Any]] = []
     if is_current:
@@ -761,16 +794,29 @@ def validate_pipeline(
     if not declared_result_root.is_absolute():
         raise ContractError("outputs.result_root must be absolute")
     result_root = resolved(str(declared_result_root))
-    require_under(
-        result_root,
-        governance["results_root"] / "container-validation",
-        "outputs.result_root",
-    )
-    expected_result_name = f"{run_id}-{run['tool']}" if is_current else run_id
-    if result_root.name != expected_result_name:
-        raise ContractError(
-            f"outputs.result_root must end with {expected_result_name!r}"
+    if is_current and evidence_kind == "benchmark":
+        stage_slug = re.sub(
+            r"[^a-z0-9]+", "-", str(run["stage"]).lower()
+        ).strip("-")
+        expected_result_root = (
+            governance["results_root"]
+            / "benchmarks"
+            / f"{run_id}-{stage_slug}"
+            / str(run["tool"])
         )
+        if result_root != expected_result_root:
+            raise ContractError(
+                "benchmark outputs.result_root must equal "
+                f"{expected_result_root}"
+            )
+    else:
+        qualification_root = governance["results_root"] / "container-validation"
+        require_under(result_root, qualification_root, "outputs.result_root")
+        expected_result_name = f"{run_id}-{run['tool']}" if is_current else run_id
+        if result_root.name != expected_result_name:
+            raise ContractError(
+                f"outputs.result_root must end with {expected_result_name!r}"
+            )
     result_mount_path = declared_result_root
     if is_current:
         result_mount_path = Path(require_text(outputs, "mount_path"))
@@ -930,6 +976,7 @@ def validate_pipeline(
 
     return {
         "run_id": run_id,
+        "evidence_kind": evidence_kind,
         "repository_path": repository_path,
         "repository_commit": expected_commit,
         "image_path": image_path,
@@ -983,6 +1030,8 @@ def run_apptainer(
         "exec",
         "--cleanenv",
         "--containall",
+        "--hostname",
+        ISOLATED_RUNTIME_HOSTNAME,
         "--net",
         "--network",
         "none",
@@ -1211,6 +1260,7 @@ def execute(governance_path: Path, pipeline_path: Path, credential_path: Path) -
         ),
         "pipeline_schema_version": contract["pipeline_schema"],
         "run_id": contract["run_id"],
+        "evidence_kind": contract["evidence_kind"],
         "status": "passed" if not failures else "failed",
         "failure_class": None if not failures else "container_validation",
         "failures": failures,
@@ -1368,6 +1418,7 @@ def require_current_manifest_path(
 ) -> None:
     allowed_roots = (
         active_repository / "containers" / "runs",
+        containers_root / "runs",
         containers_root / "evidence" / "specifications",
     )
     for root in allowed_roots:
@@ -1631,6 +1682,7 @@ def collect_accounting(
             ),
             "pipeline_schema_version": contract["pipeline_schema"],
             "run_id": contract["run_id"],
+            "evidence_kind": contract["evidence_kind"],
             "status": "failed",
             "failure_class": failure_class,
             "failures": [failure],
@@ -1677,7 +1729,7 @@ def archive_file_records(root: Path, scope: str) -> list[dict[str, Any]]:
     records = []
     for path in sorted(root.rglob("*")):
         if path.is_symlink():
-            raise ContractError(f"failure evidence must not contain symlinks: {path}")
+            raise ContractError(f"archived evidence must not contain symlinks: {path}")
         if not path.is_file():
             continue
         records.append(
@@ -1690,9 +1742,14 @@ def archive_file_records(root: Path, scope: str) -> list[dict[str, Any]]:
     return records
 
 
-def archive_failed_run(
+def archive_terminal_run(
     manifest_path: Path,
     governance_override: Path | None = None,
+    *,
+    expected_status: str,
+    archive_scope: str,
+    schema_version: str,
+    reason: str | None = None,
 ) -> Path:
     manifest_path = manifest_path.resolve()
     governance_path, pipeline_path, credential_path = manifest_contract_paths(
@@ -1703,15 +1760,15 @@ def archive_failed_run(
     result_root: Path = contract["result_root"]
     if not submission_root.is_dir() or not result_root.is_dir():
         raise ContractError(
-            "failure archival requires both submission and result evidence"
+            f"{archive_scope} archival requires both submission and result evidence"
         )
     job_id_path = submission_root / "slurm-job-id.txt"
     try:
         job_id = job_id_path.read_text(encoding="utf-8").strip()
     except OSError as exc:
-        raise ContractError(f"cannot read failed Slurm job identity: {exc}") from exc
+        raise ContractError(f"cannot read terminal Slurm job identity: {exc}") from exc
     if not job_id.isdigit():
-        raise ContractError("failed Slurm job identity must be numeric")
+        raise ContractError("terminal Slurm job identity must be numeric")
     evidence_path = result_root / "evidence.json"
     accounting_path = result_root / "slurm-accounting.json"
     evidence = load_json(evidence_path)
@@ -1719,27 +1776,35 @@ def archive_failed_run(
     if (
         evidence.get("schema_version") not in {EVIDENCE_SCHEMA_V1, EVIDENCE_SCHEMA_V2}
         or evidence.get("run_id") != contract["run_id"]
-        or evidence.get("status") != "failed"
+        or evidence.get("status") != expected_status
     ):
-        raise ContractError("only terminal failed run evidence can be archived")
+        raise ContractError(
+            f"only terminal {expected_status} run evidence can be archived as "
+            f"{archive_scope}"
+        )
     if (
         accounting.get("schema_version") != "bijux.slurm.accounting.v1"
         or accounting.get("run_id") != contract["run_id"]
         or accounting.get("slurm_job_id") != job_id
     ):
-        raise ContractError("Slurm accounting does not identify the failed run")
+        raise ContractError("Slurm accounting does not identify the terminal run")
     tool_id = str(contract["pipeline"]["run"]["tool"])
     bundle_name = f"{contract['run_id']}-{tool_id}-slurm-{job_id}"
-    failure_root = (
-        contract["governance"]["containers_root"] / "evidence" / "failures"
+    archive_root = (
+        contract["governance"]["containers_root"] / "evidence" / archive_scope
     )
-    failure_root.mkdir(parents=True, mode=0o750, exist_ok=True)
-    target = failure_root / bundle_name
-    staging = failure_root / f".{bundle_name}.partial"
+    archive_root.mkdir(parents=True, mode=0o750, exist_ok=True)
+    target = archive_root / bundle_name
+    staging = archive_root / f".{bundle_name}.partial"
     if target.exists() or staging.exists():
-        raise ContractError(f"refusing to replace failure evidence: {target}")
-    if len({submission_root.stat().st_dev, result_root.stat().st_dev, failure_root.stat().st_dev}) != 1:
-        raise ContractError("failure evidence must remain on one filesystem")
+        raise ContractError(f"refusing to replace {archive_scope} evidence: {target}")
+    involved_devices = {
+        submission_root.stat().st_dev,
+        result_root.stat().st_dev,
+        archive_root.stat().st_dev,
+    }
+    if len(involved_devices) != 1:
+        raise ContractError(f"{archive_scope} evidence must remain on one filesystem")
     files = [
         *archive_file_records(submission_root, "submission"),
         *archive_file_records(result_root, "result"),
@@ -1751,20 +1816,25 @@ def archive_failed_run(
         write_json(
             staging / "archive.json",
             {
-                "schema_version": "bijux.container.failed_run_archive.v1",
+                "schema_version": schema_version,
                 "run_id": contract["run_id"],
                 "tool": tool_id,
                 "slurm_job_id": job_id,
+                **(
+                    {"disposition": "superseded", "reason": reason}
+                    if reason is not None
+                    else {}
+                ),
                 "archived_at_utc": dt.datetime.now(dt.timezone.utc).isoformat(),
                 "source_paths": {
                     "submission": (
                         f"study://containers/evidence/submissions/"
                         f"{contract['run_id']}-{tool_id}"
                     ),
-                    "result": (
-                        f"study://results/container-validation/"
-                        f"{contract['run_id']}-{tool_id}"
-                    ),
+                    "result": "study://results/"
+                    + result_root.relative_to(
+                        contract["governance"]["results_root"]
+                    ).as_posix(),
                 },
                 "evidence_sha256": sha256_file(staging / "result/evidence.json"),
                 "accounting_sha256": sha256_file(
@@ -1776,9 +1846,41 @@ def archive_failed_run(
         staging.rename(target)
     except OSError as exc:
         raise ContractError(
-            f"failure archival stopped; inspect the recoverable staging path {staging}: {exc}"
+            f"{archive_scope} archival stopped; inspect the recoverable staging path "
+            f"{staging}: {exc}"
         ) from exc
     return target
+
+
+def archive_failed_run(
+    manifest_path: Path,
+    governance_override: Path | None = None,
+) -> Path:
+    return archive_terminal_run(
+        manifest_path,
+        governance_override,
+        expected_status="failed",
+        archive_scope="failures",
+        schema_version="bijux.container.failed_run_archive.v1",
+    )
+
+
+def archive_superseded_run(
+    manifest_path: Path,
+    reason: str,
+    governance_override: Path | None = None,
+) -> Path:
+    reason = reason.strip()
+    if len(reason) < 20:
+        raise ContractError("superseded run archival requires a substantive reason")
+    return archive_terminal_run(
+        manifest_path,
+        governance_override,
+        expected_status="passed",
+        archive_scope="superseded",
+        schema_version="bijux.container.superseded_run_archive.v1",
+        reason=reason,
+    )
 
 
 def parser() -> argparse.ArgumentParser:
@@ -1803,6 +1905,10 @@ def parser() -> argparse.ArgumentParser:
     archive = commands.add_parser("archive-failure")
     archive.add_argument("--manifest", type=Path, required=True)
     archive.add_argument("--governance", type=Path)
+    supersede = commands.add_parser("archive-superseded")
+    supersede.add_argument("--manifest", type=Path, required=True)
+    supersede.add_argument("--governance", type=Path)
+    supersede.add_argument("--reason", required=True)
     submit = commands.add_parser("submit")
     submit.add_argument("--manifest", type=Path, required=True)
     submit.add_argument("--governance", type=Path)
@@ -1826,6 +1932,15 @@ def main() -> int:
             return 0
         if args.command == "archive-failure":
             print(archive_failed_run(args.manifest, args.governance))
+            return 0
+        if args.command == "archive-superseded":
+            print(
+                archive_superseded_run(
+                    args.manifest,
+                    args.reason,
+                    args.governance,
+                )
+            )
             return 0
         if args.command == "submit":
             print(submit_manifest(args.manifest, args.governance))

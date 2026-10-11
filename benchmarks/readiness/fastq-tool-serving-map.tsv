@@ -32,7 +32,6 @@ fastqc	fastq.detect_adapters	observer_specialized_benchmark	runnable	comparable	
 fastqc	fastq.profile_overrepresented_sequences	observer_specialized_benchmark	runnable	comparable	fixture:corpus-01-mini
 fastqc	fastq.validate_reads	observer_specialized_benchmark	runnable	comparable	fixture:corpus-01-mini
 fastqvalidator	fastq.validate_reads	observer_specialized_benchmark	runnable	comparable	fixture:corpus-01-mini
-fastuniq	fastq.remove_duplicates	governed_benchmark_cohort	runnable	benchmark_normalized	fixture:corpus-01-mini
 fastx_clipper	fastq.trim_reads	governed_benchmark_cohort	runnable	benchmark_normalized	fixture:corpus-01-mini
 flash2	fastq.merge_pairs	governed_benchmark_cohort	runnable	benchmark_normalized	fixture:corpus-01-mini
 fqtools	fastq.validate_reads	observer_specialized_benchmark	runnable	comparable	fixture:corpus-01-mini

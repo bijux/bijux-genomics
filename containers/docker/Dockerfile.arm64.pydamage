@@ -1,31 +1,39 @@
-# SPDX-License-Identifier: GPL-3.0
+# SPDX-License-Identifier: GPL-3.0-only
 # Copyright (C) 2026 Bijan Mousavi
-#
-# Container definition license: GPL-3.0.
-# Bijux Genomics source code is licensed under Apache-2.0.
-# VERSION_SOURCE: containers/versions/versions.toml
+# VERSION_SOURCE: containers/contracts/catalog.toml
 FROM ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
-ARG OCI_REVISION=unknown
-ARG OCI_CREATED=unknown
-ARG TOOL_VERSION=1.0
-LABEL org.opencontainers.image.source="https://github.com/bijux/bijux-genomics"       org.opencontainers.image.revision="${OCI_REVISION}"       org.opencontainers.image.created="${OCI_CREATED}"       org.opencontainers.image.licenses="GPL-3.0"       org.opencontainers.image.version="${TOOL_VERSION}"
-LABEL org.opencontainers.image.tool="pydamage"
-LABEL org.opencontainers.image.title="pydamage"
-LABEL org.opencontainers.image.base.name="ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b"
-LABEL org.opencontainers.image.base.digest="sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b"
-ENV DEBIAN_FRONTEND=noninteractive
+COPY --chmod=0555 containers/contracts/configure-apt-snapshot /usr/local/sbin/bijux-configure-apt-snapshot
 
-RUN apt-get update -qq && apt-get install -y --no-install-recommends \
-      python3=3.12.3-0ubuntu2.1 \
-      python3-pip=24.0+dfsg-1ubuntu1.3 \
-      ca-certificates=20240203 && \
+ARG OCI_CREATED=governed-by-build-evidence
+ARG TOOL_VERSION=1.0
+LABEL org.opencontainers.image.source="https://github.com/maxibor/pydamage" \
+      org.opencontainers.image.revision="08f1d0f2d1981d350decbf10964f989e9567ddbf" \
+      org.opencontainers.image.created="${OCI_CREATED}" \
+      org.opencontainers.image.licenses="GPL-3.0" \
+      org.opencontainers.image.version="${TOOL_VERSION}" \
+      io.bijux.tool.version="${TOOL_VERSION}" \
+      org.opencontainers.image.tool="pydamage" \
+      org.opencontainers.image.title="PyDamage" \
+      org.opencontainers.image.base.name="ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b" \
+      org.opencontainers.image.base.digest="sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b"
+ENV PATH=/opt/pydamage-venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin \
+    LANG=C LC_ALL=C TZ=UTC DEBIAN_FRONTEND=noninteractive
+
+RUN /usr/local/sbin/bijux-configure-apt-snapshot && \
+    apt-get install -y --no-install-recommends python3 python3-pip python3-venv && \
     python3 -c 'import urllib.request; urllib.request.urlretrieve("https://github.com/maxibor/pydamage/archive/08f1d0f2d1981d350decbf10964f989e9567ddbf.tar.gz", "/tmp/pydamage.tar.gz")' && \
-    echo 'f049fad925e8418f5ba31e78429fde6cc62ad0ccb9a6ff0a8b739ba894d15d9f  /tmp/pydamage.tar.gz' | sha256sum -c - && \
+    echo 'f049fad925e8418f5ba31e78429fde6cc62ad0ccb9a6ff0a8b739ba894d15d9f  /tmp/pydamage.tar.gz' | sha256sum --check --strict && \
     mkdir -p /opt/pydamage && \
     tar -xzf /tmp/pydamage.tar.gz --strip-components=1 -C /opt/pydamage && \
-    python3 -m pip install --break-system-packages --no-cache-dir /opt/pydamage && \
+    python3 -m venv /opt/pydamage-venv && \
+    /opt/pydamage-venv/bin/pip install --no-cache-dir /opt/pydamage && \
+    pydamage --version | grep -Fx 'pydamage, version 1.0' && \
+    pydamage --help >/dev/null && \
+    useradd --system --uid 65532 --home-dir /work --create-home bijux && \
     rm -f /tmp/pydamage.tar.gz && \
     rm -rf /var/lib/apt/lists/*
 
+USER 65532:65532
+WORKDIR /work
 ENTRYPOINT ["/usr/local/bin/pydamage"]
 CMD ["--help"]

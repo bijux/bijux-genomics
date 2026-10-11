@@ -1,46 +1,40 @@
-# SPDX-License-Identifier: GPL-3.0
+# SPDX-License-Identifier: GPL-3.0-only
 # Copyright (C) 2026 Bijan Mousavi
-#
-# Container definition license: GPL-3.0.
-# Bijux Genomics source code is licensed under Apache-2.0.
-# VERSION_SOURCE: containers/versions/versions.toml
+# VERSION_SOURCE: containers/contracts/catalog.toml
 FROM ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
 COPY --chmod=0555 containers/contracts/configure-apt-snapshot /usr/local/sbin/bijux-configure-apt-snapshot
-ARG OCI_REVISION=unknown
-ARG OCI_CREATED=unknown
-ARG TOOL_VERSION=0.15.3
-LABEL org.opencontainers.image.source="https://github.com/bijux/bijux-genomics" \
-      org.opencontainers.image.revision="${OCI_REVISION}" \
-      org.opencontainers.image.created="${OCI_CREATED}" \
-      org.opencontainers.image.licenses="GPL-3.0" \
-      org.opencontainers.image.version="${TOOL_VERSION}"
-LABEL org.opencontainers.image.tool="fastq_screen"
-LABEL org.opencontainers.image.title="fastq_screen"
-LABEL org.opencontainers.image.base.name="ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b"
-LABEL org.opencontainers.image.base.digest="sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b"
-ENV DEBIAN_FRONTEND=noninteractive
-ARG VERSION_FASTQ_SCREEN=0.15.3
-ENV VERSION_FASTQ_SCREEN=${VERSION_FASTQ_SCREEN}
 
-RUN --mount=type=cache,target=/var/cache/apt \
-    /usr/local/sbin/bijux-configure-apt-snapshot && \
-    apt-get install -y --no-install-recommends \
-        perl \
-        curl \
-        ca-certificates \
-        bzip2 \
-        gzip && \
+ARG OCI_CREATED=governed-by-build-evidence
+ARG TOOL_VERSION=0.15.3
+LABEL org.opencontainers.image.source="https://github.com/StevenWingett/FastQ-Screen" \
+      org.opencontainers.image.revision="6dfa1eef0d3103dd7829eb1f586b4d8a121f911b" \
+      org.opencontainers.image.created="${OCI_CREATED}" \
+      org.opencontainers.image.licenses="GPL-3.0-or-later" \
+      org.opencontainers.image.version="${TOOL_VERSION}" \
+      io.bijux.tool.version="${TOOL_VERSION}" \
+      org.opencontainers.image.tool="fastq_screen" \
+      org.opencontainers.image.title="FastQ Screen" \
+      org.opencontainers.image.base.name="ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b" \
+      org.opencontainers.image.base.digest="sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b"
+
+ENV LANG=C LC_ALL=C TZ=UTC DEBIAN_FRONTEND=noninteractive
+RUN /usr/local/sbin/bijux-configure-apt-snapshot && \
+    apt-get install -y --no-install-recommends bzip2 curl gzip perl && \
+    curl --fail --location --proto '=https' --tlsv1.2 \
+      --output /opt/fastq-screen.tar.gz \
+      https://codeload.github.com/StevenWingett/FastQ-Screen/tar.gz/6dfa1eef0d3103dd7829eb1f586b4d8a121f911b && \
+    echo '79a66b7265374c1c1b34ca166eede564bfa7ec58e17c3ba9a0e1de9bbe1c2448  /opt/fastq-screen.tar.gz' | sha256sum --check --strict && \
+    install -d -m 0755 /opt/fastq-screen && \
+    tar --extract --gzip --file /opt/fastq-screen.tar.gz --strip-components=1 --directory /opt/fastq-screen && \
+    ln -s /opt/fastq-screen/fastq_screen /usr/local/bin/fastq_screen && \
+    fastq_screen --version | grep -Fx 'FastQ Screen v0.15.3' && \
+    fastq_screen --help >/dev/null && \
+    useradd --system --uid 65532 --home-dir /work --create-home bijux && \
+    rm /opt/fastq-screen.tar.gz && \
+    apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-WORKDIR /opt
-RUN curl -fsSL -o fastq_screen.tar.gz "https://github.com/StevenWingett/FastQ-Screen/archive/refs/tags/v${VERSION_FASTQ_SCREEN}.tar.gz" && \
-    tar -xzf fastq_screen.tar.gz && \
-    mv FastQ-Screen-${VERSION_FASTQ_SCREEN} fastq_screen && \
-    ln -s /opt/fastq_screen/fastq_screen /usr/local/bin/fastq_screen
-
-WORKDIR /data
-
-LABEL org.opencontainers.image.source="https://www.bioinformatics.babraham.ac.uk/projects/fastq_screen/" \
-      org.opencontainers.image.version="${VERSION_FASTQ_SCREEN}"
-
-CMD ["fastq_screen", "--help"]
+USER 65532:65532
+WORKDIR /work
+ENTRYPOINT ["/usr/local/bin/fastq_screen"]
+CMD ["--help"]

@@ -6,18 +6,17 @@
 # VERSION_SOURCE: containers/versions/versions.toml
 FROM python:3.9-slim@sha256:2d97f6910b16bd338d3060f261f53f144965f755599aab1acda1e13cf1731b1b
 COPY --chmod=0555 containers/contracts/configure-apt-snapshot /usr/local/sbin/bijux-configure-apt-snapshot
-ARG OCI_REVISION=unknown
-ARG OCI_CREATED=unknown
 ARG TOOL_VERSION=1.1.6
-LABEL org.opencontainers.image.source="https://github.com/bijux/bijux-genomics" \
-      org.opencontainers.image.revision="${OCI_REVISION}" \
-      org.opencontainers.image.created="${OCI_CREATED}" \
+LABEL org.opencontainers.image.source="https://github.com/CGATOxford/UMI-tools" \
+      org.opencontainers.image.revision="3f2cb4f41e07fe4a6cea3b3389f534bee957176b" \
+      org.opencontainers.image.created="governed-by-build-evidence" \
       org.opencontainers.image.licenses="GPL-3.0" \
       org.opencontainers.image.version="${TOOL_VERSION}"
 LABEL org.opencontainers.image.tool="umi_tools"
 LABEL org.opencontainers.image.title="umi_tools"
 LABEL org.opencontainers.image.base.name="python:3.9-slim@sha256:2d97f6910b16bd338d3060f261f53f144965f755599aab1acda1e13cf1731b1b"
 LABEL org.opencontainers.image.base.digest="sha256:2d97f6910b16bd338d3060f261f53f144965f755599aab1acda1e13cf1731b1b"
+LABEL io.bijux.tool.version="1.1.6"
 ENV DEBIAN_FRONTEND=noninteractive
 
 ARG VERSION_UMI_TOOLS=1.1.6
@@ -34,18 +33,17 @@ RUN /usr/local/sbin/bijux-configure-apt-snapshot && \
 RUN python3 -m venv /opt/venv && \
     /opt/venv/bin/pip install --no-cache-dir --upgrade "pip==24.3.1" "setuptools<81" wheel && \
     PIP_USE_PEP517=0 /opt/venv/bin/pip install --no-cache-dir "umi_tools==${VERSION_UMI_TOOLS}" && \
-    mv /opt/venv/bin/umi_tools /usr/local/bin/umi_tools-bin && \
-    printf '%s\n' \
-      '#!/bin/sh' \
-      'case "${1:-}" in' \
-      '  --version) echo "${VERSION_UMI_TOOLS}"; exit 0;;' \
-      '  --help|-h|"") exec /usr/local/bin/umi_tools-bin --help;;' \
-      '  *) exec /usr/local/bin/umi_tools-bin "$@";; esac' \
-      > /usr/local/bin/umi_tools && \
-    chmod +x /usr/local/bin/umi_tools
+    ln -s /opt/venv/bin/umi_tools /usr/local/bin/umi_tools && \
+    umi_tools --version > /tmp/umi-tools.version && \
+    grep -Fx 'UMI-tools version: 1.1.6' /tmp/umi-tools.version && \
+    umi_tools --help > /tmp/umi-tools.help && \
+    grep -F 'umi_tools.py - Tools for UMI analyses' /tmp/umi-tools.help && \
+    rm -f /tmp/umi-tools.version /tmp/umi-tools.help && \
+    useradd --system --uid 65532 --home-dir /work --create-home bijux
 
 ENV PATH="/opt/venv/bin:${PATH}"
 
-WORKDIR /data
+USER 65532:65532
+WORKDIR /work
 ENTRYPOINT ["umi_tools"]
 CMD ["--help"]

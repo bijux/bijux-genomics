@@ -1,8 +1,16 @@
 #!/usr/bin/env sh
 set -eu
 
+native_help() {
+    native_output="$(/opt/qualimap/qualimap --help 2>&1)"
+    if ! printf '%s\n' "$native_output" | grep -Fq 'QualiMap v.2.3'; then
+        printf 'error: Qualimap help omits version 2.3\n' >&2
+        exit 70
+    fi
+}
+
 case "${1:-}" in
-    --version) echo '2.3' ;;
-    --help|-h|"") exec /opt/qualimap/qualimap --help ;;
+    --version) native_help; printf '2.3\n' ;;
+    --help|-h|"") native_help; printf '%s\n' "$native_output" ;;
     *) exec /opt/qualimap/qualimap "$@" ;;
 esac

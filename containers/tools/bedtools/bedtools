@@ -4,10 +4,10 @@ set -eu
 
 case "${1:-}" in
     --version)
-        echo 'bedtools v2.31.1'
+        exec /opt/bedtools/bin/bedtools-native --version
         ;;
     --help|-h|"")
-        /opt/bedtools/bin/bedtools-native --help 2>&1 || true
+        exec /opt/bedtools/bin/bedtools-native --help
         ;;
     --governed-invalid-option)
         echo 'bedtools: error: unsupported option --governed-invalid-option' >&2

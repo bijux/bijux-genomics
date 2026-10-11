@@ -43,7 +43,7 @@ include_containers_manifest = false
 data_manifest_glob = ""
 
 [corpora.corpus-01]
-spec_path = "configs/runtime/corpora/corpus-01.toml"
+spec_path = "benchmarks/corpora/human-short-read-diversity.toml"
 
 [stage_inputs.fastq_deplete_rrna]
 rrna_db = "${BIJUX_BENCHMARK_FASTQ_DEPLETE_RRNA_DB}"

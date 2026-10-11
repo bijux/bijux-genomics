@@ -1,0 +1,92 @@
+schema_version: "bijux.tool.v2"
+tool_id: "bcftools"
+upstream: "https://github.com/samtools/bcftools"
+versioning_strategy: "pinned"
+pin_strategy: "container_digest"
+default_version: "1.20"
+install_kind: "container"
+container:
+  image: "bijuxdna/bcftools:1.20"
+license: "MIT"
+citation: "DOI:10.1093/gigascience/giab008"
+outputs:
+  - name: "genotyping_report"
+    data_type: "json"
+    cardinality: "One"
+  - name: "summary"
+    data_type: "json"
+    cardinality: "One"
+  - name: "stage_metrics"
+    data_type: "json"
+    cardinality: "One"
+  - name: "genotyping_bcf"
+    data_type: "bcf"
+    cardinality: "One"
+  - name: "genotyping_vcf"
+    data_type: "vcf.gz"
+    cardinality: "One"
+  - name: "genotyping_vcf_tbi"
+    data_type: "tbi"
+    cardinality: "One"
+  - name: "genotyping_gl"
+    data_type: "json"
+    cardinality: "One"
+execution_contract:
+  required_inputs:
+    - "bam"
+    - "bam_bai"
+    - "reference"
+    - "sites"
+    - "regions"
+  expected_outputs:
+    - "genotyping_report"
+    - "summary"
+    - "stage_metrics"
+    - "genotyping_bcf"
+    - "genotyping_vcf"
+    - "genotyping_vcf_tbi"
+    - "genotyping_gl"
+  forbidden_outputs: []
+  forbid_unexpected_outputs: true
+stage_ids: ["bam.genotyping"]
+planned_stage_ids: []
+status: "supported"
+scope: "bam_to_variants"
+stage_contracts:
+  bam.genotyping:
+    required_inputs:
+      - "bam"
+      - "bam_bai"
+      - "reference"
+      - "sites"
+      - "regions"
+    expected_artifacts:
+      - "genotyping_report"
+      - "summary"
+      - "stage_metrics"
+      - "genotyping_bcf"
+      - "genotyping_vcf"
+      - "genotyping_vcf_tbi"
+      - "genotyping_gl"
+    notes: "bcftools mpileup and multiallelic calling retain likelihood-aware BCF and indexed VCF outputs while enforcing the declared minimum call rate."
+expected_artifacts: ["genotyping_bcf", "genotyping_vcf", "genotyping_vcf_tbi", "genotyping_gl"]
+metrics_schema_id: "bijux.bam.genotyping.v1"
+metrics_schema: "bijux.bam.genotyping.v1"
+version_cmd: "bcftools --version"
+help_cmd: "bcftools --help"
+comparability:
+  comparable_with: []
+  non_comparable_with: []
+comparability_notes: "Compare only when reference, candidate sites, regions, ploidy, and calling parameters are identical."
+capabilities:
+  - bam_input
+  - genotype_likelihoods
+  - variant_calling
+io_contract:
+  required_inputs:
+    - bam
+    - bam_bai
+    - reference
+    - sites
+    - regions
+notes: "Domain SSOT tool contract entry for retained BAM genotyping."

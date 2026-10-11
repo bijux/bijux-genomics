@@ -1,0 +1,186 @@
+{
+  "checks": {
+    "help": {
+      "argv": [
+        "lighter",
+        "--help"
+      ],
+      "exit_code": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "d3c58d04d2ae022611cafbc2d28622e7023e2588fb3ee44dddfdb297b3d7843e"
+    },
+    "negative": {
+      "argv": [
+        "lighter",
+        "--governed-invalid-option"
+      ],
+      "exit_code": 1,
+      "stderr_sha256": "35fe3888b6361ed08b1891f70225e3338bcc50ec31388304a90ce8cad26cc125",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "real": {
+      "argv": [
+        "sh",
+        "-c",
+        "set -eu; mkdir -p /scratch/input /scratch/corrected /result/corrected; cp /input/ERR1021817_1.fastq.gz /scratch/input/ERR1021817_1.fastq.gz; cp /input/ERR1021817_2.fastq.gz /scratch/input/ERR1021817_2.fastq.gz; reference_bases=$(awk '{total += $2} END {printf \"%.0f\", total}' /input/EquCab3.0.fna.fai); test \"$reference_bases\" = 2506966135; lighter -r /scratch/input/ERR1021817_1.fastq.gz -r /scratch/input/ERR1021817_2.fastq.gz -K 31 \"$reference_bases\" -t 16 -od /scratch/corrected > /result/lighter.stdout.log 2> /result/lighter.stderr.log; scratch_mate1=/scratch/corrected/ERR1021817_1.cor.fq.gz; scratch_mate2=/scratch/corrected/ERR1021817_2.cor.fq.gz; gzip -t \"$scratch_mate1\" \"$scratch_mate2\"; mate1_reads=$(gzip -cd \"$scratch_mate1\" | awk 'END {if (NR % 4 != 0) exit 2; printf \"%.0f\", NR / 4}'); mate2_reads=$(gzip -cd \"$scratch_mate2\" | awk 'END {if (NR % 4 != 0) exit 2; printf \"%.0f\", NR / 4}'); mate1_corrected=$(gzip -cd \"$scratch_mate1\" | awk 'NR % 4 == 1 && /cor/ {count++} END {printf \"%.0f\", count + 0}'); mate2_corrected=$(gzip -cd \"$scratch_mate2\" | awk 'NR % 4 == 1 && /cor/ {count++} END {printf \"%.0f\", count + 0}'); mate1_bytes=$(wc -c < \"$scratch_mate1\" | tr -d ' '); mate2_bytes=$(wc -c < \"$scratch_mate2\" | tr -d ' '); cp \"$scratch_mate1\" /result/corrected/ERR1021817_1.cor.fq.gz; cp \"$scratch_mate2\" /result/corrected/ERR1021817_2.cor.fq.gz; printf '{\"reference_bases\":%s,\"mate1_reads\":%s,\"mate2_reads\":%s,\"mate1_corrected_headers\":%s,\"mate2_corrected_headers\":%s,\"mate1_output_bytes\":%s,\"mate2_output_bytes\":%s}\\n' \"$reference_bases\" \"$mate1_reads\" \"$mate2_reads\" \"$mate1_corrected\" \"$mate2_corrected\" \"$mate1_bytes\" \"$mate2_bytes\" > /result/metrics.json"
+      ],
+      "exit_code": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "version": {
+      "argv": [
+        "lighter",
+        "--version"
+      ],
+      "exit_code": 0,
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stdout_sha256": "0fa347924f66b40ee13a62b09d5050a8f5098efaf8a749844d99609798add4c6"
+    }
+  },
+  "credential_reference_sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+  "dependencies": [],
+  "evidence_kind": "qualification",
+  "execution": {
+    "cache_policy": "cold",
+    "determinism": "deterministic",
+    "locale": "C",
+    "random_seed": null,
+    "runtime_network": false,
+    "threads": 16,
+    "timezone": "UTC"
+  },
+  "failure_class": null,
+  "failures": [],
+  "governance_sha256": "32872b169364b600c0b2dbe08060c27147ccffa8254b4cbd654a7ed72e10a507",
+  "image": {
+    "path": "/lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/lighter-1.1.3-linux-amd64-92cc08026046.sif",
+    "sha256": "92cc08026046243b181c59feda88dc464f9d5e60f746581b9bd7e2534d8031d9",
+    "size_bytes": 30830592
+  },
+  "inputs": [
+    {
+      "id": "err1021817_mate_1",
+      "kind": "data",
+      "mount_path": "/input/ERR1021817_1.fastq.gz",
+      "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb10854-err1021817-full/ERR1021817_1.fastq.gz",
+      "sha256": "0b3eb24cc6addc1a5d61af5b169125aa18ce7d1ce671f89b0c96ed5fbd0bdc0a"
+    },
+    {
+      "id": "err1021817_mate_2",
+      "kind": "data",
+      "mount_path": "/input/ERR1021817_2.fastq.gz",
+      "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/data/corpora/ena-prjeb10854-err1021817-full/ERR1021817_2.fastq.gz",
+      "sha256": "6580c564a793f7858bc18c908e42cdfbd9683e2bebcb4e3d6e4ca524e34385c5"
+    },
+    {
+      "id": "err1021817_split_pair_catalog",
+      "kind": "data",
+      "mount_path": "/input/ERR1021817.catalog.json",
+      "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/data/catalog/ena-prjeb10854-err1021817-split-paired-fastq.json",
+      "sha256": "6881b57f807ab37fdcd8ef602282d15592e2dce3479611f656ed5dd0f7ed7b55"
+    },
+    {
+      "id": "equcab3_fasta_index",
+      "kind": "reference",
+      "mount_path": "/input/EquCab3.0.fna.fai",
+      "path": "/home/bijan/lu2024-12-24/Dardel/STUDY/data/references/equcab3-gcf-002863925.1/GCF_002863925.1_EquCab3.0_genomic.fna.fai",
+      "sha256": "fd9abaac2aa522291dbb792ab3d23d694809cf36a7e1c6a4aa471a652a807f01"
+    }
+  ],
+  "metrics": [
+    {
+      "expected": 2506966135,
+      "id": "reference_bases",
+      "json_pointer": "/reference_bases",
+      "observed": 2506966135,
+      "operator": "eq",
+      "path": "metrics.json",
+      "status": "passed",
+      "unit": "bases"
+    },
+    {
+      "expected": 81442770,
+      "id": "mate1_read_count",
+      "json_pointer": "/mate1_reads",
+      "observed": 81442770,
+      "operator": "eq",
+      "path": "metrics.json",
+      "status": "passed",
+      "unit": "reads"
+    },
+    {
+      "expected": 81442770,
+      "id": "mate2_read_count",
+      "json_pointer": "/mate2_reads",
+      "observed": 81442770,
+      "operator": "eq",
+      "path": "metrics.json",
+      "status": "passed",
+      "unit": "reads"
+    },
+    {
+      "expected": 0,
+      "id": "mate1_output_nonempty",
+      "json_pointer": "/mate1_output_bytes",
+      "observed": 7326054693,
+      "operator": "gt",
+      "path": "metrics.json",
+      "status": "passed",
+      "unit": "bytes"
+    },
+    {
+      "expected": 0,
+      "id": "mate2_output_nonempty",
+      "json_pointer": "/mate2_output_bytes",
+      "observed": 7481077303,
+      "operator": "gt",
+      "path": "metrics.json",
+      "status": "passed",
+      "unit": "bytes"
+    }
+  ],
+  "outputs": [
+    {
+      "path": "outputs/corrected/ERR1021817_1.cor.fq.gz",
+      "sha256": "7fff2549ebc14593e6a15c4723449e142bdbcf50f8c5233ec463d6fb9e5489bc",
+      "size_bytes": 7326054693
+    },
+    {
+      "path": "outputs/corrected/ERR1021817_2.cor.fq.gz",
+      "sha256": "60b180e8a9e645366a6eec929fe4dd66fe720af0518779d3691ce98322fb1db6",
+      "size_bytes": 7481077303
+    },
+    {
+      "path": "outputs/lighter.stderr.log",
+      "sha256": "0af5b0611737497086443792708e4accf6f2bbce3181e6b5abeee9f0bf9eecca",
+      "size_bytes": 649
+    },
+    {
+      "path": "outputs/metrics.json",
+      "sha256": "ad1e782e5ef66dc7736ae8438a688448d9f68099f0737e011a8f14c74369c5eb",
+      "size_bytes": 197
+    }
+  ],
+  "pipeline_schema_version": "bijux.container.pipeline.v2",
+  "pipeline_sha256": "e6987e993689a73b6594ec156464ca61ca17694b2b12568c1982e08855cc6b8e",
+  "repository_clean": true,
+  "repository_commit": "04ad1f9435f2c4e1d11ce6fd3b81ea447d9eda3f",
+  "repository_path": "/home/bijan/bijux/bijux-genomics-runs/04ad1f9435f2c4e1d11ce6fd3b81ea447d9eda3f",
+  "run_id": "run-1139",
+  "runtime": {
+    "apptainer_version": "apptainer version 1.5.2-1.el9",
+    "cpus": "16",
+    "finished_at_utc": "2026-08-03T17:49:24.215523+00:00",
+    "host": "cn101",
+    "scratch_path": "/local/slurmtmp.3459752/bijux-genomics-3459752-iewGHt",
+    "slurm_job_id": "3459752",
+    "started_at_utc": "2026-08-03T17:13:20.615904+00:00"
+  },
+  "schema_version": "bijux.container.evidence.v2",
+  "site": {
+    "host": "cn101",
+    "id": "lunarc"
+  },
+  "status": "passed"
+}

@@ -1,5 +1,5 @@
 {
-  "build_date_utc": "2026-08-03T14:49:23+02:00",
+  "build_date_utc": "2026-08-03T15:04:05+02:00",
   "build_manifests_source": "artifacts/containers/manifests/*.json",
   "builder_platform": "arm64",
   "generator_script": "cargo run -p bijux-dna-dev -- containers run generate-version-lock",
@@ -1251,7 +1251,7 @@
       "version": "2.7.11b"
     },
     {
-      "entry_sha256": "4b43647b5caf47caeacfc2f2be80af76e4f776923b98263cdd33d2bf1cae1408",
+      "entry_sha256": "479ada91eeab695d259b428d114243eac60cbe28e6aef29fa2ff5b497c8444e1",
       "frontend_resolved_sif_sha256": "",
       "frontend_sif_digest_sha256": "",
       "frontend_smoke_version_output_sha256": "",
@@ -1261,7 +1261,7 @@
       "resolved_sif_sha256": "",
       "sif_digest_sha256": "",
       "source": "https://github.com/FelixKrueger/TrimGalore",
-      "source_sha256": "",
+      "source_sha256": "dc5d24ab37c3cfed8038b8c2546948e52e3e769b912ccfd5c9d28c34546f5e2c",
       "tool": "trim_galore",
       "version": "0.6.10"
     },
@@ -1343,6 +1343,6 @@
   ],
   "schema_version": "bijux.container.version_lock.v4",
   "source": "containers/versions/versions.toml",
-  "source_sha256": "754538e40ed36d3f6af6310ffca782a92543db77f91be29fd7e210adb9ab8826",
+  "source_sha256": "e1a78e51bd03e0778cfc89a2b391e6d6583f7d861d227099609909bc86c31c22",
   "version_map_source": "artifacts/containers/version_map.json"
 }

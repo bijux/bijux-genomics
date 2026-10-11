@@ -1,0 +1,25 @@
+#!/usr/bin/env sh
+set -eu
+
+native_help() {
+    set +e
+    native_output="$(/usr/local/bin/Yleaf -h 2>&1)"
+    native_status=$?
+    set -e
+    if [ "$native_status" -ne 0 ] || ! printf '%s\n' "$native_output" | grep -Fq 'haplogroup inference v4.1.4'; then
+        printf 'error: unexpected Yleaf information probe (status=%s)\n' "$native_status" >&2
+        exit 70
+    fi
+}
+
+case "${1:-}" in
+    --version)
+        native_help
+        printf 'Yleaf 4.1.4\n'
+        ;;
+    --help|-h|"")
+        native_help
+        printf '%s\n' "$native_output"
+        ;;
+    *) exec /usr/local/bin/Yleaf "$@" ;;
+esac

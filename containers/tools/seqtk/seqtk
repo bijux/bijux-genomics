@@ -2,12 +2,25 @@
 # SPDX-License-Identifier: MIT
 set -eu
 
+native_information() {
+    set +e
+    native_output="$(/opt/seqtk/bin/seqtk-native 2>&1)"
+    native_status=$?
+    set -e
+    if [ "$native_status" -ne 1 ] || ! printf '%s\n' "$native_output" | grep -Fq 'Version: 1.4-r122'; then
+        printf 'error: unexpected seqtk information probe (status=%s)\n' "$native_status" >&2
+        exit 70
+    fi
+}
+
 case "${1:-}" in
     --version)
-        echo 'seqtk 1.4'
+        native_information
+        printf 'seqtk 1.4\n'
         ;;
     --help|-h|"")
-        /opt/seqtk/bin/seqtk-native 2>&1 || true
+        native_information
+        printf '%s\n' "$native_output"
         ;;
     --governed-invalid-option)
         echo 'seqtk: error: unsupported option --governed-invalid-option' >&2

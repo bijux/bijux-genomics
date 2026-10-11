@@ -10,8 +10,8 @@ qualification remain independent requirements.
 ## Inventory summary
 
 - Catalog tools: **89**
-- States: **current 87**, **unsupported 2**
-- Historical run dependencies: **1**
+- States: **current 85**, **unsupported 4**
+- Historical run dependencies: **3**
 - Unknown immutable images: **0**
 - Interrupted staged images: **0**
 - Unreferenced obsolete images: **0**
@@ -23,7 +23,7 @@ qualification remain independent requirements.
 | `adapterremoval` | `2.3.4` | retained | **current** | 1 |
 | `addeam` | `1.0.0` | retained | **current** | 1 |
 | `alientrimmer` | `3.2` | retained | **current** | 1 |
-| `angsd` | `0.941` | retained | **current** | 1 |
+| `angsd` | `0.941` | unsupported | **unsupported** | 0 |
 | `atropos` | `1.1.31` | retained | **current** | 1 |
 | `authenticct` | `1.0.0` | retained | **current** | 1 |
 | `bamtools` | `2.5.2` | retained | **current** | 1 |
@@ -70,14 +70,14 @@ qualification remain independent requirements.
 | `kraken2` | `2.1.3` | retained | **current** | 1 |
 | `krakenuniq` | `1.0.4` | retained | **current** | 0 |
 | `leehom` | `1.2.18` | retained | **current** | 1 |
-| `lighter` | `1.1.2` | retained | **current** | 0 |
+| `lighter` | `1.1.3` | retained | **current** | 1 |
 | `mapdamage2` | `2.2.2` | retained | **current** | 1 |
 | `metaphlan` | `4.1.1` | retained | **current** | 0 |
 | `minimac4` | `4.1.6` | retained | **current** | 0 |
 | `mosdepth` | `0.3.11` | retained | **current** | 1 |
 | `multiqc` | `1.24` | retained | **current** | 1 |
 | `musket` | `1.1` | retained | **current** | 1 |
-| `ngsbriggs` | `0.01` | retained | **current** | 1 |
+| `ngsbriggs` | `0.01` | unsupported | **unsupported** | 0 |
 | `pear` | `0.9.6` | retained | **current** | 1 |
 | `picard` | `3.3.0` | retained | **current** | 1 |
 | `plink` | `1.90b7.2` | retained | **current** | 1 |

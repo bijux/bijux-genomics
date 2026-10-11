@@ -294,6 +294,21 @@ pub(super) fn check_apptainer_hardening(workspace: &Workspace) -> Result<Contain
             errors.push(format!("{rel}: missing %runscript section"));
         }
     }
+    for root in [workspace.path("containers/tools"), workspace.path("containers/docker")] {
+        for entry in WalkDir::new(root).into_iter().filter_map(std::result::Result::ok) {
+            let path = entry.path();
+            if !path.is_file() {
+                continue;
+            }
+            let text = read_utf8(path)?;
+            if recipe_ignores_runtime_failure(&text) {
+                errors.push(format!(
+                    "{}: container runtime sources must preserve native command failures",
+                    workspace.rel(path).display()
+                ));
+            }
+        }
+    }
     if errors.is_empty() {
         return success_line("apptainer hardening: OK");
     }
@@ -1324,7 +1339,7 @@ mod tests {
     }
 
     #[test]
-    fn apptainer_policy_rejects_ignored_runtime_failures() {
+    fn container_policy_rejects_ignored_runtime_failures() {
         assert!(recipe_ignores_runtime_failure("make -j2 || true"));
         assert!(recipe_ignores_runtime_failure("tool --help >/dev/null 2>&1 || true"));
         assert!(!recipe_ignores_runtime_failure("make --directory /opt/tool -j2"));

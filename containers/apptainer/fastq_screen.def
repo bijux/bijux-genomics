@@ -2,68 +2,60 @@
 # This container recipe is maintained by Bijux Genomics.
 # Bijux Genomics source code is licensed under Apache-2.0.
 # Copyright (C) 2026 Bijan Mousavi
-# BIJUX_TEMPLATE: v1
-
 # Tool ID: fastq_screen
-# Version policy: pinned_or_registry_locked
-# Upstream source: see org.opencontainers.image.source label
+# Version policy: exact upstream commit archive with a governed SHA-256 digest
+# Upstream source: https://github.com/StevenWingett/FastQ-Screen
 # Build date policy: captured by immutable build evidence
-# Network source policy: NETWORK_SOURCE_VERIFIED_BY_LOCK
-# Runtime UID policy: RUNTIME_UID_SAFE
-
-# VERSION_SOURCE: containers/versions/versions.toml
+# Network source policy: build-only access to the locked Ubuntu snapshot and source archive
+# Runtime UID policy: caller identity with caller-owned output paths
+# VERSION_SOURCE: containers/contracts/catalog.toml
 Bootstrap: docker
 From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
 
 %labels
-    MAINTAINER Bijan Mousavi <bijan@bijux.io>
-    VERSION FastQ-Screen-v0.15.3
     org.opencontainers.image.source https://github.com/StevenWingett/FastQ-Screen
-
     org.opencontainers.image.revision 6dfa1eef0d3103dd7829eb1f586b4d8a121f911b
     org.opencontainers.image.created governed-by-build-evidence
-    org.opencontainers.image.licenses GPL-3.0
+    org.opencontainers.image.licenses GPL-3.0-or-later
     org.opencontainers.image.version 0.15.3
     io.bijux.tool.version 0.15.3
     org.opencontainers.image.tool fastq_screen
-    org.opencontainers.image.title fastq_screen
+    org.opencontainers.image.title FastQ-Screen
+
 %environment
-    export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+    export PATH=/usr/local/bin:/usr/bin:/bin
+    export LANG=C
     export LC_ALL=C
     export TZ=UTC
-    DEBIAN_FRONTEND=noninteractive
+
+%files
+    containers/contracts/configure-apt-snapshot /usr/local/sbin/bijux-configure-apt-snapshot
 
 %post
     set -eux
     umask 022
     export DEBIAN_FRONTEND=noninteractive
-
-    apt-get update -qq && \
-    apt-get install -y --no-install-recommends \
-        perl \
-        curl \
-        ca-certificates \
-        bzip2 \
-        gzip && \
-
-    mkdir -p /opt && \
-    cd /opt && \
-    curl -fsSL -o fastq_screen.tar.gz \
-        "https://github.com/StevenWingett/FastQ-Screen/archive/refs/tags/v0.15.3.tar.gz" && \
-    tar -xzf fastq_screen.tar.gz && \
-    mv FastQ-Screen-0.15.3 fastq_screen && \
-    ln -s /opt/fastq_screen/fastq_screen /usr/local/bin/fastq_screen && \
-
-    rm fastq_screen.tar.gz && \
+    /bin/sh /usr/local/sbin/bijux-configure-apt-snapshot
+    apt-get install -y --no-install-recommends bzip2 curl gzip perl
+    curl --fail --location --proto '=https' --tlsv1.2 --output /opt/fastq-screen.tar.gz https://codeload.github.com/StevenWingett/FastQ-Screen/tar.gz/6dfa1eef0d3103dd7829eb1f586b4d8a121f911b
+    echo '79a66b7265374c1c1b34ca166eede564bfa7ec58e17c3ba9a0e1de9bbe1c2448  /opt/fastq-screen.tar.gz' | sha256sum --check --strict
+    install -d -m 0755 /opt/fastq-screen
+    tar --extract --gzip --file /opt/fastq-screen.tar.gz --strip-components=1 --directory /opt/fastq-screen
+    ln -s /opt/fastq-screen/fastq_screen /usr/local/bin/fastq_screen
+    fastq_screen --version | grep -Fx 'FastQ Screen v0.15.3'
+    fastq_screen --help >/dev/null
+    rm /opt/fastq-screen.tar.gz
+    apt-get clean
     rm -rf /var/lib/apt/lists/*
+
 %runscript
-    if [ $# -eq 0 ]; then
-        exec /usr/local/bin/fastq_screen --help
-    else
-        exec /usr/local/bin/fastq_screen "$@"
-    fi
+    exec /usr/local/bin/fastq_screen "$@"
+
+%test
+    fastq_screen --version | grep -Fx 'FastQ Screen v0.15.3'
+    fastq_screen --help >/dev/null
+    test -x /opt/fastq-screen/fastq_screen
 
 %help
-    This Apptainer image provides FastQ Screen version 0.15.3.
-    Run with arguments to execute fastq_screen, or without arguments to display help.
-    Note: External aligners (Bowtie2, BWA, or similar) are required for screening and must be available in the runtime environment.
+    FastQ Screen 0.15.3 from the exact checksummed upstream commit archive.
+    Screening additionally requires a governed aligner and reference database.

@@ -3,11 +3,13 @@ from __future__ import annotations
 import importlib.util
 import json
 import subprocess
+import sys
 import tempfile
 import unittest
 from pathlib import Path
 
 SCRIPT = Path(__file__).parents[1] / "image_inventory.py"
+sys.path.insert(0, str(SCRIPT.parent))
 SPEC = importlib.util.spec_from_file_location("container_image_inventory", SCRIPT)
 assert SPEC is not None and SPEC.loader is not None
 inventory = importlib.util.module_from_spec(SPEC)
@@ -19,11 +21,20 @@ class ImageInventoryTests(unittest.TestCase):
         repository = root / "repository"
         definition = repository / "containers" / "apptainer" / "samtools.def"
         definition.parent.mkdir(parents=True)
+        wrapper = repository / "containers" / "tools" / "samtools" / "samtools"
+        wrapper.parent.mkdir(parents=True)
+        wrapper.write_text("#!/bin/sh\nexec samtools \"$@\"\n", encoding="utf-8")
         definition.write_text(
-            "Bootstrap: docker\nFrom: samtools:1.20\n", encoding="utf-8"
+            "Bootstrap: docker\n"
+            "From: samtools:1.20\n"
+            "%files\n"
+            "    containers/tools/samtools/samtools /usr/local/bin/samtools\n",
+            encoding="utf-8",
         )
         subprocess.run(["git", "init", "-q", repository], check=True)
-        subprocess.run(["git", "-C", repository, "add", definition], check=True)
+        subprocess.run(
+            ["git", "-C", repository, "add", definition, wrapper], check=True
+        )
         subprocess.run(
             [
                 "git",
@@ -103,6 +114,23 @@ class ImageInventoryTests(unittest.TestCase):
                         "version": "1.20",
                         "repository_commit": commit,
                         "definition": {"sha256": definition_digest},
+                        "build_context": [
+                            {
+                                "path": "containers/tools/samtools/samtools",
+                                "git_object": subprocess.run(
+                                    [
+                                        "git",
+                                        "-C",
+                                        repository,
+                                        "rev-parse",
+                                        f"{commit}:containers/tools/samtools/samtools",
+                                    ],
+                                    check=True,
+                                    capture_output=True,
+                                    text=True,
+                                ).stdout.strip(),
+                            }
+                        ],
                         "image": {
                             "sha256": image_digest,
                             "size_bytes": len(image_bytes),
@@ -121,6 +149,35 @@ class ImageInventoryTests(unittest.TestCase):
                 repository,
                 output,
             )
+            wrapper = repository / "containers/tools/samtools/samtools"
+            wrapper.write_text(
+                "#!/bin/sh\nexec /opt/samtools/bin/samtools \"$@\"\n",
+                encoding="utf-8",
+            )
+            subprocess.run(["git", "-C", repository, "add", wrapper], check=True)
+            subprocess.run(
+                [
+                    "git",
+                    "-C",
+                    repository,
+                    "-c",
+                    "user.name=Bijux Test",
+                    "-c",
+                    "user.email=test@bijux.io",
+                    "commit",
+                    "-qm",
+                    "change runtime wrapper",
+                ],
+                check=True,
+            )
+            stale_result = inventory.audit_images(
+                catalog,
+                image_root,
+                evidence_root,
+                runs_root,
+                repository,
+                root / "inventory-after-wrapper-change.json",
+            )
 
         self.assertEqual(result["summary"]["states"], {"current": 1})
         self.assertEqual(result["image_root"], str(image_root.resolve()))
@@ -138,6 +195,11 @@ class ImageInventoryTests(unittest.TestCase):
             "unreferenced_obsolete",
         )
         self.assertEqual(result["summary"]["unreferenced_obsolete_count"], 1)
+        self.assertEqual(stale_result["summary"]["states"], {"stale_recipe": 1})
+        self.assertTrue(stale_result["tools"][0]["candidates"][0]["admitted"])
+        self.assertFalse(
+            stale_result["tools"][0]["candidates"][0]["current_recipe"]
+        )
 
     def test_report_does_not_claim_release_or_science_qualification(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

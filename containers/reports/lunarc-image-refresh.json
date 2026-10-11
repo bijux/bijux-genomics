@@ -1,0 +1,78 @@
+{
+  "campaign_scope": "targeted",
+  "checks": {
+    "all_selected_images_current": true,
+    "all_selected_records_match_inventory": true,
+    "all_selected_tools_passed": true,
+    "campaign_passed": true,
+    "no_staged_images": true,
+    "no_unknown_images": true,
+    "no_unreferenced_obsolete_images": true
+  },
+  "evidence_dimensions": [
+    "source",
+    "build",
+    "freshness"
+  ],
+  "execution_summary": {
+    "passed": 1
+  },
+  "finished_at_utc": "2026-08-03T18:35:25.999587+00:00",
+  "inventory_summary": {
+    "historical_dependency_count": 3,
+    "staged_image_count": 0,
+    "states": {
+      "current": 85,
+      "unsupported": 4
+    },
+    "tool_count": 89,
+    "unknown_image_count": 0,
+    "unreferenced_obsolete_count": 0
+  },
+  "not_evidence_for": [
+    "runtime",
+    "stage",
+    "real_data",
+    "science",
+    "benchmark",
+    "security",
+    "release"
+  ],
+  "repository_commit": "5a2f9252ed08b6a55b6d086828d850c0b961dbfc",
+  "run_id": "run-1000",
+  "schema_version": "bijux.container.image_rebuild_report.v1",
+  "selected_tool_count": 1,
+  "site": {
+    "host": "cosmos3.int.lunarc",
+    "id": "lunarc"
+  },
+  "source_artifacts": {
+    "after_build_inventory": {
+      "name": "after-storage.json",
+      "sha256": "7777edc2adb367ae35851998e2c89627d729cc199e55f0bc43189b49bf74aa14",
+      "study_relative_path": "containers/inventory/after-storage.json"
+    },
+    "execution": {
+      "name": "execution.json",
+      "sha256": "408687fd6843b90a2a7c7364fbdbefc095a8b731f0a767eaa7b4e486482fcaca",
+      "study_relative_path": "containers/campaign/execution.json"
+    }
+  },
+  "tools": [
+    {
+      "attempt_count": 1,
+      "build_log_name": "bijux_dna-4780b0580a53-5a2f9252ed08-attempt-1.log",
+      "build_log_sha256": "c9decdd0ddbf3181424b20c7e67fe5ecb2383e2c78c49ab4506afbf441feb2d3",
+      "failed_attempt_count": 0,
+      "image_name": "bijux_dna-0.1.0-linux-amd64-4cb58a275c33.sif",
+      "image_sha256": "4cb58a275c3301f2eb29a0227f0407746955c68e02824f2368349ec074935b4e",
+      "image_size_bytes": 460161024,
+      "inventory_matches_execution": true,
+      "inventory_state": "current",
+      "status": "passed",
+      "tool": "bijux_dna",
+      "version": "0.1.0"
+    }
+  ],
+  "verdict": "passed"
+}

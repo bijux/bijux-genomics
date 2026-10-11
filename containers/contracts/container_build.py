@@ -21,6 +21,16 @@ from container_validation import (
     sha256_file,
     write_json,
 )
+from recipe_identity import (
+    RecipeIdentityError,
+    git_bytes,
+)
+from recipe_identity import (
+    committed_build_context as resolve_committed_build_context,
+)
+from recipe_identity import (
+    definition_file_sources as resolve_definition_file_sources,
+)
 
 TOOL_PATTERN = re.compile(r"[a-z0-9_]+")
 VERSION_PATTERN = re.compile(r"[A-Za-z0-9][A-Za-z0-9._+-]*")
@@ -28,36 +38,17 @@ COMMIT_PATTERN = re.compile(r"[0-9a-f]{40}")
 
 
 def git_blob(repository: Path, commit: str, relative_path: Path) -> bytes:
-    completed = subprocess.run(
-        ["git", "-C", str(repository), "show", f"{commit}:{relative_path.as_posix()}"],
-        check=False,
-        capture_output=True,
-    )
-    if completed.returncode != 0:
-        raise ContractError(
-            f"cannot resolve {relative_path} at {commit}: "
-            f"{completed.stderr.decode(errors='replace').strip()}"
-        )
-    return completed.stdout
+    try:
+        return git_bytes(repository, commit, relative_path)
+    except RecipeIdentityError as exc:
+        raise ContractError(str(exc)) from exc
 
 
 def definition_file_sources(definition: bytes) -> list[Path]:
-    sources: list[Path] = []
-    in_files = False
-    for raw_line in definition.decode("utf-8").splitlines():
-        line = raw_line.strip()
-        if line.startswith("%"):
-            in_files = line == "%files"
-            continue
-        if not in_files or not line or line.startswith("#"):
-            continue
-        source = Path(line.split()[0])
-        if source.is_absolute() or ".." in source.parts:
-            raise ContractError(
-                f"%files source must remain repository-relative: {source}"
-            )
-        sources.append(source)
-    return sources
+    try:
+        return resolve_definition_file_sources(definition)
+    except RecipeIdentityError as exc:
+        raise ContractError(str(exc)) from exc
 
 
 def committed_build_context(
@@ -65,15 +56,16 @@ def committed_build_context(
     commit: str,
     definition: bytes,
 ) -> list[dict[str, str]]:
-    context: list[dict[str, str]] = []
-    for source in definition_file_sources(definition):
-        object_id = git_output(repository, "rev-parse", f"{commit}:{source.as_posix()}")
+    sources = definition_file_sources(definition)
+    for source in sources:
         if not (repository / source).exists():
             raise ContractError(
                 f"%files source is absent from the build worktree: {source}"
             )
-        context.append({"path": source.as_posix(), "git_object": object_id})
-    return context
+    try:
+        return resolve_committed_build_context(repository, commit, definition)
+    except RecipeIdentityError as exc:
+        raise ContractError(str(exc)) from exc
 
 
 def immutable_image_name(

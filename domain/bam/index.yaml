@@ -274,7 +274,7 @@ active_defaults:
   bam.bias_mitigation: mapdamage2
   bam.recalibration: gatk
   bam.haplogroups: yleaf
-  bam.genotyping: angsd
+  bam.genotyping: bcftools
   bam.kinship: king
 active_default_rationale:
   bam.align: "Alignment baseline selected for broad BAM ecosystem compatibility."
@@ -299,7 +299,7 @@ active_default_rationale:
   bam.bias_mitigation: "Bias mitigation baseline preserves the admitted mapdamage2 projection surface."
   bam.recalibration: "Recalibration baseline preserves the governed BQSR execution surface."
   bam.haplogroups: "Haplogroup baseline preserves deterministic assignment through the admitted Yleaf surface."
-  bam.genotyping: "Genotyping baseline preserves the governed low-depth ANGSD execution surface."
+  bam.genotyping: "Genotyping baseline uses a redistributable likelihood-aware caller with indexed BCF and VCF outputs."
   bam.kinship: "Kinship baseline prioritized for stable pairwise outputs."
 stage_completeness_checklist:
   bam.align: ["inputs_defined", "outputs_defined", "metrics_defined", "fixtures_present", "compatible_tools_declared"]

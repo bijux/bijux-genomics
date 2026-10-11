@@ -234,7 +234,8 @@ fn policy__contracts__operations_reference_authority_policy__artifact_explorer_l
 #[test]
 fn policy__contracts__operations_reference_authority_policy__corpus_01_links_governed_surfaces_exactly(
 ) {
-    let expected = BTreeSet::from(["../../configs/runtime/corpora/corpus-01.toml".to_string()]);
+    let expected =
+        BTreeSet::from(["../../benchmarks/corpora/human-short-read-diversity.toml".to_string()]);
     let documented = markdown_link_targets("docs/30-operations/corpus-01.md");
     assert_eq!(
         expected, documented,

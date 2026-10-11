@@ -1,8 +1,16 @@
 #!/usr/bin/env sh
 set -eu
 
+native_version() {
+    native_output="$(/usr/local/libexec-dustmasker -version 2>&1)"
+    if ! printf '%s\n' "$native_output" | grep -Fq 'Package: blast 2.15.0'; then
+        printf 'error: DustMasker native metadata omits BLAST 2.15.0\n' >&2
+        exit 70
+    fi
+}
+
 case "${1:-}" in
-    --version) echo 'dustmasker 2.15.0' ;;
+    --version) native_version; printf 'dustmasker 2.15.0\n' ;;
     --help|-h|"") exec /usr/local/libexec-dustmasker -help ;;
     *) exec /usr/local/libexec-dustmasker "$@" ;;
 esac

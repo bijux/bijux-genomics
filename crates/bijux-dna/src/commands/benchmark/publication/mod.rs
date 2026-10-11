@@ -222,7 +222,7 @@ mod tests {
         let remote_root = repo_root.join("remote");
         let remote_corpus_root = repo_root.join("benchmark_corpus");
         let config_path = repo_root.join("configs/bench/benchmark.toml");
-        let corpus_spec_path = repo_root.join("configs/runtime/corpora/corpus-01.toml");
+        let corpus_spec_path = repo_root.join("benchmarks/corpora/human-short-read-diversity.toml");
         fs::create_dir_all(config_path.parent().expect("config dir")).expect("config dir");
         fs::create_dir_all(corpus_spec_path.parent().expect("corpus spec dir"))
             .expect("corpus spec dir");
@@ -246,7 +246,7 @@ corpus_root = "{}"
 results_root = "{}"
 
 [corpora."corpus-01"]
-spec_path = "configs/runtime/corpora/corpus-01.toml"
+spec_path = "benchmarks/corpora/human-short-read-diversity.toml"
 
 [[publication.corpus_01.contracts]]
 stage_id = "fastq.validate_reads"
@@ -865,7 +865,7 @@ reason = "Compact validation fixture."
         let docs_root = repo_root.join("docs").join("benchmark");
         fs::create_dir_all(repo_root.join("configs/runtime/corpora")).expect("corpora dir");
         fs::write(
-            repo_root.join("configs/runtime/corpora/corpus-01.toml"),
+            repo_root.join("benchmarks/corpora/human-short-read-diversity.toml"),
             concat!(
                 "corpus_id = \"corpus-01\"\n",
                 "target_ancient_se = 1\n",
@@ -1003,7 +1003,7 @@ reason = "Compact validation fixture."
         let docs_root = repo_root.join("docs").join("benchmark");
         fs::create_dir_all(repo_root.join("configs/runtime/corpora")).expect("corpora dir");
         fs::write(
-            repo_root.join("configs/runtime/corpora/corpus-01.toml"),
+            repo_root.join("benchmarks/corpora/human-short-read-diversity.toml"),
             concat!(
                 "corpus_id = \"corpus-01\"\n",
                 "target_ancient_se = 1\n",
@@ -1080,7 +1080,7 @@ reason = "Compact validation fixture."
         let docs_root = repo_root.join("docs").join("benchmark");
         fs::create_dir_all(repo_root.join("configs/runtime/corpora")).expect("corpora dir");
         fs::write(
-            repo_root.join("configs/runtime/corpora/corpus-01.toml"),
+            repo_root.join("benchmarks/corpora/human-short-read-diversity.toml"),
             concat!(
                 "corpus_id = \"corpus-01\"\n",
                 "target_ancient_se = 1\n",

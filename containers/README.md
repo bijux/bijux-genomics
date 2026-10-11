@@ -7,6 +7,7 @@ Operational docs index:
 - [containers/docs/index.md](docs/index.md)
 - [containers/docs/LUNARC_EXECUTION_CONTRACT.md](docs/LUNARC_EXECUTION_CONTRACT.md)
 - [containers/reports/README.md](reports/README.md)
+- [scientific benchmark authority](../benchmarks/README.md)
 - [containers/reports/lunarc-fastq-bam.md](reports/lunarc-fastq-bam.md)
 - [containers/reports/lunarc-vcf-phasing.md](reports/lunarc-vcf-phasing.md)
 - [containers/reports/lunarc-vcf-relatedness.md](reports/lunarc-vcf-relatedness.md)
@@ -45,6 +46,11 @@ the configured `containers_root`; it never deletes or overwrites admitted
 images. The same commands repopulate the canonical `apptainer/` directory after
 an explicitly reviewed storage migration by setting `rebuild_root` to the
 configured containers root.
+
+Image freshness covers the complete recipe input identity: the definition and
+the Git object for every repository-owned `%files` source. Changing a wrapper,
+patch, installer, or bundled data tree therefore marks the prior image stale
+even when the `.def` file itself is unchanged.
 
 ```console
 image_commit="$(git rev-parse HEAD)"
@@ -103,8 +109,19 @@ python3 -B containers/contracts/image_campaign.py report \
   --markdown-output containers/reports/lunarc-image-rebuild.md
 ```
 
+`config-campaign.json` deliberately selects the complete supported roster for
+a full reproducibility proof. After that proof exists, use
+`config-refresh.json` with a fresh canonical inventory to select only recipes
+whose definition or repository-owned `%files` inputs are missing or stale.
+The selection remains evidence-derived; operators do not hand-maintain a tool
+list or declare an old image current.
+
 The tracked [complete-roster rebuild report](reports/lunarc-image-rebuild.md)
 is the reviewed source/build/freshness summary for this campaign.
+The later [current-image refresh report](reports/lunarc-image-refresh.md)
+records the governed rebuild of only the images made stale by complete recipe
+input fingerprinting; it complements rather than replaces the full-roster
+proof.
 
 The before-build inventory must report every catalog-supported image as missing
 and preserve each unsupported disposition. The execution and after-build
@@ -170,7 +187,10 @@ Image admission proves that a recipe produced an inspectable SIF; it does not
 prove that the packaged entry points start correctly. After inventory and
 quarantine are complete, run the catalog-wide runtime campaign on the approved
 frontend. It executes version and help checks with a disabled runtime network,
-bounded command time, and one immutable stdout/stderr pair per check:
+an isolated resolvable hostname, bounded command time, and one immutable
+stdout/stderr pair per check. The same hostname policy applies to governed
+Slurm execution so hostname-sensitive runtimes behave consistently without
+restoring network access:
 
 ```console
 runtime_root="/home/bijan/lu2024-12-24/Dardel/STUDY/containers/evidence/runtime/${image_commit}"
@@ -180,6 +200,7 @@ python3 -B containers/contracts/runtime_verification.py prepare \
   --inventory "${canonical_inventory}" \
   --catalog containers/contracts/catalog.toml \
   --governance containers/contracts/sites/lunarc.yml \
+  --repository "${frozen_repository}" \
   --output "${runtime_root}/execution.json"
 
 python3 -B containers/contracts/runtime_verification.py execute \
@@ -189,11 +210,14 @@ python3 -B containers/contracts/runtime_verification.py execute \
   --timeout-seconds 30
 ```
 
-The execution record retains the exact repository, catalog, inventory, image,
-command, output, and log digests. A passing runtime campaign qualifies only the
-version and help dimensions. Real one-sample execution remains a governed
-Slurm run, and scientific, benchmark, security, and release claims remain
-independent.
+The execution record retains the exact frozen repository, catalog, inventory,
+image, command, output, and log digests. A passing runtime campaign qualifies
+only the version and help dimensions. Real one-sample execution remains a
+governed Slurm run, and scientific, benchmark, security, and release claims
+remain independent. `--repository` must identify a clean checkout beneath the
+governed commit-addressed worktree root whose HEAD matches the inventory
+commit; later movement of the active checkout cannot invalidate or silently
+change this campaign.
 
 Raw execution JSON keeps the absolute paths needed to audit files at LUNARC;
 it is not suitable for a public repository. Publish portable companions before
@@ -240,6 +264,26 @@ sha256sum "${data_root}/ERR1021817.read-prefix-100000_1.fastq.gz" \
 The validator re-hashes every declared input, image, and frozen repository
 before submission. A missing file or checksum mismatch is a hard failure; the
 executor never substitutes a fixture.
+
+Scientific data selection and admission belong to the root benchmark authority,
+not to container runtime contracts. Container runs consume its verified index
+instead of encoding knowledge of individual catalog shapes:
+
+```console
+study=/home/bijan/lu2024-12-24/Dardel/STUDY
+evidence="$study/data/evidence/indexes/$(git rev-parse HEAD)"
+python3 -B benchmarks/data_catalog.py \
+  --catalog-root "$study/data/catalog" \
+  --data-root "$study/data" \
+  --output "$evidence/data-index.json" \
+  --report "$evidence/data-index.md"
+```
+
+The benchmark-owned index recalculates every governed file SHA-256, replaces execution-site
+absolute paths with `study://data/...` identities, and reports missing source
+or temporal provenance without inventing values. A record is benchmark-eligible
+only when its governed files, source identity, retrieval or admission time,
+access classification, and limitations are explicit.
 
 ## Prepare and submit a real run
 
@@ -305,6 +349,22 @@ partial directory into
 `containers/evidence/failures/RUN-TOOL-slurm-JOB/`. This frees the canonical
 submission and result paths without deleting the failed attempt or allowing it
 into the final run index. A passed result cannot be archived by this command.
+
+If a passed attempt later proves scientifically or structurally invalid,
+preserve it with an explicit disposition rather than deleting or relabelling
+it:
+
+```console
+python3 -B containers/contracts/container_validation.py archive-superseded \
+  --manifest "${run_spec}" \
+  --governance containers/contracts/sites/lunarc.yml \
+  --reason "resource measurements did not satisfy the declared TSV evidence format"
+```
+
+This command requires passed terminal evidence, matching accounting, and a
+substantive reason. It applies the same atomic, same-filesystem preservation
+rules under `containers/evidence/superseded/`, then frees only the canonical
+paths for a corrected submission.
 
 Import one completed run by bounding the identifier. For a full replay, use an
 empty artifact directory so existing tracked evidence is never overwritten:

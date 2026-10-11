@@ -14,6 +14,8 @@ from collections import Counter
 from pathlib import Path
 from typing import Any
 
+from recipe_identity import build_context_matches
+
 try:
     import tomllib
 except ModuleNotFoundError:  # Python 3.9 on the governed LUNARC frontend
@@ -196,16 +198,31 @@ def candidate_record(
         recipe_at_commit = git_blob_sha256(
             repository, commit, str(tool["apptainer_definition"])
         )
+        context_matches_commit = build_context_matches(
+            repository,
+            commit,
+            Path(str(tool["apptainer_definition"])),
+            record.get("build_context"),
+        )
+        context_matches_current = build_context_matches(
+            repository,
+            "HEAD",
+            Path(str(tool["apptainer_definition"])),
+            record.get("build_context"),
+        )
         matching_evidence.append(
             {
                 "path": str(evidence_path),
                 "status": record.get("status"),
                 "repository_commit": commit,
                 "definition_sha256": definition_digest,
+                "build_context": record.get("build_context"),
                 "definition_matches_commit": recipe_at_commit == definition_digest,
                 "definition_matches_current": (
                     definition_digest == current_definition_digest
                 ),
+                "build_context_matches_commit": context_matches_commit,
+                "build_context_matches_current": context_matches_current,
                 "image_matches": (
                     evidence_digest == digest
                     and evidence_size == image.stat().st_size
@@ -217,11 +234,14 @@ def candidate_record(
     admitted = any(
         evidence["image_matches"]
         and evidence["definition_matches_commit"]
+        and evidence["build_context_matches_commit"]
         and evidence["status"] in {"built", "passed"}
         for evidence in matching_evidence
     )
     current_recipe = any(
-        evidence["definition_matches_current"] for evidence in matching_evidence
+        evidence["definition_matches_current"]
+        and evidence["build_context_matches_current"]
+        for evidence in matching_evidence
     )
     return {
         "path": str(image),

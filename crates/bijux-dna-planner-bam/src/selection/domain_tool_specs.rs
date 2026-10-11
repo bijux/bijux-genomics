@@ -546,17 +546,17 @@ mod tests {
     }
 
     #[test]
-    fn load_bam_domain_tool_execution_spec_accepts_supported_angsd_genotyping_stage() -> Result<()>
-    {
+    fn load_bam_domain_tool_execution_spec_accepts_supported_bcftools_genotyping_stage(
+    ) -> Result<()> {
         let repo_root = repo_root();
         let stage_id = StageId::from_static("bam.genotyping");
-        let tool_id = ToolId::from_static("angsd");
+        let tool_id = ToolId::from_static("bcftools");
 
         let spec = load_bam_domain_tool_execution_spec(&repo_root, &stage_id, &tool_id)?;
 
-        assert_eq!(spec.tool_id.as_str(), "angsd");
-        assert_eq!(spec.command.template, vec!["angsd".to_string()]);
-        assert_eq!(spec.image.image, "bijuxdna/angsd");
+        assert_eq!(spec.tool_id.as_str(), "bcftools");
+        assert_eq!(spec.command.template, vec!["bcftools".to_string()]);
+        assert_eq!(spec.image.image, "bijuxdna/bcftools:1.20");
         assert!(spec.image.digest.is_none());
         Ok(())
     }

@@ -2,12 +2,25 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 set -eu
 
+native_help() {
+    set +e
+    native_output="$(/opt/fastx-clipper/bin/fastx-clipper-native -h 2>&1)"
+    native_status=$?
+    set -e
+    if [ "$native_status" -ne 1 ] || ! printf '%s\n' "$native_output" | grep -Fq 'Part of FASTX Toolkit 0.0.14'; then
+        printf 'error: unexpected FASTX Clipper help probe (status=%s)\n' "$native_status" >&2
+        exit 70
+    fi
+}
+
 case "${1:-}" in
     --version)
-        echo 'fastx_clipper 0.0.14'
+        native_help
+        printf 'fastx_clipper 0.0.14\n'
         ;;
     --help|-h|"")
-        /opt/fastx-clipper/bin/fastx-clipper-native -h 2>&1 || true
+        native_help
+        printf '%s\n' "$native_output"
         ;;
     --governed-invalid-option)
         echo 'fastx_clipper: error: unsupported option --governed-invalid-option' >&2

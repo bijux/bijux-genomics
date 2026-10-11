@@ -65,6 +65,14 @@ struct LocalCorpusStageMapping {
     compatibility_note: String,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub(crate) struct LocalCorpusStageCompatibilityDeclaration {
+    pub(crate) stage_id: String,
+    pub(crate) compatibility_kind: String,
+    pub(crate) fixture_id: Option<String>,
+    pub(crate) benchmark_scope_id: Option<String>,
+}
+
 #[derive(Debug, Clone, Serialize)]
 pub(crate) struct LocalCorpusStageValidatedFixture {
     pub(crate) corpus_family_id: String,
@@ -189,6 +197,59 @@ fn load_corpus_stage_compatibility_matrix(
     let raw = fs::read_to_string(matrix_path)
         .with_context(|| format!("read {}", matrix_path.display()))?;
     toml::from_str(&raw).with_context(|| format!("parse {}", matrix_path.display()))
+}
+
+pub(crate) fn load_corpus_stage_compatibility_declarations(
+    matrix_path: &Path,
+) -> Result<Vec<LocalCorpusStageCompatibilityDeclaration>> {
+    let matrix = load_corpus_stage_compatibility_matrix(matrix_path)?;
+    validate_corpus_stage_compatibility_contract(&matrix)?;
+
+    let fixture_ids =
+        matrix.fixtures.iter().map(|fixture| fixture.fixture_id.as_str()).collect::<BTreeSet<_>>();
+    let mut stage_ids = BTreeSet::new();
+    let mut declarations = Vec::with_capacity(matrix.mappings.len());
+    for mapping in matrix.mappings {
+        if mapping.stage_id.trim().is_empty() {
+            return Err(anyhow!("corpus compatibility mappings must declare a non-empty stage_id"));
+        }
+        if !stage_ids.insert(mapping.stage_id.clone()) {
+            return Err(anyhow!(
+                "corpus compatibility matrix repeats stage_id `{}`",
+                mapping.stage_id
+            ));
+        }
+        match mapping.compatibility_kind {
+            LocalCorpusStageCompatibilityKind::Fixture => {
+                let fixture_id = mapping.fixture_id.as_deref().ok_or_else(|| {
+                    anyhow!("fixture-backed stage `{}` must declare fixture_id", mapping.stage_id)
+                })?;
+                if !fixture_ids.contains(fixture_id) {
+                    return Err(anyhow!(
+                        "fixture-backed stage `{}` references unknown fixture_id `{fixture_id}`",
+                        mapping.stage_id
+                    ));
+                }
+            }
+            LocalCorpusStageCompatibilityKind::AssetBacked => {
+                if mapping.benchmark_scope_id.as_deref().map(str::trim).is_none_or(str::is_empty) {
+                    return Err(anyhow!(
+                        "asset-backed stage `{}` must declare benchmark_scope_id",
+                        mapping.stage_id
+                    ));
+                }
+            }
+            LocalCorpusStageCompatibilityKind::PlannerOnly => {}
+        }
+        declarations.push(LocalCorpusStageCompatibilityDeclaration {
+            stage_id: mapping.stage_id,
+            compatibility_kind: mapping.compatibility_kind.as_str().to_string(),
+            fixture_id: mapping.fixture_id,
+            benchmark_scope_id: mapping.benchmark_scope_id,
+        });
+    }
+    declarations.sort_by(|left, right| left.stage_id.cmp(&right.stage_id));
+    Ok(declarations)
 }
 
 fn validate_corpus_stage_compatibility_contract(
