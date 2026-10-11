@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import datetime as dt
 import json
+import shlex
 import socket
 import subprocess
 import sys
@@ -91,6 +92,62 @@ def selected_tools(inventory: dict[str, Any], selection: str) -> list[str]:
     return sorted(str(tool["tool"]) for tool in tools)
 
 
+def requested_tool_selection(eligible: list[str], requested: list[str]) -> list[str]:
+    """Restrict an inventory-derived refresh without admitting ineligible tools."""
+    if not requested:
+        return eligible
+    if len(requested) != len(set(requested)):
+        raise ContractError("targeted image refresh contains duplicate tools")
+    ineligible = sorted(set(requested) - set(eligible))
+    if ineligible:
+        raise ContractError(
+            f"targeted image refresh contains current or unsupported tools: {ineligible}"
+        )
+    return sorted(requested)
+
+
+def image_source_roots(repository: Path, tools: list[str]) -> tuple[str, ...]:
+    """Return the minimal tracked roots required by selected image definitions."""
+    roots = {"containers"}
+    for tool in tools:
+        definition = repository / "containers" / "apptainer" / f"{tool}.def"
+        try:
+            lines = definition.read_text(encoding="utf-8").splitlines()
+        except OSError as exc:
+            raise ContractError(f"cannot read image definition: {definition}") from exc
+        in_files = False
+        for raw_line in lines:
+            line = raw_line.strip()
+            if line.startswith("%files"):
+                in_files = True
+                continue
+            if line.startswith("%"):
+                in_files = False
+            if not in_files or not line or line.startswith("#"):
+                continue
+            try:
+                fields = shlex.split(line)
+            except ValueError as exc:
+                raise ContractError(
+                    f"cannot parse %files source in {definition}: {line}"
+                ) from exc
+            if not fields:
+                continue
+            source = Path(fields[0])
+            if source.is_absolute() or ".." in source.parts:
+                raise ContractError(
+                    f"image definition has unsafe tracked source: {definition}: {source}"
+                )
+            candidate = repository / source
+            if not candidate.exists():
+                raise ContractError(
+                    f"image definition source is absent: {definition}: {source}"
+                )
+            if len(source.parts) > 1 or candidate.is_dir():
+                roots.add(source.parts[0])
+    return tuple(sorted(roots))
+
+
 def admission_roots(
     containers_root: Path,
     image_root: Path | None,
@@ -117,6 +174,7 @@ def create_execution(
     governance_path: Path,
     image_root: Path | None,
     output: Path,
+    requested_tools: list[str] | None = None,
 ) -> dict[str, Any]:
     if output.exists() or output.is_symlink():
         raise ContractError(f"refusing to replace campaign execution: {output}")
@@ -139,16 +197,19 @@ def create_execution(
         raise ContractError(
             "image inventory must be regenerated from the active commit"
         )
-    frozen_repository = freeze_repository(
-        commit,
-        governance_path,
-        checkout_scope="complete",
-    )
-    tools = selected_tools(inventory, str(campaign["selection"]))
+    eligible_tools = selected_tools(inventory, str(campaign["selection"]))
+    tools = requested_tool_selection(eligible_tools, requested_tools or [])
     versions = load_tool_versions(catalog_path)
     unknown = sorted(set(tools) - set(versions))
     if unknown:
         raise ContractError(f"inventory selected tools absent from catalog: {unknown}")
+    source_roots = image_source_roots(repository, tools)
+    frozen_repository = freeze_repository(
+        commit,
+        governance_path,
+        checkout_scope="sources",
+        checkout_paths=source_roots,
+    )
     execution = {
         "schema_version": CAMPAIGN_EVIDENCE_SCHEMA,
         "run_id": campaign["run_id"],
@@ -163,6 +224,7 @@ def create_execution(
         "image_root": str(admission_root),
         "evidence_root": str(evidence_root),
         "frozen_repository": str(frozen_repository),
+        "frozen_source_roots": list(source_roots),
         "campaign": {
             "path": str(campaign_path),
             "sha256": sha256_file(campaign_path),
@@ -176,6 +238,8 @@ def create_execution(
             "sha256": sha256_file(inventory_path),
         },
         "selected_tools": tools,
+        "eligible_tools": eligible_tools,
+        "selection_mode": "targeted" if requested_tools else "campaign",
         "tools": {
             tool: {
                 "version": versions[tool],
@@ -223,6 +287,7 @@ def build_one(
         completed = subprocess.run(
             ["apptainer", "build", str(staged), str(definition)],
             check=False,
+            cwd=repository,
             stdout=stream,
             stderr=subprocess.STDOUT,
         )
@@ -515,7 +580,9 @@ def campaign_report(
     checks = {
         "campaign_passed": execution.get("status") == "passed",
         "all_selected_tools_passed": all(row["status"] == "passed" for row in rows),
-        "all_selected_images_current": states.get("current") == selected_count,
+        "all_selected_images_current": all(
+            row["inventory_state"] == "current" for row in rows
+        ),
         "all_selected_records_match_inventory": all(
             row["inventory_matches_execution"] for row in rows
         ),
@@ -532,6 +599,8 @@ def campaign_report(
         if isinstance(execution_summary, dict)
         else 0
     )
+    retained_count = int(states.get("current", 0) or 0)
+    campaign_scope = "complete_roster" if selected_count == retained_count else "targeted"
     evidence_root = Path(str(execution.get("evidence_root", "")))
     campaign_root = evidence_root.parent
     report = {
@@ -541,6 +610,7 @@ def campaign_report(
         "repository_commit": execution.get("repository_commit"),
         "finished_at_utc": execution.get("finished_at_utc"),
         "verdict": verdict,
+        "campaign_scope": campaign_scope,
         "selected_tool_count": selected_count,
         "execution_summary": execution_summary,
         "inventory_summary": inventory_summary,
@@ -576,20 +646,40 @@ def campaign_report(
     markdown = [
         "# LUNARC Apptainer image rebuild evidence",
         "",
-        "Purpose: record whether every catalog-supported Apptainer image can be rebuilt from a frozen clean repository commit and admitted without leftover or unknown images.",
+        (
+            "Purpose: record whether every catalog-supported Apptainer image can be "
+            "rebuilt from a frozen clean repository commit and admitted without "
+            "leftover or unknown images."
+            if campaign_scope == "complete_roster"
+            else "Purpose: record whether the selected stale or missing Apptainer "
+            "images can be rebuilt from a frozen clean repository commit and "
+            "admitted into a clean canonical inventory."
+        ),
         "",
         "## Verdict",
         "",
         f"- Verdict: **{verdict}**",
         f"- Run: `{report['run_id']}`",
         f"- Repository commit: `{report['repository_commit']}`",
+        f"- Campaign scope: **{campaign_scope.replace('_', ' ')}**",
         f"- Selected tools: **{selected_count}**",
         f"- Final execution: **{passed_count} passed**, **{selected_count - passed_count} not passed**",
         f"- Final inventory: **{states.get('current', 0)} current**, **{states.get('unsupported', 0)} unsupported**, **{inventory_summary.get('staged_image_count', 0)} staged**, **{inventory_summary.get('unknown_image_count', 0)} unknown**, **{inventory_summary.get('unreferenced_obsolete_count', 0)} unreferenced obsolete**",
         "",
         "## Claim boundary",
         "",
-        "This report proves source, build, and freshness evidence for the complete retained Apptainer roster. It does not prove runtime behavior, stage integration, real-data correctness, scientific validity, benchmark quality, security acceptance, or release qualification.",
+        (
+            "This report proves source, build, and freshness evidence for the complete "
+            "retained Apptainer roster."
+            if campaign_scope == "complete_roster"
+            else "This report proves source, build, and freshness evidence only for "
+            "the selected tools. The final inventory checks prove that the canonical "
+            "root is internally classified; they do not rebuild or requalify every "
+            "unselected image."
+        )
+        + " It does not prove runtime behavior, stage integration, real-data "
+        "correctness, scientific validity, benchmark quality, security acceptance, "
+        "or release qualification.",
         "",
         "The machine-readable report records SHA-256 digests and study-relative locations for the immutable campaign execution and after-build inventory retained on LUNARC.",
         "",
@@ -652,6 +742,7 @@ def parser() -> argparse.ArgumentParser:
     prepare.add_argument("--governance", type=Path, required=True)
     prepare.add_argument("--image-root", type=Path)
     prepare.add_argument("--output", type=Path, required=True)
+    prepare.add_argument("--tool", action="append", default=[])
     execute = commands.add_parser("execute")
     execute.add_argument("--execution", type=Path, required=True)
     execute.add_argument("--governance", type=Path, required=True)
@@ -679,6 +770,7 @@ def main(argv: list[str] | None = None) -> int:
                 args.governance,
                 args.image_root,
                 args.output,
+                args.tool,
             )
             print(
                 f"prepared {execution['run_id']} for "

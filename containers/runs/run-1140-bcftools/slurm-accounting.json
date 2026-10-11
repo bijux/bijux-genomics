@@ -1,0 +1,27 @@
+{
+  "collected_at_utc": "2026-08-03T16:36:56.867252+00:00",
+  "credential_reference_sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+  "governance_sha256": "32872b169364b600c0b2dbe08060c27147ccffa8254b4cbd654a7ed72e10a507",
+  "pipeline_sha256": "9317a364de9e1c72558a14f2594a904c666abd1e26bf1a1b60be9a644ee39e7e",
+  "rows": [
+    {
+      "AllocCPUS": "4",
+      "AveRSS": "",
+      "CPUTimeRAW": "44",
+      "Elapsed": "00:00:11",
+      "ElapsedRaw": "11",
+      "ExitCode": "0:0",
+      "JobID": "3459720",
+      "JobName": "bam-genotyping-bcftools-ERR2112767",
+      "MaxRSS": "",
+      "NodeList": "cn284",
+      "ReqMem": "8G",
+      "State": "COMPLETED",
+      "TotalCPU": "00:00:00"
+    }
+  ],
+  "run_id": "run-1140",
+  "schema_version": "bijux.slurm.accounting.v1",
+  "slurm_job_id": "3459720",
+  "submit_script_sha256": "88cd55ae4fc8220acfd196d4539d57ce1e361dcc4359e91898bca53e6788e138"
+}

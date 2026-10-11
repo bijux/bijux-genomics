@@ -27,6 +27,7 @@ LABEL org.opencontainers.image.tool="bowtie2"
 LABEL org.opencontainers.image.title="Bowtie 2"
 LABEL org.opencontainers.image.base.name="ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b"
 LABEL org.opencontainers.image.base.digest="sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b"
+LABEL io.bijux.tool.version="2.5.4"
 ENV LANG=C LC_ALL=C TZ=UTC PATH=/usr/local/bin:/opt/bowtie2:/usr/bin:/bin
 RUN /usr/local/sbin/bijux-configure-apt-snapshot && \
     apt-get install -y --no-install-recommends libstdc++6 perl python3 zlib1g && \

@@ -1,16 +1,22 @@
 #!/usr/bin/env sh
 set -eu
 
+native_help() {
+    set +e
+    native_output="$(/usr/local/libexec-pear --help 2>&1)"
+    native_status=$?
+    set -e
+    if [ "$native_status" -ne 1 ] || ! printf '%s\n' "$native_output" | grep -Fq 'PEAR v0.9.6'; then
+        printf 'error: unexpected PEAR help probe (status=%s)\n' "$native_status" >&2
+        exit 70
+    fi
+}
+
 case "${1:-}" in
-    --version) echo '0.9.6' ;;
+    --version) native_help; printf '0.9.6\n' ;;
     --help|-h|"")
-        set +e
-        /usr/local/libexec-pear --help
-        status=$?
-        set -e
-        if [ "$status" -ne 0 ] && [ "$status" -ne 1 ]; then
-            exit "$status"
-        fi
+        native_help
+        printf '%s\n' "$native_output"
         ;;
     *) exec /usr/local/libexec-pear "$@" ;;
 esac

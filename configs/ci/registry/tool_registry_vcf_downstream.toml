@@ -133,7 +133,7 @@ citation = "planned"
 pinned_commit = "planned"
 pin_strategy = "planned"
 container_ref = "registry_lock"
-runtimes = ["docker", "apptainer"]
+runtimes = ["apptainer"]
 container = true
 version_cmd = "plink --version"
 help_cmd = "plink --help"
@@ -147,7 +147,7 @@ expected_bin = "plink"
 expected_artifacts = ["qc_report", "admixture_report"]
 metrics_schema = "bijux.vcf.qc.v1"
 comparability_notes = "planned"
-dockerfile = "containers/docker/Dockerfile.arm64.plink"
+dockerfile = ""
 apptainer_def = "containers/apptainer/plink.def"
 require_labels = true
 

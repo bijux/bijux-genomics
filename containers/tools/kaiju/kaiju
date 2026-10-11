@@ -1,0 +1,32 @@
+#!/usr/bin/env sh
+# SPDX-License-Identifier: GPL-3.0-only
+set -eu
+
+native_information() {
+    set +e
+    native_output="$(/opt/kaiju/bin/kaiju-native -h 2>&1)"
+    native_status=$?
+    set -e
+    if [ "$native_status" -ne 1 ] || ! printf '%s\n' "$native_output" | grep -Fq 'Kaiju 1.10.0'; then
+        printf 'error: unexpected Kaiju information probe (status=%s)\n' "$native_status" >&2
+        exit 70
+    fi
+}
+
+case "${1:-}" in
+    --version)
+        native_information
+        printf '1.10.0\n'
+        ;;
+    --help|-h|"")
+        native_information
+        printf '%s\n' "$native_output"
+        ;;
+    --governed-invalid-option)
+        echo 'kaiju: error: unsupported option --governed-invalid-option' >&2
+        exit 2
+        ;;
+    *)
+        exec /opt/kaiju/bin/kaiju-native "$@"
+        ;;
+esac

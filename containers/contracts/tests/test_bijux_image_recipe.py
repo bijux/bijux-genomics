@@ -16,6 +16,8 @@ class BijuxImageRecipeTests(unittest.TestCase):
         self.assertIn("assets /opt/bijux-src/assets", recipe)
         self.assertIn("configs /opt/bijux-src/configs", recipe)
         self.assertIn("domain /opt/bijux-src/domain", recipe)
+        self.assertNotIn("benchmarks /opt/bijux-src/benchmarks", recipe)
+        self.assertNotIn("/opt/bijux/benchmarks", recipe)
 
     def test_recipe_installs_binary_from_the_governed_cargo_target(self) -> None:
         cargo = tomllib.loads((ROOT / ".cargo/config.toml").read_text())

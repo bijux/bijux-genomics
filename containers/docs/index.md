@@ -10,12 +10,13 @@ output.
 
 ## Published evidence and current qualification
 
-- Qualification evidence chain: **stale**; the current catalog recognizes **0 build**, **0 runtime**, and **0 freshness** passes ([details](../reports/qualification.md)).
-- Published image inventory records **current 87, unsupported 2**; these counts are historical when the qualification chain is stale ([details](../reports/image-inventory.md)).
-- Published canonical storage report: **passed**, **14 obsolete images quarantined reversibly** ([details](../reports/image-storage.md)).
+- Qualification evidence chain: **current**; the current catalog recognizes **85 build**, **85 runtime**, and **85 freshness** passes ([details](../reports/qualification.md)).
+- Published image inventory records **current 85, unsupported 4**; their published identities support the current qualification chain ([details](../reports/image-inventory.md)).
+- Published canonical storage report: **passed**, **2 obsolete images quarantined reversibly** ([details](../reports/image-storage.md)).
 - Published isolated rebuild: **passed**, **87 retained images at that campaign commit** ([details](../reports/lunarc-image-rebuild.md)).
-- Published version/help campaign: **passed**, **87 images passed at that campaign commit** ([details](../reports/runtime-verification.md)).
-- Final run records: **70 tools**, **70 execution passes**; **46** retained tools pass their declared real-data stage and **0** have scientific acceptance ([runs](../reports/run-evidence.md), [qualification](../reports/qualification.md)).
+- Published targeted image refresh: **passed**, **1 changed recipe rebuilt and readmitted** ([details](../reports/lunarc-image-refresh.md)).
+- Published version/help campaign: **passed**, **85 images passed at that campaign commit** ([details](../reports/runtime-verification.md)).
+- Final run records: **71 records**, **71 execution passes**; **47** retained tools pass their declared real-data stage and **0** have scientific acceptance ([runs](../reports/run-evidence.md), [qualification](../reports/qualification.md)).
 - Build, runtime, real execution, science, benchmark, security, and release are independent evidence dimensions.
 
 ## Strict TOC
@@ -119,7 +120,7 @@ authorship. Upstream source and license remain catalog-owned facts.
 | `ngsbriggs` | `unsupported` | `none` | `none` |
 | `pear` | `retained` | `bijux-genomics` | `arm64` |
 | `picard` | `retained` | `bijux-genomics` | `arm64` |
-| `plink` | `retained` | `bijux-genomics` | `arm64` |
+| `plink` | `retained` | `bijux-genomics` | `none` |
 | `plink2` | `retained` | `bijux-genomics` | `arm64` |
 | `pmdtools` | `retained` | `bijux-genomics` | `arm64` |
 | `preseq` | `retained` | `bijux-genomics` | `arm64` |

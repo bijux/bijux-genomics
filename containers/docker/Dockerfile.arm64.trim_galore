@@ -6,37 +6,41 @@
 # VERSION_SOURCE: containers/versions/versions.toml
 FROM ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
 COPY --chmod=0555 containers/contracts/configure-apt-snapshot /usr/local/sbin/bijux-configure-apt-snapshot
-ARG OCI_REVISION=unknown
-ARG OCI_CREATED=unknown
+COPY --chmod=0555 containers/tools/cutadapt/install /opt/cutadapt-build/install
 ARG TOOL_VERSION=0.6.10
-LABEL org.opencontainers.image.source="https://github.com/bijux/bijux-genomics" \
-      org.opencontainers.image.revision="${OCI_REVISION}" \
-      org.opencontainers.image.created="${OCI_CREATED}" \
+LABEL org.opencontainers.image.source="https://github.com/FelixKrueger/TrimGalore" \
+      org.opencontainers.image.revision="4edff97d22f3837d42a29e4afbfaeb6e07ffb11b" \
+      org.opencontainers.image.created="governed-by-build-evidence" \
       org.opencontainers.image.licenses="GPL-3.0" \
       org.opencontainers.image.version="${TOOL_VERSION}"
 LABEL org.opencontainers.image.tool="trim_galore"
 LABEL org.opencontainers.image.title="trim_galore"
 LABEL org.opencontainers.image.base.name="ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b"
 LABEL org.opencontainers.image.base.digest="sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b"
-ENV DEBIAN_FRONTEND=noninteractive
-
-ARG VERSION_TRIM_GALORE=0.6.10
-ENV TRIM_GALORE=${VERSION_TRIM_GALORE}
+LABEL io.bijux.tool.version="0.6.10"
+ENV DEBIAN_FRONTEND=noninteractive \
+    LANG=C \
+    LC_ALL=C \
+    PATH=/opt/cutadapt-venv/bin:/usr/local/bin:/usr/bin:/bin \
+    TZ=UTC
 
 RUN /usr/local/sbin/bijux-configure-apt-snapshot && apt-get install -y --no-install-recommends \
-    python3 python3-pip python3-dev build-essential fastqc wget && \
-    rm -rf /var/lib/apt/lists/*
+    build-essential ca-certificates curl fastqc python3 python3-dev python3-pip python3-venv tar && \
+    /opt/cutadapt-build/install && \
+    curl --fail --location --proto '=https' --tlsv1.2 \
+      --output /tmp/trim-galore.tar.gz \
+      https://codeload.github.com/FelixKrueger/TrimGalore/tar.gz/4edff97d22f3837d42a29e4afbfaeb6e07ffb11b && \
+    echo 'dc5d24ab37c3cfed8038b8c2546948e52e3e769b912ccfd5c9d28c34546f5e2c  /tmp/trim-galore.tar.gz' | sha256sum --check --strict && \
+    tar --extract --gzip --file /tmp/trim-galore.tar.gz --directory /opt && \
+    install -m 0755 /opt/TrimGalore-4edff97d22f3837d42a29e4afbfaeb6e07ffb11b/trim_galore /usr/local/bin/trim_galore && \
+    trim_galore --version 2>&1 | grep -F '0.6.10' && \
+    trim_galore --help >/dev/null && \
+    cutadapt --version | grep -Fx '4.9' && \
+    fastqc --version >/dev/null && \
+    rm -rf /tmp/trim-galore.tar.gz /opt/TrimGalore-4edff97d22f3837d42a29e4afbfaeb6e07ffb11b /opt/cutadapt-build /var/lib/apt/lists/* && \
+    useradd --system --uid 65532 --home-dir /work --create-home bijux
 
-
-RUN wget -q https://github.com/FelixKrueger/TrimGalore/archive/${VERSION_TRIM_GALORE}.tar.gz \
-    -O /tmp/trimgalore.tar.gz && \
-    tar -xzf /tmp/trimgalore.tar.gz -C /opt && \
-    ln -sf /opt/TrimGalore-${VERSION_TRIM_GALORE}/trim_galore /usr/local/bin/trim_galore && \
-    chmod +x /usr/local/bin/trim_galore && \
-    rm /tmp/trimgalore.tar.gz
-
-RUN pip3 install --no-cache-dir --break-system-packages cutadapt
-
-WORKDIR /data
+USER 65532:65532
+WORKDIR /work
 ENTRYPOINT ["trim_galore"]
-CMD []
+CMD ["--help"]

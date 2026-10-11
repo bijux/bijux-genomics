@@ -2,55 +2,65 @@
 # This container recipe is maintained by Bijux Genomics.
 # Bijux Genomics source code is licensed under Apache-2.0.
 # Copyright (C) 2026 Bijan Mousavi
-# BIJUX_TEMPLATE: v1
-
 # Tool ID: krakenuniq
-# Version policy: pinned_or_registry_locked
-# Upstream source: see org.opencontainers.image.source label
+# Version policy: exact upstream commit archive with a governed SHA-256 digest
+# Upstream source: https://github.com/fbreitwieser/krakenuniq
 # Build date policy: captured by immutable build evidence
-# Network source policy: NETWORK_SOURCE_VERIFIED_BY_LOCK
-# Runtime UID policy: RUNTIME_UID_SAFE
-
-# VERSION_SOURCE: containers/versions/versions.toml
+# Network source policy: build-only access to the locked Ubuntu snapshot and source archive
+# Runtime UID policy: caller identity with caller-owned output paths
+# VERSION_SOURCE: containers/contracts/catalog.toml
 Bootstrap: docker
 From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
 
 %labels
-    VERSION 1.0.4
     org.opencontainers.image.source https://github.com/fbreitwieser/krakenuniq
     org.opencontainers.image.revision d3305ac7d7fddbd3e62240ab62869aded869f133
     org.opencontainers.image.created governed-by-build-evidence
-    org.opencontainers.image.licenses GPL-3.0
+    org.opencontainers.image.licenses GPL-3.0-or-later
     org.opencontainers.image.version 1.0.4
     io.bijux.tool.version 1.0.4
     org.opencontainers.image.tool krakenuniq
-    org.opencontainers.image.title krakenuniq
+    org.opencontainers.image.title KrakenUniq
 
 %environment
-    export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+    export PATH=/opt/krakenuniq/bin:/usr/local/bin:/usr/bin:/bin
+    export LANG=C
     export LC_ALL=C
     export TZ=UTC
-    DEBIAN_FRONTEND=noninteractive
+
+%files
+    containers/contracts/configure-apt-snapshot /usr/local/sbin/bijux-configure-apt-snapshot
 
 %post
     set -eux
     umask 022
     export DEBIAN_FRONTEND=noninteractive
-    apt-get update -qq && apt-get install -y --no-install-recommends \
-        git build-essential wget perl python3 ca-certificates zlib1g-dev libbz2-dev && \
-        rm -rf /var/lib/apt/lists/*
+    /bin/sh /usr/local/sbin/bijux-configure-apt-snapshot
+    apt-get install -y --no-install-recommends bzip2 gzip perl python3 zlib1g
+    apt-get install -y --no-install-recommends curl g++ make libbz2-dev zlib1g-dev
+    curl --fail --location --proto '=https' --tlsv1.2 --output /opt/krakenuniq.tar.gz https://codeload.github.com/fbreitwieser/krakenuniq/tar.gz/d3305ac7d7fddbd3e62240ab62869aded869f133
+    echo 'aa11c4d015516dcfdd58bc38234cfb4f0473833be49c2a6dc12da384540bead9  /opt/krakenuniq.tar.gz' | sha256sum --check --strict
+    tar --extract --gzip --file /opt/krakenuniq.tar.gz --directory /opt
+    sed -i '1i #include <cstdint>' /opt/krakenuniq-d3305ac7d7fddbd3e62240ab62869aded869f133/src/uid_mapping.hpp
+    sed -i '1i #include <cstdint>' /opt/krakenuniq-d3305ac7d7fddbd3e62240ab62869aded869f133/src/report-cols.hpp
+    sed -i 's/enum class REPORTCOLS : uint8_t/enum class REPORTCOLS : std::uint8_t/g; s/std:map/std::map/g; s/std:string/std::string/g' /opt/krakenuniq-d3305ac7d7fddbd3e62240ab62869aded869f133/src/report-cols.hpp
+    install -d -m 0755 /opt/krakenuniq/bin
+    /opt/krakenuniq-d3305ac7d7fddbd3e62240ab62869aded869f133/install_krakenuniq.sh /opt/krakenuniq/bin
+    /opt/krakenuniq/bin/krakenuniq --version | grep -Fx 'KrakenUniq version 1.0.4'
+    /opt/krakenuniq/bin/krakenuniq --help >/dev/null
+    rm -rf /opt/krakenuniq.tar.gz /opt/krakenuniq-d3305ac7d7fddbd3e62240ab62869aded869f133
+    apt-get purge -y --auto-remove curl g++ make libbz2-dev zlib1g-dev
+    apt-get clean
+    rm -rf /var/lib/apt/lists/*
 
-    git clone --depth 1 https://github.com/fbreitwieser/krakenuniq.git /opt/krakenuniq
-    cd /opt/krakenuniq
-    git checkout f4e3796580c5c576b15e929c741e6e725b7e29b6
-    sed -i '1i #include <cstdint>' src/uid_mapping.hpp
-    sed -i '1i #include <cstdint>' src/report-cols.hpp
-    ./install_krakenuniq.sh /opt/krakenuniq/install
-
-    ln -sf /opt/krakenuniq/install/krakenuniq /usr/local/bin/krakenuniq
 %runscript
-    exec /usr/local/bin/krakenuniq "$@"
+    exec /opt/krakenuniq/bin/krakenuniq "$@"
+
+%test
+    krakenuniq --version | grep -Fx 'KrakenUniq version 1.0.4'
+    krakenuniq --help >/dev/null
+    test -x /opt/krakenuniq/bin/classify
 
 %help
-    Apptainer image for KrakenUniq.
-    Default runscript forwards arguments to krakenuniq.
+    KrakenUniq 1.0.4 from the exact checksummed upstream commit archive.
+    Taxonomic classification requires a separately governed KrakenUniq database.

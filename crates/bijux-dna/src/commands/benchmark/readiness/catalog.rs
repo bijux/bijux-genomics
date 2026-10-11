@@ -11,6 +11,9 @@ use crate::commands::benchmark::local_stage_inventory::{
     load_local_stage_inventory, BenchLocalDomain,
 };
 
+const CONTAINER_CATALOG_PATH: &str = "containers/contracts/catalog.toml";
+const CONTAINER_CATALOG_SCHEMA_VERSION: &str = "bijux.container.catalog.v1";
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub(crate) enum ReadinessDomain {
     Fastq,
@@ -128,6 +131,46 @@ pub(crate) fn load_benchmark_stage_ids(
 ) -> Result<BTreeSet<String>> {
     let inventory = load_local_stage_inventory(repo_root, domain.bench_local_domain())?;
     Ok(inventory.stages.iter().map(|entry| entry.stage_id.clone()).collect::<BTreeSet<_>>())
+}
+
+pub(crate) fn load_retained_container_tool_ids(repo_root: &Path) -> Result<BTreeSet<String>> {
+    let catalog_path = repo_root.join(CONTAINER_CATALOG_PATH);
+    let raw = fs::read_to_string(&catalog_path)
+        .with_context(|| format!("read {}", catalog_path.display()))?;
+    let parsed: toml::Value =
+        toml::from_str(&raw).with_context(|| format!("parse {}", catalog_path.display()))?;
+    let schema_version = required_string(&parsed, "schema_version", &catalog_path)?;
+    if schema_version != CONTAINER_CATALOG_SCHEMA_VERSION {
+        return Err(anyhow!(
+            "unsupported container catalog schema `{schema_version}` in {}",
+            catalog_path.display()
+        ));
+    }
+
+    let mut retained_tool_ids = BTreeSet::new();
+    let mut known_tool_ids = BTreeSet::new();
+    for tool in value_array(&parsed, "tools", &catalog_path)? {
+        let tool_id = required_string(tool, "id", &catalog_path)?;
+        if !known_tool_ids.insert(tool_id.clone()) {
+            return Err(anyhow!(
+                "container catalog repeats tool id `{tool_id}` in {}",
+                catalog_path.display()
+            ));
+        }
+        let disposition = required_string(tool, "support_disposition", &catalog_path)?;
+        if !matches!(disposition.as_str(), "retained" | "unsupported" | "retired" | "excluded") {
+            return Err(anyhow!(
+                "container catalog tool `{tool_id}` has unsupported disposition `{disposition}`"
+            ));
+        }
+        if disposition == "retained" {
+            retained_tool_ids.insert(tool_id);
+        }
+    }
+    if retained_tool_ids.is_empty() {
+        return Err(anyhow!("container catalog does not retain any executable tools"));
+    }
+    Ok(retained_tool_ids)
 }
 
 pub(crate) fn load_tool_contracts(
@@ -392,10 +435,10 @@ mod tests {
 
         let bam_genotyping =
             matrix.stage_policies.get("bam.genotyping").expect("bam.genotyping policy");
-        assert_eq!(bam_genotyping.primary_tool_ids, vec!["angsd".to_string()]);
+        assert_eq!(bam_genotyping.primary_tool_ids, vec!["bcftools".to_string()]);
         assert!(
             bam_genotyping.optional_alternative_tool_ids.is_empty(),
-            "bam.genotyping currently carries a single governed angsd benchmark row"
+            "bam.genotyping currently carries a single governed bcftools benchmark row"
         );
         let bam_recalibration =
             matrix.stage_policies.get("bam.recalibration").expect("bam.recalibration policy");

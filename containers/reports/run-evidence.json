@@ -307,23 +307,6 @@
       "tool": "mapdamage2"
     },
     {
-      "campaign": "public-human-relatedness-input-preparation",
-      "corpus": "1000-genomes-phase3-chr22",
-      "domain": "vcf",
-      "evidence_lock_sha256": "e73b9d13dc71c7b74486fdb4b138dba4857a3b89d006846714e96da52d9d459c",
-      "execution_status": "passed",
-      "pipeline_schema_version": "bijux.container.pipeline.v1",
-      "repository_commit": "52826e147fb99ac2b9e08821a7e6bf8159e9d114",
-      "run_id": "run-1051",
-      "sample": "first-100-catalog-order",
-      "scientific_status": "not_assessed",
-      "slurm_job_id": "3457868",
-      "source_file_count": 18,
-      "source_result": "results/container-validation/bcftools/run-1051",
-      "stage": "vcf.prepare_reference_panel",
-      "tool": "bcftools"
-    },
-    {
       "campaign": "public-human-relatedness-container-qualification",
       "corpus": "1000-genomes-phase3-chr22-biallelic-100-samples-full-chromosome",
       "domain": "vcf",
@@ -1189,17 +1172,51 @@
       "source_result": "results/container-validation/run-1138-picard",
       "stage": "bam.mapping_summary",
       "tool": "picard"
+    },
+    {
+      "campaign": "public-horse-whole-genome-error-correction",
+      "corpus": "ena-prjeb10854-err1021817-split-paired-fastq",
+      "domain": "fastq",
+      "evidence_lock_sha256": "2bc5309f86787b6610f4277c0b9b8319c16904692a25cedb542462c625031358",
+      "execution_status": "passed",
+      "pipeline_schema_version": "bijux.container.pipeline.v2",
+      "repository_commit": "04ad1f9435f2c4e1d11ce6fd3b81ea447d9eda3f",
+      "run_id": "run-1139",
+      "sample": "ERR1021817",
+      "scientific_status": "not_assessed",
+      "slurm_job_id": "3459752",
+      "source_file_count": 20,
+      "source_result": "results/container-validation/run-1139-lighter",
+      "stage": "fastq.correct_errors",
+      "tool": "lighter"
+    },
+    {
+      "campaign": "ancient-horse-candidate-site-genotyping",
+      "corpus": "ena-prjeb22390-err2112767-bam",
+      "domain": "bam",
+      "evidence_lock_sha256": "ea64650b23bd8cee58e29e697a50eb69d01fdf523628628d917a9e0e7b39bcb4",
+      "execution_status": "passed",
+      "pipeline_schema_version": "bijux.container.pipeline.v2",
+      "repository_commit": "44075982cd29ee95315f23992794684d314eae0b",
+      "run_id": "run-1140",
+      "sample": "ERR2112767",
+      "scientific_status": "not_assessed",
+      "slurm_job_id": "3459720",
+      "source_file_count": 21,
+      "source_result": "results/container-validation/run-1140-bcftools",
+      "stage": "bam.genotyping",
+      "tool": "bcftools"
     }
   ],
   "schema_version": "bijux.container.run_evidence_index.v2",
   "summary": {
     "execution_status": {
-      "passed": 70
+      "passed": 71
     },
-    "run_count": 70,
+    "run_count": 71,
     "scientific_status": {
-      "not_assessed": 70
+      "not_assessed": 71
     },
-    "tool_count": 70
+    "tool_count": 71
   }
 }

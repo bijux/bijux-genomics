@@ -26,6 +26,7 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
 %files
     containers/contracts/configure-apt-snapshot /usr/local/sbin/bijux-configure-apt-snapshot
     containers/tools/yleaf/requirements.lock /opt/yleaf-requirements.lock
+    containers/tools/yleaf/yleaf /usr/local/bin/yleaf
 
 %environment
     export PATH=/opt/yleaf-venv/bin:/usr/local/bin:/usr/bin:/bin
@@ -49,9 +50,12 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
     /opt/yleaf-venv/bin/pip install --no-cache-dir --require-hashes --requirement /opt/yleaf-requirements.lock
     /opt/yleaf-venv/bin/pip install --no-cache-dir --no-deps --no-build-isolation /opt/yleaf-source
     ln -s /opt/yleaf-venv/bin/Yleaf /usr/local/bin/Yleaf
-    printf '%s\n' '#!/usr/bin/env sh' 'set -eu' 'case "${1:-}" in' '  --version) printf "%s\n" "Yleaf 4.1.4" ;;' '  --help|-h|"") exec /usr/local/bin/Yleaf -h ;;' '  *) exec /usr/local/bin/Yleaf "$@" ;;' 'esac' > /usr/local/bin/yleaf
-    chmod 0755 /usr/local/bin/yleaf
-    yleaf --version | grep -F 'Yleaf 4.1.4'
+    chmod 0555 /usr/local/bin/yleaf
+    yleaf --version > /tmp/yleaf.version
+    grep -Fx 'Yleaf 4.1.4' /tmp/yleaf.version
+    yleaf --help > /tmp/yleaf.help
+    grep -F 'haplogroup inference v4.1.4' /tmp/yleaf.help
+    rm -f /tmp/yleaf.version /tmp/yleaf.help
     rm -rf /opt/yleaf-source /opt/yleaf-source.tar.gz
     rm -rf /var/lib/apt/lists/*
 
@@ -59,8 +63,12 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
     exec /usr/local/bin/yleaf "$@"
 
 %test
-    yleaf --version | grep -F 'Yleaf 4.1.4'
-    yleaf --help >/dev/null
+    yleaf --version > /tmp/yleaf.version
+    grep -Fx 'Yleaf 4.1.4' /tmp/yleaf.version
+    yleaf --help > /tmp/yleaf.help
+    grep -F 'haplogroup inference v4.1.4' /tmp/yleaf.help
+    rm -f /tmp/yleaf.version /tmp/yleaf.help
 
 %help
     Yleaf 4.1.4 with immutable source and hashed Python dependencies.
+    Version normalization is derived from the native Yleaf help banner.

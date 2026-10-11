@@ -1,13 +1,12 @@
 from __future__ import annotations
 
 import importlib.util
-from importlib.machinery import SourceFileLoader
 import io
 import json
 import tempfile
 import unittest
+from importlib.machinery import SourceFileLoader
 from pathlib import Path
-
 
 SCRIPT = Path(__file__).parents[2] / "tools" / "rxy" / "rxy"
 

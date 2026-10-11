@@ -2,11 +2,13 @@ from __future__ import annotations
 
 import importlib.util
 import json
-from pathlib import Path
 import re
+import subprocess
 import sys
 import tempfile
 import unittest
+from pathlib import Path
+from unittest import mock
 
 CONTRACTS = Path(__file__).parents[1]
 sys.path.insert(0, str(CONTRACTS))
@@ -21,12 +23,157 @@ ROOT = Path(__file__).parents[3]
 
 
 class RuntimeVerificationTests(unittest.TestCase):
+    def test_runtime_check_uses_a_resolvable_isolated_hostname(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            with mock.patch.object(
+                runtime_verification.subprocess,
+                "run",
+                return_value=subprocess.CompletedProcess([], 0),
+            ) as execute:
+                check = runtime_verification.run_check(
+                    root / "tool.sif",
+                    ["tool", "--version"],
+                    root / "stdout.log",
+                    root / "stderr.log",
+                    30,
+                )
+
+        self.assertEqual(check["exit_code"], 0)
+        command = execute.call_args.args[0]
+        hostname_index = command.index("--hostname")
+        self.assertEqual(
+            command[hostname_index + 1],
+            runtime_verification.ISOLATED_RUNTIME_HOSTNAME,
+        )
+
+    def test_prepare_accepts_the_inventory_frozen_repository(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            study = root / "study"
+            active = root / "active"
+            frozen_root = root / "frozen"
+            repository = frozen_root / "image-builds" / ("a" * 40)
+            image = study / "containers/apptainer/tool-1.0-linux-amd64-id.sif"
+            image.parent.mkdir(parents=True)
+            image.write_bytes(b"sif")
+            active.mkdir()
+            repository.mkdir(parents=True)
+            catalog = repository / "containers/contracts/catalog.toml"
+            catalog.parent.mkdir(parents=True)
+            catalog.write_text(
+                "[[tools]]\n"
+                'id = "tool"\n'
+                'version = "1.0"\n'
+                "apptainer_supported = true\n"
+                'version_command = "tool --version"\n'
+                'help_command = "tool --help"\n'
+                'expected_version_regex = "tool 1[.]0"\n',
+                encoding="utf-8",
+            )
+            subprocess.run(
+                [
+                    "git",
+                    "init",
+                    "--quiet",
+                    "--initial-branch",
+                    "main",
+                    str(repository),
+                ],
+                check=True,
+            )
+            subprocess.run(
+                ["git", "-C", str(repository), "config", "user.name", "Bijux Test"],
+                check=True,
+            )
+            subprocess.run(
+                [
+                    "git",
+                    "-C",
+                    str(repository),
+                    "config",
+                    "user.email",
+                    "test@bijux.io",
+                ],
+                check=True,
+            )
+            subprocess.run(
+                [
+                    "git",
+                    "-C",
+                    str(repository),
+                    "add",
+                    "containers/contracts/catalog.toml",
+                ],
+                check=True,
+            )
+            subprocess.run(
+                ["git", "-C", str(repository), "commit", "--quiet", "-m", "fixture"],
+                check=True,
+            )
+            commit = runtime_verification.git_output(repository, "rev-parse", "HEAD")
+            inventory = root / "inventory.json"
+            runtime_verification.write_json(
+                inventory,
+                {
+                    "schema_version": runtime_verification.INVENTORY_SCHEMA,
+                    "repository_commit": commit,
+                    "catalog_sha256": runtime_verification.sha256_file(catalog),
+                    "tools": [
+                        {
+                            "tool": "tool",
+                            "apptainer_supported": True,
+                            "state": "current",
+                            "selected_image": str(image),
+                            "selected_image_sha256": (
+                                runtime_verification.sha256_file(image)
+                            ),
+                        }
+                    ],
+                },
+            )
+            governance = root / "governance.yml"
+            governance.write_text(
+                "schema_version: bijux.container.governance.v1\n"
+                "site:\n"
+                "  id: cluster\n"
+                "  hostname_regex: '^worker-7$'\n"
+                "paths:\n"
+                f"  study_root: {study}\n"
+                f"  active_repository: {active}\n"
+                f"  frozen_repositories: {frozen_root}\n"
+                "runtime:\n"
+                "  apptainer_architecture: linux/amd64\n"
+                "slurm:\n"
+                "  account: science\n"
+                f"  scratch_root: {root}\n"
+                "  partitions: [compute]\n",
+                encoding="utf-8",
+            )
+            output = root / "execution.json"
+            with mock.patch.object(
+                runtime_verification.socket,
+                "gethostname",
+                return_value="worker-7",
+            ):
+                execution = runtime_verification.prepare_execution(
+                    inventory,
+                    catalog,
+                    governance,
+                    output,
+                    repository,
+                )
+
+        self.assertEqual(execution["repository_commit"], commit)
+        self.assertEqual(execution["repository"]["path"], str(repository.resolve()))
+        self.assertEqual(execution["tools"]["tool"]["status"], "pending")
+
     def test_every_supported_image_has_a_runtime_contract(self) -> None:
         contracts = runtime_verification.catalog_contracts(
             ROOT / "containers/contracts/catalog.toml"
         )
 
-        self.assertEqual(len(contracts), 87)
+        self.assertEqual(len(contracts), 85)
         for tool_id, contract in contracts.items():
             with self.subTest(tool=tool_id):
                 self.assertTrue(contract["version_command"])

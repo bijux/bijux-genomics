@@ -21,8 +21,6 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
     COMMIT_SHA f8915b79363e896409bd9ca56819f56c3f77a47e
     JELLYFISH_VERSION 2.3.0
     org.opencontainers.image.source https://github.com/mourisl/Rcorrector
-    org.opencontainers.image.licenses GPL-3.0
-
     org.opencontainers.image.revision f8915b79363e896409bd9ca56819f56c3f77a47e
     org.opencontainers.image.created governed-by-build-evidence
     org.opencontainers.image.licenses GPL-3.0
@@ -30,6 +28,10 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
     io.bijux.tool.version 1.0.7
     org.opencontainers.image.tool rcorrector
     org.opencontainers.image.title rcorrector
+
+%files
+    containers/tools/rcorrector/rcorrector /usr/local/bin/rcorrector
+
 %environment
     export LC_ALL=C
     DEBIAN_FRONTEND=noninteractive
@@ -54,7 +56,7 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
         zlib1g-dev \
         libbz2-dev
 
-    # Section: Build Jellyfish v2.3.0 deterministically to avoid apt version drift.
+    # Build the declared Jellyfish version instead of inheriting distribution drift.
     mkdir -p /opt/src
     cd /opt/src
     wget -O jellyfish.tar.gz \
@@ -67,7 +69,7 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
     make -j"$(nproc)"
     make install
 
-    # Section: Fetch and pin Rcorrector.
+    # The source checkout is fixed to the catalog commit before compilation.
     mkdir -p /opt/rcorrector
     for i in 1 2 3; do \
         git clone https://github.com/mourisl/Rcorrector.git /opt/rcorrector && break || \
@@ -77,46 +79,25 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
     cd /opt/rcorrector
     git checkout f8915b79363e896409bd9ca56819f56c3f77a47e
 
-    # Point the Perl wrapper to the compiled binary installed as rcorrector-bin.
+    # Keep the upstream driver and native executable at stable runtime paths.
     sed -i 's|\$WD/rcorrector|\$WD/rcorrector-bin|g' run_rcorrector.pl
 
-    # Apply the toolchain compatibility patch as in the Dockerfile.
+    # Upstream requires this signed-char correction with the current compiler.
     sed -i 's/-1/(char)-1/g' ./*.cpp
 
-    # Build while ensuring the local Jellyfish is used and no extra downloads happen.
+    # Compilation resolves Jellyfish only from the source-built prefix.
     export PATH="/opt/jellyfish/bin:${PATH}"
     make -j"$(nproc)"
 
     install -m 0755 ./rcorrector /usr/local/bin/rcorrector-bin
     install -m 0755 ./run_rcorrector.pl /usr/local/bin/run_rcorrector.pl
 
-    # Create a wrapper with the same behavior as the Docker entrypoint.
-    cat > /usr/local/bin/rcorrector <<'EOF'
-#!/usr/bin/env bash
-set -euo pipefail
-
-case "${1:-}" in
-  --version)
-    echo "1.0.7"
-    exit 0
-    ;;
-  --help|-h|"")
-    cat <<'USAGE'
-usage: rcorrector -1 <reads_1.fq> -2 <reads_2.fq> [-t <threads>]
-Rcorrector wrapper for the pinned upstream Perl driver.
-USAGE
-    exit 0
-    ;;
-  --__bijux_invalid_flag__*)
-    echo "error: rcorrector does not support ${1}" >&2
-    exit 2
-    ;;
-esac
-
-exec perl /usr/local/bin/run_rcorrector.pl "$@"
-EOF
-    chmod 0755 /usr/local/bin/rcorrector
-    # Section: Clean up.
+    chmod 0555 /usr/local/bin/rcorrector
+    rcorrector --version > /tmp/rcorrector.version
+    grep -Fx 'Rcorrector v1.0.7' /tmp/rcorrector.version
+    rcorrector --help > /tmp/rcorrector.help
+    grep -F 'Usage: perl ./run_rcorrector.pl [OPTIONS]' /tmp/rcorrector.help
+    rm -f /tmp/rcorrector.version /tmp/rcorrector.help
     cd /
     rm -rf /opt/src/jellyfish-2.3.0 /opt/src/jellyfish.tar.gz /opt/rcorrector
 
@@ -129,8 +110,15 @@ EOF
         exec rcorrector "$@"
     fi
 
+%test
+    rcorrector --version > /tmp/rcorrector.version
+    grep -Fx 'Rcorrector v1.0.7' /tmp/rcorrector.version
+    rcorrector --help > /tmp/rcorrector.help
+    grep -F 'Usage: perl ./run_rcorrector.pl [OPTIONS]' /tmp/rcorrector.help
+    rm -f /tmp/rcorrector.version /tmp/rcorrector.help
+
 %help
     Rcorrector v1.0.7 (commit f8915b7) built from source on Ubuntu 24.04.
     Ships Jellyfish v2.3.0 under /opt/jellyfish to ensure deterministic behavior.
-    Entry point: rcorrector (Perl wrapper).
+    Entry point: rcorrector (validated interface to the upstream Perl driver).
     Underlying binary: rcorrector-bin.

@@ -277,7 +277,7 @@
       "slurm_job_id": "3457731",
       "source_file_count": 17,
       "source_result": "results/container-validation/bcftools/run-1035",
-      "superseded_by": "run-1051",
+      "superseded_by": "run-1140",
       "tool": "bcftools"
     },
     {
@@ -289,7 +289,7 @@
       "slurm_job_id": "3457765",
       "source_file_count": 18,
       "source_result": "results/container-validation/bcftools/run-1038",
-      "superseded_by": "run-1051",
+      "superseded_by": "run-1140",
       "tool": "bcftools"
     },
     {
@@ -443,6 +443,18 @@
       "source_result": "results/container-validation/mapdamage2/run-1049",
       "superseded_by": "run-1050",
       "tool": "mapdamage2"
+    },
+    {
+      "evidence_lock_sha256": "e73b9d13dc71c7b74486fdb4b138dba4857a3b89d006846714e96da52d9d459c",
+      "execution_status": "passed",
+      "failures": [],
+      "repository_commit": "52826e147fb99ac2b9e08821a7e6bf8159e9d114",
+      "run_id": "run-1051",
+      "slurm_job_id": "3457868",
+      "source_file_count": 18,
+      "source_result": "results/container-validation/bcftools/run-1051",
+      "superseded_by": "run-1140",
+      "tool": "bcftools"
     },
     {
       "evidence_lock_sha256": "f06fb44bfb4fb5ec719549ae7bea2769691a24118ffbbbbacba504cda81bad6f",
@@ -943,9 +955,9 @@
     "execution_status": {
       "failed": 40,
       "incomplete": 1,
-      "passed": 24
+      "passed": 25
     },
-    "published_run_count": 70,
-    "superseded_attempt_count": 65
+    "published_run_count": 71,
+    "superseded_attempt_count": 66
   }
 }

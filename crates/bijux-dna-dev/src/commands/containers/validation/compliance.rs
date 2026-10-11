@@ -4,10 +4,10 @@ use super::{
     anyhow, apptainer_def_paths, apptainer_tool_ids, canonical_container_label_keys,
     container_support_summary, docker_tool_ids, dockerfile_paths, env_or_default, env_or_empty,
     failure_lines, fs, images_metadata, iso_root_path, load_toml, read_json, read_utf8,
-    registry_tool_rows, success_line, table_array_strings, table_string, tool_status_manifest,
-    tool_versions, toolkit_bundles, write_ensure_images_plan_report, write_vuln_hook_report,
-    BTreeMap, BTreeSet, ContainerCommandOutcome, Context, PathBuf, Regex, Result, Utc, WalkDir,
-    Workspace,
+    registry_tool_rows, success_line, table_array_strings, table_bool, table_string,
+    tool_status_manifest, tool_versions, toolkit_bundles, write_ensure_images_plan_report,
+    write_vuln_hook_report, BTreeMap, BTreeSet, ContainerCommandOutcome, Context, PathBuf, Regex,
+    Result, Utc, WalkDir, Workspace,
 };
 
 pub(in super::super) fn check_tool_name_collision(
@@ -589,21 +589,19 @@ pub(in super::super) fn check_docker_arm64_completeness(
     workspace: &Workspace,
 ) -> Result<ContainerCommandOutcome> {
     let docker = docker_tool_ids(workspace)?;
-    let mut required = BTreeSet::new();
-    for row in registry_tool_rows(workspace)? {
-        let tool = {
-            let id = table_string(&row, "id");
-            if id.is_empty() {
-                table_string(&row, "tool_id")
-            } else {
-                id
-            }
-        };
-        let runtimes = table_array_strings(&row, "runtimes");
-        if !tool.is_empty() && runtimes.iter().any(|runtime| runtime == "docker") {
-            required.insert(tool);
-        }
-    }
+    let catalog = load_toml(&workspace.path("containers/contracts/catalog.toml"))?;
+    let required = catalog
+        .get("tools")
+        .and_then(toml::Value::as_array)
+        .into_iter()
+        .flatten()
+        .filter_map(toml::Value::as_table)
+        .filter(|row| {
+            table_string(row, "support_disposition") == "retained"
+                && table_bool(row, "docker_arm64_supported")
+        })
+        .map(|row| table_string(row, "id"))
+        .collect::<BTreeSet<_>>();
     let waiver_path = workspace.path("containers/contracts/docker-waivers.toml");
     let mut waived = BTreeSet::new();
     if waiver_path.exists() {
@@ -777,6 +775,18 @@ pub(in super::super) fn check_docker_hardening(
     let pipe_shell_re =
         Regex::new(r"curl\s+[^|\n]*\|\s*(bash|sh)\b|wget\s+[^|\n]*\|\s*(bash|sh)\b")?;
     let mut errors = Vec::new();
+    if allowed.contains("*") {
+        errors.push(
+            "containers/docker/NONROOT_EXCEPTIONS.md: wildcard exceptions are forbidden"
+                .to_string(),
+        );
+    }
+    if entrypoint_allowed.contains("*") {
+        errors.push(
+            "containers/docker/ENTRYPOINT_EXCEPTIONS.md: wildcard exceptions are forbidden"
+                .to_string(),
+        );
+    }
     for path in dockerfile_paths(workspace)? {
         let tool_id = path
             .file_name()
@@ -799,6 +809,12 @@ pub(in super::super) fn check_docker_hardening(
                 "{rel}: build commands must not convert failures into successful images"
             ));
         }
+        if text.contains("OCI_REVISION=unknown") || text.contains("image.revision=\"unknown\"") {
+            errors.push(format!("{rel}: source revision must not use an unknown placeholder"));
+        }
+        if text.contains("OCI_CREATED=unknown") || text.contains("image.created=\"unknown\"") {
+            errors.push(format!("{rel}: creation provenance must not use an unknown placeholder"));
+        }
         let first_from = text
             .lines()
             .find(|line| line.trim().starts_with("FROM "))
@@ -810,8 +826,7 @@ pub(in super::super) fn check_docker_hardening(
         }
         let has_entrypoint = text.lines().any(|line| entrypoint_re.is_match(line.trim()));
         let has_cmd = text.lines().any(|line| cmd_re.is_match(line.trim()));
-        let entrypoint_exempt =
-            entrypoint_allowed.contains(&tool_id) || entrypoint_allowed.contains("*");
+        let entrypoint_exempt = entrypoint_allowed.contains(&tool_id);
         if !has_cmd && !entrypoint_exempt {
             errors.push(format!("{rel}: missing JSON-form CMD"));
         } else if has_cmd {
@@ -828,10 +843,8 @@ pub(in super::super) fn check_docker_hardening(
                 errors.push(format!("{rel}: CMD should default to --help/-h/--version"));
             }
         }
-        if has_entrypoint && !entrypoint_exempt {
-            errors.push(format!(
-                "{rel}: ENTRYPOINT is forbidden unless listed in ENTRYPOINT_EXCEPTIONS.md"
-            ));
+        if !has_entrypoint && !entrypoint_exempt {
+            errors.push(format!("{rel}: missing JSON-form ENTRYPOINT"));
         }
         if sh_entrypoint_re.is_match(
             text.lines().find(|line| line.trim().starts_with("ENTRYPOINT")).unwrap_or_default(),
@@ -844,7 +857,7 @@ pub(in super::super) fn check_docker_hardening(
             .filter_map(|line| user_re.captures(line.trim()))
             .filter_map(|captures| captures.get(1).map(|value| value.as_str().trim().to_string()))
             .any(|user| user != "root" && user != "0");
-        if !nonroot && !allowed.contains(&tool_id) && !allowed.contains("*") {
+        if !nonroot && !allowed.contains(&tool_id) {
             errors.push(format!("{rel}: no non-root USER and not listed in NONROOT_EXCEPTIONS.md"));
         }
         if text.contains("HEALTHCHECK") {

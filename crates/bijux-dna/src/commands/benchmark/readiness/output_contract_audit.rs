@@ -1089,7 +1089,7 @@ mod tests {
         let bam_genotyping = report
             .rows
             .iter()
-            .find(|row| row.stage_id == "bam.genotyping" && row.tool_id == "angsd")
+            .find(|row| row.stage_id == "bam.genotyping" && row.tool_id == "bcftools")
             .expect("bam.genotyping row");
         assert_eq!(report.failed_row_count, 0);
         assert_eq!(report.passed_row_count, report.row_count);

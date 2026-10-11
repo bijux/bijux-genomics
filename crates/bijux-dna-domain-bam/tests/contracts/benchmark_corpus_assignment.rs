@@ -71,7 +71,7 @@ fn benchmark_corpus_assignment_routes_general_adna_genotyping_and_kinship_rows()
     assert_eq!(
         benchmark_corpus_assignment_for_stage_tool(
             &StageId::new("bam.genotyping".to_string()),
-            &ToolId::new("angsd".to_string()),
+            &ToolId::new("bcftools".to_string()),
         )
         .map(|assignment| assignment.assigned_family()),
         Some(BenchmarkCorpusFamily::Genotyping)

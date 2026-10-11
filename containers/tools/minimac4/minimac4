@@ -1,8 +1,16 @@
 #!/usr/bin/env sh
 set -eu
 
+native_version() {
+    native_output="$(/usr/local/libexec-minimac4 --version 2>&1)"
+    if [ "$native_output" != 'minimac v4.1.6' ]; then
+        printf 'error: unexpected Minimac4 version: %s\n' "$native_output" >&2
+        exit 70
+    fi
+}
+
 case "${1:-}" in
-    --version) echo 'minimac4 4.1.6' ;;
+    --version) native_version; printf 'minimac4 4.1.6\n' ;;
     --help|-h|"") exec /usr/local/libexec-minimac4 --help ;;
     *) exec /usr/local/libexec-minimac4 "$@" ;;
 esac

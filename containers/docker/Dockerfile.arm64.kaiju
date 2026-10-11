@@ -1,57 +1,46 @@
-# SPDX-License-Identifier: GPL-3.0
+# SPDX-License-Identifier: GPL-3.0-only
 # Copyright (C) 2026 Bijan Mousavi
-#
-# Container definition license: GPL-3.0.
-# Bijux Genomics source code is licensed under Apache-2.0.
-# VERSION_SOURCE: containers/versions/versions.toml
+# VERSION_SOURCE: containers/contracts/catalog.toml
 FROM ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
 COPY --chmod=0555 containers/contracts/configure-apt-snapshot /usr/local/sbin/bijux-configure-apt-snapshot
-ARG OCI_REVISION=unknown
-ARG OCI_CREATED=unknown
+COPY --chmod=0555 containers/tools/kaiju/kaiju /usr/local/bin/kaiju
+
+ARG OCI_CREATED=governed-by-build-evidence
 ARG TOOL_VERSION=1.10.0
-LABEL org.opencontainers.image.source="https://github.com/bijux/bijux-genomics" \
-      org.opencontainers.image.revision="${OCI_REVISION}" \
+LABEL org.opencontainers.image.source="https://github.com/bioinformatics-centre/kaiju" \
+      org.opencontainers.image.revision="4653635b1321f5779707adc79c054012ed28b221" \
       org.opencontainers.image.created="${OCI_CREATED}" \
       org.opencontainers.image.licenses="GPL-3.0" \
-      org.opencontainers.image.version="${TOOL_VERSION}"
-LABEL org.opencontainers.image.tool="kaiju"
-LABEL org.opencontainers.image.title="kaiju"
-LABEL org.opencontainers.image.base.name="ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b"
-LABEL org.opencontainers.image.base.digest="sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b"
-ENV DEBIAN_FRONTEND=noninteractive
+      org.opencontainers.image.version="${TOOL_VERSION}" \
+      io.bijux.tool.version="${TOOL_VERSION}" \
+      org.opencontainers.image.tool="kaiju" \
+      org.opencontainers.image.title="Kaiju" \
+      org.opencontainers.image.base.name="ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b" \
+      org.opencontainers.image.base.digest="sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b"
 
-ARG VERSION_KAIJU=1.10.0
-ENV VERSION_KAIJU=${VERSION_KAIJU}
-
+ENV LANG=C LC_ALL=C TZ=UTC DEBIAN_FRONTEND=noninteractive
 RUN /usr/local/sbin/bijux-configure-apt-snapshot && \
-    apt-get install -y --no-install-recommends \
-        wget \
-        ca-certificates \
-        build-essential \
-        zlib1g-dev && \
-    wget -q https://github.com/bioinformatics-centre/kaiju/archive/v${VERSION_KAIJU}.tar.gz -O /tmp/kaiju.tar.gz && \
-    tar -xzf /tmp/kaiju.tar.gz -C /opt && \
-    cd /opt/kaiju-${VERSION_KAIJU}/src && \
-    make && \
-    mv ../bin/kaiju /usr/local/bin/kaiju-bin && \
-    mv ../bin/* /usr/local/bin/ && \
-    rm -rf /tmp/kaiju.tar.gz /opt/kaiju-${VERSION_KAIJU} /var/lib/apt/lists/* && \
-    apt-get purge -y wget ca-certificates build-essential && \
-    apt-get autoremove -y
+    apt-get install -y --no-install-recommends zlib1g && \
+    apt-get install -y --no-install-recommends curl g++ make zlib1g-dev && \
+    curl --fail --location --proto '=https' --tlsv1.2 \
+      --output /opt/kaiju.tar.gz \
+      https://codeload.github.com/bioinformatics-centre/kaiju/tar.gz/4653635b1321f5779707adc79c054012ed28b221 && \
+    echo 'b750e692e4ad8bab1dbde836e6e2813812cb2806865ef086f9bbf92b0e1b65a1  /opt/kaiju.tar.gz' | sha256sum --check --strict && \
+    tar --extract --gzip --file /opt/kaiju.tar.gz --directory /opt && \
+    make --directory /opt/kaiju-4653635b1321f5779707adc79c054012ed28b221/src -j"$(nproc)" && \
+    install -d -m 0755 /opt/kaiju/bin && \
+    install -m 0755 /opt/kaiju-4653635b1321f5779707adc79c054012ed28b221/bin/kaiju /opt/kaiju/bin/kaiju-native && \
+    find /opt/kaiju-4653635b1321f5779707adc79c054012ed28b221/bin -maxdepth 1 -type f ! -name kaiju -exec install -m 0755 {} /opt/kaiju/bin/ \; && \
+    chmod 0755 /usr/local/bin/kaiju && \
+    kaiju --version | grep -Fx '1.10.0' && \
+    kaiju --help | grep -F 'Kaiju 1.10.0' >/dev/null && \
+    useradd --system --uid 65532 --home-dir /work --create-home bijux && \
+    rm -rf /opt/kaiju.tar.gz /opt/kaiju-4653635b1321f5779707adc79c054012ed28b221 && \
+    apt-get purge -y --auto-remove curl g++ make zlib1g-dev && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
-# Create a wrapper script for unified Kaiju execution
-RUN echo '#!/bin/sh' > /usr/local/bin/kaiju && \
-    echo 'if [ "$1" = "--version" ]; then' >> /usr/local/bin/kaiju && \
-    echo '    echo "$VERSION_KAIJU"' >> /usr/local/bin/kaiju && \
-    echo '    exit 0' >> /usr/local/bin/kaiju && \
-    echo 'elif [ "$1" = "--help" ]; then' >> /usr/local/bin/kaiju && \
-    echo '    /usr/local/bin/kaiju-bin --help' >> /usr/local/bin/kaiju && \
-    echo '    exit 0' >> /usr/local/bin/kaiju && \
-    echo 'else' >> /usr/local/bin/kaiju && \
-    echo '    /usr/local/bin/kaiju-bin "$@"' >> /usr/local/bin/kaiju && \
-    echo 'fi' >> /usr/local/bin/kaiju && \
-    chmod +x /usr/local/bin/kaiju
-
-WORKDIR /data
-ENTRYPOINT ["kaiju"]
+USER 65532:65532
+WORKDIR /work
+ENTRYPOINT ["/usr/local/bin/kaiju"]
 CMD ["--help"]

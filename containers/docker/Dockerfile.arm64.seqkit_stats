@@ -1,40 +1,44 @@
-# SPDX-License-Identifier: GPL-3.0
+# SPDX-License-Identifier: GPL-3.0-only
 # Copyright (C) 2026 Bijan Mousavi
-#
-# Container definition license: GPL-3.0.
-# Bijux Genomics source code is licensed under Apache-2.0.
-# VERSION_SOURCE: containers/versions/versions.toml
+# VERSION_SOURCE: containers/contracts/catalog.toml
 FROM ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
-ARG OCI_REVISION=unknown
-ARG OCI_CREATED=unknown
-ARG TOOL_VERSION=2.8.2
-LABEL org.opencontainers.image.source="https://github.com/bijux/bijux-genomics" \
-      org.opencontainers.image.revision="${OCI_REVISION}" \
-      org.opencontainers.image.created="${OCI_CREATED}" \
-      org.opencontainers.image.licenses="GPL-3.0" \
-      org.opencontainers.image.version="${TOOL_VERSION}"
-LABEL org.opencontainers.image.tool="seqkit_stats"
-LABEL org.opencontainers.image.title="seqkit_stats"
-LABEL org.opencontainers.image.base.name="ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b"
-LABEL org.opencontainers.image.base.digest="sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b"
-ENV DEBIAN_FRONTEND=noninteractive
+COPY --chmod=0555 containers/contracts/configure-apt-snapshot /usr/local/sbin/bijux-configure-apt-snapshot
+COPY --chmod=0555 containers/tools/seqkit_stats/seqkit_stats /usr/local/bin/seqkit_stats
 
-RUN apt-get update -qq && \
-    apt-get install -y --no-install-recommends ca-certificates=20240203 seqkit=2.3.1+ds-2ubuntu0.3 && \
+ARG OCI_CREATED=governed-by-build-evidence
+ARG TOOL_VERSION=2.8.2
+LABEL org.opencontainers.image.source="https://github.com/shenwei356/seqkit" \
+      org.opencontainers.image.revision="1aef84fbc2381db2e73639632bc44a5f7a0a8bcc" \
+      org.opencontainers.image.created="${OCI_CREATED}" \
+      org.opencontainers.image.licenses="MIT" \
+      org.opencontainers.image.version="${TOOL_VERSION}" \
+      io.bijux.tool.version="${TOOL_VERSION}" \
+      org.opencontainers.image.tool="seqkit_stats" \
+      org.opencontainers.image.title="SeqKit Stats" \
+      org.opencontainers.image.base.name="ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b" \
+      org.opencontainers.image.base.digest="sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b"
+
+ENV LANG=C LC_ALL=C TZ=UTC DEBIAN_FRONTEND=noninteractive
+RUN /usr/local/sbin/bijux-configure-apt-snapshot && \
+    apt-get install -y --no-install-recommends curl && \
+    curl --fail --location --proto '=https' --tlsv1.2 \
+      --output /opt/seqkit.tar.gz \
+      https://github.com/shenwei356/seqkit/releases/download/v2.8.2/seqkit_linux_arm64.tar.gz && \
+    echo '8c12816c0bf6c01cfcda329fdb5f6c1479cf2485ce9413ce36b96237524da9dc  /opt/seqkit.tar.gz' | sha256sum --check --strict && \
+    install -d -m 0755 /opt/seqkit/bin && \
+    tar --extract --gzip --file /opt/seqkit.tar.gz --directory /opt/seqkit/bin && \
+    mv /opt/seqkit/bin/seqkit /opt/seqkit/bin/seqkit-native && \
+    chmod 0755 /opt/seqkit/bin/seqkit-native /usr/local/bin/seqkit_stats && \
+    /opt/seqkit/bin/seqkit-native version | grep -F 'seqkit v2.8.2' && \
+    seqkit_stats --version | grep -Fx 'seqkit_stats 2.8.2' && \
+    seqkit_stats --help >/dev/null && \
+    useradd --system --uid 65532 --home-dir /work --create-home bijux && \
+    rm /opt/seqkit.tar.gz && \
+    apt-get purge -y --auto-remove curl && \
+    apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-RUN cat > /usr/local/bin/seqkit_stats <<'EOS'
-#!/usr/bin/env sh
-if [ "${1:-}" = "--version" ]; then
-  seqkit version | awk '{print $2}'
-  exit 0
-fi
-if [ "${1:-}" = "--help" ] || [ $# -eq 0 ]; then
-  exec seqkit stats --help
-fi
-exec seqkit stats "$@"
-EOS
-RUN chmod +x /usr/local/bin/seqkit_stats
-
+USER 65532:65532
+WORKDIR /work
 ENTRYPOINT ["/usr/local/bin/seqkit_stats"]
 CMD ["--help"]

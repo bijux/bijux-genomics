@@ -49,7 +49,7 @@ Covers tool id, container kind, SPDX identifier, upstream source, version, and c
 | `eigensoft` | `retained` | `bijux` | `GPL-2.0` | `https://github.com/DReichLab/EIG` | `8.0.0` | `sha256:83207df20d658142c8d3d93db8d2d668b06812a90cc474454d18b62b973ca4c2` |
 | `fastp` | `retained` | `bijux` | `MIT` | `https://github.com/OpenGene/fastp` | `0.23.4` | `sha256:4fad6db156e769d46071add8a778a13a5cb5186bc1e1a5f9b1ffd499d84d72b5` |
 | `fastq_scan` | `retained` | `bijux` | `MIT` | `https://github.com/rpetit3/fastq-scan` | `1.0.1` | `sha256:74a665f4550a98bb0565de47cc17772d8372a9777c4dc845b959090363fe778e` |
-| `fastq_screen` | `retained` | `bijux` | `GPL-3.0-only` | `https://github.com/StevenWingett/FastQ-Screen` | `0.15.3` | `sha256:76ec0ea9a0d1f5d1089f53728ec1db118963b287d025ce0c95887ff5ed481525` |
+| `fastq_screen` | `retained` | `bijux` | `GPL-3.0-or-later` | `https://github.com/StevenWingett/FastQ-Screen` | `0.15.3` | `sha256:79a66b7265374c1c1b34ca166eede564bfa7ec58e17c3ba9a0e1de9bbe1c2448` |
 | `fastqc` | `retained` | `bijux` | `GPL-3.0-only` | `https://github.com/s-andrews/FastQC` | `0.12.1` | `sha256:5f4dba8780231a25a6b8e11ab2c238601920c9704caa5458d9de559575d58aa7` |
 | `fastqvalidator` | `retained` | `bijux` | `GPL-3.0-or-later` | `https://github.com/statgen/fastQValidator` | `0.1.1` | `sha256:0172c7e86bdb33dbf71900a3a9b2a6aae4ec9f6918f934a7c23a9d599e12181c` |
 | `fastuniq` | `unsupported` | `bijux` | `NOASSERTION` | `https://sourceforge.net/projects/fastuniq/` | `1.1` | `sha256:9ebf251566d097226393fb5aa9db30a827e60c7a4bd9f6e06022b4af4cee0eae` |
@@ -63,10 +63,10 @@ Covers tool id, container kind, SPDX identifier, upstream source, version, and c
 | `ibdne` | `retained` | `bijux` | `Apache-2.0` | `https://faculty.washington.edu/browning/ibdne.html` | `23Apr20.ae9` | `sha256:b3324ebd74ed69477067e0aec1dd22be56b1bcedbbe72d8757cda28746312665` |
 | `ibdseq` | `retained` | `bijux` | `Apache-2.0` | `https://faculty.washington.edu/browning/ibdseq.html` | `r1206` | `sha256:a835c7282444d8920109362ca012f9a9ac1eb54665d34fb0ca0380a3e0fed8ec` |
 | `impute5` | `unsupported` | `bijux` | `LicenseRef-Oxford-Academic-Use` | `https://jmarchini.org/software/#impute-5` | `1.2.0` | `not-distributed` |
-| `kaiju` | `retained` | `bijux` | `GPL-3.0` | `https://github.com/bioinformatics-centre/kaiju` | `1.10.0` | `sha256:a8cc1e366558427bb3a111498565dc5c63d12ef0ef41870a41f2dcd8df318a59` |
+| `kaiju` | `retained` | `bijux` | `GPL-3.0` | `https://github.com/bioinformatics-centre/kaiju` | `1.10.0` | `sha256:b750e692e4ad8bab1dbde836e6e2813812cb2806865ef086f9bbf92b0e1b65a1` |
 | `king` | `retained` | `bijux` | `GPL-3.0` | `https://www.kingrelatedness.com/executables/Linux-king230.tar.gz` | `2.3.0` | `sha256:5a00cb504b56e3a05c8aa2b4531b1f85c9947e7c9aa89bfec7afd72b28663b39` |
 | `kraken2` | `retained` | `bijux` | `MIT` | `https://github.com/DerrickWood/kraken2/archive/v${VERSION_KRAKEN2}.tar.gz` | `2.1.3` | `sha256:5269fa14adfb02e38c2da2e605e909a432d76c680d73e2e0e80e27ccd04d7c69` |
-| `krakenuniq` | `retained` | `bijux` | `GPL-3.0` | `https://github.com/fbreitwieser/krakenuniq` | `1.0.4` | `sha256:d4cdfedb97cb74d26f21c2de00fccde980c33c6e79436ac05f7318aedc85112f` |
+| `krakenuniq` | `retained` | `bijux` | `GPL-3.0-or-later` | `https://github.com/fbreitwieser/krakenuniq` | `1.0.4` | `sha256:aa11c4d015516dcfdd58bc38234cfb4f0473833be49c2a6dc12da384540bead9` |
 | `leehom` | `retained` | `bijux` | `GPL-3.0-only` | `https://github.com/grenaud/leeHom` | `1.2.18` | `sha256:87cbc83c04b51264b7d986aaf9bf7abaedaa827d1a72f783d4c43b63b3cc95ca` |
 | `lighter` | `retained` | `bijux` | `GPL-3.0` | `https://github.com/mourisl/Lighter` | `1.1.3` | `sha256:c8a251c410805f82dad77e40661f0faf14ec82dedb3ff717094ba8ff4ef94465` |
 | `mapdamage2` | `retained` | `bijux` | `MIT` | `https://github.com/ginolhac/mapDamage/archive/55518aa83141d8f885ce10751c22113f674e95de.tar.gz` | `2.2.2` | `sha256:a7dd300489674eeb72e28c5e99627f73840dd7a74c6efce76c1eaee8e7898c54` |
@@ -100,8 +100,8 @@ Covers tool id, container kind, SPDX identifier, upstream source, version, and c
 | `skewer` | `retained` | `bijux` | `GPL-3.0` | `https://github.com/relipmoc/skewer` | `0.2.2` | `sha256:695c5f714e23ba5572e2525b7445439b632f52653e28ea46ed9988fc2f765169` |
 | `sortmerna` | `retained` | `bijux` | `GPL-3.0` | `https://github.com/sortmerna/sortmerna` | `4.3.7` | `sha256:1add6d30e2ce3cffd8bc022e5cf359882aa50dcae647bfaef3937132e46a0ab3` |
 | `spades` | `retained` | `bijux` | `GPL-2.0-only` | `https://github.com/ablab/spades` | `4.2.0` | `sha256:b449f5fa8ba8369981a7ff7a5e266ab4746d9f72abb863ebae1df38c02fb5985` |
-| `star` | `retained` | `bijux` | `GPL-3.0` | `https://github.com/alexdobin/STAR` | `2.7.11b` | `sha256:756c7904006c87a84da81d04bb2f9b3a760601f697606fd23dc687cd7ec9da7e` |
-| `trim_galore` | `retained` | `bijux` | `GPL-3.0` | `https://github.com/FelixKrueger/TrimGalore` | `0.6.10` | `sha256:8efa46f091785659e6cc36e8bf0d89c2beaead17f11ff793c64c57b93b9d33ec` |
+| `star` | `retained` | `bijux` | `GPL-3.0` | `https://github.com/alexdobin/STAR` | `2.7.11b` | `sha256:65976afe9b8c5dbda05282c7c02ba27d0f908a7eb83ec12e3fca86ed5eb91cac` |
+| `trim_galore` | `retained` | `bijux` | `GPL-3.0` | `https://github.com/FelixKrueger/TrimGalore` | `0.6.10` | `sha256:dc5d24ab37c3cfed8038b8c2546948e52e3e769b912ccfd5c9d28c34546f5e2c` |
 | `trimmomatic` | `retained` | `bijux` | `GPL-3.0-only` | `https://github.com/usadellab/Trimmomatic/releases/download/v${VERSION_TRIMMOMATIC}/Trimmomatic-${VERSION_TRIMMOMATIC}.zip` | `0.39` | `sha256:2f7a5de11416899e5b38d3131019bc655946f770f9b7df5355d6a36acbcc488c` |
 | `umi_tools` | `retained` | `bijux` | `GPL-3.0` | `https://github.com/CGATOxford/UMI-tools` | `1.1.6` | `sha256:52f5a89a629a746671fe7c7642e847d7a1e81e49cde6bf05b330c23eab817a0d` |
 | `verifybamid2` | `retained` | `bijux` | `GPL-3.0` | `https://github.com/Griffan/VerifyBamID` | `2.0.1` | `sha256:af9a0621cf519a6e2d7f45dc99af81b64aeb419d960de2c6af1a806a37d91ab9` |

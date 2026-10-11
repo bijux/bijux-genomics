@@ -1,0 +1,200 @@
+schema_version = "bijux.container.stage_benchmarks.v1"
+
+[[campaigns]]
+run_id = "run-2001"
+slug = "bam-genotyping"
+domain = "bam"
+stage_id = "bam.genotyping"
+evidence_tier = "qualification"
+profile_id = "bam-biological-inference"
+corpus_ids = ["ancient-horse-alignment-qualification"]
+scientific_question = "How reliably and efficiently does each retained BAM genotyping tool recover independently catalogued EquCab3 candidate sites from a real low-coverage ancient horse alignment?"
+comparison_scope = "candidate-site genotyping on one governed 10 Mb EquCab3 interval"
+tool_ids = ["bcftools"]
+corpus_catalog_ids = ["ena-prjeb22390-err2112767-bam"]
+reference_catalog_ids = ["equcab3-gcf-002863925.1"]
+database_catalog_ids = [
+  "ensembl-113-equcab3-refseq-known-sites-10mb",
+  "ensembl-113-equcab3-refseq-genotyping-inputs-10mb",
+]
+input_size_keys = ["bam_input_bytes", "reference_input_bytes", "database_input_bytes"]
+result_artifact = "genotypes.tsv"
+runtime = "apptainer"
+scheduler = "slurm"
+container_only = true
+threads = 4
+warmup_repetitions = 1
+measured_repetitions = 3
+cache_policy = "warm"
+result_root_template = "results/benchmarks/{run_id}-{slug}/{tool_id}"
+accuracy_claim = "candidate_site_recovery_not_genotype_truth"
+interpretation = "This execution establishes reproducible candidate-site genotyping and resource use for the retained tool set. It does not establish genotype accuracy because no sample-level truth genotype is available."
+performance_metrics = [
+  "wall_seconds",
+  "cpu_seconds",
+  "peak_rss_kib",
+  "input_bytes",
+  "output_bytes",
+]
+scientific_metrics = [
+  "total_records",
+  "covered_sites",
+  "called_genotypes",
+  "alternate_genotypes",
+  "mean_depth_at_covered_sites",
+]
+comparison_metrics = []
+limitations = [
+  "The Ensembl panel is independent candidate-site evidence but is not a sample-level genotype truth set.",
+  "The first 10 Mb of chromosome 1 is a qualification interval, not a genome-wide accuracy estimate.",
+  "Warm-cache repetitions measure stable tool execution after one unmeasured warmup; they do not estimate cold filesystem startup cost.",
+]
+
+[[campaigns]]
+run_id = "run-2002"
+slug = "bam-coverage"
+domain = "bam"
+stage_id = "bam.coverage"
+evidence_tier = "qualification"
+profile_id = "bam-observational-qc"
+corpus_ids = ["ancient-horse-alignment-qualification"]
+scientific_question = "How efficiently and consistently do the retained BAM coverage tools summarize reference-wide breadth and depth for the same real low-coverage ancient horse alignment?"
+comparison_scope = "whole-reference coverage summaries from one governed coordinate-sorted EquCab3 BAM"
+tool_ids = ["bedtools", "mosdepth", "samtools"]
+corpus_catalog_ids = ["ena-prjeb22390-err2112767-bam"]
+reference_catalog_ids = ["equcab3-gcf-002863925.1"]
+database_catalog_ids = []
+input_size_keys = ["bam_input_bytes", "bam_index_input_bytes", "reference_index_input_bytes"]
+result_artifact = "coverage-summary.tsv"
+runtime = "apptainer"
+scheduler = "slurm"
+container_only = true
+threads_by_tool = { bedtools = 1, mosdepth = 4, samtools = 1 }
+warmup_repetitions = 1
+measured_repetitions = 3
+cache_policy = "warm"
+result_root_template = "results/benchmarks/{run_id}-{slug}/{tool_id}"
+accuracy_claim = "cross_tool_coverage_summary_consistency_not_truth_accuracy"
+interpretation = "This campaign compares resource use, repeatability, and agreement of coverage summaries over one real ancient horse BAM. Agreement is a consistency check, not an accuracy claim against an independent coverage truth set."
+performance_metrics = [
+  "wall_seconds",
+  "cpu_seconds",
+  "peak_rss_kib",
+  "input_bytes",
+  "output_bytes",
+]
+scientific_metrics = [
+  "reference_bases",
+  "covered_bases",
+  "coverage_fraction",
+  "mean_depth",
+]
+comparison_metrics = [
+  {id = "reference_bases", absolute_tolerance = 0.0, relative_tolerance = 0.0},
+  {id = "covered_bases", absolute_tolerance = 1000.0, relative_tolerance = 0.05},
+  {id = "coverage_fraction", absolute_tolerance = 0.000001, relative_tolerance = 0.05},
+  {id = "mean_depth", absolute_tolerance = 0.0001, relative_tolerance = 0.05},
+]
+limitations = [
+  "The corpus is one low-coverage ancient horse library and does not represent high-depth, long-read, or cohort workloads.",
+  "Cross-tool agreement can reveal integration defects but does not establish accuracy without an independent truth coverage surface.",
+  "Warm-cache repetitions measure stable execution after one warmup and exclude cold shared-filesystem startup.",
+]
+
+[[campaigns]]
+run_id = "run-2003"
+slug = "bam-endogenous-content"
+domain = "bam"
+stage_id = "bam.endogenous_content"
+evidence_tier = "qualification"
+profile_id = "bam-observational-qc"
+corpus_ids = ["ancient-horse-alignment-qualification"]
+scientific_question = "What fraction of primary reads in the governed ancient horse alignment map to the declared EquCab3 reference before duplicate removal?"
+comparison_scope = "primary mapped-read fraction from one governed coordinate-sorted EquCab3 BAM"
+tool_ids = ["samtools"]
+corpus_catalog_ids = ["ena-prjeb22390-err2112767-bam"]
+reference_catalog_ids = ["equcab3-gcf-002863925.1"]
+database_catalog_ids = []
+input_size_keys = ["bam_input_bytes", "bam_index_input_bytes"]
+result_artifact = "endogenous-content.tsv"
+runtime = "apptainer"
+scheduler = "slurm"
+container_only = true
+threads = 4
+warmup_repetitions = 1
+measured_repetitions = 3
+cache_policy = "warm"
+result_root_template = "results/benchmarks/{run_id}-{slug}/{tool_id}"
+accuracy_claim = "mapping_derived_fraction_not_endogenous_truth"
+interpretation = "This campaign measures a reproducible primary mapped-read fraction for one BAM and one reference. It is an operational endogenous-content proxy, not biological truth about the library's endogenous DNA fraction."
+performance_metrics = [
+  "wall_seconds",
+  "cpu_seconds",
+  "peak_rss_kib",
+  "input_bytes",
+  "output_bytes",
+]
+scientific_metrics = [
+  "total_primary_reads",
+  "mapped_primary_reads",
+  "mapped_fraction",
+  "mapped_nonduplicate_primary_reads",
+]
+comparison_metrics = []
+limitations = [
+  "The result depends on the EquCab3 reference, upstream alignment parameters, and the BAM flag semantics declared by this campaign.",
+  "Mapped-read fraction does not distinguish authentic ancient horse molecules from contamination that also maps to EquCab3.",
+  "The corpus is one low-coverage ancient horse library and does not establish population-wide or protocol-wide behavior.",
+]
+
+[[campaigns]]
+run_id = "run-2004"
+slug = "bam-mapping-summary"
+domain = "bam"
+stage_id = "bam.mapping_summary"
+evidence_tier = "qualification"
+profile_id = "bam-observational-qc"
+corpus_ids = ["ancient-horse-alignment-qualification"]
+scientific_question = "Do the retained BAM summary tools report the same primary-read and primary-mapped-read counts for a governed ancient horse alignment, and what resources does each implementation consume?"
+comparison_scope = "primary mapping counts from one governed coordinate-sorted EquCab3 BAM"
+tool_ids = ["picard", "samtools"]
+corpus_catalog_ids = ["ena-prjeb22390-err2112767-bam"]
+reference_catalog_ids = []
+database_catalog_ids = []
+input_size_keys = ["bam_input_bytes", "bam_index_input_bytes"]
+result_artifact = "mapping-summary.tsv"
+runtime = "apptainer"
+scheduler = "slurm"
+container_only = true
+threads = 1
+warmup_repetitions = 1
+measured_repetitions = 3
+cache_policy = "warm"
+result_root_template = "results/benchmarks/{run_id}-{slug}/{tool_id}"
+accuracy_claim = "cross_tool_primary_mapping_summary_consistency_not_alignment_truth"
+interpretation = "This campaign compares Picard and Samtools primary-read accounting under one explicit aggregation contract. Exact agreement establishes interoperable BAM flag interpretation for this corpus; it does not establish that the upstream alignments are biologically correct."
+performance_metrics = [
+  "wall_seconds",
+  "cpu_seconds",
+  "peak_rss_kib",
+  "input_bytes",
+  "output_bytes",
+]
+scientific_metrics = [
+  "primary_reads",
+  "mapped_primary_reads",
+  "mapped_primary_fraction",
+  "paired_primary_reads",
+]
+comparison_metrics = [
+  {id = "primary_reads", absolute_tolerance = 0.0, relative_tolerance = 0.0},
+  {id = "mapped_primary_reads", absolute_tolerance = 0.0, relative_tolerance = 0.0},
+  {id = "mapped_primary_fraction", absolute_tolerance = 0.000000000001, relative_tolerance = 0.000000001},
+  {id = "paired_primary_reads", absolute_tolerance = 0.0, relative_tolerance = 0.0},
+]
+limitations = [
+  "The corpus is one low-coverage ancient horse library and cannot establish agreement across all aligners, sequencing technologies, or BAM flag combinations.",
+  "Picard PAIR and UNPAIRED categories are deliberately aggregated to match Samtools primary-record semantics; FIRST_OF_PAIR and SECOND_OF_PAIR rows are excluded because including them would double-count paired records.",
+  "Exact count agreement checks summary interoperability, not mapping accuracy against an independent alignment truth set.",
+  "Both tools run with one allocated CPU because the measured summary operations do not expose equivalent useful parallelism.",
+]

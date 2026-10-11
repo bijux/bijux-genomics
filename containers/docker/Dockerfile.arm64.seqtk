@@ -1,56 +1,45 @@
-# SPDX-License-Identifier: GPL-3.0
+# SPDX-License-Identifier: GPL-3.0-only
 # Copyright (C) 2026 Bijan Mousavi
-#
-# Container definition license: GPL-3.0.
-# Bijux Genomics source code is licensed under Apache-2.0.
-# VERSION_SOURCE: containers/versions/versions.toml
+# VERSION_SOURCE: containers/contracts/catalog.toml
 FROM ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
 COPY --chmod=0555 containers/contracts/configure-apt-snapshot /usr/local/sbin/bijux-configure-apt-snapshot
-ARG OCI_REVISION=unknown
-ARG OCI_CREATED=unknown
+COPY --chmod=0555 containers/tools/seqtk/seqtk /usr/local/bin/seqtk
+
+ARG OCI_CREATED=governed-by-build-evidence
 ARG TOOL_VERSION=1.4
-LABEL org.opencontainers.image.source="https://github.com/bijux/bijux-genomics" \
-      org.opencontainers.image.revision="${OCI_REVISION}" \
+LABEL org.opencontainers.image.source="https://github.com/lh3/seqtk" \
+      org.opencontainers.image.revision="ae7defa8bead3ef77d241f12194dc66acdd40fca" \
       org.opencontainers.image.created="${OCI_CREATED}" \
-      org.opencontainers.image.licenses="GPL-3.0" \
-      org.opencontainers.image.version="${TOOL_VERSION}"
-LABEL org.opencontainers.image.tool="seqtk"
-LABEL org.opencontainers.image.title="seqtk"
-LABEL org.opencontainers.image.base.name="ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b"
-LABEL org.opencontainers.image.base.digest="sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b"
-ENV DEBIAN_FRONTEND=noninteractive
+      org.opencontainers.image.licenses="MIT" \
+      org.opencontainers.image.version="${TOOL_VERSION}" \
+      io.bijux.tool.version="${TOOL_VERSION}" \
+      org.opencontainers.image.tool="seqtk" \
+      org.opencontainers.image.title="Seqtk" \
+      org.opencontainers.image.base.name="ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b" \
+      org.opencontainers.image.base.digest="sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b"
 
-ARG VERSION_SEQTK=1.5-r133
-ENV VERSION_SEQTK=${VERSION_SEQTK}
-
+ENV LANG=C LC_ALL=C TZ=UTC DEBIAN_FRONTEND=noninteractive
 RUN /usr/local/sbin/bijux-configure-apt-snapshot && \
-    apt-get install -y --no-install-recommends \
-        git \
-        ca-certificates \
-        build-essential \
-        zlib1g-dev && \
-    git clone https://github.com/lh3/seqtk.git /opt/seqtk && \
-    cd /opt/seqtk && \
-    git checkout 94e707082d39b0a038f234df676e32d9802c0dc7 && \
-    make && \
-    mv seqtk /usr/local/bin/seqtk-bin && \
-    rm -rf /opt/seqtk /var/lib/apt/lists/* && \
-    apt-get purge -y git build-essential && \
-    apt-get autoremove -y
+    apt-get install -y --no-install-recommends zlib1g && \
+    apt-get install -y --no-install-recommends curl gcc make zlib1g-dev && \
+    curl --fail --location --proto '=https' --tlsv1.2 \
+      --output /opt/seqtk.tar.gz \
+      https://codeload.github.com/lh3/seqtk/tar.gz/refs/tags/v1.4 && \
+    echo 'd124604ec24f29ed14ce127426ab90e0f3a2c0280c80d1a3ff8b1c09feede19c  /opt/seqtk.tar.gz' | sha256sum --check --strict && \
+    tar --extract --gzip --file /opt/seqtk.tar.gz --directory /opt && \
+    make --directory /opt/seqtk-1.4 -j"$(nproc)" && \
+    install -d -m 0755 /opt/seqtk/bin && \
+    install -m 0755 /opt/seqtk-1.4/seqtk /opt/seqtk/bin/seqtk-native && \
+    chmod 0755 /usr/local/bin/seqtk && \
+    seqtk --version | grep -Fx 'seqtk 1.4' && \
+    seqtk --help >/dev/null && \
+    useradd --system --uid 65532 --home-dir /work --create-home bijux && \
+    rm -rf /opt/seqtk.tar.gz /opt/seqtk-1.4 && \
+    apt-get purge -y --auto-remove curl gcc make zlib1g-dev && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
-# Create a wrapper script for unified Seqtk execution
-RUN echo '#!/bin/sh' > /usr/local/bin/seqtk && \
-    echo 'if [ "$1" = "--version" ]; then' >> /usr/local/bin/seqtk && \
-    echo '    echo "$VERSION_SEQTK"' >> /usr/local/bin/seqtk && \
-    echo '    exit 0' >> /usr/local/bin/seqtk && \
-    echo 'elif [ "$1" = "--help" ]; then' >> /usr/local/bin/seqtk && \
-    echo '    /usr/local/bin/seqtk-bin --help' >> /usr/local/bin/seqtk && \
-    echo '    exit 0' >> /usr/local/bin/seqtk && \
-    echo 'else' >> /usr/local/bin/seqtk && \
-    echo '    /usr/local/bin/seqtk-bin "$@"' >> /usr/local/bin/seqtk && \
-    echo 'fi' >> /usr/local/bin/seqtk && \
-    chmod +x /usr/local/bin/seqtk
-
-WORKDIR /data
-ENTRYPOINT ["seqtk"]
+USER 65532:65532
+WORKDIR /work
+ENTRYPOINT ["/usr/local/bin/seqtk"]
 CMD ["--help"]

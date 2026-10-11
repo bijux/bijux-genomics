@@ -10,18 +10,22 @@ steps alone establishes scientific validity or release readiness.
 ## Evidence available now
 
 - [Current qualification](reports/qualification.md): the published inventory
-  and runtime campaign are stale relative to the present catalog, so they
-  contribute zero current build, runtime, or freshness passes.
-- [Canonical image storage](reports/image-storage.md): a previous governed
-  campaign moved 14 unreferenced obsolete SIFs into a checksummed, reversible
-  quarantine. Its counts describe that campaign commit, not the current tree.
+  is the authority for current dimension counts. Four tools now have governed
+  benchmark evidence across two stage campaigns. No tool yet has scientific,
+  security, or release acceptance.
+- [Canonical image storage](reports/image-storage.md): the latest governed
+  reconciliation moved superseded SIFs into a checksummed, reversible
+  quarantine and left no unknown, staged, or unreferenced obsolete image.
 - [Complete-roster rebuild](reports/lunarc-image-rebuild.md): a previous frozen
-  commit rebuilt 87 then-retained Apptainer images. This remains historical
-  build evidence while the current 85-image roster is rebuilt and published.
+  commit rebuilt 87 then-retained Apptainer images. The [current targeted
+  refresh](reports/lunarc-image-refresh.md) records recipes rebuilt after
+  repository-owned build inputs changed.
 - [Image inventory](reports/image-inventory.md) and [runtime
-  verification](reports/runtime-verification.md): the previous campaign's
-  admitted-image and version/help records remain auditable, but cannot support
-  current qualification until regenerated from the current catalog.
+  verification](reports/runtime-verification.md): all 85 supported tools have
+  admitted images and passing version/help records. Qualification independently
+  recomputes each definition and repository-owned build-input identity against
+  the present source tree, so a later source change can invalidate build
+  freshness without erasing the historical image or runtime record.
 - [Real executions](reports/run-evidence.md): successful, failed, and incomplete
   LUNARC attempts are all retained; scientific assessment remains separate.
 - [Scientific reports](reports/README.md): reviewed cross-tool reports state the

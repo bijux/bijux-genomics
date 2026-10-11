@@ -1,6 +1,7 @@
 # Docker Non-Root Exceptions
 
-Purpose: Document tool images that currently run as root and why.
+Purpose: Document tool images that require a root runtime and the upstream or
+scientific constraint that prevents an unprivileged runtime.
 
 Policy:
 - Preferred: set an explicit non-root `USER` in the final stage.
@@ -10,4 +11,3 @@ Policy:
 
 | tool_id | rationale | owner |
 |---|---|---|
-| `*` | Transition period while legacy images are migrated to non-root runtime and write-path contracts. | `bijux-genomics` |

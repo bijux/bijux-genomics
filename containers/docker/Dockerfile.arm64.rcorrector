@@ -6,12 +6,10 @@
 # VERSION_SOURCE: containers/versions/versions.toml
 FROM ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b AS builder
 COPY --chmod=0555 containers/contracts/configure-apt-snapshot /usr/local/sbin/bijux-configure-apt-snapshot
-ARG OCI_REVISION=unknown
-ARG OCI_CREATED=unknown
 ARG TOOL_VERSION=1.0.7
-LABEL org.opencontainers.image.source="https://github.com/bijux/bijux-genomics" \
-      org.opencontainers.image.revision="${OCI_REVISION}" \
-      org.opencontainers.image.created="${OCI_CREATED}" \
+LABEL org.opencontainers.image.source="https://github.com/mourisl/Rcorrector" \
+      org.opencontainers.image.revision="f8915b79363e896409bd9ca56819f56c3f77a47e" \
+      org.opencontainers.image.created="governed-by-build-evidence" \
       org.opencontainers.image.licenses="GPL-3.0" \
       org.opencontainers.image.version="${TOOL_VERSION}"
 LABEL org.opencontainers.image.tool="rcorrector"
@@ -33,16 +31,15 @@ WORKDIR /tmp/rcorrector
 RUN git clone --depth 1 --branch v${VERSION_RCORRECTOR} \
         https://github.com/mourisl/Rcorrector.git . \
  && git checkout f8915b79363e896409bd9ca56819f56c3f77a47e \
- # point the Perl wrapper to the compiled binary
+ # Keep the upstream driver and native executable at stable runtime paths.
  && sed -i 's|\$WD/rcorrector|\$WD/rcorrector-bin|g' run_rcorrector.pl \
  && sed -i 's/-1/(char)-1/g' *.cpp \
  && make -j"$(nproc)"
 
-###########################################################
-# 2. Runtime stage: minimal image with runtime deps       #
-###########################################################
+# The runtime stage contains only the driver, executable, and declared libraries.
 FROM ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b AS runtime
 COPY --chmod=0555 containers/contracts/configure-apt-snapshot /usr/local/sbin/bijux-configure-apt-snapshot
+COPY --chmod=0555 containers/tools/rcorrector/rcorrector /usr/local/bin/rcorrector
 
 ARG VERSION_RCORRECTOR=1.0.7
 ENV VERSION_RCORRECTOR=${VERSION_RCORRECTOR} \
@@ -51,8 +48,15 @@ ENV VERSION_RCORRECTOR=${VERSION_RCORRECTOR} \
 
 LABEL maintainer="Bijan Mousavi" \
       org.opencontainers.image.source="https://github.com/mourisl/Rcorrector" \
+      org.opencontainers.image.revision="f8915b79363e896409bd9ca56819f56c3f77a47e" \
+      org.opencontainers.image.created="governed-by-build-evidence" \
       org.opencontainers.image.version="${VERSION_RCORRECTOR}" \
-      org.opencontainers.image.license="MIT"
+      org.opencontainers.image.licenses="GPL-3.0" \
+      org.opencontainers.image.tool="rcorrector" \
+      org.opencontainers.image.title="rcorrector" \
+      org.opencontainers.image.base.name="ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b" \
+      org.opencontainers.image.base.digest="sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b"
+LABEL io.bijux.tool.version="1.0.7"
 
 RUN /usr/local/sbin/bijux-configure-apt-snapshot \
  && apt-get install -y --no-install-recommends \
@@ -63,28 +67,16 @@ RUN /usr/local/sbin/bijux-configure-apt-snapshot \
 COPY --from=builder /tmp/rcorrector/rcorrector /usr/local/bin/rcorrector-bin
 COPY --from=builder /tmp/rcorrector/run_rcorrector.pl /usr/local/bin/run_rcorrector.pl
 
-# wrapper for --version, --help, and delegation
 RUN chmod +x /usr/local/bin/rcorrector-bin /usr/local/bin/run_rcorrector.pl \
- && printf '%s\n' \
-      '#!/usr/bin/env bash' \
-      'set -euo pipefail' \
-      'show_and_succeed() {' \
-      '  local tmp' \
-      '  tmp=$(mktemp)' \
-      '  "$@" >"$tmp" 2>&1 || true' \
-      '  cat "$tmp"' \
-      '  rm -f "$tmp"' \
-      '  exit 0' \
-      '}' \
-      'case "${1:-}" in' \
-      '  --version) echo "${VERSION_RCORRECTOR}"; exit 0 ;;' \
-      '  --help|-h|"") show_and_succeed perl /usr/local/bin/run_rcorrector.pl --help ;;' \
-      'esac' \
-      'exec perl /usr/local/bin/run_rcorrector.pl "$@"' \
-    > /usr/local/bin/rcorrector \
- && chmod +x /usr/local/bin/rcorrector
+ && rcorrector --version > /tmp/rcorrector.version \
+ && grep -Fx 'Rcorrector v1.0.7' /tmp/rcorrector.version \
+ && rcorrector --help > /tmp/rcorrector.help \
+ && grep -F 'Usage: perl ./run_rcorrector.pl [OPTIONS]' /tmp/rcorrector.help \
+ && rm -f /tmp/rcorrector.version /tmp/rcorrector.help \
+ && useradd --system --uid 65532 --home-dir /work --create-home bijux
 
-WORKDIR /data
+USER 65532:65532
+WORKDIR /work
 
 HEALTHCHECK --interval=1h --timeout=10s \
   CMD [ "rcorrector", "--version" ]

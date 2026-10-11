@@ -32,6 +32,17 @@ validate_raw_inputs() {
     fi
 }
 
+native_help() {
+    set +e
+    native_output="$("$raw_ngsbriggs" 2>&1)"
+    native_status=$?
+    set -e
+    if [ "$native_status" -ne 1 ] || ! printf '%s\n' "$native_output" | grep -Fq -- '-> -bam: The bam file for inference;'; then
+        printf 'error: unexpected ngsBriggs help probe (status=%s)\n' "$native_status" >&2
+        exit 70
+    fi
+}
+
 run_analysis() {
     bam=
     reference=
@@ -124,11 +135,13 @@ run_analysis() {
 
 case "${1:-}" in
     --version)
-        echo 'ngsbriggs 0.01 (commit ab3b5ae8a388b9b1874dd2854fdec32bd9195f22)'
+        native_help
+        printf 'ngsbriggs 0.01 (commit ab3b5ae8a388b9b1874dd2854fdec32bd9195f22)\n'
         ;;
     --help|-h|"")
         printf '%s\n' 'Bijux interface: ngsbriggs analyze --bam FILE --reference FASTA --json-out FILE [--model b|nb]'
-        "$raw_ngsbriggs" 2>&1 || true
+        native_help
+        printf '%s\n' "$native_output"
         ;;
     analyze)
         run_analysis "$@"

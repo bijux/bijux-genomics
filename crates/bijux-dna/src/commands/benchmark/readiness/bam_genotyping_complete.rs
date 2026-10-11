@@ -38,7 +38,7 @@ pub(crate) const DEFAULT_BAM_GENOTYPING_COMPLETE_PATH: &str =
 const BAM_GENOTYPING_COMPLETE_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.bam_genotyping_complete.v1";
 const EXPECTED_STAGE_ID: &str = "bam.genotyping";
-const EXPECTED_TOOL_ID: &str = "angsd";
+const EXPECTED_TOOL_ID: &str = "bcftools";
 const EXPECTED_SAMPLE_ID: &str = "human_like_genotyping_candidate_panel";
 const EXPECTED_REFERENCE_FASTA: &str =
     "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta";
@@ -571,10 +571,10 @@ fn build_bam_genotyping_complete_row(
     }
     let coverage_status = if missing_surfaces.is_empty() { "complete" } else { "incomplete" };
     let reason = if missing_surfaces.is_empty() {
-        "binding `bam.genotyping` / `angsd` keeps local-ready BCF/VCF/GL handoff, parser-smoke call-rate proof, and downstream VCF metrics compatibility complete".to_string()
+        "binding `bam.genotyping` / `bcftools` keeps local-ready BCF/VCF/GL handoff, parser-smoke call-rate proof, and downstream VCF metrics compatibility complete".to_string()
     } else {
         format!(
-            "binding `bam.genotyping` / `angsd` is missing {} required completion surface(s): {}",
+            "binding `bam.genotyping` / `bcftools` is missing {} required completion surface(s): {}",
             missing_surfaces.len(),
             missing_surfaces.join(", ")
         )
@@ -676,7 +676,7 @@ fn find_parser_smoke_row(
                 && row.representative_tool_id == EXPECTED_TOOL_ID
         })
         .ok_or_else(|| {
-            anyhow!("missing real-output parser-smoke row for `bam.genotyping` / `angsd`")
+            anyhow!("missing real-output parser-smoke row for `bam.genotyping` / `bcftools`")
         })
 }
 

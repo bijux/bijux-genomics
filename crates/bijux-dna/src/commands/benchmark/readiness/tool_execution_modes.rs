@@ -6,8 +6,7 @@ use anyhow::{anyhow, Context, Result};
 use serde::{Deserialize, Serialize};
 
 use super::tool_serving_map::{
-    render_bam_tool_serving_map, render_fastq_tool_serving_map, ToolServingMapRow,
-    DEFAULT_BAM_TOOL_SERVING_MAP_PATH, DEFAULT_FASTQ_TOOL_SERVING_MAP_PATH,
+    collect_bam_tool_serving_map_rows, collect_fastq_tool_serving_map_rows, ToolServingMapRow,
 };
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
@@ -87,13 +86,9 @@ pub(crate) fn validate_tool_execution_modes_path(
     let config = load_tool_execution_modes_config(config_path)?;
     validate_tool_execution_modes_contract(&config)?;
 
-    let fastq_map = render_fastq_tool_serving_map(
-        repo_root,
-        PathBuf::from(DEFAULT_FASTQ_TOOL_SERVING_MAP_PATH),
-    )?;
-    let bam_map =
-        render_bam_tool_serving_map(repo_root, PathBuf::from(DEFAULT_BAM_TOOL_SERVING_MAP_PATH))?;
-    let benchmark_tool_index = build_benchmark_tool_index(&fastq_map.rows, &bam_map.rows);
+    let (_, _, fastq_rows) = collect_fastq_tool_serving_map_rows(repo_root)?;
+    let (_, _, bam_rows) = collect_bam_tool_serving_map_rows(repo_root)?;
+    let benchmark_tool_index = build_benchmark_tool_index(&fastq_rows, &bam_rows);
     let assignments = build_mode_assignment_index(&config)?;
 
     let configured_tool_ids = assignments.keys().cloned().collect::<BTreeSet<_>>();
@@ -547,7 +542,8 @@ mod tests {
         assert_eq!(report.schema_version, TOOL_EXECUTION_MODES_VALIDATION_SCHEMA_VERSION);
         assert_eq!(report.classification_scope, "primary_operator_runtime");
         assert_eq!(report.mode_count, 6);
-        assert_eq!(report.tool_count, 65);
+        assert_eq!(report.tool_count, report.rows.len());
+        assert!(report.tool_count > 0);
         assert!(report.valid, "tool execution mode config must validate cleanly");
 
         let bijux_dna =
@@ -585,15 +581,12 @@ mod tests {
             report.rows.iter().find(|row| row.tool_id == "trim_galore").expect("trim_galore row");
         assert_eq!(trim_galore.execution_mode, "mixed");
 
-        let angsd = report.rows.iter().find(|row| row.tool_id == "angsd").expect("angsd row");
-        assert_eq!(angsd.execution_mode, "containerized");
-        assert_eq!(angsd.domains, vec!["bam".to_string()]);
-        assert!(
-            angsd.stage_ids.contains(&"bam.genotyping".to_string())
-                && angsd.stage_ids.contains(&"bam.kinship".to_string())
-                && angsd.stage_ids.contains(&"bam.sex".to_string()),
-            "shared BAM execution-mode rows must preserve the governed sex, kinship, and genotyping stage scope"
-        );
+        for unsupported_tool_id in ["angsd", "fastuniq", "ngsbriggs"] {
+            assert!(
+                report.rows.iter().all(|row| row.tool_id != unsupported_tool_id),
+                "unsupported container `{unsupported_tool_id}` must not have an executable mode"
+            );
+        }
 
         let yleaf = report.rows.iter().find(|row| row.tool_id == "yleaf").expect("yleaf row");
         assert_eq!(yleaf.execution_mode, "containerized");

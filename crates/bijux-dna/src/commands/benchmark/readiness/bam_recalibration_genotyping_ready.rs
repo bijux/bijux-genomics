@@ -1236,11 +1236,11 @@ mod tests {
             let genotyping_row = report
                 .rows
                 .iter()
-                .find(|row| row.stage_id == "bam.genotyping" && row.tool_id == "angsd")
-                .expect("bam.genotyping angsd row");
+                .find(|row| row.stage_id == "bam.genotyping" && row.tool_id == "bcftools")
+                .expect("bam.genotyping bcftools row");
             assert_eq!(genotyping_row.expected_normalized_metrics_output_id, "genotyping_report");
             assert_eq!(genotyping_row.expected_local_proof_kind, "local_ready_plan");
-            assert_eq!(genotyping_row.local_proof_tool_id, "angsd");
+            assert_eq!(genotyping_row.local_proof_tool_id, "bcftools");
             assert!(genotyping_row
                 .required_local_proof_fields
                 .iter()

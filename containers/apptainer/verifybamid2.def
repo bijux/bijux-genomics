@@ -26,6 +26,10 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
     org.opencontainers.image.tool verifybamid2
     org.opencontainers.image.title verifybamid2
 
+%files
+    containers/contracts/configure-apt-snapshot /usr/local/sbin/bijux-configure-apt-snapshot
+    containers/tools/verifybamid2/verifybamid2 /usr/local/bin/verifybamid2
+
 %environment
     export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
     export LC_ALL=C
@@ -36,9 +40,12 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
     set -eux
     umask 022
     export DEBIAN_FRONTEND=noninteractive
-    apt-get update -qq && apt-get install -y --no-install-recommends \
+    /bin/sh /usr/local/sbin/bijux-configure-apt-snapshot
+    apt-get install -y --no-install-recommends ca-certificates
+    apt-get -o Acquire::Check-Valid-Until=false update
+    apt-get install -y --no-install-recommends \
         git build-essential cmake zlib1g-dev libbz2-dev liblzma-dev libcurl4-gnutls-dev libhts-dev \
-        ca-certificates && rm -rf /var/lib/apt/lists/*
+        ca-certificates
 
     git clone --no-checkout https://github.com/Griffan/VerifyBamID.git /opt/VerifyBamID
     cd /opt/VerifyBamID
@@ -46,54 +53,26 @@ From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f20082
     git checkout 83a1c936ef2e1a8c9e78ed2d2e2d328adf0c6447
     cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
     cmake --build build -j"$(nproc)"
-    bin_path="$(find /opt/VerifyBamID -maxdepth 3 -type f -perm -111 -name 'VerifyBamID*' | head -n 1)"
+    bin_path="$(find /opt/VerifyBamID -maxdepth 3 -type f -perm -111 -name 'VerifyBamID*' -print -quit)"
     test -n "$bin_path"
     cp "$bin_path" /usr/local/bin/verifybamid2-bin
-    cat > /usr/local/bin/verifybamid2 <<'EOS'
-#!/usr/bin/env sh
-set -eu
-case "${1:-}" in
-  --version)
-    set +e
-    version_output="$(/usr/local/bin/verifybamid2-bin --version 2>&1)"
-    version_status=$?
-    set -e
-    if [ "$version_status" -ne 255 ] || ! printf '%s\n' "$version_output" | grep -Fq 'Version:2.0.1'; then
-      printf 'error: unexpected VerifyBamID2 version probe (status=%s)\n' "$version_status" >&2
-      exit 70
-    fi
-    printf 'verifybamid2 2.0.1\n'
-    exit 0
-    ;;
-  --help|-h|"")
-    set +e
-    help_output="$(/usr/local/bin/verifybamid2-bin --help 2>&1)"
-    help_status=$?
-    set -e
-    if [ "$help_status" -ne 1 ] || ! printf '%s\n' "$help_output" | grep -Fq 'Detailed instructions of parameters'; then
-      printf 'error: unexpected VerifyBamID2 help probe (status=%s)\n' "$help_status" >&2
-      exit 70
-    fi
-    printf '%s\n' "$help_output"
-    exit 0
-    ;;
-  --__bijux_invalid_flag__*)
-    echo "error: verifybamid2 does not support ${1}" >&2
-    exit 2
-    ;;
-esac
-exec /usr/local/bin/verifybamid2-bin "$@"
-EOS
-    chmod +x /usr/local/bin/verifybamid2
-    verifybamid2 --version | grep -Fx 'verifybamid2 2.0.1'
-    verifybamid2 --help | grep -Fq 'Detailed instructions of parameters'
+    chmod 0555 /usr/local/bin/verifybamid2
+    verifybamid2 --version > /tmp/verifybamid2.version
+    grep -Fx 'verifybamid2 2.0.1' /tmp/verifybamid2.version
+    verifybamid2 --help > /tmp/verifybamid2.help
+    grep -F 'Detailed instructions of parameters' /tmp/verifybamid2.help
+    rm -f /tmp/verifybamid2.version /tmp/verifybamid2.help
+    rm -rf /var/lib/apt/lists/*
 %runscript
     exec /usr/local/bin/verifybamid2 "$@"
 
 %test
-    verifybamid2 --version | grep -Fx 'verifybamid2 2.0.1'
-    verifybamid2 --help | grep -Fq 'Detailed instructions of parameters'
+    verifybamid2 --version > /tmp/verifybamid2.version
+    grep -Fx 'verifybamid2 2.0.1' /tmp/verifybamid2.version
+    verifybamid2 --help > /tmp/verifybamid2.help
+    grep -F 'Detailed instructions of parameters' /tmp/verifybamid2.help
+    rm -f /tmp/verifybamid2.version /tmp/verifybamid2.help
 
 %help
-    Apptainer image for verifybamid2.
-    Default runscript forwards arguments to verifybamid2.
+    VerifyBamID2 2.0.1 built from the catalog-pinned upstream commit.
+    Version and help normalization validate the native executable output.

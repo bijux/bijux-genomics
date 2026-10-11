@@ -1,0 +1,25 @@
+#!/usr/bin/env sh
+set -eu
+
+native_information() {
+    set +e
+    native_output="$(/usr/local/libexec-bwa 2>&1)"
+    native_status=$?
+    set -e
+    if [ "$native_status" -ne 1 ] || ! printf '%s\n' "$native_output" | grep -Fq 'Version: 0.7.17-r1188'; then
+        printf 'error: unexpected BWA information probe (status=%s)\n' "$native_status" >&2
+        exit 70
+    fi
+}
+
+case "${1:-}" in
+    --version)
+        native_information
+        printf '%s\n' "$native_output" | sed -n 's/^Version: //p'
+        ;;
+    --help|-h|"")
+        native_information
+        printf '%s\n' "$native_output"
+        ;;
+    *) exec /usr/local/libexec-bwa "$@" ;;
+esac

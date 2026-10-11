@@ -10,6 +10,24 @@ pub(in super::super::super) fn vcf_imputation_core_tools() -> [&'static str; 8] 
     ["glimpse", "impute5", "minimac4", "shapeit5", "beagle", "eagle", "bcftools", "plink2"]
 }
 
+fn docker_imputation_core_tools(workspace: &Workspace) -> Result<BTreeSet<String>> {
+    let core = vcf_imputation_core_tools().into_iter().collect::<BTreeSet<_>>();
+    let catalog = load_toml(&workspace.path("containers/contracts/catalog.toml"))?;
+    Ok(catalog
+        .get("tools")
+        .and_then(toml::Value::as_array)
+        .into_iter()
+        .flatten()
+        .filter_map(toml::Value::as_table)
+        .filter(|row| {
+            table_string(row, "support_disposition") == "retained"
+                && table_bool(row, "docker_arm64_supported")
+        })
+        .map(|row| table_string(row, "id"))
+        .filter(|tool| core.contains(tool.as_str()))
+        .collect())
+}
+
 pub(in super::super::super) fn load_summary_rows(
     path: &std::path::Path,
 ) -> Result<BTreeMap<String, serde_json::Value>> {
@@ -228,27 +246,21 @@ pub(in super::super::super) fn check_imputation_hardening(
 ) -> Result<ContainerCommandOutcome> {
     let nonroot_ex = read_utf8(&workspace.path("containers/docker/NONROOT_EXCEPTIONS.md"))?;
     let entrypoint_ex = read_utf8(&workspace.path("containers/docker/ENTRYPOINT_EXCEPTIONS.md"))?;
-    let wildcard_nonroot = nonroot_ex.contains("`*`");
-    let wildcard_entrypoint = entrypoint_ex.contains("`*`");
     let user_regex = Regex::new(r"(?m)^USER\s+")?;
     let entrypoint_regex = Regex::new(r"(?m)^ENTRYPOINT\s+\[")?;
     let cmd_regex = Regex::new(r"(?m)^CMD\s+\[")?;
     let mut errors = Vec::new();
-    for tool in vcf_imputation_core_tools() {
+    for tool in docker_imputation_core_tools(workspace)? {
         let dockerfile = workspace.path(&format!("containers/docker/Dockerfile.arm64.{tool}"));
         if !dockerfile.exists() {
             errors.push(format!("{tool}: missing dockerfile"));
             continue;
         }
         let text = read_utf8(&dockerfile)?;
-        if !user_regex.is_match(&text)
-            && !wildcard_nonroot
-            && !nonroot_ex.contains(&format!("`{tool}`"))
-        {
+        if !user_regex.is_match(&text) && !nonroot_ex.contains(&format!("`{tool}`")) {
             errors.push(format!("{tool}: runs as root and is not listed in NONROOT_EXCEPTIONS.md"));
         }
         if (!entrypoint_regex.is_match(&text) || !cmd_regex.is_match(&text))
-            && !wildcard_entrypoint
             && !entrypoint_ex.contains(&format!("`{tool}`"))
         {
             errors.push(format!(

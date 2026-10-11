@@ -11,6 +11,7 @@ from typing import Any
 from unittest import mock
 
 EXECUTOR = Path(__file__).parents[1] / "container_validation.py"
+sys.path.insert(0, str(EXECUTOR.parent))
 SPEC = importlib.util.spec_from_file_location("container_validation", EXECUTOR)
 assert SPEC is not None and SPEC.loader is not None
 container_validation = importlib.util.module_from_spec(SPEC)
@@ -281,6 +282,12 @@ class GovernanceContractTests(unittest.TestCase):
                     governance_path,
                     checkout_scope="complete",
                 )
+                sources = container_validation.freeze_repository(
+                    commit,
+                    governance_path,
+                    checkout_scope="sources",
+                    checkout_paths=("other",),
+                )
 
             self.assertEqual(frozen.name, commit)
             self.assertEqual(
@@ -309,6 +316,42 @@ class GovernanceContractTests(unittest.TestCase):
                 container_validation.git_output(complete, "status", "--porcelain"),
                 "",
             )
+            self.assertEqual(sources.parent.name, "image-builds")
+            self.assertTrue(sources.name.startswith(f"{commit}-"))
+            self.assertEqual(
+                (sources / "other" / "unselected.txt").read_text(),
+                "complete tree\n",
+            )
+            self.assertFalse(
+                (sources / "containers" / "contracts" / "tracked.txt").exists()
+            )
+            self.assertEqual(
+                container_validation.git_output(sources, "status", "--porcelain"),
+                "",
+            )
+
+    def test_source_freeze_rejects_an_empty_or_escaping_checkout(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            governance_path = Path(directory) / "governance.yml"
+            with self.assertRaisesRegex(
+                container_validation.ContractError,
+                "at least one checkout path",
+            ):
+                container_validation.freeze_repository(
+                    "a" * 40,
+                    governance_path,
+                    checkout_scope="sources",
+                )
+            with self.assertRaisesRegex(
+                container_validation.ContractError,
+                "unsafe",
+            ):
+                container_validation.freeze_repository(
+                    "a" * 40,
+                    governance_path,
+                    checkout_scope="sources",
+                    checkout_paths=("../outside",),
+                )
 
 
 class CurrentPipelineContractTests(unittest.TestCase):
@@ -524,6 +567,58 @@ class CurrentPipelineContractTests(unittest.TestCase):
             ):
                 container_validation.validate_contracts(*paths)
 
+    def test_benchmark_contract_uses_a_stage_and_tool_result_boundary(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            paths = self.make_contracts(root)
+            pipeline = container_validation.load_yaml(paths[1])
+            pipeline["run"]["kind"] = "benchmark"
+            pipeline["run"]["domain"] = "bam"
+            pipeline["run"]["stage"] = "bam.genotyping"
+            pipeline["outputs"]["result_root"] = str(
+                root / "study/results/benchmarks/run-2000-bam-genotyping/tool"
+            )
+            paths[1].write_text(
+                container_validation.yaml.safe_dump(pipeline, sort_keys=False),
+                encoding="utf-8",
+            )
+            with mock.patch.object(
+                container_validation.socket,
+                "gethostname",
+                return_value="worker-7",
+            ):
+                contract = container_validation.validate_contracts(*paths)
+
+        self.assertEqual(contract["evidence_kind"], "benchmark")
+        self.assertEqual(
+            contract["result_root"],
+            (
+                root / "study/results/benchmarks/run-2000-bam-genotyping/tool"
+            ).resolve(),
+        )
+
+    def test_benchmark_contract_rejects_qualification_result_paths(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            paths = self.make_contracts(Path(directory))
+            pipeline = container_validation.load_yaml(paths[1])
+            pipeline["run"]["kind"] = "benchmark"
+            paths[1].write_text(
+                container_validation.yaml.safe_dump(pipeline, sort_keys=False),
+                encoding="utf-8",
+            )
+            with (
+                mock.patch.object(
+                    container_validation.socket,
+                    "gethostname",
+                    return_value="worker-7",
+                ),
+                self.assertRaisesRegex(
+                    container_validation.ContractError,
+                    "benchmark outputs.result_root must equal",
+                ),
+            ):
+                container_validation.validate_contracts(*paths)
+
     def test_current_contract_rejects_duplicate_container_mounts(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             paths = self.make_contracts(Path(directory))
@@ -575,6 +670,18 @@ class CurrentPipelineContractTests(unittest.TestCase):
             container_validation.require_current_manifest_path(
                 study
                 / "containers/evidence/specifications/run-2000-tool",
+                active,
+                study / "containers",
+            )
+
+    def test_current_manifest_accepts_governed_run_specs(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory).resolve()
+            active = root / "repository"
+            study = root / "study"
+
+            container_validation.require_current_manifest_path(
+                study / "containers/runs/run-2000-tool",
                 active,
                 study / "containers",
             )
@@ -862,7 +969,10 @@ class CurrentPipelineContractTests(unittest.TestCase):
                 "run_id": "run-2000",
                 "pipeline": {"run": {"tool": "tool"}},
                 "result_root": result,
-                "governance": {"containers_root": containers_root},
+                "governance": {
+                    "containers_root": containers_root,
+                    "results_root": root / "study/results",
+                },
             }
             with mock.patch.object(
                 container_validation,
@@ -945,6 +1055,99 @@ class CurrentPipelineContractTests(unittest.TestCase):
 
         self.assertTrue(submission_preserved)
         self.assertTrue(result_preserved)
+
+    def test_superseded_run_archive_preserves_reason_and_evidence(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            study = root / "study"
+            containers_root = study / "containers"
+            submission = containers_root / "evidence/submissions/run-2001-tool"
+            result = study / "results/benchmarks/run-2001-stage/tool"
+            manifest = containers_root / "evidence/specifications/run-2001-tool"
+            submission.mkdir(parents=True)
+            result.mkdir(parents=True)
+            manifest.mkdir(parents=True)
+            (submission / "slurm-job-id.txt").write_text("3459727\n")
+            (submission / "submit.sh").write_text("#!/bin/bash\nexit 0\n")
+            container_validation.write_json(
+                result / "evidence.json",
+                {
+                    "schema_version": container_validation.EVIDENCE_SCHEMA_V2,
+                    "run_id": "run-2001",
+                    "status": "passed",
+                },
+            )
+            container_validation.write_json(
+                result / "slurm-accounting.json",
+                {
+                    "schema_version": "bijux.slurm.accounting.v1",
+                    "run_id": "run-2001",
+                    "slurm_job_id": "3459727",
+                },
+            )
+            contract = {
+                "pipeline_schema": container_validation.PIPELINE_SCHEMA_V2,
+                "run_id": "run-2001",
+                "pipeline": {"run": {"tool": "tool"}},
+                "result_root": result,
+                "governance": {
+                    "containers_root": containers_root,
+                    "results_root": study / "results",
+                },
+            }
+            reason = (
+                "resource measurements used literal separators instead of TSV rows"
+            )
+            with mock.patch.object(
+                container_validation,
+                "validate_contracts",
+                return_value=contract,
+            ):
+                archived = container_validation.archive_superseded_run(
+                    manifest,
+                    reason,
+                )
+
+            archive = json.loads((archived / "archive.json").read_text())
+
+            self.assertFalse(submission.exists())
+            self.assertFalse(result.exists())
+            self.assertTrue((archived / "submission/submit.sh").is_file())
+            self.assertTrue((archived / "result/evidence.json").is_file())
+
+        self.assertEqual(
+            archive["schema_version"],
+            "bijux.container.superseded_run_archive.v1",
+        )
+        self.assertEqual(archive["disposition"], "superseded")
+        self.assertEqual(archive["reason"], reason)
+
+    def test_apptainer_execution_uses_a_resolvable_isolated_hostname(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            stdout = root / "stdout.log"
+            stderr = root / "stderr.log"
+            with mock.patch.object(
+                container_validation.subprocess,
+                "run",
+                return_value=subprocess.CompletedProcess([], 0),
+            ) as execute:
+                status = container_validation.run_apptainer(
+                    root / "tool.sif",
+                    ["tool", "--version"],
+                    [],
+                    root,
+                    stdout,
+                    stderr,
+                )
+
+        self.assertEqual(status, 0)
+        command = execute.call_args.args[0]
+        hostname_index = command.index("--hostname")
+        self.assertEqual(
+            command[hostname_index + 1],
+            container_validation.ISOLATED_RUNTIME_HOSTNAME,
+        )
 
 
 class BuildAdmissionTests(unittest.TestCase):

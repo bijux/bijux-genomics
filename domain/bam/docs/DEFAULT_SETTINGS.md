@@ -39,7 +39,7 @@ Purpose: define deterministic defaults for every BAM stage contract.
 - `bam.bias_mitigation`: default `mapdamage2`.
 - `bam.recalibration`: default `gatk`.
 - `bam.haplogroups`: default `yleaf`.
-- `bam.genotyping`: default `angsd`.
+- `bam.genotyping`: default `bcftools`.
 - `bam.kinship`: default `king`.
 
 single_tool_justification: bam.complexity

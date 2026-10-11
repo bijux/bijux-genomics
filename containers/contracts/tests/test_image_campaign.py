@@ -6,6 +6,7 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 CONTRACTS = Path(__file__).parents[1]
 sys.path.insert(0, str(CONTRACTS))
@@ -17,6 +18,70 @@ SPEC.loader.exec_module(campaign)
 
 
 class ImageCampaignTests(unittest.TestCase):
+    def test_image_source_roots_follow_definition_file_inputs(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            repository = Path(directory)
+            definition = repository / "containers/apptainer/bijux_dna.def"
+            definition.parent.mkdir(parents=True)
+            (repository / "containers/tools/bijux_dna").mkdir(parents=True)
+            (repository / "crates").mkdir()
+            (repository / "Cargo.toml").write_text("[workspace]\n")
+            definition.write_text(
+                "Bootstrap: docker\n\n"
+                "%files\n"
+                "    containers/tools/bijux_dna /opt/tools\n"
+                "    crates /opt/source/crates\n"
+                "    Cargo.toml /opt/source/Cargo.toml\n"
+                "%post\n"
+                "    true\n",
+                encoding="utf-8",
+            )
+
+            roots = campaign.image_source_roots(repository, ["bijux_dna"])
+
+        self.assertEqual(roots, ("containers", "crates"))
+
+    def test_image_source_roots_reject_missing_sources(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            repository = Path(directory)
+            definition = repository / "containers/apptainer/samtools.def"
+            definition.parent.mkdir(parents=True)
+            definition.write_text(
+                "Bootstrap: docker\n\n%files\n    missing/tool /opt/tool\n",
+                encoding="utf-8",
+            )
+
+            with self.assertRaisesRegex(campaign.ContractError, "source is absent"):
+                campaign.image_source_roots(repository, ["samtools"])
+
+    def test_build_runs_from_frozen_repository(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            repository = root / "repository"
+            definition = repository / "containers/apptainer/samtools.def"
+            definition.parent.mkdir(parents=True)
+            definition.write_text("Bootstrap: docker\n", encoding="utf-8")
+            image_root = root / "images"
+            evidence_root = root / "evidence"
+            with mock.patch.object(
+                campaign.subprocess,
+                "run",
+                return_value=mock.Mock(returncode=1),
+            ) as run:
+                result = campaign.build_one(
+                    "samtools",
+                    "1.20",
+                    "a" * 40,
+                    root / "governance.yml",
+                    repository,
+                    image_root,
+                    evidence_root,
+                    1,
+                )
+
+        self.assertEqual(result["status"], "failed")
+        self.assertEqual(run.call_args.kwargs["cwd"], repository)
+
     def test_selection_contains_only_supported_noncurrent_images(self) -> None:
         selected = campaign.selected_tools(
             {
@@ -70,6 +135,17 @@ class ImageCampaignTests(unittest.TestCase):
         )
 
         self.assertEqual(selected, ["samtools"])
+
+    def test_targeted_selection_is_a_subset_of_inventory_eligibility(self) -> None:
+        self.assertEqual(
+            campaign.requested_tool_selection(
+                ["bijux_dna", "picard"],
+                ["picard"],
+            ),
+            ["picard"],
+        )
+        with self.assertRaisesRegex(campaign.ContractError, "current or unsupported"):
+            campaign.requested_tool_selection(["picard"], ["samtools"])
 
     def test_isolated_admission_keeps_images_and_evidence_together(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
@@ -266,7 +342,7 @@ class ImageCampaignTests(unittest.TestCase):
                         "schema_version": campaign.INVENTORY_SCHEMA,
                         "repository_commit": "a" * 40,
                         "summary": {
-                            "states": {"current": 1, "unsupported": 2},
+                            "states": {"current": 85, "unsupported": 4},
                             "staged_image_count": 0,
                             "unknown_image_count": 0,
                             "unreferenced_obsolete_count": 0,
@@ -287,6 +363,7 @@ class ImageCampaignTests(unittest.TestCase):
             report, markdown = campaign.campaign_report(execution_path, inventory_path)
 
         self.assertEqual(report["verdict"], "passed")
+        self.assertEqual(report["campaign_scope"], "targeted")
         self.assertEqual(report["tools"][0]["attempt_count"], 2)
         self.assertEqual(report["tools"][0]["failed_attempt_count"], 1)
         self.assertTrue(report["tools"][0]["inventory_matches_execution"])
@@ -299,6 +376,8 @@ class ImageCampaignTests(unittest.TestCase):
         )
         self.assertIn("science", report["not_evidence_for"])
         self.assertIn("does not prove runtime behavior", markdown)
+        self.assertIn("only for the selected tools", markdown)
+        self.assertNotIn("complete retained Apptainer roster", markdown)
 
 
 if __name__ == "__main__":

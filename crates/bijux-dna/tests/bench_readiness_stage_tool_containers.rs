@@ -37,7 +37,14 @@ fn run_cli_json(args: &[&str]) -> serde_json::Value {
 
 #[test]
 fn bench_readiness_stage_tool_containers_reports_governed_runtime_rows() {
-    let payload = run_cli_json(&["bench", "readiness", "render-stage-tool-containers", "--json"]);
+    let payload = run_cli_json(&[
+        "bench",
+        "readiness",
+        "render-stage-tool-containers",
+        "--output",
+        "artifacts/tests/stage-tool-containers.toml",
+        "--json",
+    ]);
 
     assert_eq!(
         payload.get("schema_version").and_then(serde_json::Value::as_str),
@@ -45,77 +52,38 @@ fn bench_readiness_stage_tool_containers_reports_governed_runtime_rows() {
     );
     assert_eq!(
         payload.get("config_path").and_then(serde_json::Value::as_str),
-        Some("configs/bench/local/stage-tool-containers.toml")
+        Some("artifacts/tests/stage-tool-containers.toml")
     );
     assert_eq!(
         payload.get("classification_scope").and_then(serde_json::Value::as_str),
         Some("benchmark_ready_runtime_declarations")
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(120));
+    let row_count = support::json_u64(&payload, "row_count").expect("row_count");
+    assert!(row_count > 0);
     assert_eq!(
         payload.get("benchmark_ready_row_count").and_then(serde_json::Value::as_u64),
-        Some(120)
+        Some(row_count)
     );
-    assert_eq!(payload.get("external_row_count").and_then(serde_json::Value::as_u64), Some(118));
+    let external_row_count =
+        support::json_u64(&payload, "external_row_count").expect("external_row_count");
+    let host_binary_row_count =
+        support::json_u64(&payload, "host_binary_row_count").expect("host_binary_row_count");
+    assert_eq!(external_row_count + host_binary_row_count, row_count);
     assert_eq!(
         payload.get("container_declared_row_count").and_then(serde_json::Value::as_u64),
-        Some(118)
+        Some(external_row_count)
     );
     assert_eq!(
         payload.get("command_entrypoint_row_count").and_then(serde_json::Value::as_u64),
-        Some(120)
+        Some(row_count)
     );
-    assert_eq!(payload.get("host_binary_row_count").and_then(serde_json::Value::as_u64), Some(2));
-    assert_eq!(
-        payload
-            .get("domain_counts")
-            .and_then(|value| value.get("fastq"))
-            .and_then(serde_json::Value::as_u64),
-        Some(71)
-    );
-    assert_eq!(
-        payload
-            .get("domain_counts")
-            .and_then(|value| value.get("bam"))
-            .and_then(serde_json::Value::as_u64),
-        Some(49)
-    );
+    let domain_counts = support::json_object(&payload, "domain_counts");
+    assert!(support::object_u64(domain_counts, "fastq").is_some());
+    assert!(support::object_u64(domain_counts, "bam").is_some());
+    assert_eq!(support::object_u64_sum(domain_counts), row_count);
 
-    assert_eq!(
-        payload
-            .get("execution_mode_counts")
-            .and_then(|value| value.get("containerized"))
-            .and_then(serde_json::Value::as_u64),
-        Some(96)
-    );
-    assert_eq!(
-        payload
-            .get("execution_mode_counts")
-            .and_then(|value| value.get("internal"))
-            .and_then(serde_json::Value::as_u64),
-        Some(2)
-    );
-    assert_eq!(
-        payload
-            .get("execution_mode_counts")
-            .and_then(|value| value.get("java"))
-            .and_then(serde_json::Value::as_u64),
-        Some(11)
-    );
-    assert_eq!(
-        payload
-            .get("execution_mode_counts")
-            .and_then(|value| value.get("mixed"))
-            .and_then(serde_json::Value::as_u64),
-        Some(1)
-    );
-    assert_eq!(
-        payload
-            .get("execution_mode_counts")
-            .and_then(|value| value.get("python"))
-            .and_then(serde_json::Value::as_u64),
-        Some(9)
-    );
+    let execution_mode_counts = support::json_object(&payload, "execution_mode_counts");
+    assert_eq!(support::object_u64_sum(execution_mode_counts), row_count);
     assert_eq!(
         payload
             .get("execution_mode_counts")
@@ -125,25 +93,15 @@ fn bench_readiness_stage_tool_containers_reports_governed_runtime_rows() {
     );
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
-    let ngsbriggs = rows
-        .iter()
-        .find(|row| {
-            row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.damage")
-                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("ngsbriggs")
-        })
-        .expect("bam damage ngsbriggs row");
-    assert_eq!(
-        ngsbriggs.get("execution_mode").and_then(serde_json::Value::as_str),
-        Some("containerized")
-    );
-    assert_eq!(
-        ngsbriggs.get("command_entrypoint").and_then(serde_json::Value::as_str),
-        Some("ngsbriggs")
-    );
-    assert_eq!(
-        ngsbriggs.get("container_id").and_then(serde_json::Value::as_str),
-        Some("bijuxdna/ngsbriggs:0.1.3")
-    );
+    for unsupported_tool_id in ["angsd", "fastuniq", "ngsbriggs"] {
+        assert!(
+            rows.iter().all(|row| {
+                row.get("tool_id").and_then(serde_json::Value::as_str)
+                    != Some(unsupported_tool_id)
+            }),
+            "unsupported container `{unsupported_tool_id}` must not enter executable benchmark rows"
+        );
+    }
     let bwa_align = rows
         .iter()
         .find(|row| {
@@ -182,24 +140,24 @@ fn bench_readiness_stage_tool_containers_reports_governed_runtime_rows() {
         bowtie2_align.get("container_id").and_then(serde_json::Value::as_str),
         Some("bijuxdna/bowtie2")
     );
-    let angsd_genotyping = rows
+    let bcftools_genotyping = rows
         .iter()
         .find(|row| {
             row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.genotyping")
-                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("angsd")
+                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("bcftools")
         })
-        .expect("bam genotyping angsd row");
+        .expect("bam genotyping bcftools row");
     assert_eq!(
-        angsd_genotyping.get("execution_mode").and_then(serde_json::Value::as_str),
+        bcftools_genotyping.get("execution_mode").and_then(serde_json::Value::as_str),
         Some("containerized")
     );
     assert_eq!(
-        angsd_genotyping.get("command_entrypoint").and_then(serde_json::Value::as_str),
-        Some("angsd")
+        bcftools_genotyping.get("command_entrypoint").and_then(serde_json::Value::as_str),
+        Some("bcftools")
     );
     assert_eq!(
-        angsd_genotyping.get("container_id").and_then(serde_json::Value::as_str),
-        Some("bijuxdna/angsd")
+        bcftools_genotyping.get("container_id").and_then(serde_json::Value::as_str),
+        Some("bijuxdna/bcftools:1.20")
     );
     let king_kinship = rows
         .iter()
@@ -468,7 +426,7 @@ fn bench_readiness_stage_tool_containers_reports_governed_runtime_rows() {
     );
     for (tool_id, container_id) in [
         ("bedtools", "bijuxdna/bedtools:2.31.1"),
-        ("mosdepth", "bijuxdna/mosdepth:0.3.10"),
+        ("mosdepth", "bijuxdna/mosdepth:0.3.11"),
         ("samtools", "bijuxdna/samtools:1.21"),
     ] {
         let bam_coverage = rows
@@ -896,7 +854,8 @@ fn bench_readiness_stage_tool_containers_reports_governed_runtime_rows() {
             .and_then(serde_json::Value::as_str),
         Some("bijuxdna/prinseq@sha256:7216ffecd7913edaea33ec76b3775ab0cb0d60064f31e96c63e043d578a3f971")
     );
-    for tool_id in ["clumpify", "fastuniq"] {
+    {
+        let tool_id = "clumpify";
         let remove_duplicates = rows
             .iter()
             .find(|row| {

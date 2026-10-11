@@ -143,7 +143,6 @@ configs/logging/runtime.toml
 configs/runtime/asset_hydration.toml
 configs/runtime/asset_locks.toml
 configs/runtime/cargo_build.toml
-configs/runtime/corpora/corpus-01.toml
 configs/runtime/coverage_regimes.toml
 configs/runtime/execution_kernel.toml
 configs/runtime/genetic_map_bank.toml

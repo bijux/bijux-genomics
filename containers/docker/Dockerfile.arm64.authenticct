@@ -18,6 +18,7 @@ LABEL org.opencontainers.image.source="https://github.com/StephanePeyregne/Authe
       org.opencontainers.image.title="AuthentiCT" \
       org.opencontainers.image.base.name="ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b" \
       org.opencontainers.image.base.digest="sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b"
+LABEL io.bijux.tool.version="1.0.0"
 
 ENV DEBIAN_FRONTEND=noninteractive \
     PATH=/opt/authenticct-venv/bin:/usr/local/bin:/usr/bin:/bin \
@@ -42,8 +43,10 @@ RUN /usr/local/sbin/bijux-configure-apt-snapshot && \
     /opt/authenticct-venv/bin/pip install --no-cache-dir --no-deps --no-build-isolation /opt/authenticct-source && \
     chmod 0755 /usr/local/bin/authenticct && \
     authenticct --version | grep -Fx 'AuthentiCT 1.0.0' && \
-    rm -rf /opt/authenticct-source /opt/authenticct-source.tar.gz /var/lib/apt/lists/*
+    rm -rf /opt/authenticct-source /opt/authenticct-source.tar.gz /var/lib/apt/lists/* && \
+    useradd --system --uid 65532 --home-dir /work --create-home bijux
 
-WORKDIR /data
+USER 65532:65532
+WORKDIR /work
 ENTRYPOINT ["/usr/local/bin/authenticct"]
 CMD ["--help"]

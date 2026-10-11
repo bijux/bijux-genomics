@@ -1,0 +1,145 @@
+{
+  "execution_status": "passed",
+  "failures": [],
+  "image": {
+    "path": "/lunarc/nobackup/projects/snic2019-34-3/Dardel/STUDY/containers/apptainer/bcftools-1.20-linux-amd64-408eeb428a48.sif",
+    "sha256": "408eeb428a48286e9f8160571db10e4cb1b519fea336983a41e7bcab4551e761",
+    "size_bytes": 63156224
+  },
+  "repository_commit": "44075982cd29ee95315f23992794684d314eae0b",
+  "run_id": "run-1140",
+  "schema_version": "bijux.container.run_evidence_lock.v1",
+  "scientific_status": "not_assessed",
+  "slurm_job_id": "3459720",
+  "source_files": [
+    {
+      "path": "config-credential.yml",
+      "sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+      "size_bytes": 134
+    },
+    {
+      "path": "config-governance.yml",
+      "sha256": "32872b169364b600c0b2dbe08060c27147ccffa8254b4cbd654a7ed72e10a507",
+      "size_bytes": 621
+    },
+    {
+      "path": "config-pipeline.yml",
+      "sha256": "9317a364de9e1c72558a14f2594a904c666abd1e26bf1a1b60be9a644ee39e7e",
+      "size_bytes": 6930
+    },
+    {
+      "path": "evidence.json",
+      "sha256": "2ddf437f1fc02b1f3ed261b214010b85ac3dc5de52c04d5a7b5120b4426c84af",
+      "size_bytes": 9687
+    },
+    {
+      "path": "help.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "help.stdout.log",
+      "sha256": "7e63e570bf2f0833a0ef85dd89d9ab270561910ce3342ac105cc15f36d14ccd6",
+      "size_bytes": 1978
+    },
+    {
+      "path": "negative.stderr.log",
+      "sha256": "6fbf8487dc73a81be38e31f6ddd5894bd60befa7cd9d7e2f4393b07f24470b88",
+      "size_bytes": 179
+    },
+    {
+      "path": "negative.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "outputs/ERR2112767.known-sites.stats.txt",
+      "sha256": "8fa8a6d3cb097416d448c143b0a928ecb15eb12bb103bb3ac026c920140bd7b4",
+      "size_bytes": 3052
+    },
+    {
+      "path": "outputs/ERR2112767.known-sites.vcf.gz",
+      "sha256": "7c24d026f8d80187473081c60661c73e73fc0144ee38869d398aa463270a8068",
+      "size_bytes": 577463
+    },
+    {
+      "path": "outputs/ERR2112767.known-sites.vcf.gz.csi",
+      "sha256": "e0f82248b9ba3a10d6fc6d4e1bc1e54f27c7ade62ae7dec92b925bdff268e94b",
+      "size_bytes": 4760
+    },
+    {
+      "path": "outputs/bcftools.stderr.log",
+      "sha256": "94f2b4b3bfff6cb9802275aff0d84b9cdbf711d5fc66fda7b408b11a38bc634f",
+      "size_bytes": 194
+    },
+    {
+      "path": "outputs/bcftools.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "outputs/metrics.json",
+      "sha256": "ae7f92724f0f37759eafff94de9e8a5795fd3b3bd9cfc231df16c6bcba8ca04c",
+      "size_bytes": 129
+    },
+    {
+      "path": "real.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "real.stdout.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "slurm-accounting.json",
+      "sha256": "4c6d9fae5500c010db6ceefb17a0698b41153469d986a8c3c4f92eb7327bc69d",
+      "size_bytes": 924
+    },
+    {
+      "path": "slurm-job-id.txt",
+      "sha256": "bdb50cadac9feb3b1e803e9d13af16dc1209ac4ec8d1c9a8b0c6a6e260d5de68",
+      "size_bytes": 8
+    },
+    {
+      "path": "submit.sh",
+      "sha256": "88cd55ae4fc8220acfd196d4539d57ce1e361dcc4359e91898bca53e6788e138",
+      "size_bytes": 2155
+    },
+    {
+      "path": "version.stderr.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "size_bytes": 0
+    },
+    {
+      "path": "version.stdout.log",
+      "sha256": "2f0708a9210a04f2e6add5d9fcddd92853688e85391ac65eb5c48bef42863a40",
+      "size_bytes": 271
+    }
+  ],
+  "source_result": "results/container-validation/run-1140-bcftools",
+  "tool": "bcftools",
+  "tracked_files": {
+    "config-credential.yml": {
+      "sha256": "aec2f878ddaec7bd5e1619943006cf473cd6fc74ea3a51db2d8a5c9d820b0da9",
+      "size_bytes": 134
+    },
+    "config-governance.yml": {
+      "sha256": "32872b169364b600c0b2dbe08060c27147ccffa8254b4cbd654a7ed72e10a507",
+      "size_bytes": 621
+    },
+    "config-pipeline.yml": {
+      "sha256": "9317a364de9e1c72558a14f2594a904c666abd1e26bf1a1b60be9a644ee39e7e",
+      "size_bytes": 6930
+    },
+    "evidence.json": {
+      "sha256": "2ddf437f1fc02b1f3ed261b214010b85ac3dc5de52c04d5a7b5120b4426c84af",
+      "size_bytes": 9687
+    },
+    "slurm-accounting.json": {
+      "sha256": "4c6d9fae5500c010db6ceefb17a0698b41153469d986a8c3c4f92eb7327bc69d",
+      "size_bytes": 924
+    }
+  }
+}
