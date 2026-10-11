@@ -178,7 +178,7 @@ pub(in super::super) fn check_tool_container_coverage(
                 id
             }
         };
-        if support.get(&tool_id).is_none_or(|(disposition, _)| disposition != "retained") {
+        if support.get(&tool_id).is_none_or(|summary| !summary.is_redistributable_image()) {
             continue;
         }
         let runtimes = table_array_strings(&row, "runtimes").into_iter().collect::<BTreeSet<_>>();
@@ -257,13 +257,14 @@ pub(in super::super) fn check_toolkit_bundles(
             continue;
         }
         for tool in tools {
-            let Some((disposition, _)) = support.get(&tool) else {
+            let Some(summary) = support.get(&tool) else {
                 errors.push(format!("{bundle_id}: tool '{tool}' missing from container catalog"));
                 continue;
             };
-            if disposition != "retained" {
+            if !summary.is_redistributable_image() {
                 errors.push(format!(
-                    "{bundle_id}: tool '{tool}' has unsupported catalog disposition '{disposition}'"
+                    "{bundle_id}: tool '{tool}' uses artifact delivery '{}' and is not image-buildable",
+                    summary.artifact_delivery.as_str()
                 ));
                 continue;
             }
@@ -292,22 +293,22 @@ pub(in super::super) fn check_toolkit_bundles(
             match policy.as_str() {
                 "apptainer_only" if !has_apptainer => {
                     errors.push(format!(
-                        "{bundle_id}: retained tool '{tool}' requires apptainer container"
+                        "{bundle_id}: redistributable-image tool '{tool}' requires apptainer container"
                     ));
                 }
                 "docker_only" if !has_docker => {
                     errors.push(format!(
-                        "{bundle_id}: retained tool '{tool}' requires docker container"
+                        "{bundle_id}: redistributable-image tool '{tool}' requires docker container"
                     ));
                 }
                 "docker_apptainer" if !(has_apptainer && has_docker) => {
                     errors.push(format!(
-                        "{bundle_id}: retained tool '{tool}' requires both docker and apptainer containers"
+                        "{bundle_id}: redistributable-image tool '{tool}' requires both docker and apptainer containers"
                     ));
                 }
                 "none" if !(has_apptainer || has_docker) => {
                     errors.push(format!(
-                        "{bundle_id}: retained tool '{tool}' has no container definition"
+                        "{bundle_id}: redistributable-image tool '{tool}' has no container definition"
                     ));
                 }
                 _ => {}
@@ -466,15 +467,18 @@ pub(in super::super) fn check_tool_id_contract(
     let required_headers = [
         "# GENERATED FILE - DO NOT EDIT",
         "# Regenerate with: cargo run -p bijux-dna-dev -- containers run generate-tool-ids",
-        "# format: <tool_id><TAB><support_disposition>",
+        "# format: <tool_id><TAB><product_support><TAB><artifact_delivery><TAB><redistribution_permitted>",
     ];
-    let allowed_status =
-        ["retained", "unsupported", "retired", "excluded"].into_iter().collect::<BTreeSet<_>>();
+    let allowed_support = ["supported", "retired", "excluded"].into_iter().collect::<BTreeSet<_>>();
+    let allowed_delivery =
+        ["redistributable_image", "external_artifact", "private_site_build", "site_module"]
+            .into_iter()
+            .collect::<BTreeSet<_>>();
     let tool_re = Regex::new(r"^[a-z][a-z0-9_]*$")?;
     let docker_ids = docker_tool_ids(workspace)?;
     let apptainer_ids = apptainer_tool_ids(workspace);
     let mut seen = BTreeSet::new();
-    let mut status_by_id = BTreeMap::new();
+    let mut contract_by_id = BTreeMap::new();
     let mut errors = Vec::new();
     for (index, header) in required_headers.iter().enumerate() {
         if lines.get(index).map(std::string::String::as_str) != Some(*header) {
@@ -487,46 +491,72 @@ pub(in super::super) fn check_tool_id_contract(
             continue;
         }
         let parts = raw.split('\t').collect::<Vec<_>>();
-        if parts.len() != 2 {
-            errors.push(format!("line {}: expected exactly 2 TAB-separated fields", index + 1));
+        if parts.len() != 4 {
+            errors.push(format!("line {}: expected exactly 4 TAB-separated fields", index + 1));
             continue;
         }
         let tool_id = parts[0].trim().to_string();
-        let status = parts[1].trim().to_string();
+        let product_support = parts[1].trim().to_string();
+        let artifact_delivery = parts[2].trim().to_string();
+        let redistribution_permitted = parts[3].trim().to_string();
         if !tool_re.is_match(&tool_id) {
             errors.push(format!("line {}: invalid tool_id '{tool_id}'", index + 1));
         }
-        if !allowed_status.contains(status.as_str()) {
-            errors.push(format!("line {}: invalid status '{status}'", index + 1));
+        if !allowed_support.contains(product_support.as_str()) {
+            errors.push(format!("line {}: invalid product_support '{product_support}'", index + 1));
+        }
+        if !allowed_delivery.contains(artifact_delivery.as_str()) {
+            errors.push(format!(
+                "line {}: invalid artifact_delivery '{artifact_delivery}'",
+                index + 1
+            ));
+        }
+        if !matches!(redistribution_permitted.as_str(), "true" | "false") {
+            errors.push(format!(
+                "line {}: invalid redistribution_permitted '{redistribution_permitted}'",
+                index + 1
+            ));
+        }
+        if artifact_delivery == "redistributable_image" && redistribution_permitted != "true" {
+            errors.push(format!(
+                "line {}: redistributable_image must permit redistribution",
+                index + 1
+            ));
+        }
+        if artifact_delivery != "redistributable_image" && redistribution_permitted != "false" {
+            errors.push(format!(
+                "line {}: external or site delivery must prohibit redistribution",
+                index + 1
+            ));
         }
         if !seen.insert(tool_id.clone()) {
             errors.push(format!("line {}: duplicate tool_id '{tool_id}'", index + 1));
         }
-        status_by_id.insert(tool_id, status);
+        contract_by_id.insert(tool_id, (product_support, artifact_delivery));
     }
-    for (tool_id, status) in status_by_id {
+    for (tool_id, (product_support, artifact_delivery)) in contract_by_id {
         let ap_count = usize::from(apptainer_ids.contains(&tool_id));
         let docker_count = usize::from(docker_ids.contains(&tool_id));
-        if status == "retained" {
+        if artifact_delivery == "redistributable_image" {
             if ap_count != 1 {
                 errors.push(format!(
-                    "tool '{tool_id}' ({status}) must map to exactly one apptainer def (found {ap_count})"
+                    "tool '{tool_id}' ({product_support}, {artifact_delivery}) must map to exactly one apptainer def (found {ap_count})"
                 ));
             }
             if docker_count > 1 {
                 errors.push(format!(
-                    "tool '{tool_id}' ({status}) has ambiguous dockerfiles (found {docker_count})"
+                    "tool '{tool_id}' ({product_support}, {artifact_delivery}) has ambiguous dockerfiles (found {docker_count})"
                 ));
             }
         } else {
             if ap_count > 1 {
                 errors.push(format!(
-                    "tool '{tool_id}' ({status}) has ambiguous apptainer defs (found {ap_count})"
+                    "tool '{tool_id}' ({product_support}, {artifact_delivery}) has ambiguous apptainer defs (found {ap_count})"
                 ));
             }
             if docker_count > 1 {
                 errors.push(format!(
-                    "tool '{tool_id}' ({status}) has ambiguous dockerfiles (found {docker_count})"
+                    "tool '{tool_id}' ({product_support}, {artifact_delivery}) has ambiguous dockerfiles (found {docker_count})"
                 ));
             }
         }
@@ -1402,7 +1432,7 @@ pub(in super::super) fn check_vuln_hook(workspace: &Workspace) -> Result<Contain
         .collect::<BTreeMap<_, _>>();
     let retained = container_support_summary(workspace)?
         .into_iter()
-        .filter_map(|(tool, (disposition, _))| (disposition == "retained").then_some(tool))
+        .filter_map(|(tool, summary)| summary.is_redistributable_image().then_some(tool))
         .collect::<Vec<_>>();
     if rows.is_empty() && env_or_empty("CI").is_empty() {
         return success_line("vuln hook: SKIP (no local vuln scan items)");
@@ -1451,7 +1481,7 @@ pub(in super::super) fn check_sbom_artifacts(
         !env_or_empty("CI").is_empty() || env_or_default("REQUIRE_RETAINED_SBOM", "0") == "1";
     let retained = container_support_summary(workspace)?
         .into_iter()
-        .filter_map(|(tool, (disposition, _))| (disposition == "retained").then_some(tool))
+        .filter_map(|(tool, summary)| summary.is_redistributable_image().then_some(tool))
         .collect::<BTreeSet<_>>();
     let mut manifests = BTreeMap::<String, Vec<(PathBuf, serde_json::Value)>>::new();
     for path in fs::read_dir(&manifest_root)

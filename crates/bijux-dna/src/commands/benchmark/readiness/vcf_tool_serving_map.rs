@@ -383,6 +383,8 @@ fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
 mod tests {
     use std::path::PathBuf;
 
+    use crate::commands::benchmark::vcf_benchmark_bindings::collect_vcf_benchmark_binding_rows;
+
     use super::{
         render_vcf_tool_serving_map, DEFAULT_VCF_TOOL_SERVING_MAP_PATH,
         VCF_TOOL_SERVING_MAP_SCHEMA_VERSION,
@@ -404,10 +406,21 @@ mod tests {
 
         assert_eq!(report.schema_version, VCF_TOOL_SERVING_MAP_SCHEMA_VERSION);
         assert_eq!(report.domain, "vcf");
-        assert_eq!(report.row_count, 24);
+        assert_eq!(
+            report.row_count,
+            collect_vcf_benchmark_binding_rows().expect("collect VCF benchmark bindings").len()
+        );
         assert_eq!(report.stage_count, 20);
-        assert_eq!(report.tool_count, 9);
-        assert_eq!(report.benchmark_ready_row_count, 24);
+        assert_eq!(
+            report.tool_count,
+            report
+                .rows
+                .iter()
+                .map(|row| row.tool_id.as_str())
+                .collect::<std::collections::BTreeSet<_>>()
+                .len()
+        );
+        assert_eq!(report.benchmark_ready_row_count, report.row_count);
         assert_eq!(report.not_benchmark_ready_row_count, 0);
         assert!(report.rows.iter().any(|row| {
             row.tool_id == "plink2"

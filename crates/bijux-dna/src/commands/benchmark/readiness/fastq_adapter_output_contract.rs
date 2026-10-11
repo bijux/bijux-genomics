@@ -410,6 +410,7 @@ mod tests {
         render_fastq_adapter_output_contract, DEFAULT_FASTQ_ADAPTER_OUTPUT_CONTRACT_PATH,
         FASTQ_ADAPTER_OUTPUT_CONTRACT_SCHEMA_VERSION,
     };
+    use crate::commands::benchmark::repo_locking::{acquire_cwd_lock, RepoProcessLock};
 
     fn repo_root() -> PathBuf {
         PathBuf::from(env!("CARGO_MANIFEST_DIR"))
@@ -421,6 +422,9 @@ mod tests {
     #[test]
     fn fastq_adapter_output_contract_reports_governed_adapter_metadata() {
         let root = repo_root();
+        let _cwd_lock = acquire_cwd_lock();
+        let _repo_lock =
+            RepoProcessLock::acquire(&root, "benchmark-readiness-mutators").expect("repo lock");
         let report = render_fastq_adapter_output_contract(
             &root,
             PathBuf::from(DEFAULT_FASTQ_ADAPTER_OUTPUT_CONTRACT_PATH),
@@ -508,6 +512,9 @@ mod tests {
     #[test]
     fn fastq_adapter_output_contract_writes_governed_tsv_columns() {
         let root = repo_root();
+        let _cwd_lock = acquire_cwd_lock();
+        let _repo_lock =
+            RepoProcessLock::acquire(&root, "benchmark-readiness-mutators").expect("repo lock");
         let output_path = PathBuf::from(DEFAULT_FASTQ_ADAPTER_OUTPUT_CONTRACT_PATH);
         let report =
             render_fastq_adapter_output_contract(&root, output_path).expect("render contract");

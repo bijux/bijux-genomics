@@ -6,10 +6,11 @@ use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Mutex;
-use std::time::{Duration, Instant};
+use std::time::Duration;
 
 use anyhow::{bail, Context, Result};
 use serde::Serialize;
+use wait_timeout::ChildExt as _;
 
 use bijux_dna_containers::api::{
     admit_security_probe_baseline, clean_repository_head_commit, derive_apptainer_tool_contract,
@@ -559,18 +560,12 @@ fn run_bounded(
     let mut child = command
         .spawn()
         .with_context(|| format!("execute security probe {}", executable.display()))?;
-    let started = Instant::now();
-    loop {
-        if let Some(status) = child.try_wait()? {
-            return Ok(status.code().unwrap_or(128));
-        }
-        if started.elapsed() >= timeout {
-            child.kill()?;
-            let _status = child.wait()?;
-            bail!("security probe timed out after {} seconds", timeout.as_secs());
-        }
-        std::thread::sleep(Duration::from_millis(100));
+    if let Some(status) = child.wait_timeout(timeout)? {
+        return Ok(status.code().unwrap_or(128));
     }
+    child.kill()?;
+    let _status = child.wait()?;
+    bail!("security probe timed out after {} seconds", timeout.as_secs());
 }
 
 fn require_success(exit_code: i32, label: &str) -> Result<()> {
@@ -697,6 +692,7 @@ mod tests {
     use std::time::Duration;
 
     use anyhow::Result;
+    use bijux_dna_containers::api::{ContainerArtifactDelivery, ContainerProductSupport};
 
     use super::{
         baseline_identity_matches, ensure_immutable_json, inspect_structure, run_bounded,
@@ -731,10 +727,12 @@ mod tests {
     #[test]
     fn baseline_reuse_requires_exact_image_and_tool_contract_identity() -> Result<()> {
         let contract = ContainerToolContract {
-            schema_version: "bijux.container.tool_contract.v2".to_string(),
+            schema_version: "bijux.container.tool_contract.v3".to_string(),
             tool_id: "samtools".to_string(),
             version: "1.20".to_string(),
-            support_disposition: "retained".to_string(),
+            product_support: ContainerProductSupport::Supported,
+            artifact_delivery: ContainerArtifactDelivery::RedistributableImage,
+            redistribution_permitted: true,
             catalog_entry_sha256: "1".repeat(64),
             catalog_sha256: "2".repeat(64),
             recipe_path: "containers/tools/samtools/samtools".to_string(),

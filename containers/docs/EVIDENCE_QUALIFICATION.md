@@ -1,30 +1,35 @@
 # Container Evidence Qualification
 
-Bijux Genomics separates the decision to retain a tool from the evidence that
-qualifies a particular container release. This prevents a recipe, a successful
-build, or a version command from being presented as proof of scientific
-correctness.
+Bijux Genomics separates product support, artifact delivery, redistribution
+permission, artifact availability, and qualification evidence. This prevents a
+license restriction, recipe, successful build, or version command from being
+presented as a product-support or scientific verdict.
 
 Start with the [container operating guide](../README.md) for execution and the
 [container product page](../index.md) for current evidence.
 
-## Two independent decisions
+## Independent support and artifact dimensions
 
-- **Support disposition** is catalog policy. A tool is `retained`,
-  `unsupported`, `retired`, or `excluded` in the
-  [canonical catalog](../contracts/catalog.toml). A non-retained tool must
-  carry a reason and, where appropriate, a replacement.
+- **Product support** is catalog policy: `supported`, `retired`, or `excluded`.
+- **Artifact delivery** is `redistributable_image`, `external_artifact`,
+  `private_site_build`, or `site_module`.
+- **Redistribution permission** records whether Bijux may publish the artifact
+  bytes. It does not determine product support.
+- **Availability** is evidence-derived: `admitted`, `blocked_external_access`,
+  or `unavailable`.
 - **Qualification** is derived evidence. The
   [qualification report](../reports/qualification.md) recomputes every tool
   from the current catalog, admitted-image inventory, runtime campaign, and
   final run evidence. It cannot be edited in the catalog or assigned by a
   lifecycle command.
 
-`retained` means Bijux intends to maintain the integration. It does not mean
-that the integration is ready for scientific or release use. `unverified`
-means at least one required evidence dimension is absent. `qualified` is
-permitted only when every required dimension passes. Non-retained tools are
-not eligible for qualification.
+`supported` means Bijux maintains the integration. It does not mean that an
+artifact is presently available or qualified for scientific or release use.
+Supported external tools remain in the report. Without an admitted artifact
+they carry `unavailable` evidence; a governed access audit can refine that
+state to `blocked_external_access`. `unverified` means at least one required
+evidence dimension is absent. `qualified` is permitted only when every required
+dimension passes. Retired and excluded tools are not eligible for qualification.
 
 Every dimension decision records the exact rule version, measured values,
 thresholds, outcome, and reason. Passing decisions additionally carry the
@@ -41,7 +46,7 @@ closed.
 | Build | Admitted image hash, recipe hash, build environment, size, provenance, and SBOM. |
 | Runtime | Version, help, minimal positive, meaningful negative, network, and writable-path checks. |
 | Stage | A declared Bijux stage produces its governed output contract. |
-| Real data | Representative non-fixture input succeeds for every retained operational use. |
+| Real data | Representative non-fixture input succeeds for every supported operational use. |
 | Science | Predeclared domain metrics and acceptance thresholds pass. |
 | Benchmark | Comparable runtime, memory, CPU, I/O, input scale, and output-quality measurements exist. |
 | Security | Vulnerabilities, privileges, network behavior, writable paths, and secret exposure are assessed. |
@@ -74,8 +79,9 @@ not depend on one operator's absolute paths.
 Build and runtime evidence is current only when the inventory and runtime
 campaign both name the present catalog SHA-256, the runtime campaign names the
 published inventory's raw SHA-256, and both campaigns name the same repository
-commit. Each tool's catalog version, support disposition, Apptainer support,
-and selected image digest must also agree. Qualification recomputes the current
+commit. Each tool's product support, artifact delivery, redistribution policy,
+availability, catalog version, and selected artifact identity must also agree.
+Qualification recomputes the current
 definition digest and every repository-owned `%files` Git object instead of
 trusting the inventory's historical freshness label. A benchmark may name the
 canonical image or an admitted historical run dependency only when that exact
@@ -98,13 +104,35 @@ cargo run -q -p bijux-dna-dev -- containers run generate-qualification-report-sc
 cargo run -q -p bijux-dna-dev -- containers run check-qualification-report-schema
 ```
 
+A release decision is a separate immutable policy publication bound to the clean repository commit,
+catalog digest, complete qualification-source map, and every tool's non-release evidence set. The
+release dimension is excluded from its own digest, preventing self-referential identity. Compose
+and immediately re-admit a publication with:
+
+```console
+cargo run -q -p bijux-dna-dev -- containers run release-evidence -- compose containers/reports/qualification.json "$RELEASED_AT_UTC" "$RELEASE_PUBLICATION"
+cargo run -q -p bijux-dna-dev -- containers run release-evidence -- admit containers/reports/qualification.json "$RELEASE_PUBLICATION"
+cargo run -q -p bijux-dna-dev -- containers run release-gate -- containers/reports/qualification.json "$RELEASE_PUBLICATION"
+cargo run -q -p bijux-dna-dev -- containers run generate-evidence-qualification -- "$RELEASE_PUBLICATION" "$FINAL_QUALIFICATION_JSON" "$FINAL_QUALIFICATION_MD"
+cargo run -q -p bijux-dna-dev -- containers run release-evidence -- check-schema
+```
+
+Composition fails in a dirty checkout. Admission rejects source, tool coverage, support-dimension,
+evidence-set, or policy-verdict drift; a repository checklist cannot substitute for this decision.
+`RELEASE_PUBLICATION` must name the immutable governed output under `STUDY/containers/release/`.
+The release gate requires that explicit publication path and cannot pass from checklist aggregation
+alone. Final qualification reads that explicit publication, identifies it by content rather than
+its site path, and writes to operator-selected immutable outputs such as
+`STUDY/containers/release/`; it refuses to overwrite the historical repository report.
+
 The fast drift gate recomputes the same report without writing:
 
 ```console
 cargo run -q -p bijux-dna-dev -- containers run check-evidence-qualification
 ```
 
-The machine-readable [qualification report](../reports/qualification.json) is
-the release selector. The [release checklist](RELEASE_CHECKLIST.md) must not
-publish a retained-but-unverified tool or infer qualification from legacy
-registry maturity fields.
+The machine-readable [qualification report](../reports/qualification.json) is a release-policy
+input. Only an admitted release-evidence publication can select exact evidence for release. The
+[release checklist](RELEASE_CHECKLIST.md) remains an operator aid: it must not publish a
+supported-but-unverified tool or infer qualification from legacy support-disposition or registry
+maturity fields.

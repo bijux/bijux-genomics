@@ -35,7 +35,8 @@ fn run_cli_json(args: &[&str]) -> serde_json::Value {
 }
 
 #[test]
-fn bench_readiness_all_domain_output_contract_coverage_reports_complete_active_rows() {
+fn bench_readiness_all_domain_output_contract_coverage_reports_complete_active_rows(
+) -> anyhow::Result<()> {
     let payload = run_cli_json(&[
         "bench",
         "readiness",
@@ -51,7 +52,7 @@ fn bench_readiness_all_domain_output_contract_coverage_reports_complete_active_r
         payload.get("output_path").and_then(serde_json::Value::as_str),
         Some("artifacts/benchmark-smoke/readiness/all-domains/output-contract-coverage.tsv")
     );
-    let rows = support::json_array(&payload, "rows");
+    let rows = support::json_array(&payload, "rows")?;
     let row_count = u64::try_from(rows.len()).expect("row count fits u64");
     assert_eq!(support::json_u64(&payload, "row_count"), Some(row_count));
     assert_eq!(payload.get("result_id_count").and_then(serde_json::Value::as_u64), Some(row_count));
@@ -111,7 +112,7 @@ fn bench_readiness_all_domain_output_contract_coverage_reports_complete_active_r
     assert_eq!(payload.get("violation_count").and_then(serde_json::Value::as_u64), Some(0));
     assert_eq!(payload.get("ok").and_then(serde_json::Value::as_bool), Some(true));
 
-    let domain_counts = support::json_object(&payload, "domain_counts");
+    let domain_counts = support::json_object(&payload, "domain_counts")?;
     for domain in ["fastq", "bam", "vcf"] {
         let expected_count = u64::try_from(
             rows.iter()
@@ -159,7 +160,7 @@ fn bench_readiness_all_domain_output_contract_coverage_reports_complete_active_r
         Some(index_not_applicable_row_count)
     );
 
-    let coverage_status_counts = support::json_object(&payload, "coverage_status_counts");
+    let coverage_status_counts = support::json_object(&payload, "coverage_status_counts")?;
     assert_eq!(
         coverage_status_counts.get("covered").and_then(serde_json::Value::as_u64),
         Some(row_count)
@@ -226,4 +227,5 @@ fn bench_readiness_all_domain_output_contract_coverage_reports_complete_active_r
         violations.is_empty(),
         "all active rows must retain complete governed output contracts"
     );
+    Ok(())
 }

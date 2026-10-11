@@ -103,11 +103,7 @@ pub fn build_execution_spec(
         .iter()
         .find(|tool| tool.id == identity.tool_id)
         .context("container catalog does not contain the attempt tool")?;
-    if !tool.is_redistributable_image()
-        || !tool.apptainer_supported
-        || tool.runtime_network
-        || !tool.stage_ids.contains(&campaign.stage_id)
-    {
+    if !supports_offline_stage(tool, &campaign.stage_id) {
         bail!("container catalog does not retain the attempt tool for this offline stage");
     }
     if image.tool_id != identity.tool_id
@@ -224,4 +220,43 @@ fn required_source_lock<'a>(locks: &'a BTreeMap<String, String>, name: &str) -> 
 
 fn shell_command(command: &str) -> Vec<String> {
     vec!["sh".to_string(), "-c".to_string(), command.to_string()]
+}
+
+fn supports_offline_stage(
+    tool: &bijux_dna_containers::api::ContainerCatalogTool,
+    stage_id: &str,
+) -> bool {
+    tool.is_product_supported()
+        && ((tool.is_redistributable_image() && tool.apptainer_supported)
+            || tool.permits_external_artifact())
+        && !tool.runtime_network
+        && tool.stage_ids.iter().any(|candidate| candidate == stage_id)
+}
+
+#[cfg(test)]
+mod tests {
+    use bijux_dna_containers::api::ContainerCatalog;
+
+    use super::supports_offline_stage;
+
+    #[test]
+    fn licensed_external_tools_remain_executable_stage_candidates() -> anyhow::Result<()> {
+        let catalog: ContainerCatalog =
+            toml::from_str(include_str!("../../../../../containers/contracts/catalog.toml"))?;
+        for (tool_id, stage_id) in [
+            ("angsd", "bam.kinship"),
+            ("fastuniq", "fastq.remove_duplicates"),
+            ("impute5", "vcf.impute"),
+            ("ngsbriggs", "bam.damage"),
+        ] {
+            let tool = catalog
+                .tools
+                .iter()
+                .find(|tool| tool.id == tool_id)
+                .ok_or_else(|| anyhow::anyhow!("catalog omits {tool_id}"))?;
+            assert!(!tool.redistribution_permitted);
+            assert!(supports_offline_stage(tool, stage_id));
+        }
+        Ok(())
+    }
 }

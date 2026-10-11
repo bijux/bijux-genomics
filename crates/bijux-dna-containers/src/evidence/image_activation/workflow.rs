@@ -5,8 +5,9 @@ use std::path::{Component, Path, PathBuf};
 use anyhow::{bail, Context, Result};
 
 use super::super::{
-    load_image_inventory_publication, ContainerImageInventoryPublication, ContainerImageState,
-    ContainerSupportDisposition, EvidenceSourceIdentity, ImageCandidateDisposition,
+    load_image_inventory_publication, ContainerArtifactDelivery,
+    ContainerImageInventoryPublication, ContainerImageState, EvidenceSourceIdentity,
+    ImageCandidateDisposition,
 };
 use super::model::{
     ImageActivationPlan, ImageActivationPlanState, ImageActivationPublication,
@@ -224,16 +225,18 @@ fn collect_publications(
 ) -> Result<Vec<ImageActivationPublication>> {
     let mut publications = Vec::new();
     for tool in &inventory.tools {
-        if tool.support_disposition != ContainerSupportDisposition::Retained {
+        if tool.artifact_delivery != ContainerArtifactDelivery::RedistributableImage {
             continue;
         }
         if tool.state != ContainerImageState::Current {
-            bail!("retained tool {} is not current in activation inventory", tool.tool);
+            bail!(
+                "redistributable-image tool {} is not current in activation inventory",
+                tool.tool
+            );
         }
-        let selected = tool
-            .selected_image_sha256
-            .as_deref()
-            .with_context(|| format!("retained tool {} has no selected image", tool.tool))?;
+        let selected = tool.selected_image_sha256.as_deref().with_context(|| {
+            format!("redistributable-image tool {} has no selected image", tool.tool)
+        })?;
         let candidates = tool
             .candidates
             .iter()
@@ -243,7 +246,10 @@ fn collect_publications(
             })
             .collect::<Vec<_>>();
         let [candidate] = candidates.as_slice() else {
-            bail!("retained tool {} does not have exactly one selected canonical image", tool.tool);
+            bail!(
+                "redistributable-image tool {} does not have exactly one selected canonical image",
+                tool.tool
+            );
         };
         let source = resolve_image_locator(&candidate.path, study_root)?;
         let source = require_existing_file_under(&source, source_root, "activation source")?;

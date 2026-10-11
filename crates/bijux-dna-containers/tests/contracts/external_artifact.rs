@@ -7,7 +7,7 @@ use bijux_dna_containers::api::{
     admit_external_artifact, bind_external_artifact_command, load_external_artifact_admission,
     repository_head_commit, verify_external_artifact_admission, ContainerArtifactDelivery,
     ContainerProductSupport, ExternalArtifactAdmissionRequest, ExternalArtifactAdmissionStatus,
-    ExternalArtifactInput, ExternalArtifactKind,
+    ExternalArtifactInput, ExternalArtifactKind, EXTERNAL_ARTIFACT_ADMISSION_SCHEMA_V2,
 };
 use bijux_dna_core::ids::{StageId, ToolId};
 use bijux_dna_stage_contract::{
@@ -74,6 +74,48 @@ fn external_artifact_catalog_and_stage_bindings_have_exact_pairwise_closure() ->
             );
         }
     }
+    Ok(())
+}
+
+#[test]
+fn historical_v1_blocker_migrates_without_rewriting_immutable_evidence() -> Result<()> {
+    let temporary = tempfile::tempdir()?;
+    let path = temporary.path().join("angsd-v1.json");
+    std::fs::write(
+        &path,
+        serde_json::to_vec_pretty(&serde_json::json!({
+            "schema_version": "bijux.container.external_artifact_admission.v1",
+            "status": "blocked_external_access",
+            "recorded_at_utc": "2026-08-09T22:44:40Z",
+            "repository_commit": "e250bead897f2138424906cb22f034fee47e3804",
+            "catalog": {
+                "path": "containers/contracts/catalog.toml",
+                "sha256": "0".repeat(64),
+            },
+            "distributable_image_root": "/governed/active-images",
+            "tool_id": "angsd",
+            "version": "0.941",
+            "support_disposition": "unsupported",
+            "support_reason": "license terms prohibit repository redistribution",
+            "stage_ids": ["bam.kinship", "bam.sex", "vcf.call_gl", "vcf.call_pseudohaploid"],
+            "expected_binary": "angsd",
+            "version_command": "angsd --version",
+            "expected_version_regex": "v?[0-9]+[.][0-9]+([.-][0-9A-Za-z]+)?",
+            "redistribution_permitted": false,
+            "blocker_reason": "no operator-provided checksum-bound artifact was available",
+        }))?,
+    )?;
+
+    let migrated = load_external_artifact_admission(&path)?;
+    assert_eq!(migrated.schema_version, EXTERNAL_ARTIFACT_ADMISSION_SCHEMA_V2);
+    assert_eq!(migrated.availability, ExternalArtifactAdmissionStatus::BlockedExternalAccess);
+    assert_eq!(migrated.product_support, ContainerProductSupport::Supported);
+    assert_eq!(migrated.artifact_delivery, ContainerArtifactDelivery::ExternalArtifact);
+    assert!(!migrated.redistribution_permitted);
+    assert_eq!(
+        serde_json::from_slice::<serde_json::Value>(&std::fs::read(&path)?)?["schema_version"],
+        "bijux.container.external_artifact_admission.v1"
+    );
     Ok(())
 }
 

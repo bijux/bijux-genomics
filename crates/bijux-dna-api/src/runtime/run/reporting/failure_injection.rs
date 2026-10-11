@@ -11,7 +11,6 @@ use bijux_dna_core::prelude::{
 use bijux_dna_runtime::run_layout::RunExecutionModeV1;
 use std::collections::BTreeMap;
 use std::path::Path;
-use std::time::Duration;
 
 /// Execute a local failure-injection scenario and return captured failure evidence.
 ///
@@ -31,24 +30,10 @@ pub fn run_local_failure_injection(run_dir: &Path, scenario: &str) -> Result<ser
         run_dir: run_dir.join("run"),
         mode: RunExecutionModeV1::Enforced,
     };
-    let should_cancel = scenario == "cancel";
-    let cancel_target_dir = execute_request.run_dir.clone();
-    let cancel_thread = should_cancel.then(|| {
-        std::thread::spawn(move || {
-            let started = std::time::Instant::now();
-            while started.elapsed() < Duration::from_secs(5) {
-                if cancel_target_dir.join("run_control.json").exists() {
-                    let _ = super::cancel_run(&cancel_target_dir);
-                    break;
-                }
-                std::thread::sleep(Duration::from_millis(20));
-            }
-        })
-    });
-    let response = super::execute(&execute_request)?;
-    if let Some(thread) = cancel_thread {
-        let _ = thread.join();
-    }
+    let initial_control =
+        (scenario == "cancel").then_some(bijux_dna_runtime::run_layout::RunControlActionV1::Cancel);
+    let response =
+        super::execute_run::execute_with_initial_control(&execute_request, initial_control)?;
     summarize_failure_injection(scenario, &response)
 }
 
@@ -77,8 +62,8 @@ fn summarize_failure_injection(
 
 fn scenario_command(scenario: &str, output: &Path) -> Result<Vec<String>> {
     let script = match scenario {
-        "timeout" => format!("set -eu; sleep 2; printf '{{\"ok\":true}}' > '{}'", output.display()),
-        "cancel" => format!("set -eu; sleep 2; printf '{{\"ok\":true}}' > '{}'", output.display()),
+        "timeout" => "set -eu; tail -f /dev/null".to_string(),
+        "cancel" => format!("set -eu; printf '{{\"ok\":true}}' > '{}'", output.display()),
         "missing_output" => {
             "set -eu; printf 'no output declared artifact written' > /dev/null".to_string()
         }

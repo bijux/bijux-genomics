@@ -1,15 +1,6 @@
-use std::{
-    collections::BTreeMap,
-    path::{Path, PathBuf},
-};
+use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result};
-use serde::{Deserialize, Serialize};
-
-#[derive(Deserialize, Serialize)]
-struct ExternalToolAllowlist {
-    non_container_tools: BTreeMap<String, serde_json::Value>,
-}
 
 fn workspace_root() -> Result<PathBuf> {
     PathBuf::from(env!("CARGO_MANIFEST_DIR"))
@@ -25,12 +16,10 @@ fn tool_manifest(tool_id: &str) -> Result<serde_json::Value> {
     bijux_dna_infra::formats::parse_yaml(&raw).with_context(|| format!("parse {}", path.display()))
 }
 
-fn external_tool_allowlist() -> Result<serde_json::Value> {
-    let path = workspace_root()?.join("configs/domain/external_tools.toml");
+fn container_catalog() -> Result<toml::Value> {
+    let path = workspace_root()?.join("containers/contracts/catalog.toml");
     let raw = std::fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?;
-    let parsed: ExternalToolAllowlist = bijux_dna_infra::formats::parse_toml(&raw)
-        .with_context(|| format!("parse {}", path.display()))?;
-    serde_json::to_value(parsed).context("convert external tools TOML to JSON")
+    bijux_dna_infra::formats::parse_toml(&raw).with_context(|| format!("parse {}", path.display()))
 }
 
 fn remove_duplicates_fixture_tool_ids() -> Result<Vec<String>> {
@@ -163,21 +152,24 @@ fn remove_duplicates_tool_manifests_do_not_emit_legacy_governed_reports() -> Res
 
 #[test]
 fn governed_remove_duplicates_tools_preserve_their_packaging_modes() -> Result<()> {
-    let allowlist = external_tool_allowlist()?;
-    let external_tools = allowlist
-        .get("non_container_tools")
-        .and_then(serde_json::Value::as_object)
-        .context("non_container_tools missing")?;
-    assert!(
-        !external_tools.contains_key("clumpify"),
-        "containerized clumpify must not remain in configs/domain/external_tools.toml",
+    let catalog = container_catalog()?;
+    let tools =
+        catalog.get("tools").and_then(toml::Value::as_array).context("container catalog tools")?;
+    let tool = |tool_id: &str| {
+        tools
+            .iter()
+            .find(|row| row.get("id").and_then(toml::Value::as_str).is_some_and(|id| id == tool_id))
+    };
+    let clumpify = tool("clumpify").context("clumpify catalog row")?;
+    assert_eq!(
+        clumpify.get("artifact_delivery").and_then(toml::Value::as_str),
+        Some("redistributable_image")
     );
-    assert!(
-        external_tools
-            .get("fastuniq")
-            .and_then(serde_json::Value::as_str)
-            .is_some_and(|reason| reason.contains("unsupported container redistribution")),
-        "governed FastUniq execution must preserve its external-artifact packaging restriction",
+    let fastuniq = tool("fastuniq").context("fastuniq catalog row")?;
+    assert_eq!(fastuniq.get("product_support").and_then(toml::Value::as_str), Some("supported"));
+    assert_eq!(
+        fastuniq.get("artifact_delivery").and_then(toml::Value::as_str),
+        Some("external_artifact")
     );
     Ok(())
 }

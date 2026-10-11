@@ -20,7 +20,7 @@ ROOT = pathlib.Path(__file__).resolve().parents[2]
 CONFIGS = ROOT / "configs"
 REGISTRY_DIR = CONFIGS / "ci" / "registry"
 FLOATING = {"latest", "main", "master", ""}
-ALLOWED_TOOL_STATUS = {"production", "experimental", "planned", "unsupported"}
+ALLOWED_TOOL_STATUS = {"production", "supported", "experimental", "planned", "unsupported"}
 HEADER_KEYS = ("schema_version", "owner", "purpose", "authority", "stability", "last_updated")
 
 

@@ -8,7 +8,8 @@ The execution spec is the runner contract for turning already-planned tool inten
 - `mounts`: explicit host paths only; inputs are read-only and outputs are writable.
 - `stdout/stderr`: captured verbatim and stored per step.
 - `exit semantics`: exit code `0` is success; nonzero exits are recorded as failed tool execution.
-- `timeouts`: timeout failures are normalized into failed execution outcomes with captured context.
+- `timeouts`: graph step deadlines are propagated to every backend runner; a timed-out local child
+  is killed, reaped, and returned as an explicitly classified timeout failure.
 - `file permissions`: output writes follow the declared runtime root and backend permissions.
 - `external artifacts`: `external-artifact://<tool>` plans require an admission record; the runner
   reverifies its catalog, checksum, version evidence, stage allowlist, and command binding before
@@ -36,6 +37,11 @@ Invocation hash includes command, args, env, cwd, mounts, and image digest.
 - Missing accounting is represented as `accounting_pending`, not guessed as success or failure.
 - Collection is a read-only one-shot observation, and cancellation invokes `scancel` once for the exact job identity.
 - Scheduling cadence belongs to the caller; this crate contains no sleep, wait, or polling loop.
+- Container qualification status v2 names the next one-shot action `observe` and exposes
+  `earliest_observation_at_utc`; v1 `poll` spellings remain deserialize-only compatibility aliases.
+- Container qualification `advance` runs one bounded collect pass, admits every newly passing
+  independent unit, submits every ready unit, persists each effect through its owning operation,
+  and returns even when scheduler work remains active.
 - Qualification-cycle requests may name a governed external-artifact admission root. Missing or
   access-blocked records remain explicit blocked units with no submission action; an admitted
   record advances only to preparation of an artifact-bound qualification attempt.

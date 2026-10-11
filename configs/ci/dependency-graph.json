@@ -1,0 +1,1505 @@
+{
+  "schema": "bijux.ci.dependency_graph.v1",
+  "planner": {
+    "path_match": "longest_declared_path",
+    "dependency_propagation": "reverse_dependents",
+    "unmatched_change": "ci-full",
+    "empty_plan": "ci-full"
+  },
+  "periodic_full_validation": {
+    "gate": "ci-full",
+    "cadence": "nightly",
+    "validates_change_impact_planner": true
+  },
+  "gate_families": [
+    {
+      "id": "ci-full",
+      "command": "make _ci-slow"
+    },
+    {
+      "id": "workspace-policy",
+      "command": "cargo run -q -p bijux-dna-dev -- checks run all"
+    },
+    {
+      "id": "crate-tests",
+      "command_template": "cargo test -p {crate} --all-targets"
+    },
+    {
+      "id": "generated-configs",
+      "command": "cargo run -q -p bijux-dna-dev -- checks run check-generated-configs"
+    },
+    {
+      "id": "benchmark-contracts",
+      "command": "cargo test -p bijux-dna-bench --all-targets"
+    },
+    {
+      "id": "container-contracts",
+      "command": "cargo test -p bijux-dna-containers --all-targets"
+    },
+    {
+      "id": "report-freshness",
+      "command": "cargo run -q -p bijux-dna-dev -- checks run check-run-directory-layout"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "crate:bijux-dna",
+      "kind": "crate",
+      "paths": [
+        "crates/bijux-dna/"
+      ],
+      "gates": [
+        "crate-tests:bijux-dna"
+      ]
+    },
+    {
+      "id": "crate:bijux-dna-analyze",
+      "kind": "crate",
+      "paths": [
+        "crates/bijux-dna-analyze/"
+      ],
+      "gates": [
+        "crate-tests:bijux-dna-analyze"
+      ]
+    },
+    {
+      "id": "crate:bijux-dna-api",
+      "kind": "crate",
+      "paths": [
+        "crates/bijux-dna-api/"
+      ],
+      "gates": [
+        "crate-tests:bijux-dna-api"
+      ]
+    },
+    {
+      "id": "crate:bijux-dna-bench",
+      "kind": "crate",
+      "paths": [
+        "crates/bijux-dna-bench/"
+      ],
+      "gates": [
+        "crate-tests:bijux-dna-bench"
+      ]
+    },
+    {
+      "id": "crate:bijux-dna-bench-model",
+      "kind": "crate",
+      "paths": [
+        "crates/bijux-dna-bench-model/"
+      ],
+      "gates": [
+        "crate-tests:bijux-dna-bench-model"
+      ]
+    },
+    {
+      "id": "crate:bijux-dna-containers",
+      "kind": "crate",
+      "paths": [
+        "crates/bijux-dna-containers/"
+      ],
+      "gates": [
+        "crate-tests:bijux-dna-containers"
+      ]
+    },
+    {
+      "id": "crate:bijux-dna-containers-qa",
+      "kind": "crate",
+      "paths": [
+        "crates/bijux-dna-containers-qa/"
+      ],
+      "gates": [
+        "crate-tests:bijux-dna-containers-qa"
+      ]
+    },
+    {
+      "id": "crate:bijux-dna-core",
+      "kind": "crate",
+      "paths": [
+        "crates/bijux-dna-core/"
+      ],
+      "gates": [
+        "crate-tests:bijux-dna-core"
+      ]
+    },
+    {
+      "id": "crate:bijux-dna-db-ena",
+      "kind": "crate",
+      "paths": [
+        "crates/bijux-dna-db-ena/"
+      ],
+      "gates": [
+        "crate-tests:bijux-dna-db-ena"
+      ]
+    },
+    {
+      "id": "crate:bijux-dna-db-ref",
+      "kind": "crate",
+      "paths": [
+        "crates/bijux-dna-db-ref/"
+      ],
+      "gates": [
+        "crate-tests:bijux-dna-db-ref"
+      ]
+    },
+    {
+      "id": "crate:bijux-dna-dev",
+      "kind": "crate",
+      "paths": [
+        "crates/bijux-dna-dev/"
+      ],
+      "gates": [
+        "crate-tests:bijux-dna-dev"
+      ]
+    },
+    {
+      "id": "crate:bijux-dna-domain-bam",
+      "kind": "crate",
+      "paths": [
+        "crates/bijux-dna-domain-bam/"
+      ],
+      "gates": [
+        "crate-tests:bijux-dna-domain-bam"
+      ]
+    },
+    {
+      "id": "crate:bijux-dna-domain-compiler",
+      "kind": "crate",
+      "paths": [
+        "crates/bijux-dna-domain-compiler/"
+      ],
+      "gates": [
+        "crate-tests:bijux-dna-domain-compiler"
+      ]
+    },
+    {
+      "id": "crate:bijux-dna-domain-fastq",
+      "kind": "crate",
+      "paths": [
+        "crates/bijux-dna-domain-fastq/"
+      ],
+      "gates": [
+        "crate-tests:bijux-dna-domain-fastq"
+      ]
+    },
+    {
+      "id": "crate:bijux-dna-domain-vcf",
+      "kind": "crate",
+      "paths": [
+        "crates/bijux-dna-domain-vcf/"
+      ],
+      "gates": [
+        "crate-tests:bijux-dna-domain-vcf"
+      ]
+    },
+    {
+      "id": "crate:bijux-dna-engine",
+      "kind": "crate",
+      "paths": [
+        "crates/bijux-dna-engine/"
+      ],
+      "gates": [
+        "crate-tests:bijux-dna-engine"
+      ]
+    },
+    {
+      "id": "crate:bijux-dna-infra",
+      "kind": "crate",
+      "paths": [
+        "crates/bijux-dna-infra/"
+      ],
+      "gates": [
+        "crate-tests:bijux-dna-infra"
+      ]
+    },
+    {
+      "id": "crate:bijux-dna-pipelines",
+      "kind": "crate",
+      "paths": [
+        "crates/bijux-dna-pipelines/"
+      ],
+      "gates": [
+        "crate-tests:bijux-dna-pipelines"
+      ]
+    },
+    {
+      "id": "crate:bijux-dna-planner-bam",
+      "kind": "crate",
+      "paths": [
+        "crates/bijux-dna-planner-bam/"
+      ],
+      "gates": [
+        "crate-tests:bijux-dna-planner-bam"
+      ]
+    },
+    {
+      "id": "crate:bijux-dna-planner-fastq",
+      "kind": "crate",
+      "paths": [
+        "crates/bijux-dna-planner-fastq/"
+      ],
+      "gates": [
+        "crate-tests:bijux-dna-planner-fastq"
+      ]
+    },
+    {
+      "id": "crate:bijux-dna-planner-vcf",
+      "kind": "crate",
+      "paths": [
+        "crates/bijux-dna-planner-vcf/"
+      ],
+      "gates": [
+        "crate-tests:bijux-dna-planner-vcf"
+      ]
+    },
+    {
+      "id": "crate:bijux-dna-policies",
+      "kind": "crate",
+      "paths": [
+        "crates/bijux-dna-policies/"
+      ],
+      "gates": [
+        "crate-tests:bijux-dna-policies"
+      ]
+    },
+    {
+      "id": "crate:bijux-dna-runner",
+      "kind": "crate",
+      "paths": [
+        "crates/bijux-dna-runner/"
+      ],
+      "gates": [
+        "crate-tests:bijux-dna-runner"
+      ]
+    },
+    {
+      "id": "crate:bijux-dna-runtime",
+      "kind": "crate",
+      "paths": [
+        "crates/bijux-dna-runtime/"
+      ],
+      "gates": [
+        "crate-tests:bijux-dna-runtime"
+      ]
+    },
+    {
+      "id": "crate:bijux-dna-science",
+      "kind": "crate",
+      "paths": [
+        "crates/bijux-dna-science/"
+      ],
+      "gates": [
+        "crate-tests:bijux-dna-science"
+      ]
+    },
+    {
+      "id": "crate:bijux-dna-stage-contract",
+      "kind": "crate",
+      "paths": [
+        "crates/bijux-dna-stage-contract/"
+      ],
+      "gates": [
+        "crate-tests:bijux-dna-stage-contract"
+      ]
+    },
+    {
+      "id": "crate:bijux-dna-stages-bam",
+      "kind": "crate",
+      "paths": [
+        "crates/bijux-dna-stages-bam/"
+      ],
+      "gates": [
+        "crate-tests:bijux-dna-stages-bam"
+      ]
+    },
+    {
+      "id": "crate:bijux-dna-stages-fastq",
+      "kind": "crate",
+      "paths": [
+        "crates/bijux-dna-stages-fastq/"
+      ],
+      "gates": [
+        "crate-tests:bijux-dna-stages-fastq"
+      ]
+    },
+    {
+      "id": "crate:bijux-dna-stages-vcf",
+      "kind": "crate",
+      "paths": [
+        "crates/bijux-dna-stages-vcf/"
+      ],
+      "gates": [
+        "crate-tests:bijux-dna-stages-vcf"
+      ]
+    },
+    {
+      "id": "crate:bijux-dna-testkit",
+      "kind": "crate",
+      "paths": [
+        "crates/bijux-dna-testkit/"
+      ],
+      "gates": [
+        "crate-tests:bijux-dna-testkit"
+      ]
+    },
+    {
+      "id": "source:workspace-control",
+      "kind": "source",
+      "paths": [
+        "Cargo.toml",
+        "Cargo.lock",
+        "rust-toolchain.toml",
+        ".cargo/"
+      ],
+      "gates": [
+        "ci-full"
+      ]
+    },
+    {
+      "id": "source:automation",
+      "kind": "source",
+      "paths": [
+        ".github/",
+        "automation/",
+        "makes/"
+      ],
+      "gates": [
+        "workspace-policy"
+      ]
+    },
+    {
+      "id": "source:configs",
+      "kind": "source",
+      "paths": [
+        "configs/"
+      ],
+      "gates": [
+        "workspace-policy"
+      ]
+    },
+    {
+      "id": "source:benchmarks",
+      "kind": "source",
+      "paths": [
+        "benchmarks/"
+      ],
+      "gates": [
+        "benchmark-contracts"
+      ]
+    },
+    {
+      "id": "source:containers",
+      "kind": "source",
+      "paths": [
+        "containers/"
+      ],
+      "gates": [
+        "container-contracts"
+      ]
+    },
+    {
+      "id": "generated:benchmark-schemas",
+      "kind": "generated_asset",
+      "paths": [
+        "benchmarks/contracts/schemas/"
+      ],
+      "gates": [
+        "generated-configs",
+        "benchmark-contracts"
+      ]
+    },
+    {
+      "id": "generated:container-schemas",
+      "kind": "generated_asset",
+      "paths": [
+        "containers/contracts/schemas/"
+      ],
+      "gates": [
+        "generated-configs",
+        "container-contracts"
+      ]
+    },
+    {
+      "id": "contract:benchmarks",
+      "kind": "contract",
+      "paths": [
+        "benchmarks/contracts/"
+      ],
+      "gates": [
+        "benchmark-contracts"
+      ]
+    },
+    {
+      "id": "contract:containers",
+      "kind": "contract",
+      "paths": [
+        "containers/contracts/"
+      ],
+      "gates": [
+        "container-contracts"
+      ]
+    },
+    {
+      "id": "report:benchmarks",
+      "kind": "report",
+      "paths": [
+        "benchmarks/reports/"
+      ],
+      "gates": [
+        "report-freshness"
+      ]
+    },
+    {
+      "id": "report:containers",
+      "kind": "report",
+      "paths": [
+        "containers/reports/"
+      ],
+      "gates": [
+        "report-freshness"
+      ]
+    }
+  ],
+  "edges": [
+    {
+      "consumer": "crate:bijux-dna",
+      "dependency": "crate:bijux-dna-analyze",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna",
+      "dependency": "crate:bijux-dna-api",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna",
+      "dependency": "crate:bijux-dna-bench",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna",
+      "dependency": "crate:bijux-dna-bench-model",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna",
+      "dependency": "crate:bijux-dna-core",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna",
+      "dependency": "crate:bijux-dna-db-ena",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna",
+      "dependency": "crate:bijux-dna-db-ref",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna",
+      "dependency": "crate:bijux-dna-domain-bam",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna",
+      "dependency": "crate:bijux-dna-domain-compiler",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna",
+      "dependency": "crate:bijux-dna-domain-fastq",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna",
+      "dependency": "crate:bijux-dna-domain-vcf",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna",
+      "dependency": "crate:bijux-dna-infra",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna",
+      "dependency": "crate:bijux-dna-planner-bam",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna",
+      "dependency": "crate:bijux-dna-planner-fastq",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna",
+      "dependency": "crate:bijux-dna-planner-vcf",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna",
+      "dependency": "crate:bijux-dna-policies",
+      "kind": "dev"
+    },
+    {
+      "consumer": "crate:bijux-dna",
+      "dependency": "crate:bijux-dna-stage-contract",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna",
+      "dependency": "crate:bijux-dna-stages-fastq",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna",
+      "dependency": "crate:bijux-dna-stages-vcf",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna",
+      "dependency": "crate:bijux-dna-testkit",
+      "kind": "dev"
+    },
+    {
+      "consumer": "crate:bijux-dna-analyze",
+      "dependency": "crate:bijux-dna-core",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-analyze",
+      "dependency": "crate:bijux-dna-domain-bam",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-analyze",
+      "dependency": "crate:bijux-dna-domain-fastq",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-analyze",
+      "dependency": "crate:bijux-dna-infra",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-analyze",
+      "dependency": "crate:bijux-dna-pipelines",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-analyze",
+      "dependency": "crate:bijux-dna-planner-bam",
+      "kind": "dev"
+    },
+    {
+      "consumer": "crate:bijux-dna-analyze",
+      "dependency": "crate:bijux-dna-planner-fastq",
+      "kind": "dev"
+    },
+    {
+      "consumer": "crate:bijux-dna-analyze",
+      "dependency": "crate:bijux-dna-policies",
+      "kind": "dev"
+    },
+    {
+      "consumer": "crate:bijux-dna-analyze",
+      "dependency": "crate:bijux-dna-runtime",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-analyze",
+      "dependency": "crate:bijux-dna-testkit",
+      "kind": "dev"
+    },
+    {
+      "consumer": "crate:bijux-dna-api",
+      "dependency": "crate:bijux-dna-analyze",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-api",
+      "dependency": "crate:bijux-dna-bench",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-api",
+      "dependency": "crate:bijux-dna-containers",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-api",
+      "dependency": "crate:bijux-dna-containers-qa",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-api",
+      "dependency": "crate:bijux-dna-core",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-api",
+      "dependency": "crate:bijux-dna-domain-bam",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-api",
+      "dependency": "crate:bijux-dna-domain-fastq",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-api",
+      "dependency": "crate:bijux-dna-domain-vcf",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-api",
+      "dependency": "crate:bijux-dna-engine",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-api",
+      "dependency": "crate:bijux-dna-infra",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-api",
+      "dependency": "crate:bijux-dna-pipelines",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-api",
+      "dependency": "crate:bijux-dna-planner-bam",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-api",
+      "dependency": "crate:bijux-dna-planner-fastq",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-api",
+      "dependency": "crate:bijux-dna-policies",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-api",
+      "dependency": "crate:bijux-dna-runner",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-api",
+      "dependency": "crate:bijux-dna-runtime",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-api",
+      "dependency": "crate:bijux-dna-science",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-api",
+      "dependency": "crate:bijux-dna-stage-contract",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-api",
+      "dependency": "crate:bijux-dna-stages-vcf",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-api",
+      "dependency": "crate:bijux-dna-testkit",
+      "kind": "dev"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench",
+      "dependency": "crate:bijux-dna-analyze",
+      "kind": "dev"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench",
+      "dependency": "crate:bijux-dna-bench-model",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench",
+      "dependency": "crate:bijux-dna-containers",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench",
+      "dependency": "crate:bijux-dna-core",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench",
+      "dependency": "crate:bijux-dna-db-ena",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench",
+      "dependency": "crate:bijux-dna-domain-bam",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench",
+      "dependency": "crate:bijux-dna-domain-fastq",
+      "kind": "dev"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench",
+      "dependency": "crate:bijux-dna-infra",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench",
+      "dependency": "crate:bijux-dna-policies",
+      "kind": "dev"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench",
+      "dependency": "crate:bijux-dna-runtime",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench",
+      "dependency": "crate:bijux-dna-science",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench",
+      "dependency": "crate:bijux-dna-stage-contract",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench",
+      "dependency": "crate:bijux-dna-testkit",
+      "kind": "dev"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench-model",
+      "dependency": "crate:bijux-dna-core",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench-model",
+      "dependency": "crate:bijux-dna-domain-fastq",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench-model",
+      "dependency": "crate:bijux-dna-policies",
+      "kind": "dev"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench-model",
+      "dependency": "crate:bijux-dna-stage-contract",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench-model",
+      "dependency": "crate:bijux-dna-testkit",
+      "kind": "dev"
+    },
+    {
+      "consumer": "crate:bijux-dna-containers",
+      "dependency": "crate:bijux-dna-core",
+      "kind": "dev"
+    },
+    {
+      "consumer": "crate:bijux-dna-containers",
+      "dependency": "crate:bijux-dna-infra",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-containers",
+      "dependency": "crate:bijux-dna-policies",
+      "kind": "dev"
+    },
+    {
+      "consumer": "crate:bijux-dna-containers",
+      "dependency": "crate:bijux-dna-stage-contract",
+      "kind": "dev"
+    },
+    {
+      "consumer": "crate:bijux-dna-containers",
+      "dependency": "crate:bijux-dna-testkit",
+      "kind": "dev"
+    },
+    {
+      "consumer": "crate:bijux-dna-containers-qa",
+      "dependency": "crate:bijux-dna-analyze",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-containers-qa",
+      "dependency": "crate:bijux-dna-containers",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-containers-qa",
+      "dependency": "crate:bijux-dna-core",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-containers-qa",
+      "dependency": "crate:bijux-dna-domain-fastq",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-containers-qa",
+      "dependency": "crate:bijux-dna-infra",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-containers-qa",
+      "dependency": "crate:bijux-dna-policies",
+      "kind": "dev"
+    },
+    {
+      "consumer": "crate:bijux-dna-containers-qa",
+      "dependency": "crate:bijux-dna-runtime",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-containers-qa",
+      "dependency": "crate:bijux-dna-stage-contract",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-containers-qa",
+      "dependency": "crate:bijux-dna-testkit",
+      "kind": "dev"
+    },
+    {
+      "consumer": "crate:bijux-dna-core",
+      "dependency": "crate:bijux-dna-policies",
+      "kind": "dev"
+    },
+    {
+      "consumer": "crate:bijux-dna-db-ena",
+      "dependency": "crate:bijux-dna-policies",
+      "kind": "dev"
+    },
+    {
+      "consumer": "crate:bijux-dna-db-ref",
+      "dependency": "crate:bijux-dna-domain-vcf",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-db-ref",
+      "dependency": "crate:bijux-dna-policies",
+      "kind": "dev"
+    },
+    {
+      "consumer": "crate:bijux-dna-dev",
+      "dependency": "crate:bijux-dna-api",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-dev",
+      "dependency": "crate:bijux-dna-bench",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-dev",
+      "dependency": "crate:bijux-dna-containers",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-dev",
+      "dependency": "crate:bijux-dna-core",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-dev",
+      "dependency": "crate:bijux-dna-db-ena",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-dev",
+      "dependency": "crate:bijux-dna-db-ref",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-dev",
+      "dependency": "crate:bijux-dna-infra",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-dev",
+      "dependency": "crate:bijux-dna-policies",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-dev",
+      "dependency": "crate:bijux-dna-runner",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-dev",
+      "dependency": "crate:bijux-dna-runtime",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-dev",
+      "dependency": "crate:bijux-dna-stage-contract",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-domain-bam",
+      "dependency": "crate:bijux-dna-core",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-domain-bam",
+      "dependency": "crate:bijux-dna-infra",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-domain-bam",
+      "dependency": "crate:bijux-dna-policies",
+      "kind": "dev"
+    },
+    {
+      "consumer": "crate:bijux-dna-domain-bam",
+      "dependency": "crate:bijux-dna-testkit",
+      "kind": "dev"
+    },
+    {
+      "consumer": "crate:bijux-dna-domain-compiler",
+      "dependency": "crate:bijux-dna-domain-bam",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-domain-compiler",
+      "dependency": "crate:bijux-dna-domain-fastq",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-domain-compiler",
+      "dependency": "crate:bijux-dna-domain-vcf",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-domain-compiler",
+      "dependency": "crate:bijux-dna-infra",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-domain-compiler",
+      "dependency": "crate:bijux-dna-policies",
+      "kind": "dev"
+    },
+    {
+      "consumer": "crate:bijux-dna-domain-fastq",
+      "dependency": "crate:bijux-dna-core",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-domain-fastq",
+      "dependency": "crate:bijux-dna-infra",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-domain-fastq",
+      "dependency": "crate:bijux-dna-policies",
+      "kind": "dev"
+    },
+    {
+      "consumer": "crate:bijux-dna-domain-fastq",
+      "dependency": "crate:bijux-dna-testkit",
+      "kind": "dev"
+    },
+    {
+      "consumer": "crate:bijux-dna-domain-vcf",
+      "dependency": "crate:bijux-dna-core",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-domain-vcf",
+      "dependency": "crate:bijux-dna-policies",
+      "kind": "dev"
+    },
+    {
+      "consumer": "crate:bijux-dna-domain-vcf",
+      "dependency": "crate:bijux-dna-testkit",
+      "kind": "dev"
+    },
+    {
+      "consumer": "crate:bijux-dna-engine",
+      "dependency": "crate:bijux-dna-core",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-engine",
+      "dependency": "crate:bijux-dna-infra",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-engine",
+      "dependency": "crate:bijux-dna-policies",
+      "kind": "dev"
+    },
+    {
+      "consumer": "crate:bijux-dna-engine",
+      "dependency": "crate:bijux-dna-runtime",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-infra",
+      "dependency": "crate:bijux-dna-policies",
+      "kind": "dev"
+    },
+    {
+      "consumer": "crate:bijux-dna-infra",
+      "dependency": "crate:bijux-dna-testkit",
+      "kind": "dev"
+    },
+    {
+      "consumer": "crate:bijux-dna-pipelines",
+      "dependency": "crate:bijux-dna-core",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-pipelines",
+      "dependency": "crate:bijux-dna-domain-bam",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-pipelines",
+      "dependency": "crate:bijux-dna-domain-fastq",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-pipelines",
+      "dependency": "crate:bijux-dna-domain-vcf",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-pipelines",
+      "dependency": "crate:bijux-dna-policies",
+      "kind": "dev"
+    },
+    {
+      "consumer": "crate:bijux-dna-pipelines",
+      "dependency": "crate:bijux-dna-runtime",
+      "kind": "dev"
+    },
+    {
+      "consumer": "crate:bijux-dna-pipelines",
+      "dependency": "crate:bijux-dna-testkit",
+      "kind": "dev"
+    },
+    {
+      "consumer": "crate:bijux-dna-planner-bam",
+      "dependency": "crate:bijux-dna-core",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-planner-bam",
+      "dependency": "crate:bijux-dna-domain-bam",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-planner-bam",
+      "dependency": "crate:bijux-dna-infra",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-planner-bam",
+      "dependency": "crate:bijux-dna-pipelines",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-planner-bam",
+      "dependency": "crate:bijux-dna-policies",
+      "kind": "dev"
+    },
+    {
+      "consumer": "crate:bijux-dna-planner-bam",
+      "dependency": "crate:bijux-dna-stage-contract",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-planner-bam",
+      "dependency": "crate:bijux-dna-stages-bam",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-planner-bam",
+      "dependency": "crate:bijux-dna-testkit",
+      "kind": "dev"
+    },
+    {
+      "consumer": "crate:bijux-dna-planner-fastq",
+      "dependency": "crate:bijux-dna-core",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-planner-fastq",
+      "dependency": "crate:bijux-dna-domain-bam",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-planner-fastq",
+      "dependency": "crate:bijux-dna-domain-fastq",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-planner-fastq",
+      "dependency": "crate:bijux-dna-infra",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-planner-fastq",
+      "dependency": "crate:bijux-dna-pipelines",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-planner-fastq",
+      "dependency": "crate:bijux-dna-policies",
+      "kind": "dev"
+    },
+    {
+      "consumer": "crate:bijux-dna-planner-fastq",
+      "dependency": "crate:bijux-dna-stage-contract",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-planner-fastq",
+      "dependency": "crate:bijux-dna-stages-fastq",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-planner-fastq",
+      "dependency": "crate:bijux-dna-testkit",
+      "kind": "dev"
+    },
+    {
+      "consumer": "crate:bijux-dna-planner-vcf",
+      "dependency": "crate:bijux-dna-core",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-planner-vcf",
+      "dependency": "crate:bijux-dna-db-ref",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-planner-vcf",
+      "dependency": "crate:bijux-dna-domain-vcf",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-planner-vcf",
+      "dependency": "crate:bijux-dna-policies",
+      "kind": "dev"
+    },
+    {
+      "consumer": "crate:bijux-dna-planner-vcf",
+      "dependency": "crate:bijux-dna-stage-contract",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-policies",
+      "dependency": "crate:bijux-dna",
+      "kind": "dev"
+    },
+    {
+      "consumer": "crate:bijux-dna-policies",
+      "dependency": "crate:bijux-dna-core",
+      "kind": "dev"
+    },
+    {
+      "consumer": "crate:bijux-dna-policies",
+      "dependency": "crate:bijux-dna-pipelines",
+      "kind": "dev"
+    },
+    {
+      "consumer": "crate:bijux-dna-policies",
+      "dependency": "crate:bijux-dna-runtime",
+      "kind": "dev"
+    },
+    {
+      "consumer": "crate:bijux-dna-policies",
+      "dependency": "crate:bijux-dna-stage-contract",
+      "kind": "dev"
+    },
+    {
+      "consumer": "crate:bijux-dna-policies",
+      "dependency": "crate:bijux-dna-testkit",
+      "kind": "dev"
+    },
+    {
+      "consumer": "crate:bijux-dna-runner",
+      "dependency": "crate:bijux-dna-bench-model",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-runner",
+      "dependency": "crate:bijux-dna-containers",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-runner",
+      "dependency": "crate:bijux-dna-containers-qa",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-runner",
+      "dependency": "crate:bijux-dna-core",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-runner",
+      "dependency": "crate:bijux-dna-infra",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-runner",
+      "dependency": "crate:bijux-dna-policies",
+      "kind": "dev"
+    },
+    {
+      "consumer": "crate:bijux-dna-runner",
+      "dependency": "crate:bijux-dna-runtime",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-runner",
+      "dependency": "crate:bijux-dna-testkit",
+      "kind": "dev"
+    },
+    {
+      "consumer": "crate:bijux-dna-runtime",
+      "dependency": "crate:bijux-dna-bench-model",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-runtime",
+      "dependency": "crate:bijux-dna-containers",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-runtime",
+      "dependency": "crate:bijux-dna-core",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-runtime",
+      "dependency": "crate:bijux-dna-infra",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-runtime",
+      "dependency": "crate:bijux-dna-policies",
+      "kind": "dev"
+    },
+    {
+      "consumer": "crate:bijux-dna-runtime",
+      "dependency": "crate:bijux-dna-testkit",
+      "kind": "dev"
+    },
+    {
+      "consumer": "crate:bijux-dna-science",
+      "dependency": "crate:bijux-dna-bench-model",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-science",
+      "dependency": "crate:bijux-dna-core",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-science",
+      "dependency": "crate:bijux-dna-infra",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-science",
+      "dependency": "crate:bijux-dna-policies",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-stage-contract",
+      "dependency": "crate:bijux-dna-core",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-stage-contract",
+      "dependency": "crate:bijux-dna-policies",
+      "kind": "dev"
+    },
+    {
+      "consumer": "crate:bijux-dna-stage-contract",
+      "dependency": "crate:bijux-dna-testkit",
+      "kind": "dev"
+    },
+    {
+      "consumer": "crate:bijux-dna-stages-bam",
+      "dependency": "crate:bijux-dna-core",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-stages-bam",
+      "dependency": "crate:bijux-dna-domain-bam",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-stages-bam",
+      "dependency": "crate:bijux-dna-infra",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-stages-bam",
+      "dependency": "crate:bijux-dna-policies",
+      "kind": "dev"
+    },
+    {
+      "consumer": "crate:bijux-dna-stages-bam",
+      "dependency": "crate:bijux-dna-stage-contract",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-stages-bam",
+      "dependency": "crate:bijux-dna-testkit",
+      "kind": "dev"
+    },
+    {
+      "consumer": "crate:bijux-dna-stages-fastq",
+      "dependency": "crate:bijux-dna-core",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-stages-fastq",
+      "dependency": "crate:bijux-dna-domain-fastq",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-stages-fastq",
+      "dependency": "crate:bijux-dna-infra",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-stages-fastq",
+      "dependency": "crate:bijux-dna-policies",
+      "kind": "dev"
+    },
+    {
+      "consumer": "crate:bijux-dna-stages-fastq",
+      "dependency": "crate:bijux-dna-stage-contract",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-stages-fastq",
+      "dependency": "crate:bijux-dna-testkit",
+      "kind": "dev"
+    },
+    {
+      "consumer": "crate:bijux-dna-stages-vcf",
+      "dependency": "crate:bijux-dna-core",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-stages-vcf",
+      "dependency": "crate:bijux-dna-db-ref",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-stages-vcf",
+      "dependency": "crate:bijux-dna-domain-vcf",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-stages-vcf",
+      "dependency": "crate:bijux-dna-infra",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-stages-vcf",
+      "dependency": "crate:bijux-dna-policies",
+      "kind": "dev"
+    },
+    {
+      "consumer": "crate:bijux-dna-stages-vcf",
+      "dependency": "crate:bijux-dna-runner",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-stages-vcf",
+      "dependency": "crate:bijux-dna-testkit",
+      "kind": "dev"
+    },
+    {
+      "consumer": "crate:bijux-dna-testkit",
+      "dependency": "crate:bijux-dna-policies",
+      "kind": "dev"
+    },
+    {
+      "consumer": "generated:benchmark-schemas",
+      "dependency": "crate:bijux-dna-bench-model",
+      "kind": "generated_by"
+    },
+    {
+      "consumer": "generated:container-schemas",
+      "dependency": "crate:bijux-dna-containers",
+      "kind": "generated_by"
+    },
+    {
+      "consumer": "contract:benchmarks",
+      "dependency": "crate:bijux-dna-bench",
+      "kind": "owned_by"
+    },
+    {
+      "consumer": "contract:benchmarks",
+      "dependency": "crate:bijux-dna-bench-model",
+      "kind": "owned_by"
+    },
+    {
+      "consumer": "contract:containers",
+      "dependency": "crate:bijux-dna-containers",
+      "kind": "owned_by"
+    },
+    {
+      "consumer": "report:benchmarks",
+      "dependency": "contract:benchmarks",
+      "kind": "derived_from"
+    },
+    {
+      "consumer": "report:benchmarks",
+      "dependency": "crate:bijux-dna-bench",
+      "kind": "generated_by"
+    },
+    {
+      "consumer": "report:containers",
+      "dependency": "contract:containers",
+      "kind": "derived_from"
+    },
+    {
+      "consumer": "report:containers",
+      "dependency": "crate:bijux-dna-containers",
+      "kind": "generated_by"
+    },
+    {
+      "consumer": "source:automation",
+      "dependency": "crate:bijux-dna-dev",
+      "kind": "owned_by"
+    },
+    {
+      "consumer": "source:configs",
+      "dependency": "crate:bijux-dna-policies",
+      "kind": "validated_by"
+    },
+    {
+      "consumer": "source:benchmarks",
+      "dependency": "crate:bijux-dna-bench",
+      "kind": "owned_by"
+    },
+    {
+      "consumer": "source:containers",
+      "dependency": "crate:bijux-dna-containers",
+      "kind": "owned_by"
+    }
+  ]
+}

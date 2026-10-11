@@ -13,6 +13,8 @@ fn policy__boundaries__workspace__workspace_dependency_graph_contract() {
     let cli_allowed: BTreeSet<&str> = BTreeSet::from([
         "bijux-dna-api",
         "bijux-dna-analyze",
+        "bijux-dna-bench",
+        "bijux-dna-bench-model",
         "bijux-dna-core",
         "bijux-dna-db-ena",
         "bijux-dna-db-ref",
@@ -81,7 +83,10 @@ fn policy__boundaries__workspace__workspace_dependency_graph_contract() {
             continue;
         }
         bijux_dna_policies::policy_assert!(
-            dep == "bijux-dna-core" || dep == "bijux-dna-infra",
+            dep == "bijux-dna-bench-model"
+                || dep == "bijux-dna-containers"
+                || dep == "bijux-dna-core"
+                || dep == "bijux-dna-infra",
             "bijux-dna-runtime must not depend on workspace crate {dep}"
         );
     }
@@ -149,6 +154,7 @@ fn policy__boundaries__workspace__workspace_dependency_graph_contract() {
                 || dep == "bijux-dna-bench"
                 || dep == "bijux-dna-bench-model"
                 || dep == "bijux-dna-pipelines"
+                || dep == "bijux-dna-science"
                 || dep == "bijux-dna-domain-bam"
                 || dep == "bijux-dna-domain-fastq"
                 || dep == "bijux-dna-domain-vcf"
@@ -165,7 +171,9 @@ fn policy__boundaries__workspace__workspace_dependency_graph_contract() {
         }
         bijux_dna_policies::policy_assert!(
             dep == "bijux-dna-core"
+                || dep == "bijux-dna-bench-model"
                 || dep == "bijux-dna-containers"
+                || dep == "bijux-dna-containers-qa"
                 || dep == "bijux-dna-infra"
                 || dep == "bijux-dna-runtime",
             "bijux-dna-runner must not depend on workspace crate {dep}"
@@ -201,10 +209,14 @@ fn policy__boundaries__workspace__workspace_dependency_graph_contract() {
             dep == "bijux-dna-core"
                 || dep == "bijux-dna-analyze"
                 || dep == "bijux-dna-bench-model"
+                || dep == "bijux-dna-containers"
+                || dep == "bijux-dna-db-ena"
                 || dep == "bijux-dna-domain-bam"
                 || dep == "bijux-dna-domain-fastq"
                 || dep == "bijux-dna-infra"
-                || dep == "bijux-dna-runtime",
+                || dep == "bijux-dna-runtime"
+                || dep == "bijux-dna-science"
+                || dep == "bijux-dna-stage-contract",
             "bijux-dna-bench must not depend on workspace crate {dep}"
         );
     }
@@ -229,6 +241,7 @@ fn policy__boundaries__workspace__workspace_dependency_graph_contract() {
         "bijux-dna-infra",
         "bijux-dna-policies",
         "bijux-dna-runtime",
+        "bijux-dna-science",
         "bijux-dna-stages-vcf",
         "bijux-dna-testkit",
     ]);
@@ -303,7 +316,6 @@ fn policy__boundaries__workspace__workspace_dependency_graph_contract() {
         let runtime = deps_for("bijux-dna-runtime");
         for banned in [
             "bijux-dna-engine",
-            "bijux-dna-containers",
             "bijux-dna-stages-fastq",
             "bijux-dna-stages-bam",
             "bijux-dna-planner-fastq",

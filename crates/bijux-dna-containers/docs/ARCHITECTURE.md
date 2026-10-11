@@ -59,6 +59,8 @@ CLI, runner, planner, stage, and domain crates.
   `ReferenceBuildRequest`.
 - The crate must not own biological stage execution, planner semantics, user CLI routing, report
   rendering, or runner backends.
+- Container report-portfolio aggregation and paper-facing rendering belong to `bijux-dna-bench`;
+  persisted portfolio records and freshness admission belong to `bijux-dna-bench-model`.
 - Cross-runtime and scientific QA orchestration belongs in `bijux-dna-containers-qa`; canonical
   image identity and version/help admission remain environment evidence responsibilities.
 

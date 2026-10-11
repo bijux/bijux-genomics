@@ -1,0 +1,160 @@
+{
+  "schema_version": "bijux.benchmark.publication_registry.v1",
+  "summary": {
+    "current_product_count": 5,
+    "active_stage_report_count": 1,
+    "historical_stage_report_count": 10,
+    "quarantined_surface_count": 0,
+    "quarantined_file_count": 0
+  },
+  "current_products": [
+    {
+      "product_id": "permanent-run-registry",
+      "json_path": "benchmarks/contracts/run-registry.json",
+      "json_sha256": "dc1dc727b97147de1802b9bb5e616dfd4610117ab0d73504cdbbe3f21ab02630",
+      "markdown_path": "benchmarks/reports/run-registry.md",
+      "markdown_sha256": "92747b17caf35dca18812f29eb3f70951e9a9e145991108851b22836ef9d700a"
+    },
+    {
+      "product_id": "paper-run-index",
+      "json_path": "benchmarks/runs/RUN_INDEX.json",
+      "json_sha256": "2ad1be07c7a483c335859fc4cce64bbfec94f5db277a50d131f96835f7bdcc31",
+      "markdown_path": "benchmarks/runs/RUN_INDEX.md",
+      "markdown_sha256": "2e67175e321329027c0a2584b9918481b85b1386668b9592a679846a2c245d86"
+    },
+    {
+      "product_id": "stage-universe",
+      "json_path": "benchmarks/contracts/stage-universe.json",
+      "json_sha256": "528014cd0b12e76aed9e7364d8e6a27685c839199e464871743864e6f8e77025",
+      "markdown_path": "benchmarks/reports/stage-universe.md",
+      "markdown_sha256": "9e31324c862856e79a1104e35a09a544aaa9b7fad5ce8abd7b8040f76b68cd74"
+    },
+    {
+      "product_id": "stage-benchmark-coverage",
+      "json_path": "benchmarks/reports/stage-benchmark-coverage.json",
+      "json_sha256": "bcee2885fafc2059f10f0ec8bb17830e7384054babf5a33949f3c930bbaf5796",
+      "markdown_path": "benchmarks/reports/stage-benchmark-coverage.md",
+      "markdown_sha256": "e6ebf41f5b334e15e54fd8f7a06af3314b511715be9b1cbef0ab74f74c4e8bc9"
+    },
+    {
+      "product_id": "scientific-benchmark-readiness",
+      "json_path": "benchmarks/reports/scientific-benchmark-readiness.json",
+      "json_sha256": "c821c0bba3e73a6aea75c8f6717dea184483beb5dbd00e9213e42694fcff9a79",
+      "markdown_path": "benchmarks/reports/scientific-benchmark-readiness.md",
+      "markdown_sha256": "d7b99dc7fc6c04f05cd1d3471d671ef8c83952a0c839bf8dea067d224e0db3bb"
+    }
+  ],
+  "stage_reports": [
+    {
+      "run_id": "run-2001",
+      "stage_id": "bam.genotyping",
+      "source_commit": "9348a2417384417ab59052193b56717b69cb0309",
+      "disposition": "historical",
+      "json_path": "benchmarks/reports/historical/9348a2417384417ab59052193b56717b69cb0309/run-2001-bam-genotyping.json",
+      "json_sha256": "59edc439413e8ca508a25dce06ae20b7b34c6ce65e3ed0bfe9a766246fb5bba4",
+      "markdown_path": "benchmarks/reports/historical/9348a2417384417ab59052193b56717b69cb0309/run-2001-bam-genotyping.md",
+      "markdown_sha256": "f7e64db50b55ec573a2c1ae7184d9d9e9828ef34ed1c182481e4312bbbb954f5"
+    },
+    {
+      "run_id": "run-2002",
+      "stage_id": "bam.coverage",
+      "source_commit": "8282c2232d021ce60f07edb1ddc65d85598836ed",
+      "disposition": "active",
+      "json_path": "benchmarks/reports/run-2002-bam-coverage.json",
+      "json_sha256": "b299fd3d9559390e646fd32deaedc2432821baccfaf01a74d45aef2ca69b8c78",
+      "markdown_path": "benchmarks/reports/run-2002-bam-coverage.md",
+      "markdown_sha256": "7697a4cabdd44339caa59455013573961202c048ca4c64c456ad9ebae7d60968"
+    },
+    {
+      "run_id": "run-2002",
+      "stage_id": "bam.coverage",
+      "source_commit": "b087cd5ca6412b19a51cb43e7bf4eb098235b7db",
+      "disposition": "historical",
+      "json_path": "benchmarks/reports/historical/b087cd5ca6412b19a51cb43e7bf4eb098235b7db/run-2002-bam-coverage.json",
+      "json_sha256": "a59ad1bff530770a1a4abf7d447479dd5513df3a521bf41b5651cf446a938c72",
+      "markdown_path": "benchmarks/reports/historical/b087cd5ca6412b19a51cb43e7bf4eb098235b7db/run-2002-bam-coverage.md",
+      "markdown_sha256": "811797a398f7094ff458b6b1c103b0dc2acba1d9bd2d7869d59b09f9f05f24e9"
+    },
+    {
+      "run_id": "run-2003",
+      "stage_id": "bam.endogenous_content",
+      "source_commit": "27d88388e2fed29f96478c32ec5a5e8c73a7747d",
+      "disposition": "historical",
+      "json_path": "benchmarks/reports/historical/27d88388e2fed29f96478c32ec5a5e8c73a7747d/run-2003-bam-endogenous-content.json",
+      "json_sha256": "43366e348c66a4a3cd7e2cba47c09b88d5fdd60cf6c64b942861be9072a63e4d",
+      "markdown_path": "benchmarks/reports/historical/27d88388e2fed29f96478c32ec5a5e8c73a7747d/run-2003-bam-endogenous-content.md",
+      "markdown_sha256": "e305c848e67fc7dc922c050fcdea8c60ab9d288aa973557d836e34abd8efdc55"
+    },
+    {
+      "run_id": "run-2003",
+      "stage_id": "bam.endogenous_content",
+      "source_commit": "4e24ded282af44fb985dd869ba944684538814aa",
+      "disposition": "historical",
+      "json_path": "benchmarks/reports/historical/4e24ded282af44fb985dd869ba944684538814aa/run-2003-bam-endogenous-content.json",
+      "json_sha256": "c31588518bb15cc859df34399546dc8781369f9bc727bb3ea48d3d1431b8b5e2",
+      "markdown_path": "benchmarks/reports/historical/4e24ded282af44fb985dd869ba944684538814aa/run-2003-bam-endogenous-content.md",
+      "markdown_sha256": "b439148fae6d00b3ba2dcc712318a14e3f4f0098cb1ac6c963079b13547dd128"
+    },
+    {
+      "run_id": "run-2004",
+      "stage_id": "bam.mapping_summary",
+      "source_commit": "27d88388e2fed29f96478c32ec5a5e8c73a7747d",
+      "disposition": "historical",
+      "json_path": "benchmarks/reports/historical/27d88388e2fed29f96478c32ec5a5e8c73a7747d/run-2004-bam-mapping-summary.json",
+      "json_sha256": "f5f9561a0e36c3a1c1d89b3c61e26b5d9843cd5468e2fee96f70c0101361c79b",
+      "markdown_path": "benchmarks/reports/historical/27d88388e2fed29f96478c32ec5a5e8c73a7747d/run-2004-bam-mapping-summary.md",
+      "markdown_sha256": "65e5a3e85e80edcec9dd2830e5c45fc87457f69ccae09dad74cb66e68d627ca4"
+    },
+    {
+      "run_id": "run-2004",
+      "stage_id": "bam.mapping_summary",
+      "source_commit": "520efb95cf753b65fca168f0610b1b4138932031",
+      "disposition": "historical",
+      "json_path": "benchmarks/reports/historical/520efb95cf753b65fca168f0610b1b4138932031/run-2004-bam-mapping-summary.json",
+      "json_sha256": "7f214bc848df18413b22bd8f174a4a92e52e1d705b342a92342c0ba5750a56dd",
+      "markdown_path": "benchmarks/reports/historical/520efb95cf753b65fca168f0610b1b4138932031/run-2004-bam-mapping-summary.md",
+      "markdown_sha256": "62db0bf3c7229fc9a4e31255be555c491be286de527dfb4727133437992c9bdf"
+    },
+    {
+      "run_id": "run-2004",
+      "stage_id": "bam.mapping_summary",
+      "source_commit": "e1c74a4d910ae0fcf0855a0b776830188ea2eed4",
+      "disposition": "historical",
+      "json_path": "benchmarks/reports/historical/e1c74a4d910ae0fcf0855a0b776830188ea2eed4/run-2004-bam-mapping-summary.json",
+      "json_sha256": "17338e4920e6f8c51b1b681337774787521353fad7a284ff967c2c1c13c8ce16",
+      "markdown_path": "benchmarks/reports/historical/e1c74a4d910ae0fcf0855a0b776830188ea2eed4/run-2004-bam-mapping-summary.md",
+      "markdown_sha256": "65dbbbc2c4e7a36a6376f164c607b9ec721983edaae0a9d7a967ecd097e2a648"
+    },
+    {
+      "run_id": "run-2011",
+      "stage_id": "bam.duplication_metrics",
+      "source_commit": "27d88388e2fed29f96478c32ec5a5e8c73a7747d",
+      "disposition": "historical",
+      "json_path": "benchmarks/reports/historical/27d88388e2fed29f96478c32ec5a5e8c73a7747d/run-2011-bam-duplication-metrics.json",
+      "json_sha256": "33c8374d1ab8acde9320ba00bd094370a4e67a113ad0c45e0c7320c4fdecfdf7",
+      "markdown_path": "benchmarks/reports/historical/27d88388e2fed29f96478c32ec5a5e8c73a7747d/run-2011-bam-duplication-metrics.md",
+      "markdown_sha256": "44f0b229fc39734e22cf5ccb1f750f189ad81d0f9f875dc1c5bcabd3e975a31f"
+    },
+    {
+      "run_id": "run-2042",
+      "stage_id": "fastq.profile_read_lengths",
+      "source_commit": "520efb95cf753b65fca168f0610b1b4138932031",
+      "disposition": "historical",
+      "json_path": "benchmarks/reports/historical/520efb95cf753b65fca168f0610b1b4138932031/run-2042-fastq-profile-read-lengths.json",
+      "json_sha256": "5b87ec4797e2450911790fdbf9454549716c80a08c901d3eb3a80bab9da466b5",
+      "markdown_path": "benchmarks/reports/historical/520efb95cf753b65fca168f0610b1b4138932031/run-2042-fastq-profile-read-lengths.md",
+      "markdown_sha256": "da4e38ba5d14b4d04f11677152e1eada4f7a30823063e9b2f80072ca3ddcd368"
+    },
+    {
+      "run_id": "run-2043",
+      "stage_id": "fastq.profile_reads",
+      "source_commit": "520efb95cf753b65fca168f0610b1b4138932031",
+      "disposition": "historical",
+      "json_path": "benchmarks/reports/historical/520efb95cf753b65fca168f0610b1b4138932031/run-2043-fastq-profile-reads.json",
+      "json_sha256": "c6bdcc823f714d288be36f74dcab2ab09c14f2d16b97790c296fcf35f95ba45a",
+      "markdown_path": "benchmarks/reports/historical/520efb95cf753b65fca168f0610b1b4138932031/run-2043-fastq-profile-reads.md",
+      "markdown_sha256": "5799d1adbb7c9a73e3744da4ac752a0b089f1ce0827b1b7d5ac5acfeace2f2d9"
+    }
+  ],
+  "quarantined_surfaces": []
+}

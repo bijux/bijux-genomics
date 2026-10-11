@@ -16,6 +16,7 @@ const OUTPUT_MARKDOWN: &str = "artifacts/architecture/benchmark-container-owners
 const OUTPUT_SCHEMA: &str =
     "artifacts/architecture/benchmark-container-ownership-audit.schema.json";
 const OWNERSHIP_AUDIT_SOURCE: &str = "crates/bijux-dna-dev/src/commands/repo_checks/ownership.rs";
+const BENCH_PRODUCT_CONSUMERS: [&str; 3] = ["bijux-dna", "bijux-dna-api", "bijux-dna-dev"];
 const ROOT_PYTHON_AUTHORITIES: [&str; 8] = [
     "benchmarks/corpus_acquisition.py",
     "benchmarks/corpus_catalog_enrichment.py",
@@ -215,7 +216,8 @@ fn validate_audit(audit: &OwnershipAudit) -> Result<()> {
         .get("bijux-dna-bench")
         .context("missing bijux-dna-bench dependency inventory")?;
     ensure!(
-        bench_consumers == &["bijux-dna-api".to_string(), "bijux-dna-dev".to_string()],
+        bench_consumers
+            == &BENCH_PRODUCT_CONSUMERS.into_iter().map(str::to_string).collect::<Vec<_>>(),
         "unexpected bijux-dna-bench consumers: {bench_consumers:?}"
     );
     Ok(())
@@ -724,9 +726,9 @@ mod tests {
     use regex::Regex;
 
     use super::{
-        classify, legacy_authorities, legacy_callers, render_markdown, validate_audit,
-        AuditSummary, OwnershipAudit, OwnershipRow, SourceFile, OWNERSHIP_AUDIT_SOURCE,
-        ROOT_PYTHON_AUTHORITIES,
+        classify, dependency_consumers, legacy_authorities, legacy_callers, render_markdown,
+        validate_audit, AuditSummary, OwnershipAudit, OwnershipRow, SourceFile,
+        BENCH_PRODUCT_CONSUMERS, OWNERSHIP_AUDIT_SOURCE, ROOT_PYTHON_AUTHORITIES,
     };
 
     #[test]
@@ -742,6 +744,16 @@ mod tests {
         assert_eq!(row.classification, "canonical crate logic");
         assert_eq!(row.target_owner, "bijux-dna-bench");
         Ok(())
+    }
+
+    #[test]
+    fn benchmark_product_consumers_are_the_declared_thin_surfaces() {
+        let files = BENCH_PRODUCT_CONSUMERS.map(|consumer| SourceFile {
+            path: format!("crates/{consumer}/Cargo.toml"),
+            content: "bijux-dna-bench.workspace = true".to_string(),
+        });
+        let consumers = dependency_consumers(&files);
+        assert_eq!(consumers["bijux-dna-bench"], BENCH_PRODUCT_CONSUMERS);
     }
 
     #[test]

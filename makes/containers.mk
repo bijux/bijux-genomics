@@ -107,8 +107,9 @@ _containers-doctor: ## Run container doctor status report (missing images, lock 
 	@cargo run -q -p bijux-dna-dev -- containers run container-doctor
 
 _containers-release-gate: ## Run mandatory container release gate checks.
+	@test -n "$(RELEASE_PUBLICATION)" || { echo "RELEASE_PUBLICATION must name an immutable governed release publication" >&2; exit 2; }
 	@cargo run -q -p bijux-dna-dev -- containers run check-evidence-qualification
-	@cargo run -q -p bijux-dna-dev -- containers run release-gate
+	@cargo run -q -p bijux-dna-dev -- containers run release-gate -- containers/reports/qualification.json "$(RELEASE_PUBLICATION)"
 
 _ghcr-apptainer-publish-matrix: ## Generate GHCR Apptainer publish matrix.
 	@cargo run -q -p bijux-dna-dev -- containers run generate-ghcr-apptainer-publish-matrix -- $(GHCR_PUBLISH_ARGS)

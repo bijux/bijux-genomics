@@ -13,16 +13,18 @@ use super::{
     QualificationRunCitationRecord, QualificationRunDefinition, QualificationRunIdAudit,
     QualificationRunIdAuditRow, QualificationRunIdTombstone, QualificationRunNamespacePolicy,
     QualificationRunRegistry, QualificationRunRegistryEntry, QualificationRunRegistrySummary,
-    QualificationRunState, CONTAINER_RUN_INDEX_SCHEMA_V1, QUALIFICATION_RUN_ID_AUDIT_SCHEMA_V2,
-    QUALIFICATION_RUN_REGISTRY_SCHEMA_V2,
+    QualificationRunState, CONTAINER_RUN_INDEX_SCHEMA_V1, QUALIFICATION_RUN_ID_AUDIT_SCHEMA_V3,
+    QUALIFICATION_RUN_REGISTRY_SCHEMA_V3,
 };
 use crate::evidence::tool_contract::{
-    load_container_catalog, ContainerCatalog, ContainerCatalogTool,
+    load_container_catalog, ContainerArtifactDelivery, ContainerCatalog, ContainerCatalogTool,
+    ContainerProductSupport,
 };
 
-const EXPECTED_RETAINED_TOOLS: usize = 85;
-const EXPECTED_UNSUPPORTED_TOOLS: usize = 4;
+const EXPECTED_REDISTRIBUTABLE_TOOLS: usize = 85;
+const EXPECTED_EXTERNAL_ARTIFACT_TOOLS: usize = 4;
 const QUALIFICATION_RUN_REGISTRY_SCHEMA_V1: &str = "bijux.container.qualification_run_registry.v1";
+const QUALIFICATION_RUN_REGISTRY_SCHEMA_V2: &str = "bijux.container.qualification_run_registry.v2";
 const RUN_NAMESPACE_MINIMUM: u64 = 1000;
 const RUN_NAMESPACE_MAXIMUM: u64 = 1999;
 const RUN_NAMESPACE_NEXT: u64 = 1159;
@@ -105,7 +107,31 @@ struct LegacyQualificationRunRegistry {
     schema_version: String,
     catalog_sha256: String,
     historical_max_run_number: u64,
-    tools: Vec<QualificationRunRegistryEntry>,
+    tools: Vec<LegacyQualificationRunRegistryEntry>,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct LegacyQualificationRunRegistryV2 {
+    schema_version: String,
+    catalog_sha256: String,
+    historical_max_run_number: u64,
+    namespace: QualificationRunNamespacePolicy,
+    summary: QualificationRunRegistrySummary,
+    tools: Vec<LegacyQualificationRunRegistryEntry>,
+    runs: Vec<QualificationRunDefinition>,
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct LegacyQualificationRunRegistryEntry {
+    tool_id: String,
+    support_disposition: String,
+    run_id: Option<String>,
+    stage_id: String,
+    input_role: String,
+    resource_profile: Option<String>,
+    acceptance_adapter: Option<String>,
 }
 
 /// Derive one stable run identity per runnable tool without reusing historical IDs.
@@ -156,7 +182,7 @@ pub fn derive_qualification_run_registry(
         bail!("current qualification runs contain a tool absent from the catalog");
     }
 
-    let derived_rows =
+    let mut derived_rows =
         derive_registry_rows(&catalog, &current, &reservations, historical_max_run_number)?;
     let runs = derive_run_definitions(
         &catalog,
@@ -166,7 +192,7 @@ pub fn derive_qualification_run_registry(
         &tombstones,
     )?;
     let registry = QualificationRunRegistry {
-        schema_version: QUALIFICATION_RUN_REGISTRY_SCHEMA_V2.to_string(),
+        schema_version: QUALIFICATION_RUN_REGISTRY_SCHEMA_V3.to_string(),
         catalog_sha256: catalog_sha256.clone(),
         historical_max_run_number: existing
             .as_ref()
@@ -179,13 +205,34 @@ pub fn derive_qualification_run_registry(
             identity_policy: "existing_ids_immutable_attempts_reuse_run_id".to_string(),
         },
         summary: summarize_run_definitions(&runs),
-        tools: derived_rows.entries,
+        tools: std::mem::take(&mut derived_rows.entries),
         runs,
     };
     validate_qualification_run_registry(&catalog, &registry)?;
     validate_historical_ownership(&registry, &historical, &tombstones)?;
+    let audit = derive_registry_audit(
+        request,
+        catalog_sha256,
+        &historical,
+        tombstones,
+        historical_max_run_number,
+        &registry,
+        derived_rows,
+    )?;
+    Ok(DerivedQualificationRunRegistry { registry, audit })
+}
+
+fn derive_registry_audit(
+    request: &QualificationRegistryDerivationRequest,
+    catalog_sha256: String,
+    historical: &BTreeMap<u64, String>,
+    tombstones: Vec<QualificationRunIdTombstone>,
+    historical_max_run_number: u64,
+    registry: &QualificationRunRegistry,
+    derived_rows: DerivedRegistryRows,
+) -> Result<QualificationRunIdAudit> {
     let audit = QualificationRunIdAudit {
-        schema_version: QUALIFICATION_RUN_ID_AUDIT_SCHEMA_V2.to_string(),
+        schema_version: QUALIFICATION_RUN_ID_AUDIT_SCHEMA_V3.to_string(),
         catalog_sha256,
         current_run_root: portable_repository_path(
             &request.current_runs_root,
@@ -202,8 +249,19 @@ pub fn derive_qualification_run_registry(
         observed_historical_run_count: historical.len(),
         reserved_run_count: tombstones.len(),
         historical_max_run_number,
-        retained_mapping_count: disposition_count(&registry, "retained"),
-        unsupported_tool_count: disposition_count(&registry, "unsupported"),
+        supported_tool_count: registry
+            .tools
+            .iter()
+            .filter(|row| row.product_support == ContainerProductSupport::Supported)
+            .count(),
+        redistributable_tool_count: delivery_count(
+            registry,
+            ContainerArtifactDelivery::RedistributableImage,
+        ),
+        external_artifact_tool_count: delivery_count(
+            registry,
+            ContainerArtifactDelivery::ExternalArtifact,
+        ),
         allocated_mapping_count: derived_rows.allocated_mapping_count,
         historical_identities: historical
             .iter()
@@ -215,11 +273,14 @@ pub fn derive_qualification_run_registry(
         reserved_run_ids: tombstones,
         rows: derived_rows.audit_rows,
     };
-    Ok(DerivedQualificationRunRegistry { registry, audit })
+    Ok(audit)
 }
 
-fn disposition_count(registry: &QualificationRunRegistry, disposition: &str) -> usize {
-    registry.tools.iter().filter(|row| row.support_disposition == disposition).count()
+fn delivery_count(
+    registry: &QualificationRunRegistry,
+    delivery: ContainerArtifactDelivery,
+) -> usize {
+    registry.tools.iter().filter(|row| row.artifact_delivery == delivery).count()
 }
 
 fn derive_registry_rows(
@@ -239,17 +300,18 @@ fn derive_registry_rows(
         .max(highest_reserved)
         .checked_add(1)
         .context("qualification run number overflow")?;
-    let missing_retained = catalog
+    let missing_redistributable = catalog
         .tools
         .iter()
-        .filter(|tool| tool.legacy_support_disposition() == "retained")
+        .filter(|tool| tool.is_redistributable_image())
         .filter(|tool| {
             !current.contains_key(&tool.id) && !reservations.contains_key(tool.id.as_str())
         })
         .count();
     let mut next_external_run_number = next_run_number
         .checked_add(
-            u64::try_from(missing_retained).context("retained allocation count exceeds u64")?,
+            u64::try_from(missing_redistributable)
+                .context("redistributable allocation count exceeds u64")?,
         )
         .context("qualification external-artifact run number overflow")?;
     let mut derived = DerivedRegistryRows {
@@ -258,8 +320,7 @@ fn derive_registry_rows(
         allocated_mapping_count: 0,
     };
     for tool in &catalog.tools {
-        let runnable =
-            tool.legacy_support_disposition() == "retained" || tool.external_artifact_supported;
+        let runnable = tool.is_product_supported();
         let (run_id, identity_source, resource_profile, acceptance_adapter) = if runnable {
             let (run_id, source) = if let Some(number) = current.get(&tool.id) {
                 let current_run_id = format!("run-{number}");
@@ -300,15 +361,13 @@ fn derive_registry_rows(
                 Some(acceptance_adapter_for(&tool.real_test_stage).to_string()),
             )
         } else {
-            bail!(
-                "tool {} has unsupported disposition {}",
-                tool.id,
-                tool.legacy_support_disposition()
-            );
+            bail!("tool {} is not product-supported", tool.id);
         };
         derived.audit_rows.push(QualificationRunIdAuditRow {
             tool_id: tool.id.clone(),
-            support_disposition: tool.legacy_support_disposition().to_string(),
+            product_support: tool.product_support,
+            artifact_delivery: tool.artifact_delivery,
+            redistribution_permitted: tool.redistribution_permitted,
             run_id: run_id.clone(),
             identity_source: identity_source.to_string(),
             stage_id: tool.real_test_stage.clone(),
@@ -316,7 +375,9 @@ fn derive_registry_rows(
         });
         derived.entries.push(QualificationRunRegistryEntry {
             tool_id: tool.id.clone(),
-            support_disposition: tool.legacy_support_disposition().to_string(),
+            product_support: tool.product_support,
+            artifact_delivery: tool.artifact_delivery,
+            redistribution_permitted: tool.redistribution_permitted,
             run_id,
             stage_id: tool.real_test_stage.clone(),
             input_role: tool.real_test_input_kind.clone(),
@@ -360,28 +421,28 @@ fn derive_run_definitions(
     for (number, tool_id) in &tool_by_run {
         per_tool_runs.entry(tool_id).or_default().push(*number);
     }
-    let retained_tools = catalog
+    let redistributable_tools = catalog
         .tools
         .iter()
-        .filter(|tool| tool.legacy_support_disposition() == "retained")
+        .filter(|tool| tool.is_redistributable_image())
         .map(|tool| tool.id.clone())
         .collect::<Vec<_>>();
     let mut runs = Vec::with_capacity(RUN_NAMESPACE_SIZE);
     runs.push(QualificationRunDefinition {
         run_id: "run-1000".to_string(),
-        title: "Retained container image campaign".to_string(),
-        purpose: "Build and admit the exact retained container image roster from the governed catalog and recipes.".to_string(),
+        title: "Redistributable container image campaign".to_string(),
+        purpose: "Build and admit the exact repository-distributable image roster from the governed catalog and recipes.".to_string(),
         owner: "bijux-dna-containers".to_string(),
         operation: "image_build_campaign".to_string(),
         stage_id: "container.image_campaign".to_string(),
-        tool_ids: retained_tools,
+        tool_ids: redistributable_tools,
         contract_ids: vec![
             "container-catalog".to_string(),
             "container-tool-contract".to_string(),
             "container-image-identity".to_string(),
         ],
         corpus_roles: vec!["recipe_source".to_string(), "tool_source".to_string()],
-        acceptance_policy: "all retained tools publish digest-bound build and image identity evidence".to_string(),
+        acceptance_policy: "all redistributable-image tools publish digest-bound build and image identity evidence".to_string(),
         state: QualificationRunState::Campaign,
         state_reason: None,
         supersedes_run_ids: Vec::new(),
@@ -409,8 +470,7 @@ fn derive_run_definitions(
             .iter()
             .position(|candidate| *candidate == number)
             .context("tool run chain does not contain run")?;
-        let is_current = tool.legacy_support_disposition() == "retained"
-            && current.get(tool_id) == Some(&number);
+        let is_current = tool.is_redistributable_image() && current.get(tool_id) == Some(&number);
         let is_allocated = allocated_runs.contains(&number)
             || (tool.external_artifact_supported && current.get(tool_id) == Some(&number));
         let state = if is_current {
@@ -606,8 +666,9 @@ fn load_qualification_run_registry_for_derivation(
     let registry = if schema_version == QUALIFICATION_RUN_REGISTRY_SCHEMA_V1 {
         let legacy: LegacyQualificationRunRegistry =
             value.try_into().context("parse legacy qualification registry")?;
+        let _ = legacy.schema_version;
         QualificationRunRegistry {
-            schema_version: legacy.schema_version,
+            schema_version: QUALIFICATION_RUN_REGISTRY_SCHEMA_V3.to_string(),
             catalog_sha256: legacy.catalog_sha256,
             historical_max_run_number: legacy.historical_max_run_number,
             namespace: QualificationRunNamespacePolicy {
@@ -625,8 +686,21 @@ fn load_qualification_run_registry_for_derivation(
                 historical_count: 0,
                 reserved_count: 0,
             },
-            tools: legacy.tools,
+            tools: migrate_legacy_entries(legacy.tools)?,
             runs: Vec::new(),
+        }
+    } else if schema_version == QUALIFICATION_RUN_REGISTRY_SCHEMA_V2 {
+        let legacy: LegacyQualificationRunRegistryV2 =
+            value.try_into().context("parse v2 qualification registry")?;
+        let _ = legacy.schema_version;
+        QualificationRunRegistry {
+            schema_version: QUALIFICATION_RUN_REGISTRY_SCHEMA_V3.to_string(),
+            catalog_sha256: legacy.catalog_sha256,
+            historical_max_run_number: legacy.historical_max_run_number,
+            namespace: legacy.namespace,
+            summary: legacy.summary,
+            tools: migrate_legacy_entries(legacy.tools)?,
+            runs: legacy.runs,
         }
     } else {
         value.try_into().context("parse qualification registry")?
@@ -635,11 +709,35 @@ fn load_qualification_run_registry_for_derivation(
     Ok(registry)
 }
 
+fn migrate_legacy_entries(
+    entries: Vec<LegacyQualificationRunRegistryEntry>,
+) -> Result<Vec<QualificationRunRegistryEntry>> {
+    entries
+        .into_iter()
+        .map(|entry| {
+            let (artifact_delivery, redistribution_permitted) =
+                match entry.support_disposition.as_str() {
+                    "retained" => (ContainerArtifactDelivery::RedistributableImage, true),
+                    "unsupported" => (ContainerArtifactDelivery::ExternalArtifact, false),
+                    other => bail!("unexpected legacy support disposition {other}"),
+                };
+            Ok(QualificationRunRegistryEntry {
+                tool_id: entry.tool_id,
+                product_support: ContainerProductSupport::Supported,
+                artifact_delivery,
+                redistribution_permitted,
+                run_id: entry.run_id,
+                stage_id: entry.stage_id,
+                input_role: entry.input_role,
+                resource_profile: entry.resource_profile,
+                acceptance_adapter: entry.acceptance_adapter,
+            })
+        })
+        .collect()
+}
+
 fn validate_qualification_run_reservations(registry: &QualificationRunRegistry) -> Result<()> {
-    if !matches!(
-        registry.schema_version.as_str(),
-        QUALIFICATION_RUN_REGISTRY_SCHEMA_V1 | QUALIFICATION_RUN_REGISTRY_SCHEMA_V2
-    ) {
+    if registry.schema_version != QUALIFICATION_RUN_REGISTRY_SCHEMA_V3 {
         bail!("unsupported qualification-run registry schema");
     }
     validate_sha256(&registry.catalog_sha256, "qualification registry catalog")?;
@@ -649,37 +747,22 @@ fn validate_qualification_run_reservations(registry: &QualificationRunRegistry) 
         if row.tool_id.is_empty() || !tool_ids.insert(row.tool_id.as_str()) {
             bail!("qualification registry contains an empty or duplicate tool ID");
         }
-        match row.support_disposition.as_str() {
-            "retained" => {
-                let run_id = row.run_id.as_deref().context("retained tool has no run ID")?;
-                parse_run_id(run_id)?;
-                if !run_ids.insert(run_id) {
-                    bail!("qualification registry contains duplicate run ID {run_id}");
-                }
-                if row.resource_profile.is_none() || row.acceptance_adapter.is_none() {
-                    bail!("retained tool {} has incomplete execution fields", row.tool_id);
-                }
-            }
-            "unsupported" => {
-                let fields = [
-                    row.run_id.is_some(),
-                    row.resource_profile.is_some(),
-                    row.acceptance_adapter.is_some(),
-                ];
-                if fields.iter().any(|present| *present) && fields.iter().any(|present| !*present) {
-                    bail!(
-                        "external-artifact tool {} has incomplete qualification fields",
-                        row.tool_id
-                    );
-                }
-            }
-            other => bail!("unexpected support disposition {other}"),
+        if row.product_support != ContainerProductSupport::Supported {
+            bail!("qualification registry contains a non-supported tool {}", row.tool_id);
+        }
+        let run_id = row.run_id.as_deref().context("supported tool has no run ID")?;
+        parse_run_id(run_id)?;
+        if !run_ids.insert(run_id) {
+            bail!("qualification registry contains duplicate run ID {run_id}");
+        }
+        if row.resource_profile.is_none() || row.acceptance_adapter.is_none() {
+            bail!("supported tool {} has incomplete execution fields", row.tool_id);
         }
     }
     Ok(())
 }
 
-/// Validate catalog closure, support disposition, run identity, stage, and adapter contracts.
+/// Validate catalog closure, product support, delivery, run identity, stage, and adapters.
 ///
 /// # Errors
 /// Returns an error when the registry is incomplete, ambiguous, stale, or malformed.
@@ -687,22 +770,25 @@ pub fn validate_qualification_run_registry(
     catalog: &ContainerCatalog,
     registry: &QualificationRunRegistry,
 ) -> Result<()> {
-    if registry.schema_version != QUALIFICATION_RUN_REGISTRY_SCHEMA_V2 {
+    if registry.schema_version != QUALIFICATION_RUN_REGISTRY_SCHEMA_V3 {
         bail!("unsupported qualification-run registry schema");
     }
     validate_sha256(&registry.catalog_sha256, "qualification registry catalog")?;
-    if catalog.tools.len() != EXPECTED_RETAINED_TOOLS + EXPECTED_UNSUPPORTED_TOOLS
+    if catalog.tools.len() != EXPECTED_REDISTRIBUTABLE_TOOLS + EXPECTED_EXTERNAL_ARTIFACT_TOOLS
         || registry.tools.len() != catalog.tools.len()
     {
         bail!("qualification registry does not close over the 89-tool catalog");
     }
     let mut tool_ids = BTreeSet::new();
     let mut run_ids = BTreeSet::new();
-    let mut retained = 0;
-    let mut unsupported = 0;
+    let mut supported = 0;
+    let mut redistributable = 0;
+    let mut external_artifact = 0;
     for (tool, row) in catalog.tools.iter().zip(&registry.tools) {
         if row.tool_id != tool.id
-            || row.support_disposition != tool.legacy_support_disposition()
+            || row.product_support != tool.product_support
+            || row.artifact_delivery != tool.artifact_delivery
+            || row.redistribution_permitted != tool.redistribution_permitted
             || row.stage_id != tool.real_test_stage
             || row.input_role != tool.real_test_input_kind
         {
@@ -711,55 +797,37 @@ pub fn validate_qualification_run_registry(
         if !tool_ids.insert(row.tool_id.as_str()) {
             bail!("qualification registry contains duplicate tool {}", row.tool_id);
         }
-        match tool.legacy_support_disposition() {
-            "retained" => {
-                retained += 1;
-                let run_id = row.run_id.as_deref().context("retained tool has no run ID")?;
-                parse_run_id(run_id)?;
-                if !run_ids.insert(run_id) {
-                    bail!("qualification registry contains duplicate run ID {run_id}");
-                }
-                if row.resource_profile.as_deref() != Some(resource_profile_for(&row.input_role)?)
-                    || row.acceptance_adapter.as_deref()
-                        != Some(acceptance_adapter_for(&row.stage_id))
-                {
-                    bail!(
-                        "qualification registry adapters differ for retained tool {}",
-                        row.tool_id
-                    );
-                }
-            }
-            "unsupported" => {
-                unsupported += 1;
+        if !tool.is_product_supported() {
+            bail!("qualification registry tool {} is not product-supported", row.tool_id);
+        }
+        supported += 1;
+        match tool.artifact_delivery {
+            ContainerArtifactDelivery::RedistributableImage => redistributable += 1,
+            ContainerArtifactDelivery::ExternalArtifact => {
+                external_artifact += 1;
                 if !tool.external_artifact_supported {
-                    bail!(
-                        "unsupported tool {} lacks governed external-artifact support",
-                        row.tool_id
-                    );
-                }
-                let run_id = row
-                    .run_id
-                    .as_deref()
-                    .context("external-artifact tool has no permanent run ID")?;
-                parse_run_id(run_id)?;
-                if !run_ids.insert(run_id) {
-                    bail!("qualification registry contains duplicate run ID {run_id}");
-                }
-                if row.resource_profile.as_deref() != Some(resource_profile_for(&row.input_role)?)
-                    || row.acceptance_adapter.as_deref()
-                        != Some(acceptance_adapter_for(&row.stage_id))
-                {
-                    bail!(
-                        "qualification registry adapters differ for external-artifact tool {}",
-                        row.tool_id
-                    );
+                    bail!("external-artifact tool {} lacks governed admission", row.tool_id);
                 }
             }
-            other => bail!("unexpected support disposition {other}"),
+            ContainerArtifactDelivery::PrivateSiteBuild | ContainerArtifactDelivery::SiteModule => {
+            }
+        }
+        let run_id = row.run_id.as_deref().context("supported tool has no permanent run ID")?;
+        parse_run_id(run_id)?;
+        if !run_ids.insert(run_id) {
+            bail!("qualification registry contains duplicate run ID {run_id}");
+        }
+        if row.resource_profile.as_deref() != Some(resource_profile_for(&row.input_role)?)
+            || row.acceptance_adapter.as_deref() != Some(acceptance_adapter_for(&row.stage_id))
+        {
+            bail!("qualification registry adapters differ for tool {}", row.tool_id);
         }
     }
-    if retained != EXPECTED_RETAINED_TOOLS || unsupported != EXPECTED_UNSUPPORTED_TOOLS {
-        bail!("qualification registry must contain 85 retained and four unsupported tools");
+    if supported != catalog.tools.len()
+        || redistributable != EXPECTED_REDISTRIBUTABLE_TOOLS
+        || external_artifact != EXPECTED_EXTERNAL_ARTIFACT_TOOLS
+    {
+        bail!("qualification registry must contain 89 supported tools across governed delivery classes");
     }
     validate_run_definitions(catalog, registry)?;
     Ok(())
@@ -782,10 +850,10 @@ fn validate_run_definitions(
         bail!("qualification run definitions do not close the allocated namespace");
     }
     let catalog_tools = catalog.tools.iter().map(|tool| tool.id.as_str()).collect::<BTreeSet<_>>();
-    let retained_tools = catalog
+    let redistributable_tools = catalog
         .tools
         .iter()
-        .filter(|tool| tool.legacy_support_disposition() == "retained")
+        .filter(|tool| tool.is_redistributable_image())
         .map(|tool| tool.id.as_str())
         .collect::<BTreeSet<_>>();
     let mut citation_keys = BTreeSet::new();
@@ -797,7 +865,7 @@ fn validate_run_definitions(
             expected_number,
             run,
             &catalog_tools,
-            &retained_tools,
+            &redistributable_tools,
             &mut citation_keys,
             &mut run_tools,
         )?;
@@ -834,7 +902,7 @@ fn validate_run_definition_row(
     expected_number: u64,
     run: &QualificationRunDefinition,
     catalog_tools: &BTreeSet<&str>,
-    retained_tools: &BTreeSet<&str>,
+    redistributable_tools: &BTreeSet<&str>,
     citation_keys: &mut BTreeSet<String>,
     run_tools: &mut BTreeMap<String, String>,
 ) -> Result<()> {
@@ -862,7 +930,7 @@ fn validate_run_definition_row(
             if expected_number != 1000
                 || run.owner != "bijux-dna-containers"
                 || run.tool_ids.iter().map(String::as_str).collect::<BTreeSet<_>>()
-                    != *retained_tools
+                    != *redistributable_tools
                 || run.state_reason.is_some()
             {
                 bail!("container image campaign run definition is malformed");

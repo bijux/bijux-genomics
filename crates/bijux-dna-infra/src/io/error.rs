@@ -6,7 +6,7 @@ pub enum IoErrorKind {
     Missing,
     Transient,
     Corruption,
-    LockTimeout,
+    LockContended,
     Other,
 }
 

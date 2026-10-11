@@ -2,13 +2,14 @@ use std::fmt::Write as _;
 use std::io::Read;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
-use std::time::{Duration, Instant, SystemTime};
+use std::time::{Duration, SystemTime};
 
 use anyhow::{anyhow, Context, Result};
 use regex::Regex;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
+use wait_timeout::ChildExt as _;
 
 pub const APPTAINER_SMOKE_MANIFEST_SCHEMA_V5: &str = "bijux.apptainer.smoke_manifest.v5";
 pub const APPTAINER_SMOKE_MANIFEST_SCHEMA_V6: &str = "bijux.apptainer.smoke_manifest.v6";
@@ -240,17 +241,14 @@ fn run_apptainer_probe(
     let stderr = child.stderr.take().context("capture Apptainer probe stderr")?;
     let stdout_reader = std::thread::spawn(move || read_stream(stdout));
     let stderr_reader = std::thread::spawn(move || read_stream(stderr));
-    let deadline = Instant::now() + request.timeout;
-    let (exit_code, timed_out) = loop {
-        if let Some(status) = child.try_wait().context("observe Apptainer probe")? {
-            break (status.code(), false);
-        }
-        if Instant::now() >= deadline {
-            child.kill().context("terminate timed-out Apptainer probe")?;
-            let status = child.wait().context("reap timed-out Apptainer probe")?;
-            break (status.code(), true);
-        }
-        std::thread::sleep(Duration::from_millis(20));
+    let (exit_code, timed_out) = if let Some(status) =
+        child.wait_timeout(request.timeout).context("wait for Apptainer probe")?
+    {
+        (status.code(), false)
+    } else {
+        child.kill().context("terminate timed-out Apptainer probe")?;
+        let status = child.wait().context("reap timed-out Apptainer probe")?;
+        (status.code(), true)
     };
     let stdout =
         stdout_reader.join().map_err(|_| anyhow!("Apptainer stdout reader panicked"))??;

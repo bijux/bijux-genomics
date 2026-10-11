@@ -1,0 +1,381 @@
+{
+  "$defs": {
+    "BuildContextIdentity": {
+      "properties": {
+        "git_object": {
+          "type": "string"
+        },
+        "path": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "path",
+        "git_object"
+      ],
+      "type": "object"
+    },
+    "BuildEvidenceStatus": {
+      "enum": [
+        "built",
+        "passed",
+        "failed"
+      ],
+      "type": "string"
+    },
+    "ContainerArtifactDelivery": {
+      "enum": [
+        "redistributable_image",
+        "external_artifact",
+        "private_site_build",
+        "site_module"
+      ],
+      "type": "string"
+    },
+    "ContainerBuildEvidence": {
+      "properties": {
+        "build_context": {
+          "items": {
+            "$ref": "#/$defs/BuildContextIdentity"
+          },
+          "type": [
+            "array",
+            "null"
+          ]
+        },
+        "definition_sha256": {
+          "type": "string"
+        },
+        "repository_commit": {
+          "type": "string"
+        },
+        "status": {
+          "$ref": "#/$defs/BuildEvidenceStatus"
+        }
+      },
+      "required": [
+        "status",
+        "definition_sha256",
+        "repository_commit"
+      ],
+      "type": "object"
+    },
+    "ContainerDetachedImage": {
+      "properties": {
+        "catalog_tool": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "disposition": {
+          "$ref": "#/$defs/DetachedImageDisposition"
+        },
+        "path": {
+          "type": "string"
+        },
+        "real_run_references": {
+          "default": 0,
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "run_references": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "sha256": {
+          "type": "string"
+        },
+        "size_bytes": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "disposition",
+        "path",
+        "sha256",
+        "size_bytes"
+      ],
+      "type": "object"
+    },
+    "ContainerImageCandidate": {
+      "properties": {
+        "admitted": {
+          "type": "boolean"
+        },
+        "build_evidence": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/ContainerBuildEvidence"
+          },
+          "type": "array"
+        },
+        "current_recipe": {
+          "type": "boolean"
+        },
+        "disposition": {
+          "$ref": "#/$defs/ImageCandidateDisposition"
+        },
+        "path": {
+          "type": "string"
+        },
+        "real_run_references": {
+          "default": 0,
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "run_references": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "sha256": {
+          "type": "string"
+        },
+        "size_bytes": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "admitted",
+        "current_recipe",
+        "disposition",
+        "path",
+        "sha256",
+        "size_bytes"
+      ],
+      "type": "object"
+    },
+    "ContainerImageInventorySummary": {
+      "properties": {
+        "historical_dependency_count": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "staged_image_count": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "states": {
+          "additionalProperties": {
+            "format": "uint64",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "type": "object"
+        },
+        "tool_count": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "unknown_image_count": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "unreferenced_obsolete_count": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "tool_count",
+        "states",
+        "historical_dependency_count",
+        "unknown_image_count",
+        "staged_image_count",
+        "unreferenced_obsolete_count"
+      ],
+      "type": "object"
+    },
+    "ContainerImageInventoryTool": {
+      "properties": {
+        "apptainer_supported": {
+          "type": "boolean"
+        },
+        "artifact_delivery": {
+          "$ref": "#/$defs/ContainerArtifactDelivery"
+        },
+        "candidates": {
+          "default": [],
+          "items": {
+            "$ref": "#/$defs/ContainerImageCandidate"
+          },
+          "type": "array"
+        },
+        "product_support": {
+          "$ref": "#/$defs/ContainerProductSupport"
+        },
+        "redistribution_permitted": {
+          "type": "boolean"
+        },
+        "selected_image_sha256": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "state": {
+          "$ref": "#/$defs/ContainerImageState"
+        },
+        "tool": {
+          "type": "string"
+        },
+        "version": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "tool",
+        "version",
+        "product_support",
+        "artifact_delivery",
+        "redistribution_permitted",
+        "apptainer_supported",
+        "state"
+      ],
+      "type": "object"
+    },
+    "ContainerImageState": {
+      "enum": [
+        "current",
+        "historical",
+        "ambiguous",
+        "missing",
+        "not_applicable"
+      ],
+      "type": "string"
+    },
+    "ContainerProductSupport": {
+      "enum": [
+        "supported",
+        "retired",
+        "excluded"
+      ],
+      "type": "string"
+    },
+    "ContainerStagedImage": {
+      "properties": {
+        "path": {
+          "type": "string"
+        },
+        "sha256": {
+          "type": "string"
+        },
+        "size_bytes": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "path",
+        "sha256",
+        "size_bytes"
+      ],
+      "type": "object"
+    },
+    "DetachedImageDisposition": {
+      "enum": [
+        "historical_run_dependency",
+        "unreferenced_obsolete",
+        "unclassified"
+      ],
+      "type": "string"
+    },
+    "ImageCandidateDisposition": {
+      "enum": [
+        "canonical",
+        "historical_run_dependency",
+        "unreferenced_obsolete"
+      ],
+      "type": "string"
+    },
+    "ImageInventoryPublicationIdentity": {
+      "properties": {
+        "raw_schema_version": {
+          "type": "string"
+        },
+        "raw_sha256": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "raw_schema_version",
+        "raw_sha256"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "properties": {
+    "catalog_sha256": {
+      "type": "string"
+    },
+    "historical_images": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/ContainerDetachedImage"
+      },
+      "type": "array"
+    },
+    "publication": {
+      "$ref": "#/$defs/ImageInventoryPublicationIdentity"
+    },
+    "repository_commit": {
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "bijux.container.image_inventory_publication.v3",
+      "type": "string"
+    },
+    "staged_images": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/ContainerStagedImage"
+      },
+      "type": "array"
+    },
+    "summary": {
+      "$ref": "#/$defs/ContainerImageInventorySummary"
+    },
+    "tools": {
+      "items": {
+        "$ref": "#/$defs/ContainerImageInventoryTool"
+      },
+      "type": "array"
+    },
+    "unknown_images": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/ContainerDetachedImage"
+      },
+      "type": "array"
+    }
+  },
+  "required": [
+    "schema_version",
+    "catalog_sha256",
+    "repository_commit",
+    "publication",
+    "summary",
+    "tools"
+  ],
+  "title": "ContainerImageInventoryPublication",
+  "type": "object"
+}

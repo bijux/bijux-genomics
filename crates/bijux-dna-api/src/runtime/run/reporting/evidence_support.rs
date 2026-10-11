@@ -247,10 +247,14 @@ fn write_scientific_run_summary_text(
             )
         })
         .collect::<Vec<_>>();
-    let failed = if matches!(state, RunLifecycleStateV1::Failed | RunLifecycleStateV1::Cancelled) {
-        vec![format!("run state is {state}")]
-    } else {
-        Vec::new()
+    let incomplete_or_failed = match state {
+        RunLifecycleStateV1::Paused => {
+            vec!["run is paused with pending stages; no completion verdict was issued".to_string()]
+        }
+        RunLifecycleStateV1::Failed | RunLifecycleStateV1::Cancelled => {
+            vec![format!("run state is {state}")]
+        }
+        _ => Vec::new(),
     };
     let advisory = if matches!(mode, RunExecutionModeV1::Simulation | RunExecutionModeV1::Advisory)
     {
@@ -276,10 +280,14 @@ fn write_scientific_run_summary_text(
         "what_changed:".to_string(),
         what_changed.iter().map(|entry| format!("- {entry}")).collect::<Vec<_>>().join("\n"),
         "what_failed:".to_string(),
-        if failed.is_empty() {
+        if incomplete_or_failed.is_empty() {
             "- none".to_string()
         } else {
-            failed.iter().map(|entry| format!("- {entry}")).collect::<Vec<_>>().join("\n")
+            incomplete_or_failed
+                .iter()
+                .map(|entry| format!("- {entry}"))
+                .collect::<Vec<_>>()
+                .join("\n")
         },
         "advisory_findings:".to_string(),
         if advisory.is_empty() {

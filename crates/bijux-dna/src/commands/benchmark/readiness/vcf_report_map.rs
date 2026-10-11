@@ -7,6 +7,7 @@ use bijux_dna_domain_vcf::{find_vcf_parser_fixture_inventory_row, VcfDomainStage
 use serde::Serialize;
 
 use super::vcf_expected_benchmark_results::collect_vcf_expected_benchmark_result_rows;
+use super::vcf_tool_serving_map::collect_vcf_tool_serving_map_rows;
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
@@ -220,10 +221,14 @@ fn ensure_vcf_report_map_contract(rows: &[VcfReportMapRow]) -> Result<()> {
             "VCF report map must keep one row per expected VCF stage-tool result binding"
         ));
     }
-    if rows.len() != 24 {
+    let expected_row_count = collect_vcf_tool_serving_map_rows()?
+        .into_iter()
+        .filter(|row| row.benchmark_status == "benchmark_ready")
+        .count();
+    if rows.len() != expected_row_count {
         return Err(anyhow!(
-            "VCF report map must retain exactly 24 benchmark-ready rows, found {}",
-            rows.len()
+            "VCF report map must retain every benchmark-ready row, expected {expected_row_count}, found {}",
+            rows.len(),
         ));
     }
 
@@ -386,7 +391,8 @@ mod tests {
     use std::path::PathBuf;
 
     use super::{
-        render_vcf_report_map, DEFAULT_VCF_REPORT_MAP_PATH, VCF_REPORT_MAP_SCHEMA_VERSION,
+        collect_vcf_expected_benchmark_result_rows, render_vcf_report_map,
+        DEFAULT_VCF_REPORT_MAP_PATH, VCF_REPORT_MAP_SCHEMA_VERSION,
     };
 
     fn repo_root() -> PathBuf {
@@ -404,14 +410,27 @@ mod tests {
 
         assert_eq!(report.schema_version, VCF_REPORT_MAP_SCHEMA_VERSION);
         assert_eq!(report.output_path, DEFAULT_VCF_REPORT_MAP_PATH);
-        assert_eq!(report.row_count, 24);
+        assert_eq!(
+            report.row_count,
+            collect_vcf_expected_benchmark_result_rows(&root)
+                .expect("collect VCF expected benchmark results")
+                .len()
+        );
         assert_eq!(report.stage_count, 20);
-        assert_eq!(report.tool_count, 9);
+        assert_eq!(
+            report.tool_count,
+            report
+                .rows
+                .iter()
+                .map(|row| row.tool_id.as_str())
+                .collect::<std::collections::BTreeSet<_>>()
+                .len()
+        );
         assert_eq!(report.section_count, 12);
         assert_eq!(report.summary_table_count, 12);
-        assert_eq!(report.section_counts.get("variant_calling"), Some(&4));
+        assert_eq!(report.section_counts.get("variant_calling"), Some(&6));
         assert_eq!(report.section_counts.get("quality_control"), Some(&5));
-        assert_eq!(report.section_counts.get("imputation"), Some(&2));
+        assert_eq!(report.section_counts.get("imputation"), Some(&4));
         assert_eq!(report.section_counts.get("population_structure"), Some(&4));
         assert_eq!(report.section_counts.get("runs_of_homozygosity"), Some(&1));
         assert_eq!(report.section_counts.get("identity_by_descent"), Some(&2));

@@ -42,13 +42,12 @@ fn bench_readiness_vcf_undercovered_stages_writes_governed_tsv_columns() {
         Some("stage_id\tvalid_tool_classes\tregistered_tools\tmissing_tools\tdecision")
     );
     let rows = lines.collect::<Vec<_>>();
-    assert_eq!(rows.len(), 7, "TSV must retain the governed VCF undercovered row count");
+    assert_eq!(rows.len(), 6, "TSV must retain the governed VCF undercovered row count");
     for row in [
         "vcf.admixture\tcohort_analysis\tplink2\tplink\tfuture_not_benchmark_ready",
-        "vcf.call_gl\tgenotype_likelihood_calling,variant_processing\tbcftools\tangsd\tfuture_not_benchmark_ready",
-        "vcf.call_pseudohaploid\tgenotype_likelihood_calling,variant_processing\tbcftools\tangsd\tfuture_not_benchmark_ready",
-        "vcf.imputation_metrics\timputation,phasing\tbeagle\tglimpse,impute5,minimac4\tfuture_not_benchmark_ready",
-        "vcf.impute\timputation,phasing\tbeagle\tglimpse,impute5,minimac4\tfuture_not_benchmark_ready",
+        "vcf.ibd\trelatedness\tgermline,ibdseq\tibdhap\tlimit_to_specialized_tool",
+        "vcf.imputation_metrics\timputation,phasing\tbeagle,impute5\tglimpse,minimac4\tfuture_not_benchmark_ready",
+        "vcf.impute\timputation,phasing\tbeagle,impute5\tglimpse,minimac4\tfuture_not_benchmark_ready",
         "vcf.phasing\tphasing\tshapeit5\tbeagle,eagle,shapeit\tlimit_to_specialized_tool",
         "vcf.population_structure\tcohort_analysis,population_structure\tplink2\teigensoft,plink\tlimit_to_specialized_tool",
     ] {
@@ -57,4 +56,10 @@ fn bench_readiness_vcf_undercovered_stages_writes_governed_tsv_columns() {
             "TSV must retain governed VCF undercovered row: {row}"
         );
     }
+    assert!(
+        rows.iter()
+            .all(|row| !row.starts_with("vcf.call_gl\t")
+                && !row.starts_with("vcf.call_pseudohaploid\t")),
+        "licensed ANGSD bindings must close the two calling undercoverage rows"
+    );
 }

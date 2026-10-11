@@ -1,6 +1,5 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
-use std::time::Duration;
 
 use anyhow::{anyhow, Context, Result};
 use serde::Serialize;
@@ -208,16 +207,13 @@ pub(crate) fn render_vcf_pca_ready(
     repo_root: &Path,
     output_path: PathBuf,
 ) -> Result<VcfPcaReadyReport> {
-    let _lock = bijux_dna_infra::FileLock::acquire(
-        &repo_root.join(VCF_PCA_READY_LOCK_PATH),
-        Duration::from_mins(5),
-    )
-    .with_context(|| {
-        format!(
-            "acquire VCF PCA readiness lock {}",
-            repo_root.join(VCF_PCA_READY_LOCK_PATH).display()
-        )
-    })?;
+    let _lock = bijux_dna_infra::FileLock::try_acquire(&repo_root.join(VCF_PCA_READY_LOCK_PATH))
+        .with_context(|| {
+            format!(
+                "acquire VCF PCA readiness lock {}",
+                repo_root.join(VCF_PCA_READY_LOCK_PATH).display()
+            )
+        })?;
     let output_path = repo_relative_path(repo_root, &output_path);
     let report = build_vcf_pca_ready_report(repo_root, &output_path)?;
     bijux_dna_infra::atomic_write_json(&output_path, &report)?;

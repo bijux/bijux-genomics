@@ -24,22 +24,13 @@ fn bench_readiness_vcf_all_retained_tools_complete_writes_governed_json_file() {
         .output()
         .expect("run cli");
 
-    assert!(
-        output.status.success(),
-        "command failed: {}\nstdout:\n{}\nstderr:\n{}",
-        output.status,
-        String::from_utf8_lossy(&output.stdout),
-        String::from_utf8_lossy(&output.stderr)
-    );
+    assert!(!output.status.success(), "unadmitted licensed evidence must keep the gate open");
 
-    let rendered_path = String::from_utf8(output.stdout).expect("stdout utf8");
-    assert_eq!(
-        rendered_path.trim(),
-        "artifacts/benchmark-smoke/readiness/vcf/VCF_ALL_RETAINED_TOOLS_COMPLETE.json"
-    );
-
-    let payload = std::fs::read_to_string(repo_root.join(rendered_path.trim()))
-        .expect("read VCF retained-tools completion report");
+    let payload = std::fs::read_to_string(
+        repo_root
+            .join("artifacts/benchmark-smoke/readiness/vcf/VCF_ALL_RETAINED_TOOLS_COMPLETE.json"),
+    )
+    .expect("read VCF retained-tools completion report");
     let report: serde_json::Value = serde_json::from_str(&payload).expect("parse report");
 
     assert_eq!(
@@ -47,8 +38,27 @@ fn bench_readiness_vcf_all_retained_tools_complete_writes_governed_json_file() {
         Some("bijux.bench.readiness.vcf_all_retained_tools_complete.v1")
     );
     assert_eq!(report.get("checked_goal_count").and_then(serde_json::Value::as_u64), Some(24));
-    assert_eq!(report.get("passed_goal_count").and_then(serde_json::Value::as_u64), Some(24));
-    assert_eq!(report.get("ok").and_then(serde_json::Value::as_bool), Some(true));
+    let passed_goal_count =
+        report.get("passed_goal_count").and_then(serde_json::Value::as_u64).expect("passed goals");
+    let failed_goal_count =
+        report.get("failed_goal_count").and_then(serde_json::Value::as_u64).expect("failed goals");
+    assert_eq!(passed_goal_count + failed_goal_count, 24);
+    assert!(failed_goal_count >= 3);
+    assert_eq!(report.get("ok").and_then(serde_json::Value::as_bool), Some(false));
+
+    let failing_goal_ids = report
+        .get("failing_goal_ids")
+        .and_then(serde_json::Value::as_array)
+        .expect("failing goal ids")
+        .iter()
+        .filter_map(serde_json::Value::as_u64)
+        .collect::<BTreeSet<_>>();
+    let licensed_evidence_blockers = BTreeSet::from([339, 340, 349]);
+    let allowed_host_tool_blockers = BTreeSet::from([337, 338, 341, 342, 343, 346]);
+    assert!(licensed_evidence_blockers.is_subset(&failing_goal_ids));
+    assert!(failing_goal_ids
+        .difference(&licensed_evidence_blockers)
+        .all(|goal_id| allowed_host_tool_blockers.contains(goal_id)));
 
     let goal_ids = report
         .get("checks")
@@ -62,5 +72,9 @@ fn bench_readiness_vcf_all_retained_tools_complete_writes_governed_json_file() {
     assert_eq!(
         report.get("local_smoke_container_row_count").and_then(serde_json::Value::as_u64),
         Some(15)
+    );
+    assert_eq!(
+        report.get("local_smoke_external_artifact_row_count").and_then(serde_json::Value::as_u64),
+        Some(4)
     );
 }

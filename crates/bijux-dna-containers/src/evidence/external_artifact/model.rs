@@ -6,6 +6,8 @@ use crate::evidence::tool_contract::{ContainerArtifactDelivery, ContainerProduct
 
 pub const EXTERNAL_ARTIFACT_ADMISSION_SCHEMA_V1: &str =
     "bijux.container.external_artifact_admission.v1";
+pub const EXTERNAL_ARTIFACT_ADMISSION_SCHEMA_V2: &str =
+    "bijux.container.external_artifact_admission.v2";
 pub const EXTERNAL_ARTIFACT_IMAGE_SCHEME: &str = "external-artifact://";
 
 #[must_use]
@@ -94,7 +96,7 @@ pub struct ExternalArtifactAdmission {
 fn external_artifact_admission_schema_version(_: &mut SchemaGenerator) -> Schema {
     json_schema!({
         "type": "string",
-        "const": EXTERNAL_ARTIFACT_ADMISSION_SCHEMA_V1,
+        "const": EXTERNAL_ARTIFACT_ADMISSION_SCHEMA_V2,
     })
 }
 

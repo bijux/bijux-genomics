@@ -37,7 +37,8 @@ fn run_cli_json(args: &[&str]) -> serde_json::Value {
 }
 
 #[test]
-fn bench_local_fake_run_all_domain_failures_json_reports_governed_result_slice() {
+fn bench_local_fake_run_all_domain_failures_json_reports_governed_result_slice(
+) -> anyhow::Result<()> {
     let payload = run_cli_json(&[
         "bench",
         "local",
@@ -62,13 +63,34 @@ fn bench_local_fake_run_all_domain_failures_json_reports_governed_result_slice()
         .and_then(serde_json::Value::as_u64)
         .is_some_and(|count| count >= 120));
 
-    let domain_counts = support::json_object(&payload, "domain_counts");
-    assert_eq!(support::object_u64(domain_counts, "fastq"), Some(71));
-    assert_eq!(support::object_u64(domain_counts, "bam"), Some(49));
+    let domain_counts = support::json_object(&payload, "domain_counts")?;
     assert_eq!(support::object_u64_sum(domain_counts), result_count);
 
-    let failures = support::json_array(&payload, "failures");
+    let failures = support::json_array(&payload, "failures")?;
     assert_eq!(failures.len() as u64, result_count);
+    for domain in ["fastq", "bam", "vcf"] {
+        let observed = failures
+            .iter()
+            .filter(|row| row.get("domain").and_then(serde_json::Value::as_str) == Some(domain))
+            .count() as u64;
+        assert_eq!(support::object_u64(domain_counts, domain), Some(observed));
+    }
+    for (domain, stage_id, tool_id) in [
+        ("bam", "bam.damage", "ngsbriggs"),
+        ("bam", "bam.kinship", "angsd"),
+        ("bam", "bam.sex", "angsd"),
+        ("fastq", "fastq.remove_duplicates", "fastuniq"),
+        ("vcf", "vcf.call_gl", "angsd"),
+        ("vcf", "vcf.call_pseudohaploid", "angsd"),
+        ("vcf", "vcf.imputation_metrics", "impute5"),
+        ("vcf", "vcf.impute", "impute5"),
+    ] {
+        assert!(failures.iter().any(|row| {
+            row.get("domain").and_then(serde_json::Value::as_str) == Some(domain)
+                && row.get("stage_id").and_then(serde_json::Value::as_str) == Some(stage_id)
+                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some(tool_id)
+        }));
+    }
     let result_ids = failures
         .iter()
         .filter_map(|row| row.get("result_id").and_then(serde_json::Value::as_str))
@@ -116,4 +138,5 @@ fn bench_local_fake_run_all_domain_failures_json_reports_governed_result_slice()
             output.get("artifact_id").and_then(serde_json::Value::as_str) == Some("called_vcf_tbi")
         })
     ));
+    Ok(())
 }

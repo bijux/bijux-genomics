@@ -10,6 +10,7 @@ pub use runner_driver::LocalRunner;
 
 pub mod backend;
 pub mod command_runner;
+mod process_supervision;
 mod repo_root;
 mod runner_driver;
 pub mod step_runner;

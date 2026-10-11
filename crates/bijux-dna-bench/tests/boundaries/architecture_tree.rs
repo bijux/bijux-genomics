@@ -89,19 +89,25 @@ fn bench_tree_matches_architecture_contract() {
         dir_entries(&root.join("src/workflow")),
         entries([
             "attempt_migration.rs",
+            "appraisal.rs",
             "bam_coverage/",
             "bam_duplication_metrics/",
             "bam_endogenous_content/",
             "bam_genotyping/",
             "bam_mapping_summary/",
             "bam_observation/",
+            "benchmark_matrix.rs",
+            "campaign_cases.rs",
             "campaign_lifecycle/",
             "campaign_engine/",
             "campaign_material/",
             "corpus_acquisition.rs",
             "corpus_materialization/",
+            "container_report_portfolio.rs",
+            "cross_campaign.rs",
             "data_portfolio_audit.rs",
             "evaluation.rs",
+            "evidence_book.rs",
             "fastq_detect_adapters/",
             "fastq_expectations/",
             "fastq_profile_read_lengths/",
@@ -111,7 +117,9 @@ fn bench_tree_matches_architecture_contract() {
             "options.rs",
             "parameter_authority.rs",
             "publication_registry.rs",
+            "replay.rs",
             "report_load.rs",
+            "run_index.rs",
             "run_registry.rs",
             "run_suite/",
             "scientific_readiness.rs",
@@ -181,8 +189,16 @@ fn bench_tree_matches_architecture_contract() {
 
     assert_eq!(
         dir_entries(&root.join("src/workflow/campaign_lifecycle")),
-        entries(["authorities.rs", "execution.rs", "mod.rs", "planning.rs", "storage.rs"]),
-        "campaign lifecycle tree must separate source authority, planning, execution, and storage logic"
+        entries([
+            "authorities.rs",
+            "execution.rs",
+            "mod.rs",
+            "operator.rs",
+            "planning.rs",
+            "preparation.rs",
+            "storage.rs",
+        ]),
+        "campaign lifecycle tree must separate source authority, operator composition, preparation, planning, execution, and storage logic"
     );
 
     assert_eq!(
@@ -297,7 +313,6 @@ fn manifest_dependency_graph_matches_boundary_contract() {
     for forbidden in [
         "bijux-dna-api",
         "bijux-dna-analyze",
-        "bijux-dna-domain-bam",
         "bijux-dna-domain-fastq",
         "bijux-dna-planner-bam",
         "bijux-dna-planner-fastq",

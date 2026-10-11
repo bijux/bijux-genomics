@@ -62,17 +62,27 @@ Rust gate artifact layout:
 - `make github-all-frozen` records live per-gate progress in the console log and records per-gate logs, exit statuses, and an aggregate summary under `artifacts/<sha>/github-all/`
 - `make github-all` records its one-time workspace compilation under
   `artifacts/github-all/workspace-compile.log`
-- `make test-all` and `make test-all-frozen` run the complete suite with no fast/slow filter expression and no slow timeout
+- `make test-all` runs the complete workspace, all-target, all-feature suite (including ignored
+  tests) as four exact hash partitions through the event-driven Rust supervisor; shard logs and
+  the timing receipt remain under `artifacts/ci/`
+- `make test-all-frozen` runs the complete suite from its immutable source snapshot with no
+  fast/slow filter expression and no slow timeout
 - `make lint` is the fast product-crate clippy lane and excludes `bijux-dna-dev`
 - `make lint-workspace` is the CI-sized workspace lane for configuration, documentation, and automation-boundary contracts; Rust formatting and product-crate clippy remain independent CI gates
 - exhaustive workspace governance, domain, container, and Rust lint checks remain available through `make lint-governance`
 - `make test` is the fast Rust lane: it excludes named plus rostered slow tests above the 1-second threshold
 - `make test-slow` is the lane for tests that exceed the fast-lane budget
-- `make test-all` is the unfiltered, unbounded full-suite lane
+- `make test-all` is the complete, unbounded, concurrently sharded full-suite lane
 
 CI profile automation:
 - Fast: `cargo run -q -p bijux-dna-dev -- tooling run ci-fast`
 - Slow: `cargo run -q -p bijux-dna-dev -- tooling run ci-slow`
+- Complete: `cargo run -q -p bijux-dna-dev -- tooling run ci-test-all-sharded`
+
+The fast profile reads `configs/ci/fast-groups.json`, runs every dependency-ready group through
+the bounded event-driven Rust supervisor, and writes exact group logs plus current, p50, p95,
+cache-state, reference-runner, and critical-path timing under `artifacts/ci/`. Warm reference
+claims require at least five successful matching observations.
 
 Current internal targets surfaced by help:
 - `domain-validate`

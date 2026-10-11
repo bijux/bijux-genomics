@@ -1,0 +1,61 @@
+{
+  "schema_version": "bijux.ci.fast_groups.v1",
+  "max_parallelism": 6,
+  "warm_cache_target_milliseconds": 300000,
+  "history_limit": 40,
+  "report_root": "artifacts/ci/ci-fast-groups",
+  "timing_report": "artifacts/ci/ci-fast-timing.json",
+  "timing_history": "artifacts/ci/ci-fast-timing-history.json",
+  "reference_runner": {
+    "os": "linux",
+    "architecture": "x86_64",
+    "rust_toolchain": "1.95.0"
+  },
+  "groups": [
+    {
+      "id": "metadata-path-ownership",
+      "dependencies": [],
+      "program": "make",
+      "args": [
+        "--no-print-directory",
+        "_ssot-policy-fast",
+        "_ci-authority-fast",
+        "_policy-no-raw-cargo"
+      ]
+    },
+    {
+      "id": "format",
+      "dependencies": [],
+      "program": "make",
+      "args": ["--no-print-directory", "fmt"]
+    },
+    {
+      "id": "lint",
+      "dependencies": [],
+      "program": "make",
+      "args": ["--no-print-directory", "lint-workspace"]
+    },
+    {
+      "id": "unit-contract",
+      "dependencies": [],
+      "program": "make",
+      "args": ["--no-print-directory", "_unit-contract-fast"]
+    },
+    {
+      "id": "generated-drift",
+      "dependencies": [],
+      "program": "make",
+      "args": [
+        "--no-print-directory",
+        "_release-readiness",
+        "_fastq-container-readiness"
+      ]
+    },
+    {
+      "id": "profile-invariants",
+      "dependencies": [],
+      "program": "make",
+      "args": ["--no-print-directory", "_test-profile-invariants"]
+    }
+  ]
+}

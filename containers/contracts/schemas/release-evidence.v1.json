@@ -1,0 +1,122 @@
+{
+  "$defs": {
+    "ArtifactAvailability": {
+      "enum": [
+        "admitted",
+        "blocked_external_access",
+        "unavailable"
+      ],
+      "type": "string"
+    },
+    "ArtifactDelivery": {
+      "enum": [
+        "redistributable_image",
+        "external_artifact",
+        "private_site_build",
+        "site_module"
+      ],
+      "type": "string"
+    },
+    "EvidenceVerdict": {
+      "enum": [
+        "passed",
+        "failed",
+        "blocked",
+        "missing",
+        "not_applicable"
+      ],
+      "type": "string"
+    },
+    "ProductSupport": {
+      "enum": [
+        "supported",
+        "retired",
+        "excluded"
+      ],
+      "type": "string"
+    },
+    "ToolReleaseEvidence": {
+      "additionalProperties": false,
+      "properties": {
+        "artifact_delivery": {
+          "$ref": "#/$defs/ArtifactDelivery"
+        },
+        "availability": {
+          "$ref": "#/$defs/ArtifactAvailability"
+        },
+        "product_support": {
+          "$ref": "#/$defs/ProductSupport"
+        },
+        "qualification_evidence_set_sha256": {
+          "type": "string"
+        },
+        "reasons": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "redistribution_permitted": {
+          "type": "boolean"
+        },
+        "tool_id": {
+          "type": "string"
+        },
+        "verdict": {
+          "$ref": "#/$defs/EvidenceVerdict"
+        }
+      },
+      "required": [
+        "tool_id",
+        "product_support",
+        "artifact_delivery",
+        "redistribution_permitted",
+        "availability",
+        "qualification_evidence_set_sha256",
+        "verdict"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "catalog_sha256": {
+      "type": "string"
+    },
+    "policy_sha256": {
+      "type": "string"
+    },
+    "qualification_sources_sha256": {
+      "type": "string"
+    },
+    "released_at_utc": {
+      "type": "string"
+    },
+    "repository_commit": {
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "bijux.container.release_evidence.v1",
+      "type": "string"
+    },
+    "tools": {
+      "additionalProperties": {
+        "$ref": "#/$defs/ToolReleaseEvidence"
+      },
+      "type": "object"
+    }
+  },
+  "required": [
+    "schema_version",
+    "released_at_utc",
+    "repository_commit",
+    "catalog_sha256",
+    "qualification_sources_sha256",
+    "policy_sha256",
+    "tools"
+  ],
+  "title": "ContainerReleaseEvidencePublication",
+  "type": "object"
+}

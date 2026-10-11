@@ -3,6 +3,7 @@ use std::process::Command;
 
 use anyhow::{bail, Context, Result};
 use regex::Regex;
+use serde::Deserialize;
 
 use super::super::tool_contract::{
     catalog_identity_at_commit, load_container_catalog, repository_head_commit,
@@ -11,10 +12,34 @@ use super::super::EvidenceSourceIdentity;
 use super::model::{
     ExternalArtifactAdmission, ExternalArtifactAdmissionStatus, ExternalArtifactCommandBinding,
     ExternalArtifactIdentity, ExternalArtifactKind, ExternalArtifactVersionProbe,
-    EXTERNAL_ARTIFACT_ADMISSION_SCHEMA_V1,
+    EXTERNAL_ARTIFACT_ADMISSION_SCHEMA_V1, EXTERNAL_ARTIFACT_ADMISSION_SCHEMA_V2,
 };
 
 const MAX_VERSION_OUTPUT_BYTES: usize = 64 * 1024;
+
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct LegacyExternalArtifactAdmissionV1 {
+    schema_version: String,
+    status: ExternalArtifactAdmissionStatus,
+    recorded_at_utc: String,
+    repository_commit: String,
+    catalog: EvidenceSourceIdentity,
+    distributable_image_root: String,
+    tool_id: String,
+    version: String,
+    support_disposition: String,
+    support_reason: String,
+    stage_ids: Vec<String>,
+    expected_binary: String,
+    version_command: String,
+    expected_version_regex: String,
+    redistribution_permitted: bool,
+    lawful_access_basis: Option<String>,
+    artifact: Option<ExternalArtifactIdentity>,
+    version_probe: Option<ExternalArtifactVersionProbe>,
+    blocker_reason: Option<String>,
+}
 
 pub struct ExternalArtifactInput<'a> {
     pub kind: ExternalArtifactKind,
@@ -106,7 +131,7 @@ pub fn admit_external_artifact(
         };
 
     let admission = ExternalArtifactAdmission {
-        schema_version: EXTERNAL_ARTIFACT_ADMISSION_SCHEMA_V1.to_string(),
+        schema_version: EXTERNAL_ARTIFACT_ADMISSION_SCHEMA_V2.to_string(),
         availability,
         recorded_at_utc: request.recorded_at_utc.to_string(),
         repository_commit: request.repository_commit.to_string(),
@@ -143,10 +168,61 @@ pub fn admit_external_artifact(
 pub fn load_external_artifact_admission(path: &Path) -> Result<ExternalArtifactAdmission> {
     let bytes = bijux_dna_infra::read_to_end_bounded(path, 4 * 1024 * 1024)
         .context("read external-artifact admission")?;
-    let admission: ExternalArtifactAdmission =
-        serde_json::from_slice(&bytes).context("parse external-artifact admission")?;
+    let value: serde_json::Value =
+        serde_json::from_slice(&bytes).context("parse external-artifact admission JSON")?;
+    let schema_version = value
+        .get("schema_version")
+        .and_then(serde_json::Value::as_str)
+        .context("external-artifact admission lacks a schema version")?;
+    let admission = if schema_version == EXTERNAL_ARTIFACT_ADMISSION_SCHEMA_V1 {
+        migrate_external_artifact_admission_v1(value)?
+    } else {
+        serde_json::from_value(value).context("parse external-artifact admission")?
+    };
     validate_external_artifact_admission(&admission)?;
     Ok(admission)
+}
+
+fn migrate_external_artifact_admission_v1(
+    value: serde_json::Value,
+) -> Result<ExternalArtifactAdmission> {
+    if value.get("status").is_none() {
+        let mut admission: ExternalArtifactAdmission = serde_json::from_value(value)
+            .context("parse mis-versioned external-artifact admission")?;
+        admission.schema_version = EXTERNAL_ARTIFACT_ADMISSION_SCHEMA_V2.to_string();
+        return Ok(admission);
+    }
+    let legacy: LegacyExternalArtifactAdmissionV1 =
+        serde_json::from_value(value).context("parse v1 external-artifact admission")?;
+    if legacy.schema_version != EXTERNAL_ARTIFACT_ADMISSION_SCHEMA_V1
+        || legacy.support_disposition != "unsupported"
+        || legacy.redistribution_permitted
+        || legacy.status == ExternalArtifactAdmissionStatus::Unavailable
+    {
+        bail!("legacy external-artifact admission has invalid support semantics");
+    }
+    Ok(ExternalArtifactAdmission {
+        schema_version: EXTERNAL_ARTIFACT_ADMISSION_SCHEMA_V2.to_string(),
+        availability: legacy.status,
+        recorded_at_utc: legacy.recorded_at_utc,
+        repository_commit: legacy.repository_commit,
+        catalog: legacy.catalog,
+        distributable_image_root: legacy.distributable_image_root,
+        tool_id: legacy.tool_id,
+        version: legacy.version,
+        product_support: crate::evidence::ContainerProductSupport::Supported,
+        artifact_delivery: crate::evidence::ContainerArtifactDelivery::ExternalArtifact,
+        delivery_reason: legacy.support_reason,
+        stage_ids: legacy.stage_ids,
+        expected_binary: legacy.expected_binary,
+        version_command: legacy.version_command,
+        expected_version_regex: legacy.expected_version_regex,
+        redistribution_permitted: false,
+        lawful_access_basis: legacy.lawful_access_basis,
+        artifact: legacy.artifact,
+        version_probe: legacy.version_probe,
+        blocker_reason: legacy.blocker_reason,
+    })
 }
 
 /// Reverify catalog and artifact identities without executing a stage command.
@@ -485,7 +561,7 @@ fn validate_persisted_version_probe(
 }
 
 fn validate_external_artifact_admission(admission: &ExternalArtifactAdmission) -> Result<()> {
-    if admission.schema_version != EXTERNAL_ARTIFACT_ADMISSION_SCHEMA_V1 {
+    if admission.schema_version != EXTERNAL_ARTIFACT_ADMISSION_SCHEMA_V2 {
         bail!("unsupported external-artifact admission schema");
     }
     require_timestamp(&admission.recorded_at_utc)?;

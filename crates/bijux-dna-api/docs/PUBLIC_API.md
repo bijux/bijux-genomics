@@ -24,6 +24,9 @@ enter through `bijux_dna_api::v1::api`.
   `PlanExplainV1`, and `VcfRunRequest`.
 - Curated helper namespaces: `bench`, `plan`, `run`, `report`, `bam`, `fastq`,
   `env`, `qualification`, and `shared`.
+- The `qualification` namespace exposes provisional composition and explicit
+  `derive_container_qualification_report_with_release` composition for immutable release
+  publications outside the repository worktree.
 - The `bench` namespace composes benchmark-owned corpus materialization through
   `materialize_fastq_corpus(CorpusMaterializationRequest)` without moving acquisition IO
   into the API or CLI crates.

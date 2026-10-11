@@ -1,6 +1,5 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
-use std::time::Duration;
 
 use anyhow::{anyhow, Context, Result};
 use serde::Serialize;
@@ -156,9 +155,8 @@ pub(crate) fn render_vcf_population_structure_ready(
     repo_root: &Path,
     output_path: PathBuf,
 ) -> Result<VcfPopulationStructureReadyReport> {
-    let _lock = bijux_dna_infra::FileLock::acquire(
+    let _lock = bijux_dna_infra::FileLock::try_acquire(
         &repo_root.join(VCF_POPULATION_STRUCTURE_READY_LOCK_PATH),
-        Duration::from_mins(5),
     )
     .with_context(|| {
         format!(

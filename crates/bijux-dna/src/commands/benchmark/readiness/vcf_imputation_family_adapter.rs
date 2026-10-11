@@ -15,10 +15,9 @@ use crate::commands::benchmark::local_vcf_panel_workflow_smoke_support::{
 use crate::commands::benchmark::local_vcf_stage_catalog::{
     build_vcf_stage_catalog_rows, VcfStageCatalogRow,
 };
-use crate::commands::benchmark::local_vcf_stage_matrix::{
-    build_vcf_stage_matrix_rows, VcfStageMatrixRow,
-};
+use crate::commands::benchmark::local_vcf_stage_matrix::VcfStageMatrixRow;
 use crate::commands::benchmark::readiness::vcf_readiness_inputs::materialize_indexed_vcf_input;
+use crate::commands::benchmark::vcf_benchmark_bindings::collect_vcf_benchmark_binding_rows;
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
@@ -200,7 +199,7 @@ pub(crate) fn collect_vcf_imputation_family_adapter_rows(
         .into_iter()
         .map(|row| (row.stage_id.clone(), row))
         .collect::<BTreeMap<_, _>>();
-    let matrix_by_pair = build_vcf_stage_matrix_rows()?
+    let matrix_by_pair = collect_vcf_benchmark_binding_rows()?
         .into_iter()
         .map(|row| ((row.stage_id.clone(), row.tool_id.clone()), row))
         .collect::<BTreeMap<_, _>>();
@@ -929,9 +928,9 @@ fn ensure_vcf_imputation_family_adapter_contract(
     }
     let benchmark_ready_row_count =
         rows.iter().filter(|row| row.benchmark_status == "benchmark_ready").count();
-    if benchmark_ready_row_count != 2 {
+    if benchmark_ready_row_count != 4 {
         return Err(anyhow!(
-            "VCF imputation-family adapter benchmark-ready count drifted: expected 2, found {benchmark_ready_row_count}"
+            "VCF imputation-family adapter benchmark-ready count drifted: expected 4, found {benchmark_ready_row_count}"
         ));
     }
     Ok(())
@@ -995,7 +994,7 @@ mod tests {
         assert_eq!(report.schema_version, "bijux.bench.readiness.vcf_imputation_family_adapter.v1");
         assert_eq!(report.row_count, 8);
         assert_eq!(report.tool_count, 4);
-        assert_eq!(report.benchmark_ready_row_count, 2);
+        assert_eq!(report.benchmark_ready_row_count, 4);
         assert_eq!(report.parser_output_row_count, 8);
         assert_eq!(report.missing_input_test_passed_row_count, 8);
         assert!(report.rows.iter().any(|row| {

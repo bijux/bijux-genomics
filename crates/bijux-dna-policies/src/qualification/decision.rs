@@ -12,6 +12,7 @@ pub const FRESHNESS_EVIDENCE_RULE_V1: &str = "qualification.bound_evidence_fresh
 pub const SECURITY_EVIDENCE_RULE_V1: &str = "qualification.security_evidence.v1";
 pub const RELEASE_EVIDENCE_RULE_V1: &str = "qualification.release_evidence.v1";
 pub const SUPPORT_DISPOSITION_RULE_V1: &str = "qualification.support_disposition.v1";
+pub const SUPPORT_DIMENSIONS_RULE_V2: &str = "qualification.support_dimensions.v2";
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ExecutionEvidenceStatus {

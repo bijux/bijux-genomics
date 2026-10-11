@@ -21,9 +21,22 @@ These operations are exported through the crate root and `public_api`.
 | `load-stage-interface-catalog-for-publication` | `load_stage_interface_catalog_for_publication(path, source_repository_root, presentation_repository_root)` | Complete only absent historical report-presentation tables from an explicit validated presentation authority. |
 | `load-checked-in-benchmark-contracts` | `load_checked_in_benchmark_contracts()` | Load the checked-in stage-campaign registry and benchmark portfolio while validating all checked-in planning inputs. |
 | `load-checked-in-benchmark-planning-contracts` | `load_checked_in_benchmark_planning_contracts()` | Load the checked-in stage-campaign registry, benchmark portfolio, and stage-interface catalog and validate their defined identities. |
+| `derive-benchmark-matrix` | `derive_benchmark_matrix(request)` | Derive the selected stage/tool frontier from all supported catalog pairs, retaining external deliveries and explicit refusal rows for contract drift. |
+| `load-benchmark-matrix-report` | `load_benchmark_matrix_report(path)` | Parse and admit a persisted benchmark matrix before product workflow use. |
+| `publish-benchmark-matrix` | `publish_benchmark_matrix(path, report)` | Validate the complete matrix identity, surface, readiness, and summary closure before atomic publication. |
+| `current-benchmark-matrix-timestamp` | `current_benchmark_matrix_timestamp()` | Supply an explicit generation timestamp for thin operator requests. |
+| `appraise-matrix-report` | `appraise_matrix_report(matrix)` | Run every registered product appraiser and validate canonical finding and summary closure. |
+| `derive-hardening-queue` | `hardening_queue_from_appraisal(report)` | Group admitted findings into a deterministic contiguous hardening queue. |
+| `load-appraisal-products` | `load_appraisal_report(path)`, `load_hardening_queue_report(path)` | Parse and validate persisted appraisal and hardening-queue records. |
+| `publish-appraisal-products` | `publish_appraisal_report(path, report)`, `publish_hardening_queue_report(path, report)` | Validate and atomically publish appraisal and hardening-queue records. |
+| `derive-cross-benchmark-campaign` | `derive_cross_benchmark_campaign(matrix, appraisal, queue, requested_goals)` | Derive a cross-domain goal campaign from admitted matrix and appraisal products. |
+| `load-cross-benchmark-campaign` | `load_cross_benchmark_campaign_report(path)` | Parse and admit a persisted cross-domain campaign report. |
+| `publish-cross-benchmark-campaign` | `publish_cross_benchmark_campaign_report(path, report)` | Validate and atomically publish a cross-domain campaign report. |
 | `load-stage-report` | `load_stage_report(path)` | Load one stage-report JSON file into a source- and payload-checksummed admission envelope. |
 | `load-stage-reports-from-dir` | `load_stage_reports_from_dir(path, registry, interfaces)` | Admit a declared report directory as checksummed envelopes against supplied campaign and interface contracts. |
 | `load-checked-in-stage-reports` | `load_checked_in_stage_reports()` | Load all checked-in stage reports and validate campaign/interface alignment and unique stage ownership. |
+| `derive-container-report-portfolio-index` | `derive_container_report_portfolio_index(repository_root)` | Require the permanent run index to match its source authority, then derive checksummed current and historical container report entries. |
+| `render-container-report-portfolio-index` | `render_container_report_portfolio_index_json(index)`, `render_container_report_portfolio_index_markdown(index)` | Render the admitted container report portfolio deterministically for machine and paper-facing consumers. |
 | `acquire-fastq-corpus` | `acquire_fastq_corpus(request)` | Resolve a reviewed corpus specification against exact ENA run metadata and atomically publish a checksum-pinned acquisition plan. |
 | `derive-fastq-corpus-acquisition-plan` | `derive_fastq_corpus_acquisition_plan(spec_path, records, retrieved_at_utc)` | Deterministically replay acquisition-plan derivation from typed offline ENA records. |
 | `materialize-fastq-corpus` | `materialize_fastq_corpus(request)` | Re-verify or transfer checksum-pinned ENA files, validate every gzip FASTQ record, make admitted bytes read-only, and atomically publish a source-addressed governed catalog snapshot. |

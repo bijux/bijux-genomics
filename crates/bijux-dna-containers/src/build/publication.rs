@@ -1,7 +1,6 @@
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command;
-use std::time::Duration;
 
 use anyhow::{bail, Context, Result};
 use schemars::{schema_for, JsonSchema};
@@ -32,9 +31,6 @@ pub struct CanonicalApptainerImagePublicationRequest {
     pub tool_id: String,
     pub architecture: String,
     pub apptainer_executable: PathBuf,
-    pub maximum_build_invocations: u32,
-    pub retry_delay: Duration,
-    pub lock_timeout: Duration,
     pub destination: CanonicalApptainerImageDestination,
     pub campaign_scope: Option<String>,
 }
@@ -48,9 +44,6 @@ impl CanonicalApptainerImagePublicationRequest {
             tool_id,
             architecture: "linux/amd64".to_string(),
             apptainer_executable: PathBuf::from("apptainer"),
-            maximum_build_invocations: 3,
-            retry_delay: Duration::from_secs(2),
-            lock_timeout: Duration::from_secs(30),
             destination: CanonicalApptainerImageDestination::Active,
             campaign_scope: None,
         }
@@ -174,7 +167,7 @@ pub fn publish_canonical_apptainer_image(
     )?;
     let build_input_root = roots.evidence.join("build-inputs");
     let lock_path = roots.evidence.join(".build-locks").join(format!("{}.lock", request.tool_id));
-    let _lock = bijux_dna_infra::FileLock::acquire(&lock_path, request.lock_timeout)
+    let _lock = bijux_dna_infra::FileLock::try_acquire(&lock_path)
         .with_context(|| format!("acquire canonical image lock for {}", request.tool_id))?;
 
     let prepared = prepare_apptainer_tool_contract_for_publication(&ToolContractBuildRequest {
@@ -281,8 +274,6 @@ fn build_verified_image(
         evidence_root: roots.build_logs.clone(),
         tool_id: request.tool_id.clone(),
         build_evidence_id: prepared.contract.build_evidence_id.clone(),
-        maximum_invocations: request.maximum_build_invocations,
-        retry_delay: request.retry_delay,
     })?;
     let final_attempt =
         build.attempts.last().cloned().context("successful build has no attempt record")?;

@@ -6,13 +6,17 @@
 - `policy_diagnostics`
 - `public_api`
 - `qualification`
+- `release_evidence`
 - `security_evidence`
 
 ## Root Exports
 - `check`
 - `GuardrailConfig`
 - `qualification contracts`
+- `release evidence contracts`
 - `security evidence contracts`
+- `CI dependency graph and change-impact planning contracts`
+- `CI build authority contracts`
 - `policy_assert!`
 - `policy_assert_eq!`
 - `policy_assert_ne!`
@@ -30,3 +34,5 @@
 - `src/policy_diagnostics/stable_surface.rs` curates diagnostics exports.
 - `security_evidence::derive_security_evidence`: converts complete effect-free scanner,
   structural, and runtime observations into a validated policy publication.
+- `release_evidence::derive_release_evidence`: derives immutable release decisions from exact,
+  non-self-referential qualification evidence sets.

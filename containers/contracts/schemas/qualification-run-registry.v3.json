@@ -1,0 +1,321 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "QualificationRunRegistry",
+  "type": "object",
+  "properties": {
+    "catalog_sha256": {
+      "type": "string"
+    },
+    "historical_max_run_number": {
+      "type": "integer",
+      "format": "uint64",
+      "minimum": 0
+    },
+    "namespace": {
+      "$ref": "#/$defs/QualificationRunNamespacePolicy"
+    },
+    "runs": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/QualificationRunDefinition"
+      }
+    },
+    "schema_version": {
+      "type": "string"
+    },
+    "summary": {
+      "$ref": "#/$defs/QualificationRunRegistrySummary"
+    },
+    "tools": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/QualificationRunRegistryEntry"
+      }
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "catalog_sha256",
+    "historical_max_run_number",
+    "namespace",
+    "summary",
+    "tools",
+    "runs"
+  ],
+  "$defs": {
+    "ContainerArtifactDelivery": {
+      "type": "string",
+      "enum": [
+        "redistributable_image",
+        "external_artifact",
+        "private_site_build",
+        "site_module"
+      ]
+    },
+    "ContainerProductSupport": {
+      "type": "string",
+      "enum": [
+        "supported",
+        "retired",
+        "excluded"
+      ]
+    },
+    "QualificationRunCitationRecord": {
+      "type": "object",
+      "properties": {
+        "citation_key": {
+          "type": "string"
+        },
+        "evidence_uris": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "limitations": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "protocol_version": {
+          "type": "string"
+        },
+        "registry_anchor": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "citation_key",
+        "protocol_version",
+        "registry_anchor",
+        "evidence_uris",
+        "limitations"
+      ]
+    },
+    "QualificationRunDefinition": {
+      "type": "object",
+      "properties": {
+        "acceptance_policy": {
+          "type": "string"
+        },
+        "citation": {
+          "$ref": "#/$defs/QualificationRunCitationRecord"
+        },
+        "contract_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "corpus_roles": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "operation": {
+          "type": "string"
+        },
+        "owner": {
+          "type": "string"
+        },
+        "purpose": {
+          "type": "string"
+        },
+        "run_id": {
+          "type": "string"
+        },
+        "stage_id": {
+          "type": "string"
+        },
+        "state": {
+          "$ref": "#/$defs/QualificationRunState"
+        },
+        "state_reason": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "superseded_by_run_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "supersedes_run_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "title": {
+          "type": "string"
+        },
+        "tool_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "run_id",
+        "title",
+        "purpose",
+        "owner",
+        "operation",
+        "stage_id",
+        "tool_ids",
+        "contract_ids",
+        "corpus_roles",
+        "acceptance_policy",
+        "state",
+        "supersedes_run_ids",
+        "citation"
+      ]
+    },
+    "QualificationRunNamespacePolicy": {
+      "type": "object",
+      "properties": {
+        "allocation_policy": {
+          "type": "string"
+        },
+        "identity_policy": {
+          "type": "string"
+        },
+        "maximum": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        },
+        "minimum": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        },
+        "next_run_number": {
+          "type": "integer",
+          "format": "uint64",
+          "minimum": 0
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "minimum",
+        "maximum",
+        "next_run_number",
+        "allocation_policy",
+        "identity_policy"
+      ]
+    },
+    "QualificationRunRegistryEntry": {
+      "type": "object",
+      "properties": {
+        "acceptance_adapter": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "artifact_delivery": {
+          "$ref": "#/$defs/ContainerArtifactDelivery"
+        },
+        "input_role": {
+          "type": "string"
+        },
+        "product_support": {
+          "$ref": "#/$defs/ContainerProductSupport"
+        },
+        "redistribution_permitted": {
+          "type": "boolean"
+        },
+        "resource_profile": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "run_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "stage_id": {
+          "type": "string"
+        },
+        "tool_id": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "tool_id",
+        "product_support",
+        "artifact_delivery",
+        "redistribution_permitted",
+        "stage_id",
+        "input_role"
+      ]
+    },
+    "QualificationRunRegistrySummary": {
+      "type": "object",
+      "properties": {
+        "active_count": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0
+        },
+        "allocated_count": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0
+        },
+        "campaign_count": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0
+        },
+        "historical_count": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0
+        },
+        "reserved_count": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0
+        },
+        "run_count": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "run_count",
+        "campaign_count",
+        "active_count",
+        "allocated_count",
+        "historical_count",
+        "reserved_count"
+      ]
+    },
+    "QualificationRunState": {
+      "type": "string",
+      "enum": [
+        "campaign",
+        "active",
+        "allocated",
+        "historical",
+        "reserved"
+      ]
+    }
+  }
+}

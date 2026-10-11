@@ -1,5 +1,4 @@
 use std::path::{Path, PathBuf};
-use std::time::Duration;
 
 use anyhow::anyhow;
 use bijux_dna_core::contract::ExecutionStep;
@@ -13,24 +12,18 @@ pub(crate) fn acquire_slot_lock(
     slots: u32,
 ) -> Result<Option<bijux_dna_infra::FileLock>> {
     if slots <= 1 {
-        let lock = bijux_dna_infra::FileLock::acquire(
-            &base.join(format!("{prefix}.lock")),
-            Duration::from_mins(5),
-        )
-        .map_err(|err| anyhow!("acquire {prefix} lock: {err}"))?;
+        let lock = bijux_dna_infra::FileLock::try_acquire(&base.join(format!("{prefix}.lock")))
+            .map_err(|err| anyhow!("acquire {prefix} lock: {err}"))?;
         return Ok(Some(lock));
     }
     for slot in 0..slots {
         let path = base.join(format!("{prefix}.{slot}.lock"));
-        if let Ok(lock) = bijux_dna_infra::FileLock::acquire(&path, Duration::from_millis(150)) {
+        if let Ok(lock) = bijux_dna_infra::FileLock::try_acquire(&path) {
             return Ok(Some(lock));
         }
     }
-    let lock = bijux_dna_infra::FileLock::acquire(
-        &base.join(format!("{prefix}.0.lock")),
-        Duration::from_mins(5),
-    )
-    .map_err(|err| anyhow!("acquire {prefix} lock: {err}"))?;
+    let lock = bijux_dna_infra::FileLock::try_acquire(&base.join(format!("{prefix}.0.lock")))
+        .map_err(|err| anyhow!("acquire {prefix} lock: {err}"))?;
     Ok(Some(lock))
 }
 

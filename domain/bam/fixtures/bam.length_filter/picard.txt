@@ -2,7 +2,6 @@ tool=picard
 tool_version=pinned
 stage=bam.length_filter
 domain=bam
-shipping=external
 fixture_kind=truth
 command=picard
 args=

@@ -38,15 +38,13 @@ pub(crate) const DEFAULT_VCF_ALL_RETAINED_TOOLS_COMPLETE_PATH: &str =
 const VCF_ALL_RETAINED_TOOLS_COMPLETE_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.vcf_all_retained_tools_complete.v1";
 const EXPECTED_CHECKED_GOAL_COUNT: usize = 24;
-const EXPECTED_RETAINED_ROW_COUNT: usize = 35;
+const EXPECTED_RETAINED_ROW_COUNT: usize = 39;
 const EXPECTED_RETAINED_STAGE_COUNT: usize = 20;
-const EXPECTED_RETAINED_TOOL_COUNT: usize = 14;
-const EXPECTED_ACTIVE_ROW_COUNT: usize = 24;
-const EXPECTED_REMOVED_ROW_COUNT: usize = 11;
+const EXPECTED_RETAINED_TOOL_COUNT: usize = 16;
 const EXPECTED_ACTIVE_STAGE_COUNT: usize = 20;
-const EXPECTED_ACTIVE_TOOL_COUNT: usize = 9;
 const EXPECTED_HOST_STAGE_SMOKE_ROW_COUNT: usize = 20;
 const EXPECTED_CONTAINER_SMOKE_ROW_COUNT: usize = 15;
+const EXPECTED_EXTERNAL_ARTIFACT_ROW_COUNT: usize = 4;
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 struct VcfBindingKey {
@@ -84,6 +82,7 @@ pub(crate) struct VcfAllRetainedToolsCompleteReport {
     pub(crate) local_smoke_row_count: usize,
     pub(crate) local_smoke_host_stage_row_count: usize,
     pub(crate) local_smoke_container_row_count: usize,
+    pub(crate) local_smoke_external_artifact_row_count: usize,
     pub(crate) report_map_row_count: usize,
     pub(crate) ok: bool,
     pub(crate) checks: Vec<VcfAllRetainedToolsCompleteGoalCheck>,
@@ -132,6 +131,7 @@ pub(crate) fn render_vcf_all_retained_tools_complete(
     let mut local_smoke_row_count = 0usize;
     let mut local_smoke_host_stage_row_count = 0usize;
     let mut local_smoke_container_row_count = 0usize;
+    let mut local_smoke_external_artifact_row_count = 0usize;
     let mut report_map_row_count = 0usize;
     let mut retained_binding_keys = BTreeSet::<VcfBindingKey>::new();
     let mut active_binding_keys = BTreeSet::<VcfBindingKey>::new();
@@ -151,9 +151,9 @@ pub(crate) fn render_vcf_all_retained_tools_complete(
             if report.row_count != EXPECTED_RETAINED_ROW_COUNT
                 || report.stage_count != EXPECTED_RETAINED_STAGE_COUNT
                 || report.tool_count != EXPECTED_RETAINED_TOOL_COUNT
-                || report.active_row_count != EXPECTED_ACTIVE_ROW_COUNT
                 || report.complete_row_count != 0
-                || report.removed_row_count != EXPECTED_REMOVED_ROW_COUNT
+                || report.active_row_count + report.complete_row_count + report.removed_row_count
+                    != report.row_count
             {
                 bail!(
                     "VCF retained matrix drifted: rows={}, stages={}, tools={}, active={}, complete={}, removed={}",
@@ -174,6 +174,29 @@ pub(crate) fn render_vcf_all_retained_tools_complete(
                 .filter(|row| row.scope_state == "active")
                 .map(binding_key_from_matrix_row)
                 .collect::<BTreeSet<_>>();
+            for required in [
+                VcfBindingKey { stage_id: "vcf.call_gl".to_string(), tool_id: "angsd".to_string() },
+                VcfBindingKey {
+                    stage_id: "vcf.call_pseudohaploid".to_string(),
+                    tool_id: "angsd".to_string(),
+                },
+                VcfBindingKey {
+                    stage_id: "vcf.imputation_metrics".to_string(),
+                    tool_id: "impute5".to_string(),
+                },
+                VcfBindingKey {
+                    stage_id: "vcf.impute".to_string(),
+                    tool_id: "impute5".to_string(),
+                },
+            ] {
+                if !active_binding_keys.contains(&required) {
+                    bail!(
+                        "VCF retained matrix is missing supported licensed binding `{}` / `{}`",
+                        required.stage_id,
+                        required.tool_id
+                    );
+                }
+            }
             retained_row_count = report.row_count;
             retained_stage_count = report.stage_count;
             retained_tool_count = report.tool_count;
@@ -193,9 +216,7 @@ pub(crate) fn render_vcf_all_retained_tools_complete(
                 .map(|row| row.tool_id.as_str())
                 .collect::<BTreeSet<_>>()
                 .len();
-            if active_stage_count != EXPECTED_ACTIVE_STAGE_COUNT
-                || active_tool_count != EXPECTED_ACTIVE_TOOL_COUNT
-            {
+            if active_stage_count != EXPECTED_ACTIVE_STAGE_COUNT {
                 bail!(
                     "VCF active retained matrix drifted: active_stages={active_stage_count}, active_tools={active_tool_count}"
                 );
@@ -248,9 +269,9 @@ pub(crate) fn render_vcf_all_retained_tools_complete(
                 repo_root,
                 vcf_call_pseudohaploid_ready::DEFAULT_VCF_CALL_PSEUDOHAPLOID_READY_PATH,
                 "vcf.call_pseudohaploid readiness",
-                1,
+                2,
             )?;
-            Ok("validated the governed bcftools `vcf.call_pseudohaploid` row end-to-end"
+            Ok("validated governed bcftools and ANGSD `vcf.call_pseudohaploid` rows end-to-end"
                 .to_string())
         },
     );
@@ -265,9 +286,9 @@ pub(crate) fn render_vcf_all_retained_tools_complete(
                 repo_root,
                 vcf_call_gl_ready::DEFAULT_VCF_CALL_GL_READY_PATH,
                 "vcf.call_gl readiness",
-                1,
+                2,
             )?;
-            Ok("validated the governed bcftools `vcf.call_gl` row end-to-end".to_string())
+            Ok("validated governed bcftools and ANGSD `vcf.call_gl` rows end-to-end".to_string())
         },
     );
 
@@ -446,7 +467,7 @@ pub(crate) fn render_vcf_all_retained_tools_complete(
             )?;
             if json_u64(&payload, "row_count") != Some(8)
                 || json_u64(&payload, "tool_count") != Some(4)
-                || json_u64(&payload, "benchmark_ready_row_count") != Some(2)
+                || json_u64(&payload, "benchmark_ready_row_count") != Some(4)
                 || json_u64(&payload, "parser_output_row_count") != Some(8)
                 || json_u64(&payload, "missing_input_test_passed_row_count") != Some(8)
             {
@@ -466,12 +487,7 @@ pub(crate) fn render_vcf_all_retained_tools_complete(
                 "vcf.impute",
                 "not_benchmark_ready",
             )?;
-            ensure_imputation_family_output(
-                &payload,
-                "impute5",
-                "vcf.impute",
-                "not_benchmark_ready",
-            )?;
+            ensure_imputation_family_output(&payload, "impute5", "vcf.impute", "benchmark_ready")?;
             ensure_imputation_family_output(
                 &payload,
                 "minimac4",
@@ -479,7 +495,7 @@ pub(crate) fn render_vcf_all_retained_tools_complete(
                 "not_benchmark_ready",
             )?;
             Ok(
-                "validated the retained imputation family with the governed beagle `vcf.impute` row and explicit non-benchmark-ready alternatives"
+                "validated the retained imputation family with governed Beagle and IMPUTE5 `vcf.impute` rows and explicit planned alternatives"
                     .to_string(),
             )
         },
@@ -495,9 +511,10 @@ pub(crate) fn render_vcf_all_retained_tools_complete(
                 repo_root,
                 vcf_imputation_metrics_ready::DEFAULT_VCF_IMPUTATION_METRICS_READY_PATH,
                 "vcf.imputation_metrics readiness",
-                1,
+                2,
             )?;
-            Ok("validated the governed beagle `vcf.imputation_metrics` row end-to-end".to_string())
+            Ok("validated governed Beagle and IMPUTE5 `vcf.imputation_metrics` rows end-to-end"
+                .to_string())
         },
     );
 
@@ -638,14 +655,16 @@ pub(crate) fn render_vcf_all_retained_tools_complete(
                 || report.tool_count != EXPECTED_RETAINED_TOOL_COUNT
                 || report.host_stage_smoke_row_count != EXPECTED_HOST_STAGE_SMOKE_ROW_COUNT
                 || report.container_smoke_row_count != EXPECTED_CONTAINER_SMOKE_ROW_COUNT
+                || report.external_artifact_row_count != EXPECTED_EXTERNAL_ARTIFACT_ROW_COUNT
             {
                 bail!(
-                    "VCF local/container smoke drifted: rows={}, stages={}, tools={}, host_stage_smokes={}, container_smokes={}",
+                    "VCF local/container smoke drifted: rows={}, stages={}, tools={}, host_stage_smokes={}, container_smokes={}, external_artifacts={}",
                     report.row_count,
                     report.stage_count,
                     report.tool_count,
                     report.host_stage_smoke_row_count,
-                    report.container_smoke_row_count
+                    report.container_smoke_row_count,
+                    report.external_artifact_row_count
                 );
             }
             let observed_bindings =
@@ -666,8 +685,11 @@ pub(crate) fn render_vcf_all_retained_tools_complete(
             local_smoke_row_count = report.row_count;
             local_smoke_host_stage_row_count = report.host_stage_smoke_row_count;
             local_smoke_container_row_count = report.container_smoke_row_count;
-            Ok("validated governed host-vs-container smoke coverage for every retained VCF row"
-                .to_string())
+            local_smoke_external_artifact_row_count = report.external_artifact_row_count;
+            Ok(
+                "validated governed host, container, and external-artifact admission coverage for every retained VCF row"
+                    .to_string(),
+            )
         },
     );
 
@@ -683,10 +705,10 @@ pub(crate) fn render_vcf_all_retained_tools_complete(
                     vcf_parser_fixture_coverage::DEFAULT_VCF_PARSER_FIXTURE_COVERAGE_PATH,
                 ),
             )?;
-            if report.row_count != EXPECTED_ACTIVE_ROW_COUNT
+            if report.row_count != active_binding_keys.len()
                 || report.stage_count != EXPECTED_ACTIVE_STAGE_COUNT
-                || report.tool_count != EXPECTED_ACTIVE_TOOL_COUNT
-                || report.covered_row_count != EXPECTED_ACTIVE_ROW_COUNT
+                || report.tool_count != active_tool_count
+                || report.covered_row_count != active_binding_keys.len()
                 || report.missing_row_count != 0
                 || (report.parser_fixture_coverage_percent - 100.0).abs() > f64::EPSILON
             {
@@ -734,7 +756,7 @@ pub(crate) fn render_vcf_all_retained_tools_complete(
                 repo_root,
                 PathBuf::from(vcf_rendered_commands::DEFAULT_VCF_RENDERED_COMMANDS_PATH),
             )?;
-            if report.row_count != EXPECTED_ACTIVE_ROW_COUNT {
+            if report.row_count != active_binding_keys.len() {
                 bail!(
                     "VCF rendered commands drifted from the active VCF binding slice: rows={}",
                     report.row_count
@@ -780,8 +802,8 @@ pub(crate) fn render_vcf_all_retained_tools_complete(
                 repo_root,
                 PathBuf::from(vcf_report_map::DEFAULT_VCF_REPORT_MAP_PATH),
             )?;
-            if expected_results_report.row_count != EXPECTED_ACTIVE_ROW_COUNT
-                || report.row_count != EXPECTED_ACTIVE_ROW_COUNT
+            if expected_results_report.row_count != active_binding_keys.len()
+                || report.row_count != active_binding_keys.len()
             {
                 bail!(
                     "VCF expected-result/report-map counts drifted: expected_results={}, report_map={}",
@@ -848,15 +870,16 @@ pub(crate) fn render_vcf_all_retained_tools_complete(
         local_smoke_row_count,
         local_smoke_host_stage_row_count,
         local_smoke_container_row_count,
+        local_smoke_external_artifact_row_count,
         report_map_row_count,
         ok: failed_goal_count == 0
             && checks.len() == EXPECTED_CHECKED_GOAL_COUNT
             && retained_row_count == EXPECTED_RETAINED_ROW_COUNT
-            && active_row_count == EXPECTED_ACTIVE_ROW_COUNT
-            && expected_result_row_count == EXPECTED_ACTIVE_ROW_COUNT
-            && rendered_command_row_count == EXPECTED_ACTIVE_ROW_COUNT
-            && parser_fixture_row_count == EXPECTED_ACTIVE_ROW_COUNT
-            && report_map_row_count == EXPECTED_ACTIVE_ROW_COUNT
+            && active_row_count == active_binding_keys.len()
+            && expected_result_row_count == active_row_count
+            && rendered_command_row_count == active_row_count
+            && parser_fixture_row_count == active_row_count
+            && report_map_row_count == active_row_count
             && local_smoke_row_count == EXPECTED_RETAINED_ROW_COUNT,
         checks,
     };

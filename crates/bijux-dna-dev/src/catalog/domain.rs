@@ -35,7 +35,7 @@ pub fn domain_registry() -> Vec<DomainCommandDefinition> {
         ),
         native(
             "check-external-tool-policy",
-            "Validate the external tool allowlist against domain fixtures.",
+            "Validate the catalog external-artifact projection against domain fixtures.",
             NativeDomainCommandKey::CheckExternalToolPolicy,
         ),
         native(

@@ -10,13 +10,13 @@ output.
 
 ## Published evidence and current qualification
 
-- Qualification evidence chain: **current**; the current catalog recognizes **83 build**, **85 runtime**, and **83 freshness** passes ([details](../reports/qualification.md)).
-- Published image inventory records **current 85, unsupported 4**; their published identities support the current qualification chain ([details](../reports/image-inventory.md)).
-- Published canonical storage report: **passed**, **2 obsolete images quarantined reversibly** ([details](../reports/image-storage.md)).
-- Published isolated rebuild: **passed**, **87 retained images at that campaign commit** ([details](../reports/lunarc-image-rebuild.md)).
-- Published targeted image refresh: **passed**, **1 changed recipe rebuilt and readmitted** ([details](../reports/lunarc-image-refresh.md)).
-- Published version/help campaign: **passed**, **85 images passed at that campaign commit** ([details](../reports/runtime-verification.md)).
-- Final run records: **71 records**, **71 execution passes**; **47** retained tools pass their declared real-data stage and **0** have scientific acceptance ([runs](../reports/run-evidence.md), [qualification](../reports/qualification.md)).
+- Qualification report freshness: **historical_unvalidated**; the historical report records **83 build**, **85 runtime**, and **83 freshness** passes ([details](../reports/qualification.md)).
+- Published image inventory (**historical_unvalidated**) records **current 85, unsupported 4**; these counts are historical and do not establish a current evidence chain ([details](../reports/image-inventory.md)).
+- Published canonical storage report (**historical_unvalidated**): **passed**, **2 obsolete images quarantined reversibly** ([details](../reports/image-storage.md)).
+- Published isolated rebuild (**historical_unvalidated**): **passed**, **87 retained images at that campaign commit** ([details](../reports/lunarc-image-rebuild.md)).
+- Published targeted image refresh (**historical_unvalidated**): **passed**, **1 changed recipe rebuilt and readmitted** ([details](../reports/lunarc-image-refresh.md)).
+- Published version/help campaign (**historical_unvalidated**): **passed**, **85 images passed at that campaign commit** ([details](../reports/runtime-verification.md)).
+- Final run records (**historical_unvalidated**): **71 records**, **71 execution passes**; the historical qualification report records **47** real-data passes and **0** scientific acceptances ([runs](../reports/run-evidence.md), [qualification](../reports/qualification.md)).
 - Build, runtime, real execution, science, benchmark, security, and release are independent evidence dimensions.
 
 ## Strict TOC
@@ -40,11 +40,11 @@ output.
 - Tool ID contract: [containers/docs/TOOL_IDS_CONTRACT.md](TOOL_IDS_CONTRACT.md)
 
 ## Authority
-- Canonical container identity, support disposition, ownership, runtime support, and evidence requirements: [container catalog](../contracts/catalog.toml).
+- Canonical container identity, product support, artifact delivery, redistribution permission, ownership, runtime support, and evidence requirements: [container catalog](../contracts/catalog.toml).
 - Immutable admitted images: [image inventory](../reports/image-inventory.md).
 - Canonical image-root reconciliation: [reversible storage evidence](../reports/image-storage.md).
 - Rebuild reproducibility: [complete LUNARC image rebuild](../reports/lunarc-image-rebuild.md).
-- Support disposition manifest: [containers/TOOL_IDS.txt](../TOOL_IDS.txt); qualification is derived separately from immutable evidence.
+- Product support and artifact-delivery manifest: [containers/TOOL_IDS.txt](../TOOL_IDS.txt); qualification and external-artifact availability are derived separately from immutable evidence.
 - Container version metadata: [versions.toml](../versions/versions.toml) and its generated [lock.json](../versions/lock.json).
 - GHCR Docker arm64 matrix: `cargo run -q -p bijux-dna-dev -- containers run generate-ghcr-publish-matrix -- artifacts/containers/ghcr/docker-arm64-publish-matrix.json`.
 - GHCR Apptainer matrix: `cargo run -q -p bijux-dna-dev -- containers run generate-ghcr-apptainer-publish-matrix -- artifacts/containers/ghcr/apptainer-publish-matrix.json`.
@@ -52,100 +52,100 @@ output.
 
 ## Container implementation surface
 
-This table identifies retained and unsupported container implementations.
-Disposition is not production qualification; use the evidence reports above
+This table identifies product support independently from artifact delivery and redistribution permission.
+These catalog dimensions are not production qualification; use the evidence reports above
 for scientific or release decisions.
 `apptainer_recipe_owner` describes recipe maintenance, not upstream tool
 authorship. Upstream source and license remain catalog-owned facts.
 
-| tool_id | disposition | apptainer_recipe_owner | docker_source |
-|---|---|---|---|
-| `adapterremoval` | `retained` | `bijux-genomics` | `arm64` |
-| `addeam` | `retained` | `bijux-genomics` | `arm64` |
-| `alientrimmer` | `retained` | `bijux-genomics` | `arm64` |
-| `angsd` | `unsupported` | `none` | `none` |
-| `atropos` | `retained` | `bijux-genomics` | `arm64` |
-| `authenticct` | `retained` | `bijux-genomics` | `arm64` |
-| `bamtools` | `retained` | `bijux-genomics` | `arm64` |
-| `bamutil` | `retained` | `bijux-genomics` | `arm64` |
-| `bayeshammer` | `retained` | `bijux-genomics` | `arm64` |
-| `bbduk` | `retained` | `bijux-genomics` | `arm64` |
-| `bbmerge` | `retained` | `bijux-genomics` | `arm64` |
-| `bcftools` | `retained` | `bijux-genomics` | `arm64` |
-| `beagle` | `retained` | `bijux-genomics` | `arm64` |
-| `bedtools` | `retained` | `bijux-genomics` | `arm64` |
-| `bijux_dna` | `retained` | `bijux-genomics` | `arm64` |
-| `bowtie2` | `retained` | `bijux-genomics` | `arm64` |
-| `bowtie2_build` | `retained` | `bijux-genomics` | `arm64` |
-| `bracken` | `retained` | `bijux-genomics` | `arm64` |
-| `bwa` | `retained` | `bijux-genomics` | `arm64` |
-| `centrifuge` | `retained` | `bijux-genomics` | `arm64` |
-| `clumpify` | `retained` | `bijux-genomics` | `arm64` |
-| `contammix` | `retained` | `bijux-genomics` | `arm64` |
-| `cutadapt` | `retained` | `bijux-genomics` | `arm64` |
-| `dada2` | `retained` | `bijux-genomics` | `arm64` |
-| `damageprofiler` | `retained` | `bijux-genomics` | `arm64` |
-| `diamond` | `retained` | `bijux-genomics` | `arm64` |
-| `dustmasker` | `retained` | `bijux-genomics` | `arm64` |
-| `eagle` | `retained` | `bijux-genomics` | `arm64` |
-| `eigensoft` | `retained` | `bijux-genomics` | `arm64` |
-| `fastp` | `retained` | `bijux-genomics` | `arm64` |
-| `fastq_scan` | `retained` | `bijux-genomics` | `arm64` |
-| `fastq_screen` | `retained` | `bijux-genomics` | `arm64` |
-| `fastqc` | `retained` | `bijux-genomics` | `arm64` |
-| `fastqvalidator` | `retained` | `bijux-genomics` | `arm64` |
-| `fastuniq` | `unsupported` | `none` | `none` |
-| `fastx_clipper` | `retained` | `bijux-genomics` | `arm64` |
-| `flash2` | `retained` | `bijux-genomics` | `arm64` |
-| `fqtools` | `retained` | `bijux-genomics` | `arm64` |
-| `gatk` | `retained` | `bijux-genomics` | `arm64` |
-| `germline` | `retained` | `bijux-genomics` | `arm64` |
-| `glimpse` | `retained` | `bijux-genomics` | `arm64` |
-| `ibdhap` | `retained` | `bijux-genomics` | `arm64` |
-| `ibdne` | `retained` | `bijux-genomics` | `arm64` |
-| `ibdseq` | `retained` | `bijux-genomics` | `arm64` |
-| `impute5` | `unsupported` | `none` | `none` |
-| `kaiju` | `retained` | `bijux-genomics` | `arm64` |
-| `king` | `retained` | `bijux-genomics` | `arm64` |
-| `kraken2` | `retained` | `bijux-genomics` | `arm64` |
-| `krakenuniq` | `retained` | `bijux-genomics` | `arm64` |
-| `leehom` | `retained` | `bijux-genomics` | `arm64` |
-| `lighter` | `retained` | `bijux-genomics` | `arm64` |
-| `mapdamage2` | `retained` | `bijux-genomics` | `arm64` |
-| `metaphlan` | `retained` | `bijux-genomics` | `arm64` |
-| `minimac4` | `retained` | `bijux-genomics` | `arm64` |
-| `mosdepth` | `retained` | `bijux-genomics` | `none` |
-| `multiqc` | `retained` | `bijux-genomics` | `arm64` |
-| `musket` | `retained` | `bijux-genomics` | `arm64` |
-| `ngsbriggs` | `unsupported` | `none` | `none` |
-| `pear` | `retained` | `bijux-genomics` | `arm64` |
-| `picard` | `retained` | `bijux-genomics` | `arm64` |
-| `plink` | `retained` | `bijux-genomics` | `none` |
-| `plink2` | `retained` | `bijux-genomics` | `arm64` |
-| `pmdtools` | `retained` | `bijux-genomics` | `arm64` |
-| `preseq` | `retained` | `bijux-genomics` | `arm64` |
-| `prinseq` | `retained` | `bijux-genomics` | `arm64` |
-| `pydamage` | `retained` | `bijux-genomics` | `arm64` |
-| `qualimap` | `retained` | `bijux-genomics` | `arm64` |
-| `rcorrector` | `retained` | `bijux-genomics` | `arm64` |
-| `rxy` | `retained` | `bijux-genomics` | `arm64` |
-| `samtools` | `retained` | `bijux-genomics` | `arm64` |
-| `schmutzi` | `retained` | `bijux-genomics` | `arm64` |
-| `seqfu` | `retained` | `bijux-genomics` | `arm64` |
-| `seqkit` | `retained` | `bijux-genomics` | `arm64` |
-| `seqkit_stats` | `retained` | `bijux-genomics` | `arm64` |
-| `seqprep` | `retained` | `bijux-genomics` | `arm64` |
-| `seqpurge` | `retained` | `bijux-genomics` | `arm64` |
-| `seqtk` | `retained` | `bijux-genomics` | `arm64` |
-| `shapeit` | `retained` | `bijux-genomics` | `none` |
-| `shapeit5` | `retained` | `bijux-genomics` | `none` |
-| `skewer` | `retained` | `bijux-genomics` | `arm64` |
-| `sortmerna` | `retained` | `bijux-genomics` | `none` |
-| `spades` | `retained` | `bijux-genomics` | `arm64` |
-| `star` | `retained` | `bijux-genomics` | `arm64` |
-| `trim_galore` | `retained` | `bijux-genomics` | `arm64` |
-| `trimmomatic` | `retained` | `bijux-genomics` | `arm64` |
-| `umi_tools` | `retained` | `bijux-genomics` | `arm64` |
-| `verifybamid2` | `retained` | `bijux-genomics` | `arm64` |
-| `vsearch` | `retained` | `bijux-genomics` | `arm64` |
-| `yleaf` | `retained` | `bijux-genomics` | `arm64` |
+| tool_id | product_support | artifact_delivery | redistribution_permitted | apptainer_recipe_owner | docker_source |
+|---|---|---|---|---|---|
+| `adapterremoval` | `supported` | `redistributable_image` | `true` | `bijux-genomics` | `arm64` |
+| `addeam` | `supported` | `redistributable_image` | `true` | `bijux-genomics` | `arm64` |
+| `alientrimmer` | `supported` | `redistributable_image` | `true` | `bijux-genomics` | `arm64` |
+| `angsd` | `supported` | `external_artifact` | `false` | `none` | `none` |
+| `atropos` | `supported` | `redistributable_image` | `true` | `bijux-genomics` | `arm64` |
+| `authenticct` | `supported` | `redistributable_image` | `true` | `bijux-genomics` | `arm64` |
+| `bamtools` | `supported` | `redistributable_image` | `true` | `bijux-genomics` | `arm64` |
+| `bamutil` | `supported` | `redistributable_image` | `true` | `bijux-genomics` | `arm64` |
+| `bayeshammer` | `supported` | `redistributable_image` | `true` | `bijux-genomics` | `arm64` |
+| `bbduk` | `supported` | `redistributable_image` | `true` | `bijux-genomics` | `arm64` |
+| `bbmerge` | `supported` | `redistributable_image` | `true` | `bijux-genomics` | `arm64` |
+| `bcftools` | `supported` | `redistributable_image` | `true` | `bijux-genomics` | `arm64` |
+| `beagle` | `supported` | `redistributable_image` | `true` | `bijux-genomics` | `arm64` |
+| `bedtools` | `supported` | `redistributable_image` | `true` | `bijux-genomics` | `arm64` |
+| `bijux_dna` | `supported` | `redistributable_image` | `true` | `bijux-genomics` | `arm64` |
+| `bowtie2` | `supported` | `redistributable_image` | `true` | `bijux-genomics` | `arm64` |
+| `bowtie2_build` | `supported` | `redistributable_image` | `true` | `bijux-genomics` | `arm64` |
+| `bracken` | `supported` | `redistributable_image` | `true` | `bijux-genomics` | `arm64` |
+| `bwa` | `supported` | `redistributable_image` | `true` | `bijux-genomics` | `arm64` |
+| `centrifuge` | `supported` | `redistributable_image` | `true` | `bijux-genomics` | `arm64` |
+| `clumpify` | `supported` | `redistributable_image` | `true` | `bijux-genomics` | `arm64` |
+| `contammix` | `supported` | `redistributable_image` | `true` | `bijux-genomics` | `arm64` |
+| `cutadapt` | `supported` | `redistributable_image` | `true` | `bijux-genomics` | `arm64` |
+| `dada2` | `supported` | `redistributable_image` | `true` | `bijux-genomics` | `arm64` |
+| `damageprofiler` | `supported` | `redistributable_image` | `true` | `bijux-genomics` | `arm64` |
+| `diamond` | `supported` | `redistributable_image` | `true` | `bijux-genomics` | `arm64` |
+| `dustmasker` | `supported` | `redistributable_image` | `true` | `bijux-genomics` | `arm64` |
+| `eagle` | `supported` | `redistributable_image` | `true` | `bijux-genomics` | `arm64` |
+| `eigensoft` | `supported` | `redistributable_image` | `true` | `bijux-genomics` | `arm64` |
+| `fastp` | `supported` | `redistributable_image` | `true` | `bijux-genomics` | `arm64` |
+| `fastq_scan` | `supported` | `redistributable_image` | `true` | `bijux-genomics` | `arm64` |
+| `fastq_screen` | `supported` | `redistributable_image` | `true` | `bijux-genomics` | `arm64` |
+| `fastqc` | `supported` | `redistributable_image` | `true` | `bijux-genomics` | `arm64` |
+| `fastqvalidator` | `supported` | `redistributable_image` | `true` | `bijux-genomics` | `arm64` |
+| `fastuniq` | `supported` | `external_artifact` | `false` | `none` | `none` |
+| `fastx_clipper` | `supported` | `redistributable_image` | `true` | `bijux-genomics` | `arm64` |
+| `flash2` | `supported` | `redistributable_image` | `true` | `bijux-genomics` | `arm64` |
+| `fqtools` | `supported` | `redistributable_image` | `true` | `bijux-genomics` | `arm64` |
+| `gatk` | `supported` | `redistributable_image` | `true` | `bijux-genomics` | `arm64` |
+| `germline` | `supported` | `redistributable_image` | `true` | `bijux-genomics` | `arm64` |
+| `glimpse` | `supported` | `redistributable_image` | `true` | `bijux-genomics` | `arm64` |
+| `ibdhap` | `supported` | `redistributable_image` | `true` | `bijux-genomics` | `arm64` |
+| `ibdne` | `supported` | `redistributable_image` | `true` | `bijux-genomics` | `arm64` |
+| `ibdseq` | `supported` | `redistributable_image` | `true` | `bijux-genomics` | `arm64` |
+| `impute5` | `supported` | `external_artifact` | `false` | `none` | `none` |
+| `kaiju` | `supported` | `redistributable_image` | `true` | `bijux-genomics` | `arm64` |
+| `king` | `supported` | `redistributable_image` | `true` | `bijux-genomics` | `arm64` |
+| `kraken2` | `supported` | `redistributable_image` | `true` | `bijux-genomics` | `arm64` |
+| `krakenuniq` | `supported` | `redistributable_image` | `true` | `bijux-genomics` | `arm64` |
+| `leehom` | `supported` | `redistributable_image` | `true` | `bijux-genomics` | `arm64` |
+| `lighter` | `supported` | `redistributable_image` | `true` | `bijux-genomics` | `arm64` |
+| `mapdamage2` | `supported` | `redistributable_image` | `true` | `bijux-genomics` | `arm64` |
+| `metaphlan` | `supported` | `redistributable_image` | `true` | `bijux-genomics` | `arm64` |
+| `minimac4` | `supported` | `redistributable_image` | `true` | `bijux-genomics` | `arm64` |
+| `mosdepth` | `supported` | `redistributable_image` | `true` | `bijux-genomics` | `none` |
+| `multiqc` | `supported` | `redistributable_image` | `true` | `bijux-genomics` | `arm64` |
+| `musket` | `supported` | `redistributable_image` | `true` | `bijux-genomics` | `arm64` |
+| `ngsbriggs` | `supported` | `external_artifact` | `false` | `none` | `none` |
+| `pear` | `supported` | `redistributable_image` | `true` | `bijux-genomics` | `arm64` |
+| `picard` | `supported` | `redistributable_image` | `true` | `bijux-genomics` | `arm64` |
+| `plink` | `supported` | `redistributable_image` | `true` | `bijux-genomics` | `none` |
+| `plink2` | `supported` | `redistributable_image` | `true` | `bijux-genomics` | `arm64` |
+| `pmdtools` | `supported` | `redistributable_image` | `true` | `bijux-genomics` | `arm64` |
+| `preseq` | `supported` | `redistributable_image` | `true` | `bijux-genomics` | `arm64` |
+| `prinseq` | `supported` | `redistributable_image` | `true` | `bijux-genomics` | `arm64` |
+| `pydamage` | `supported` | `redistributable_image` | `true` | `bijux-genomics` | `arm64` |
+| `qualimap` | `supported` | `redistributable_image` | `true` | `bijux-genomics` | `arm64` |
+| `rcorrector` | `supported` | `redistributable_image` | `true` | `bijux-genomics` | `arm64` |
+| `rxy` | `supported` | `redistributable_image` | `true` | `bijux-genomics` | `arm64` |
+| `samtools` | `supported` | `redistributable_image` | `true` | `bijux-genomics` | `arm64` |
+| `schmutzi` | `supported` | `redistributable_image` | `true` | `bijux-genomics` | `arm64` |
+| `seqfu` | `supported` | `redistributable_image` | `true` | `bijux-genomics` | `arm64` |
+| `seqkit` | `supported` | `redistributable_image` | `true` | `bijux-genomics` | `arm64` |
+| `seqkit_stats` | `supported` | `redistributable_image` | `true` | `bijux-genomics` | `arm64` |
+| `seqprep` | `supported` | `redistributable_image` | `true` | `bijux-genomics` | `arm64` |
+| `seqpurge` | `supported` | `redistributable_image` | `true` | `bijux-genomics` | `arm64` |
+| `seqtk` | `supported` | `redistributable_image` | `true` | `bijux-genomics` | `arm64` |
+| `shapeit` | `supported` | `redistributable_image` | `true` | `bijux-genomics` | `none` |
+| `shapeit5` | `supported` | `redistributable_image` | `true` | `bijux-genomics` | `none` |
+| `skewer` | `supported` | `redistributable_image` | `true` | `bijux-genomics` | `arm64` |
+| `sortmerna` | `supported` | `redistributable_image` | `true` | `bijux-genomics` | `none` |
+| `spades` | `supported` | `redistributable_image` | `true` | `bijux-genomics` | `arm64` |
+| `star` | `supported` | `redistributable_image` | `true` | `bijux-genomics` | `arm64` |
+| `trim_galore` | `supported` | `redistributable_image` | `true` | `bijux-genomics` | `arm64` |
+| `trimmomatic` | `supported` | `redistributable_image` | `true` | `bijux-genomics` | `arm64` |
+| `umi_tools` | `supported` | `redistributable_image` | `true` | `bijux-genomics` | `arm64` |
+| `verifybamid2` | `supported` | `redistributable_image` | `true` | `bijux-genomics` | `arm64` |
+| `vsearch` | `supported` | `redistributable_image` | `true` | `bijux-genomics` | `arm64` |
+| `yleaf` | `supported` | `redistributable_image` | `true` | `bijux-genomics` | `arm64` |

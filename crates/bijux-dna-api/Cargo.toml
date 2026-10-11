@@ -28,6 +28,7 @@ bijux-dna-stage-contract.workspace = true
 bijux-dna-stages-vcf.workspace = true
 bijux-dna-engine.workspace = true
 bijux-dna-containers.workspace = true
+bijux-dna-containers-qa.workspace = true
 bijux-dna-analyze = { workspace = true, features = ["sqlite"] }
 bijux-dna-planner-fastq.workspace = true
 bijux-dna-planner-bam.workspace = true
@@ -50,7 +51,6 @@ default = []
 insta = { workspace = true, features = ["json"] }
 tempfile = { workspace = true }
 bijux-dna-testkit.workspace = true
-nix.workspace = true
 
 [lints]
 workspace = true

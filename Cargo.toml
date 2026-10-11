@@ -63,8 +63,8 @@ schemars = { version = "1.2", features = ["derive"] }
 toml = "1.1"
 cargo_metadata = "0.18"
 assert_cmd = "2"
+wait-timeout = "0.2.1"
 predicates = "3"
-nix = { version = "0.31", features = ["signal", "process"] }
 filetime = "0.2"
 fs4 = "0.13.1"
 serde_yaml = "0.9"
@@ -91,6 +91,7 @@ bijux-dna-domain-fastq = { path = "crates/bijux-dna-domain-fastq" }
 bijux-dna-domain-vcf = { path = "crates/bijux-dna-domain-vcf" }
 bijux-dna-engine = { path = "crates/bijux-dna-engine" }
 bijux-dna-containers = { path = "crates/bijux-dna-containers" }
+bijux-dna-containers-qa = { path = "crates/bijux-dna-containers-qa" }
 bijux-dna-infra = { path = "crates/bijux-dna-infra" }
 bijux-dna-pipelines = { path = "crates/bijux-dna-pipelines" }
 bijux-dna-planner-bam = { path = "crates/bijux-dna-planner-bam" }

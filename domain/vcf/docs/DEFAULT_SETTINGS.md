@@ -84,3 +84,5 @@ single_tool_justification: vcf.prepare_reference_panel
 single_tool_justification: vcf.call_diploid
 single_tool_justification: vcf.roh
 single_tool_justification: vcf.demography
+single_tool_justification: vcf.damage_filter
+single_tool_justification: vcf.gl_propagation

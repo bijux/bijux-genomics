@@ -11,9 +11,11 @@ use super::{
     SbomFormat, SecretScanEvidence, SecurityArtifactIdentity, SecuritySourceIdentity,
     StructuralSecurityEvidence, ToolSecurityEvidence, VulnerabilityDatabaseStatus,
     VulnerabilityEvidence, VulnerabilityScannerIdentity, VulnerabilitySeverity,
-    VulnerabilityWaiver, CONTAINER_SECURITY_EVIDENCE_SCHEMA_V1,
+    VulnerabilityWaiver, CONTAINER_SECURITY_EVIDENCE_SCHEMA_V2,
 };
-use crate::qualification::{EvidenceVerdict, SupportDisposition};
+use crate::qualification::{
+    ArtifactAvailability, ArtifactDelivery, EvidenceVerdict, ProductSupport,
+};
 
 #[derive(Debug, Clone)]
 pub struct SecurityEvidenceDerivationRequest {
@@ -69,17 +71,31 @@ pub fn classify_vulnerability_database(
 
 #[derive(Debug, Clone)]
 pub enum SecurityToolObservation {
-    Unsupported { tool_id: String, version: String },
+    NoArtifact(NoSecurityArtifactObservation),
     Collected(Box<CollectedSecurityToolObservation>),
+}
+
+#[derive(Debug, Clone)]
+pub struct NoSecurityArtifactObservation {
+    pub tool_id: String,
+    pub version: String,
+    pub product_support: ProductSupport,
+    pub artifact_delivery: ArtifactDelivery,
+    pub redistribution_permitted: bool,
+    pub availability: ArtifactAvailability,
+    pub reason: Option<String>,
 }
 
 #[derive(Debug, Clone)]
 pub struct CollectedSecurityToolObservation {
     pub tool_id: String,
     pub version: String,
-    pub image_sha256: String,
+    pub product_support: ProductSupport,
+    pub artifact_delivery: ArtifactDelivery,
+    pub redistribution_permitted: bool,
+    pub artifact_sha256: String,
     pub tool_contract_sha256: String,
-    pub build_evidence_id: String,
+    pub admission_evidence_sha256: String,
     pub source_identity: SecuritySourceIdentity,
     pub structural: StructuralProbeObservation,
     pub sbom_sha256: String,
@@ -124,11 +140,14 @@ pub fn derive_security_evidence(
     let mut tools = BTreeMap::new();
     for (tool_id, observation) in request.tools {
         let evidence = match observation {
-            SecurityToolObservation::Unsupported { tool_id: observed, version } => {
-                if observed != tool_id {
-                    bail!("security observation key {tool_id} differs from tool {observed}");
+            SecurityToolObservation::NoArtifact(observed) => {
+                if observed.tool_id != tool_id {
+                    bail!(
+                        "security observation key {tool_id} differs from tool {}",
+                        observed.tool_id
+                    );
                 }
-                unsupported_evidence(observed, version)
+                no_artifact_evidence(observed)?
             }
             SecurityToolObservation::Collected(observed) => {
                 if observed.tool_id != tool_id {
@@ -148,7 +167,7 @@ pub fn derive_security_evidence(
         tools.insert(tool_id, evidence);
     }
     let publication = ContainerSecurityEvidencePublication {
-        schema_version: CONTAINER_SECURITY_EVIDENCE_SCHEMA_V1.to_string(),
+        schema_version: CONTAINER_SECURITY_EVIDENCE_SCHEMA_V2.to_string(),
         evaluated_at_utc: request.evaluated_at_utc,
         repository_commit: request.repository_commit,
         catalog_sha256: request.catalog_sha256,
@@ -162,14 +181,41 @@ pub fn derive_security_evidence(
     Ok(publication)
 }
 
-fn unsupported_evidence(tool_id: String, version: String) -> ToolSecurityEvidence {
-    ToolSecurityEvidence {
-        tool_id,
-        version,
-        support_disposition: SupportDisposition::Unsupported,
-        image_sha256: None,
+fn no_artifact_evidence(
+    observation: NoSecurityArtifactObservation,
+) -> Result<ToolSecurityEvidence> {
+    let (verdict, reasons) = match observation.product_support {
+        ProductSupport::Supported => {
+            let reason =
+                observation.reason.filter(|reason| !reason.trim().is_empty()).ok_or_else(|| {
+                    anyhow::anyhow!("supported tool without an artifact requires a reason")
+                })?;
+            let verdict = match observation.availability {
+                ArtifactAvailability::BlockedExternalAccess => EvidenceVerdict::Blocked,
+                ArtifactAvailability::Unavailable => EvidenceVerdict::Missing,
+                ArtifactAvailability::Admitted => {
+                    bail!("admitted supported tool requires collected security evidence")
+                }
+            };
+            (verdict, vec![reason])
+        }
+        ProductSupport::Retired | ProductSupport::Excluded => {
+            if observation.reason.is_some() {
+                bail!("non-supported tool security evidence must not carry a blocker reason");
+            }
+            (EvidenceVerdict::NotApplicable, Vec::new())
+        }
+    };
+    Ok(ToolSecurityEvidence {
+        tool_id: observation.tool_id,
+        version: observation.version,
+        product_support: observation.product_support,
+        artifact_delivery: observation.artifact_delivery,
+        redistribution_permitted: observation.redistribution_permitted,
+        availability: observation.availability,
+        artifact_sha256: None,
         tool_contract_sha256: None,
-        build_evidence_id: None,
+        admission_evidence_sha256: None,
         source_identity: None,
         structural: None,
         sbom: None,
@@ -177,9 +223,9 @@ fn unsupported_evidence(tool_id: String, version: String) -> ToolSecurityEvidenc
         secret_scan: None,
         runtime_policy: None,
         waivers: Vec::new(),
-        verdict: EvidenceVerdict::NotApplicable,
-        reasons: Vec::new(),
-    }
+        verdict,
+        reasons,
+    })
 }
 
 fn collected_evidence(
@@ -241,10 +287,13 @@ fn collected_evidence(
     Ok(ToolSecurityEvidence {
         tool_id: observation.tool_id,
         version: observation.version,
-        support_disposition: SupportDisposition::Retained,
-        image_sha256: Some(observation.image_sha256.clone()),
+        product_support: observation.product_support,
+        artifact_delivery: observation.artifact_delivery,
+        redistribution_permitted: observation.redistribution_permitted,
+        availability: ArtifactAvailability::Admitted,
+        artifact_sha256: Some(observation.artifact_sha256.clone()),
         tool_contract_sha256: Some(observation.tool_contract_sha256),
-        build_evidence_id: Some(observation.build_evidence_id),
+        admission_evidence_sha256: Some(observation.admission_evidence_sha256),
         source_identity: Some(observation.source_identity),
         structural: Some(StructuralSecurityEvidence {
             inspection_sha256: observation.structural.inspection_sha256,
@@ -258,7 +307,7 @@ fn collected_evidence(
             sha256: observation.sbom_sha256,
             generator: "syft".to_string(),
             generator_version: sbom_generator_version.to_string(),
-            source_image_sha256: observation.image_sha256,
+            source_artifact_sha256: observation.artifact_sha256,
         }),
         vulnerabilities: Some(VulnerabilityEvidence {
             scanner: scanner.name.clone(),
@@ -354,9 +403,12 @@ mod tests {
         CollectedSecurityToolObservation {
             tool_id: "samtools".to_string(),
             version: "1.20".to_string(),
-            image_sha256: digest('1'),
+            product_support: ProductSupport::Supported,
+            artifact_delivery: ArtifactDelivery::RedistributableImage,
+            redistribution_permitted: true,
+            artifact_sha256: digest('1'),
             tool_contract_sha256: digest('2'),
-            build_evidence_id: digest('3'),
+            admission_evidence_sha256: digest('3'),
             source_identity: SecuritySourceIdentity::SourceSha256(digest('4')),
             structural: StructuralProbeObservation {
                 inspection_sha256: digest('5'),
@@ -417,6 +469,50 @@ mod tests {
         let publication = derive_security_evidence(request(collected()))?;
         assert_eq!(publication.tools["samtools"].verdict, EvidenceVerdict::Passed);
         assert_eq!(publication.policy_sha256, security_evidence_policy_sha256());
+        Ok(())
+    }
+
+    #[test]
+    fn supported_external_access_blocker_is_not_unsupported() -> Result<()> {
+        let mut request = request(collected());
+        request.tools = BTreeMap::from([(
+            "angsd".to_string(),
+            SecurityToolObservation::NoArtifact(NoSecurityArtifactObservation {
+                tool_id: "angsd".to_string(),
+                version: "0.941".to_string(),
+                product_support: ProductSupport::Supported,
+                artifact_delivery: ArtifactDelivery::ExternalArtifact,
+                redistribution_permitted: false,
+                availability: ArtifactAvailability::BlockedExternalAccess,
+                reason: Some("institutional artifact access has not been supplied".to_string()),
+            }),
+        )]);
+        let publication = derive_security_evidence(request)?;
+        let evidence = &publication.tools["angsd"];
+        assert_eq!(evidence.product_support, ProductSupport::Supported);
+        assert_eq!(evidence.verdict, EvidenceVerdict::Blocked);
+        assert_eq!(evidence.availability, ArtifactAvailability::BlockedExternalAccess);
+        Ok(())
+    }
+
+    #[test]
+    fn admitted_external_artifact_can_receive_collected_security_evidence() -> Result<()> {
+        let mut observation = collected();
+        observation.tool_id = "impute5".to_string();
+        observation.product_support = ProductSupport::Supported;
+        observation.artifact_delivery = ArtifactDelivery::ExternalArtifact;
+        observation.redistribution_permitted = false;
+        let mut request = request(observation.clone());
+        request.tools = BTreeMap::from([(
+            "impute5".to_string(),
+            SecurityToolObservation::Collected(Box::new(observation)),
+        )]);
+        let publication = derive_security_evidence(request)?;
+        let evidence = &publication.tools["impute5"];
+        assert_eq!(evidence.artifact_delivery, ArtifactDelivery::ExternalArtifact);
+        assert!(!evidence.redistribution_permitted);
+        assert_eq!(evidence.availability, ArtifactAvailability::Admitted);
+        assert_eq!(evidence.verdict, EvidenceVerdict::Passed);
         Ok(())
     }
 

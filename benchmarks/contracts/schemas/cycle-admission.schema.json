@@ -1,0 +1,176 @@
+{
+  "$defs": {
+    "BenchmarkAttemptIdentity": {
+      "additionalProperties": false,
+      "properties": {
+        "attempt_id": {
+          "type": "string"
+        },
+        "campaign_id": {
+          "type": "string"
+        },
+        "run": {
+          "$ref": "#/$defs/BenchmarkRunIdentity"
+        },
+        "tool_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "campaign_id",
+        "run",
+        "attempt_id",
+        "tool_id"
+      ],
+      "type": "object"
+    },
+    "BenchmarkCycleAdmissionState": {
+      "enum": [
+        "admitted",
+        "already_admitted",
+        "not_ready",
+        "failed"
+      ],
+      "type": "string"
+    },
+    "BenchmarkCycleAdmissionUnit": {
+      "additionalProperties": false,
+      "properties": {
+        "current_status": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/BenchmarkLifecycleStatus"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "error": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "evidence": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/BenchmarkEvidenceReference"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "identity": {
+          "$ref": "#/$defs/BenchmarkAttemptIdentity"
+        },
+        "prior_status": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/BenchmarkLifecycleStatus"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "state": {
+          "$ref": "#/$defs/BenchmarkCycleAdmissionState"
+        }
+      },
+      "required": [
+        "identity",
+        "state"
+      ],
+      "type": "object"
+    },
+    "BenchmarkEvidenceReference": {
+      "additionalProperties": false,
+      "properties": {
+        "sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "size_bytes": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "uri": {
+          "pattern": "^study://[^/].+$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "uri",
+        "sha256",
+        "size_bytes"
+      ],
+      "type": "object"
+    },
+    "BenchmarkLifecycleStatus": {
+      "enum": [
+        "planned",
+        "ready",
+        "submitted",
+        "running",
+        "collecting",
+        "passed",
+        "failed",
+        "cancelled",
+        "superseded",
+        "blocked_external"
+      ],
+      "type": "string"
+    },
+    "BenchmarkRunIdentity": {
+      "additionalProperties": false,
+      "properties": {
+        "domain": {
+          "type": "string"
+        },
+        "run_id": {
+          "type": "string"
+        },
+        "stage_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "run_id",
+        "domain",
+        "stage_id"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "admitted_at_utc": {
+      "type": "string"
+    },
+    "campaign_id": {
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "bijux.benchmark.cycle_admission.v1",
+      "type": "string"
+    },
+    "units": {
+      "items": {
+        "$ref": "#/$defs/BenchmarkCycleAdmissionUnit"
+      },
+      "type": "array"
+    }
+  },
+  "required": [
+    "schema_version",
+    "campaign_id",
+    "admitted_at_utc",
+    "units"
+  ],
+  "title": "BenchmarkCycleAdmission",
+  "type": "object"
+}

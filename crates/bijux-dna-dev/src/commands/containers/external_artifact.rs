@@ -1,6 +1,6 @@
 use super::{path_from_arg, read_utf8, success_line, ContainerCommandOutcome, Result, Workspace};
 
-const SCHEMA_PATH: &str = "containers/contracts/schemas/external-artifact-admission.v1.json";
+const SCHEMA_PATH: &str = "containers/contracts/schemas/external-artifact-admission.v2.json";
 const USAGE: &str = "Usage:\n  bijux-dna-dev containers run external-artifact -- admit <repository-root> <active-image-root> <repository-commit> <tool-id> <binary|apptainer_sif> <artifact> <sha256> <lawful-access-basis> <recorded-at-utc> <output> [<apptainer>]\n  bijux-dna-dev containers run external-artifact -- block <repository-root> <active-image-root> <repository-commit> <tool-id> <recorded-at-utc> <output> <reason>\n  bijux-dna-dev containers run external-artifact -- verify <repository-root> <active-image-root> <record>\n  bijux-dna-dev containers run external-artifact -- bind <repository-root> <active-image-root> <record> <stage-id> <apptainer-or-dash> <program> [<argument> ...]\n  bijux-dna-dev containers run external-artifact -- generate-schema [<output>]\n  bijux-dna-dev containers run external-artifact -- check-schema";
 
 pub(super) fn run(workspace: &Workspace, args: &[String]) -> Result<ContainerCommandOutcome> {

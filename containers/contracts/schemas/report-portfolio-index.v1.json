@@ -1,0 +1,119 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "ContainerReportPortfolioIndex",
+  "type": "object",
+  "properties": {
+    "reports": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/ContainerIndexedReport"
+      }
+    },
+    "schema_version": {
+      "type": "string"
+    },
+    "summary": {
+      "$ref": "#/$defs/ContainerReportPortfolioSummary"
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "summary",
+    "reports"
+  ],
+  "$defs": {
+    "ContainerIndexedReport": {
+      "type": "object",
+      "properties": {
+        "freshness": {
+          "$ref": "#/$defs/ContainerReportFreshness"
+        },
+        "json": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ContainerIndexedReportFile"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "limitations": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "markdown": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ContainerIndexedReportFile"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "report_id": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "report_id",
+        "freshness",
+        "limitations"
+      ]
+    },
+    "ContainerIndexedReportFile": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string"
+        },
+        "sha256": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "sha256"
+      ]
+    },
+    "ContainerReportFreshness": {
+      "type": "string",
+      "enum": [
+        "current",
+        "historical_unvalidated"
+      ]
+    },
+    "ContainerReportPortfolioSummary": {
+      "type": "object",
+      "properties": {
+        "current_count": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0
+        },
+        "historical_unvalidated_count": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0
+        },
+        "report_count": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "report_count",
+        "current_count",
+        "historical_unvalidated_count"
+      ]
+    }
+  }
+}

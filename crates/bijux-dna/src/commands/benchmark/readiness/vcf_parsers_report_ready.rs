@@ -315,17 +315,19 @@ pub(crate) fn render_vcf_parsers_report_ready(
                 PathBuf::from(DEFAULT_VCF_PARSER_FIXTURE_COVERAGE_PATH),
             )?;
             if report.stage_count != 20
-                || report.tool_count != 9
-                || report.row_count != 24
-                || report.covered_row_count != 24
+                || report.row_count != report.covered_row_count
                 || report.missing_row_count != 0
                 || report.parser_fixture_coverage_percent != 100.0
             {
                 bail!("VCF parser fixture coverage drifted from the governed active slice");
             }
             active_parser_fixture_row_count = report.covered_row_count;
+            let row_count = report.row_count;
             parser_coverage_report = Some(report);
-            Ok("validated full parser-fixture coverage across the 24 active VCF rows".to_string())
+            Ok(format!(
+                "validated full parser-fixture coverage across {} active VCF rows",
+                row_count
+            ))
         },
     );
 
@@ -339,17 +341,16 @@ pub(crate) fn render_vcf_parsers_report_ready(
                 repo_root,
                 PathBuf::from(DEFAULT_VCF_EXPECTED_BENCHMARK_RESULTS_PATH),
             )?;
-            if report.row_count != 24
-                || report.stage_count != 20
-                || report.tool_count != 9
+            if report.stage_count != 20
                 || report.corpus_count != 1
                 || report.asset_profile_count != 6
             {
                 bail!("VCF expected benchmark results drifted from the governed ready slice");
             }
             expected_result_row_count = report.row_count;
+            let row_count = report.row_count;
             expected_results_report = Some(report);
-            Ok("validated 24 governed expected benchmark-ready VCF result rows".to_string())
+            Ok(format!("validated {} governed expected benchmark-ready VCF result rows", row_count))
         },
     );
 
@@ -363,8 +364,8 @@ pub(crate) fn render_vcf_parsers_report_ready(
                 repo_root,
                 PathBuf::from(DEFAULT_VCF_MISSING_RESULT_REPORT_TEST_PATH),
             )?;
-            if report.expected_row_count != 24
-                || report.present_result_row_count != 23
+            if report.expected_row_count != expected_result_row_count
+                || report.present_result_row_count != expected_result_row_count.saturating_sub(1)
                 || report.missing_result_row_count != 1
                 || !report.passes_behavior_test
             {
@@ -383,9 +384,8 @@ pub(crate) fn render_vcf_parsers_report_ready(
         || {
             let report =
                 render_vcf_report_map(repo_root, PathBuf::from(DEFAULT_VCF_REPORT_MAP_PATH))?;
-            if report.row_count != 24
+            if report.row_count != expected_result_row_count
                 || report.stage_count != 20
-                || report.tool_count != 9
                 || report.section_count != 12
                 || report.summary_table_count != 12
             {

@@ -1,4 +1,6 @@
 // Auto-generated test aggregator for contracts
+#[path = "contracts/apptainer_smoke.rs"]
+mod mod_contracts_apptainer_smoke_rs;
 #[path = "contracts/artifacts.rs"]
 mod mod_contracts_artifacts_rs;
 #[path = "contracts/qa_contracts.rs"]

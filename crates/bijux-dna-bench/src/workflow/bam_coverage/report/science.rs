@@ -78,11 +78,11 @@ fn output_paths(root: &Path, prefix: &str, tool: &str) -> Result<Vec<PathBuf>> {
         "mosdepth" => vec![
             root.join(format!("{prefix}.mosdepth.summary.txt")),
             root.join(format!("{prefix}.mosdepth.global.dist.txt")),
+            root.join(format!("{prefix}.quantized.bed.gz")),
+            root.join(format!("{prefix}.quantized.bed.gz.csi")),
+            root.join(format!("{prefix}.quantized.bed")),
         ],
-        "samtools" => vec![
-            root.join(format!("{prefix}.depth.tsv")),
-            root.join(format!("{prefix}.reference-span.tsv")),
-        ],
+        "samtools" => vec![root.join(format!("{prefix}.depth.tsv"))],
         _ => bail!("BAM coverage report encountered an undeclared tool"),
     };
     paths.extend([

@@ -9,6 +9,8 @@ Owner: benchmark model contracts and persisted decision records.
 - Permanent benchmark run and attempt identities, append-only lifecycle
   transitions, retry lineage, Slurm job references, terminal accounting, and
   checksummed portable evidence references.
+- Versioned non-barrier campaign-cycle preparation and admission outcomes,
+  including generated schemas and pure state/payload consistency validation.
 - Schema ids and validation entrypoints for suite, observation, summary, and
   gate decision records.
 - Deterministic summary comparison reports.

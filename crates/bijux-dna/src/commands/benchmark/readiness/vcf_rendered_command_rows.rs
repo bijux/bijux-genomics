@@ -423,6 +423,8 @@ fn should_replace_existing_command_source(
 mod tests {
     use std::path::PathBuf;
 
+    use crate::commands::benchmark::readiness::vcf_tool_serving_map::collect_vcf_tool_serving_map_rows;
+
     use super::collect_vcf_rendered_command_rows;
 
     fn repo_root() -> PathBuf {
@@ -437,7 +439,12 @@ mod tests {
         let rows = collect_vcf_rendered_command_rows(&repo_root())
             .expect("collect VCF rendered command rows");
 
-        assert_eq!(rows.len(), 24);
+        let benchmark_ready_row_count = collect_vcf_tool_serving_map_rows()
+            .expect("collect VCF tool-serving rows")
+            .into_iter()
+            .filter(|row| row.benchmark_status == "benchmark_ready")
+            .count();
+        assert_eq!(rows.len(), benchmark_ready_row_count);
         assert!(rows.iter().all(|row| row.benchmark_status == "benchmark_ready"));
         assert!(rows.iter().all(|row| !row.script_commands.is_empty()));
         assert!(rows.iter().any(|row| row.stage_id == "vcf.call" && row.tool_id == "bcftools"));

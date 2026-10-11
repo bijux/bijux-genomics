@@ -923,6 +923,7 @@ fn timestamp_marker() -> String {
 mod tests {
     use super::{parse_eigenvalues, parse_pca_rows, run_local_vcf_pca_smoke};
     use crate::commands::benchmark::local_corpus_fixture::vcf::SampleMetadataRow;
+    use crate::commands::benchmark::repo_locking::{acquire_cwd_lock, RepoProcessLock};
     use std::collections::BTreeMap;
 
     #[test]
@@ -965,6 +966,9 @@ mod tests {
     fn governed_vcf_pca_smoke_reports_complete_cohort_rows() {
         let repo_root =
             std::path::Path::new(env!("CARGO_MANIFEST_DIR")).ancestors().nth(2).expect("repo root");
+        let _cwd_lock = acquire_cwd_lock();
+        let _repo_lock =
+            RepoProcessLock::acquire(repo_root, "benchmark-readiness-mutators").expect("repo lock");
         let report = run_local_vcf_pca_smoke(repo_root, "plink2").expect("run local pca smoke");
         assert_eq!(report.stage_id, "vcf.pca");
         assert_eq!(report.tool_id, "plink2");

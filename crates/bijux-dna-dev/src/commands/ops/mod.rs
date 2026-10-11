@@ -510,22 +510,27 @@ fn generate_tool_index(workspace: &Workspace, out: &Path) -> Result<()> {
             .filter_map(|value| value.as_str().map(ToOwned::to_owned))
             .collect::<Vec<_>>()
             .join(", ");
-        let (disposition, qualification) = support
+        let (product_support, artifact_delivery, redistribution_permitted, qualification) = support
             .get(tool_id)
-            .map_or(("not_cataloged", "unverified"), |(disposition, qualification)| {
-                (disposition.as_str(), qualification.as_str())
+            .map_or(("not_cataloged", "unavailable", false, "unverified"), |summary| {
+                (
+                    summary.product_support.as_str(),
+                    summary.artifact_delivery.as_str(),
+                    summary.redistribution_permitted,
+                    summary.qualification.as_str(),
+                )
             });
         lines.push(format!(
-            "- `{tool_id}` ({disposition} distribution; {} execution; {qualification}): {}",
+            "- `{tool_id}` ({product_support}; {artifact_delivery}; redistribution permitted: {redistribution_permitted}; {} execution; {qualification}): {}",
             info.get("execution").and_then(Value::as_str).unwrap_or("unavailable"),
             if stages.is_empty() { "-".to_string() } else { stages }
         ));
     }
     lines.extend([
         String::new(),
-        "| Tool ID | Purpose | Stage Bindings | Apptainer Definition | Version | Citation | Distribution | Execution | Qualification |"
+        "| Tool ID | Purpose | Stage Bindings | Apptainer Definition | Version | Citation | Product support | Artifact delivery | Redistribution permitted | Execution | Qualification |"
             .to_string(),
-        "|---|---|---|---|---|---|---|---|---|".to_string(),
+        "|---|---|---|---|---|---|---|---|---|---|---|".to_string(),
     ]);
     for (tool_id, row) in tools {
         let stages = row
@@ -537,13 +542,18 @@ fn generate_tool_index(workspace: &Workspace, out: &Path) -> Result<()> {
             .filter_map(|value| value.as_str().map(ToOwned::to_owned))
             .collect::<Vec<_>>()
             .join(", ");
-        let (disposition, qualification) = support
+        let (product_support, artifact_delivery, redistribution_permitted, qualification) = support
             .get(&tool_id)
-            .map_or(("not_cataloged", "unverified"), |(disposition, qualification)| {
-                (disposition.as_str(), qualification.as_str())
+            .map_or(("not_cataloged", "unavailable", false, "unverified"), |summary| {
+                (
+                    summary.product_support.as_str(),
+                    summary.artifact_delivery.as_str(),
+                    summary.redistribution_permitted,
+                    summary.qualification.as_str(),
+                )
             });
         lines.push(format!(
-            "| `{tool_id}` | {} | `{}` | `{}` | `{}` | {} | `{disposition}` | `{}` | `{qualification}` |",
+            "| `{tool_id}` | {} | `{}` | `{}` | `{}` | {} | `{product_support}` | `{artifact_delivery}` | `{redistribution_permitted}` | `{}` | `{qualification}` |",
             row.get("purpose").and_then(Value::as_str).unwrap_or("unknown"),
             if stages.is_empty() { "-" } else { &stages },
             row.get("container_recipe").and_then(Value::as_str).unwrap_or("-"),

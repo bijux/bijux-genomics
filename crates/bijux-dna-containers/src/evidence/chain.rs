@@ -11,8 +11,8 @@ use super::{
     load_runtime_verification_publication, repository_head_commit, validate_container_catalog,
     validate_image_inventory_publication, validate_runtime_verification_publication,
     BuildEvidenceStatus, ContainerCatalog, ContainerCatalogTool,
-    ContainerImageInventoryPublication, ContainerSupportDisposition, RuntimeEvidenceStatus,
-    RuntimeVerificationPublication, CONTAINER_RUNTIME_VERIFICATION_PUBLICATION_SCHEMA_V2,
+    ContainerImageInventoryPublication, RuntimeEvidenceStatus, RuntimeVerificationPublication,
+    CONTAINER_RUNTIME_VERIFICATION_PUBLICATION_SCHEMA_V2,
 };
 
 const CATALOG_PATH: &str = "containers/contracts/catalog.toml";
@@ -74,8 +74,7 @@ pub fn validate_container_recipe_evidence_chain(
             inventory.repository_commit
         );
     }
-    for tool in catalog.tools.iter().filter(|tool| tool.legacy_support_disposition() == "retained")
-    {
+    for tool in catalog.tools.iter().filter(|tool| tool.is_redistributable_image()) {
         resolve_current_apptainer_contract_commit(
             repository_root,
             repository_commit,
@@ -180,7 +179,7 @@ pub fn validate_container_evidence_chain(
         let inventory_tool = inventory_tools
             .get(tool.id.as_str())
             .ok_or_else(|| anyhow::anyhow!("image inventory omits {}", tool.id))?;
-        if tool.legacy_support_disposition() != "retained" {
+        if !tool.is_redistributable_image() {
             continue;
         }
         retained_ids.insert(tool.id.as_str());
@@ -231,23 +230,14 @@ pub fn validate_container_inventory_catalog(
         let inventory_tool = inventory_tools
             .get(tool.id.as_str())
             .ok_or_else(|| anyhow::anyhow!("image inventory omits {}", tool.id))?;
-        let expected_disposition = catalog_support_disposition(tool.legacy_support_disposition())?;
         if inventory_tool.version != tool.version
-            || inventory_tool.support_disposition != expected_disposition
+            || inventory_tool.product_support != tool.product_support
+            || inventory_tool.artifact_delivery != tool.artifact_delivery
+            || inventory_tool.redistribution_permitted != tool.redistribution_permitted
             || inventory_tool.apptainer_supported != tool.apptainer_supported
         {
             bail!("image inventory identity differs from catalog for {}", tool.id);
         }
     }
     Ok(())
-}
-
-fn catalog_support_disposition(value: &str) -> Result<ContainerSupportDisposition> {
-    match value {
-        "retained" => Ok(ContainerSupportDisposition::Retained),
-        "unsupported" => Ok(ContainerSupportDisposition::Unsupported),
-        "retired" => Ok(ContainerSupportDisposition::Retired),
-        "excluded" => Ok(ContainerSupportDisposition::Excluded),
-        other => bail!("unsupported catalog disposition: {other}"),
-    }
 }

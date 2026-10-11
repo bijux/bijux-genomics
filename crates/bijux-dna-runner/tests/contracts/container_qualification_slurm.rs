@@ -11,8 +11,9 @@ use bijux_dna_containers::api::{
     ContainerSitePolicy, ContainerSlurmPolicy,
 };
 use bijux_dna_runner::api::{
-    archive_failed_container_qualification_attempt, cancel_container_qualification_slurm_job,
-    collect_container_qualification_slurm_job, execute_container_qualification,
+    admit_container_qualification_collection, archive_failed_container_qualification_attempt,
+    cancel_container_qualification_slurm_job, collect_container_qualification_slurm_job,
+    execute_container_qualification, load_container_qualification_admission,
     load_container_qualification_slurm_spec, load_prepared_container_qualification_slurm_job,
     prepare_container_qualification_slurm_job, prepare_historical_container_qualification_replay,
     rollback_failed_container_qualification_attempt_archive,
@@ -538,6 +539,14 @@ fn lifecycle_is_duplicate_safe_non_waiting_collectable_and_cancellable() -> Resu
     assert!(spec.result_root.join("slurm-accounting.json").is_file());
     assert!(spec.result_root.join("qualification-scheduler-evidence.json").is_file());
 
+    let admission = admit_container_qualification_collection(&spec, "2026-08-07T09:52:30Z")?;
+    assert_eq!(admission.run_id, spec.run_id);
+    assert_eq!(admission.tool_id, spec.tool_id);
+    assert_eq!(admission.campaign_id, "governed-runner-test");
+    assert_eq!(admission.attempt_id, "attempt-001");
+    assert_eq!(admit_container_qualification_collection(&spec, "2026-08-07T09:52:45Z")?, admission);
+    assert_eq!(load_container_qualification_admission(&spec)?, Some(admission));
+
     let cancellation = fixture.root.path().join("cancelled-job");
     write_executable(
         &scheduler.scancel,
@@ -548,6 +557,8 @@ fn lifecycle_is_duplicate_safe_non_waiting_collectable_and_cancellable() -> Resu
 
     fs::write(&prepared.request.stdout_path, b"tampered\n")?;
     assert!(collect_container_qualification_slurm_job(&scheduler, &spec, "2026-08-07T09:53:00Z")
+        .is_err_and(|error| error.to_string().contains("scheduler logs")));
+    assert!(load_container_qualification_admission(&spec)
         .is_err_and(|error| error.to_string().contains("scheduler logs")));
     Ok(())
 }
@@ -580,6 +591,8 @@ fn completed_scheduler_job_without_execution_evidence_is_durably_failed() -> Res
         .as_deref()
         .is_some_and(|failure| failure.contains("lacks execution evidence")));
     assert!(spec.result_root.join("slurm-accounting.json").is_file());
+    assert!(admit_container_qualification_collection(&spec, "2026-08-07T09:53:00Z")
+        .is_err_and(|error| error.to_string().contains("terminal passing")));
     write_executable(&scheduler.squeue, "#!/bin/sh\nexit 99\n")?;
     assert!(collect_container_qualification_slurm_job(&scheduler, &spec, "2026-08-07T09:53:00Z")?
         .evidence

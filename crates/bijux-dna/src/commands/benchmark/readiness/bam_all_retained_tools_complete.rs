@@ -1005,13 +1005,13 @@ impl Drop for CurrentDirGuard {
 #[cfg(all(test, feature = "bam_downstream"))]
 mod tests {
     use std::path::{Path, PathBuf};
-    use std::time::Duration;
 
     use super::{
         render_bam_all_retained_tools_complete, BamAllRetainedToolsCompleteReport,
         BAM_ALL_RETAINED_TOOLS_COMPLETE_SCHEMA_VERSION,
         DEFAULT_BAM_ALL_RETAINED_TOOLS_COMPLETE_PATH,
     };
+    use crate::commands::benchmark::repo_locking::acquire_cwd_lock;
 
     fn repo_root() -> PathBuf {
         PathBuf::from(env!("CARGO_MANIFEST_DIR"))
@@ -1021,9 +1021,8 @@ mod tests {
     }
 
     fn benchmark_readiness_test_lock(root: &Path) -> bijux_dna_infra::FileLock {
-        bijux_dna_infra::FileLock::acquire(
+        bijux_dna_infra::FileLock::try_acquire(
             &root.join("artifacts/test-locks/benchmark-readiness-mutators.lock"),
-            Duration::from_mins(5),
         )
         .expect("acquire benchmark readiness test lock")
     }
@@ -1031,6 +1030,7 @@ mod tests {
     #[test]
     fn render_bam_all_retained_tools_complete_reports_governed_pass_state() {
         let root = repo_root();
+        let _cwd_lock = acquire_cwd_lock();
         let _lock = benchmark_readiness_test_lock(&root);
         let report = render_bam_all_retained_tools_complete(
             &root,

@@ -2,7 +2,6 @@ tool=bijux_dna
 tool_version=pinned
 stage=fastq.detect_instrument_artifacts
 domain=fastq
-shipping=external
 fixture_kind=planned
 command=bijux-dna
 args=fastq observe detect-instrument-artifacts --reads reads.fq --out instrument_artifact_report.json

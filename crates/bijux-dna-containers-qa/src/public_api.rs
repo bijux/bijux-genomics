@@ -14,11 +14,14 @@ pub mod api {
         QualificationSpecificationCoverageUnit, QualificationSpecificationInputKindV1,
         QualificationSpecificationInputV1, QualificationSpecificationOutputV1,
         QualificationSpecificationSiteResourcesV1, QualificationSpecificationSourceV1,
-        QUALIFICATION_SPECIFICATION_COVERAGE_SCHEMA_V1,
+        QUALIFICATION_SPECIFICATION_COVERAGE_SCHEMA_V2,
         QUALIFICATION_SPECIFICATION_SOURCE_SCHEMA_V1,
     };
     pub use crate::runtime_verification::{
-        execute_runtime_verification, RuntimeVerificationRequest, RuntimeVerificationResult,
+        execute_runtime_verification, run_apptainer_smoke, ApptainerSmokeManifest,
+        ApptainerSmokeProbeResult, ApptainerSmokeRequest, RuntimeVerificationRequest,
+        RuntimeVerificationResult, APPTAINER_SMOKE_MANIFEST_SCHEMA_V5,
+        APPTAINER_SMOKE_MANIFEST_SCHEMA_V6,
     };
     pub use crate::security_verification::{
         execute_security_verification, SecurityVerificationRequest, SecurityVerificationResult,

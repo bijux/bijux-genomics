@@ -2,6 +2,7 @@
 //! Non-waiting Slurm backend.
 
 mod benchmark;
+mod benchmark_cycle;
 mod client;
 mod contracts;
 mod corpus_materialization;

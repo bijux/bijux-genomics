@@ -2,6 +2,7 @@ use std::process::Command;
 use std::time::Duration;
 
 use anyhow::{anyhow, Context, Result};
+use wait_timeout::ChildExt as _;
 
 pub fn docker_rm(container_id: &str) -> Result<()> {
     let output = Command::new("docker")
@@ -26,40 +27,31 @@ pub(crate) fn command_string(args: &[String]) -> String {
     format!("docker {}", args.join(" "))
 }
 
-fn docker_wait(container_id: &str) -> Result<i32> {
-    let output =
-        Command::new("docker").arg("wait").arg(container_id).output().context("docker wait")?;
-    if !output.status.success() {
-        return Err(anyhow!("docker wait failed for {container_id}"));
-    }
-    let code = String::from_utf8_lossy(&output.stdout)
-        .trim()
-        .parse::<i32>()
-        .context("parse docker wait output")?;
-    Ok(code)
-}
-
 pub(crate) fn docker_wait_timeout(container_id: &str, timeout: Duration) -> Result<i32> {
-    let start = std::time::Instant::now();
-    loop {
-        let output = Command::new("docker")
-            .arg("inspect")
-            .arg(container_id)
-            .arg("--format")
-            .arg("{{.State.Status}}")
-            .output()
-            .context("docker inspect")?;
-        if output.status.success() {
-            let status = String::from_utf8_lossy(&output.stdout).trim().to_string();
-            if status == "exited" {
-                return docker_wait(container_id);
-            }
-        }
-        if start.elapsed() >= timeout {
-            return Err(anyhow!("timeout"));
-        }
-        std::thread::sleep(Duration::from_secs(1));
+    let mut child = Command::new("docker")
+        .arg("wait")
+        .arg(container_id)
+        .stdout(std::process::Stdio::piped())
+        .stderr(std::process::Stdio::piped())
+        .spawn()
+        .context("docker wait")?;
+    let Some(status) = child.wait_timeout(timeout).context("wait for docker")? else {
+        child.kill().context("kill timed out docker wait")?;
+        let _status = child.wait().context("reap timed out docker wait")?;
+        return Err(anyhow!("docker wait timed out after {}s", timeout.as_secs()));
+    };
+    let mut stdout = String::new();
+    let mut stderr = String::new();
+    if let Some(mut pipe) = child.stdout.take() {
+        std::io::Read::read_to_string(&mut pipe, &mut stdout).context("read docker wait stdout")?;
     }
+    if let Some(mut pipe) = child.stderr.take() {
+        std::io::Read::read_to_string(&mut pipe, &mut stderr).context("read docker wait stderr")?;
+    }
+    if !status.success() {
+        return Err(anyhow!("docker wait failed for {container_id}: {}", stderr.trim()));
+    }
+    stdout.trim().parse::<i32>().context("parse docker wait output")
 }
 
 pub(crate) fn docker_logs(container_id: &str) -> Result<String> {

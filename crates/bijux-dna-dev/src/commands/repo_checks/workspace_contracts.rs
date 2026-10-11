@@ -582,14 +582,107 @@ fn embedded_workspace_mirror_roots(root: &std::path::Path) -> Result<Vec<String>
         let entry = entry?;
         let name = entry.file_name();
         let name = name.to_string_lossy();
-        let windows_drive = name.len() == 2
-            && name.as_bytes()[0].is_ascii_alphabetic()
-            && name.as_bytes()[1] == b':';
-        if matches!(name.as_ref(), "Users" | "home") || windows_drive {
+        if is_absolute_workspace_prefix(&name) {
             offenders.push(format!("{name}/: embedded absolute-workspace mirror root"));
         }
     }
     offenders.sort();
+    Ok(offenders)
+}
+
+fn is_absolute_workspace_prefix(name: &str) -> bool {
+    let windows_drive =
+        name.len() == 2 && name.as_bytes()[0].is_ascii_alphabetic() && name.as_bytes()[1] == b':';
+    matches!(name, "Users" | "home") || windows_drive
+}
+
+const CONTAINER_ROOT_DIRECTORIES: &[&str] = &[
+    "apptainer",
+    "contracts",
+    "docker",
+    "docs",
+    "licenses",
+    "network",
+    "reports",
+    "runs",
+    "tools",
+    "versions",
+];
+const CONTAINER_ROOT_FILES: &[&str] = &["README.md", "TOOL_IDS.txt", "index.md"];
+const BENCHMARK_ROOT_DIRECTORIES: &[&str] = &[
+    "adapters",
+    "configs",
+    "contracts",
+    "corpora",
+    "execution",
+    "reports",
+    "runs",
+    "schemas",
+    "tests",
+];
+const BENCHMARK_ROOT_FILES: &[&str] = &["README.md"];
+
+fn governed_product_root_offenders(
+    root: &std::path::Path,
+    product_root: &str,
+    allowed_directories: &[&str],
+    allowed_files: &[&str],
+) -> Result<Vec<String>> {
+    let path = root.join(product_root);
+    if !path.is_dir() {
+        return Ok(vec![format!("{product_root}/: missing governed product root")]);
+    }
+
+    let mut offenders = Vec::new();
+    for entry in
+        std::fs::read_dir(&path).with_context(|| format!("read product root {}", path.display()))?
+    {
+        let entry = entry?;
+        let name = entry.file_name().to_string_lossy().to_string();
+        let file_type = entry.file_type()?;
+        if is_absolute_workspace_prefix(&name) {
+            offenders
+                .push(format!("{product_root}/{name}: embedded absolute-workspace mirror prefix"));
+            continue;
+        }
+        if allowed_directories.contains(&name.as_str()) && file_type.is_dir() {
+            continue;
+        }
+        if allowed_files.contains(&name.as_str()) && file_type.is_file() {
+            continue;
+        }
+        offenders.push(format!("{product_root}/{name}: unexpected product-root entry"));
+    }
+
+    for required_directory in allowed_directories {
+        if !path.join(required_directory).is_dir() {
+            offenders
+                .push(format!("{product_root}/{required_directory}/: missing governed directory"));
+        }
+    }
+    for required_file in allowed_files {
+        if !path.join(required_file).is_file() {
+            offenders.push(format!("{product_root}/{required_file}: missing governed file"));
+        }
+    }
+
+    for entry in
+        WalkDir::new(&path).follow_links(false).into_iter().filter_map(std::result::Result::ok)
+    {
+        if entry.path() == path || !entry.file_type().is_dir() {
+            continue;
+        }
+        let name = entry.file_name().to_string_lossy();
+        if is_absolute_workspace_prefix(&name) {
+            offenders.push(format!(
+                "{}: embedded absolute-workspace mirror prefix",
+                entry.path().strip_prefix(root).unwrap_or(entry.path()).display()
+            ));
+        }
+    }
+
+    offenders.sort();
+    offenders.dedup();
     Ok(offenders)
 }
 
@@ -640,6 +733,7 @@ pub(crate) fn check_root_layout(
         "science",
     ];
     let mut offenders = Vec::new();
+    offenders.extend(embedded_workspace_mirror_roots(&workspace.root)?);
     for entry in std::fs::read_dir(&workspace.root)
         .with_context(|| format!("read {}", workspace.root.display()))?
     {
@@ -652,13 +746,31 @@ pub(crate) fn check_root_layout(
             || name.starts_with("target")
             || name == "runs"
             || allowlist.contains(&name.as_str())
+            || is_absolute_workspace_prefix(&name)
         {
             continue;
         }
         offenders.push(name);
     }
+    offenders.extend(governed_product_root_offenders(
+        &workspace.root,
+        "containers",
+        CONTAINER_ROOT_DIRECTORIES,
+        CONTAINER_ROOT_FILES,
+    )?);
+    offenders.extend(governed_product_root_offenders(
+        &workspace.root,
+        "benchmarks",
+        BENCHMARK_ROOT_DIRECTORIES,
+        BENCHMARK_ROOT_FILES,
+    )?);
+    offenders.sort();
+    offenders.dedup();
     if offenders.is_empty() {
-        return pass(check, "top-level workspace layout stays allowlisted");
+        return pass(
+            check,
+            "workspace and governed product-root layouts stay allowlisted without embedded absolute prefixes",
+        );
     }
     fail(check, offenders.join(", "))
 }
@@ -880,7 +992,27 @@ fn source_like_scan_path(rel: &str) -> bool {
 
 #[cfg(test)]
 mod embedded_workspace_mirror_tests {
-    use super::embedded_workspace_mirror_roots;
+    use super::{
+        embedded_workspace_mirror_roots, governed_product_root_offenders,
+        CONTAINER_ROOT_DIRECTORIES, CONTAINER_ROOT_FILES,
+    };
+
+    fn materialize_allowed_root(
+        root: &std::path::Path,
+        product_root: &str,
+        directories: &[&str],
+        files: &[&str],
+    ) -> anyhow::Result<()> {
+        let path = root.join(product_root);
+        std::fs::create_dir_all(&path)?;
+        for directory in directories {
+            std::fs::create_dir(path.join(directory))?;
+        }
+        for file in files {
+            std::fs::write(path.join(file), b"governed\n")?;
+        }
+        Ok(())
+    }
 
     #[test]
     fn embedded_absolute_roots_are_rejected_without_traversal() -> anyhow::Result<()> {
@@ -900,6 +1032,56 @@ mod embedded_workspace_mirror_tests {
                 "home/: embedded absolute-workspace mirror root",
             ]
         );
+        Ok(())
+    }
+
+    #[test]
+    fn governed_product_root_rejects_unexpected_entries_and_nested_absolute_prefixes(
+    ) -> anyhow::Result<()> {
+        let root = tempfile::tempdir()?;
+        materialize_allowed_root(
+            root.path(),
+            "containers",
+            CONTAINER_ROOT_DIRECTORIES,
+            CONTAINER_ROOT_FILES,
+        )?;
+        std::fs::create_dir(root.path().join("containers/cache"))?;
+        std::fs::create_dir_all(root.path().join("containers/reports/Users/bijan/workspace"))?;
+
+        let offenders = governed_product_root_offenders(
+            root.path(),
+            "containers",
+            CONTAINER_ROOT_DIRECTORIES,
+            CONTAINER_ROOT_FILES,
+        )?;
+
+        assert_eq!(
+            offenders,
+            vec![
+                "containers/cache: unexpected product-root entry",
+                "containers/reports/Users: embedded absolute-workspace mirror prefix",
+            ]
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn governed_product_root_accepts_the_documented_tree() -> anyhow::Result<()> {
+        let root = tempfile::tempdir()?;
+        materialize_allowed_root(
+            root.path(),
+            "containers",
+            CONTAINER_ROOT_DIRECTORIES,
+            CONTAINER_ROOT_FILES,
+        )?;
+
+        assert!(governed_product_root_offenders(
+            root.path(),
+            "containers",
+            CONTAINER_ROOT_DIRECTORIES,
+            CONTAINER_ROOT_FILES,
+        )?
+        .is_empty());
         Ok(())
     }
 }

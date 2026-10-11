@@ -1,16 +1,20 @@
 use bijux_dna_bench_model::{
     append_attempt_transition, benchmark_run_directory_name, validate_attempt_archive,
-    validate_attempt_record_v2, validate_cycle_status_v2, validate_scheduler_observation,
-    BenchmarkArchiveFileRecord, BenchmarkArchiveSourcePaths, BenchmarkAttemptArchive,
-    BenchmarkAttemptDisposition, BenchmarkAttemptIdentity, BenchmarkAttemptMigrationState,
+    validate_attempt_record_v2, validate_cycle_admission, validate_cycle_preparation,
+    validate_cycle_status_v2, validate_scheduler_observation, BenchmarkArchiveFileRecord,
+    BenchmarkArchiveSourcePaths, BenchmarkAttemptArchive, BenchmarkAttemptDisposition,
+    BenchmarkAttemptIdentity, BenchmarkAttemptMigrationState,
     BenchmarkAttemptMigrationVerification, BenchmarkAttemptMigrationVerificationEntry,
     BenchmarkAttemptRecordV2, BenchmarkAttemptTransition, BenchmarkCampaignPlan,
+    BenchmarkCycleAdmission, BenchmarkCycleAdmissionState, BenchmarkCycleAdmissionUnit,
+    BenchmarkCyclePreparation, BenchmarkCyclePreparationState, BenchmarkCyclePreparationUnit,
     BenchmarkCycleStatusV2, BenchmarkEvidenceReference, BenchmarkJobReference,
     BenchmarkLifecycleStatus, BenchmarkRunIdentity, BenchmarkSchedulerAccounting,
     BenchmarkSchedulerEvidenceSource, BenchmarkSchedulerObservation,
     BenchmarkSchedulerObservationDraft, BenchmarkSchedulerObservedState,
     BenchmarkSchedulerTerminalState, BENCHMARK_ATTEMPT_ARCHIVE_SCHEMA_V1,
-    BENCHMARK_ATTEMPT_MIGRATION_VERIFICATION_SCHEMA_V1,
+    BENCHMARK_ATTEMPT_MIGRATION_VERIFICATION_SCHEMA_V1, BENCHMARK_CYCLE_ADMISSION_SCHEMA_V1,
+    BENCHMARK_CYCLE_PREPARATION_SCHEMA_V1,
 };
 
 fn run_identity() -> BenchmarkRunIdentity {
@@ -237,6 +241,14 @@ fn checked_lifecycle_schemas_match_model_authority() -> anyhow::Result<()> {
             "campaign-plan.schema.json",
             serde_json::to_value(bijux_dna_bench_model::benchmark_campaign_plan_schema())?,
         ),
+        (
+            "cycle-preparation.schema.json",
+            serde_json::to_value(bijux_dna_bench_model::benchmark_cycle_preparation_schema())?,
+        ),
+        (
+            "cycle-admission.schema.json",
+            serde_json::to_value(bijux_dna_bench_model::benchmark_cycle_admission_schema())?,
+        ),
     ];
     let schema_root = repository_root.join("benchmarks/contracts/schemas");
     for (name, generated) in schemas {
@@ -249,6 +261,62 @@ fn checked_lifecycle_schemas_match_model_authority() -> anyhow::Result<()> {
         let checked: serde_json::Value = serde_json::from_slice(&std::fs::read(path)?)?;
         assert_eq!(checked, generated, "lifecycle schema drifted: {name}");
     }
+    Ok(())
+}
+
+#[test]
+fn cycle_preparation_and_admission_are_versioned_model_contracts() -> anyhow::Result<()> {
+    let preparation = BenchmarkCyclePreparation::new(
+        "all-domains-20260804".to_string(),
+        "2026-08-04T09:00:00Z".to_string(),
+        vec![BenchmarkCyclePreparationUnit {
+            identity: attempt("attempt-001", "seqkit").identity,
+            prior_status: None,
+            current_status: None,
+            state: BenchmarkCyclePreparationState::NotReady,
+            execution_spec: None,
+            error: None,
+        }],
+    );
+    validate_cycle_preparation(&preparation)?;
+    let serialized = serde_json::to_value(&preparation)?;
+    assert_eq!(serde_json::from_value::<BenchmarkCyclePreparation>(serialized)?, preparation);
+    assert_eq!(preparation.schema_version, BENCHMARK_CYCLE_PREPARATION_SCHEMA_V1);
+    let mut inconsistent = preparation.clone();
+    inconsistent.units[0].state = BenchmarkCyclePreparationState::Prepared;
+    assert!(validate_cycle_preparation(&inconsistent).is_err());
+    let mut unsupported = preparation.clone();
+    unsupported.schema_version = "bijux.benchmark.cycle_preparation.v2".to_string();
+    assert!(validate_cycle_preparation(&unsupported).is_err());
+    let mut duplicate = preparation;
+    duplicate.units.push(duplicate.units[0].clone());
+    assert!(validate_cycle_preparation(&duplicate).is_err());
+
+    let admission = BenchmarkCycleAdmission::new(
+        "all-domains-20260804".to_string(),
+        "2026-08-04T09:05:00Z".to_string(),
+        vec![BenchmarkCycleAdmissionUnit {
+            identity: attempt("attempt-001", "seqkit").identity,
+            prior_status: Some(BenchmarkLifecycleStatus::Ready),
+            current_status: Some(BenchmarkLifecycleStatus::Ready),
+            state: BenchmarkCycleAdmissionState::NotReady,
+            evidence: None,
+            error: None,
+        }],
+    );
+    validate_cycle_admission(&admission)?;
+    let serialized = serde_json::to_value(&admission)?;
+    assert_eq!(serde_json::from_value::<BenchmarkCycleAdmission>(serialized)?, admission);
+    assert_eq!(admission.schema_version, BENCHMARK_CYCLE_ADMISSION_SCHEMA_V1);
+    let mut inconsistent = admission.clone();
+    inconsistent.units[0].state = BenchmarkCycleAdmissionState::Admitted;
+    assert!(validate_cycle_admission(&inconsistent).is_err());
+    let mut unsupported = admission.clone();
+    unsupported.schema_version = "bijux.benchmark.cycle_admission.v2".to_string();
+    assert!(validate_cycle_admission(&unsupported).is_err());
+    let mut duplicate = admission;
+    duplicate.units.push(duplicate.units[0].clone());
+    assert!(validate_cycle_admission(&duplicate).is_err());
     Ok(())
 }
 

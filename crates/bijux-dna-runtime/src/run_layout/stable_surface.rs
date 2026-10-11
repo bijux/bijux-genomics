@@ -19,14 +19,15 @@ pub use super::contracts::{
     FallbackSafetyDecisionV1, FallbackSafetyRequestV1, HashLedgerEntryV1, HashLedgerV1,
     HpcExecutionProfileV1, OperatorHealthCheckV1, OperatorHealthReportV1, QueueRestoreDecisionV1,
     ReplayManifestV1, RunArtifactEntry, RunBackendDescriptorV1, RunBackendRecordV1,
-    RunCheckpointV1, RunControlActionV1, RunControlAuditEntryV1, RunControlStateV1, RunEnvironment,
-    RunExecutionModeV1, RunExecutorDescriptorV1, RunFailureV1, RunIndexEntry, RunIndexLine,
-    RunLayout, RunLayoutV1, RunLeaseV1, RunLifecycleStateV1, RunManifest, RunMountBindingV1,
-    RunQueueLifecycleStateV1, RunQueueStateV1, RunQueueTransitionV1, RunResourceRequestV1,
-    RunSchedulingDecisionV1, RunSmokeWorkflowPlanV1, RunSmokeWorkflowValidationV1, RunStageEntry,
-    RunStateTransitionV1, RunStateV1, RuntimePolicyV1, RuntimeResourceAdmissionV1,
-    RuntimeResourceLimitsV1, SlurmJobStateV1, SlurmJobTransitionV1, SlurmSubmissionRecordV1,
-    StageExecutionRequirementV1, StorageIsolationReportV1, ToolImageDigest,
+    RunCheckpointV1, RunControlActionV1, RunControlAuditEntryV1, RunControlInterruption,
+    RunControlStateV1, RunEnvironment, RunExecutionModeV1, RunExecutorDescriptorV1, RunFailureV1,
+    RunIndexEntry, RunIndexLine, RunLayout, RunLayoutV1, RunLeaseV1, RunLifecycleStateV1,
+    RunManifest, RunMountBindingV1, RunQueueLifecycleStateV1, RunQueueStateV1,
+    RunQueueTransitionV1, RunResourceRequestV1, RunSchedulingDecisionV1, RunSmokeWorkflowPlanV1,
+    RunSmokeWorkflowValidationV1, RunStageEntry, RunStateTransitionV1, RunStateV1, RuntimePolicyV1,
+    RuntimeResourceAdmissionV1, RuntimeResourceLimitsV1, SlurmJobStateV1, SlurmJobTransitionV1,
+    SlurmSubmissionRecordV1, StageExecutionRequirementV1, StorageIsolationReportV1,
+    ToolImageDigest,
 };
 pub use super::journal::{append_event, update_run_index};
 pub use super::layout_creation::create_run_layout;

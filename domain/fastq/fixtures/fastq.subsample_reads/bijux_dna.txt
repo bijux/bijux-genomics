@@ -2,7 +2,6 @@ tool=bijux_dna
 tool_version=pinned
 stage=fastq.subsample_reads
 domain=fastq
-shipping=external
 fixture_kind=planned
 command=bijux-dna
 args=fastq layout subsample --reads reads.fq --seed 1 --out subsampled_reads --report subsample_report.json

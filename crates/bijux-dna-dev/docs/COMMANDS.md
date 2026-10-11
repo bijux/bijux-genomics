@@ -50,6 +50,8 @@ check-benchmark-integrity-policy
 check-cargo-config-policy
 check-certification-schema-docs
 check-ci-automation-surface
+check-ci-build-authority
+check-ci-dependency-graph
 check-cli-command-snapshot
 check-clippy-allowlist-expiry
 check-clippy-allowlist-growth
@@ -100,6 +102,7 @@ check-make-help-sync
 check-map-locks
 check-nextest-profile-contract
 check-no-fake-artifacts
+check-no-wait-gate
 check-no-parallel-accidental
 check-no-raw-cargo-in-automation
 check-no-raw-cargo-in-makes
@@ -281,6 +284,7 @@ qualification-registry
 qualification-slurm
 qualification-specification
 registry-tools
+release-evidence
 release-gate
 repository-freeze
 run-apptainer-frontend-reproducibility
@@ -427,6 +431,7 @@ ci-fmt
 ci-install-tools
 ci-slow
 ci-test
+ci-test-all-sharded
 ci-test-slow
 clean-docs
 config-inventory

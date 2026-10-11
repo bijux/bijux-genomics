@@ -19,6 +19,8 @@ pub const CONTAINER_QUALIFICATION_EVIDENCE_SCHEMA_V1: &str =
     "bijux.runner.container_qualification_scheduler_evidence.v1";
 pub const CONTAINER_QUALIFICATION_ACCOUNTING_SCHEMA_V1: &str =
     "bijux.runner.container_qualification_accounting.v1";
+pub const CONTAINER_QUALIFICATION_ADMISSION_SCHEMA_V1: &str =
+    "bijux.runner.container_qualification_admission.v1";
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ContainerQualificationPreparationRequest {
@@ -164,6 +166,21 @@ pub struct ContainerQualificationAccountingRecord {
     pub pipeline_sha256: String,
     pub credential_reference_sha256: String,
     pub collected_at_utc: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct ContainerQualificationAdmission {
+    pub schema_version: String,
+    pub run_id: String,
+    pub tool_id: String,
+    pub campaign_id: String,
+    pub attempt_id: String,
+    pub repository_commit: String,
+    pub job_id: String,
+    pub scheduler_evidence_sha256: String,
+    pub execution_evidence_sha256: String,
+    pub admitted_at_utc: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]

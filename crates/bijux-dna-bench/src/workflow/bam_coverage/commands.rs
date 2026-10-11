@@ -35,16 +35,22 @@ pub(super) fn measured_command(
             vec!["bedgraph"],
         ),
         "mosdepth" => (
-            format!("mosdepth --threads 4 --no-per-base \"${{prefix}}\" {BAM}"),
-            "\"${prefix}.mosdepth.summary.txt\" \"${prefix}.mosdepth.global.dist.txt\"".to_string(),
-            vec!["mosdepth.summary.txt", "mosdepth.global.dist.txt"],
+            format!(
+                "mosdepth --threads 4 --no-per-base --quantize 0:1: \"${{prefix}}\" {BAM}\ngzip -dc \"${{prefix}}.quantized.bed.gz\" > \"${{prefix}}.quantized.bed\""
+            ),
+            "\"${prefix}.mosdepth.summary.txt\" \"${prefix}.quantized.bed\"".to_string(),
+            vec![
+                "mosdepth.summary.txt",
+                "mosdepth.global.dist.txt",
+                "quantized.bed.gz",
+                "quantized.bed.gz.csi",
+                "quantized.bed",
+            ],
         ),
         "samtools" => (
-            format!(
-                "samtools depth {BAM} > \"${{prefix}}.depth.tsv\"\nsamtools view -H {BAM} | awk -F '\\t' 'BEGIN {{OFS=\"\\t\"}} $1 == \"@SQ\" {{for (i=2; i<=NF; i++) if ($i ~ /^LN:/) total += substr($i, 4)}} END {{if (total <= 0) exit 2; print \"reference_bases\", total}}' > \"${{prefix}}.reference-span.tsv\""
-            ),
-            "\"${prefix}.depth.tsv\" \"${prefix}.reference-span.tsv\"".to_string(),
-            vec!["depth.tsv", "reference-span.tsv"],
+            format!("samtools depth {BAM} > \"${{prefix}}.depth.tsv\""),
+            "\"${prefix}.depth.tsv\"".to_string(),
+            vec!["depth.tsv"],
         ),
         _ => ("false".to_string(), String::new(), Vec::new()),
     };
@@ -59,7 +65,7 @@ mkdir -p /result/repetitions
 prefix=\"/result/repetitions/repetition-{{repetition}}\"
 summary=\"${{prefix}}.coverage-summary.tsv\"
 {tool_command}
-awk -v mode=summary -v source={} -f /repository/benchmarks/execution/bam_coverage.awk {raw_inputs} > \"$summary\"
+awk -v mode=summary -v source={} -f /repository/benchmarks/execution/bam_coverage.awk {raw_inputs} /input/reference-span.tsv > \"$summary\"
 awk -v mode=bundle -v tool={} -v sample_id={} -f /repository/benchmarks/execution/bam_coverage.awk \"$summary\" > \"${{prefix}}.coverage-summary.json\"
 awk -v mode=probe -f /repository/benchmarks/execution/bam_coverage.awk \"$summary\" > \"${{prefix}}.report-qc.json\"
 output_bytes=$(wc -c {raw_wc} \"$summary\" \"${{prefix}}.coverage-summary.json\" \"${{prefix}}.report-qc.json\" | awk 'END {{print $1}}')
@@ -73,8 +79,14 @@ awk -v mode=metrics -v bam_input_bytes={bam_bytes} -v bam_index_input_bytes={bam
 pub(super) fn required_files(tool: &str, repetitions: u32) -> Vec<String> {
     let raw = match tool {
         "bedtools" => vec!["bedgraph"],
-        "mosdepth" => vec!["mosdepth.summary.txt", "mosdepth.global.dist.txt"],
-        "samtools" => vec!["depth.tsv", "reference-span.tsv"],
+        "mosdepth" => vec![
+            "mosdepth.summary.txt",
+            "mosdepth.global.dist.txt",
+            "quantized.bed.gz",
+            "quantized.bed.gz.csi",
+            "quantized.bed",
+        ],
+        "samtools" => vec!["depth.tsv"],
         _ => Vec::new(),
     };
     let mut files = Vec::new();
@@ -117,24 +129,28 @@ mod tests {
         let bedgraph = temporary.path().join("coverage.bedgraph");
         let depth = temporary.path().join("coverage.depth.tsv");
         let summary = temporary.path().join("coverage.mosdepth.summary.txt");
-        let distribution = temporary.path().join("coverage.mosdepth.global.dist.txt");
+        let quantized = temporary.path().join("coverage.quantized.bed");
         std::fs::write(&bedgraph, b"chr1\t0\t4\t0\nchr1\t4\t10\t2\n")?;
         std::fs::write(
             &depth,
             b"chr1\t5\t2\nchr1\t6\t2\nchr1\t7\t2\nchr1\t8\t2\nchr1\t9\t2\nchr1\t10\t2\n",
         )?;
         let reference_span = temporary.path().join("coverage.reference-span.tsv");
-        std::fs::write(&reference_span, b"reference_bases\t10\n")?;
+        std::fs::write(
+            &reference_span,
+            b"schema_version\tbijux.benchmark.bam.reference-span.v1\nsource_bam_sha256\tabc\nreference_bases\t10\n",
+        )?;
         std::fs::write(
             &summary,
-            b"chrom\tlength\tbases\tmean\tmin\tmax\ntotal\t10\t12\t1.2\t0\t2\n",
+            b"chrom\tlength\tbases\tmean\tmin\tmax\ntotal\t8\t12\t1.5\t0\t2\n",
         )?;
-        std::fs::write(&distribution, b"total\t0\t1.0\ntotal\t1\t0.6\n")?;
+        std::fs::write(&quantized, b"chr1\t0\t4\t0:1\nchr1\t4\t10\t1:inf\n")?;
 
         let expected = "metric\tvalue\nreference_bases\t10\ncovered_bases\t6\ncoverage_fraction\t0.600000000000\nmean_depth\t1.200000000000\n";
-        assert_eq!(normalize("bedtools", &[bedgraph])?, expected);
+        assert_eq!(normalize("bedtools", &[bedgraph, reference_span.clone()])?, expected);
         assert_eq!(normalize("samtools", &[depth, reference_span])?, expected);
-        assert_eq!(normalize("mosdepth", &[summary, distribution])?, expected);
+        let reference_span = temporary.path().join("coverage.reference-span.tsv");
+        assert_eq!(normalize("mosdepth", &[summary, quantized, reference_span])?, expected);
         Ok(())
     }
 
@@ -143,9 +159,14 @@ mod tests {
         for tool in ["bedtools", "mosdepth", "samtools"] {
             let command = measured_command(tool, "ERR2112767", 23, 3, 26);
             assert!(command[2].contains("bam_coverage.awk"));
+            assert_eq!(command[2].matches("/input/reference-span.tsv").count(), 1);
             if tool == "samtools" {
-                assert!(command[2].contains("samtools view -H"));
+                assert!(!command[2].contains("samtools view -H"));
                 assert!(!command[2].contains("depth -aa"));
+            }
+            if tool == "mosdepth" {
+                assert!(command[2].contains("--quantize 0:1:"));
+                assert!(!command[2].contains("global.dist.txt\" /input/reference-span.tsv"));
             }
             let required = required_files(tool, 3);
             assert!(required.contains(&"repetitions/repetition-3.metrics.json".to_string()));

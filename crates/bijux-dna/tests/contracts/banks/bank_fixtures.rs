@@ -2,12 +2,9 @@ use std::cell::Cell;
 use std::collections::BTreeMap;
 use std::ffi::OsString;
 use std::fs;
-use std::io::ErrorKind;
 use std::path::{Path, PathBuf};
 use std::process::Command;
-use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::Mutex;
-use std::time::{Duration, Instant};
 
 use anyhow::{anyhow, Result};
 use serde_json::{Map, Value};
@@ -18,16 +15,6 @@ mod test_support;
 pub static CWD_LOCK: Mutex<()> = Mutex::new(());
 #[allow(dead_code)]
 const TEST_LOCK_ROOT: &str = "artifacts/test-locks";
-#[allow(dead_code)]
-const TEST_LOCK_WAIT_TIMEOUT: Duration = Duration::from_mins(5);
-#[allow(dead_code)]
-const TEST_LOCK_POLL_INTERVAL: Duration = Duration::from_millis(50);
-#[allow(dead_code)]
-const TEST_LOCK_OWNER_FILE: &str = "owner.pid";
-#[allow(dead_code)]
-const TEST_LOCK_MISSING_OWNER_GRACE: Duration = Duration::from_secs(30);
-#[allow(dead_code)]
-static LOCK_OWNER_SEQUENCE: AtomicU64 = AtomicU64::new(0);
 
 thread_local! {
     static REPO_MUTATOR_LOCK_DEPTH: Cell<usize> = const { Cell::new(0) };
@@ -127,7 +114,7 @@ impl RepoSandbox {
     }
 
     pub fn materialize_vcf_score_evidence(&self, home: &Path) -> Result<()> {
-        const SMOKE_COMMANDS: &[&[&str]] = &[
+        const EVIDENCE_COMMANDS: &[&[&str]] = &[
             &["bench", "local", "run-vcf-admixture-smoke"],
             &["bench", "local", "run-vcf-call-smoke"],
             &["bench", "local", "run-vcf-call-diploid-smoke"],
@@ -152,9 +139,11 @@ impl RepoSandbox {
             &["bench", "local", "run-vcf-qc-smoke"],
             &["bench", "local", "run-vcf-roh-smoke"],
             &["bench", "local", "run-vcf-stats-smoke"],
+            &["bench", "readiness", "render-full-benchmark-report"],
+            &["bench", "run-micro"],
         ];
 
-        for args in SMOKE_COMMANDS {
+        for args in EVIDENCE_COMMANDS {
             let output = self
                 .bijux_dna_command()
                 .env("HOME", home)
@@ -205,8 +194,7 @@ pub fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
 
 #[allow(dead_code)]
 pub struct RepoProcessLock {
-    path: PathBuf,
-    owner: String,
+    _file_lock: bijux_dna_infra::FileLock,
     _sandbox_request: RepoSandboxRequest,
 }
 
@@ -214,58 +202,10 @@ pub struct RepoProcessLock {
 impl RepoProcessLock {
     pub fn acquire(name: &str) -> Result<Self> {
         let repo_root = test_support::repo_root()?;
-        let lock_root = repo_root.join(TEST_LOCK_ROOT);
-        fs::create_dir_all(&lock_root)?;
-        let path = lock_root.join(name);
-        let owner = lock_owner_record();
-        let deadline = Instant::now() + TEST_LOCK_WAIT_TIMEOUT;
-
-        loop {
-            match fs::create_dir(&path) {
-                Ok(()) => match write_lock_owner(&path, &owner) {
-                    Ok(()) => {
-                        return Ok(Self {
-                            path,
-                            owner,
-                            _sandbox_request: RepoSandboxRequest::new(),
-                        });
-                    }
-                    Err(error) if error.kind() == ErrorKind::NotFound => {}
-                    Err(error) => {
-                        return Err(anyhow!(
-                            "write repo test lock owner `{}`: {error}",
-                            path.display()
-                        ));
-                    }
-                },
-                Err(error) if error.kind() == ErrorKind::AlreadyExists => {
-                    if stale_repo_test_lock(&path)? {
-                        match fs::remove_dir_all(&path) {
-                            Ok(()) => continue,
-                            Err(remove_error) if remove_error.kind() == ErrorKind::NotFound => {
-                                continue;
-                            }
-                            Err(remove_error) => {
-                                return Err(anyhow!(
-                                    "remove stale repo test lock `{}`: {remove_error}",
-                                    path.display()
-                                ));
-                            }
-                        }
-                    }
-                    if Instant::now() >= deadline {
-                        return Err(anyhow!(
-                            "timed out waiting for repo test lock `{}`",
-                            path.display()
-                        ));
-                    }
-                    std::thread::sleep(TEST_LOCK_POLL_INTERVAL);
-                }
-                Err(error) => {
-                    return Err(anyhow!("create repo test lock `{}`: {error}", path.display()));
-                }
-            }
-        }
+        let path = repo_root.join(TEST_LOCK_ROOT).join(format!("{name}.lock"));
+        let file_lock = bijux_dna_infra::FileLock::try_acquire(&path)
+            .map_err(|error| anyhow!("acquire repo test lock `{}`: {error}", path.display()))?;
+        Ok(Self { _file_lock: file_lock, _sandbox_request: RepoSandboxRequest::new() })
     }
 }
 
@@ -286,70 +226,6 @@ impl Drop for RepoSandboxRequest {
 
 fn repo_mutator_lock_held() -> bool {
     REPO_MUTATOR_LOCK_DEPTH.with(|depth| depth.get() > 0)
-}
-
-impl Drop for RepoProcessLock {
-    fn drop(&mut self) {
-        let owner_path = self.path.join(TEST_LOCK_OWNER_FILE);
-        if fs::read_to_string(owner_path).is_ok_and(|owner| owner == self.owner) {
-            let _ = fs::remove_dir_all(&self.path);
-        }
-    }
-}
-
-fn lock_owner_record() -> String {
-    let sequence = LOCK_OWNER_SEQUENCE.fetch_add(1, Ordering::Relaxed);
-    format!("{}\n{sequence}", std::process::id())
-}
-
-fn write_lock_owner(path: &Path, owner: &str) -> std::io::Result<()> {
-    fs::write(path.join(TEST_LOCK_OWNER_FILE), owner)
-}
-
-fn stale_repo_test_lock(path: &Path) -> Result<bool> {
-    let owner_path = path.join(TEST_LOCK_OWNER_FILE);
-    match fs::read_to_string(&owner_path) {
-        Ok(owner) => match owner.lines().next().unwrap_or_default().parse::<u32>() {
-            Ok(pid) => Ok(!process_is_alive(pid)),
-            Err(_) => Ok(lock_is_older_than(path, TEST_LOCK_MISSING_OWNER_GRACE)?),
-        },
-        Err(error) if error.kind() == ErrorKind::NotFound => {
-            Ok(lock_is_older_than(path, TEST_LOCK_MISSING_OWNER_GRACE)?)
-        }
-        Err(error) => Err(anyhow!("read repo test lock owner `{}`: {error}", owner_path.display())),
-    }
-}
-
-fn lock_is_older_than(path: &Path, threshold: Duration) -> Result<bool> {
-    let modified = match fs::metadata(path) {
-        Ok(metadata) => metadata.modified().map_err(|error| {
-            anyhow!("read repo test lock metadata `{}`: {error}", path.display())
-        })?,
-        Err(error) if error.kind() == ErrorKind::NotFound => return Ok(true),
-        Err(error) => {
-            return Err(anyhow!("read repo test lock metadata `{}`: {error}", path.display()));
-        }
-    };
-    let age = modified
-        .elapsed()
-        .map_err(|error| anyhow!("measure repo test lock age `{}`: {error}", path.display()))?;
-    Ok(age >= threshold)
-}
-
-#[cfg(unix)]
-fn process_is_alive(pid: u32) -> bool {
-    let Ok(pid) = i32::try_from(pid) else {
-        return false;
-    };
-    match nix::sys::signal::kill(nix::unistd::Pid::from_raw(pid), None) {
-        Ok(()) | Err(nix::errno::Errno::EPERM) => true,
-        Err(_) => false,
-    }
-}
-
-#[cfg(not(unix))]
-fn process_is_alive(_pid: u32) -> bool {
-    true
 }
 
 #[allow(dead_code)]
@@ -375,13 +251,19 @@ pub fn json_bool(value: &Value, key: &str) -> Option<bool> {
 }
 
 #[allow(dead_code)]
-pub fn json_object<'a>(value: &'a Value, key: &str) -> &'a Map<String, Value> {
-    value.get(key).and_then(Value::as_object).expect(key)
+pub fn json_object<'a>(value: &'a Value, key: &str) -> Result<&'a Map<String, Value>> {
+    value
+        .get(key)
+        .and_then(Value::as_object)
+        .ok_or_else(|| anyhow!("JSON field `{key}` must be an object"))
 }
 
 #[allow(dead_code)]
-pub fn json_array<'a>(value: &'a Value, key: &str) -> &'a Vec<Value> {
-    value.get(key).and_then(Value::as_array).expect(key)
+pub fn json_array<'a>(value: &'a Value, key: &str) -> Result<&'a Vec<Value>> {
+    value
+        .get(key)
+        .and_then(Value::as_array)
+        .ok_or_else(|| anyhow!("JSON field `{key}` must be an array"))
 }
 
 #[allow(dead_code)]

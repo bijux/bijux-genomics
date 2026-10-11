@@ -97,12 +97,10 @@ pub fn derive_container_registry_projection_report(
         .map(ToString::to_string)
         .collect::<Vec<_>>();
     for tool_id in &unprojected_tool_ids {
-        if catalog_by_id
-            .get(tool_id.as_str())
-            .is_some_and(|tool| tool.legacy_support_disposition() == "retained")
-        {
-            violations
-                .push(format!("retained catalog tool {tool_id:?} has no registry projection"));
+        if catalog_by_id.get(tool_id.as_str()).is_some_and(|tool| tool.is_product_supported()) {
+            violations.push(format!(
+                "product-supported catalog tool {tool_id:?} has no registry projection"
+            ));
         }
     }
 
@@ -209,24 +207,15 @@ fn compare_registry_row(
         expected_pin_strategy(catalog),
     );
 
-    if catalog.legacy_support_disposition() != "retained" {
-        compare_text_field(
-            violations,
-            registry_path,
-            &tool_id,
-            registry,
-            "status",
-            catalog.legacy_support_disposition(),
-        );
-        if table_bool(registry, "container")
+    if !catalog.is_redistributable_image()
+        && (table_bool(registry, "container")
             || !table_string(registry, "dockerfile").is_empty()
-            || !table_string(registry, "apptainer_def").is_empty()
-        {
-            violations.push(format!(
-                "{registry_path}: {tool_id} {} tool claims a container recipe",
-                catalog.legacy_support_disposition()
-            ));
-        }
+            || !table_string(registry, "apptainer_def").is_empty())
+    {
+        violations.push(format!(
+            "{registry_path}: {tool_id} {} delivery claims a redistributable container recipe",
+            catalog.artifact_delivery.as_str()
+        ));
     }
 }
 

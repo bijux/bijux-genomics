@@ -50,13 +50,12 @@ fn bench_local_validate_stage_result_rejects_blank_resource_metric_source() {
     )
     .expect("write invalid manifest");
 
-    let output = Command::new("cargo")
+    let output = Command::new(env!("CARGO_BIN_EXE_bijux-dna"))
         .current_dir(&repo_root)
         .env("HOME", home.path())
         .env("BIJUX_SKIP_QA", "1")
         .env("BIJUX_ALLOW_SILVER", "1")
         .env("BIJUX_SKIP_IMAGE_CHECK", "1")
-        .args(["run", "-q", "-p", "bijux-dna", "--features", "bam_downstream", "--"])
         .args([
             "bench",
             "local",

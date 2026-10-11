@@ -150,7 +150,7 @@ fn acceptance_checks(
 ) -> BTreeMap<String, bool> {
     let states = &inventory.summary.states;
     let current = states.get("current").copied().unwrap_or(0);
-    let unsupported = states.get("unsupported").copied().unwrap_or(0);
+    let not_applicable = states.get("not_applicable").copied().unwrap_or(0);
     BTreeMap::from([
         ("all_moves_applied".to_string(), plan.moves.iter().all(|row| row.applied)),
         ("move_count_matches".to_string(), plan.file_count == plan.moves.len() as u64),
@@ -165,10 +165,12 @@ fn acceptance_checks(
             inventory.summary.unreferenced_obsolete_count == 0,
         ),
         (
-            "only_current_or_unsupported_tools_remain".to_string(),
+            "only_current_or_not_applicable_tools_remain".to_string(),
             inventory.summary.tool_count > 0
-                && current + unsupported == inventory.summary.tool_count
-                && states.keys().all(|state| matches!(state.as_str(), "current" | "unsupported")),
+                && current + not_applicable == inventory.summary.tool_count
+                && states
+                    .keys()
+                    .all(|state| matches!(state.as_str(), "current" | "not_applicable")),
         ),
         ("plan_applied".to_string(), plan.state == ImageStoragePlanState::Applied),
     ])

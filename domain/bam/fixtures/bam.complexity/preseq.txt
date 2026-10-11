@@ -2,7 +2,6 @@ tool=preseq
 tool_version=pinned
 stage=bam.complexity
 domain=bam
-shipping=external
 fixture_kind=synthetic_truth
 command=preseq
 args=

@@ -3,7 +3,7 @@ use super::{path_from_arg, read_utf8, success_line, ContainerCommandOutcome, Res
 const PUBLICATION_SCHEMA_PATH: &str =
     "containers/contracts/schemas/runtime-verification-publication.v2.json";
 const IDENTITY_SCHEMA_PATH: &str =
-    "containers/contracts/schemas/tool-image-identity-evidence.v2.json";
+    "containers/contracts/schemas/tool-image-identity-evidence.v3.json";
 const USAGE: &str = "Usage:\n  bijux-dna-dev containers run runtime-verification -- check-report <json-output> <markdown-output>\n  bijux-dna-dev containers run runtime-verification -- generate-schema [<publication-schema> <identity-schema>]\n  bijux-dna-dev containers run runtime-verification -- check-schema\n\nEffectful execution is owned by the bijux-dna-containers-qa runtime_verification binary.";
 
 pub(super) fn run(workspace: &Workspace, args: &[String]) -> Result<ContainerCommandOutcome> {

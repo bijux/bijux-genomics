@@ -132,7 +132,7 @@ mod tests {
 
     fn write_benchmark_config_for_corpus(repo_root: &Path, corpus_id: &str) {
         let config_path = repo_root.join("configs/bench/benchmark.toml");
-        let corpus_spec_path = format!("configs/runtime/corpora/{corpus_id}.toml");
+        let corpus_spec_path = "benchmarks/corpora/human-short-read-diversity.toml";
         fs::create_dir_all(config_path.parent().expect("config dir")).expect("config dir");
         fs::write(
             config_path,
@@ -863,7 +863,7 @@ reason = "Compact validation fixture."
         let temp = tempdir().expect("tempdir");
         let repo_root = temp.path();
         let docs_root = repo_root.join("docs").join("benchmark");
-        fs::create_dir_all(repo_root.join("configs/runtime/corpora")).expect("corpora dir");
+        fs::create_dir_all(repo_root.join("benchmarks/corpora")).expect("corpora dir");
         fs::write(
             repo_root.join("benchmarks/corpora/human-short-read-diversity.toml"),
             concat!(
@@ -1001,7 +1001,7 @@ reason = "Compact validation fixture."
         let temp = tempdir().expect("tempdir");
         let repo_root = temp.path();
         let docs_root = repo_root.join("docs").join("benchmark");
-        fs::create_dir_all(repo_root.join("configs/runtime/corpora")).expect("corpora dir");
+        fs::create_dir_all(repo_root.join("benchmarks/corpora")).expect("corpora dir");
         fs::write(
             repo_root.join("benchmarks/corpora/human-short-read-diversity.toml"),
             concat!(
@@ -1078,7 +1078,7 @@ reason = "Compact validation fixture."
         let temp = tempdir().expect("tempdir");
         let repo_root = temp.path();
         let docs_root = repo_root.join("docs").join("benchmark");
-        fs::create_dir_all(repo_root.join("configs/runtime/corpora")).expect("corpora dir");
+        fs::create_dir_all(repo_root.join("benchmarks/corpora")).expect("corpora dir");
         fs::write(
             repo_root.join("benchmarks/corpora/human-short-read-diversity.toml"),
             concat!(

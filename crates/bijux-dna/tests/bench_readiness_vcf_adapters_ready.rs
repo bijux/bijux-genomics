@@ -52,22 +52,18 @@ fn bench_readiness_vcf_adapters_ready_reports_governed_pass_state() {
         payload.get("failing_goal_ids").and_then(serde_json::Value::as_array).map(Vec::len),
         Some(0)
     );
-    assert_eq!(
-        payload.get("benchmark_ready_pair_count").and_then(serde_json::Value::as_u64),
-        Some(24)
-    );
-    assert_eq!(
-        payload.get("adapter_complete_pair_count").and_then(serde_json::Value::as_u64),
-        Some(24)
-    );
-    assert_eq!(
-        payload.get("output_complete_pair_count").and_then(serde_json::Value::as_u64),
-        Some(24)
-    );
-    assert_eq!(
-        payload.get("rendered_command_pair_count").and_then(serde_json::Value::as_u64),
-        Some(24)
-    );
+    let benchmark_ready_pair_count = payload
+        .get("benchmark_ready_pair_count")
+        .and_then(serde_json::Value::as_u64)
+        .expect("benchmark-ready pair count");
+    for count_key in
+        ["adapter_complete_pair_count", "output_complete_pair_count", "rendered_command_pair_count"]
+    {
+        assert_eq!(
+            payload.get(count_key).and_then(serde_json::Value::as_u64),
+            Some(benchmark_ready_pair_count)
+        );
+    }
     assert_eq!(payload.get("ok"), Some(&serde_json::Value::Bool(true)));
 
     let checks = payload.get("checks").and_then(serde_json::Value::as_array).expect("checks array");
@@ -94,8 +90,8 @@ fn bench_readiness_vcf_adapters_ready_reports_governed_pass_state() {
         orphan_check
             .get("detail")
             .and_then(serde_json::Value::as_str)
-            .is_some_and(|detail| detail.contains("7 governed orphan VCF tools")),
-        "goal 232 detail must keep the governed orphan tool count explicit"
+            .is_some_and(|detail| detail.contains("governed orphan VCF tools")),
+        "goal 232 detail must keep orphan tool coverage explicit"
     );
 
     let output_check = checks

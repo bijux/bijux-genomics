@@ -7,12 +7,12 @@ use super::inventory::{ImageInventoryScan, RAW_INVENTORY_SCHEMA_V1, RAW_INVENTOR
 use super::model::{
     ContainerDetachedImage, ContainerImageCandidate, ContainerImageInventoryPublication,
     ContainerImageInventoryTool, ContainerImageState, ContainerStagedImage,
-    ContainerSupportDisposition, DetachedImageDisposition, ImageCandidateDisposition,
-    RuntimeVerificationPublication, CONTAINER_IMAGE_INVENTORY_PUBLICATION_SCHEMA_V1,
-    CONTAINER_IMAGE_INVENTORY_PUBLICATION_SCHEMA_V2,
+    DetachedImageDisposition, ImageCandidateDisposition, RuntimeVerificationPublication,
+    CONTAINER_IMAGE_INVENTORY_PUBLICATION_SCHEMA_V3,
     CONTAINER_RUNTIME_VERIFICATION_PUBLICATION_SCHEMA_V1,
     CONTAINER_RUNTIME_VERIFICATION_PUBLICATION_SCHEMA_V2,
 };
+use super::tool_contract::ContainerArtifactDelivery;
 
 /// Validate complete scan identities before publication or replay.
 ///
@@ -152,11 +152,7 @@ pub fn validate_image_inventory_evidence(
 pub fn validate_image_inventory_publication(
     publication: &ContainerImageInventoryPublication,
 ) -> Result<()> {
-    if !matches!(
-        publication.schema_version.as_str(),
-        CONTAINER_IMAGE_INVENTORY_PUBLICATION_SCHEMA_V1
-            | CONTAINER_IMAGE_INVENTORY_PUBLICATION_SCHEMA_V2
-    ) {
+    if publication.schema_version != CONTAINER_IMAGE_INVENTORY_PUBLICATION_SCHEMA_V3 {
         bail!("unsupported image-inventory publication schema: {}", publication.schema_version);
     }
     validate_sha256(&publication.catalog_sha256, "inventory catalog")?;
@@ -172,7 +168,7 @@ pub fn validate_image_inventory_publication(
         if !tool_ids.insert(tool.tool.as_str()) {
             bail!("image inventory duplicates tool {}", tool.tool);
         }
-        validate_inventory_tool(tool, &publication.schema_version, &mut state)?;
+        validate_inventory_tool(tool, &mut state)?;
     }
     for image in publication.historical_images.iter().chain(&publication.unknown_images) {
         validate_detached_image(image, &mut state)?;
@@ -212,13 +208,12 @@ struct InventoryValidationState {
 
 fn validate_inventory_tool(
     tool: &ContainerImageInventoryTool,
-    schema_version: &str,
     state: &mut InventoryValidationState,
 ) -> Result<()> {
     if tool.tool.trim().is_empty() || tool.version.trim().is_empty() {
         bail!("image inventory contains an empty tool identity");
     }
-    *state.states.entry(image_state_name(&tool.state).to_string()).or_insert(0) += 1;
+    *state.states.entry(image_state_name(tool.state).to_string()).or_insert(0) += 1;
     let mut candidate_digests = BTreeSet::new();
     let mut canonical_candidates = 0;
     for candidate in &tool.candidates {
@@ -229,7 +224,7 @@ fn validate_inventory_tool(
         canonical_candidates +=
             u64::from(matches!(candidate.disposition, ImageCandidateDisposition::Canonical));
     }
-    validate_selected_image(tool, schema_version, canonical_candidates)
+    validate_selected_image(tool, canonical_candidates)
 }
 
 fn validate_image_candidate(
@@ -281,13 +276,17 @@ fn validate_image_candidate(
     Ok(())
 }
 
-fn validate_selected_image(
-    tool: &ContainerImageInventoryTool,
-    schema_version: &str,
-    canonical: u64,
-) -> Result<()> {
-    match (&tool.support_disposition, &tool.selected_image_sha256) {
-        (ContainerSupportDisposition::Retained, Some(selected)) => {
+fn validate_selected_image(tool: &ContainerImageInventoryTool, canonical: u64) -> Result<()> {
+    let image_lifecycle_applies = tool.artifact_delivery
+        == ContainerArtifactDelivery::RedistributableImage
+        && tool.apptainer_supported;
+    if tool.redistribution_permitted
+        != (tool.artifact_delivery == ContainerArtifactDelivery::RedistributableImage)
+    {
+        bail!("image inventory redistribution contract differs for {}", tool.tool);
+    }
+    match (image_lifecycle_applies, &tool.selected_image_sha256) {
+        (true, Some(selected)) => {
             validate_sha256(selected, "selected image")?;
             let selected_candidate = tool
                 .candidates
@@ -309,15 +308,15 @@ fn validate_selected_image(
                     bail!("historical image state selects a current recipe for {}", tool.tool);
                 }
                 ContainerImageState::Current | ContainerImageState::Historical => {}
-                _ => bail!("retained tool {} has an invalid image state", tool.tool),
+                _ => bail!("redistributable-image tool {} has an invalid image state", tool.tool),
             }
         }
-        (ContainerSupportDisposition::Retained, None) => {
-            if schema_version == CONTAINER_IMAGE_INVENTORY_PUBLICATION_SCHEMA_V1 {
-                bail!("retained tool {} has no selected image", tool.tool);
-            }
+        (true, None) => {
             if canonical != 0 {
-                bail!("unresolved retained tool {} exposes a canonical image", tool.tool);
+                bail!(
+                    "unresolved redistributable-image tool {} exposes a canonical image",
+                    tool.tool
+                );
             }
             let admitted = tool.candidates.iter().filter(|candidate| candidate.admitted).count();
             match tool.state {
@@ -338,27 +337,41 @@ fn validate_selected_image(
                         })
                         .count();
                     if selection_pool < 2 || unreferenced == 1 {
-                        bail!("ambiguous retained tool {} has a unique image selection", tool.tool);
+                        bail!(
+                            "ambiguous redistributable-image tool {} has a unique image selection",
+                            tool.tool
+                        );
                     }
                 }
                 ContainerImageState::Missing => {
-                    bail!("missing retained tool {} has admitted image candidates", tool.tool);
+                    bail!(
+                        "missing redistributable-image tool {} has admitted image candidates",
+                        tool.tool
+                    );
                 }
                 ContainerImageState::Ambiguous => {
-                    bail!("ambiguous retained tool {} lacks competing admitted images", tool.tool);
+                    bail!(
+                        "ambiguous redistributable-image tool {} lacks competing admitted images",
+                        tool.tool
+                    );
                 }
-                _ => bail!("unselected retained tool {} has an invalid image state", tool.tool),
+                _ => bail!(
+                    "unselected redistributable-image tool {} has an invalid image state",
+                    tool.tool
+                ),
             }
         }
-        (_, Some(selected)) => validate_sha256(selected, "selected image")?,
-        (_, None) => {}
+        (false, Some(_)) => {
+            bail!("non-image delivery for {} exposes a selected image lifecycle", tool.tool);
+        }
+        (false, None) => {}
     }
-    if !matches!(tool.support_disposition, ContainerSupportDisposition::Retained)
-        && (tool.selected_image_sha256.is_some()
-            || canonical != 0
-            || !matches!(tool.state, ContainerImageState::Unsupported))
+    if !image_lifecycle_applies
+        && (canonical != 0
+            || !tool.candidates.is_empty()
+            || !matches!(tool.state, ContainerImageState::NotApplicable))
     {
-        bail!("non-retained tool {} exposes a selected image lifecycle", tool.tool);
+        bail!("non-image delivery for {} exposes an image lifecycle", tool.tool);
     }
     Ok(())
 }
@@ -468,13 +481,13 @@ fn validate_reference_summary(count: u64, references: &[String], label: &str) ->
     Ok(())
 }
 
-fn image_state_name(state: &ContainerImageState) -> &'static str {
+fn image_state_name(state: ContainerImageState) -> &'static str {
     match state {
         ContainerImageState::Current => "current",
         ContainerImageState::Historical => "historical",
         ContainerImageState::Ambiguous => "ambiguous",
         ContainerImageState::Missing => "missing",
-        ContainerImageState::Unsupported => "unsupported",
+        ContainerImageState::NotApplicable => "not_applicable",
     }
 }
 

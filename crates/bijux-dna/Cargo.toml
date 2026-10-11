@@ -13,6 +13,7 @@ path = "src/bin/bijux-dna.rs"
 [dependencies]
 bijux-dna-api.workspace = true
 bijux-dna-analyze.workspace = true
+bijux-dna-bench.workspace = true
 bijux-dna-bench-model.workspace = true
 bijux-dna-core.workspace = true
 bijux-dna-domain-bam.workspace = true
@@ -61,7 +62,6 @@ predicates.workspace = true
 insta = { workspace = true }
 filetime.workspace = true
 walkdir.workspace = true
-nix.workspace = true
 
 [lints]
 workspace = true

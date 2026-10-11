@@ -96,7 +96,7 @@ fn source_tree_matches_architecture_contract() {
 
     assert_eq!(
         dir_entries(&root.join("src/image_qa/runtime_verification")),
-        btree_set(&["mod.rs", "workflow.rs"]),
+        btree_set(&["apptainer_smoke.rs", "mod.rs", "workflow.rs"]),
         "runtime verification must isolate effectful catalog-wide probe orchestration"
     );
     assert_eq!(

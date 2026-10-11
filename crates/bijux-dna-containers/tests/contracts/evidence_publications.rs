@@ -24,20 +24,42 @@ fn checked_in_container_publications_are_admitted_by_environment_types() -> Resu
 
     assert_eq!(inventory.tools.len(), 89);
     assert_eq!(
+        inventory.schema_version,
+        bijux_dna_containers::evidence::CONTAINER_IMAGE_INVENTORY_PUBLICATION_SCHEMA_V3
+    );
+    assert_eq!(
         inventory
             .tools
             .iter()
-            .filter(|tool| matches!(
-                tool.support_disposition,
-                bijux_dna_containers::evidence::ContainerSupportDisposition::Retained
-            ))
+            .filter(|tool| {
+                tool.artifact_delivery
+                    == bijux_dna_containers::evidence::ContainerArtifactDelivery::RedistributableImage
+            })
             .count(),
         85
     );
+    for tool_id in ["angsd", "fastuniq", "impute5", "ngsbriggs"] {
+        let tool = inventory
+            .tools
+            .iter()
+            .find(|tool| tool.tool == tool_id)
+            .with_context(|| format!("normalized inventory omits {tool_id}"))?;
+        assert_eq!(
+            tool.product_support,
+            bijux_dna_containers::evidence::ContainerProductSupport::Supported
+        );
+        assert_eq!(
+            tool.artifact_delivery,
+            bijux_dna_containers::evidence::ContainerArtifactDelivery::ExternalArtifact
+        );
+        assert!(!tool.redistribution_permitted);
+        assert_eq!(tool.state, bijux_dna_containers::evidence::ContainerImageState::NotApplicable);
+    }
     assert_eq!(runtime.tools.len(), 85);
-    assert_eq!(runtime.catalog.sha256, inventory.catalog_sha256);
-    assert_eq!(runtime.inventory.sha256, inventory.publication.raw_sha256);
-    assert_eq!(runtime.repository_commit, inventory.repository_commit);
+    assert_ne!(
+        runtime.catalog.sha256, inventory.catalog_sha256,
+        "historical publications must not be presented as one current evidence chain"
+    );
     Ok(())
 }
 
@@ -52,6 +74,7 @@ fn evidence_chain_rejects_cross_publication_identity_and_roster_drift() -> Resul
         bijux_dna_containers::evidence::load_runtime_verification_publication(
             &root.join("containers/reports/runtime-verification.json"),
         )?,
+        &inventory,
     );
     bijux_dna_containers::evidence::validate_container_evidence_chain(
         &inventory.catalog_sha256,
@@ -81,12 +104,13 @@ fn evidence_chain_rejects_cross_publication_identity_and_roster_drift() -> Resul
     )
     .is_err_and(|error| error.to_string().contains("tool set differs")));
 
-    let mut capability_drift = inventory.clone();
-    capability_drift.tools[0].apptainer_supported = !capability_drift.tools[0].apptainer_supported;
+    let mut support_drift = inventory.clone();
+    support_drift.tools[0].product_support =
+        bijux_dna_containers::evidence::ContainerProductSupport::Retired;
     assert!(bijux_dna_containers::evidence::validate_container_inventory_catalog(
         &inventory.catalog_sha256,
         &catalog,
-        &capability_drift,
+        &support_drift,
     )
     .is_err_and(|error| error.to_string().contains("identity differs")));
     Ok(())
@@ -94,24 +118,26 @@ fn evidence_chain_rejects_cross_publication_identity_and_roster_drift() -> Resul
 
 fn runtime_publication_for_chain(
     mut runtime: bijux_dna_containers::evidence::RuntimeVerificationPublication,
+    inventory: &bijux_dna_containers::evidence::ContainerImageInventoryPublication,
 ) -> bijux_dna_containers::evidence::RuntimeVerificationPublication {
-    if runtime.schema_version
-        == bijux_dna_containers::evidence::CONTAINER_RUNTIME_VERIFICATION_PUBLICATION_SCHEMA_V2
-    {
-        return runtime;
-    }
-
     runtime.schema_version =
         bijux_dna_containers::evidence::CONTAINER_RUNTIME_VERIFICATION_PUBLICATION_SCHEMA_V2
             .to_string();
+    runtime.catalog.sha256.clone_from(&inventory.catalog_sha256);
+    runtime.inventory.sha256.clone_from(&inventory.publication.raw_sha256);
+    runtime.repository_commit.clone_from(&inventory.repository_commit);
     for (tool_id, evidence) in &mut runtime.tools {
-        let identity_sha256 = evidence.image_sha256.clone();
-        evidence.identity.get_or_insert_with(|| {
-            synthetic_runtime_source_identity(tool_id, "identities", &identity_sha256)
-        });
-        evidence.manifest.get_or_insert_with(|| {
-            synthetic_runtime_source_identity(tool_id, "manifests", &identity_sha256)
-        });
+        let identity_sha256 = inventory
+            .tools
+            .iter()
+            .find(|tool| tool.tool == *tool_id)
+            .and_then(|tool| tool.selected_image_sha256.clone())
+            .unwrap_or_else(|| panic!("normalized inventory omits selected image for {tool_id}"));
+        evidence.image_sha256.clone_from(&identity_sha256);
+        evidence.identity =
+            Some(synthetic_runtime_source_identity(tool_id, "identities", &identity_sha256));
+        evidence.manifest =
+            Some(synthetic_runtime_source_identity(tool_id, "manifests", &identity_sha256));
     }
     runtime
 }
@@ -301,7 +327,7 @@ fn refresh_inventory_summary(
             bijux_dna_containers::evidence::ContainerImageState::Historical => "historical",
             bijux_dna_containers::evidence::ContainerImageState::Ambiguous => "ambiguous",
             bijux_dna_containers::evidence::ContainerImageState::Missing => "missing",
-            bijux_dna_containers::evidence::ContainerImageState::Unsupported => "unsupported",
+            bijux_dna_containers::evidence::ContainerImageState::NotApplicable => "not_applicable",
         };
         *states.entry(state.to_string()).or_insert(0) += 1;
     }
@@ -348,22 +374,22 @@ fn refresh_inventory_summary(
 fn checked_in_publication_schemas_match_rust_types() -> Result<()> {
     let root = repository_root()?;
     let inventory_path =
-        root.join("containers/contracts/schemas/image-inventory-publication.v2.json");
+        root.join("containers/contracts/schemas/image-inventory-publication.v3.json");
     let scan_path = root.join("containers/contracts/schemas/image-inventory-scan.v2.json");
     let runtime_path =
         root.join("containers/contracts/schemas/runtime-verification-publication.v2.json");
     let security_probe_path =
         root.join("containers/contracts/schemas/security-probe-publication.v1.json");
     let tool_identity_path =
-        root.join("containers/contracts/schemas/tool-image-identity-evidence.v2.json");
+        root.join("containers/contracts/schemas/tool-image-identity-evidence.v3.json");
     let storage_plan_path = root.join("containers/contracts/schemas/image-storage-plan.v1.json");
     let storage_report_path =
         root.join("containers/contracts/schemas/image-storage-report.v1.json");
     let qualification_registry_path =
-        root.join("containers/contracts/schemas/qualification-run-registry.v2.json");
+        root.join("containers/contracts/schemas/qualification-run-registry.v3.json");
     let qualification_audit_path =
-        root.join("containers/contracts/schemas/qualification-run-id-audit.v2.json");
-    let tool_contract_path = root.join("containers/contracts/schemas/tool-contract.v2.json");
+        root.join("containers/contracts/schemas/qualification-run-id-audit.v3.json");
+    let tool_contract_path = root.join("containers/contracts/schemas/tool-contract.v3.json");
     let build_evidence_path = root.join("containers/contracts/schemas/build-evidence.v1.json");
     let campaign_plan_path = root.join("containers/contracts/schemas/image-campaign-plan.v1.json");
     let campaign_execution_path =
@@ -445,14 +471,59 @@ fn checked_in_publication_schemas_match_rust_types() -> Result<()> {
 }
 
 #[test]
+fn historical_tool_identity_schemas_remain_immutable() -> Result<()> {
+    let root = repository_root()?;
+    let inventory =
+        read_json(root.join("containers/contracts/schemas/image-inventory-publication.v2.json"))?;
+    assert_eq!(
+        inventory["properties"]["schema_version"]["const"],
+        "bijux.container.image_inventory_publication.v2"
+    );
+    let inventory_tool = &inventory["$defs"]["ContainerImageInventoryTool"]["properties"];
+    assert!(inventory_tool.get("support_disposition").is_some());
+    assert!(inventory_tool.get("product_support").is_none());
+
+    let contract = read_json(root.join("containers/contracts/schemas/tool-contract.v2.json"))?;
+    assert_eq!(
+        contract["properties"]["schema_version"]["const"],
+        "bijux.container.tool_contract.v2"
+    );
+    assert!(contract["properties"].get("support_disposition").is_some());
+    assert!(contract["properties"].get("product_support").is_none());
+
+    let identity =
+        read_json(root.join("containers/contracts/schemas/tool-image-identity-evidence.v2.json"))?;
+    assert_eq!(
+        identity["properties"]["schema_version"]["const"],
+        "bijux.container.tool_image_identity_evidence.v2"
+    );
+    let properties = &identity["$defs"]["ContainerToolContract"]["properties"];
+    assert!(properties.get("support_disposition").is_some());
+    assert!(properties.get("product_support").is_none());
+    Ok(())
+}
+
+#[test]
 fn checked_in_external_artifact_schema_matches_rust_type() -> Result<()> {
-    let path =
-        repository_root()?.join("containers/contracts/schemas/external-artifact-admission.v1.json");
+    let root = repository_root()?;
+    let path = root.join("containers/contracts/schemas/external-artifact-admission.v2.json");
     if std::env::var_os("BIJUX_UPDATE_GENERATED_SCHEMAS").is_some() {
         bijux_dna_containers::evidence::write_external_artifact_admission_schema(&path)?;
     }
     let checked_in: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(path)?)?;
     assert_eq!(checked_in, bijux_dna_containers::evidence::external_artifact_admission_schema());
+
+    let historical: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(
+        root.join("containers/contracts/schemas/external-artifact-admission.v1.json"),
+    )?)?;
+    assert_eq!(
+        historical["properties"]["schema_version"]["const"],
+        "bijux.container.external_artifact_admission.v1"
+    );
+    assert!(historical["properties"].get("status").is_some());
+    assert!(historical["properties"].get("support_disposition").is_some());
+    assert!(historical["properties"].get("availability").is_none());
+    assert!(historical["properties"].get("product_support").is_none());
     Ok(())
 }
 

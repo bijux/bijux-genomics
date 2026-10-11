@@ -2,7 +2,6 @@ tool=bijux_dna
 tool_version=pinned
 stage=fastq.normalize_read_names
 domain=fastq
-shipping=external
 fixture_kind=planned
 command=bijux-dna
 args=fastq layout normalize-read-names --reads reads.fq --out normalized_reads --report name_normalization_report.json

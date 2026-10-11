@@ -3,12 +3,11 @@
 use std::os::unix::fs::PermissionsExt as _;
 use std::path::{Path, PathBuf};
 use std::process::Command;
-use std::time::Duration;
 
 use bijux_dna_containers::api::{
     apptainer_build_log_path, build_apptainer_image, classify_apptainer_build_failure,
-    latest_apptainer_build_attempt, next_apptainer_build_attempt, run_apptainer_smoke,
-    ApptainerBuildFailureClass, ApptainerBuildRequest, ApptainerSmokeRequest,
+    latest_apptainer_build_attempt, next_apptainer_build_attempt, ApptainerBuildFailureClass,
+    ApptainerBuildRequest,
 };
 
 fn write_executable(path: &Path, body: &str) -> anyhow::Result<()> {
@@ -102,47 +101,23 @@ fn build_request(
         evidence_root: temp.path().join("evidence"),
         tool_id: "samtools".to_string(),
         build_evidence_id: "a".repeat(64),
-        maximum_invocations: 3,
-        retry_delay: Duration::ZERO,
-    })
-}
-
-fn smoke_request(
-    temp: &tempfile::TempDir,
-    executable: PathBuf,
-    expected_version_regex: &str,
-) -> anyhow::Result<ApptainerSmokeRequest> {
-    let image_path = temp.path().join("tool.sif");
-    let data_root = temp.path().join("input");
-    let results_root = temp.path().join("output");
-    std::fs::write(&image_path, b"sif")?;
-    std::fs::create_dir_all(&data_root)?;
-    std::fs::create_dir_all(&results_root)?;
-    Ok(ApptainerSmokeRequest {
-        executable,
-        image_path,
-        data_root,
-        results_root,
-        tool_id: "contract-tool".to_string(),
-        stage_id: "catalog.retained".to_string(),
-        build_evidence_id: "a".repeat(64),
-        repository_commit: "b".repeat(40),
-        registry_digest: "c".repeat(64),
-        image_sha256: "d".repeat(64),
-        version_command: "contract-tool --version".to_string(),
-        expected_version_regex: expected_version_regex.to_string(),
-        help_command: "contract-tool --help".to_string(),
-        require_help: true,
-        probe_commands: Vec::new(),
-        java_heap_mb: None,
-        upstream: "catalog-declared".to_string(),
-        evidence_root: None,
-        timeout: Duration::from_secs(2),
     })
 }
 
 #[test]
-fn transient_build_failure_retries_with_immutable_attempt_logs() -> anyhow::Result<()> {
+fn apptainer_build_lifecycle_is_one_shot() -> anyhow::Result<()> {
+    let source = std::fs::read_to_string(
+        Path::new(env!("CARGO_MANIFEST_DIR")).join("src/build/apptainer.rs"),
+    )?;
+
+    assert!(!source.contains("thread::sleep"));
+    assert!(!source.contains("maximum_invocations"));
+    assert!(!source.contains("retry_delay"));
+    Ok(())
+}
+
+#[test]
+fn transient_build_failure_requires_a_new_one_shot_invocation() -> anyhow::Result<()> {
     let temp = tempfile::tempdir()?;
     let executable = temp.path().join("apptainer");
     let counter = temp.path().join("counter");
@@ -155,14 +130,19 @@ fn transient_build_failure_retries_with_immutable_attempt_logs() -> anyhow::Resu
     )?;
     let request = build_request(&temp, executable)?;
 
+    let Err(first_error) = build_apptainer_image(&request) else {
+        panic!("transient failure must return after one attempt");
+    };
+    assert!(first_error.to_string().contains("TransientTransport"));
+    let first_log =
+        apptainer_build_log_path(&request.evidence_root, "samtools", &"a".repeat(64), 1);
+    assert!(std::fs::read_to_string(first_log)?.contains("failure_class=transient_transport"));
+
     let report = build_apptainer_image(&request)?;
 
-    assert_eq!(report.attempts.len(), 2);
-    assert_eq!(
-        report.attempts[0].failure_class,
-        Some(ApptainerBuildFailureClass::TransientTransport)
-    );
-    assert_eq!(report.attempts[1].failure_class, None);
+    assert_eq!(report.attempts.len(), 1);
+    assert_eq!(report.attempts[0].attempt, 2);
+    assert_eq!(report.attempts[0].failure_class, None);
     assert!(request.image_path.is_file());
     assert_eq!(
         latest_apptainer_build_attempt(&request.evidence_root, "samtools", &"a".repeat(64))
@@ -228,67 +208,4 @@ fn transport_classifier_is_explicit_and_fail_closed() {
             ApptainerBuildFailureClass::Permanent
         );
     }
-}
-
-#[test]
-fn contract_regex_admits_real_non_semver_versions() -> anyhow::Result<()> {
-    for (output, expected_regex) in
-        [("ibdseq r1206", "ibdseq r1206"), ("seqpurge 2026_06", "2026_06")]
-    {
-        let temp = tempfile::tempdir()?;
-        let executable = temp.path().join("apptainer");
-        write_executable(
-            &executable,
-            &format!(
-                "#!/bin/sh\ncase \"$*\" in\n  *--version*) printf '%s\\n' '{output}'; printf '%s\\n' 'runtime diagnostic' >&2 ;;\n  *--help*) printf '%s\\n' 'usage' ;;\n  *) exit 2 ;;\nesac\n"
-            ),
-        )?;
-        let request = smoke_request(&temp, executable, expected_regex)?;
-
-        let manifest = run_apptainer_smoke(&request)?;
-
-        assert_eq!(manifest.status, "ok");
-        assert!(manifest.version_matches_contract);
-        assert_eq!(manifest.version, expected_regex);
-    }
-    Ok(())
-}
-
-#[test]
-fn smoke_rejects_version_drift_invalid_regex_and_command_failure() -> anyhow::Result<()> {
-    let temp = tempfile::tempdir()?;
-    let executable = temp.path().join("apptainer");
-    write_executable(
-        &executable,
-        "#!/bin/sh\ncase \"$*\" in\n  *--version*) echo 'tool 1.0' ;;\n  *--help*) exit 4 ;;\nesac\n",
-    )?;
-    let request = smoke_request(&temp, executable.clone(), "tool 2\\.0")?;
-    let manifest = run_apptainer_smoke(&request)?;
-    assert_eq!(manifest.status, "wrapper_failed");
-    assert!(!manifest.version_matches_contract);
-    assert!(!manifest.help_ok);
-
-    let invalid_regex = smoke_request(&temp, executable, "[")?;
-    assert!(run_apptainer_smoke(&invalid_regex).is_err());
-    Ok(())
-}
-
-#[test]
-fn smoke_bounds_execution_and_persists_immutable_streams() -> anyhow::Result<()> {
-    let temp = tempfile::tempdir()?;
-    let executable = temp.path().join("apptainer");
-    write_executable(
-        &executable,
-        "#!/bin/sh\nprintf 'partial output\\n'\nprintf 'partial error\\n' >&2\nsleep 5\n",
-    )?;
-    let mut request = smoke_request(&temp, executable, "contract-tool 1[.]0")?;
-    request.timeout = Duration::from_millis(100);
-    request.evidence_root = Some(temp.path().join("evidence"));
-
-    let manifest = run_apptainer_smoke(&request)?;
-
-    assert_eq!(manifest.status, "wrapper_failed");
-    assert!(manifest.probe_results.iter().all(|probe| probe.timed_out));
-    assert_eq!(std::fs::read_dir(temp.path().join("evidence"))?.count(), 4);
-    Ok(())
 }

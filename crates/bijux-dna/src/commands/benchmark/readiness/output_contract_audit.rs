@@ -8,6 +8,7 @@ use super::all_domain_output_declarations::{
     collect_all_domain_output_declaration_rows, AllDomainOutputDeclarationRow,
     AllDomainOutputDeclarationStatus,
 };
+use super::catalog::load_external_artifact_tool_contracts;
 use super::expected_benchmark_results::collect_expected_benchmark_result_rows;
 use crate::commands::benchmark::local_stage_commands::{
     local_stage_plans, materialize_declared_output,
@@ -44,6 +45,7 @@ const OUTPUT_CONTRACT_TESTS_SCHEMA_VERSION: &str = "bijux.bench.readiness.output
 const PROOF_SURFACE_SHARED_STAGE_SMOKE: &str = "shared_stage_smoke";
 const PROOF_SURFACE_DIRECT_TOOL_SMOKE: &str = "direct_tool_smoke";
 const PROOF_SURFACE_DIRECT_DECLARED_OUTPUT_PROOF: &str = "direct_declared_output_proof";
+const PROOF_SURFACE_EXTERNAL_ARTIFACT_ADMISSION: &str = "external_artifact_admission";
 const PROOF_SURFACE_PLAN_ONLY: &str = "local_ready_plan_only";
 const PROOF_SURFACE_MATERIALIZATION_BLOCKED: &str = "local_stage_materialization_blocked";
 const PROOF_SURFACE_MISSING_DIRECT_SMOKE: &str = "missing_direct_tool_smoke";
@@ -682,12 +684,40 @@ fn collect_vcf_tool_proofs(
     repo_root: &Path,
     rows: &[AllDomainOutputDeclarationRow],
 ) -> Result<BTreeMap<String, VcfToolProof>> {
+    let external_artifact_bindings = load_external_artifact_tool_contracts(repo_root)?
+        .into_iter()
+        .flat_map(|contract| {
+            contract
+                .stage_ids
+                .into_iter()
+                .filter(|stage_id| stage_id.starts_with("vcf."))
+                .map(move |stage_id| (stage_id, contract.tool_id.clone()))
+        })
+        .collect::<BTreeSet<_>>();
     let mut proofs = BTreeMap::<String, VcfToolProof>::new();
     for row in rows {
         if row.domain != "vcf" {
             continue;
         }
         if proofs.contains_key(&row.result_id) {
+            continue;
+        }
+        if external_artifact_bindings.contains(&(row.stage_id.clone(), row.tool_id.clone())) {
+            proofs.insert(
+                row.result_id.clone(),
+                VcfToolProof {
+                    proof_surface: PROOF_SURFACE_EXTERNAL_ARTIFACT_ADMISSION,
+                    proof_path: "containers/contracts/catalog.toml".to_string(),
+                    proof_tool_id: Some(row.tool_id.clone()),
+                    observed_ids: BTreeSet::new(),
+                    observed_paths_by_id: BTreeMap::new(),
+                    independent_execution_proven: false,
+                    execution_blocker: Some(format!(
+                        "blocked_external_access: `{}` / `{}` requires a checksum-admitted operator-provided artifact before output execution proof can be collected",
+                        row.stage_id, row.tool_id
+                    )),
+                },
+            );
             continue;
         }
         let Some(manifest_path) =
@@ -1122,12 +1152,12 @@ fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
 mod tests {
     use std::fs;
     use std::path::{Path, PathBuf};
-    use std::time::Duration;
 
     use super::{
         build_output_contract_audit_report, local_stage_proof_output_path,
         DEFAULT_OUTPUT_CONTRACT_TESTS_PATH,
     };
+    use crate::commands::benchmark::repo_locking::acquire_cwd_lock;
 
     fn repo_root() -> PathBuf {
         PathBuf::from(env!("CARGO_MANIFEST_DIR"))
@@ -1137,9 +1167,8 @@ mod tests {
     }
 
     fn benchmark_readiness_test_lock(root: &Path) -> bijux_dna_infra::FileLock {
-        bijux_dna_infra::FileLock::acquire(
+        bijux_dna_infra::FileLock::try_acquire(
             &root.join("artifacts/test-locks/benchmark-readiness-mutators.lock"),
-            Duration::from_mins(5),
         )
         .expect("acquire benchmark readiness test lock")
     }
@@ -1172,6 +1201,7 @@ mod tests {
     #[test]
     fn build_output_contract_audit_report_records_governed_proof_surfaces() {
         let root = repo_root();
+        let _cwd_lock = acquire_cwd_lock();
         let _lock = benchmark_readiness_test_lock(&root);
         let report = build_output_contract_audit_report(
             &root,
@@ -1181,7 +1211,7 @@ mod tests {
 
         assert_eq!(report.schema_version, "bijux.bench.readiness.output_contract_audit.v1");
         assert_eq!(report.output_path, DEFAULT_OUTPUT_CONTRACT_TESTS_PATH);
-        assert_eq!(report.row_count, 142);
+        assert_eq!(report.row_count, 146);
         assert!(report.passed_row_count > 0, "report should keep real passing rows");
         assert!(
             report.output_proof_surface_counts.contains_key("shared_stage_smoke"),
@@ -1217,11 +1247,25 @@ mod tests {
             .find(|row| row.stage_id == "bam.genotyping" && row.tool_id == "bcftools")
             .expect("bam.genotyping row");
         assert_eq!(report.failed_row_count, 0);
-        assert_eq!(report.blocked_row_count, 3);
+        assert_eq!(report.blocked_row_count, 7);
         assert_eq!(report.passed_row_count + report.blocked_row_count, report.row_count);
-        assert_eq!(report.blocked_tool_ids, ["germline", "ibdne", "ibdseq"]);
+        assert_eq!(report.blocked_tool_ids, ["angsd", "germline", "ibdne", "ibdseq", "impute5"]);
         assert!(report.failed_stage_ids.is_empty());
         assert!(report.failed_tool_ids.is_empty());
+        let external_artifact_rows = report
+            .rows
+            .iter()
+            .filter(|row| row.output_proof_surface == "external_artifact_admission")
+            .collect::<Vec<_>>();
+        assert_eq!(external_artifact_rows.len(), 4);
+        assert!(external_artifact_rows.iter().all(|row| {
+            !row.passed
+                && !row.independent_execution_proven
+                && row
+                    .execution_blocker
+                    .as_deref()
+                    .is_some_and(|blocker| blocker.starts_with("blocked_external_access:"))
+        }));
         assert!(
             !report.output_proof_surface_counts.contains_key("local_stage_materialization_blocked"),
             "governed proof runs should not leave blocked FASTQ/BAM materialization rows"

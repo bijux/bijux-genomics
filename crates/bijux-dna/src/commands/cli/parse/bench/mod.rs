@@ -5,6 +5,7 @@ use super::BenchBamCommand;
 mod active_scope;
 mod config;
 mod corpus_fastq;
+mod cycle;
 mod data_index;
 mod fastq;
 mod local;
@@ -24,6 +25,10 @@ pub use self::config::{
     BenchWriteScreenTaxonomyDatabaseLineageArgs,
 };
 pub use self::corpus_fastq::BenchCorpusFastqArgs;
+pub use self::cycle::{
+    BenchCycleAdmitArgs, BenchCycleBookArgs, BenchCycleCollectArgs, BenchCycleCommand,
+    BenchCyclePlanArgs, BenchCycleReplayArgs, BenchCycleStatusArgs,
+};
 pub use self::data_index::{
     BenchCatalogRegistryCommand, BenchCatalogRegistryPublishArgs, BenchDataIndexArgs,
 };
@@ -235,6 +240,10 @@ pub enum BenchCommand {
     Config {
         #[command(subcommand)]
         command: BenchConfigCommand,
+    },
+    Cycle {
+        #[command(subcommand)]
+        command: BenchCycleCommand,
     },
     Run(BenchRunArgs),
     #[command(name = "run-micro")]

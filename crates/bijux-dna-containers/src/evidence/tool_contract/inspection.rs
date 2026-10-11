@@ -12,7 +12,7 @@ use sha2::{Digest, Sha256};
 use super::labels::{validate_tool_contract_labels, ToolContractLabels};
 use super::model::{
     ContainerToolContract, ToolImageIdentityEvidence, CONTAINER_TOOL_CONTRACT_PATH,
-    TOOL_IMAGE_IDENTITY_EVIDENCE_SCHEMA_V2,
+    TOOL_IMAGE_IDENTITY_EVIDENCE_SCHEMA_V3,
 };
 use super::validation::{tool_contract_is_compatible, validate_sha256, validate_tool_contract};
 
@@ -72,7 +72,7 @@ pub fn verify_apptainer_tool_contract(
     let labels = collect_contract_labels(&inspection);
     validate_tool_contract_labels(&observed, &labels)?;
     Ok(ToolImageIdentityEvidence {
-        schema_version: TOOL_IMAGE_IDENTITY_EVIDENCE_SCHEMA_V2.to_string(),
+        schema_version: TOOL_IMAGE_IDENTITY_EVIDENCE_SCHEMA_V3.to_string(),
         image_sha256,
         contract: observed,
         labels,

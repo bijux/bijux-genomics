@@ -10,7 +10,6 @@ mod preparation;
 mod recipe_identity;
 mod registry_projection;
 mod schema;
-mod smoke;
 mod validation;
 mod version_catalog;
 mod version_lock;
@@ -32,7 +31,8 @@ pub use labels::{tool_contract_labels, validate_tool_contract_labels, ToolContra
 pub use model::{
     ContainerToolContract, PreparedToolContractBuild, ToolContractBuildRequest,
     ToolImageIdentityEvidence, CONTAINER_TOOL_CONTRACT_PATH, CONTAINER_TOOL_CONTRACT_SCHEMA_V2,
-    TOOL_IMAGE_IDENTITY_EVIDENCE_SCHEMA_V2,
+    CONTAINER_TOOL_CONTRACT_SCHEMA_V3, TOOL_IMAGE_IDENTITY_EVIDENCE_SCHEMA_V2,
+    TOOL_IMAGE_IDENTITY_EVIDENCE_SCHEMA_V3,
 };
 pub(crate) use preparation::prepare_apptainer_tool_contract_for_publication;
 pub use preparation::{derive_apptainer_tool_contract, prepare_apptainer_tool_contract};
@@ -52,10 +52,6 @@ pub use schema::{
     write_container_catalog_lock_schema, write_container_catalog_schema,
     write_container_version_lock_schema, write_container_version_map_schema,
     write_tool_contract_schema, write_tool_image_identity_evidence_schema,
-};
-pub use smoke::{
-    run_apptainer_smoke, ApptainerSmokeManifest, ApptainerSmokeProbeResult, ApptainerSmokeRequest,
-    APPTAINER_SMOKE_MANIFEST_SCHEMA_V5, APPTAINER_SMOKE_MANIFEST_SCHEMA_V6,
 };
 pub use validation::{
     tool_contract_is_compatible, validate_tool_contract, validate_tool_image_identity_evidence,

@@ -28,6 +28,7 @@ mod qualification_registry;
 mod qualification_slurm;
 mod qualification_specification;
 mod registry_catalog;
+mod release_evidence;
 mod run_evidence;
 mod runtime;
 mod runtime_verification;

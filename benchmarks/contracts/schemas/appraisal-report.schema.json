@@ -1,0 +1,108 @@
+{
+  "$defs": {
+    "AppraisalFinding": {
+      "additionalProperties": false,
+      "properties": {
+        "appraiser_id": {
+          "type": "string"
+        },
+        "confidence": {
+          "type": "string"
+        },
+        "failure_class": {
+          "type": "string"
+        },
+        "recommendation": {
+          "type": "string"
+        },
+        "result_scope": {
+          "type": "string"
+        },
+        "row_id": {
+          "type": "string"
+        },
+        "severity": {
+          "type": "string"
+        },
+        "summary": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "appraiser_id",
+        "row_id",
+        "severity",
+        "confidence",
+        "failure_class",
+        "result_scope",
+        "summary",
+        "recommendation"
+      ],
+      "type": "object"
+    },
+    "AppraisalSummary": {
+      "additionalProperties": false,
+      "properties": {
+        "by_appraiser": {
+          "additionalProperties": {
+            "format": "uint",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "type": "object"
+        },
+        "by_severity": {
+          "additionalProperties": {
+            "format": "uint",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "type": "object"
+        },
+        "total_findings": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "total_findings",
+        "by_appraiser",
+        "by_severity"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "campaign_id": {
+      "type": "string"
+    },
+    "domain": {
+      "type": "string"
+    },
+    "findings": {
+      "items": {
+        "$ref": "#/$defs/AppraisalFinding"
+      },
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "bijux.hpc.appraisal.v1",
+      "type": "string"
+    },
+    "summary": {
+      "$ref": "#/$defs/AppraisalSummary"
+    }
+  },
+  "required": [
+    "schema_version",
+    "campaign_id",
+    "domain",
+    "findings",
+    "summary"
+  ],
+  "title": "AppraisalReport",
+  "type": "object"
+}

@@ -12,9 +12,10 @@ use super::domain_workflow::{
     declared_stage_key, declared_tool_key, domain_directories, failure_block, list_block,
     read_utf8, regex, scalar_from_text, success_line, write_utf8, yaml_files,
 };
-use super::schema_policy::external_tools;
+use super::schema_policy::catalog_external_artifact_tools;
 use super::{
     cargo_registry_list_stages, cargo_registry_list_tools, cargo_registry_stage_tools, toml_tools,
+    tool_registry_files,
 };
 use crate::model::domain::DomainCommandOutcome;
 use crate::runtime::workspace::Workspace;
@@ -154,7 +155,7 @@ pub(super) fn check_inventory(workspace: &Workspace) -> Result<DomainCommandOutc
 }
 
 pub(super) fn check_orphan_files(workspace: &Workspace) -> Result<DomainCommandOutcome> {
-    let external_tools = external_tools(workspace)?;
+    let external_tools = catalog_external_artifact_tools(workspace)?;
     let mut registry_tools_by_domain = BTreeMap::<String, BTreeSet<String>>::new();
     let registry_dir = workspace.path("configs/ci/registry");
     let mut registry_files =
@@ -318,7 +319,7 @@ pub(super) fn generate_inventory(
 }
 
 pub(super) fn inventory_drift(workspace: &Workspace) -> Result<DomainCommandOutcome> {
-    let external = external_tools(workspace)?;
+    let external = catalog_external_artifact_tools(workspace)?;
     let mut domain_tools = BTreeSet::new();
     for domain in ["fastq", "bam"] {
         for tool_file in yaml_files(&workspace.path(&format!("domain/{domain}/tools")))? {
@@ -353,33 +354,7 @@ pub(super) fn inventory_drift(workspace: &Workspace) -> Result<DomainCommandOutc
 
     let registry_tools = cargo_registry_list_tools(workspace)?;
     let executable_registry_tools = registry_tools.union(&external).cloned().collect();
-    let mut code_registry_tools = registry_tools.clone();
-    for path in [
-        workspace.path("configs/ci/registry/tool_registry_vcf.toml"),
-        workspace.path("configs/ci/registry/tool_registry_vcf_downstream.toml"),
-    ] {
-        if !path.is_file() {
-            continue;
-        }
-        for row in toml_tools(&path)? {
-            let Some(table) = row.as_table() else {
-                continue;
-            };
-            let status = table.get("status").and_then(TomlValue::as_str).unwrap_or_default().trim();
-            if !matches!(status, "production" | "supported" | "experimental") {
-                continue;
-            }
-            if let Some(tool_id) = table
-                .get("tool_id")
-                .or_else(|| table.get("id"))
-                .and_then(TomlValue::as_str)
-                .map(str::trim)
-                .filter(|value| !value.is_empty() && !value.contains('.'))
-            {
-                code_registry_tools.insert(tool_id.to_string());
-            }
-        }
-    }
+    let code_registry_tools = collect_code_registry_tools(workspace, &registry_tools)?;
     let registry_stages = cargo_registry_list_stages(workspace)?;
 
     let tool_ref_re = regex(r#"ToolId::from_static\("([a-z0-9_\-]+)"\)"#)?;
@@ -511,6 +486,37 @@ pub(super) fn inventory_drift(workspace: &Workspace) -> Result<DomainCommandOutc
     })
 }
 
+fn collect_code_registry_tools(
+    workspace: &Workspace,
+    baseline: &BTreeSet<String>,
+) -> Result<BTreeSet<String>> {
+    let mut tools = baseline.clone();
+    for path in tool_registry_files(workspace) {
+        if !path.is_file() {
+            continue;
+        }
+        for row in toml_tools(&path)? {
+            let Some(table) = row.as_table() else {
+                continue;
+            };
+            let status = table.get("status").and_then(TomlValue::as_str).unwrap_or_default().trim();
+            if !matches!(status, "production" | "supported" | "experimental") {
+                continue;
+            }
+            if let Some(tool_id) = table
+                .get("tool_id")
+                .or_else(|| table.get("id"))
+                .and_then(TomlValue::as_str)
+                .map(str::trim)
+                .filter(|value| !value.is_empty() && !value.contains('.'))
+            {
+                tools.insert(tool_id.to_string());
+            }
+        }
+    }
+    Ok(tools)
+}
+
 fn push_diff(
     output: &mut Vec<String>,
     left: &BTreeSet<String>,
@@ -531,4 +537,29 @@ fn push_diff(
         block.push('\n');
     }
     output.push(block);
+}
+
+#[cfg(test)]
+mod tests {
+    use std::collections::BTreeSet;
+    use std::path::PathBuf;
+
+    use super::collect_code_registry_tools;
+    use crate::runtime::workspace::Workspace;
+
+    fn workspace() -> anyhow::Result<Workspace> {
+        Ok(Workspace {
+            root: PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..").canonicalize()?,
+        })
+    }
+
+    #[test]
+    fn code_registry_includes_catalog_only_container_tools() -> anyhow::Result<()> {
+        let tools = collect_code_registry_tools(&workspace()?, &BTreeSet::new())?;
+
+        for tool_id in ["diamond", "dustmasker", "seqpurge"] {
+            assert!(tools.contains(tool_id), "missing catalog-only tool `{tool_id}`");
+        }
+        Ok(())
+    }
 }

@@ -37,7 +37,7 @@ fn run_cli_json(args: &[&str]) -> serde_json::Value {
 }
 
 #[test]
-fn bench_readiness_full_benchmark_report_tracks_governed_report_sections() {
+fn bench_readiness_full_benchmark_report_tracks_governed_report_sections() -> anyhow::Result<()> {
     let payload = run_cli_json(&["bench", "readiness", "render-full-benchmark-report", "--json"]);
 
     assert_eq!(
@@ -96,7 +96,7 @@ fn bench_readiness_full_benchmark_report_tracks_governed_report_sections() {
         Some(unsupported_pair_row_count)
     );
 
-    let rows = support::json_array(&payload, "rows");
+    let rows = support::json_array(&payload, "rows")?;
     assert_eq!(rows.len() as u64, row_count);
 
     let result_ids = rows
@@ -139,9 +139,9 @@ fn bench_readiness_full_benchmark_report_tracks_governed_report_sections() {
         Some("unsupported_pairs")
     );
 
-    let runtime = support::json_array(&payload, "runtime");
+    let runtime = support::json_array(&payload, "runtime")?;
     assert_eq!(runtime.len() as u64, row_count);
-    let memory = support::json_array(&payload, "memory");
+    let memory = support::json_array(&payload, "memory")?;
     assert_eq!(memory.len() as u64, row_count);
 
     let failures = payload.get("failures").expect("failures section");
@@ -165,4 +165,5 @@ fn bench_readiness_full_benchmark_report_tracks_governed_report_sections() {
         .and_then(serde_json::Value::as_array)
         .expect("unsupported pairs");
     assert_eq!(unsupported_pairs.len(), 1);
+    Ok(())
 }

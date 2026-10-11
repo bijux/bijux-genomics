@@ -30,6 +30,8 @@ belong under `docs/`.
   stage or tool dispatch.
 - `src/workflow/campaign_cases.rs` owns the source-locked case planning, admitted
   observation, and aggregation workflows composed by operator commands.
+- `src/workflow/container_report_portfolio.rs` owns container report discovery, complete-file
+  identity derivation, conservative freshness aggregation, and paper-facing rendering.
 - `src/workflow/run_suite/` separates suite orchestration from artifact
   persistence.
 - `src/workflow/fastq_expectations/` separates scientific expectation rendering
@@ -72,8 +74,9 @@ allowed below `tests/`.
 Allowed normal dependencies are lower-level model, core, environment, infra,
 runtime, and science contracts required to admit data, derive independent truth,
 load finished artifacts, validate container catalog identity, and write
-deterministic benchmark outputs. `bijux-dna-bench` must not depend on API,
-planner, runner, or domain execution crates for production behavior.
+deterministic benchmark outputs. The BAM domain contract may provide read-only BAM header identity;
+stage and planner crates remain downstream. `bijux-dna-bench` must not depend on API, planner,
+runner, or domain execution crates for production behavior.
 
 ## Guardrails
 

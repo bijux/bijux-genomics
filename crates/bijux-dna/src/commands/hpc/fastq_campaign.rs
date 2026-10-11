@@ -2,62 +2,21 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;
 
 use anyhow::{anyhow, Result};
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
+
+use bijux_dna_bench_model::{
+    validate_fastq_benchmark_campaign_report, FASTQ_BENCHMARK_CAMPAIGN_SCHEMA_V1,
+};
+pub use bijux_dna_bench_model::{
+    FastqBenchmarkCampaignReport, FastqBenchmarkCampaignSummary, FastqBenchmarkGoalEntry,
+    FastqMatrixRowRef, FastqScenario,
+};
 
 use crate::commands::cli::{BenchmarkMatrixArgs, FastqBenchmarkCampaignArgs};
 use crate::commands::hpc::{
     appraise_matrix_report, benchmark_matrix, hardening_queue_from_appraisal, AppraisalFinding,
     BenchmarkMatrixReport, HardeningQueueEntry,
 };
-
-const FASTQ_CAMPAIGN_SCHEMA_VERSION: &str = "bijux.hpc.fastq_benchmark_campaign.v1";
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct FastqBenchmarkCampaignReport {
-    pub schema_version: String,
-    pub campaign_id: String,
-    pub domain: String,
-    pub selected_goals: Vec<String>,
-    pub summary: FastqBenchmarkCampaignSummary,
-    pub entries: Vec<FastqBenchmarkGoalEntry>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct FastqBenchmarkCampaignSummary {
-    pub total_goals: usize,
-    pub total_rows: usize,
-    pub total_findings: usize,
-    pub total_queue_entries: usize,
-    pub status_counts: BTreeMap<String, usize>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct FastqBenchmarkGoalEntry {
-    pub goal_id: String,
-    pub title: String,
-    pub stage_ids: Vec<String>,
-    pub scenarios: Vec<FastqScenario>,
-    pub matched_rows: Vec<FastqMatrixRowRef>,
-    pub appraisal_findings: Vec<AppraisalFinding>,
-    pub hardening_entries: Vec<HardeningQueueEntry>,
-    pub goal_checks: Vec<String>,
-    pub status: String,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct FastqScenario {
-    pub scenario_id: String,
-    pub focus: String,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct FastqMatrixRowRef {
-    pub row_id: String,
-    pub stage_id: String,
-    pub tool_id: String,
-    pub readiness_class: String,
-    pub repetitions: u32,
-}
 
 struct GoalDefinition {
     goal_id: &'static str,
@@ -1075,18 +1034,19 @@ pub fn fastq_benchmark_campaign(
         fail_on_refuse: false,
         json: false,
     })?;
-    let appraisal = appraise_matrix_report(matrix.clone());
-    let queue = hardening_queue_from_appraisal(appraisal.clone());
+    let appraisal = appraise_matrix_report(matrix.clone())?;
+    let queue = hardening_queue_from_appraisal(appraisal.clone())?;
     let selected_goals = selected_goal_ids(args.goals.as_deref())?;
     let entries = build_goal_entries(&selected_goals, &matrix, &appraisal.findings, &queue.entries);
     let report = FastqBenchmarkCampaignReport {
-        schema_version: FASTQ_CAMPAIGN_SCHEMA_VERSION.to_string(),
+        schema_version: FASTQ_BENCHMARK_CAMPAIGN_SCHEMA_V1.to_string(),
         campaign_id: matrix.campaign_id,
         domain: matrix.domain,
         selected_goals,
         summary: summarize(&entries),
         entries,
     };
+    validate_fastq_benchmark_campaign_report(&report)?;
     if let Some(path) = &args.out {
         write_json_pretty(path, &report)?;
     }

@@ -1,0 +1,288 @@
+# owner = bijux-genomics-benchmarks
+# purpose = Stage-specific machine-evaluable benchmark data-fitness policy
+# authority = bijux-dna-bench-model
+# stability = stable
+# last_updated = 2026-08-10
+
+schema_version = "bijux.benchmark.data_fitness.v1"
+
+[defaults]
+minimum_real_samples = 10
+minimum_cases_per_tool = 3
+minimum_distinct_studies = 2
+minimum_input_bytes = 1000000000
+
+[exception_policy]
+required_fields = ["dimension", "default_minimum", "permitted_minimum", "scientific_rationale", "compensating_evidence", "allowed_claims"]
+review_authority = "bijux-dna-science"
+claim_restriction_required = true
+
+[[profiles]]
+profile_id = "fastq-observational-qc"
+minimum_real_samples = 10
+minimum_cases_per_tool = 3
+minimum_distinct_studies = 2
+minimum_input_bytes = 1000000000
+representativeness_strata = ["ancient", "modern", "single_end", "paired_end"]
+required_layouts = ["fastq_single_end", "fastq_paired_end"]
+truth_requirement = "observational_performance_only"
+required_controls = ["technical_replicate", "negative_control"]
+contamination_damage = "declare_and_stratify_if_present"
+ancestry = "declare_and_stratify_if_present"
+bias_assessments = ["study", "library_preparation", "read_length"]
+required_limitations = ["cohort_nonrepresentativeness", "observational_truth_limit"]
+allowed_claims = ["performance", "consistency"]
+access = { stable_source_identity = true, license_identity = true, redistribution_classification = true, checksum_before_execution = true }
+[[profiles]]
+profile_id = "fastq-read-transformation"
+minimum_real_samples = 10
+minimum_cases_per_tool = 3
+minimum_distinct_studies = 2
+minimum_input_bytes = 1000000000
+representativeness_strata = ["ancient", "modern", "damage", "duplicate_rate", "quality"]
+required_layouts = ["fastq_single_end", "fastq_paired_end"]
+truth_requirement = "orthogonal_expectation"
+required_controls = ["signal_positive", "signal_negative", "untreated_input"]
+contamination_damage = "required"
+ancestry = "declare_and_stratify_if_present"
+bias_assessments = ["study", "library_preparation", "signal_prevalence"]
+required_limitations = ["truth_resolution", "spike_in_transferability"]
+allowed_claims = ["performance", "accuracy", "interoperability"]
+access = { stable_source_identity = true, license_identity = true, redistribution_classification = true, checksum_before_execution = true }
+
+[[profiles]]
+profile_id = "fastq-depletion"
+minimum_real_samples = 10
+minimum_cases_per_tool = 3
+minimum_distinct_studies = 2
+minimum_input_bytes = 1000000000
+representativeness_strata = ["host_fraction", "rrna_fraction", "environmental_matrix"]
+required_layouts = ["fastq_single_end", "fastq_paired_end"]
+truth_requirement = "orthogonal_expectation"
+required_controls = ["target_positive", "non_target_negative", "extraction_blank"]
+contamination_damage = "declare_and_stratify_if_present"
+ancestry = "declare_and_stratify_if_present"
+bias_assessments = ["matrix", "host_taxon", "target_prevalence"]
+required_limitations = ["database_coverage", "matrix_effect"]
+allowed_claims = ["performance", "accuracy", "interoperability"]
+access = { stable_source_identity = true, license_identity = true, redistribution_classification = true, checksum_before_execution = true }
+
+[[profiles]]
+profile_id = "fastq-taxonomy"
+minimum_real_samples = 10
+minimum_cases_per_tool = 3
+minimum_distinct_studies = 2
+minimum_input_bytes = 1000000000
+representativeness_strata = ["mock_community", "environmental", "low_biomass"]
+required_layouts = ["fastq_single_end", "fastq_paired_end"]
+truth_requirement = "curated_truth"
+required_controls = ["known_positive", "known_negative", "extraction_blank"]
+contamination_damage = "required"
+ancestry = "not_applicable"
+bias_assessments = ["database_composition", "taxon_prevalence", "matrix"]
+required_limitations = ["database_bias", "compositional_bias"]
+allowed_claims = ["performance", "accuracy", "interoperability"]
+access = { stable_source_identity = true, license_identity = true, redistribution_classification = true, checksum_before_execution = true }
+
+[[profiles]]
+profile_id = "fastq-amplicon"
+minimum_real_samples = 10
+minimum_cases_per_tool = 3
+minimum_distinct_studies = 2
+minimum_input_bytes = 1000000000
+representativeness_strata = ["mock_community", "environmental", "technical_replicate"]
+required_layouts = ["amplicon_paired_end", "amplicon_single_end"]
+truth_requirement = "curated_truth"
+required_controls = ["known_composition", "no_template_control", "extraction_blank"]
+contamination_damage = "required"
+ancestry = "not_applicable"
+bias_assessments = ["primer", "region", "community_complexity"]
+required_limitations = ["primer_bias", "copy_number_bias"]
+allowed_claims = ["performance", "accuracy", "interoperability"]
+access = { stable_source_identity = true, license_identity = true, redistribution_classification = true, checksum_before_execution = true }
+
+[[profiles]]
+profile_id = "reference-index-build"
+minimum_real_samples = 1
+minimum_cases_per_tool = 3
+minimum_distinct_studies = 1
+minimum_input_bytes = 1000000000
+representativeness_strata = ["primary_reference", "alternate_contigs"]
+required_layouts = ["fasta_reference"]
+truth_requirement = "orthogonal_expectation"
+required_controls = ["checksum_control", "downstream_alignment_control"]
+contamination_damage = "not_applicable"
+ancestry = "not_applicable"
+bias_assessments = ["reference_build", "contig_policy"]
+required_limitations = ["reference_selection_bias", "alternate_contig_limit"]
+allowed_claims = ["performance", "reproducibility", "interoperability"]
+access = { stable_source_identity = true, license_identity = true, redistribution_classification = true, checksum_before_execution = true }
+
+[[profiles.scientific_exceptions]]
+dimension = "minimum_real_samples"
+default_minimum = 10
+permitted_minimum = 1
+scientific_rationale = "Reference indexing is evaluated per immutable reference, while representativeness is supplied by the required downstream real-sample alignment panel."
+compensating_evidence = ["checksum-stable index reproduction", "downstream alignment across at least ten real samples"]
+allowed_claims = ["performance", "reproducibility", "interoperability"]
+
+[[profiles.scientific_exceptions]]
+dimension = "minimum_distinct_studies"
+default_minimum = 2
+permitted_minimum = 1
+scientific_rationale = "The indexed object is a single declared reference authority rather than a biological cohort; cross-study behavior is tested by downstream alignments."
+compensating_evidence = ["declared contig policy", "alternate-contig coverage", "multi-study downstream alignment panel"]
+allowed_claims = ["reproducibility", "interoperability"]
+
+[[profiles]]
+profile_id = "bam-alignment"
+minimum_real_samples = 10
+minimum_cases_per_tool = 3
+minimum_distinct_studies = 2
+minimum_input_bytes = 1000000000
+representativeness_strata = ["ancient", "modern", "coverage", "fragment_length"]
+required_layouts = ["bam_coordinate_sorted", "fastq_single_end", "fastq_paired_end"]
+truth_requirement = "curated_truth"
+required_controls = ["alignment_positive", "unmapped_negative", "decoy_reference"]
+contamination_damage = "required"
+ancestry = "declare_and_stratify_if_present"
+bias_assessments = ["reference_build", "library_preparation", "coverage"]
+required_limitations = ["reference_bias", "mappability_bias"]
+allowed_claims = ["performance", "accuracy", "interoperability"]
+access = { stable_source_identity = true, license_identity = true, redistribution_classification = true, checksum_before_execution = true }
+
+[[profiles]]
+profile_id = "bam-transformation"
+minimum_real_samples = 10
+minimum_cases_per_tool = 3
+minimum_distinct_studies = 2
+minimum_input_bytes = 1000000000
+representativeness_strata = ["ancient", "modern", "coverage", "duplicate_rate"]
+required_layouts = ["bam_coordinate_sorted"]
+truth_requirement = "orthogonal_expectation"
+required_controls = ["retention_positive", "removal_positive", "unchanged_negative"]
+contamination_damage = "required"
+ancestry = "declare_and_stratify_if_present"
+bias_assessments = ["library_preparation", "coverage", "filter_prevalence"]
+required_limitations = ["selection_bias", "truth_resolution"]
+allowed_claims = ["performance", "accuracy", "interoperability"]
+access = { stable_source_identity = true, license_identity = true, redistribution_classification = true, checksum_before_execution = true }
+
+[[profiles]]
+profile_id = "bam-observational-qc"
+minimum_real_samples = 10
+minimum_cases_per_tool = 3
+minimum_distinct_studies = 2
+minimum_input_bytes = 1000000000
+representativeness_strata = ["ancient", "modern", "coverage", "fragment_length"]
+required_layouts = ["bam_coordinate_sorted"]
+truth_requirement = "observational_performance_only"
+required_controls = ["technical_replicate", "independent_statistic"]
+contamination_damage = "declare_and_stratify_if_present"
+ancestry = "declare_and_stratify_if_present"
+bias_assessments = ["study", "library_preparation", "coverage"]
+required_limitations = ["mapping_derived_bias", "observational_truth_limit"]
+allowed_claims = ["performance", "consistency"]
+access = { stable_source_identity = true, license_identity = true, redistribution_classification = true, checksum_before_execution = true }
+
+[[profiles]]
+profile_id = "bam-ancient-authentication"
+minimum_real_samples = 10
+minimum_cases_per_tool = 3
+minimum_distinct_studies = 2
+minimum_input_bytes = 1000000000
+representativeness_strata = ["damage_gradient", "contamination_gradient", "library_preparation"]
+required_layouts = ["bam_coordinate_sorted"]
+truth_requirement = "orthogonal_expectation"
+required_controls = ["authenticated_positive", "modern_negative", "blank_control"]
+contamination_damage = "required"
+ancestry = "declare_and_stratify_if_present"
+bias_assessments = ["study", "library_preparation", "damage_level"]
+required_limitations = ["preservation_bias", "authentication_circularity"]
+allowed_claims = ["performance", "accuracy", "interoperability"]
+access = { stable_source_identity = true, license_identity = true, redistribution_classification = true, checksum_before_execution = true }
+
+[[profiles]]
+profile_id = "bam-biological-inference"
+minimum_real_samples = 10
+minimum_cases_per_tool = 3
+minimum_distinct_studies = 2
+minimum_input_bytes = 1000000000
+representativeness_strata = ["coverage", "contamination", "sex", "relatedness"]
+required_layouts = ["bam_coordinate_sorted", "sample_metadata"]
+truth_requirement = "orthogonal_expectation"
+required_controls = ["known_relationship", "negative_relationship", "contamination_control"]
+contamination_damage = "required"
+ancestry = "required"
+bias_assessments = ["ancestry", "sex", "coverage", "relatedness"]
+required_limitations = ["reference_panel_bias", "ascertainment_bias"]
+allowed_claims = ["performance", "accuracy", "interoperability"]
+access = { stable_source_identity = true, license_identity = true, redistribution_classification = true, checksum_before_execution = true }
+
+[[profiles]]
+profile_id = "vcf-calling"
+minimum_real_samples = 10
+minimum_cases_per_tool = 3
+minimum_distinct_studies = 2
+minimum_input_bytes = 1000000000
+representativeness_strata = ["coverage", "damage", "variant_class", "difficult_region"]
+required_layouts = ["vcf_normalized", "bam_coordinate_sorted"]
+truth_requirement = "curated_truth"
+required_controls = ["truth_positive", "confident_negative", "reference_material"]
+contamination_damage = "required"
+ancestry = "required"
+bias_assessments = ["ancestry", "coverage", "variant_class"]
+required_limitations = ["reference_bias", "truth_set_bias"]
+allowed_claims = ["performance", "accuracy", "interoperability"]
+access = { stable_source_identity = true, license_identity = true, redistribution_classification = true, checksum_before_execution = true }
+
+[[profiles]]
+profile_id = "vcf-transformation"
+minimum_real_samples = 10
+minimum_cases_per_tool = 3
+minimum_distinct_studies = 2
+minimum_input_bytes = 1000000000
+representativeness_strata = ["variant_class", "quality", "missingness", "damage"]
+required_layouts = ["vcf_normalized"]
+truth_requirement = "masked_truth"
+required_controls = ["retained_truth", "removal_truth", "no_op_control"]
+contamination_damage = "required"
+ancestry = "required"
+bias_assessments = ["ancestry", "variant_class", "missingness"]
+required_limitations = ["filter_selection_bias", "masking_bias"]
+allowed_claims = ["performance", "accuracy", "interoperability"]
+access = { stable_source_identity = true, license_identity = true, redistribution_classification = true, checksum_before_execution = true }
+
+[[profiles]]
+profile_id = "vcf-phasing-imputation"
+minimum_real_samples = 10
+minimum_cases_per_tool = 3
+minimum_distinct_studies = 2
+minimum_input_bytes = 1000000000
+representativeness_strata = ["coverage", "allele_frequency", "missingness", "relatedness"]
+required_layouts = ["vcf_phased", "vcf_masked_truth", "genetic_map", "reference_panel"]
+truth_requirement = "masked_truth"
+required_controls = ["masked_genotype", "unmasked_holdout", "pedigree_control"]
+contamination_damage = "declare_and_stratify_if_present"
+ancestry = "required"
+bias_assessments = ["ancestry", "allele_frequency", "coverage"]
+required_limitations = ["reference_panel_bias", "masking_bias"]
+allowed_claims = ["performance", "accuracy", "interoperability"]
+access = { stable_source_identity = true, license_identity = true, redistribution_classification = true, checksum_before_execution = true }
+
+[[profiles]]
+profile_id = "vcf-population-inference"
+minimum_real_samples = 10
+minimum_cases_per_tool = 3
+minimum_distinct_studies = 2
+minimum_input_bytes = 1000000000
+representativeness_strata = ["ancestry", "relatedness", "missingness", "coverage"]
+required_layouts = ["vcf_normalized", "sample_metadata"]
+truth_requirement = "orthogonal_expectation"
+required_controls = ["known_relationship", "metadata_positive", "permuted_negative"]
+contamination_damage = "declare_and_stratify_if_present"
+ancestry = "required"
+bias_assessments = ["ancestry", "sex", "age", "coverage"]
+required_limitations = ["ascertainment_bias", "sampling_bias"]
+allowed_claims = ["performance", "accuracy", "consistency"]
+access = { stable_source_identity = true, license_identity = true, redistribution_classification = true, checksum_before_execution = true }

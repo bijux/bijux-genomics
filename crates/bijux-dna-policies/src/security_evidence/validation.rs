@@ -6,10 +6,12 @@ use chrono::{DateTime, NaiveDate};
 use super::model::{
     ContainerSecurityEvidencePublication, ImageSignatureDisposition, RuntimeAccessPolicy,
     SecuritySourceIdentity, ToolSecurityEvidence, VulnerabilityDatabaseStatus,
-    VulnerabilitySeverity, CONTAINER_SECURITY_EVIDENCE_SCHEMA_V1,
+    VulnerabilitySeverity, CONTAINER_SECURITY_EVIDENCE_SCHEMA_V2,
 };
 use super::security_evidence_policy_sha256;
-use crate::qualification::{EvidenceVerdict, SupportDisposition};
+use crate::qualification::{
+    ArtifactAvailability, ArtifactDelivery, EvidenceVerdict, ProductSupport,
+};
 
 /// Validate a complete container security publication and its policy verdicts.
 ///
@@ -18,7 +20,7 @@ use crate::qualification::{EvidenceVerdict, SupportDisposition};
 pub fn validate_security_evidence_publication(
     publication: &ContainerSecurityEvidencePublication,
 ) -> Result<()> {
-    if publication.schema_version != CONTAINER_SECURITY_EVIDENCE_SCHEMA_V1 {
+    if publication.schema_version != CONTAINER_SECURITY_EVIDENCE_SCHEMA_V2 {
         bail!("unsupported container security evidence schema: {}", publication.schema_version);
     }
     let evaluated_at =
@@ -98,23 +100,68 @@ fn validate_tool(
     validate_identifier(&evidence.tool_id, "tool id")?;
     validate_nonempty(&evidence.version, "tool version")?;
     validate_reasons(evidence)?;
-    match evidence.support_disposition {
-        SupportDisposition::Unsupported => validate_unsupported(evidence),
-        SupportDisposition::Retained => validate_retained(publication, evidence, evaluation_date),
+    validate_support_dimensions(evidence)?;
+    match (evidence.product_support, evidence.availability) {
+        (ProductSupport::Supported, ArtifactAvailability::Admitted) => {
+            validate_admitted(publication, evidence, evaluation_date)
+        }
+        (ProductSupport::Supported, _) => validate_supported_without_artifact(evidence),
+        (ProductSupport::Retired | ProductSupport::Excluded, _) => validate_non_supported(evidence),
     }
 }
 
-fn validate_unsupported(evidence: &ToolSecurityEvidence) -> Result<()> {
+fn validate_support_dimensions(evidence: &ToolSecurityEvidence) -> Result<()> {
+    if evidence.redistribution_permitted
+        != (evidence.artifact_delivery == ArtifactDelivery::RedistributableImage)
+    {
+        bail!("tool {} security delivery contradicts redistribution policy", evidence.tool_id);
+    }
+    if evidence.availability == ArtifactAvailability::BlockedExternalAccess
+        && (evidence.product_support != ProductSupport::Supported
+            || evidence.artifact_delivery == ArtifactDelivery::RedistributableImage)
+    {
+        bail!("tool {} has an invalid external-access blocker", evidence.tool_id);
+    }
+    if evidence.product_support != ProductSupport::Supported
+        && evidence.availability != ArtifactAvailability::Unavailable
+    {
+        bail!("non-supported tool {} cannot carry artifact availability", evidence.tool_id);
+    }
+    Ok(())
+}
+
+fn validate_non_supported(evidence: &ToolSecurityEvidence) -> Result<()> {
     if evidence.verdict != EvidenceVerdict::NotApplicable {
         bail!(
-            "unsupported tool {} cannot receive security verdict {:?}",
+            "non-supported tool {} cannot receive security verdict {:?}",
             evidence.tool_id,
             evidence.verdict
         );
     }
-    if evidence.image_sha256.is_some()
+    validate_absent_image_evidence(evidence)
+}
+
+fn validate_supported_without_artifact(evidence: &ToolSecurityEvidence) -> Result<()> {
+    let expected = match evidence.availability {
+        ArtifactAvailability::BlockedExternalAccess => EvidenceVerdict::Blocked,
+        ArtifactAvailability::Unavailable => EvidenceVerdict::Missing,
+        ArtifactAvailability::Admitted => unreachable!("admitted evidence is validated separately"),
+    };
+    if evidence.verdict != expected {
+        bail!(
+            "supported tool {} with {:?} availability requires {:?} security verdict",
+            evidence.tool_id,
+            evidence.availability,
+            expected
+        );
+    }
+    validate_absent_image_evidence(evidence)
+}
+
+fn validate_absent_image_evidence(evidence: &ToolSecurityEvidence) -> Result<()> {
+    if evidence.artifact_sha256.is_some()
         || evidence.tool_contract_sha256.is_some()
-        || evidence.build_evidence_id.is_some()
+        || evidence.admission_evidence_sha256.is_some()
         || evidence.source_identity.is_some()
         || evidence.structural.is_some()
         || evidence.sbom.is_some()
@@ -124,25 +171,25 @@ fn validate_unsupported(evidence: &ToolSecurityEvidence) -> Result<()> {
         || !evidence.waivers.is_empty()
     {
         bail!(
-            "unsupported tool {} must not carry passing-image security evidence",
+            "tool {} without an admitted artifact must not carry artifact security evidence",
             evidence.tool_id
         );
     }
     Ok(())
 }
 
-fn validate_retained(
+fn validate_admitted(
     publication: &ContainerSecurityEvidencePublication,
     evidence: &ToolSecurityEvidence,
     evaluation_date: NaiveDate,
 ) -> Result<()> {
-    let image_sha256 = required_digest(evidence.image_sha256.as_deref(), "image")?;
+    let artifact_sha256 = required_digest(evidence.artifact_sha256.as_deref(), "artifact")?;
     required_digest(evidence.tool_contract_sha256.as_deref(), "tool contract")?;
-    required_digest(evidence.build_evidence_id.as_deref(), "build evidence")?;
+    required_digest(evidence.admission_evidence_sha256.as_deref(), "artifact admission evidence")?;
     validate_source_identity(evidence.source_identity.as_ref())?;
 
     let structural = evidence.structural.as_ref().ok_or_else(|| {
-        anyhow::anyhow!("retained tool {} lacks structural evidence", evidence.tool_id)
+        anyhow::anyhow!("admitted tool {} lacks structural evidence", evidence.tool_id)
     })?;
     validate_sha256(&structural.inspection_sha256, "structural inspection")?;
     validate_sha256(&structural.signature_evidence_sha256, "signature evidence")?;
@@ -152,17 +199,17 @@ fn validate_retained(
     let sbom = evidence
         .sbom
         .as_ref()
-        .ok_or_else(|| anyhow::anyhow!("retained tool {} lacks SBOM evidence", evidence.tool_id))?;
+        .ok_or_else(|| anyhow::anyhow!("admitted tool {} lacks SBOM evidence", evidence.tool_id))?;
     validate_sha256(&sbom.sha256, "SBOM")?;
     validate_nonempty(&sbom.generator, "SBOM generator")?;
     validate_nonempty(&sbom.generator_version, "SBOM generator version")?;
-    validate_sha256(&sbom.source_image_sha256, "SBOM source image")?;
-    if sbom.source_image_sha256 != image_sha256 {
-        bail!("tool {} SBOM is bound to a different image", evidence.tool_id);
+    validate_sha256(&sbom.source_artifact_sha256, "SBOM source artifact")?;
+    if sbom.source_artifact_sha256 != artifact_sha256 {
+        bail!("tool {} SBOM is bound to a different artifact", evidence.tool_id);
     }
 
     let vulnerabilities = evidence.vulnerabilities.as_ref().ok_or_else(|| {
-        anyhow::anyhow!("retained tool {} lacks vulnerability evidence", evidence.tool_id)
+        anyhow::anyhow!("admitted tool {} lacks vulnerability evidence", evidence.tool_id)
     })?;
     validate_sha256(&vulnerabilities.database_sha256, "vulnerability database")?;
     validate_sha256(&vulnerabilities.report_sha256, "vulnerability report")?;
@@ -177,21 +224,21 @@ fn validate_retained(
     validate_findings(evidence, evaluation_date)?;
 
     let secret_scan = evidence.secret_scan.as_ref().ok_or_else(|| {
-        anyhow::anyhow!("retained tool {} lacks secret-scan evidence", evidence.tool_id)
+        anyhow::anyhow!("admitted tool {} lacks secret-scan evidence", evidence.tool_id)
     })?;
     validate_nonempty(&secret_scan.scanner, "secret scanner")?;
     validate_nonempty(&secret_scan.scanner_version, "secret scanner version")?;
     validate_sha256(&secret_scan.report_sha256, "secret scan report")?;
 
     let runtime = evidence.runtime_policy.as_ref().ok_or_else(|| {
-        anyhow::anyhow!("retained tool {} lacks runtime security evidence", evidence.tool_id)
+        anyhow::anyhow!("admitted tool {} lacks runtime security evidence", evidence.tool_id)
     })?;
     validate_sha256(&runtime.probe_sha256, "runtime security probe")?;
 
     if evidence.verdict == EvidenceVerdict::Passed {
         validate_passing_controls(publication, evidence)?;
     } else if evidence.verdict == EvidenceVerdict::NotApplicable {
-        bail!("retained tool {} cannot have a not-applicable security verdict", evidence.tool_id);
+        bail!("admitted tool {} cannot have a not-applicable security verdict", evidence.tool_id);
     }
     Ok(())
 }
@@ -207,7 +254,7 @@ fn validate_passing_controls(
         );
     }
     let structural = evidence.structural.as_ref().ok_or_else(|| {
-        anyhow::anyhow!("retained tool {} lacks structural evidence", evidence.tool_id)
+        anyhow::anyhow!("admitted tool {} lacks structural evidence", evidence.tool_id)
     })?;
     if !matches!(
         structural.signature,
@@ -220,13 +267,13 @@ fn validate_passing_controls(
         bail!("tool {} cannot pass with forbidden filesystem paths", evidence.tool_id);
     }
     let secret_scan = evidence.secret_scan.as_ref().ok_or_else(|| {
-        anyhow::anyhow!("retained tool {} lacks secret-scan evidence", evidence.tool_id)
+        anyhow::anyhow!("admitted tool {} lacks secret-scan evidence", evidence.tool_id)
     })?;
     if secret_scan.finding_count != 0 {
         bail!("tool {} cannot pass with secret findings", evidence.tool_id);
     }
     let runtime = evidence.runtime_policy.as_ref().ok_or_else(|| {
-        anyhow::anyhow!("retained tool {} lacks runtime security evidence", evidence.tool_id)
+        anyhow::anyhow!("admitted tool {} lacks runtime security evidence", evidence.tool_id)
     })?;
     if runtime.network_policy != RuntimeAccessPolicy::Denied
         || runtime.writable_mount_policy != RuntimeAccessPolicy::Denied
@@ -236,7 +283,7 @@ fn validate_passing_controls(
         bail!("tool {} cannot pass incomplete runtime restrictions", evidence.tool_id);
     }
     let vulnerabilities = evidence.vulnerabilities.as_ref().ok_or_else(|| {
-        anyhow::anyhow!("retained tool {} lacks vulnerability evidence", evidence.tool_id)
+        anyhow::anyhow!("admitted tool {} lacks vulnerability evidence", evidence.tool_id)
     })?;
     for finding in &vulnerabilities.findings {
         if finding.waiver_id.is_none() {
@@ -276,7 +323,7 @@ fn validate_findings(evidence: &ToolSecurityEvidence, evaluation_date: NaiveDate
         }
     }
     let vulnerabilities = evidence.vulnerabilities.as_ref().ok_or_else(|| {
-        anyhow::anyhow!("retained tool {} lacks vulnerability evidence", evidence.tool_id)
+        anyhow::anyhow!("admitted tool {} lacks vulnerability evidence", evidence.tool_id)
     })?;
     let mut finding_ids = BTreeSet::new();
     let mut observed = [0_u64; 5];
@@ -449,7 +496,7 @@ mod tests {
     fn valid_publication() -> Result<ContainerSecurityEvidencePublication> {
         let mut publication: ContainerSecurityEvidencePublication =
             serde_json::from_value(serde_json::json!({
-            "schema_version": "bijux.container.security_evidence.v1",
+            "schema_version": "bijux.container.security_evidence.v2",
             "evaluated_at_utc": "2026-08-04T00:00:00Z",
             "repository_commit": "a".repeat(40),
             "catalog_sha256": "b".repeat(64),
@@ -473,10 +520,13 @@ mod tests {
                 "samtools": {
                     "tool_id": "samtools",
                     "version": "1.20",
-                    "support_disposition": "retained",
-                    "image_sha256": "1".repeat(64),
+                    "product_support": "supported",
+                    "artifact_delivery": "redistributable_image",
+                    "redistribution_permitted": true,
+                    "availability": "admitted",
+                    "artifact_sha256": "1".repeat(64),
                     "tool_contract_sha256": "2".repeat(64),
-                    "build_evidence_id": "3".repeat(64),
+                    "admission_evidence_sha256": "3".repeat(64),
                     "source_identity": {"kind": "source_sha256", "value": "4".repeat(64)},
                     "structural": {
                         "inspection_sha256": "5".repeat(64),
@@ -490,7 +540,7 @@ mod tests {
                         "sha256": "7".repeat(64),
                         "generator": "syft",
                         "generator_version": "1.29.0",
-                        "source_image_sha256": "1".repeat(64)
+                        "source_artifact_sha256": "1".repeat(64)
                     },
                     "vulnerabilities": {
                         "scanner": "grype",
@@ -542,6 +592,31 @@ mod tests {
         Ok(publication)
     }
 
+    fn blocked_external_publication() -> Result<ContainerSecurityEvidencePublication> {
+        let mut publication = valid_publication()?;
+        let evidence = publication
+            .tools
+            .get_mut("samtools")
+            .ok_or_else(|| anyhow::anyhow!("security fixture lacks samtools evidence"))?;
+        evidence.product_support = ProductSupport::Supported;
+        evidence.artifact_delivery = ArtifactDelivery::ExternalArtifact;
+        evidence.redistribution_permitted = false;
+        evidence.availability = ArtifactAvailability::BlockedExternalAccess;
+        evidence.artifact_sha256 = None;
+        evidence.tool_contract_sha256 = None;
+        evidence.admission_evidence_sha256 = None;
+        evidence.source_identity = None;
+        evidence.structural = None;
+        evidence.sbom = None;
+        evidence.vulnerabilities = None;
+        evidence.secret_scan = None;
+        evidence.runtime_policy = None;
+        evidence.waivers.clear();
+        evidence.verdict = EvidenceVerdict::Blocked;
+        evidence.reasons = vec!["institutional artifact access has not been supplied".to_string()];
+        Ok(publication)
+    }
+
     #[test]
     fn complete_security_evidence_passes() -> Result<()> {
         validate_security_evidence_publication(&valid_publication()?)
@@ -557,7 +632,7 @@ mod tests {
     }
 
     #[test]
-    fn exact_security_publication_admits_an_image_bound_pass() -> Result<()> {
+    fn exact_security_publication_admits_an_artifact_bound_pass() -> Result<()> {
         let publication = valid_publication()?;
         let admitted = super::super::admission::admit_security_evidence(
             &publication,
@@ -570,9 +645,9 @@ mod tests {
         assert_eq!(decision.verdict, EvidenceVerdict::Passed);
         assert_eq!(decision.evidence_sha256, Some("7".repeat(64)));
 
-        let stale_image = admitted.tool_decision("samtools", &"2".repeat(64));
-        assert_eq!(stale_image.verdict, EvidenceVerdict::Failed);
-        assert!(stale_image.audit.reason.contains("different image"));
+        let stale_artifact = admitted.tool_decision("samtools", &"2".repeat(64));
+        assert_eq!(stale_artifact.verdict, EvidenceVerdict::Failed);
+        assert!(stale_artifact.audit.reason.contains("different artifact"));
         Ok(())
     }
 
@@ -656,14 +731,50 @@ mod tests {
     }
 
     #[test]
-    fn unsupported_tool_cannot_receive_passing_evidence() -> Result<()> {
+    fn non_supported_tool_cannot_receive_passing_evidence() -> Result<()> {
         let mut publication = valid_publication()?;
         let Some(evidence) = publication.tools.get_mut("samtools") else {
             anyhow::bail!("security fixture lacks samtools evidence");
         };
-        evidence.support_disposition = SupportDisposition::Unsupported;
+        evidence.product_support = ProductSupport::Retired;
+        evidence.redistribution_permitted = false;
+        evidence.artifact_delivery = ArtifactDelivery::ExternalArtifact;
+        evidence.availability = ArtifactAvailability::Unavailable;
         assert!(validate_security_evidence_publication(&publication)
             .is_err_and(|error| error.to_string().contains("cannot receive")));
+        Ok(())
+    }
+
+    #[test]
+    fn supported_external_blocker_cannot_be_not_applicable() -> Result<()> {
+        let mut publication = blocked_external_publication()?;
+        let Some(evidence) = publication.tools.get_mut("samtools") else {
+            anyhow::bail!("security fixture lacks samtools evidence");
+        };
+        evidence.verdict = EvidenceVerdict::NotApplicable;
+        evidence.reasons.clear();
+        assert!(validate_security_evidence_publication(&publication)
+            .is_err_and(|error| error.to_string().contains("requires Blocked")));
+        Ok(())
+    }
+
+    #[test]
+    fn external_access_blocker_derives_a_blocked_qualification_decision() -> Result<()> {
+        let publication = blocked_external_publication()?;
+        let admitted = super::super::admission::admit_security_evidence(
+            &publication,
+            &"7".repeat(64),
+            &"a".repeat(40),
+            &"b".repeat(64),
+            &"c".repeat(64),
+        )?;
+        let decision = admitted.tool_availability_decision("samtools");
+        assert_eq!(decision.verdict, EvidenceVerdict::Blocked);
+        assert_eq!(
+            decision.audit.measured_values["artifact_availability"],
+            "blocked_external_access"
+        );
+        assert!(decision.audit.reason.contains("institutional artifact access"));
         Ok(())
     }
 
@@ -681,7 +792,7 @@ mod tests {
             .ancestors()
             .nth(2)
             .ok_or_else(|| anyhow::anyhow!("policies crate is outside the repository"))?;
-        let path = root.join("containers/contracts/schemas/security-evidence.v1.json");
+        let path = root.join("containers/contracts/schemas/security-evidence.v2.json");
         let generated = serde_json::to_value(super::super::security_evidence_schema())?;
         if std::env::var_os("BIJUX_UPDATE_GENERATED_SCHEMAS").is_some() {
             let encoded = format!("{}\n", serde_json::to_string_pretty(&generated)?);
@@ -689,6 +800,30 @@ mod tests {
         }
         let checked: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(path)?)?;
         assert_eq!(checked, generated);
+        Ok(())
+    }
+
+    #[test]
+    fn historical_security_evidence_schema_remains_v1() -> Result<()> {
+        let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .ancestors()
+            .nth(2)
+            .ok_or_else(|| anyhow::anyhow!("policies crate is outside the repository"))?;
+        let historical: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(
+            root.join("containers/contracts/schemas/security-evidence.v1.json"),
+        )?)?;
+        assert_eq!(
+            historical
+                .pointer("/properties/schema_version/const")
+                .and_then(serde_json::Value::as_str),
+            Some(super::super::CONTAINER_SECURITY_EVIDENCE_SCHEMA_V1)
+        );
+        let tool = historical
+            .pointer("/$defs/ToolSecurityEvidence/properties")
+            .and_then(serde_json::Value::as_object)
+            .ok_or_else(|| anyhow::anyhow!("historical security schema omits tool properties"))?;
+        assert!(tool.contains_key("support_disposition"));
+        assert!(!tool.contains_key("product_support"));
         Ok(())
     }
 }

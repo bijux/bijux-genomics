@@ -1,5 +1,6 @@
 #![allow(clippy::expect_used, clippy::too_many_lines)]
 
+use std::collections::BTreeSet;
 use std::process::Command;
 
 #[path = "contracts/banks/bank_fixtures.rs"]
@@ -45,56 +46,55 @@ fn bench_readiness_vcf_report_map_reports_expected_result_sections() {
         payload.get("output_path").and_then(serde_json::Value::as_str),
         Some("artifacts/benchmark-smoke/readiness/vcf/vcf-report-map.tsv")
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(24));
     assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(20));
-    assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(9));
     assert_eq!(payload.get("section_count").and_then(serde_json::Value::as_u64), Some(12));
     assert_eq!(payload.get("summary_table_count").and_then(serde_json::Value::as_u64), Some(12));
-    assert_eq!(
-        payload
-            .get("section_counts")
-            .and_then(|value| value.get("variant_calling"))
-            .and_then(serde_json::Value::as_u64),
-        Some(4)
-    );
-    assert_eq!(
-        payload
-            .get("section_counts")
-            .and_then(|value| value.get("quality_control"))
-            .and_then(serde_json::Value::as_u64),
-        Some(5)
-    );
-    assert_eq!(
-        payload
-            .get("section_counts")
-            .and_then(|value| value.get("reference_panel_preparation"))
-            .and_then(serde_json::Value::as_u64),
-        Some(1)
-    );
-    assert_eq!(
-        payload
-            .get("section_counts")
-            .and_then(|value| value.get("imputation"))
-            .and_then(serde_json::Value::as_u64),
-        Some(2)
-    );
-    assert_eq!(
-        payload
-            .get("section_counts")
-            .and_then(|value| value.get("population_structure"))
-            .and_then(serde_json::Value::as_u64),
-        Some(4)
-    );
-    assert_eq!(
-        payload
-            .get("section_counts")
-            .and_then(|value| value.get("runs_of_homozygosity"))
-            .and_then(serde_json::Value::as_u64),
-        Some(1)
-    );
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 24);
+    assert_eq!(
+        payload.get("row_count").and_then(serde_json::Value::as_u64),
+        Some(rows.len() as u64)
+    );
+    let tool_count = rows
+        .iter()
+        .filter_map(|row| row.get("tool_id").and_then(serde_json::Value::as_str))
+        .collect::<BTreeSet<_>>()
+        .len() as u64;
+    assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(tool_count));
+    let section_counts = payload
+        .get("section_counts")
+        .and_then(serde_json::Value::as_object)
+        .expect("section counts");
+    for section_id in [
+        "variant_calling",
+        "quality_control",
+        "reference_panel_preparation",
+        "imputation",
+        "population_structure",
+        "runs_of_homozygosity",
+    ] {
+        let observed = rows
+            .iter()
+            .filter(|row| {
+                row.get("section_id").and_then(serde_json::Value::as_str) == Some(section_id)
+            })
+            .count() as u64;
+        assert_eq!(
+            section_counts.get(section_id).and_then(serde_json::Value::as_u64),
+            Some(observed)
+        );
+    }
+    for (stage_id, tool_id) in [
+        ("vcf.call_gl", "angsd"),
+        ("vcf.call_pseudohaploid", "angsd"),
+        ("vcf.imputation_metrics", "impute5"),
+        ("vcf.impute", "impute5"),
+    ] {
+        assert!(rows.iter().any(|row| {
+            row.get("stage_id").and_then(serde_json::Value::as_str) == Some(stage_id)
+                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some(tool_id)
+        }));
+    }
 
     let call = rows
         .iter()

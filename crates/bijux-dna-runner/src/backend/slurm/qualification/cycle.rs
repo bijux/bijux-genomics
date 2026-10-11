@@ -22,7 +22,9 @@ use crate::backend::slurm::{SlurmClientPaths, SlurmJobState};
 
 pub const CONTAINER_QUALIFICATION_CYCLE_STATUS_SCHEMA_V1: &str =
     "bijux.runner.container_qualification_cycle_status.v1";
-const DEFAULT_POLL_INTERVAL_SECONDS: i64 = 300;
+pub const CONTAINER_QUALIFICATION_CYCLE_STATUS_SCHEMA_V2: &str =
+    "bijux.runner.container_qualification_cycle_status.v2";
+const DEFAULT_OBSERVATION_INTERVAL_SECONDS: i64 = 300;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ContainerQualificationCycleRequest {
@@ -46,6 +48,7 @@ pub enum ContainerQualificationCycleState {
     AccountingPending,
     Collectable,
     Passed,
+    Admitted,
     Failed,
 }
 
@@ -55,8 +58,10 @@ pub enum ContainerQualificationCycleAction {
     None,
     Prepare,
     Submit,
-    Poll,
+    #[serde(alias = "poll")]
+    Observe,
     Collect,
+    Admit,
     ArchiveFailure,
     Book,
 }
@@ -85,6 +90,7 @@ pub struct ContainerQualificationCycleSummary {
     pub ready_count: usize,
     pub active_count: usize,
     pub passed_count: usize,
+    pub admitted_count: usize,
     pub failed_count: usize,
 }
 
@@ -94,10 +100,21 @@ pub struct ContainerQualificationCycleStatus {
     pub schema_version: String,
     pub observed_at_utc: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    pub earliest_poll_at_utc: Option<String>,
+    #[serde(alias = "earliest_poll_at_utc")]
+    pub earliest_observation_at_utc: Option<String>,
     pub summary: ContainerQualificationCycleSummary,
     pub units: Vec<ContainerQualificationCycleUnit>,
 }
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum AdvancePass {
+    Collect,
+    Admit,
+    Submit,
+}
+
+const ADVANCE_PASS_ORDER: [AdvancePass; 3] =
+    [AdvancePass::Collect, AdvancePass::Admit, AdvancePass::Submit];
 
 /// Derive a scheduler-independent cycle plan from governed run and attempt evidence.
 ///
@@ -120,32 +137,63 @@ pub fn status_container_qualification_cycle(
     derive_cycle(request, Some(paths))
 }
 
-/// Submit every independently ready qualification once and return immediately.
+/// Collect, admit, and submit the complete independently ready frontier once, then return.
 ///
 /// Existing handles are loaded idempotently by the single-attempt scheduler authority.
 ///
 /// # Errors
-/// Returns an error when planning fails or any ready submission cannot be reconciled.
+/// Returns an error after the complete frontier pass when planning fails or any collection,
+/// admission, or submission cannot be reconciled.
 pub fn advance_container_qualification_cycle(
     paths: &SlurmClientPaths,
     request: &ContainerQualificationCycleRequest,
 ) -> Result<ContainerQualificationCycleStatus> {
+    let mut failures = Vec::new();
+    for pass in ADVANCE_PASS_ORDER {
+        let stage_failures = match pass {
+            AdvancePass::Collect => collect_frontier(paths, request)?,
+            AdvancePass::Admit => admit_frontier(request)?,
+            AdvancePass::Submit => submit_frontier(paths, request)?,
+        };
+        failures.extend(stage_failures.into_iter().map(|failure| {
+            format!(
+                "{}: {failure}",
+                match pass {
+                    AdvancePass::Collect => "collect",
+                    AdvancePass::Admit => "admit",
+                    AdvancePass::Submit => "submit",
+                }
+            )
+        }));
+    }
+    if failures.is_empty() {
+        plan_container_qualification_cycle(request)
+    } else {
+        bail!("one or more qualification advance actions failed: {}", failures.join("; "));
+    }
+}
+
+fn submit_frontier(
+    paths: &SlurmClientPaths,
+    request: &ContainerQualificationCycleRequest,
+) -> Result<Vec<String>> {
     let planned = plan_container_qualification_cycle(request)?;
     let mut failures = Vec::new();
     for unit in
         planned.units.iter().filter(|unit| unit.state == ContainerQualificationCycleState::Ready)
     {
-        let path = unit.specification_path.as_ref().context("ready cycle unit lacks a spec")?;
-        let spec = load_container_qualification_slurm_spec(path)?;
-        let prepared = load_prepared_container_qualification_slurm_job(&spec)?;
-        if let Err(error) = submit_prepared_container_qualification_job(paths, &prepared) {
+        let result = (|| -> Result<()> {
+            let path = unit.specification_path.as_ref().context("ready cycle unit lacks a spec")?;
+            let spec = load_container_qualification_slurm_spec(path)?;
+            let prepared = load_prepared_container_qualification_slurm_job(&spec)?;
+            submit_prepared_container_qualification_job(paths, &prepared)?;
+            Ok(())
+        })();
+        if let Err(error) = result {
             failures.push(format!("{}:{}: {error:#}", unit.run_id, unit.tool_id));
         }
     }
-    if !failures.is_empty() {
-        bail!("one or more qualification submissions failed: {}", failures.join("; "));
-    }
-    plan_container_qualification_cycle(request)
+    Ok(failures)
 }
 
 /// Run one collection pass for every submitted qualification and return immediately.
@@ -158,6 +206,17 @@ pub fn collect_container_qualification_cycle(
     paths: &SlurmClientPaths,
     request: &ContainerQualificationCycleRequest,
 ) -> Result<ContainerQualificationCycleStatus> {
+    let failures = collect_frontier(paths, request)?;
+    if !failures.is_empty() {
+        bail!("one or more qualification collections failed: {}", failures.join("; "));
+    }
+    plan_container_qualification_cycle(request)
+}
+
+fn collect_frontier(
+    paths: &SlurmClientPaths,
+    request: &ContainerQualificationCycleRequest,
+) -> Result<Vec<String>> {
     let planned = plan_container_qualification_cycle(request)?;
     let mut failures = Vec::new();
     for unit in planned.units.iter().filter(|unit| {
@@ -169,18 +228,52 @@ pub fn collect_container_qualification_cycle(
                 | ContainerQualificationCycleState::AccountingPending
         )
     }) {
-        let path = unit.specification_path.as_ref().context("active cycle unit lacks a spec")?;
-        let spec = load_container_qualification_slurm_spec(path)?;
-        if let Err(error) =
-            collect_container_qualification_slurm_job(paths, &spec, &request.observed_at_utc)
-        {
+        let result = (|| -> Result<()> {
+            let path =
+                unit.specification_path.as_ref().context("active cycle unit lacks a spec")?;
+            let spec = load_container_qualification_slurm_spec(path)?;
+            collect_container_qualification_slurm_job(paths, &spec, &request.observed_at_utc)?;
+            Ok(())
+        })();
+        if let Err(error) = result {
             failures.push(format!("{}:{}: {error:#}", unit.run_id, unit.tool_id));
         }
     }
+    Ok(failures)
+}
+
+/// Admit every independently collected passing qualification once and return immediately.
+///
+/// # Errors
+/// Returns an error when planning fails or a terminal evidence chain cannot be admitted.
+pub fn admit_container_qualification_cycle(
+    request: &ContainerQualificationCycleRequest,
+) -> Result<ContainerQualificationCycleStatus> {
+    let failures = admit_frontier(request)?;
     if !failures.is_empty() {
-        bail!("one or more qualification collections failed: {}", failures.join("; "));
+        bail!("one or more qualification admissions failed: {}", failures.join("; "));
     }
     plan_container_qualification_cycle(request)
+}
+
+fn admit_frontier(request: &ContainerQualificationCycleRequest) -> Result<Vec<String>> {
+    let planned = plan_container_qualification_cycle(request)?;
+    let mut failures = Vec::new();
+    for unit in
+        planned.units.iter().filter(|unit| unit.state == ContainerQualificationCycleState::Passed)
+    {
+        let result = (|| -> Result<()> {
+            let path =
+                unit.specification_path.as_ref().context("passed cycle unit lacks a spec")?;
+            let spec = load_container_qualification_slurm_spec(path)?;
+            super::admit_container_qualification_collection(&spec, &request.observed_at_utc)?;
+            Ok(())
+        })();
+        if let Err(error) = result {
+            failures.push(format!("{}:{}: {error:#}", unit.run_id, unit.tool_id));
+        }
+    }
+    Ok(failures)
 }
 
 fn derive_cycle(
@@ -274,12 +367,13 @@ fn derive_cycle(
                 | ContainerQualificationCycleState::AccountingPending
         )
     });
-    let earliest_poll_at_utc = active
-        .then(|| (observed_at + Duration::seconds(DEFAULT_POLL_INTERVAL_SECONDS)).to_rfc3339());
+    let earliest_observation_at_utc = active.then(|| {
+        (observed_at + Duration::seconds(DEFAULT_OBSERVATION_INTERVAL_SECONDS)).to_rfc3339()
+    });
     Ok(ContainerQualificationCycleStatus {
-        schema_version: CONTAINER_QUALIFICATION_CYCLE_STATUS_SCHEMA_V1.to_string(),
+        schema_version: CONTAINER_QUALIFICATION_CYCLE_STATUS_SCHEMA_V2.to_string(),
         observed_at_utc: observed_at.to_rfc3339(),
-        earliest_poll_at_utc,
+        earliest_observation_at_utc,
         summary: summarize(&units),
         units,
     })
@@ -396,7 +490,17 @@ fn classify_spec(
     if let Some(evidence) = load_container_qualification_scheduler_evidence(spec)? {
         let (state, action) = match evidence.status {
             ContainerQualificationSchedulerStatus::Passed => {
-                (ContainerQualificationCycleState::Passed, ContainerQualificationCycleAction::Book)
+                if super::load_container_qualification_admission(spec)?.is_some() {
+                    (
+                        ContainerQualificationCycleState::Admitted,
+                        ContainerQualificationCycleAction::Book,
+                    )
+                } else {
+                    (
+                        ContainerQualificationCycleState::Passed,
+                        ContainerQualificationCycleAction::Admit,
+                    )
+                }
             }
             ContainerQualificationSchedulerStatus::Failed => (
                 ContainerQualificationCycleState::Failed,
@@ -423,7 +527,7 @@ fn classify_spec(
         } else {
             (
                 ContainerQualificationCycleState::Submitted,
-                ContainerQualificationCycleAction::Poll,
+                ContainerQualificationCycleAction::Observe,
                 None,
             )
         };
@@ -477,22 +581,22 @@ fn scheduler_state(
     match state {
         SlurmJobState::Submitted => (
             ContainerQualificationCycleState::Submitted,
-            ContainerQualificationCycleAction::Poll,
+            ContainerQualificationCycleAction::Observe,
             None,
         ),
         SlurmJobState::Pending => (
             ContainerQualificationCycleState::Pending,
-            ContainerQualificationCycleAction::Poll,
+            ContainerQualificationCycleAction::Observe,
             None,
         ),
         SlurmJobState::Running => (
             ContainerQualificationCycleState::Running,
-            ContainerQualificationCycleAction::Poll,
+            ContainerQualificationCycleAction::Observe,
             None,
         ),
         SlurmJobState::AccountingPending => (
             ContainerQualificationCycleState::AccountingPending,
-            ContainerQualificationCycleAction::Poll,
+            ContainerQualificationCycleAction::Observe,
             Some("terminal accounting is not available yet"),
         ),
         SlurmJobState::Completed
@@ -545,6 +649,7 @@ fn summarize(units: &[ContainerQualificationCycleUnit]) -> ContainerQualificatio
             ],
         ),
         passed_count: count(units, &[ContainerQualificationCycleState::Passed]),
+        admitted_count: count(units, &[ContainerQualificationCycleState::Admitted]),
         failed_count: count(units, &[ContainerQualificationCycleState::Failed]),
     }
 }
@@ -575,10 +680,18 @@ mod tests {
         ContainerQualificationSlurmResources, ContainerQualificationSubmissionKind,
     };
     use super::{
-        classify_spec, discover_specifications, stale_specification_unit,
+        classify_spec, discover_specifications, stale_specification_unit, AdvancePass,
         ContainerQualificationCycleAction, ContainerQualificationCycleState,
-        ContainerQualificationSlurmSpec,
+        ContainerQualificationSlurmSpec, ADVANCE_PASS_ORDER,
     };
+
+    #[test]
+    fn advance_runs_the_complete_one_shot_frontier_in_dependency_order() {
+        assert_eq!(
+            ADVANCE_PASS_ORDER,
+            [AdvancePass::Collect, AdvancePass::Admit, AdvancePass::Submit]
+        );
+    }
 
     #[test]
     fn specification_discovery_excludes_archived_attempts() -> anyhow::Result<()> {
@@ -655,6 +768,43 @@ mod tests {
             &spec.repository_commit,
         )
         .is_none());
+        Ok(())
+    }
+
+    #[test]
+    fn observation_action_serializes_without_polling_semantics() -> anyhow::Result<()> {
+        assert_eq!(
+            serde_json::to_string(&ContainerQualificationCycleAction::Observe)?,
+            r#""observe""#
+        );
+        assert_eq!(
+            serde_json::from_str::<ContainerQualificationCycleAction>(r#""poll""#)?,
+            ContainerQualificationCycleAction::Observe
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn historical_poll_timestamp_deserializes_as_observation_cadence() -> anyhow::Result<()> {
+        let status: super::ContainerQualificationCycleStatus =
+            serde_json::from_value(serde_json::json!({
+                "schema_version": super::CONTAINER_QUALIFICATION_CYCLE_STATUS_SCHEMA_V1,
+                "observed_at_utc": "2026-08-10T12:00:00Z",
+                "earliest_poll_at_utc": "2026-08-10T12:05:00Z",
+                "summary": {
+                    "unit_count": 0,
+                    "published_count": 0,
+                    "blocked_count": 0,
+                    "ready_count": 0,
+                    "active_count": 0,
+                    "passed_count": 0,
+                    "admitted_count": 0,
+                    "failed_count": 0
+                },
+                "units": []
+            }))?;
+
+        assert_eq!(status.earliest_observation_at_utc.as_deref(), Some("2026-08-10T12:05:00Z"));
         Ok(())
     }
 }

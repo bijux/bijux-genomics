@@ -29,4 +29,8 @@ if [[ "${1:-}" == "audit" ]]; then
   fi
 fi
 
+if [[ "${1:-}" == "test-all" ]]; then
+  exec cargo run -q -p bijux-dna-dev -- tooling run ci-test-all-sharded
+fi
+
 exec "${shared_gate}" "$@"

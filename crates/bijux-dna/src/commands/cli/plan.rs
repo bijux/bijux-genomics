@@ -1042,7 +1042,7 @@ mod tests {
             r1: PathBuf::from("reads_R1.fastq.gz"),
             r2: Some(PathBuf::from("reads_R2.fastq.gz")),
             out: PathBuf::from("out"),
-            tools: vec!["seqkit_stats".to_string()],
+            tools: vec!["seqkit".to_string()],
             explain: false,
             allow_experimental: false,
             replicates: 2,
