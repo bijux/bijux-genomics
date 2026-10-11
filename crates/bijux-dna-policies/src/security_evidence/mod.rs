@@ -9,8 +9,9 @@ mod validation;
 pub use admission::{admit_security_evidence, AdmittedSecurityEvidence};
 pub use derivation::{
     classify_vulnerability_database, derive_security_evidence, security_evidence_policy_sha256,
-    CollectedSecurityToolObservation, RuntimeProbeObservation, ScannerReportObservation,
-    SecurityEvidenceDerivationRequest, SecurityToolObservation, StructuralProbeObservation,
+    CollectedSecurityToolObservation, NoSecurityArtifactObservation, RuntimeProbeObservation,
+    ScannerReportObservation, SecurityEvidenceDerivationRequest, SecurityToolObservation,
+    StructuralProbeObservation,
 };
 pub use gitleaks::{parse_gitleaks_report, ParsedSecretScanReport};
 pub use grype::{parse_grype_vulnerability_report, ParsedVulnerabilityReport};
@@ -21,7 +22,7 @@ pub use model::{
     ToolSecurityEvidence, VulnerabilityDatabaseIdentity, VulnerabilityDatabaseStatus,
     VulnerabilityEvidence, VulnerabilityFinding, VulnerabilityScannerIdentity,
     VulnerabilitySeverity, VulnerabilitySeverityCounts, VulnerabilityWaiver,
-    CONTAINER_SECURITY_EVIDENCE_SCHEMA_V1,
+    CONTAINER_SECURITY_EVIDENCE_SCHEMA_V1, CONTAINER_SECURITY_EVIDENCE_SCHEMA_V2,
 };
 pub use schema::security_evidence_schema;
 pub use validation::validate_security_evidence_publication;

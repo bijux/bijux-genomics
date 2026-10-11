@@ -4,7 +4,6 @@
 use std::fs;
 use std::io::ErrorKind;
 use std::path::{Component, Path, PathBuf};
-use std::time::Duration;
 
 use anyhow::{bail, Context, Result};
 pub use bijux_dna_bench_model::CorpusMaterializationPublication;
@@ -64,7 +63,7 @@ pub fn materialize_fastq_corpus(
     let lock_path = data_root
         .join("evidence/materialization-locks")
         .join(format!("{}.lock", plan.portfolio_id));
-    let _lock = bijux_dna_infra::FileLock::acquire(&lock_path, Duration::from_secs(30))
+    let _lock = bijux_dna_infra::FileLock::try_acquire(&lock_path)
         .context("acquire corpus materialization lock")?;
     let targets = materialization_targets(&data_root, &plan);
     let catalog_path =

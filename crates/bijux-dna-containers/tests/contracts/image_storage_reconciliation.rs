@@ -5,12 +5,12 @@ use anyhow::{Context, Result};
 use bijux_dna_containers::api::{
     apply_image_storage_plan, create_image_storage_plan, derive_image_storage_report,
     load_image_storage_plan, publish_image_storage_report, render_image_storage_report_markdown,
-    rollback_image_storage_plan, verify_image_storage_plan, ContainerDetachedImage,
-    ContainerImageCandidate, ContainerImageInventoryPublication, ContainerImageInventorySummary,
-    ContainerImageInventoryTool, ContainerImageState, ContainerStagedImage,
-    ContainerSupportDisposition, DetachedImageDisposition, ImageCandidateDisposition,
-    ImageInventoryPublicationIdentity, ImageStoragePlanRequest, ImageStoragePlanState,
-    ImageStorageVerdict, CONTAINER_IMAGE_INVENTORY_PUBLICATION_SCHEMA_V2,
+    rollback_image_storage_plan, verify_image_storage_plan, ContainerArtifactDelivery,
+    ContainerDetachedImage, ContainerImageCandidate, ContainerImageInventoryPublication,
+    ContainerImageInventorySummary, ContainerImageInventoryTool, ContainerImageState,
+    ContainerProductSupport, ContainerStagedImage, DetachedImageDisposition,
+    ImageCandidateDisposition, ImageInventoryPublicationIdentity, ImageStoragePlanRequest,
+    ImageStoragePlanState, ImageStorageVerdict, CONTAINER_IMAGE_INVENTORY_PUBLICATION_SCHEMA_V3,
 };
 
 #[test]
@@ -274,7 +274,7 @@ fn write_inventory(path: &Path, fixture: &Fixture, include_obsolete: bool) -> Re
         candidates.push(historical_tool_candidate(fixture)?);
     }
     let publication = ContainerImageInventoryPublication {
-        schema_version: CONTAINER_IMAGE_INVENTORY_PUBLICATION_SCHEMA_V2.to_string(),
+        schema_version: CONTAINER_IMAGE_INVENTORY_PUBLICATION_SCHEMA_V3.to_string(),
         catalog_sha256: "b".repeat(64),
         repository_commit: "a".repeat(40),
         publication: ImageInventoryPublicationIdentity {
@@ -282,11 +282,15 @@ fn write_inventory(path: &Path, fixture: &Fixture, include_obsolete: bool) -> Re
             raw_sha256: "c".repeat(64),
         },
         summary: ContainerImageInventorySummary {
-            tool_count: if include_obsolete { 2 } else { 1 },
+            tool_count: if include_obsolete { 3 } else { 2 },
             states: if include_obsolete {
-                BTreeMap::from([("current".to_string(), 1), ("historical".to_string(), 1)])
+                BTreeMap::from([
+                    ("current".to_string(), 1),
+                    ("historical".to_string(), 1),
+                    ("not_applicable".to_string(), 1),
+                ])
             } else {
-                BTreeMap::from([("current".to_string(), 1)])
+                BTreeMap::from([("current".to_string(), 1), ("not_applicable".to_string(), 1)])
             },
             historical_dependency_count: if include_obsolete { 2 } else { 0 },
             unknown_image_count: u64::from(include_obsolete),
@@ -296,7 +300,9 @@ fn write_inventory(path: &Path, fixture: &Fixture, include_obsolete: bool) -> Re
         tools: [ContainerImageInventoryTool {
             tool: "samtools".to_string(),
             version: "1.20".to_string(),
-            support_disposition: ContainerSupportDisposition::Retained,
+            product_support: ContainerProductSupport::Supported,
+            artifact_delivery: ContainerArtifactDelivery::RedistributableImage,
+            redistribution_permitted: true,
             apptainer_supported: true,
             state: ContainerImageState::Current,
             selected_image_sha256: Some(canonical_sha),
@@ -304,6 +310,7 @@ fn write_inventory(path: &Path, fixture: &Fixture, include_obsolete: bool) -> Re
         }]
         .into_iter()
         .chain(include_obsolete.then(|| stale_selected_tool(fixture)).transpose()?)
+        .chain([external_artifact_tool()])
         .collect(),
         historical_images: if include_obsolete {
             vec![historical_detached_image(fixture)?]
@@ -337,12 +344,28 @@ fn write_inventory(path: &Path, fixture: &Fixture, include_obsolete: bool) -> Re
     Ok(())
 }
 
+fn external_artifact_tool() -> ContainerImageInventoryTool {
+    ContainerImageInventoryTool {
+        tool: "external".to_string(),
+        version: "1.0.0".to_string(),
+        product_support: ContainerProductSupport::Supported,
+        artifact_delivery: ContainerArtifactDelivery::ExternalArtifact,
+        redistribution_permitted: false,
+        apptainer_supported: false,
+        state: ContainerImageState::NotApplicable,
+        selected_image_sha256: None,
+        candidates: Vec::new(),
+    }
+}
+
 fn stale_selected_tool(fixture: &Fixture) -> Result<ContainerImageInventoryTool> {
     let sha256 = bijux_dna_infra::hash_file_sha256(&fixture.stale_selected)?;
     Ok(ContainerImageInventoryTool {
         tool: "bijux_dna".to_string(),
         version: "0.1.0".to_string(),
-        support_disposition: ContainerSupportDisposition::Retained,
+        product_support: ContainerProductSupport::Supported,
+        artifact_delivery: ContainerArtifactDelivery::RedistributableImage,
+        redistribution_permitted: true,
         apptainer_supported: true,
         state: ContainerImageState::Historical,
         selected_image_sha256: Some(sha256.clone()),

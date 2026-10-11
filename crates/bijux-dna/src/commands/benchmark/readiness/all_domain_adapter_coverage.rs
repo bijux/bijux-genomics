@@ -473,20 +473,28 @@ mod tests {
         assert_eq!(report.covered_row_count, report.row_count);
         assert_eq!(report.missing_row_count, 0);
         assert_eq!(report.coverage_percent, 100.0);
-        assert!(report.domain_counts.contains_key("fastq"));
-        assert!(report.domain_counts.contains_key("bam"));
-        assert_eq!(report.domain_counts.get("vcf"), Some(&21));
+        for domain in ["fastq", "bam", "vcf"] {
+            let observed = report.rows.iter().filter(|row| row.domain == domain).count();
+            assert_eq!(report.domain_counts.get(domain), Some(&observed));
+        }
         let fastq_bam_count = report.domain_counts["fastq"] + report.domain_counts["bam"];
         assert_eq!(
             report.command_source_counts.get("fastq_bam_command_adapter"),
             Some(&fastq_bam_count)
         );
-        assert_eq!(report.command_source_counts.get("vcf_bcftools_adapter"), Some(&11));
-        assert_eq!(report.command_source_counts.get("vcf_eigensoft_adapter"), Some(&1));
-        assert_eq!(report.command_source_counts.get("vcf_imputation_family_adapter"), Some(&2));
-        assert_eq!(report.command_source_counts.get("vcf_phasing_family_adapter"), Some(&1));
-        assert_eq!(report.command_source_counts.get("vcf_plink_family_adapter"), Some(&5));
-        assert_eq!(report.command_source_counts.get("vcf_descent_family_adapter"), Some(&1));
+        assert_eq!(report.command_source_counts.values().copied().sum::<usize>(), report.row_count);
+        for (stage_id, tool_id, command_source) in [
+            ("vcf.call_gl", "angsd", "vcf_angsd_adapter"),
+            ("vcf.call_pseudohaploid", "angsd", "vcf_angsd_adapter"),
+            ("vcf.imputation_metrics", "impute5", "vcf_imputation_family_adapter"),
+            ("vcf.impute", "impute5", "vcf_imputation_family_adapter"),
+        ] {
+            assert!(report.rows.iter().any(|row| {
+                row.stage_id == stage_id
+                    && row.tool_id == tool_id
+                    && row.command_source == command_source
+            }));
+        }
         assert_eq!(report.coverage_status_counts.get("covered"), Some(&report.row_count));
         assert_eq!(report.violation_count, 0);
         assert!(report.ok);

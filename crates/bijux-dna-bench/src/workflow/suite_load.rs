@@ -9,19 +9,20 @@ use anyhow::{bail, Context, Result};
 
 use crate::repo::RunRepository;
 use crate::repo::{
-    bench_bundles_dir, bench_corpora_dir, bench_portfolio_path, bench_stage_campaigns_path,
-    bench_stage_interfaces_path,
+    bench_bundles_dir, bench_corpora_dir, bench_data_fitness_path, bench_portfolio_path,
+    bench_stage_campaigns_path, bench_stage_interfaces_path,
 };
 use bijux_dna_bench_model::contract::{
     validate_benchmark_portfolio, validate_bundle_manifest, validate_corpus_manifest,
+    validate_data_fitness_portfolio_alignment, validate_data_fitness_rubric,
     validate_defined_campaign_portfolio_alignment, validate_defined_interface_campaign_alignment,
     validate_interface_parameter_alignment, validate_pipeline_parameter_config,
     validate_stage_campaign_registry, validate_stage_interface_catalog,
 };
 use bijux_dna_bench_model::{
-    BenchmarkBundleManifest, BenchmarkCorpusManifest, BenchmarkObservation,
-    BenchmarkPipelineParameterConfig, BenchmarkPortfolio, BenchmarkStageCampaignRegistry,
-    BenchmarkStageInterfaceCatalog,
+    BenchmarkBundleManifest, BenchmarkCorpusManifest, BenchmarkDataFitnessRubric,
+    BenchmarkObservation, BenchmarkPipelineParameterConfig, BenchmarkPortfolio,
+    BenchmarkStageCampaignRegistry, BenchmarkStageInterfaceCatalog,
 };
 
 use super::parameter_authority::load_stage_parameter_authority;
@@ -152,6 +153,20 @@ pub fn load_benchmark_portfolio(path: &Path) -> Result<BenchmarkPortfolio> {
     validate_portfolio_repository_paths(&portfolio)
         .with_context(|| format!("validate benchmark portfolio paths {}", path.display()))?;
     Ok(portfolio)
+}
+
+/// Load and validate the benchmark corpus-fitness policy.
+///
+/// # Errors
+/// Returns an error if the rubric cannot be read, parsed, or validated.
+pub fn load_benchmark_data_fitness_rubric(path: &Path) -> Result<BenchmarkDataFitnessRubric> {
+    let raw = fs::read_to_string(path)
+        .with_context(|| format!("read benchmark data-fitness rubric {}", path.display()))?;
+    let rubric: BenchmarkDataFitnessRubric = toml::from_str(&raw)
+        .with_context(|| format!("parse benchmark data-fitness rubric {}", path.display()))?;
+    validate_data_fitness_rubric(&rubric)
+        .with_context(|| format!("validate benchmark data-fitness rubric {}", path.display()))?;
+    Ok(rubric)
 }
 
 /// Load and validate the benchmark stage-interface catalog.
@@ -308,6 +323,9 @@ pub fn load_checked_in_benchmark_planning_contracts(
 ) -> Result<(BenchmarkStageCampaignRegistry, BenchmarkPortfolio, BenchmarkStageInterfaceCatalog)> {
     let registry = load_stage_campaign_registry(&bench_stage_campaigns_path())?;
     let portfolio = load_benchmark_portfolio(&bench_portfolio_path())?;
+    let fitness = load_benchmark_data_fitness_rubric(&bench_data_fitness_path())?;
+    validate_data_fitness_portfolio_alignment(&fitness, &portfolio)
+        .context("validate benchmark data-fitness rubric against portfolio profiles")?;
     let interfaces = load_stage_interface_catalog(&bench_stage_interfaces_path())?;
     let repo_root = crate::repo::resolve_repo_root().context("resolve repository root")?;
     for interface in &interfaces.interfaces {

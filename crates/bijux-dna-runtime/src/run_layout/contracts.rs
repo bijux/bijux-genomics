@@ -112,6 +112,7 @@ pub enum RunLifecycleStateV1 {
     Planned,
     Prepared,
     Running,
+    Paused,
     Succeeded,
     Failed,
     Cancelled,
@@ -123,6 +124,7 @@ impl std::fmt::Display for RunLifecycleStateV1 {
             Self::Planned => "planned",
             Self::Prepared => "prepared",
             Self::Running => "running",
+            Self::Paused => "paused",
             Self::Succeeded => "succeeded",
             Self::Failed => "failed",
             Self::Cancelled => "cancelled",
@@ -686,6 +688,23 @@ pub enum RunControlActionV1 {
     Resume,
     Cancel,
 }
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum RunControlInterruption {
+    Paused { step_id: String },
+    Cancelled { step_id: String },
+}
+
+impl std::fmt::Display for RunControlInterruption {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Paused { step_id } => write!(f, "execution paused before {step_id}"),
+            Self::Cancelled { step_id } => write!(f, "execution cancelled before {step_id}"),
+        }
+    }
+}
+
+impl std::error::Error for RunControlInterruption {}
 
 impl std::fmt::Display for RunControlActionV1 {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {

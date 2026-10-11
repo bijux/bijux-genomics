@@ -51,24 +51,55 @@ fn bench_readiness_vcf_tool_scores_report_governs_real_vcf_evidence() {
         payload.get("config_path").and_then(serde_json::Value::as_str),
         Some("configs/bench/local/stage-scoring.toml")
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(24));
     assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(20));
-    assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(9));
-    assert_eq!(payload.get("scored_row_count").and_then(serde_json::Value::as_u64), Some(24));
     assert_eq!(
         payload.get("insufficient_evidence_row_count").and_then(serde_json::Value::as_u64),
-        Some(0)
+        Some(3)
     );
-    assert_eq!(payload.get("blocked_row_count").and_then(serde_json::Value::as_u64), Some(0));
+    assert_eq!(payload.get("blocked_row_count").and_then(serde_json::Value::as_u64), Some(1));
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 24);
+    let row_count = rows.len() as u64;
+    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(row_count));
+    assert_eq!(
+        payload.get("scored_row_count").and_then(serde_json::Value::as_u64),
+        Some(row_count - 4)
+    );
 
     let failure_counts = payload
         .get("failure_class_counts")
         .and_then(serde_json::Value::as_object)
         .expect("failure_class_counts");
-    assert_eq!(failure_counts.get("none").and_then(serde_json::Value::as_u64), Some(24));
+    assert_eq!(failure_counts.get("none").and_then(serde_json::Value::as_u64), Some(row_count - 4));
+    assert_eq!(
+        failure_counts.get("insufficient_data").and_then(serde_json::Value::as_u64),
+        Some(3)
+    );
+    assert_eq!(failure_counts.get("tool_not_found").and_then(serde_json::Value::as_u64), Some(1));
+
+    for (stage_id, tool_id, score_status, failure_class) in [
+        ("vcf.call_gl", "angsd", "blocked", "tool_not_found"),
+        ("vcf.call_pseudohaploid", "angsd", "insufficient_evidence", "insufficient_data"),
+        ("vcf.imputation_metrics", "impute5", "insufficient_evidence", "insufficient_data"),
+        ("vcf.impute", "impute5", "insufficient_evidence", "insufficient_data"),
+    ] {
+        let licensed = rows
+            .iter()
+            .find(|row| {
+                row.get("stage_id").and_then(serde_json::Value::as_str) == Some(stage_id)
+                    && row.get("tool_id").and_then(serde_json::Value::as_str) == Some(tool_id)
+            })
+            .expect("licensed VCF score row");
+        assert_eq!(
+            licensed.get("score_status").and_then(serde_json::Value::as_str),
+            Some(score_status)
+        );
+        assert_eq!(
+            licensed.get("failure_class").and_then(serde_json::Value::as_str),
+            Some(failure_class)
+        );
+        assert_eq!(licensed.get("score_total"), Some(&serde_json::Value::Null));
+    }
 
     let qc_plink2 = rows
         .iter()

@@ -4,14 +4,13 @@ use std::path::{Path, PathBuf};
 use anyhow::{Context, Result};
 use bijux_dna_containers::api::{
     apply_container_pipeline_currentization, derive_container_pipeline_currentization,
-    load_container_pipeline, ContainerGovernance, ContainerImageCandidate,
-    ContainerImageInventoryPublication, ContainerImageInventorySummary,
+    load_container_pipeline, ContainerArtifactDelivery, ContainerGovernance,
+    ContainerImageCandidate, ContainerImageInventoryPublication, ContainerImageInventorySummary,
     ContainerImageInventoryTool, ContainerImageState, ContainerPathPolicy,
     ContainerPipelineContract, ContainerPipelineCurrentizationDisposition,
-    ContainerPipelineCurrentizationRequest, ContainerPreflightPolicy, ContainerRuntimePolicy,
-    ContainerSitePolicy, ContainerSlurmPolicy, ContainerSupportDisposition,
-    ImageCandidateDisposition, ImageInventoryPublicationIdentity,
-    CONTAINER_IMAGE_INVENTORY_PUBLICATION_SCHEMA_V2,
+    ContainerPipelineCurrentizationRequest, ContainerPreflightPolicy, ContainerProductSupport,
+    ContainerRuntimePolicy, ContainerSitePolicy, ContainerSlurmPolicy, ImageCandidateDisposition,
+    ImageInventoryPublicationIdentity, CONTAINER_IMAGE_INVENTORY_PUBLICATION_SCHEMA_V3,
 };
 
 struct CurrentizationFixture {
@@ -164,7 +163,7 @@ fn inventory_fixture(
     image_size: u64,
 ) -> ContainerImageInventoryPublication {
     ContainerImageInventoryPublication {
-        schema_version: CONTAINER_IMAGE_INVENTORY_PUBLICATION_SCHEMA_V2.to_owned(),
+        schema_version: CONTAINER_IMAGE_INVENTORY_PUBLICATION_SCHEMA_V3.to_owned(),
         catalog_sha256: catalog_sha256.to_owned(),
         repository_commit: commit.to_owned(),
         publication: ImageInventoryPublicationIdentity {
@@ -173,7 +172,7 @@ fn inventory_fixture(
         },
         summary: ContainerImageInventorySummary {
             tool_count: 2,
-            states: BTreeMap::from([("current".to_owned(), 1), ("unsupported".to_owned(), 1)]),
+            states: BTreeMap::from([("current".to_owned(), 1), ("not_applicable".to_owned(), 1)]),
             historical_dependency_count: 0,
             unknown_image_count: 0,
             staged_image_count: 0,
@@ -183,16 +182,20 @@ fn inventory_fixture(
             ContainerImageInventoryTool {
                 tool: "fastuniq".to_owned(),
                 version: "1.1".to_owned(),
-                support_disposition: ContainerSupportDisposition::Unsupported,
+                product_support: ContainerProductSupport::Supported,
+                artifact_delivery: ContainerArtifactDelivery::ExternalArtifact,
+                redistribution_permitted: false,
                 apptainer_supported: false,
-                state: ContainerImageState::Unsupported,
+                state: ContainerImageState::NotApplicable,
                 selected_image_sha256: None,
                 candidates: Vec::new(),
             },
             ContainerImageInventoryTool {
                 tool: "trim_galore".to_owned(),
                 version: "0.6.10".to_owned(),
-                support_disposition: ContainerSupportDisposition::Retained,
+                product_support: ContainerProductSupport::Supported,
+                artifact_delivery: ContainerArtifactDelivery::RedistributableImage,
+                redistribution_permitted: true,
                 apptainer_supported: true,
                 state: ContainerImageState::Current,
                 selected_image_sha256: Some(image_sha256.to_owned()),
@@ -232,8 +235,10 @@ id = "fastuniq"
 display_name = "FastUniq"
 purpose = "test"
 version = "1.1"
-support_disposition = "unsupported"
-support_reason = "external artifact"
+product_support = "supported"
+artifact_delivery = "external_artifact"
+redistribution_permitted = false
+delivery_reason = "external artifact"
 external_artifact_supported = true
 external_artifact_kinds = ["binary"]
 upstream = "https://example.com/fastuniq"
@@ -260,7 +265,9 @@ id = "trim_galore"
 display_name = "Trim Galore"
 purpose = "test"
 version = "0.6.10"
-support_disposition = "retained"
+product_support = "supported"
+artifact_delivery = "redistributable_image"
+redistribution_permitted = true
 upstream = "https://example.com/trim-galore"
 documentation = "https://example.com/trim-galore/docs"
 license = "GPL-3.0-only"

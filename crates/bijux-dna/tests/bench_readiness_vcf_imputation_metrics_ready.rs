@@ -5,7 +5,7 @@ use std::process::Command;
 #[path = "contracts/banks/bank_fixtures.rs"]
 mod support;
 
-fn run_cli_json(args: &[&str]) -> serde_json::Value {
+fn run_cli_report(args: &[&str], report_path: &str) -> serde_json::Value {
     let _cwd_guard = support::CWD_LOCK.lock().expect("cwd lock");
     let _env_guard = support::EnvGuard::new().expect("capture env");
     let _crate_root = support::crate_root("bijux-dna").expect("crate root");
@@ -22,21 +22,17 @@ fn run_cli_json(args: &[&str]) -> serde_json::Value {
         .output()
         .expect("run cli");
 
-    assert!(
-        output.status.success(),
-        "command failed: {}\nstdout:\n{}\nstderr:\n{}",
-        output.status,
-        String::from_utf8_lossy(&output.stdout),
-        String::from_utf8_lossy(&output.stderr)
-    );
-
-    serde_json::from_slice(&output.stdout).expect("parse stdout as json")
+    assert!(!output.status.success(), "unadmitted IMPUTE5 evidence must keep the gate open");
+    serde_json::from_slice(&std::fs::read(repo_root.join(report_path)).expect("read report"))
+        .expect("parse report as json")
 }
 
 #[test]
-fn bench_readiness_vcf_imputation_metrics_ready_reports_active_quality_gate() {
-    let payload =
-        run_cli_json(&["bench", "readiness", "render-vcf-imputation-metrics-ready", "--json"]);
+fn bench_readiness_vcf_imputation_metrics_ready_reports_unadmitted_impute5_evidence() {
+    let payload = run_cli_report(
+        &["bench", "readiness", "render-vcf-imputation-metrics-ready", "--json"],
+        "artifacts/benchmark-smoke/readiness/vcf/imputation-metrics-ready.json",
+    );
 
     assert_eq!(
         payload.get("schema_version").and_then(serde_json::Value::as_str),
@@ -46,11 +42,19 @@ fn bench_readiness_vcf_imputation_metrics_ready_reports_active_quality_gate() {
         payload.get("output_path").and_then(serde_json::Value::as_str),
         Some("artifacts/benchmark-smoke/readiness/vcf/imputation-metrics-ready.json")
     );
-    assert_eq!(payload.get("retained_row_count").and_then(serde_json::Value::as_u64), Some(1));
-    assert_eq!(payload.get("active_row_count").and_then(serde_json::Value::as_u64), Some(1));
-    assert_eq!(payload.get("complete_row_count").and_then(serde_json::Value::as_u64), Some(1));
-    assert_eq!(payload.get("incomplete_row_count").and_then(serde_json::Value::as_u64), Some(0));
-    assert_eq!(payload.get("ok").and_then(serde_json::Value::as_bool), Some(true));
+    assert_eq!(payload.get("retained_row_count").and_then(serde_json::Value::as_u64), Some(2));
+    assert_eq!(payload.get("active_row_count").and_then(serde_json::Value::as_u64), Some(2));
+    let complete_count = payload
+        .get("complete_row_count")
+        .and_then(serde_json::Value::as_u64)
+        .expect("complete row count");
+    let incomplete_count = payload
+        .get("incomplete_row_count")
+        .and_then(serde_json::Value::as_u64)
+        .expect("incomplete row count");
+    assert_eq!(complete_count + incomplete_count, 2);
+    assert!(incomplete_count >= 1);
+    assert_eq!(payload.get("ok").and_then(serde_json::Value::as_bool), Some(false));
 
     let required_metrics = payload
         .get("required_metric_names")
@@ -63,19 +67,40 @@ fn bench_readiness_vcf_imputation_metrics_ready_reports_active_quality_gate() {
     assert!(required_metrics.iter().any(|value| value.as_str() == Some("variant_count")));
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows");
-    assert_eq!(rows.len(), 1);
-    let row = &rows[0];
+    assert_eq!(rows.len(), 2);
+    let row = rows
+        .iter()
+        .find(|row| row.get("tool_id").and_then(serde_json::Value::as_str) == Some("beagle"))
+        .expect("beagle row");
     assert_eq!(
         row.get("stage_id").and_then(serde_json::Value::as_str),
         Some("vcf.imputation_metrics")
     );
     assert_eq!(row.get("tool_id").and_then(serde_json::Value::as_str), Some("beagle"));
-    assert_eq!(row.get("coverage_status").and_then(serde_json::Value::as_str), Some("complete"));
-    assert_eq!(row.get("smoke_concordance").and_then(serde_json::Value::as_f64), Some(1.0));
-    assert_eq!(row.get("smoke_r2_available").and_then(serde_json::Value::as_bool), Some(true));
-    let dosage_r2 =
-        row.get("smoke_dosage_r2").and_then(serde_json::Value::as_f64).expect("smoke dosage_r2");
-    assert!((dosage_r2 - 0.775).abs() < 1e-9, "unexpected smoke_dosage_r2: {dosage_r2}");
+    for field in
+        ["command_ready", "output_ready", "parser_ready", "expected_result_ready", "report_ready"]
+    {
+        assert_eq!(row.get(field).and_then(serde_json::Value::as_bool), Some(true));
+    }
+    if row.get("smoke_ready").and_then(serde_json::Value::as_bool) == Some(true) {
+        assert_eq!(
+            row.get("coverage_status").and_then(serde_json::Value::as_str),
+            Some("complete")
+        );
+        assert_eq!(row.get("smoke_concordance").and_then(serde_json::Value::as_f64), Some(1.0));
+        assert_eq!(row.get("smoke_r2_available").and_then(serde_json::Value::as_bool), Some(true));
+        let dosage_r2 = row
+            .get("smoke_dosage_r2")
+            .and_then(serde_json::Value::as_f64)
+            .expect("smoke dosage_r2");
+        assert!((dosage_r2 - 0.775).abs() < 1e-9, "unexpected smoke_dosage_r2: {dosage_r2}");
+    } else {
+        assert!(row.get("missing_surfaces").and_then(serde_json::Value::as_array).is_some_and(
+            |values| values
+                .iter()
+                .any(|value| { value.as_str() == Some("local_vcf_imputation_metrics_smoke") })
+        ));
+    }
 
     let expected_metrics = row
         .get("expected_metrics")
@@ -96,4 +121,25 @@ fn bench_readiness_vcf_imputation_metrics_ready_reports_active_quality_gate() {
     assert!(report_metric_columns.iter().any(|value| value.as_str() == Some("sample_count")));
     assert!(report_metric_columns.iter().any(|value| value.as_str() == Some("sample_ids")));
     assert!(report_metric_columns.iter().any(|value| value.as_str() == Some("variant_count")));
+
+    let impute5 = rows
+        .iter()
+        .find(|row| row.get("tool_id").and_then(serde_json::Value::as_str) == Some("impute5"))
+        .expect("IMPUTE5 row");
+    assert_eq!(impute5.get("tool_status").and_then(serde_json::Value::as_str), Some("production"));
+    for field in
+        ["command_ready", "output_ready", "parser_ready", "expected_result_ready", "report_ready"]
+    {
+        assert_eq!(impute5.get(field).and_then(serde_json::Value::as_bool), Some(true));
+    }
+    assert_eq!(impute5.get("smoke_ready").and_then(serde_json::Value::as_bool), Some(false));
+    assert_eq!(
+        impute5.get("coverage_status").and_then(serde_json::Value::as_str),
+        Some("incomplete")
+    );
+    assert!(impute5.get("missing_surfaces").and_then(serde_json::Value::as_array).is_some_and(
+        |values| values
+            .iter()
+            .any(|value| { value.as_str() == Some("local_vcf_imputation_metrics_smoke") })
+    ));
 }

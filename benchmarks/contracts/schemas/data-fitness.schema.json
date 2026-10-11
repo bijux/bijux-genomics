@@ -1,0 +1,279 @@
+{
+  "$defs": {
+    "BenchmarkDataAccessRequirement": {
+      "additionalProperties": false,
+      "properties": {
+        "checksum_before_execution": {
+          "type": "boolean"
+        },
+        "license_identity": {
+          "type": "boolean"
+        },
+        "redistribution_classification": {
+          "type": "boolean"
+        },
+        "stable_source_identity": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "stable_source_identity",
+        "license_identity",
+        "redistribution_classification",
+        "checksum_before_execution"
+      ],
+      "type": "object"
+    },
+    "BenchmarkDataFitnessDefaults": {
+      "additionalProperties": false,
+      "properties": {
+        "minimum_cases_per_tool": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "minimum_distinct_studies": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "minimum_input_bytes": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "minimum_real_samples": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "minimum_real_samples",
+        "minimum_cases_per_tool",
+        "minimum_distinct_studies",
+        "minimum_input_bytes"
+      ],
+      "type": "object"
+    },
+    "BenchmarkDataFitnessExceptionPolicy": {
+      "additionalProperties": false,
+      "properties": {
+        "claim_restriction_required": {
+          "type": "boolean"
+        },
+        "required_fields": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "review_authority": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "required_fields",
+        "review_authority",
+        "claim_restriction_required"
+      ],
+      "type": "object"
+    },
+    "BenchmarkDataFitnessProfile": {
+      "additionalProperties": false,
+      "properties": {
+        "access": {
+          "$ref": "#/$defs/BenchmarkDataAccessRequirement"
+        },
+        "allowed_claims": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "ancestry": {
+          "$ref": "#/$defs/BenchmarkStratificationRequirement"
+        },
+        "bias_assessments": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "contamination_damage": {
+          "$ref": "#/$defs/BenchmarkStratificationRequirement"
+        },
+        "minimum_cases_per_tool": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "minimum_distinct_studies": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "minimum_input_bytes": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "minimum_real_samples": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "profile_id": {
+          "type": "string"
+        },
+        "representativeness_strata": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "required_controls": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "required_layouts": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "required_limitations": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "scientific_exceptions": {
+          "items": {
+            "$ref": "#/$defs/BenchmarkFitnessException"
+          },
+          "type": "array"
+        },
+        "truth_requirement": {
+          "$ref": "#/$defs/BenchmarkTruthEvidenceRequirement"
+        }
+      },
+      "required": [
+        "profile_id",
+        "minimum_real_samples",
+        "minimum_cases_per_tool",
+        "minimum_distinct_studies",
+        "minimum_input_bytes",
+        "representativeness_strata",
+        "required_layouts",
+        "truth_requirement",
+        "required_controls",
+        "contamination_damage",
+        "ancestry",
+        "access",
+        "bias_assessments",
+        "required_limitations",
+        "allowed_claims"
+      ],
+      "type": "object"
+    },
+    "BenchmarkFitnessException": {
+      "additionalProperties": false,
+      "properties": {
+        "allowed_claims": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "compensating_evidence": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "default_minimum": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "dimension": {
+          "$ref": "#/$defs/BenchmarkFitnessExceptionDimension"
+        },
+        "permitted_minimum": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "scientific_rationale": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "dimension",
+        "default_minimum",
+        "permitted_minimum",
+        "scientific_rationale",
+        "compensating_evidence",
+        "allowed_claims"
+      ],
+      "type": "object"
+    },
+    "BenchmarkFitnessExceptionDimension": {
+      "enum": [
+        "minimum_real_samples",
+        "minimum_cases_per_tool",
+        "minimum_distinct_studies",
+        "minimum_input_bytes"
+      ],
+      "type": "string"
+    },
+    "BenchmarkStratificationRequirement": {
+      "enum": [
+        "required",
+        "declare_and_stratify_if_present",
+        "not_applicable"
+      ],
+      "type": "string"
+    },
+    "BenchmarkTruthEvidenceRequirement": {
+      "enum": [
+        "curated_truth",
+        "masked_truth",
+        "orthogonal_expectation",
+        "observational_performance_only"
+      ],
+      "type": "string"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "defaults": {
+      "$ref": "#/$defs/BenchmarkDataFitnessDefaults"
+    },
+    "exception_policy": {
+      "$ref": "#/$defs/BenchmarkDataFitnessExceptionPolicy"
+    },
+    "profiles": {
+      "items": {
+        "$ref": "#/$defs/BenchmarkDataFitnessProfile"
+      },
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "bijux.benchmark.data_fitness.v1",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "defaults",
+    "exception_policy",
+    "profiles"
+  ],
+  "title": "BenchmarkDataFitnessRubric",
+  "type": "object"
+}

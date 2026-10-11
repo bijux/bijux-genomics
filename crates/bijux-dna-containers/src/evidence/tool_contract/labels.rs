@@ -13,8 +13,16 @@ pub fn tool_contract_labels(contract: &ContainerToolContract) -> ToolContractLab
         ("io.bijux.tool-contract.tool-id".to_string(), contract.tool_id.clone()),
         ("io.bijux.tool-contract.version".to_string(), contract.version.clone()),
         (
-            "io.bijux.tool-contract.support-disposition".to_string(),
-            contract.support_disposition.clone(),
+            "io.bijux.tool-contract.product-support".to_string(),
+            contract.product_support.as_str().to_string(),
+        ),
+        (
+            "io.bijux.tool-contract.artifact-delivery".to_string(),
+            contract.artifact_delivery.as_str().to_string(),
+        ),
+        (
+            "io.bijux.tool-contract.redistribution-permitted".to_string(),
+            contract.redistribution_permitted.to_string(),
         ),
         (
             "io.bijux.tool-contract.catalog-entry-sha256".to_string(),

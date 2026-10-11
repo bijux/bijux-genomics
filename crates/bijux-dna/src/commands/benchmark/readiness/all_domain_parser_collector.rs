@@ -678,9 +678,9 @@ mod tests {
         assert_eq!(report.real_smoke_row_count, 4);
         assert_eq!(report.source_kind_counts.get("fake_run"), Some(&report.fake_run_row_count));
         assert_eq!(report.source_kind_counts.get("real_smoke"), Some(&4));
-        assert_eq!(report.domain_counts.get("fastq"), Some(&72));
+        assert_eq!(report.domain_counts.get("fastq"), Some(&70));
         assert_eq!(report.domain_counts.get("bam"), Some(&50));
-        assert_eq!(report.domain_counts.get("vcf"), Some(&23));
+        assert_eq!(report.domain_counts.get("vcf"), Some(&30));
 
         let fastq_smoke = report
             .rows

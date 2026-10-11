@@ -17,6 +17,17 @@ pub enum ContainerProductSupport {
     Excluded,
 }
 
+impl ContainerProductSupport {
+    #[must_use]
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::Supported => "supported",
+            Self::Retired => "retired",
+            Self::Excluded => "excluded",
+        }
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize, Serialize, JsonSchema)]
 #[serde(rename_all = "snake_case")]
 pub enum ContainerArtifactDelivery {
@@ -24,6 +35,18 @@ pub enum ContainerArtifactDelivery {
     ExternalArtifact,
     PrivateSiteBuild,
     SiteModule,
+}
+
+impl ContainerArtifactDelivery {
+    #[must_use]
+    pub const fn as_str(self) -> &'static str {
+        match self {
+            Self::RedistributableImage => "redistributable_image",
+            Self::ExternalArtifact => "external_artifact",
+            Self::PrivateSiteBuild => "private_site_build",
+            Self::SiteModule => "site_module",
+        }
+    }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Deserialize, Serialize, JsonSchema)]

@@ -411,9 +411,8 @@ pub fn ensure_retained_apptainer_roster_at_root(
     bijux_dna_api::v1::api::run::ensure_dir(&roots.containers_root)?;
     bijux_dna_api::v1::api::run::ensure_dir(&roots.corpus_root)?;
     bijux_dna_api::v1::api::run::ensure_dir(&roots.results_root)?;
-    let _roster_lock = bijux_dna_infra::FileLock::acquire(
+    let _roster_lock = bijux_dna_infra::FileLock::try_acquire(
         &roots.containers_root.join("evidence/.retained-roster.lock"),
-        std::time::Duration::from_secs(1),
     )
     .context("acquire retained image roster lock")?;
 

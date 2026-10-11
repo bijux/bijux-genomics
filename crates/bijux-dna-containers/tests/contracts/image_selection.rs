@@ -3,14 +3,14 @@ use std::collections::BTreeMap;
 use bijux_dna_containers::evidence::{
     resolve_catalog_locked_apptainer_image, ContainerArtifactDelivery, ContainerCatalog,
     ContainerImageCandidate, ContainerImageInventoryPublication, ContainerImageInventorySummary,
-    ContainerImageInventoryTool, ContainerImageState, ContainerSupportDisposition,
+    ContainerImageInventoryTool, ContainerImageState, ContainerProductSupport,
     ImageCandidateDisposition, ImageInventoryPublicationIdentity,
-    CONTAINER_IMAGE_INVENTORY_PUBLICATION_SCHEMA_V1,
+    CONTAINER_IMAGE_INVENTORY_PUBLICATION_SCHEMA_V3,
 };
 
 fn publication(image_sha256: String, size_bytes: u64) -> ContainerImageInventoryPublication {
     ContainerImageInventoryPublication {
-        schema_version: CONTAINER_IMAGE_INVENTORY_PUBLICATION_SCHEMA_V1.to_string(),
+        schema_version: CONTAINER_IMAGE_INVENTORY_PUBLICATION_SCHEMA_V3.to_string(),
         catalog_sha256: "a".repeat(64),
         repository_commit: "b".repeat(40),
         publication: ImageInventoryPublicationIdentity {
@@ -28,7 +28,9 @@ fn publication(image_sha256: String, size_bytes: u64) -> ContainerImageInventory
         tools: vec![ContainerImageInventoryTool {
             tool: "seqkit".to_string(),
             version: "2.12.0".to_string(),
-            support_disposition: ContainerSupportDisposition::Retained,
+            product_support: ContainerProductSupport::Supported,
+            artifact_delivery: ContainerArtifactDelivery::RedistributableImage,
+            redistribution_permitted: true,
             apptainer_supported: true,
             state: ContainerImageState::Current,
             selected_image_sha256: Some(image_sha256.clone()),
@@ -67,7 +69,9 @@ fn catalog() -> anyhow::Result<ContainerCatalog> {
             "display_name": "SeqKit",
             "purpose": "test",
             "version": "2.12.0",
-            "support_disposition": "retained",
+            "product_support": "supported",
+            "artifact_delivery": "redistributable_image",
+            "redistribution_permitted": true,
             "upstream": "https://example.com/seqkit",
             "documentation": "https://example.com/seqkit/docs",
             "license": "MIT",
@@ -178,22 +182,23 @@ fn catalog_locked_resolution_rejects_stale_and_unselectable_authorities() -> any
     )
     .is_err());
 
-    let mut unsupported = inventory.clone();
-    unsupported.tools[0].support_disposition = ContainerSupportDisposition::Unsupported;
-    unsupported.tools[0].apptainer_supported = false;
-    unsupported.tools[0].state = ContainerImageState::Unsupported;
-    unsupported.tools[0].selected_image_sha256 = None;
-    unsupported.tools[0].candidates.clear();
-    unsupported.summary.states = BTreeMap::from([("unsupported".to_owned(), 1)]);
-    let mut unsupported_catalog = catalog.clone();
-    unsupported_catalog.tools[0].artifact_delivery = ContainerArtifactDelivery::ExternalArtifact;
-    unsupported_catalog.tools[0].redistribution_permitted = false;
-    unsupported_catalog.tools[0].apptainer_supported = false;
+    let mut external = inventory.clone();
+    external.tools[0].artifact_delivery = ContainerArtifactDelivery::ExternalArtifact;
+    external.tools[0].redistribution_permitted = false;
+    external.tools[0].apptainer_supported = false;
+    external.tools[0].state = ContainerImageState::NotApplicable;
+    external.tools[0].selected_image_sha256 = None;
+    external.tools[0].candidates.clear();
+    external.summary.states = BTreeMap::from([("not_applicable".to_owned(), 1)]);
+    let mut external_catalog = catalog.clone();
+    external_catalog.tools[0].artifact_delivery = ContainerArtifactDelivery::ExternalArtifact;
+    external_catalog.tools[0].redistribution_permitted = false;
+    external_catalog.tools[0].apptainer_supported = false;
     assert!(resolve_catalog_locked_apptainer_image(
-        &unsupported,
-        &unsupported.catalog_sha256,
-        &unsupported_catalog,
-        &unsupported.repository_commit,
+        &external,
+        &external.catalog_sha256,
+        &external_catalog,
+        &external.repository_commit,
         temporary.path(),
         "seqkit",
     )

@@ -40,3 +40,26 @@ fn infra_does_not_expose_generic_helpers() {
         offenders.join("\n")
     );
 }
+
+#[test]
+fn infra_retry_policy_does_not_execute_delays_or_operations() {
+    let root = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("src");
+    let production = WalkDir::new(&root)
+        .into_iter()
+        .filter_map(Result::ok)
+        .filter(|entry| entry.file_type().is_file())
+        .filter(|entry| entry.path().extension().and_then(|ext| ext.to_str()) == Some("rs"))
+        .map(|entry| {
+            std::fs::read_to_string(entry.path())
+                .unwrap_or_else(|err| panic!("read source {}: {err}", entry.path().display()))
+        })
+        .collect::<Vec<_>>()
+        .join("\n");
+
+    for forbidden in ["thread::sleep", "std::thread::sleep", "retry_with("] {
+        assert!(
+            !production.contains(forbidden),
+            "infra production source must not execute retry delays or operations: {forbidden}"
+        );
+    }
+}

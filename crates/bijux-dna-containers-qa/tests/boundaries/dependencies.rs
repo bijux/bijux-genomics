@@ -27,6 +27,7 @@ fn dependency_graph_matches_environment_qa_boundary() {
         "sha2",
         "tracing",
         "uuid",
+        "wait-timeout",
     ]
     .into_iter()
     .map(str::to_string)

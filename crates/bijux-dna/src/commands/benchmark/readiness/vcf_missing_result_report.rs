@@ -346,22 +346,26 @@ fn collect_vcf_missing_result_report_rows(
 fn ensure_vcf_missing_result_report_contract(
     mut report: VcfMissingResultReport,
 ) -> Result<VcfMissingResultReport> {
-    if report.rows.len() != 24 {
+    if report.rows.len() != report.expected_row_count {
         return Err(anyhow!(
-            "VCF missing-result report must retain exactly 24 expected benchmark rows, found {}",
-            report.rows.len()
+            "VCF missing-result report row count drifted from expected benchmark rows: expected {}, found {}",
+            report.expected_row_count,
+            report.rows.len(),
         ));
     }
-    if report.expected_row_count != 24 {
+    if report.present_result_row_count + report.missing_result_row_count
+        != report.expected_row_count
+    {
         return Err(anyhow!(
-            "VCF missing-result report must track exactly 24 expected rows, found {}",
-            report.expected_row_count
+            "VCF missing-result report present/missing counts do not cover all {} expected rows",
+            report.expected_row_count,
         ));
     }
-    if report.present_result_row_count != 23 {
+    if report.present_result_row_count != report.expected_row_count.saturating_sub(1) {
         return Err(anyhow!(
-            "VCF missing-result report must retain exactly 23 present benchmark rows after removing one result, found {}",
-            report.present_result_row_count
+            "VCF missing-result report must retain every expected row except the one removed result, expected {}, found {}",
+            report.expected_row_count.saturating_sub(1),
+            report.present_result_row_count,
         ));
     }
     if report.missing_result_row_count != 1 {
@@ -466,11 +470,12 @@ mod tests {
             report.fake_result_root,
             "artifacts/benchmark-smoke/readiness/missing-result/vcf/results"
         );
-        assert_eq!(report.expected_row_count, 24);
-        assert_eq!(report.present_result_row_count, 23);
+        assert_eq!(report.expected_row_count, report.rows.len());
+        assert_eq!(report.present_result_row_count, report.expected_row_count - 1);
         assert_eq!(report.missing_result_row_count, 1);
         assert!(report.passes_behavior_test);
-        assert_eq!(report.report_section_counts.get("variant_calling").copied(), Some(4));
+        assert_eq!(report.report_section_counts.get("variant_calling").copied(), Some(6));
+        assert_eq!(report.report_section_counts.get("imputation").copied(), Some(4));
         assert_eq!(report.report_section_counts.get("quality_control").copied(), Some(5));
         assert_eq!(report.report_section_counts.get("population_structure").copied(), Some(4));
         assert_eq!(report.report_section_counts.get("runs_of_homozygosity").copied(), Some(1));

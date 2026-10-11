@@ -35,7 +35,8 @@ fn run_cli_json(args: &[&str]) -> serde_json::Value {
 }
 
 #[test]
-fn bench_readiness_all_domain_active_stage_tool_matrix_reports_governed_rows() {
+fn bench_readiness_all_domain_active_stage_tool_matrix_reports_governed_rows() -> anyhow::Result<()>
+{
     let payload = run_cli_json(&[
         "bench",
         "readiness",
@@ -51,7 +52,7 @@ fn bench_readiness_all_domain_active_stage_tool_matrix_reports_governed_rows() {
         payload.get("output_path").and_then(serde_json::Value::as_str),
         Some("artifacts/benchmark-smoke/readiness/all-domains/active-stage-tool-matrix.tsv")
     );
-    let rows = support::json_array(&payload, "rows");
+    let rows = support::json_array(&payload, "rows")?;
     let row_count = u64::try_from(rows.len()).expect("row count fits u64");
     assert_eq!(support::json_u64(&payload, "row_count"), Some(row_count));
     let stage_count = u64::try_from(
@@ -71,7 +72,7 @@ fn bench_readiness_all_domain_active_stage_tool_matrix_reports_governed_rows() {
     assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(stage_count));
     assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(tool_count));
 
-    let domain_counts = support::json_object(&payload, "domain_counts");
+    let domain_counts = support::json_object(&payload, "domain_counts")?;
     for domain in ["fastq", "bam", "vcf"] {
         let expected_count = u64::try_from(
             rows.iter()
@@ -86,7 +87,7 @@ fn bench_readiness_all_domain_active_stage_tool_matrix_reports_governed_rows() {
     }
     assert_eq!(support::object_u64_sum(domain_counts), row_count);
 
-    let status_counts = support::json_object(&payload, "status_counts");
+    let status_counts = support::json_object(&payload, "status_counts")?;
     assert_eq!(
         status_counts.get("benchmark_ready").and_then(serde_json::Value::as_u64),
         Some(row_count)
@@ -239,4 +240,5 @@ fn bench_readiness_all_domain_active_stage_tool_matrix_reports_governed_rows() {
                 == Some("fastq_report_qc_v1")
             && row.get("status").and_then(serde_json::Value::as_str) == Some("benchmark_ready")
     }));
+    Ok(())
 }

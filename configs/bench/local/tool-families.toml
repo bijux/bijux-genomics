@@ -3,7 +3,7 @@
 # purpose = Governed primary-function family classification for local FASTQ, BAM, and VCF benchmark tools.
 # authority = bijux-dna-bench
 # stability = evolving
-# last_updated = 2026-08-08
+# last_updated = 2026-08-10
 
 schema_version = "bijux.bench.local_tool_families.v1"
 classification_scope = "primary_benchmark_function"
@@ -162,7 +162,7 @@ tool_ids = ["germline", "ibdseq"]
 [[families]]
 family_id = "vcf_imputation"
 summary = "Tools whose primary benchmark role is imputing missing VCF genotypes from reference panels and genetic maps."
-tool_ids = ["beagle"]
+tool_ids = ["beagle", "impute5"]
 
 [[families]]
 family_id = "vcf_ordination_and_population_structure"

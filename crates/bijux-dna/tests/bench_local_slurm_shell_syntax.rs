@@ -25,22 +25,7 @@ fn run_cli(args: &[&str]) -> std::process::Output {
 
 #[cfg(feature = "bam_downstream")]
 fn run_bam_downstream_cli(args: &[&str]) -> std::process::Output {
-    let _cwd_guard = support::CWD_LOCK.lock().expect("cwd lock");
-    let _env_guard = support::EnvGuard::new().expect("capture env");
-    let _crate_root = support::crate_root("bijux-dna").expect("crate root");
-    let repo_root = support::repo_root().expect("repo root");
-    let home = tempfile::tempdir().expect("tempdir");
-
-    Command::new("cargo")
-        .current_dir(&repo_root)
-        .env("HOME", home.path())
-        .env("BIJUX_SKIP_QA", "1")
-        .env("BIJUX_ALLOW_SILVER", "1")
-        .env("BIJUX_SKIP_IMAGE_CHECK", "1")
-        .args(["run", "-q", "-p", "bijux-dna", "--features", "bam_downstream", "--"])
-        .args(args)
-        .output()
-        .expect("run cargo cli with bam_downstream")
+    run_cli(args)
 }
 
 #[cfg(feature = "bam_downstream")]

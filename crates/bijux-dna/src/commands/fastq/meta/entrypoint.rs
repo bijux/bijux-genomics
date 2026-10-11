@@ -72,6 +72,172 @@ pub(crate) fn handle_meta_commands(
             let catalog =
                 load_image_catalog().map_err(|err| anyhow!("failed to load images: {err}"))?;
             match &args.command {
+                BenchCommand::Cycle { command } => match command {
+                    cli::BenchCycleCommand::Admit(args) => {
+                        let admission =
+                            bijux_dna_api::v1::api::bench::admit_checked_in_benchmark_campaign(
+                                &bijux_dna_api::v1::api::bench::BenchmarkCycleAdmissionRequest {
+                                    repository_root: args.repository_root.clone(),
+                                    study_root: args.study_root.clone(),
+                                    benchmark_root: args.benchmark_root.clone(),
+                                    plan: args.plan.clone(),
+                                    admitted_at_utc: args.admitted_at_utc.clone(),
+                                },
+                            )?;
+                        crate::commands::cli::render::json::print_pretty(&admission)?;
+                    }
+                    cli::BenchCycleCommand::Advance(args) => {
+                        let plan =
+                            bijux_dna_api::v1::api::bench::load_checked_in_benchmark_campaign_plan(
+                                &args.repository_root,
+                                &args.plan,
+                            )?;
+                        bijux_dna_api::v1::api::bench::ensure_stage_campaign_attempts(
+                            &args.benchmark_root,
+                            &plan,
+                        )?;
+                        let collection =
+                            bijux_dna_api::v1::api::bench::collect_benchmark_campaign_cycle(
+                                &bijux_dna_api::v1::api::bench::SlurmClientPaths::default(),
+                                &args.benchmark_root,
+                                &plan,
+                                &args.advanced_at_utc,
+                            )?;
+                        let admission =
+                            bijux_dna_api::v1::api::bench::admit_checked_in_benchmark_campaign(
+                                &bijux_dna_api::v1::api::bench::BenchmarkCycleAdmissionRequest {
+                                    repository_root: args.repository_root.clone(),
+                                    study_root: args.study_root.clone(),
+                                    benchmark_root: args.benchmark_root.clone(),
+                                    plan: args.plan.clone(),
+                                    admitted_at_utc: args.advanced_at_utc.clone(),
+                                },
+                            )?;
+                        let preparation =
+                            bijux_dna_api::v1::api::bench::prepare_checked_in_benchmark_campaign(
+                                &bijux_dna_api::v1::api::bench::BenchmarkCyclePreparationRequest {
+                                    repository_root: args.repository_root.clone(),
+                                    study_root: args.study_root.clone(),
+                                    data_index: args.data_index.clone(),
+                                    inventory: args.inventory.clone(),
+                                    benchmark_root: args.benchmark_root.clone(),
+                                    plan: args.plan.clone(),
+                                    operator: args.operator.clone(),
+                                    prepared_at_utc: args.advanced_at_utc.clone(),
+                                    account: args.account.clone(),
+                                    partition: args.partition.clone(),
+                                },
+                            )?;
+                        let submission =
+                            bijux_dna_api::v1::api::bench::submit_benchmark_campaign_frontier(
+                                &bijux_dna_api::v1::api::bench::SlurmClientPaths::default(),
+                                &args.benchmark_root,
+                                &plan,
+                                &args.advanced_at_utc,
+                                args.maximum_submissions,
+                            )?;
+                        crate::commands::cli::render::json::print_pretty(&serde_json::json!({
+                            "collection": collection,
+                            "admission": admission,
+                            "preparation": preparation,
+                            "submission": submission,
+                        }))?;
+                    }
+                    cli::BenchCycleCommand::Book(args) => {
+                        let book =
+                            bijux_dna_api::v1::api::bench::publish_checked_in_benchmark_evidence_book(
+                                &bijux_dna_api::v1::api::bench::BenchmarkEvidenceBookRequest {
+                                    repository_root: args.repository_root.clone(),
+                                    study_root: args.study_root.clone(),
+                                    book_id: args.book_id.clone(),
+                                    generated_at_utc: args.generated_at_utc.clone(),
+                                    limitations: args.limitation.clone(),
+                                    output: args.output.clone(),
+                                },
+                            )?;
+                        crate::commands::cli::render::json::print_pretty(&book)?;
+                    }
+                    cli::BenchCycleCommand::Collect(args) => {
+                        let plan =
+                            bijux_dna_api::v1::api::bench::load_checked_in_benchmark_campaign_plan(
+                                &args.repository_root,
+                                &args.plan,
+                            )?;
+                        let collection =
+                            bijux_dna_api::v1::api::bench::collect_benchmark_campaign_cycle(
+                                &bijux_dna_api::v1::api::bench::SlurmClientPaths::default(),
+                                &args.benchmark_root,
+                                &plan,
+                                &args.observed_at_utc,
+                            )?;
+                        crate::commands::cli::render::json::print_pretty(&collection)?;
+                    }
+                    cli::BenchCycleCommand::Plan(args) => {
+                        let plan = bijux_dna_api::v1::api::bench::plan_checked_in_benchmark_campaign(
+                            &bijux_dna_api::v1::api::bench::BenchmarkCyclePlanRequest {
+                                repository_root: args.repository_root.clone(),
+                                run_id: args.run_id.clone(),
+                                campaign_id: args.campaign_id.clone(),
+                                attempt_id: args.attempt_id.clone(),
+                                observed_at_utc: args.observed_at_utc.clone(),
+                                output: args.output.clone(),
+                            },
+                        )?;
+                        crate::commands::cli::render::json::print_pretty(&plan)?;
+                    }
+                    cli::BenchCycleCommand::Publish(args) => {
+                        let plan =
+                            bijux_dna_api::v1::api::bench::load_checked_in_benchmark_campaign_plan(
+                                &args.repository_root,
+                                &args.plan,
+                            )?;
+                        let publication = bijux_dna_api::v1::api::bench::publish_benchmark_campaign_report_with_presentation_authority(
+                            &args.repository_root,
+                            &args.presentation_repository_root,
+                            &args.study_root,
+                            &args.benchmark_root,
+                            &plan,
+                            &args.output_root,
+                        )?;
+                        crate::commands::cli::render::json::print_pretty(&publication)?;
+                    }
+                    cli::BenchCycleCommand::Replay(args) => {
+                        let receipt =
+                            bijux_dna_api::v1::api::bench::replay_checked_in_benchmark_publication(
+                                &bijux_dna_api::v1::api::bench::BenchmarkReplayRequest {
+                                    repository_root: args.repository_root.clone(),
+                                    study_root: args.study_root.clone(),
+                                    run_id: args.run_id.clone(),
+                                    replay_id: args.replay_id.clone(),
+                                    replayed_at_utc: args.replayed_at_utc.clone(),
+                                    run_definition_uri: args.run_definition_uri.clone(),
+                                    case_definition_uris: args.case_definition_uri.clone(),
+                                    immutable_input_uris: args.immutable_input_uri.clone(),
+                                    observed_decision_uri: args.observed_decision_uri.clone(),
+                                    observed_report_uri: args.observed_report_uri.clone(),
+                                    observed_evidence_book_uri: args
+                                        .observed_evidence_book_uri
+                                        .clone(),
+                                    differences: args.difference.clone(),
+                                    limitations: args.limitation.clone(),
+                                    output: args.output.clone(),
+                                },
+                            )?;
+                        crate::commands::cli::render::json::print_pretty(&receipt)?;
+                    }
+                    cli::BenchCycleCommand::Status(args) => {
+                        let status =
+                            bijux_dna_api::v1::api::bench::status_checked_in_benchmark_campaign(
+                                &bijux_dna_api::v1::api::bench::BenchmarkCycleStatusRequest {
+                                    repository_root: args.repository_root.clone(),
+                                    benchmark_root: args.benchmark_root.clone(),
+                                    plan: args.plan.clone(),
+                                    observed_at_utc: args.observed_at_utc.clone(),
+                                },
+                            )?;
+                        crate::commands::cli::render::json::print_pretty(&status)?;
+                    }
+                },
                 BenchCommand::Config { command } => match command {
                     BenchConfigCommand::Validate(args) => {
                         crate::commands::benchmark_config::validate_benchmark_config(

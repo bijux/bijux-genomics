@@ -69,6 +69,8 @@ configs/bench/local/tool-execution-modes.toml
 configs/bench/local/tool-families.toml
 configs/bench/local/vcf-stage-catalog.toml
 configs/bench/local/vcf-stage-matrix.toml
+configs/ci/budgets/fast.toml
+configs/ci/budgets/index.md
 configs/ci/compatibility/deprecations.toml
 configs/ci/compatibility/index.md
 configs/ci/compatibility/release_changes.toml
@@ -126,7 +128,6 @@ configs/docs/index.md
 configs/docs/mkdocs.toml
 configs/docs/requirements.lock.txt
 configs/docs/requirements.txt
-configs/domain/external_tools.toml
 configs/domain/index.md
 configs/domain/shared_tools.toml
 configs/hpc/benchmark_sync_profiles.toml

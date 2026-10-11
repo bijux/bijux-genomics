@@ -327,6 +327,11 @@ fn native_container_commands() -> Vec<ContainerCommandDefinition> {
             NativeContainerCommandKey::GrypeDatabase,
         ),
         native(
+            "release-evidence",
+            "Compose and admit checksum-bound container release evidence.",
+            NativeContainerCommandKey::ReleaseEvidence,
+        ),
+        native(
             "security-evidence",
             "Compose admitted exact-image observations into policy-owned security evidence.",
             NativeContainerCommandKey::SecurityEvidence,

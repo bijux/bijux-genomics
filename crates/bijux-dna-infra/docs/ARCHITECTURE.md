@@ -23,7 +23,8 @@ domain semantics.
 - `src/hashing/` owns file hashing entrypoints and delegates digest IO to a
   companion module.
 - `src/io/` owns filesystem effects and the infra-local IO error taxonomy.
-- `src/locking.rs` owns cross-process lock helpers.
+- `src/locking.rs` owns one-shot cross-process lock helpers; contention is returned immediately
+  without retry or sleep polling.
 - `src/logging/` owns tracing bootstrap and subscriber wiring.
 - `src/paths/` owns deterministic path construction only.
 - `src/retry/` owns retry policy, clock abstraction, backoff math, and retry

@@ -23,6 +23,7 @@ toml = { workspace = true }
 serde_yaml = { workspace = true }
 walkdir.workspace = true
 bijux-dna-db-ena = { path = "../bijux-dna-db-ena" }
+bijux-dna-domain-bam = { path = "../bijux-dna-domain-bam" }
 
 [dev-dependencies]
 bijux-dna-analyze = { path = "../bijux-dna-analyze" }
@@ -31,5 +32,4 @@ insta = { version = "1", features = ["json"] }
 tempfile = { workspace = true }
 md5.workspace = true
 bijux-dna-domain-fastq = { path = "../bijux-dna-domain-fastq" }
-bijux-dna-domain-bam = { path = "../bijux-dna-domain-bam" }
 bijux-dna-testkit = { path = "../bijux-dna-testkit" }

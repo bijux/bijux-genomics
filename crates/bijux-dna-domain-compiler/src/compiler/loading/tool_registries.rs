@@ -24,6 +24,10 @@ fn write_catalog_only_tool(out: &mut String, contract: &ContainerToolContract) {
     let _ = writeln!(out, "domain = \"{domain}\"");
     let _ = writeln!(out, "domains = {}", toml_array(&contract.domains));
     out.push_str("status = \"experimental\"\n");
+    let _ = writeln!(out, "product_support = \"{}\"", contract.product_support);
+    let _ = writeln!(out, "artifact_delivery = \"{}\"", contract.artifact_delivery);
+    let _ = writeln!(out, "redistribution_permitted = {}", contract.redistribution_permitted);
+    let _ = writeln!(out, "external_artifact_supported = {}", contract.external_artifact_supported);
     let _ = writeln!(out, "stage_ids = {}", toml_array(&contract.stage_ids));
     let _ = writeln!(out, "bindings = {}", toml_array(&contract.stage_ids));
     out.push_str("tool_role = \"catalog_only\"\n");
@@ -157,6 +161,11 @@ pub(super) fn build_tool_registries_toml(
         let _ = writeln!(out, "domain = \"{}\"", tool.domain);
         let _ = writeln!(out, "domains = {}", toml_array(&tool.domains));
         let _ = writeln!(out, "status = \"{emitted_status}\"");
+        let _ = writeln!(out, "product_support = \"{}\"", contract.product_support);
+        let _ = writeln!(out, "artifact_delivery = \"{}\"", contract.artifact_delivery);
+        let _ = writeln!(out, "redistribution_permitted = {}", contract.redistribution_permitted);
+        let _ =
+            writeln!(out, "external_artifact_supported = {}", contract.external_artifact_supported);
         let _ = writeln!(out, "stage_ids = {}", toml_array(&tool.stage_ids));
         let _ = writeln!(out, "bindings = {}", toml_array(&tool.bindings));
         let _ = writeln!(out, "tool_role = \"{}\"", tool.tool_role);

@@ -1,6 +1,5 @@
 use std::fs;
 use std::path::{Component, Path, PathBuf};
-use std::time::Duration;
 
 use crate::{
     atomic_create_json, atomic_write_json, ensure_dir, read_to_end_bounded, FileLock, IoError,
@@ -14,15 +13,13 @@ use super::{
 };
 
 const MAX_ATTEMPT_LAYOUT_MANIFEST_BYTES: usize = 64 * 1024;
-const ATTEMPT_LAYOUT_LOCK_TIMEOUT: Duration = Duration::from_secs(30);
-
-/// Acquire the run-level lock for coordinated publish/write operations.
+/// Attempt the run-level lock once for coordinated publish/write operations.
 ///
 /// # Errors
-/// Returns an IO error if the lock cannot be acquired within the timeout.
-pub fn lock_run(layout: &RunLayoutPaths, timeout: Duration) -> Result<FileLock, IoError> {
+/// Returns an IO error if the lock is contended or cannot be opened.
+pub fn try_lock_run(layout: &RunLayoutPaths) -> Result<FileLock, IoError> {
     ensure_dir(&layout.run_dir)?;
-    FileLock::acquire(&layout.run_dir.join(RUN_LAYOUT_CONTRACT.lock_file), timeout)
+    FileLock::try_acquire(&layout.run_dir.join(RUN_LAYOUT_CONTRACT.lock_file))
 }
 
 /// Publish a run by writing an atomic marker into the artifacts directory.
@@ -121,7 +118,7 @@ pub fn ensure_attempt_layout(
         .ok_or_else(|| corruption("attempt layout has no parent directory"))?;
     ensure_dir(parent)?;
     let lock_path = attempt_lock_path(owner_root, identity);
-    let _lock = FileLock::acquire(&lock_path, ATTEMPT_LAYOUT_LOCK_TIMEOUT)?;
+    let _lock = FileLock::try_acquire(&lock_path)?;
     if layout.attempt_dir.exists() {
         validate_attempt_layout(&layout, owner, identity)?;
         return Ok(layout);

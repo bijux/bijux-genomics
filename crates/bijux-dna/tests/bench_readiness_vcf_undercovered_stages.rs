@@ -49,25 +49,25 @@ fn bench_readiness_vcf_undercovered_stages_reports_governed_stage_slice() {
     assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(20));
     assert_eq!(
         payload.get("undercovered_stage_count").and_then(serde_json::Value::as_u64),
-        Some(7)
+        Some(6)
     );
     assert_eq!(
         payload
             .get("decision_counts")
             .and_then(|value| value.get("future_not_benchmark_ready"))
             .and_then(serde_json::Value::as_u64),
-        Some(5)
+        Some(3)
     );
     assert_eq!(
         payload
             .get("decision_counts")
             .and_then(|value| value.get("limit_to_specialized_tool"))
             .and_then(serde_json::Value::as_u64),
-        Some(2)
+        Some(3)
     );
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 7);
+    assert_eq!(rows.len(), 6);
 
     let has_row = |stage_id: &str,
                    valid_tool_classes: &[&str],
@@ -99,18 +99,11 @@ fn bench_readiness_vcf_undercovered_stages_reports_governed_stage_slice() {
         "future_not_benchmark_ready",
     ));
     assert!(has_row(
-        "vcf.call_gl",
-        &["genotype_likelihood_calling", "variant_processing"],
-        &["bcftools"],
-        &["angsd"],
-        "future_not_benchmark_ready",
-    ));
-    assert!(has_row(
-        "vcf.call_pseudohaploid",
-        &["genotype_likelihood_calling", "variant_processing"],
-        &["bcftools"],
-        &["angsd"],
-        "future_not_benchmark_ready",
+        "vcf.ibd",
+        &["relatedness"],
+        &["germline", "ibdseq"],
+        &["ibdhap"],
+        "limit_to_specialized_tool",
     ));
     assert!(has_row(
         "vcf.phasing",
@@ -122,15 +115,15 @@ fn bench_readiness_vcf_undercovered_stages_reports_governed_stage_slice() {
     assert!(has_row(
         "vcf.impute",
         &["imputation", "phasing"],
-        &["beagle"],
-        &["glimpse", "impute5", "minimac4"],
+        &["beagle", "impute5"],
+        &["glimpse", "minimac4"],
         "future_not_benchmark_ready",
     ));
     assert!(has_row(
         "vcf.imputation_metrics",
         &["imputation", "phasing"],
-        &["beagle"],
-        &["glimpse", "impute5", "minimac4"],
+        &["beagle", "impute5"],
+        &["glimpse", "minimac4"],
         "future_not_benchmark_ready",
     ));
     assert!(has_row(
@@ -146,4 +139,12 @@ fn bench_readiness_vcf_undercovered_stages_reports_governed_stage_slice() {
     assert!(!rows
         .iter()
         .any(|row| { row.get("stage_id").and_then(serde_json::Value::as_str) == Some("vcf.qc") }));
+    for stage_id in ["vcf.call_gl", "vcf.call_pseudohaploid"] {
+        assert!(
+            !rows.iter().any(|row| {
+                row.get("stage_id").and_then(serde_json::Value::as_str) == Some(stage_id)
+            }),
+            "licensed ANGSD binding must close undercoverage for {stage_id}"
+        );
+    }
 }

@@ -4,11 +4,17 @@
 //! Must not perform IO.
 #![allow(dead_code)]
 
+mod appraisal;
+mod benchmark_matrix;
 mod compatibility;
+mod container_report_portfolio;
 mod corpus_expectations;
+mod cross_campaign;
 mod data_catalog_registry;
+mod data_fitness;
 mod data_index;
 mod data_portfolio_audit;
+mod domain_campaign;
 mod execution;
 mod interfaces;
 mod lifecycle;
@@ -16,6 +22,7 @@ mod materialization;
 mod planning;
 mod protocol;
 mod publication;
+mod publication_outcome;
 mod publication_registry;
 mod records;
 mod replay;
@@ -25,14 +32,23 @@ mod schema_versions;
 mod source_authority;
 mod stage_result;
 mod suite;
+pub use appraisal::{validate_appraisal_report, validate_hardening_queue_report};
+pub use benchmark_matrix::validate_benchmark_matrix_report;
 pub use compatibility::{
     migrate_benchmark_attempt_v1, parse_benchmark_attempt_document, parse_benchmark_cycle_document,
     validate_attempt_record_v1, validate_cycle_status_v1,
 };
+pub use container_report_portfolio::validate_container_report_portfolio_index;
 pub use corpus_expectations::validate_fastq_read_length_expectations;
+pub use cross_campaign::validate_cross_benchmark_campaign_report;
 pub use data_catalog_registry::validate_governed_data_catalog_registry;
+pub use data_fitness::{validate_data_fitness_portfolio_alignment, validate_data_fitness_rubric};
 pub use data_index::validate_benchmark_data_index;
 pub use data_portfolio_audit::validate_benchmark_data_portfolio_audit;
+pub use domain_campaign::{
+    validate_bam_benchmark_campaign_report, validate_fastq_benchmark_campaign_report,
+    validate_hardening_benchmark_campaign_report, validate_vcf_benchmark_campaign_report,
+};
 pub use execution::validate_execution_spec;
 pub use interfaces::{
     validate_defined_interface_campaign_alignment, validate_interface_parameter_alignment,
@@ -41,8 +57,8 @@ pub use interfaces::{
 pub use lifecycle::{
     append_attempt_transition, benchmark_attempt_identity_sha256, benchmark_run_directory_name,
     validate_attempt_archive, validate_attempt_identity, validate_attempt_record_v2,
-    validate_attempt_transition, validate_campaign_plan, validate_cycle_status_v2,
-    validate_scheduler_observation,
+    validate_attempt_transition, validate_campaign_plan, validate_cycle_admission,
+    validate_cycle_preparation, validate_cycle_status_v2, validate_scheduler_observation,
 };
 pub use materialization::{
     validate_corpus_acquisition_plan, validate_fastq_corpus_source_spec,
@@ -63,6 +79,11 @@ pub use publication::{
     validate_benchmark_citation_record, validate_benchmark_evidence_book,
     validate_benchmark_publication_receipt,
 };
+pub use publication_outcome::{
+    validate_benchmark_campaign_report_publication,
+    validate_governed_data_catalog_registry_publication,
+    validate_governed_data_catalog_snapshot_publication,
+};
 pub use publication_registry::validate_benchmark_publication_registry;
 pub use records::{
     validate_bundle_manifest, validate_corpus_manifest, validate_decision, validate_observation,
@@ -82,11 +103,13 @@ pub use schema_versions::{
     BENCHMARK_ATTEMPT_MIGRATION_LEDGER_SCHEMA_V1, BENCHMARK_ATTEMPT_MIGRATION_PLAN_SCHEMA_V1,
     BENCHMARK_ATTEMPT_MIGRATION_VERIFICATION_SCHEMA_V1, BENCHMARK_ATTEMPT_SCHEMA_V1,
     BENCHMARK_ATTEMPT_SCHEMA_V2, BENCHMARK_CAMPAIGN_PLAN_SCHEMA_V1,
-    BENCHMARK_CASE_AGGREGATION_SCHEMA_V1, BENCHMARK_CASE_AGGREGATION_SCHEMA_V2,
-    BENCHMARK_CASE_AGGREGATION_SET_SCHEMA_V1, BENCHMARK_CASE_DEFINITION_SCHEMA_V1,
-    BENCHMARK_CASE_MATRIX_SCHEMA_V1, BENCHMARK_CASE_MATRIX_SCHEMA_V2,
-    BENCHMARK_CITATION_RECORD_SCHEMA_V1, BENCHMARK_CORPUS_MATERIALIZATION_PUBLICATION_SCHEMA_V1,
-    BENCHMARK_CYCLE_STATUS_SCHEMA_V1, BENCHMARK_CYCLE_STATUS_SCHEMA_V2,
+    BENCHMARK_CAMPAIGN_REPORT_PUBLICATION_SCHEMA_V1, BENCHMARK_CASE_AGGREGATION_SCHEMA_V1,
+    BENCHMARK_CASE_AGGREGATION_SCHEMA_V2, BENCHMARK_CASE_AGGREGATION_SET_SCHEMA_V1,
+    BENCHMARK_CASE_DEFINITION_SCHEMA_V1, BENCHMARK_CASE_MATRIX_SCHEMA_V1,
+    BENCHMARK_CASE_MATRIX_SCHEMA_V2, BENCHMARK_CITATION_RECORD_SCHEMA_V1,
+    BENCHMARK_CORPUS_MATERIALIZATION_PUBLICATION_SCHEMA_V1, BENCHMARK_CYCLE_ADMISSION_SCHEMA_V1,
+    BENCHMARK_CYCLE_PREPARATION_SCHEMA_V1, BENCHMARK_CYCLE_STATUS_SCHEMA_V1,
+    BENCHMARK_CYCLE_STATUS_SCHEMA_V2, BENCHMARK_DATA_FITNESS_SCHEMA_V1,
     BENCHMARK_DATA_INDEX_SCHEMA_V1, BENCHMARK_DATA_INDEX_SCHEMA_V2,
     BENCHMARK_DATA_PORTFOLIO_AUDIT_SCHEMA_V1, BENCHMARK_DATA_PORTFOLIO_AUDIT_SCHEMA_V2,
     BENCHMARK_DATA_SOURCE_SCHEMA_V1, BENCHMARK_EFFECTIVE_PARAMETERS_SCHEMA_V1,
@@ -106,8 +129,10 @@ pub use schema_versions::{
     CORPUS_ACQUISITION_SCHEMA_V2, CORPUS_SCHEMA_V1, DECISION_SCHEMA_V1,
     FASTQ_CORPUS_SOURCE_SCHEMA_V1, FASTQ_PROFILE_READS_EXPECTATIONS_SCHEMA_V1,
     FASTQ_READ_LENGTH_EXPECTATIONS_SCHEMA_V1, FASTQ_READ_LENGTH_EXPECTATIONS_SCHEMA_V2,
-    GOVERNED_DATA_CATALOG_REGISTRY_SCHEMA_V1, GOVERNED_DATA_CATALOG_SCHEMA_V1,
-    GOVERNED_DATA_CATALOG_SCHEMA_V2, OBSERVATION_SCHEMA_V1, SUITE_SCHEMA_V1, SUMMARY_SCHEMA_V1,
+    GOVERNED_DATA_CATALOG_REGISTRY_PUBLICATION_SCHEMA_V1, GOVERNED_DATA_CATALOG_REGISTRY_SCHEMA_V1,
+    GOVERNED_DATA_CATALOG_SCHEMA_V1, GOVERNED_DATA_CATALOG_SCHEMA_V2,
+    GOVERNED_DATA_CATALOG_SNAPSHOT_PUBLICATION_SCHEMA_V1, OBSERVATION_SCHEMA_V1, SUITE_SCHEMA_V1,
+    SUMMARY_SCHEMA_V1,
 };
 pub use source_authority::validate_benchmark_data_source_spec;
 pub use stage_result::validate_benchmark_stage_result_manifest;

@@ -1,0 +1,33 @@
+{
+  "schema_version": "bijux.ci.full_shards.v2",
+  "coverage": {
+    "workspace": true,
+    "all_targets": true,
+    "all_features": true,
+    "run_ignored": "all",
+    "overlap_policy": "exactly_once"
+  },
+  "partition_strategy": "hash",
+  "workspace_isolation": "tracked_source_clone_with_disjoint_outputs",
+  "build_authority": "configs/ci/build-authority.json",
+  "shard_artifact_root": "artifacts/ci/full-shards/shards",
+  "report_root": "artifacts/ci/full-shards",
+  "shards": [
+    {
+      "id": "hash-1-of-4",
+      "partition": "hash:1/4"
+    },
+    {
+      "id": "hash-2-of-4",
+      "partition": "hash:2/4"
+    },
+    {
+      "id": "hash-3-of-4",
+      "partition": "hash:3/4"
+    },
+    {
+      "id": "hash-4-of-4",
+      "partition": "hash:4/4"
+    }
+  ]
+}

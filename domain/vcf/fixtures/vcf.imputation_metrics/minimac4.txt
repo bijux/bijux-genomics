@@ -1,5 +1,4 @@
 tool=minimac4
-shipping=external
 tool_version=pinned
 stage=vcf.imputation_metrics
 domain=vcf

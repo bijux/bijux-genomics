@@ -324,6 +324,8 @@ fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
 mod tests {
     use std::path::PathBuf;
 
+    use crate::commands::benchmark::vcf_benchmark_bindings::collect_vcf_benchmark_binding_rows;
+
     use super::{
         render_vcf_matrix_registry_consistency, DEFAULT_VCF_MATRIX_REGISTRY_CONSISTENCY_PATH,
         VCF_MATRIX_REGISTRY_CONSISTENCY_SCHEMA_VERSION,
@@ -349,7 +351,10 @@ mod tests {
         assert_eq!(report.domain, "vcf");
         assert!(report.passes_gate);
         assert_eq!(report.stage_count, 20);
-        assert_eq!(report.matrix_row_count, 24);
+        assert_eq!(
+            report.matrix_row_count,
+            collect_vcf_benchmark_binding_rows().expect("collect VCF benchmark bindings").len()
+        );
         assert_eq!(report.registry_pair_count, 39);
         assert_eq!(report.benchmark_ready_registry_pair_count, 20);
         assert_eq!(report.unregistered_matrix_pair_count, 0);

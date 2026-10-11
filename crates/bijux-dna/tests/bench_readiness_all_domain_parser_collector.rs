@@ -34,7 +34,8 @@ fn run_cli_json(args: &[&str]) -> serde_json::Value {
 }
 
 #[test]
-fn bench_readiness_all_domain_parser_collector_reports_fake_and_real_smoke_rows() {
+fn bench_readiness_all_domain_parser_collector_reports_fake_and_real_smoke_rows(
+) -> anyhow::Result<()> {
     let payload =
         run_cli_json(&["bench", "readiness", "render-all-domain-parser-collector", "--json"]);
 
@@ -59,12 +60,12 @@ fn bench_readiness_all_domain_parser_collector_reports_fake_and_real_smoke_rows(
         support::json_u64(&payload, "fake_run_row_count").expect("fake_run_row_count");
     let real_smoke_row_count =
         support::json_u64(&payload, "real_smoke_row_count").expect("real_smoke_row_count");
-    let rows = support::json_array(&payload, "rows");
+    let rows = support::json_array(&payload, "rows")?;
     assert_eq!(u64::try_from(rows.len()).expect("row count fits u64"), row_count);
     assert_eq!(row_count, fake_run_row_count + real_smoke_row_count);
     assert_eq!(real_smoke_row_count, 4);
 
-    let source_kind_counts = support::json_object(&payload, "source_kind_counts");
+    let source_kind_counts = support::json_object(&payload, "source_kind_counts")?;
     assert_eq!(
         source_kind_counts.get("fake_run").and_then(serde_json::Value::as_u64),
         Some(fake_run_row_count)
@@ -74,7 +75,7 @@ fn bench_readiness_all_domain_parser_collector_reports_fake_and_real_smoke_rows(
         Some(real_smoke_row_count)
     );
 
-    let domain_counts = support::json_object(&payload, "domain_counts");
+    let domain_counts = support::json_object(&payload, "domain_counts")?;
     for domain in ["fastq", "bam", "vcf"] {
         let expected_count = u64::try_from(
             rows.iter()
@@ -209,4 +210,5 @@ fn bench_readiness_all_domain_parser_collector_reports_fake_and_real_smoke_rows(
             .and_then(serde_json::Value::as_u64),
         Some(2)
     );
+    Ok(())
 }

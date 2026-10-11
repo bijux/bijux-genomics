@@ -28,7 +28,7 @@ The generated config set is fixed and compiler-owned:
 - [../../configs/ci/tools/images.toml](../../configs/ci/tools/images.toml)
 
 Crate authority ownership is defined in:
-- [CRATE_AUTHORITY_MAP.md](CRATE_AUTHORITY_MAP.md)
+- [TARGET_ARCHITECTURE.md](../../TARGET_ARCHITECTURE.md)
 
 ## Failure modes
 - Manual edits to generated configs drift from domain and fail CI.

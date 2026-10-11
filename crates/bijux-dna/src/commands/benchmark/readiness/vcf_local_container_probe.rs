@@ -5,6 +5,7 @@ use std::path::{Path, PathBuf};
 use anyhow::{anyhow, bail, Context, Result};
 use serde::Serialize;
 
+use super::catalog::load_external_artifact_tool_contracts;
 use super::vcf_active_stage_tool_matrix::{
     collect_vcf_active_stage_tool_matrix_rows, VcfActiveStageToolMatrixRow,
 };
@@ -49,6 +50,7 @@ pub(crate) struct VcfLocalContainerSmokeReport {
     pub(crate) tool_count: usize,
     pub(crate) host_stage_smoke_row_count: usize,
     pub(crate) container_smoke_row_count: usize,
+    pub(crate) external_artifact_row_count: usize,
     pub(crate) runtime_counts: BTreeMap<String, usize>,
     pub(crate) rows: Vec<VcfLocalContainerSmokeRow>,
 }
@@ -100,7 +102,17 @@ pub(crate) fn render_vcf_local_container_smoke(
     }
     let host_stage_smoke_row_count =
         rows.iter().filter(|row| row.smoke_path_kind == "host_stage_smoke").count();
-    let container_smoke_row_count = rows.len().saturating_sub(host_stage_smoke_row_count);
+    let container_smoke_row_count = rows
+        .iter()
+        .filter(|row| {
+            matches!(
+                row.smoke_path_kind.as_str(),
+                "docker_container_smoke" | "apptainer_container_smoke"
+            )
+        })
+        .count();
+    let external_artifact_row_count =
+        rows.iter().filter(|row| row.smoke_path_kind == "external_artifact_admission").count();
 
     Ok(VcfLocalContainerSmokeReport {
         schema_version: VCF_LOCAL_CONTAINER_SMOKE_SCHEMA_VERSION,
@@ -110,6 +122,7 @@ pub(crate) fn render_vcf_local_container_smoke(
         tool_count: rows.iter().map(|row| row.tool_id.as_str()).collect::<BTreeSet<_>>().len(),
         host_stage_smoke_row_count,
         container_smoke_row_count,
+        external_artifact_row_count,
         runtime_counts,
         rows,
     })
@@ -127,6 +140,10 @@ pub(crate) fn collect_vcf_local_container_smoke_rows(
         .into_iter()
         .map(|row| (row.stage_id.clone(), row.tool_id))
         .collect::<BTreeMap<_, _>>();
+    let external_artifact_tool_ids = load_external_artifact_tool_contracts(repo_root)?
+        .into_iter()
+        .map(|contract| contract.tool_id)
+        .collect::<BTreeSet<_>>();
     let registry_by_tool = load_vcf_registry_smoke_records(repo_root)?;
 
     let mut rows = Vec::with_capacity(retained_rows.len());
@@ -136,6 +153,7 @@ pub(crate) fn collect_vcf_local_container_smoke_rows(
             &retained_row,
             &stage_matrix_by_stage,
             &registry_by_tool,
+            &external_artifact_tool_ids,
         )?);
     }
 
@@ -151,6 +169,7 @@ fn build_vcf_local_container_smoke_row(
     retained_row: &VcfActiveStageToolMatrixRow,
     stage_matrix_by_stage: &BTreeMap<String, String>,
     registry_by_tool: &BTreeMap<String, VcfRegistrySmokeRecord>,
+    external_artifact_tool_ids: &BTreeSet<String>,
 ) -> Result<VcfLocalContainerSmokeRow> {
     let registry_row = registry_by_tool.get(retained_row.tool_id.as_str()).ok_or_else(|| {
         anyhow!(
@@ -158,6 +177,28 @@ fn build_vcf_local_container_smoke_row(
             retained_row.tool_id
         )
     })?;
+
+    if external_artifact_tool_ids.contains(&retained_row.tool_id) {
+        return Ok(VcfLocalContainerSmokeRow {
+            stage_id: retained_row.stage_id.clone(),
+            tool_id: retained_row.tool_id.clone(),
+            registered_binary: registry_row.registered_binary.clone(),
+            tool_status: retained_row.tool_status.clone(),
+            stage_support_status: retained_row.stage_support_status.clone(),
+            scope_state: retained_row.scope_state.clone(),
+            scope_detail: retained_row.scope_detail.clone(),
+            smoke_path_kind: "external_artifact_admission".to_string(),
+            smoke_runtime: "external".to_string(),
+            smoke_tool_id: registry_row.registered_binary.clone(),
+            smoke_command: format!("{} --version", registry_row.registered_binary),
+            smoke_support_path: "containers/contracts/catalog.toml".to_string(),
+            smoke_minimal_cmd: registry_row.smoke_minimal_cmd.clone(),
+            reason: format!(
+                "binding `{}` / `{}` requires checksum-admitted operator-provided artifact evidence; no redistributable container wrapper is authorized",
+                retained_row.stage_id, retained_row.tool_id
+            ),
+        });
+    }
 
     let is_governed_default = stage_matrix_by_stage
         .get(retained_row.stage_id.as_str())
@@ -614,14 +655,16 @@ mod tests {
             report.output_path,
             "artifacts/benchmark-smoke/readiness/vcf/vcf-local-container-smoke.tsv"
         );
-        assert_eq!(report.row_count, 35);
+        assert_eq!(report.row_count, 39);
         assert_eq!(report.stage_count, 20);
-        assert_eq!(report.tool_count, 14);
+        assert_eq!(report.tool_count, 16);
         assert_eq!(report.host_stage_smoke_row_count, 20);
         assert_eq!(report.container_smoke_row_count, 15);
+        assert_eq!(report.external_artifact_row_count, 4);
         assert_eq!(report.runtime_counts.get("host").copied(), Some(20));
         assert_eq!(report.runtime_counts.get("docker-arm64").copied(), Some(11));
         assert_eq!(report.runtime_counts.get("apptainer").copied(), Some(4));
+        assert_eq!(report.runtime_counts.get("external").copied(), Some(4));
 
         assert!(report.rows.iter().any(|row| {
             row.stage_id == "vcf.call"
@@ -630,6 +673,20 @@ mod tests {
                 && row.smoke_command
                     == "bijux-dna bench local run-vcf-call-smoke --tool-id bcftools"
         }));
+        for (stage_id, tool_id) in [
+            ("vcf.call_gl", "angsd"),
+            ("vcf.call_pseudohaploid", "angsd"),
+            ("vcf.imputation_metrics", "impute5"),
+            ("vcf.impute", "impute5"),
+        ] {
+            assert!(report.rows.iter().any(|row| {
+                row.stage_id == stage_id
+                    && row.tool_id == tool_id
+                    && row.smoke_path_kind == "external_artifact_admission"
+                    && row.smoke_runtime == "external"
+                    && row.smoke_support_path == "containers/contracts/catalog.toml"
+            }));
+        }
         assert!(report.rows.iter().any(|row| {
             row.stage_id == "vcf.impute"
                 && row.tool_id == "glimpse"

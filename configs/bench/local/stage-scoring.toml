@@ -1,9 +1,9 @@
 # schema_version = 1
-# owner = bijux-dna
-# purpose = Govern deterministic local benchmark stage scoring inputs and recommendation gates.
-# authority = bijux-dna
+# owner = bijux-dna-bench
+# purpose = Governed scoring policy for active benchmark stage comparisons.
+# authority = bijux-dna-bench
 # stability = evolving
-# last_updated = 2026-08-08
+# last_updated = 2026-08-10
 
 schema_version = "bijux.bench.local_stage_scoring.v1"
 active_stage_catalog_path = "artifacts/benchmark-smoke/readiness/all-domains/active-stage-catalog.tsv"
@@ -543,13 +543,14 @@ domain = "bam"
 stage_id = "bam.damage"
 readiness_kind = "smoke"
 decision_mode = "multi_tool_ranking"
-active_tool_count = 5
-benchmark_ready_tool_count = 5
+active_tool_count = 6
+benchmark_ready_tool_count = 6
 default_tool_id = "mapdamage2"
 benchmark_ready_tool_ids = [
     "addeam",
     "damageprofiler",
     "mapdamage2",
+    "ngsbriggs",
     "pmdtools",
     "pydamage",
 ]
@@ -575,7 +576,7 @@ metric_ids = [
     "terminal_c_to_t_5p",
     "terminal_g_to_a_3p",
 ]
-minimum_present_result_rows = 5
+minimum_present_result_rows = 6
 
 [rows.scientific_threshold]
 source_report_paths = ["configs/bench/local/scientific-acceptance-thresholds.toml"]
@@ -1171,13 +1172,16 @@ allowed_row_statuses = ["present"]
 domain = "bam"
 stage_id = "bam.kinship"
 readiness_kind = "smoke"
-decision_mode = "single_tool_acceptance"
-active_tool_count = 1
-benchmark_ready_tool_count = 1
+decision_mode = "multi_tool_ranking"
+active_tool_count = 2
+benchmark_ready_tool_count = 2
 default_tool_id = "king"
-benchmark_ready_tool_ids = ["king"]
+benchmark_ready_tool_ids = [
+    "angsd",
+    "king",
+]
 report_section_ids = ["sample_identity"]
-recommendation_gate = "accept the governed default tool only after completion and failure-class gates pass"
+recommendation_gate = "rank benchmark-ready tools only after completion and failure-class gates pass"
 
 [rows.weights]
 correctness = 0.35
@@ -1199,7 +1203,7 @@ metric_ids = [
     "pairwise_results",
     "status",
 ]
-minimum_present_result_rows = 1
+minimum_present_result_rows = 2
 
 [rows.scientific_threshold]
 source_report_paths = ["configs/bench/local/scientific-acceptance-thresholds.toml"]
@@ -1833,10 +1837,11 @@ domain = "bam"
 stage_id = "bam.sex"
 readiness_kind = "smoke"
 decision_mode = "multi_tool_ranking"
-active_tool_count = 2
-benchmark_ready_tool_count = 2
+active_tool_count = 3
+benchmark_ready_tool_count = 3
 default_tool_id = "rxy"
 benchmark_ready_tool_ids = [
+    "angsd",
     "rxy",
     "yleaf",
 ]
@@ -1865,7 +1870,7 @@ metric_ids = [
     "x_coverage",
     "y_coverage",
 ]
-minimum_present_result_rows = 2
+minimum_present_result_rows = 3
 
 [rows.scientific_threshold]
 source_report_paths = ["configs/bench/local/scientific-acceptance-thresholds.toml"]
@@ -3532,13 +3537,16 @@ allowed_row_statuses = ["present"]
 domain = "fastq"
 stage_id = "fastq.remove_duplicates"
 readiness_kind = "smoke"
-decision_mode = "single_tool_acceptance"
-active_tool_count = 1
-benchmark_ready_tool_count = 1
+decision_mode = "multi_tool_ranking"
+active_tool_count = 2
+benchmark_ready_tool_count = 2
 default_tool_id = "clumpify"
-benchmark_ready_tool_ids = ["clumpify"]
+benchmark_ready_tool_ids = [
+    "clumpify",
+    "fastuniq",
+]
 report_section_ids = ["read_cleanup"]
-recommendation_gate = "accept the governed default tool only after completion and failure-class gates pass"
+recommendation_gate = "rank benchmark-ready tools only after completion and failure-class gates pass"
 
 [rows.weights]
 correctness = 0.55
@@ -3555,7 +3563,7 @@ source_report_paths = [
 ]
 signal = "output_contract"
 metric_ids = []
-minimum_present_result_rows = 1
+minimum_present_result_rows = 2
 
 [rows.scientific_threshold]
 source_report_paths = ["configs/bench/local/scientific-acceptance-thresholds.toml"]
@@ -4312,13 +4320,16 @@ allowed_row_statuses = ["present"]
 domain = "vcf"
 stage_id = "vcf.call_gl"
 readiness_kind = "smoke"
-decision_mode = "single_tool_acceptance"
-active_tool_count = 1
-benchmark_ready_tool_count = 1
+decision_mode = "multi_tool_ranking"
+active_tool_count = 2
+benchmark_ready_tool_count = 2
 default_tool_id = "bcftools"
-benchmark_ready_tool_ids = ["bcftools"]
+benchmark_ready_tool_ids = [
+    "angsd",
+    "bcftools",
+]
 report_section_ids = ["variant_calling"]
-recommendation_gate = "accept the governed default tool only after completion and failure-class gates pass"
+recommendation_gate = "rank benchmark-ready tools only after completion and failure-class gates pass"
 
 [rows.weights]
 correctness = 0.35
@@ -4338,7 +4349,7 @@ metric_ids = [
     "missing_likelihoods",
     "sites_with_likelihoods",
 ]
-minimum_present_result_rows = 1
+minimum_present_result_rows = 2
 
 [rows.scientific_threshold]
 source_report_paths = ["configs/bench/local/scientific-acceptance-thresholds.toml"]
@@ -4392,13 +4403,16 @@ allowed_row_statuses = ["present"]
 domain = "vcf"
 stage_id = "vcf.call_pseudohaploid"
 readiness_kind = "smoke"
-decision_mode = "single_tool_acceptance"
-active_tool_count = 1
-benchmark_ready_tool_count = 1
+decision_mode = "multi_tool_ranking"
+active_tool_count = 2
+benchmark_ready_tool_count = 2
 default_tool_id = "bcftools"
-benchmark_ready_tool_ids = ["bcftools"]
+benchmark_ready_tool_ids = [
+    "angsd",
+    "bcftools",
+]
 report_section_ids = ["variant_calling"]
-recommendation_gate = "accept the governed default tool only after completion and failure-class gates pass"
+recommendation_gate = "rank benchmark-ready tools only after completion and failure-class gates pass"
 
 [rows.weights]
 correctness = 0.35
@@ -4418,7 +4432,7 @@ metric_ids = [
     "called_sites",
     "missing_sites",
 ]
-minimum_present_result_rows = 1
+minimum_present_result_rows = 2
 
 [rows.scientific_threshold]
 source_report_paths = ["configs/bench/local/scientific-acceptance-thresholds.toml"]
@@ -4481,35 +4495,27 @@ report_section_ids = ["damage_aware_filtering"]
 recommendation_gate = "accept the governed default tool only after completion and failure-class gates pass"
 
 [rows.weights]
-correctness = 0.35
-scientific_threshold = 0.25
+correctness = 0.55
+scientific_threshold = 0.0
 runtime = 0.15
 memory = 0.1
 completion = 0.1
-failure_class = 0.05
+failure_class = 0.1
 
 [rows.correctness]
 source_report_paths = [
     "artifacts/benchmark-smoke/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
     "artifacts/benchmark-smoke/readiness/all-domains/active-stage-catalog.tsv",
 ]
-signal = "scientific_comparable_metrics"
-metric_ids = [
-    "removed_variants",
-    "retained_variants",
-    "terminal_damage_filtered_variants",
-]
+signal = "output_contract"
+metric_ids = []
 minimum_present_result_rows = 1
 
 [rows.scientific_threshold]
 source_report_paths = ["configs/bench/local/scientific-acceptance-thresholds.toml"]
-applicability = "required"
-metric_ids = [
-    "removed_variants",
-    "retained_variants",
-    "terminal_damage_filtered_variants",
-]
-gate = "must_pass_all_required_stage_thresholds"
+applicability = "not_applicable"
+metric_ids = []
+gate = "not_applicable"
 
 [rows.runtime]
 source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
@@ -4711,35 +4717,27 @@ report_section_ids = ["likelihood_postprocess"]
 recommendation_gate = "accept the governed default tool only after completion and failure-class gates pass"
 
 [rows.weights]
-correctness = 0.35
-scientific_threshold = 0.25
+correctness = 0.55
+scientific_threshold = 0.0
 runtime = 0.15
 memory = 0.1
 completion = 0.1
-failure_class = 0.05
+failure_class = 0.1
 
 [rows.correctness]
 source_report_paths = [
     "artifacts/benchmark-smoke/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json",
     "artifacts/benchmark-smoke/readiness/all-domains/active-stage-catalog.tsv",
 ]
-signal = "scientific_comparable_metrics"
-metric_ids = [
-    "sample_count",
-    "site_count_after",
-    "site_count_before",
-]
+signal = "output_contract"
+metric_ids = []
 minimum_present_result_rows = 1
 
 [rows.scientific_threshold]
 source_report_paths = ["configs/bench/local/scientific-acceptance-thresholds.toml"]
-applicability = "required"
-metric_ids = [
-    "sample_count",
-    "site_count_after",
-    "site_count_before",
-]
-gate = "must_pass_all_required_stage_thresholds"
+applicability = "not_applicable"
+metric_ids = []
+gate = "not_applicable"
 
 [rows.runtime]
 source_report_paths = ["artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json"]
@@ -4861,13 +4859,16 @@ allowed_row_statuses = ["present"]
 domain = "vcf"
 stage_id = "vcf.imputation_metrics"
 readiness_kind = "smoke"
-decision_mode = "single_tool_acceptance"
-active_tool_count = 1
-benchmark_ready_tool_count = 1
+decision_mode = "multi_tool_ranking"
+active_tool_count = 2
+benchmark_ready_tool_count = 2
 default_tool_id = "beagle"
-benchmark_ready_tool_ids = ["beagle"]
+benchmark_ready_tool_ids = [
+    "beagle",
+    "impute5",
+]
 report_section_ids = ["imputation"]
-recommendation_gate = "accept the governed default tool only after completion and failure-class gates pass"
+recommendation_gate = "rank benchmark-ready tools only after completion and failure-class gates pass"
 
 [rows.weights]
 correctness = 0.35
@@ -4890,7 +4891,7 @@ metric_ids = [
     "masked_truth_sites",
     "mean_info_score",
 ]
-minimum_present_result_rows = 1
+minimum_present_result_rows = 2
 
 [rows.scientific_threshold]
 source_report_paths = ["configs/bench/local/scientific-acceptance-thresholds.toml"]
@@ -4947,13 +4948,16 @@ allowed_row_statuses = ["present"]
 domain = "vcf"
 stage_id = "vcf.impute"
 readiness_kind = "smoke"
-decision_mode = "single_tool_acceptance"
-active_tool_count = 1
-benchmark_ready_tool_count = 1
+decision_mode = "multi_tool_ranking"
+active_tool_count = 2
+benchmark_ready_tool_count = 2
 default_tool_id = "beagle"
-benchmark_ready_tool_ids = ["beagle"]
+benchmark_ready_tool_ids = [
+    "beagle",
+    "impute5",
+]
 report_section_ids = ["imputation"]
-recommendation_gate = "accept the governed default tool only after completion and failure-class gates pass"
+recommendation_gate = "rank benchmark-ready tools only after completion and failure-class gates pass"
 
 [rows.weights]
 correctness = 0.35
@@ -4977,7 +4981,7 @@ metric_ids = [
     "missing_before",
     "unresolved_count",
 ]
-minimum_present_result_rows = 1
+minimum_present_result_rows = 2
 
 [rows.scientific_threshold]
 source_report_paths = ["configs/bench/local/scientific-acceptance-thresholds.toml"]

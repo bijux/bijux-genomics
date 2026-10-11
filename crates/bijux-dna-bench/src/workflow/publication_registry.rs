@@ -20,6 +20,8 @@ use super::stage_report::report_source_is_current;
 
 const REGISTRY_JSON: &str = "benchmarks/reports/publication-registry.json";
 const REGISTRY_MARKDOWN: &str = "benchmarks/reports/publication-registry.md";
+const REPORT_INDEX_JSON: &str = "benchmarks/reports/REPORT_INDEX.json";
+const REPORT_INDEX_MARKDOWN: &str = "benchmarks/reports/REPORT_INDEX.md";
 const REGISTRY_SCHEMA: &str = "benchmarks/contracts/schemas/publication-registry.schema.json";
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -90,6 +92,8 @@ pub fn publish_checked_in_benchmark_publication_registry(
     for (relative, content) in [
         (REGISTRY_JSON, json.as_bytes()),
         (REGISTRY_MARKDOWN, markdown.as_bytes()),
+        (REPORT_INDEX_JSON, json.as_bytes()),
+        (REPORT_INDEX_MARKDOWN, markdown.as_bytes()),
         (REGISTRY_SCHEMA, schema.as_bytes()),
     ] {
         let path = repository_root.join(relative);

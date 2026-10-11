@@ -1,7 +1,6 @@
 use fs4::fs_std::FileExt;
 use std::fs::{File, OpenOptions};
 use std::path::Path;
-use std::time::{Duration, Instant};
 
 use crate::{ensure_dir, IoError, IoErrorKind};
 
@@ -11,11 +10,11 @@ pub struct FileLock {
 }
 
 impl FileLock {
-    /// Acquire an exclusive lock on a file within a timeout.
+    /// Attempt one exclusive file-lock acquisition without waiting.
     ///
     /// # Errors
-    /// Returns a lock timeout error or IO error on failure.
-    pub fn acquire(path: &Path, timeout: Duration) -> Result<Self, IoError> {
+    /// Returns a lock-contention error or IO error on failure.
+    pub fn try_acquire(path: &Path) -> Result<Self, IoError> {
         if let Some(parent) = path.parent().filter(|parent| !parent.as_os_str().is_empty()) {
             ensure_dir(parent)?;
         }
@@ -26,26 +25,13 @@ impl FileLock {
             .truncate(false)
             .open(path)
             .map_err(IoError::from_io)?;
-        let start = Instant::now();
-        loop {
-            match file.try_lock_exclusive() {
-                Ok(true) => return Ok(Self { file }),
-                Ok(false) => {
-                    if start.elapsed() >= timeout {
-                        return Err(IoError::new(
-                            IoErrorKind::LockTimeout,
-                            "file lock timeout".to_string(),
-                        ));
-                    }
-                    std::thread::sleep(Duration::from_millis(25));
-                }
-                Err(err) => {
-                    if start.elapsed() >= timeout {
-                        return Err(IoError::new(IoErrorKind::LockTimeout, err.to_string()));
-                    }
-                    std::thread::sleep(Duration::from_millis(25));
-                }
+        match file.try_lock_exclusive() {
+            Ok(true) => Ok(Self { file }),
+            Ok(false) => Err(IoError::new(IoErrorKind::LockContended, "file lock is already held")),
+            Err(error) if error.kind() == std::io::ErrorKind::WouldBlock => {
+                Err(IoError::new(IoErrorKind::LockContended, "file lock is already held"))
             }
+            Err(error) => Err(IoError::from_io(error)),
         }
     }
 }

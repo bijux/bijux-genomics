@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 
 use super::evaluation::{CLAIM_REQUIREMENTS, REQUIRED_EVIDENCE_DIMENSIONS};
 
-pub const QUALIFICATION_ASSESSMENT_SCHEMA_V2: &str = "bijux.container.qualification_assessment.v2";
+pub const QUALIFICATION_ASSESSMENT_SCHEMA_V3: &str = "bijux.container.qualification_assessment.v3";
 
 #[derive(
     Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize, JsonSchema,
@@ -34,6 +34,31 @@ pub enum QualificationClaim {
 pub enum SupportDisposition {
     Retained,
     Unsupported,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "snake_case")]
+pub enum ProductSupport {
+    Supported,
+    Retired,
+    Excluded,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "snake_case")]
+pub enum ArtifactDelivery {
+    RedistributableImage,
+    ExternalArtifact,
+    PrivateSiteBuild,
+    SiteModule,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "snake_case")]
+pub enum ArtifactAvailability {
+    Admitted,
+    BlockedExternalAccess,
+    Unavailable,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
@@ -98,7 +123,10 @@ pub struct QualificationAssessment {
     #[schemars(schema_with = "qualification_assessment_schema_version")]
     pub schema_version: String,
     pub subject_id: String,
-    pub support_disposition: SupportDisposition,
+    pub product_support: ProductSupport,
+    pub artifact_delivery: ArtifactDelivery,
+    pub redistribution_permitted: bool,
+    pub availability: ArtifactAvailability,
     pub publication_disposition: PublicationDisposition,
     pub dimensions: BTreeMap<EvidenceDimension, EvidenceDecision>,
     pub claims: BTreeSet<QualificationClaim>,
@@ -107,25 +135,31 @@ pub struct QualificationAssessment {
 fn qualification_assessment_schema_version(_: &mut SchemaGenerator) -> Schema {
     json_schema!({
         "type": "string",
-        "const": QUALIFICATION_ASSESSMENT_SCHEMA_V2,
+        "const": QUALIFICATION_ASSESSMENT_SCHEMA_V3,
     })
 }
 
 impl QualificationAssessment {
-    /// Build a v1 assessment and derive its public claims from the supplied evidence.
+    /// Build a v3 assessment and derive its public claims from the supplied evidence.
     ///
     /// # Errors
     /// Returns an error when the evidence dimensions or decisions are invalid.
-    pub fn v2(
+    pub fn v3(
         subject_id: String,
-        support_disposition: SupportDisposition,
+        product_support: ProductSupport,
+        artifact_delivery: ArtifactDelivery,
+        redistribution_permitted: bool,
+        availability: ArtifactAvailability,
         publication_disposition: PublicationDisposition,
         dimensions: BTreeMap<EvidenceDimension, EvidenceDecision>,
     ) -> Result<Self> {
         let mut assessment = Self {
-            schema_version: QUALIFICATION_ASSESSMENT_SCHEMA_V2.to_string(),
+            schema_version: QUALIFICATION_ASSESSMENT_SCHEMA_V3.to_string(),
             subject_id,
-            support_disposition,
+            product_support,
+            artifact_delivery,
+            redistribution_permitted,
+            availability,
             publication_disposition,
             dimensions,
             claims: BTreeSet::new(),
@@ -151,29 +185,57 @@ impl QualificationAssessment {
 
     fn validate_evidence(&self) -> Result<()> {
         ensure!(
-            self.schema_version == QUALIFICATION_ASSESSMENT_SCHEMA_V2,
+            self.schema_version == QUALIFICATION_ASSESSMENT_SCHEMA_V3,
             "unsupported qualification assessment schema: {}",
             self.schema_version
         );
         ensure!(!self.subject_id.trim().is_empty(), "qualification subject ID is empty");
+        ensure!(
+            self.redistribution_permitted
+                == (self.artifact_delivery == ArtifactDelivery::RedistributableImage),
+            "qualification artifact delivery contradicts redistribution policy"
+        );
+        if self.availability == ArtifactAvailability::BlockedExternalAccess {
+            ensure!(
+                self.product_support == ProductSupport::Supported
+                    && self.artifact_delivery != ArtifactDelivery::RedistributableImage,
+                "blocked external access requires supported external or site delivery"
+            );
+        }
         let expected = REQUIRED_EVIDENCE_DIMENSIONS.into_iter().collect::<BTreeSet<_>>();
         let actual = self.dimensions.keys().copied().collect::<BTreeSet<_>>();
         ensure!(actual == expected, "qualification dimensions are incomplete or unknown");
 
         for (dimension, decision) in &self.dimensions {
             validate_decision(*dimension, decision)?;
-            match self.support_disposition {
-                SupportDisposition::Retained => ensure!(
+            match self.product_support {
+                ProductSupport::Supported => ensure!(
                     decision.verdict != EvidenceVerdict::NotApplicable,
-                    "retained subject {} marks {dimension:?} not applicable",
+                    "supported subject {} marks {dimension:?} not applicable",
                     self.subject_id
                 ),
-                SupportDisposition::Unsupported => ensure!(
+                ProductSupport::Retired | ProductSupport::Excluded => ensure!(
                     decision.verdict == EvidenceVerdict::NotApplicable,
-                    "unsupported subject {} carries a {dimension:?} claim",
+                    "non-supported subject {} carries a {dimension:?} claim",
                     self.subject_id
                 ),
             }
+        }
+        if self.product_support != ProductSupport::Supported {
+            ensure!(
+                self.availability == ArtifactAvailability::Unavailable,
+                "non-supported subject cannot carry artifact availability"
+            );
+        }
+        if self.availability != ArtifactAvailability::Admitted
+            && self.product_support == ProductSupport::Supported
+        {
+            ensure!(
+                self.dimensions.values().any(|decision| {
+                    matches!(decision.verdict, EvidenceVerdict::Blocked | EvidenceVerdict::Missing)
+                }),
+                "supported unavailable subject must expose blocked or missing evidence"
+            );
         }
         Ok(())
     }
@@ -191,7 +253,7 @@ impl QualificationAssessment {
         if self.publication_disposition == PublicationDisposition::Superseded {
             return BTreeSet::from([QualificationClaim::Superseded]);
         }
-        if self.support_disposition == SupportDisposition::Unsupported {
+        if self.product_support != ProductSupport::Supported {
             return BTreeSet::from([QualificationClaim::Unsupported]);
         }
 
@@ -413,9 +475,9 @@ mod tests {
     use std::collections::{BTreeMap, BTreeSet};
 
     use super::{
-        EvidenceDecision, EvidenceDimension, EvidenceVerdict, PublicationDisposition,
-        QualificationAssessment, QualificationClaim, SupportDisposition,
-        QUALIFICATION_ASSESSMENT_SCHEMA_V2,
+        ArtifactAvailability, ArtifactDelivery, EvidenceDecision, EvidenceDimension,
+        EvidenceVerdict, ProductSupport, PublicationDisposition, QualificationAssessment,
+        QualificationClaim, QUALIFICATION_ASSESSMENT_SCHEMA_V3,
     };
     use crate::qualification::REQUIRED_EVIDENCE_DIMENSIONS;
 
@@ -457,14 +519,21 @@ mod tests {
         }
     }
 
-    fn retained(verdict: EvidenceVerdict) -> anyhow::Result<QualificationAssessment> {
+    fn supported(verdict: EvidenceVerdict) -> anyhow::Result<QualificationAssessment> {
         let dimensions = REQUIRED_EVIDENCE_DIMENSIONS
             .into_iter()
             .map(|dimension| (dimension, decision(verdict)))
             .collect();
-        QualificationAssessment::v2(
+        QualificationAssessment::v3(
             "samtools".to_string(),
-            SupportDisposition::Retained,
+            ProductSupport::Supported,
+            ArtifactDelivery::RedistributableImage,
+            true,
+            if verdict == EvidenceVerdict::Passed {
+                ArtifactAvailability::Admitted
+            } else {
+                ArtifactAvailability::Unavailable
+            },
             PublicationDisposition::Current,
             dimensions,
         )
@@ -472,7 +541,7 @@ mod tests {
 
     #[test]
     fn qualified_requires_every_dimension_to_pass() -> anyhow::Result<()> {
-        let mut assessment = retained(EvidenceVerdict::Passed)?;
+        let mut assessment = supported(EvidenceVerdict::Passed)?;
         assert!(assessment.is_qualified()?);
         assessment.dimensions.insert(
             EvidenceDimension::Security,
@@ -484,9 +553,12 @@ mod tests {
             ),
         );
         assert!(assessment.validate().is_err());
-        let assessment = QualificationAssessment::v2(
+        let assessment = QualificationAssessment::v3(
             assessment.subject_id,
-            assessment.support_disposition,
+            assessment.product_support,
+            assessment.artifact_delivery,
+            assessment.redistribution_permitted,
+            assessment.availability,
             assessment.publication_disposition,
             assessment.dimensions,
         )?;
@@ -499,7 +571,7 @@ mod tests {
 
     #[test]
     fn built_and_runtime_verified_are_distinct_claims() -> anyhow::Result<()> {
-        let mut assessment = retained(EvidenceVerdict::Missing)?;
+        let mut assessment = supported(EvidenceVerdict::Missing)?;
         for dimension in
             [EvidenceDimension::Catalog, EvidenceDimension::Source, EvidenceDimension::Build]
         {
@@ -514,9 +586,12 @@ mod tests {
                 ),
             );
         }
-        let assessment = QualificationAssessment::v2(
+        let assessment = QualificationAssessment::v3(
             assessment.subject_id,
-            assessment.support_disposition,
+            assessment.product_support,
+            assessment.artifact_delivery,
+            assessment.redistribution_permitted,
+            assessment.availability,
             assessment.publication_disposition,
             assessment.dimensions,
         )?;
@@ -527,14 +602,17 @@ mod tests {
     }
 
     #[test]
-    fn unsupported_subject_supports_only_the_unsupported_claim() -> anyhow::Result<()> {
+    fn retired_subject_supports_only_the_unsupported_claim() -> anyhow::Result<()> {
         let dimensions = REQUIRED_EVIDENCE_DIMENSIONS
             .into_iter()
             .map(|dimension| (dimension, decision(EvidenceVerdict::NotApplicable)))
             .collect();
-        let mut assessment = QualificationAssessment::v2(
+        let mut assessment = QualificationAssessment::v3(
             "angsd".to_string(),
-            SupportDisposition::Unsupported,
+            ProductSupport::Retired,
+            ArtifactDelivery::ExternalArtifact,
+            false,
+            ArtifactAvailability::Unavailable,
             PublicationDisposition::Current,
             dimensions,
         )?;
@@ -557,8 +635,30 @@ mod tests {
     }
 
     #[test]
+    fn supported_external_blocker_remains_in_the_qualification_population() -> anyhow::Result<()> {
+        let dimensions = REQUIRED_EVIDENCE_DIMENSIONS
+            .into_iter()
+            .map(|dimension| (dimension, decision(EvidenceVerdict::Blocked)))
+            .collect();
+        let assessment = QualificationAssessment::v3(
+            "angsd".to_string(),
+            ProductSupport::Supported,
+            ArtifactDelivery::ExternalArtifact,
+            false,
+            ArtifactAvailability::BlockedExternalAccess,
+            PublicationDisposition::Current,
+            dimensions,
+        )?;
+
+        assert!(assessment.supported_claims()?.contains(&QualificationClaim::Blocked));
+        assert!(!assessment.supported_claims()?.contains(&QualificationClaim::Unsupported));
+        assert!(!assessment.is_qualified()?);
+        Ok(())
+    }
+
+    #[test]
     fn decision_audit_outcome_cannot_disagree_with_verdict() -> anyhow::Result<()> {
-        let mut assessment = retained(EvidenceVerdict::Passed)?;
+        let mut assessment = supported(EvidenceVerdict::Passed)?;
         let catalog = assessment
             .dimensions
             .get_mut(&EvidenceDimension::Catalog)
@@ -570,7 +670,7 @@ mod tests {
 
     #[test]
     fn decision_audit_cannot_omit_measured_values_or_thresholds() -> anyhow::Result<()> {
-        let mut assessment = retained(EvidenceVerdict::Passed)?;
+        let mut assessment = supported(EvidenceVerdict::Passed)?;
         let catalog = assessment
             .dimensions
             .get_mut(&EvidenceDimension::Catalog)
@@ -578,7 +678,7 @@ mod tests {
         catalog.audit.measured_values.clear();
         assert!(assessment.validate().is_err());
 
-        let mut assessment = retained(EvidenceVerdict::Passed)?;
+        let mut assessment = supported(EvidenceVerdict::Passed)?;
         let catalog = assessment
             .dimensions
             .get_mut(&EvidenceDimension::Catalog)
@@ -591,7 +691,7 @@ mod tests {
     #[test]
     fn unknown_fields_fail_deserialization() {
         let payload = serde_json::json!({
-            "schema_version": QUALIFICATION_ASSESSMENT_SCHEMA_V2,
+            "schema_version": QUALIFICATION_ASSESSMENT_SCHEMA_V3,
             "subject_id": "samtools",
             "support_disposition": "retained",
             "publication_disposition": "current",

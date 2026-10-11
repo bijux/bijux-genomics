@@ -2,8 +2,13 @@ use std::collections::BTreeMap;
 
 use anyhow::{bail, Result};
 
-use super::{validate_security_evidence_publication, ContainerSecurityEvidencePublication};
-use crate::qualification::{EvidenceDecision, EvidenceVerdict, SECURITY_EVIDENCE_RULE_V1};
+use super::{
+    validate_security_evidence_publication, ContainerSecurityEvidencePublication,
+    ToolSecurityEvidence,
+};
+use crate::qualification::{
+    ArtifactAvailability, EvidenceDecision, EvidenceVerdict, SECURITY_EVIDENCE_RULE_V1,
+};
 
 /// A security publication validated against the exact qualification authority set.
 pub struct AdmittedSecurityEvidence<'a> {
@@ -38,23 +43,28 @@ pub fn admit_security_evidence<'a>(
 }
 
 impl AdmittedSecurityEvidence<'_> {
-    /// Derive one qualification decision from validated, image-bound tool evidence.
+    /// Return validated evidence for one catalog tool.
     #[must_use]
-    pub fn tool_decision(&self, tool_id: &str, image_sha256: &str) -> EvidenceDecision {
+    pub fn tool_evidence(&self, tool_id: &str) -> Option<&ToolSecurityEvidence> {
+        self.publication.tools.get(tool_id)
+    }
+
+    /// Derive a qualification decision for a tool whose artifact is not admitted.
+    #[must_use]
+    pub fn tool_availability_decision(&self, tool_id: &str) -> EvidenceDecision {
         let evidence = self.publication.tools.get(tool_id);
-        let observed_image =
-            evidence.and_then(|item| item.image_sha256.as_deref()).unwrap_or("missing");
-        let observed_verdict = evidence.map_or_else(
-            || "missing".to_string(),
-            |item| format!("{:?}", item.verdict).to_ascii_lowercase(),
-        );
         let measured_values = BTreeMap::from([
-            ("required_image_sha256".to_string(), image_sha256.to_string()),
-            ("observed_image_sha256".to_string(), observed_image.to_string()),
-            ("security_verdict".to_string(), observed_verdict),
+            (
+                "artifact_availability".to_string(),
+                evidence.map_or("missing", |item| availability_name(item.availability)).to_string(),
+            ),
+            (
+                "security_verdict".to_string(),
+                evidence.map_or("missing", |item| verdict_name(item.verdict)).to_string(),
+            ),
         ]);
         let thresholds = BTreeMap::from([
-            ("image_identity".to_string(), "exact SHA-256 match".to_string()),
+            ("artifact_availability".to_string(), "admitted".to_string()),
             ("security_verdict".to_string(), "passed".to_string()),
         ]);
         let Some(evidence) = evidence else {
@@ -62,55 +72,123 @@ impl AdmittedSecurityEvidence<'_> {
                 SECURITY_EVIDENCE_RULE_V1,
                 measured_values,
                 thresholds,
-                "admitted security publication omits the retained tool",
+                "admitted security publication omits the supported tool",
             );
         };
-        if evidence.image_sha256.as_deref() != Some(image_sha256) {
+        verdict_decision(
+            evidence,
+            measured_values,
+            thresholds,
+            &self.publication_sha256,
+            "validated security controls pass for the admitted artifact",
+        )
+    }
+
+    /// Derive one qualification decision from evidence bound to an admitted artifact.
+    #[must_use]
+    pub fn tool_decision(&self, tool_id: &str, artifact_sha256: &str) -> EvidenceDecision {
+        let evidence = self.publication.tools.get(tool_id);
+        let observed_artifact =
+            evidence.and_then(|item| item.artifact_sha256.as_deref()).unwrap_or("missing");
+        let observed_verdict =
+            evidence.map_or("missing", |item| verdict_name(item.verdict)).to_string();
+        let measured_values = BTreeMap::from([
+            ("required_artifact_sha256".to_string(), artifact_sha256.to_string()),
+            ("observed_artifact_sha256".to_string(), observed_artifact.to_string()),
+            ("security_verdict".to_string(), observed_verdict),
+        ]);
+        let thresholds = BTreeMap::from([
+            ("artifact_identity".to_string(), "exact SHA-256 match".to_string()),
+            ("security_verdict".to_string(), "passed".to_string()),
+        ]);
+        let Some(evidence) = evidence else {
+            return EvidenceDecision::missing(
+                SECURITY_EVIDENCE_RULE_V1,
+                measured_values,
+                thresholds,
+                "admitted security publication omits the supported tool",
+            );
+        };
+        if evidence.artifact_sha256.as_deref() != Some(artifact_sha256) {
             return EvidenceDecision::failed(
                 SECURITY_EVIDENCE_RULE_V1,
                 measured_values,
                 thresholds,
-                "security evidence is bound to a different image",
+                "security evidence is bound to a different artifact",
             );
         }
-        match evidence.verdict {
-            EvidenceVerdict::Passed => EvidenceDecision::passed(
-                SECURITY_EVIDENCE_RULE_V1,
-                measured_values,
-                thresholds,
-                self.publication_sha256.clone(),
-                "validated security controls pass for the exact image",
-            ),
-            EvidenceVerdict::Failed => EvidenceDecision::failed(
-                SECURITY_EVIDENCE_RULE_V1,
-                measured_values,
-                thresholds,
-                &decision_reason(evidence.reasons.as_slice(), "security controls failed"),
-            ),
-            EvidenceVerdict::Blocked => EvidenceDecision::blocked(
-                SECURITY_EVIDENCE_RULE_V1,
-                measured_values,
-                thresholds,
-                &decision_reason(evidence.reasons.as_slice(), "security controls are blocked"),
-            ),
-            EvidenceVerdict::Missing => EvidenceDecision::missing(
-                SECURITY_EVIDENCE_RULE_V1,
-                measured_values,
-                thresholds,
-                &decision_reason(evidence.reasons.as_slice(), "security evidence is incomplete"),
-            ),
-            EvidenceVerdict::NotApplicable => EvidenceDecision::failed(
-                SECURITY_EVIDENCE_RULE_V1,
-                measured_values,
-                thresholds,
-                "retained tool security evidence cannot be not applicable",
-            ),
-        }
+        verdict_decision(
+            evidence,
+            measured_values,
+            thresholds,
+            &self.publication_sha256,
+            "validated security controls pass for the exact artifact",
+        )
     }
 
     #[must_use]
     pub fn publication_sha256(&self) -> &str {
         &self.publication_sha256
+    }
+}
+
+const fn availability_name(availability: ArtifactAvailability) -> &'static str {
+    match availability {
+        ArtifactAvailability::Admitted => "admitted",
+        ArtifactAvailability::BlockedExternalAccess => "blocked_external_access",
+        ArtifactAvailability::Unavailable => "unavailable",
+    }
+}
+
+const fn verdict_name(verdict: EvidenceVerdict) -> &'static str {
+    match verdict {
+        EvidenceVerdict::Passed => "passed",
+        EvidenceVerdict::Failed => "failed",
+        EvidenceVerdict::Blocked => "blocked",
+        EvidenceVerdict::Missing => "missing",
+        EvidenceVerdict::NotApplicable => "not_applicable",
+    }
+}
+
+fn verdict_decision(
+    evidence: &ToolSecurityEvidence,
+    measured_values: BTreeMap<String, String>,
+    thresholds: BTreeMap<String, String>,
+    publication_sha256: &str,
+    passed_reason: &str,
+) -> EvidenceDecision {
+    match evidence.verdict {
+        EvidenceVerdict::Passed => EvidenceDecision::passed(
+            SECURITY_EVIDENCE_RULE_V1,
+            measured_values,
+            thresholds,
+            publication_sha256.to_string(),
+            passed_reason,
+        ),
+        EvidenceVerdict::Failed => EvidenceDecision::failed(
+            SECURITY_EVIDENCE_RULE_V1,
+            measured_values,
+            thresholds,
+            &decision_reason(evidence.reasons.as_slice(), "security controls failed"),
+        ),
+        EvidenceVerdict::Blocked => EvidenceDecision::blocked(
+            SECURITY_EVIDENCE_RULE_V1,
+            measured_values,
+            thresholds,
+            &decision_reason(evidence.reasons.as_slice(), "security controls are blocked"),
+        ),
+        EvidenceVerdict::Missing => EvidenceDecision::missing(
+            SECURITY_EVIDENCE_RULE_V1,
+            measured_values,
+            thresholds,
+            &decision_reason(evidence.reasons.as_slice(), "security evidence is incomplete"),
+        ),
+        EvidenceVerdict::NotApplicable => EvidenceDecision::failed(
+            SECURITY_EVIDENCE_RULE_V1,
+            measured_values,
+            thresholds,
+            "supported tool security evidence cannot be not applicable",
+        ),
     }
 }
 

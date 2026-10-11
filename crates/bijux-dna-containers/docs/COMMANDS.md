@@ -36,9 +36,6 @@ library can manage when callers invoke the matching API.
 - `execute_apptainer_image_campaign_attempt()`: binds one campaign execution to an immutable
   attempt root, Slurm job identity, completion timestamp, execution digest, and atomic terminal
   receipt without owning scheduler submission or observation.
-- `run_apptainer_smoke()`: runs bounded offline `apptainer exec --containall --cleanenv --hostname
-  bijux-runtime --net --network none` probes, persists immutable streams when requested, and
-  admits version output against the catalog contract regex.
 - `freeze_repository()`: runs bounded Git inspection and worktree commands to materialize an
   immutable commit-addressed checkout under site-governed roots.
 - `tracked_repository_files_under()`: runs bounded `git ls-files` inspection for one safe
@@ -71,8 +68,8 @@ library can manage when callers invoke the matching API.
 - Image resolution and platform loading do not run containers.
 - Catalog digest hydration reads the local registry file only; it does not contact a registry.
 - Cache path functions compute paths; they do not pull, build, or delete images.
-- Catalog-wide runtime verification is composed and published by `bijux-dna-containers-qa`; this
-  crate supplies the typed admission, identity, and bounded single-image probe primitives.
+- Runtime and stage probes are executed and published by `bijux-dna-containers-qa`; this crate
+  supplies catalog, artifact, recipe, and image identity contracts.
 
 ## Boundary Rules
 
@@ -90,7 +87,6 @@ library can manage when callers invoke the matching API.
 - `src/evidence/tool_contract/inspection.rs`: embedded Apptainer contract and label inspection.
 - `src/evidence/tool_contract/catalog.rs`: exact-commit catalog materialization for evidence identity.
 - `src/evidence/tool_contract/recipe_identity.rs`: exact-commit definition and `%files` identity.
-- `src/evidence/tool_contract/smoke.rs`: offline contract smoke execution and evidence admission.
 - `src/evidence/tool_contract/version_lock.rs`: committed version-source timestamp derivation for
   deterministic immutable lock publication.
 - `src/evidence/external_artifact/workflow.rs`: operator-artifact version probing and immutable

@@ -35,7 +35,8 @@ fn run_cli_json(args: &[&str]) -> serde_json::Value {
 }
 
 #[test]
-fn bench_readiness_all_domain_no_placeholder_command_check_reports_clean_active_commands() {
+fn bench_readiness_all_domain_no_placeholder_command_check_reports_clean_active_commands(
+) -> anyhow::Result<()> {
     let payload = run_cli_json(&[
         "bench",
         "readiness",
@@ -61,7 +62,7 @@ fn bench_readiness_all_domain_no_placeholder_command_check_reports_clean_active_
             "artifacts/benchmark-smoke/readiness/all-domains/rendered-commands-all-domains.argv.jsonl"
         )
     );
-    let rows = support::json_array(&payload, "rows");
+    let rows = support::json_array(&payload, "rows")?;
     let row_count = u64::try_from(rows.len()).expect("row count fits u64");
     assert_eq!(support::json_u64(&payload, "row_count"), Some(row_count));
     let stage_count = u64::try_from(
@@ -94,7 +95,7 @@ fn bench_readiness_all_domain_no_placeholder_command_check_reports_clean_active_
     assert_eq!(payload.get("violation_count").and_then(serde_json::Value::as_u64), Some(0));
     assert_eq!(payload.get("ok").and_then(serde_json::Value::as_bool), Some(true));
 
-    let domain_counts = support::json_object(&payload, "domain_counts");
+    let domain_counts = support::json_object(&payload, "domain_counts")?;
     let fastq_bam_count = support::object_u64(domain_counts, "fastq").expect("fastq count")
         + support::object_u64(domain_counts, "bam").expect("bam count");
     for domain in ["fastq", "bam", "vcf"] {
@@ -217,4 +218,5 @@ fn bench_readiness_all_domain_no_placeholder_command_check_reports_clean_active_
         violations.is_empty(),
         "all active commands must stay free of todo, placeholder, echo-only, unconditional-success, empty executable, and missing-invocation drift"
     );
+    Ok(())
 }

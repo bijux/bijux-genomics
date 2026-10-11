@@ -35,6 +35,24 @@ fn str_field<'a>(table: &'a toml::Value, key: &str) -> &'a str {
     table.get(key).and_then(toml::Value::as_str).unwrap_or("")
 }
 
+fn bool_field(table: &toml::Value, key: &str) -> bool {
+    table.get(key).and_then(toml::Value::as_bool).unwrap_or(false)
+}
+
+fn source_pin_required(tool: &toml::Value) -> bool {
+    str_field(tool, "artifact_delivery") == "redistributable_image"
+        || bool_field(tool, "redistribution_permitted")
+}
+
+fn valid_external_artifact_contract(tool: &toml::Value) -> bool {
+    matches!(
+        str_field(tool, "artifact_delivery"),
+        "external_artifact" | "private_site_build" | "site_module"
+    ) && str_field(tool, "product_support") == "supported"
+        && !bool_field(tool, "redistribution_permitted")
+        && bool_field(tool, "external_artifact_supported")
+}
+
 #[test]
 fn policy__contracts__tool_registry_reproducibility_policy__production_registry_is_pinned_and_non_floating(
 ) {
@@ -77,7 +95,13 @@ fn policy__contracts__tool_registry_reproducibility_policy__production_registry_
                 ));
             }
             if pin.is_empty() || pin == "domain-managed" || pin == "unresolved" {
-                offenders.push(format!("{rel}: tool={id}: immutable pin is required"));
+                if source_pin_required(&tool) {
+                    offenders.push(format!("{rel}: tool={id}: immutable source pin is required"));
+                } else if !valid_external_artifact_contract(&tool) {
+                    offenders.push(format!(
+                        "{rel}: tool={id}: unresolved source requires a supported non-redistributable external-artifact contract"
+                    ));
+                }
             }
             if metrics_schema == "bijux.unknown.v1" {
                 offenders.push(format!(

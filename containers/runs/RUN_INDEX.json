@@ -2,10 +2,10 @@
   "schema_version": "bijux.container.run_index.v1",
   "source_registry": {
     "uri": "repo://containers/contracts/qualification-runs.toml",
-    "sha256": "fdea0bb07283732a8d35a1aa355cd8b0cf7009889342ceef125f0b08114a2952",
-    "size_bytes": 171691
+    "sha256": "1d229dd5f8986db4f9a842a68b3def6b18ad56f01a7e083412a92b4b76289196",
+    "size_bytes": 178190
   },
-  "catalog_sha256": "26eb025bbbdfe8a60e4f15f0832fb911605064ce1418d57c81d61a94bb66594b",
+  "catalog_sha256": "7dc269495d5dcb614763e84b13751b1f7f5f7ff8f2c7d66c7a3485b63c8ac904",
   "historical_max_run_number": 1140,
   "namespace": {
     "minimum": 1000,
@@ -25,8 +25,8 @@
   "runs": [
     {
       "run_id": "run-1000",
-      "title": "Retained container image campaign",
-      "purpose": "Build and admit the exact retained container image roster from the governed catalog and recipes.",
+      "title": "Redistributable container image campaign",
+      "purpose": "Build and admit the exact repository-distributable image roster from the governed catalog and recipes.",
       "owner": "bijux-dna-containers",
       "operation": "image_build_campaign",
       "stage_id": "container.image_campaign",
@@ -126,7 +126,7 @@
         "recipe_source",
         "tool_source"
       ],
-      "acceptance_policy": "all retained tools publish digest-bound build and image identity evidence",
+      "acceptance_policy": "all redistributable-image tools publish digest-bound build and image identity evidence",
       "state": "campaign",
       "supersedes_run_ids": [],
       "citation": {

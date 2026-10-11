@@ -1,9 +1,7 @@
-//! Retry policy, backoff math, and retry execution helpers.
+//! Retry policy and backoff math for external attempt planning.
 
 mod backoff;
-mod clock;
 mod policy;
-mod runtime;
 mod stable_surface;
 
 pub use stable_surface::*;

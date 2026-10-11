@@ -35,7 +35,8 @@ fn run_cli_json(args: &[&str]) -> serde_json::Value {
 }
 
 #[test]
-fn bench_readiness_all_domain_local_job_coverage_reports_complete_active_rows() {
+fn bench_readiness_all_domain_local_job_coverage_reports_complete_active_rows() -> anyhow::Result<()>
+{
     let payload =
         run_cli_json(&["bench", "readiness", "render-all-domain-local-job-coverage", "--json"]);
 
@@ -57,7 +58,7 @@ fn bench_readiness_all_domain_local_job_coverage_reports_complete_active_rows() 
             "artifacts/benchmark-smoke/readiness/all-domains/rendered-commands-all-domains.argv.jsonl"
         )
     );
-    let rows = support::json_array(&payload, "rows");
+    let rows = support::json_array(&payload, "rows")?;
     let row_count = u64::try_from(rows.len()).expect("row count fits u64");
     assert_eq!(support::json_u64(&payload, "row_count"), Some(row_count));
     assert_eq!(payload.get("result_id_count").and_then(serde_json::Value::as_u64), Some(row_count));
@@ -86,7 +87,7 @@ fn bench_readiness_all_domain_local_job_coverage_reports_complete_active_rows() 
     assert_eq!(payload.get("violation_count").and_then(serde_json::Value::as_u64), Some(0));
     assert_eq!(payload.get("ok").and_then(serde_json::Value::as_bool), Some(true));
 
-    let domain_counts = support::json_object(&payload, "domain_counts");
+    let domain_counts = support::json_object(&payload, "domain_counts")?;
     let fastq_bam_count = support::object_u64(domain_counts, "fastq").expect("fastq count")
         + support::object_u64(domain_counts, "bam").expect("bam count");
     for domain in ["fastq", "bam", "vcf"] {
@@ -135,7 +136,7 @@ fn bench_readiness_all_domain_local_job_coverage_reports_complete_active_rows() 
         Some(1)
     );
 
-    let coverage_status_counts = support::json_object(&payload, "coverage_status_counts");
+    let coverage_status_counts = support::json_object(&payload, "coverage_status_counts")?;
     assert_eq!(
         coverage_status_counts.get("covered").and_then(serde_json::Value::as_u64),
         Some(row_count)
@@ -213,4 +214,5 @@ fn bench_readiness_all_domain_local_job_coverage_reports_complete_active_rows() 
     let violations =
         payload.get("violations").and_then(serde_json::Value::as_array).expect("violations");
     assert!(violations.is_empty(), "all active rows must retain governed local benchmark job rows");
+    Ok(())
 }

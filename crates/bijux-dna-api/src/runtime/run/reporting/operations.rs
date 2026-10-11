@@ -1,15 +1,14 @@
 use std::sync::{Arc, Mutex};
-use std::time::Duration;
 
 use anyhow::{anyhow, Result};
 use bijux_dna_containers::api::RuntimeKind;
 use bijux_dna_core::contract::ExecutionGraph;
 use bijux_dna_runtime::run_layout::{
-    now_string, OperatorHealthCheckV1, OperatorHealthReportV1, RunBackendDescriptorV1,
-    RunBackendRecordV1, RunControlActionV1, RunControlAuditEntryV1, RunControlStateV1,
-    RunExecutionModeV1, RunLayout, RunLeaseV1, RunQueueLifecycleStateV1, RunQueueStateV1,
-    RunQueueTransitionV1, RunResourceRequestV1, RunSchedulingDecisionV1, SlurmJobStateV1,
-    SlurmJobTransitionV1, SlurmSubmissionRecordV1,
+    apply_control_action_idempotent, now_string, OperatorHealthCheckV1, OperatorHealthReportV1,
+    RunBackendDescriptorV1, RunBackendRecordV1, RunControlActionV1, RunControlAuditEntryV1,
+    RunControlInterruption, RunControlStateV1, RunExecutionModeV1, RunLayout, RunLeaseV1,
+    RunQueueLifecycleStateV1, RunQueueStateV1, RunQueueTransitionV1, RunResourceRequestV1,
+    RunSchedulingDecisionV1, SlurmJobStateV1, SlurmJobTransitionV1, SlurmSubmissionRecordV1,
 };
 use bijux_dna_runtime::{Invocation, Runner, RunnerResult};
 
@@ -17,11 +16,8 @@ pub(crate) fn acquire_run_lease(
     layout: &RunLayout,
     run_id: &str,
 ) -> Result<(bijux_dna_infra::FileLock, RunLeaseV1)> {
-    let lock = bijux_dna_infra::FileLock::acquire(
-        &layout.run_dir.join("run.lock"),
-        Duration::from_millis(250),
-    )
-    .map_err(|err| anyhow!("acquire exclusive run lease for {run_id}: {err}"))?;
+    let lock = bijux_dna_infra::FileLock::try_acquire(&layout.run_dir.join("run.lock"))
+        .map_err(|err| anyhow!("acquire exclusive run lease for {run_id}: {err}"))?;
     let lease = RunLeaseV1 {
         schema_version: "bijux.run_lease.v1".to_string(),
         run_id: run_id.to_string(),
@@ -323,7 +319,7 @@ impl Runner for ControlAwareRunner {
                 .queue_state
                 .lock()
                 .map_err(|_| anyhow!("queue state mutex poisoned for {}", self.run_id))?;
-            honor_control_requests(&self.layout, &self.run_id, &step_id, &mut state)?;
+            honor_control_request_once(&self.layout, &self.run_id, &step_id, &mut state)?;
             state.state = RunQueueLifecycleStateV1::Running;
             state.active_step_id = Some(step_id.clone());
             bijux_dna_runtime::run_layout::write_queue_state(&self.layout, &state)?;
@@ -334,19 +330,7 @@ impl Runner for ControlAwareRunner {
                 .queue_state
                 .lock()
                 .map_err(|_| anyhow!("queue state mutex poisoned for {}", self.run_id))?;
-            if matches!(
-                read_control_state(&self.layout).and_then(|control| control.requested_action),
-                Some(RunControlActionV1::Cancel)
-            ) {
-                state.state = RunQueueLifecycleStateV1::Cancelled;
-                state.transitions.push(queue_transition(
-                    Some(RunQueueLifecycleStateV1::Running),
-                    RunQueueLifecycleStateV1::Cancelled,
-                    format!("execution cancelled during {step_id}"),
-                ));
-                bijux_dna_runtime::run_layout::write_queue_state(&self.layout, &state)?;
-                return Err(anyhow!("execution cancelled during {step_id}"));
-            }
+            honor_control_request_once(&self.layout, &self.run_id, &step_id, &mut state)?;
             state.active_step_id = None;
             bijux_dna_runtime::run_layout::write_queue_state(&self.layout, &state)?;
         }
@@ -354,93 +338,65 @@ impl Runner for ControlAwareRunner {
     }
 }
 
-fn honor_control_requests(
+fn honor_control_request_once(
     layout: &RunLayout,
     run_id: &str,
     step_id: &str,
     queue_state: &mut RunQueueStateV1,
 ) -> Result<()> {
-    loop {
-        let mut control =
-            read_control_state(layout).unwrap_or_else(|| default_control_state(run_id));
-        match control.requested_action {
-            Some(RunControlActionV1::Pause) => {
-                control.observed_state = RunQueueLifecycleStateV1::Paused;
-                control.updated_at = now_string();
-                control.audit_log.push(RunControlAuditEntryV1 {
-                    requested_action: RunControlActionV1::Pause,
-                    observed_state: RunQueueLifecycleStateV1::Paused,
-                    occurred_at: control.updated_at.clone(),
-                    detail: Some(format!("paused before {step_id}")),
-                });
-                bijux_dna_runtime::run_layout::write_control_state(layout, &control)?;
-                queue_state.state = RunQueueLifecycleStateV1::Paused;
-                if !matches!(
-                    queue_state.transitions.last().map(|entry| entry.to_state),
-                    Some(RunQueueLifecycleStateV1::Paused)
-                ) {
-                    queue_state.transitions.push(queue_transition(
-                        Some(RunQueueLifecycleStateV1::Running),
-                        RunQueueLifecycleStateV1::Paused,
-                        format!("pause requested before {step_id}"),
-                    ));
+    let mut control = read_control_state(layout).unwrap_or_else(|| default_control_state(run_id));
+    match control.requested_action {
+        Some(action @ (RunControlActionV1::Pause | RunControlActionV1::Cancel)) => {
+            queue_state.active_step_id = None;
+            let occurred_at = now_string();
+            apply_control_action_idempotent(
+                &mut control,
+                queue_state,
+                action,
+                &occurred_at,
+                Some(format!("{action} requested before {step_id}")),
+            );
+            bijux_dna_runtime::run_layout::write_control_state(layout, &control)?;
+            bijux_dna_runtime::run_layout::write_queue_state(layout, queue_state)?;
+            let interruption = match action {
+                RunControlActionV1::Pause => {
+                    RunControlInterruption::Paused { step_id: step_id.to_string() }
                 }
-                bijux_dna_runtime::run_layout::write_queue_state(layout, queue_state)?;
-                std::thread::sleep(Duration::from_millis(100));
-            }
-            Some(RunControlActionV1::Resume) => {
-                control.requested_action = None;
+                RunControlActionV1::Cancel => {
+                    RunControlInterruption::Cancelled { step_id: step_id.to_string() }
+                }
+                RunControlActionV1::Resume => unreachable!("resume is handled independently"),
+            };
+            Err(anyhow!(interruption))
+        }
+        Some(RunControlActionV1::Resume) => {
+            let occurred_at = now_string();
+            apply_control_action_idempotent(
+                &mut control,
+                queue_state,
+                RunControlActionV1::Resume,
+                &occurred_at,
+                Some(format!("resume granted before {step_id}")),
+            );
+            control.requested_action = None;
+            control.observed_state = RunQueueLifecycleStateV1::Running;
+            control.updated_at = occurred_at;
+            bijux_dna_runtime::run_layout::write_control_state(layout, &control)?;
+            bijux_dna_runtime::run_layout::write_queue_state(layout, queue_state)?;
+            Ok(())
+        }
+        None => {
+            if control.observed_state != RunQueueLifecycleStateV1::Running {
                 control.observed_state = RunQueueLifecycleStateV1::Running;
                 control.updated_at = now_string();
-                control.audit_log.push(RunControlAuditEntryV1 {
-                    requested_action: RunControlActionV1::Resume,
-                    observed_state: RunQueueLifecycleStateV1::Running,
-                    occurred_at: control.updated_at.clone(),
-                    detail: Some(format!("resumed before {step_id}")),
-                });
                 bijux_dna_runtime::run_layout::write_control_state(layout, &control)?;
-                queue_state.state = RunQueueLifecycleStateV1::Running;
-                queue_state.transitions.push(queue_transition(
-                    Some(RunQueueLifecycleStateV1::Paused),
-                    RunQueueLifecycleStateV1::Running,
-                    format!("resume granted before {step_id}"),
-                ));
-                bijux_dna_runtime::run_layout::write_queue_state(layout, queue_state)?;
-                return Ok(());
             }
-            Some(RunControlActionV1::Cancel) => {
-                control.observed_state = RunQueueLifecycleStateV1::Cancelled;
-                control.updated_at = now_string();
-                control.audit_log.push(RunControlAuditEntryV1 {
-                    requested_action: RunControlActionV1::Cancel,
-                    observed_state: RunQueueLifecycleStateV1::Cancelled,
-                    occurred_at: control.updated_at.clone(),
-                    detail: Some(format!("cancelled before {step_id}")),
-                });
-                bijux_dna_runtime::run_layout::write_control_state(layout, &control)?;
-                let previous_state = queue_state.state;
-                queue_state.state = RunQueueLifecycleStateV1::Cancelled;
-                queue_state.transitions.push(queue_transition(
-                    Some(previous_state),
-                    RunQueueLifecycleStateV1::Cancelled,
-                    format!("cancel requested before {step_id}"),
-                ));
-                bijux_dna_runtime::run_layout::write_queue_state(layout, queue_state)?;
-                return Err(anyhow!("execution cancelled before {step_id}"));
-            }
-            None => {
-                if control.observed_state != RunQueueLifecycleStateV1::Running {
-                    control.observed_state = RunQueueLifecycleStateV1::Running;
-                    control.updated_at = now_string();
-                    bijux_dna_runtime::run_layout::write_control_state(layout, &control)?;
-                }
-                return Ok(());
-            }
+            Ok(())
         }
     }
 }
 
-fn read_control_state(layout: &RunLayout) -> Option<RunControlStateV1> {
+pub(crate) fn read_control_state(layout: &RunLayout) -> Option<RunControlStateV1> {
     if !layout.control_state_path.exists() {
         return None;
     }
@@ -488,4 +444,49 @@ fn command_on_path(command: &str) -> bool {
             candidate.is_file()
         })
     })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{default_control_state, honor_control_request_once};
+    use anyhow::{anyhow, Result};
+    use bijux_dna_runtime::run_layout::{
+        RunControlActionV1, RunControlInterruption, RunLayout, RunQueueLifecycleStateV1,
+        RunQueueStateV1,
+    };
+
+    #[test]
+    fn pause_is_persisted_once_and_returns_control_immediately() -> Result<()> {
+        let root = tempfile::tempdir()?;
+        let layout = RunLayout::from_run_dir(root.path().to_path_buf());
+        let run_id = "run-control-pause";
+        let mut queue_state = RunQueueStateV1 {
+            schema_version: "bijux.run_queue_state.v1".to_string(),
+            run_id: run_id.to_string(),
+            dedup_key: "sha256:control-test".to_string(),
+            state: RunQueueLifecycleStateV1::Running,
+            transitions: Vec::new(),
+            active_step_id: None,
+        };
+        let mut control = default_control_state(run_id);
+        control.requested_action = Some(RunControlActionV1::Pause);
+        bijux_dna_runtime::run_layout::write_control_state(&layout, &control)?;
+
+        let error =
+            honor_control_request_once(&layout, run_id, "fastq.validate_reads", &mut queue_state)
+                .err()
+                .ok_or_else(|| anyhow!("pause must interrupt the current one-shot execution"))?;
+
+        assert!(matches!(
+            error.downcast_ref::<RunControlInterruption>(),
+            Some(RunControlInterruption::Paused { step_id })
+                if step_id == "fastq.validate_reads"
+        ));
+        assert_eq!(queue_state.state, RunQueueLifecycleStateV1::Paused);
+        let persisted = super::read_control_state(&layout)
+            .ok_or_else(|| anyhow!("pause control state must be persisted"))?;
+        assert_eq!(persisted.observed_state, RunQueueLifecycleStateV1::Paused);
+        assert_eq!(persisted.audit_log.len(), 1);
+        Ok(())
+    }
 }

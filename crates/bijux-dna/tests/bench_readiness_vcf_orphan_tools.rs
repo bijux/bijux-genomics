@@ -46,13 +46,24 @@ fn bench_readiness_vcf_orphan_tools_reports_governed_decisions() {
         payload.get("output_path").and_then(serde_json::Value::as_str),
         Some("artifacts/benchmark-smoke/readiness/vcf/vcf-orphan-tools.tsv")
     );
-    assert_eq!(payload.get("orphan_count").and_then(serde_json::Value::as_u64), Some(7));
-    assert_eq!(payload.get("required_tool_count").and_then(serde_json::Value::as_u64), Some(16));
-    assert_eq!(payload.get("registered_tool_count").and_then(serde_json::Value::as_u64), Some(16));
-    assert_eq!(payload.get("served_tool_count").and_then(serde_json::Value::as_u64), Some(9));
+    let orphan_count =
+        payload.get("orphan_count").and_then(serde_json::Value::as_u64).expect("orphan count");
+    let required_tool_count = payload
+        .get("required_tool_count")
+        .and_then(serde_json::Value::as_u64)
+        .expect("required tool count");
+    let served_tool_count = payload
+        .get("served_tool_count")
+        .and_then(serde_json::Value::as_u64)
+        .expect("served tool count");
+    assert_eq!(
+        payload.get("registered_tool_count").and_then(serde_json::Value::as_u64),
+        Some(required_tool_count)
+    );
+    assert_eq!(served_tool_count + orphan_count, required_tool_count);
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 7);
+    assert_eq!(rows.len() as u64, orphan_count);
     assert!(rows.iter().all(|row| {
         row.get("served_stage_count").and_then(serde_json::Value::as_u64) == Some(0)
             && row.get("decision").and_then(serde_json::Value::as_str)
@@ -72,11 +83,9 @@ fn bench_readiness_vcf_orphan_tools_reports_governed_decisions() {
         };
 
     for (tool_id, registered_binary) in [
-        ("angsd", "angsd"),
         ("eagle", "eagle"),
         ("glimpse", "glimpse"),
         ("ibdhap", "ibdhap"),
-        ("impute5", "impute5"),
         ("minimac4", "minimac4"),
         ("shapeit", "shapeit"),
     ] {
@@ -85,4 +94,7 @@ fn bench_readiness_vcf_orphan_tools_reports_governed_decisions() {
             "VCF orphan tool report must retain the governed orphan row for {tool_id}"
         );
     }
+    assert!(rows.iter().all(|row| {
+        !matches!(row.get("tool_id").and_then(serde_json::Value::as_str), Some("angsd" | "impute5"))
+    }));
 }

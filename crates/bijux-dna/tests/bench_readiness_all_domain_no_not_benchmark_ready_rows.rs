@@ -34,7 +34,8 @@ fn run_cli_json(args: &[&str]) -> serde_json::Value {
 }
 
 #[test]
-fn bench_readiness_all_domain_no_not_benchmark_ready_rows_reports_clean_active_scope() {
+fn bench_readiness_all_domain_no_not_benchmark_ready_rows_reports_clean_active_scope(
+) -> anyhow::Result<()> {
     let payload = run_cli_json(&[
         "bench",
         "readiness",
@@ -73,7 +74,7 @@ fn bench_readiness_all_domain_no_not_benchmark_ready_rows_reports_clean_active_s
         "removed status counts must be empty once the active slice is clean"
     );
 
-    let removed_rows = support::json_array(&payload, "removed_rows");
+    let removed_rows = support::json_array(&payload, "removed_rows")?;
     assert_eq!(removed_rows.len() as u64, removed_row_count);
     let violations =
         payload.get("violations").and_then(serde_json::Value::as_array).expect("violations");
@@ -88,4 +89,5 @@ fn bench_readiness_all_domain_no_not_benchmark_ready_rows_reports_clean_active_s
         }),
         "asset-backed index-reference rows must stay in active scope once benchmark ready"
     );
+    Ok(())
 }

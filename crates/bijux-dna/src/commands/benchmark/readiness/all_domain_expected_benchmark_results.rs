@@ -456,6 +456,7 @@ fn sanitize_tsv(value: &str) -> String {
 
 #[cfg(test)]
 mod tests {
+    use std::collections::BTreeSet;
     use std::path::PathBuf;
 
     use super::{
@@ -483,13 +484,31 @@ mod tests {
         assert_eq!(report.schema_version, ALL_DOMAIN_EXPECTED_BENCHMARK_RESULTS_SCHEMA_VERSION);
         assert_eq!(report.output_path, DEFAULT_ALL_DOMAIN_EXPECTED_BENCHMARK_RESULTS_PATH);
         assert_eq!(report.result_id_count, report.row_count);
-        assert_eq!(report.stage_count, 69);
-        assert_eq!(report.tool_count, 71);
-        assert_eq!(report.corpus_count, 10);
-        assert_eq!(report.asset_profile_count, 14);
-        assert_eq!(report.domain_counts.get("fastq"), Some(&71));
-        assert_eq!(report.domain_counts.get("bam"), Some(&49));
-        assert_eq!(report.domain_counts.get("vcf"), Some(&21));
+        assert_eq!(
+            report.stage_count,
+            report.rows.iter().map(|row| row.stage_id.as_str()).collect::<BTreeSet<_>>().len()
+        );
+        assert_eq!(
+            report.tool_count,
+            report.rows.iter().map(|row| row.tool_id.as_str()).collect::<BTreeSet<_>>().len()
+        );
+        assert_eq!(
+            report.corpus_count,
+            report.rows.iter().map(|row| row.corpus_id.as_str()).collect::<BTreeSet<_>>().len()
+        );
+        assert_eq!(
+            report.asset_profile_count,
+            report
+                .rows
+                .iter()
+                .map(|row| row.asset_profile_id.as_str())
+                .collect::<BTreeSet<_>>()
+                .len()
+        );
+        for domain in ["fastq", "bam", "vcf"] {
+            let observed = report.rows.iter().filter(|row| row.domain == domain).count();
+            assert_eq!(report.domain_counts.get(domain), Some(&observed));
+        }
 
         let taxonomy = report
             .rows

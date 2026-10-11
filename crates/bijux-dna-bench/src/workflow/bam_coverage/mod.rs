@@ -2,6 +2,7 @@
 //! Executable material for the governed BAM coverage campaign.
 
 mod commands;
+mod reference_span;
 mod report;
 
 use std::collections::BTreeMap;
@@ -16,6 +17,7 @@ use bijux_dna_bench_model::{
 };
 
 use self::commands::{measured_command, negative_command, required_files, warmup_command};
+use self::reference_span::ensure_reference_span_input;
 use super::bam_observation::{ensure_parameter_evidence, execution_inputs, BamParameterPolicy};
 use super::{load_attempt_lifecycle, BenchmarkExecutionMaterial};
 
@@ -107,13 +109,15 @@ pub fn prepare_bam_coverage_material_from_corpus(
             ("regime_mode".to_string(), EffectiveValue::Text("advisory_and_enforced".to_string())),
         ]),
     )?;
+    let mut inputs = execution_inputs(corpus);
+    inputs.push(ensure_reference_span_input(&attempt_directory, corpus)?);
     let execution = BenchmarkExecutionMaterial {
         operator: operator.to_string(),
         prepared_at_utc: prepared_at_utc.to_string(),
         repository_path: PathBuf::from(repository_root),
         benchmark_root: PathBuf::from(benchmark_root),
         source_contract_sha256: source_contract_sha256.clone(),
-        inputs: execution_inputs(corpus),
+        inputs,
         warmup_command: warmup_command(&identity.tool_id),
         measured_command: measured_command(
             &identity.tool_id,
@@ -211,8 +215,9 @@ mod tests {
             "2026-08-05T00:00:00Z",
         )?;
         crate::ensure_stage_campaign_attempts(&benchmark_root, &plan)?;
-        let corpus = admitted_corpus(temporary.path());
+        let corpus = admitted_corpus(&repository, temporary.path())?;
         let source = source_contracts();
+        let mut reference_span_digests = std::collections::BTreeSet::new();
 
         assert_eq!(plan.cycle.attempts.len(), 3);
         for attempt in &plan.cycle.attempts {
@@ -230,14 +235,22 @@ mod tests {
             assert!(material.execution.measured_command[2].contains("bam_coverage.awk"));
             assert_eq!(material.execution.parameters.effective_path, "effective-parameters.json");
             assert_eq!(material.execution.acceptance.metrics.len(), 4);
-            let expected_files =
-                if matches!(attempt.identity.tool_id.as_str(), "mosdepth" | "samtools") {
-                    21
-                } else {
-                    18
-                };
+            let reference_span = material
+                .execution
+                .inputs
+                .iter()
+                .find(|input| input.id == "bam_header_reference_span")
+                .expect("common reference-span input");
+            assert_eq!(reference_span.mount_path, "/input/reference-span.tsv");
+            reference_span_digests.insert(reference_span.sha256.clone());
+            let expected_files = match attempt.identity.tool_id.as_str() {
+                "mosdepth" => 30,
+                "bedtools" | "samtools" => 18,
+                _ => unreachable!(),
+            };
             assert_eq!(material.execution.required_files.len(), expected_files);
         }
+        assert_eq!(reference_span_digests.len(), 1);
         Ok(())
     }
 
@@ -250,22 +263,32 @@ mod tests {
         ])
     }
 
-    fn admitted_corpus(root: &std::path::Path) -> AdmittedBamCorpus {
-        let file = |name: &str, size_bytes| AdmittedBamCorpusFile {
-            path: root.join(name).display().to_string(),
-            sha256: "f".repeat(64),
-            size_bytes,
-        };
-        AdmittedBamCorpus {
+    fn admitted_corpus(
+        repository: &std::path::Path,
+        root: &std::path::Path,
+    ) -> anyhow::Result<AdmittedBamCorpus> {
+        let bam = repository.join("assets/toy/core-v1/bam/validation_pass.bam");
+        let bai = repository.join("assets/toy/core-v1/bam/validation_pass.bam.bai");
+        let bam_size = std::fs::metadata(&bam)?.len();
+        let bai_size = std::fs::metadata(&bai)?.len();
+        Ok(AdmittedBamCorpus {
             corpus_id: "ena-prjeb22390-err2112767-bam".to_string(),
             sample_id: "ERR2112767".to_string(),
             data_index_path: root.join("data-index.json").display().to_string(),
             data_index_sha256: "a".repeat(64),
             catalog_path: root.join("catalog.json").display().to_string(),
             catalog_sha256: "b".repeat(64),
-            bam: file("ERR2112767.sorted.bam", 23),
-            bam_index: file("ERR2112767.sorted.bam.bai", 3),
-            input_bytes: 26,
-        }
+            bam: AdmittedBamCorpusFile {
+                path: bam.display().to_string(),
+                sha256: bijux_dna_infra::hash_file_sha256(&bam)?,
+                size_bytes: bam_size,
+            },
+            bam_index: AdmittedBamCorpusFile {
+                path: bai.display().to_string(),
+                sha256: bijux_dna_infra::hash_file_sha256(&bai)?,
+                size_bytes: bai_size,
+            },
+            input_bytes: bam_size + bai_size,
+        })
     }
 }

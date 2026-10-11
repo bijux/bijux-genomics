@@ -50,13 +50,20 @@ fn bench_readiness_vcf_adapter_output_coverage_reports_governed_rows() {
         payload.get("row_count").and_then(serde_json::Value::as_u64),
         Some(rows.len() as u64)
     );
+    let benchmark_ready_count = rows
+        .iter()
+        .filter(|row| {
+            row.get("benchmark_status").and_then(serde_json::Value::as_str)
+                == Some("benchmark_ready")
+        })
+        .count() as u64;
     assert_eq!(
         payload.get("benchmark_ready_row_count").and_then(serde_json::Value::as_u64),
-        Some(24)
+        Some(benchmark_ready_count)
     );
     assert_eq!(
         payload.get("benchmark_ready_complete_row_count").and_then(serde_json::Value::as_u64),
-        Some(24)
+        Some(benchmark_ready_count)
     );
     assert_eq!(
         payload.get("benchmark_ready_incomplete_row_count").and_then(serde_json::Value::as_u64),
@@ -274,15 +281,24 @@ fn bench_readiness_vcf_adapter_output_coverage_reports_governed_rows() {
                 && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("angsd")
         })
         .expect("angsd call_gl row");
-    assert_eq!(angsd_gl.get("status").and_then(serde_json::Value::as_str), Some("incomplete"));
-    assert_eq!(
+    assert_eq!(angsd_gl.get("status").and_then(serde_json::Value::as_str), Some("complete"));
+    assert!(angsd_gl
+        .get("missing_declarations")
+        .and_then(serde_json::Value::as_array)
+        .expect("angsd call_gl missing declarations")
+        .is_empty());
+    assert!(
         angsd_gl
-            .get("missing_declarations")
+            .get("index_outputs")
             .and_then(serde_json::Value::as_array)
-            .expect("angsd call_gl missing declarations")
+            .expect("angsd call_gl index outputs")
             .iter()
             .filter_map(serde_json::Value::as_str)
-            .collect::<Vec<_>>(),
-        vec!["index_outputs"]
+            .any(|path| {
+                std::path::Path::new(path)
+                    .extension()
+                    .is_some_and(|extension| extension.eq_ignore_ascii_case("tbi"))
+            }),
+        "ANGSD normalized VCF must declare its tabix index"
     );
 }

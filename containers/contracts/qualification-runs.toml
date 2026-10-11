@@ -1,6 +1,6 @@
 # GENERATED FILE - DO NOT EDIT
-schema_version = "bijux.container.qualification_run_registry.v2"
-catalog_sha256 = "26eb025bbbdfe8a60e4f15f0832fb911605064ce1418d57c81d61a94bb66594b"
+schema_version = "bijux.container.qualification_run_registry.v3"
+catalog_sha256 = "7dc269495d5dcb614763e84b13751b1f7f5f7ff8f2c7d66c7a3485b63c8ac904"
 historical_max_run_number = 1140
 
 [namespace]
@@ -20,7 +20,9 @@ reserved_count = 2
 
 [[tools]]
 tool_id = "adapterremoval"
-support_disposition = "retained"
+product_support = "supported"
+artifact_delivery = "redistributable_image"
+redistribution_permitted = true
 run_id = "run-1002"
 stage_id = "fastq.merge_pairs"
 input_role = "fastq"
@@ -29,7 +31,9 @@ acceptance_adapter = "stage-contract"
 
 [[tools]]
 tool_id = "addeam"
-support_disposition = "retained"
+product_support = "supported"
+artifact_delivery = "redistributable_image"
+redistribution_permitted = true
 run_id = "run-1096"
 stage_id = "bam.damage"
 input_role = "bam"
@@ -38,7 +42,9 @@ acceptance_adapter = "stage-contract"
 
 [[tools]]
 tool_id = "alientrimmer"
-support_disposition = "retained"
+product_support = "supported"
+artifact_delivery = "redistributable_image"
+redistribution_permitted = true
 run_id = "run-1091"
 stage_id = "fastq.trim_reads"
 input_role = "fastq"
@@ -47,7 +53,9 @@ acceptance_adapter = "stage-contract"
 
 [[tools]]
 tool_id = "angsd"
-support_disposition = "unsupported"
+product_support = "supported"
+artifact_delivery = "external_artifact"
+redistribution_permitted = false
 run_id = "run-1094"
 stage_id = "bam.kinship"
 input_role = "bam"
@@ -56,7 +64,9 @@ acceptance_adapter = "stage-contract"
 
 [[tools]]
 tool_id = "atropos"
-support_disposition = "retained"
+product_support = "supported"
+artifact_delivery = "redistributable_image"
+redistribution_permitted = true
 run_id = "run-1098"
 stage_id = "fastq.trim_reads"
 input_role = "fastq"
@@ -65,7 +75,9 @@ acceptance_adapter = "stage-contract"
 
 [[tools]]
 tool_id = "authenticct"
-support_disposition = "retained"
+product_support = "supported"
+artifact_delivery = "redistributable_image"
+redistribution_permitted = true
 run_id = "run-1093"
 stage_id = "bam.authenticity"
 input_role = "bam"
@@ -74,7 +86,9 @@ acceptance_adapter = "stage-contract"
 
 [[tools]]
 tool_id = "bamtools"
-support_disposition = "retained"
+product_support = "supported"
+artifact_delivery = "redistributable_image"
+redistribution_permitted = true
 run_id = "run-1086"
 stage_id = "bam.filter"
 input_role = "bam"
@@ -83,7 +97,9 @@ acceptance_adapter = "stage-contract"
 
 [[tools]]
 tool_id = "bamutil"
-support_disposition = "retained"
+product_support = "supported"
+artifact_delivery = "redistributable_image"
+redistribution_permitted = true
 run_id = "run-1087"
 stage_id = "bam.overlap_correction"
 input_role = "bam"
@@ -92,7 +108,9 @@ acceptance_adapter = "stage-contract"
 
 [[tools]]
 tool_id = "bayeshammer"
-support_disposition = "retained"
+product_support = "supported"
+artifact_delivery = "redistributable_image"
+redistribution_permitted = true
 run_id = "run-1099"
 stage_id = "fastq.correct_errors"
 input_role = "fastq"
@@ -101,7 +119,9 @@ acceptance_adapter = "stage-contract"
 
 [[tools]]
 tool_id = "bbduk"
-support_disposition = "retained"
+product_support = "supported"
+artifact_delivery = "redistributable_image"
+redistribution_permitted = true
 run_id = "run-1006"
 stage_id = "fastq.filter_low_complexity"
 input_role = "fastq"
@@ -110,7 +130,9 @@ acceptance_adapter = "stage-contract"
 
 [[tools]]
 tool_id = "bbmerge"
-support_disposition = "retained"
+product_support = "supported"
+artifact_delivery = "redistributable_image"
+redistribution_permitted = true
 run_id = "run-1007"
 stage_id = "fastq.merge_pairs"
 input_role = "fastq"
@@ -119,7 +141,9 @@ acceptance_adapter = "stage-contract"
 
 [[tools]]
 tool_id = "bcftools"
-support_disposition = "retained"
+product_support = "supported"
+artifact_delivery = "redistributable_image"
+redistribution_permitted = true
 run_id = "run-1140"
 stage_id = "vcf.call"
 input_role = "vcf"
@@ -128,7 +152,9 @@ acceptance_adapter = "stage-contract"
 
 [[tools]]
 tool_id = "beagle"
-support_disposition = "retained"
+product_support = "supported"
+artifact_delivery = "redistributable_image"
+redistribution_permitted = true
 run_id = "run-1062"
 stage_id = "vcf.imputation_metrics"
 input_role = "vcf"
@@ -137,7 +163,9 @@ acceptance_adapter = "stage-contract"
 
 [[tools]]
 tool_id = "bedtools"
-support_disposition = "retained"
+product_support = "supported"
+artifact_delivery = "redistributable_image"
+redistribution_permitted = true
 run_id = "run-1074"
 stage_id = "bam.coverage"
 input_role = "bam"
@@ -146,7 +174,9 @@ acceptance_adapter = "stage-contract"
 
 [[tools]]
 tool_id = "bijux_dna"
-support_disposition = "retained"
+product_support = "supported"
+artifact_delivery = "redistributable_image"
+redistribution_permitted = true
 run_id = "run-1141"
 stage_id = "fastq.detect_duplicates_premerge"
 input_role = "fastq"
@@ -155,7 +185,9 @@ acceptance_adapter = "stage-contract"
 
 [[tools]]
 tool_id = "bowtie2"
-support_disposition = "retained"
+product_support = "supported"
+artifact_delivery = "redistributable_image"
+redistribution_permitted = true
 run_id = "run-1101"
 stage_id = "bam.align"
 input_role = "bam"
@@ -164,7 +196,9 @@ acceptance_adapter = "stage-contract"
 
 [[tools]]
 tool_id = "bowtie2_build"
-support_disposition = "retained"
+product_support = "supported"
+artifact_delivery = "redistributable_image"
+redistribution_permitted = true
 run_id = "run-1100"
 stage_id = "fastq.index_reference"
 input_role = "fastq"
@@ -173,7 +207,9 @@ acceptance_adapter = "stage-contract"
 
 [[tools]]
 tool_id = "bracken"
-support_disposition = "retained"
+product_support = "supported"
+artifact_delivery = "redistributable_image"
+redistribution_permitted = true
 run_id = "run-1104"
 stage_id = "container.runtime"
 input_role = "fastq"
@@ -182,7 +218,9 @@ acceptance_adapter = "runtime-contract"
 
 [[tools]]
 tool_id = "bwa"
-support_disposition = "retained"
+product_support = "supported"
+artifact_delivery = "redistributable_image"
+redistribution_permitted = true
 run_id = "run-1004"
 stage_id = "bam.align"
 input_role = "bam"
@@ -191,7 +229,9 @@ acceptance_adapter = "stage-contract"
 
 [[tools]]
 tool_id = "centrifuge"
-support_disposition = "retained"
+product_support = "supported"
+artifact_delivery = "redistributable_image"
+redistribution_permitted = true
 run_id = "run-1106"
 stage_id = "fastq.screen_taxonomy"
 input_role = "fastq"
@@ -200,7 +240,9 @@ acceptance_adapter = "stage-contract"
 
 [[tools]]
 tool_id = "clumpify"
-support_disposition = "retained"
+product_support = "supported"
+artifact_delivery = "redistributable_image"
+redistribution_permitted = true
 run_id = "run-1008"
 stage_id = "fastq.remove_duplicates"
 input_role = "fastq"
@@ -209,7 +251,9 @@ acceptance_adapter = "stage-contract"
 
 [[tools]]
 tool_id = "contammix"
-support_disposition = "retained"
+product_support = "supported"
+artifact_delivery = "redistributable_image"
+redistribution_permitted = true
 run_id = "run-1108"
 stage_id = "bam.contamination"
 input_role = "bam"
@@ -218,7 +262,9 @@ acceptance_adapter = "stage-contract"
 
 [[tools]]
 tool_id = "cutadapt"
-support_disposition = "retained"
+product_support = "supported"
+artifact_delivery = "redistributable_image"
+redistribution_permitted = true
 run_id = "run-1109"
 stage_id = "fastq.normalize_primers"
 input_role = "fastq"
@@ -227,7 +273,9 @@ acceptance_adapter = "stage-contract"
 
 [[tools]]
 tool_id = "dada2"
-support_disposition = "retained"
+product_support = "supported"
+artifact_delivery = "redistributable_image"
+redistribution_permitted = true
 run_id = "run-1060"
 stage_id = "fastq.infer_asvs"
 input_role = "fastq"
@@ -236,7 +284,9 @@ acceptance_adapter = "stage-contract"
 
 [[tools]]
 tool_id = "damageprofiler"
-support_disposition = "retained"
+product_support = "supported"
+artifact_delivery = "redistributable_image"
+redistribution_permitted = true
 run_id = "run-1115"
 stage_id = "bam.authenticity"
 input_role = "bam"
@@ -245,7 +295,9 @@ acceptance_adapter = "stage-contract"
 
 [[tools]]
 tool_id = "diamond"
-support_disposition = "retained"
+product_support = "supported"
+artifact_delivery = "redistributable_image"
+redistribution_permitted = true
 run_id = "run-1117"
 stage_id = "container.runtime"
 input_role = "fastq"
@@ -254,7 +306,9 @@ acceptance_adapter = "runtime-contract"
 
 [[tools]]
 tool_id = "dustmasker"
-support_disposition = "retained"
+product_support = "supported"
+artifact_delivery = "redistributable_image"
+redistribution_permitted = true
 run_id = "run-1055"
 stage_id = "container.runtime"
 input_role = "fastq"
@@ -263,7 +317,9 @@ acceptance_adapter = "runtime-contract"
 
 [[tools]]
 tool_id = "eagle"
-support_disposition = "retained"
+product_support = "supported"
+artifact_delivery = "redistributable_image"
+redistribution_permitted = true
 run_id = "run-1036"
 stage_id = "vcf.phasing"
 input_role = "vcf"
@@ -272,7 +328,9 @@ acceptance_adapter = "stage-contract"
 
 [[tools]]
 tool_id = "eigensoft"
-support_disposition = "retained"
+product_support = "supported"
+artifact_delivery = "redistributable_image"
+redistribution_permitted = true
 run_id = "run-1070"
 stage_id = "vcf.pca"
 input_role = "vcf"
@@ -281,7 +339,9 @@ acceptance_adapter = "stage-contract"
 
 [[tools]]
 tool_id = "fastp"
-support_disposition = "retained"
+product_support = "supported"
+artifact_delivery = "redistributable_image"
+redistribution_permitted = true
 run_id = "run-1075"
 stage_id = "fastq.filter_low_complexity"
 input_role = "fastq"
@@ -290,7 +350,9 @@ acceptance_adapter = "stage-contract"
 
 [[tools]]
 tool_id = "fastq_scan"
-support_disposition = "retained"
+product_support = "supported"
+artifact_delivery = "redistributable_image"
+redistribution_permitted = true
 run_id = "run-1118"
 stage_id = "fastq.profile_overrepresented_sequences"
 input_role = "fastq"
@@ -299,7 +361,9 @@ acceptance_adapter = "stage-contract"
 
 [[tools]]
 tool_id = "fastq_screen"
-support_disposition = "retained"
+product_support = "supported"
+artifact_delivery = "redistributable_image"
+redistribution_permitted = true
 run_id = "run-1142"
 stage_id = "container.runtime"
 input_role = "fastq"
@@ -308,7 +372,9 @@ acceptance_adapter = "runtime-contract"
 
 [[tools]]
 tool_id = "fastqc"
-support_disposition = "retained"
+product_support = "supported"
+artifact_delivery = "redistributable_image"
+redistribution_permitted = true
 run_id = "run-1076"
 stage_id = "fastq.detect_adapters"
 input_role = "fastq"
@@ -317,7 +383,9 @@ acceptance_adapter = "stage-contract"
 
 [[tools]]
 tool_id = "fastqvalidator"
-support_disposition = "retained"
+product_support = "supported"
+artifact_delivery = "redistributable_image"
+redistribution_permitted = true
 run_id = "run-1077"
 stage_id = "fastq.validate_reads"
 input_role = "fastq"
@@ -326,7 +394,9 @@ acceptance_adapter = "stage-contract"
 
 [[tools]]
 tool_id = "fastuniq"
-support_disposition = "unsupported"
+product_support = "supported"
+artifact_delivery = "external_artifact"
+redistribution_permitted = false
 run_id = "run-1023"
 stage_id = "fastq.remove_duplicates"
 input_role = "fastq"
@@ -335,7 +405,9 @@ acceptance_adapter = "stage-contract"
 
 [[tools]]
 tool_id = "fastx_clipper"
-support_disposition = "retained"
+product_support = "supported"
+artifact_delivery = "redistributable_image"
+redistribution_permitted = true
 run_id = "run-1119"
 stage_id = "fastq.trim_reads"
 input_role = "fastq"
@@ -344,7 +416,9 @@ acceptance_adapter = "stage-contract"
 
 [[tools]]
 tool_id = "flash2"
-support_disposition = "retained"
+product_support = "supported"
+artifact_delivery = "redistributable_image"
+redistribution_permitted = true
 run_id = "run-1120"
 stage_id = "fastq.merge_pairs"
 input_role = "fastq"
@@ -353,7 +427,9 @@ acceptance_adapter = "stage-contract"
 
 [[tools]]
 tool_id = "fqtools"
-support_disposition = "retained"
+product_support = "supported"
+artifact_delivery = "redistributable_image"
+redistribution_permitted = true
 run_id = "run-1121"
 stage_id = "fastq.validate_reads"
 input_role = "fastq"
@@ -362,7 +438,9 @@ acceptance_adapter = "stage-contract"
 
 [[tools]]
 tool_id = "gatk"
-support_disposition = "retained"
+product_support = "supported"
+artifact_delivery = "redistributable_image"
+redistribution_permitted = true
 run_id = "run-1143"
 stage_id = "bam.recalibration"
 input_role = "bam"
@@ -371,7 +449,9 @@ acceptance_adapter = "stage-contract"
 
 [[tools]]
 tool_id = "germline"
-support_disposition = "retained"
+product_support = "supported"
+artifact_delivery = "redistributable_image"
+redistribution_permitted = true
 run_id = "run-1069"
 stage_id = "vcf.ibd"
 input_role = "vcf"
@@ -380,7 +460,9 @@ acceptance_adapter = "stage-contract"
 
 [[tools]]
 tool_id = "glimpse"
-support_disposition = "retained"
+product_support = "supported"
+artifact_delivery = "redistributable_image"
+redistribution_permitted = true
 run_id = "run-1144"
 stage_id = "vcf.imputation_metrics"
 input_role = "vcf"
@@ -389,7 +471,9 @@ acceptance_adapter = "stage-contract"
 
 [[tools]]
 tool_id = "ibdhap"
-support_disposition = "retained"
+product_support = "supported"
+artifact_delivery = "redistributable_image"
+redistribution_permitted = true
 run_id = "run-1067"
 stage_id = "vcf.ibd"
 input_role = "vcf"
@@ -398,7 +482,9 @@ acceptance_adapter = "stage-contract"
 
 [[tools]]
 tool_id = "ibdne"
-support_disposition = "retained"
+product_support = "supported"
+artifact_delivery = "redistributable_image"
+redistribution_permitted = true
 run_id = "run-1053"
 stage_id = "vcf.demography"
 input_role = "hap_ibd_segments"
@@ -407,7 +493,9 @@ acceptance_adapter = "stage-contract"
 
 [[tools]]
 tool_id = "ibdseq"
-support_disposition = "retained"
+product_support = "supported"
+artifact_delivery = "redistributable_image"
+redistribution_permitted = true
 run_id = "run-1052"
 stage_id = "vcf.ibd"
 input_role = "vcf"
@@ -416,7 +504,9 @@ acceptance_adapter = "stage-contract"
 
 [[tools]]
 tool_id = "impute5"
-support_disposition = "unsupported"
+product_support = "supported"
+artifact_delivery = "external_artifact"
+redistribution_permitted = false
 run_id = "run-1158"
 stage_id = "vcf.imputation_metrics"
 input_role = "vcf"
@@ -425,7 +515,9 @@ acceptance_adapter = "stage-contract"
 
 [[tools]]
 tool_id = "kaiju"
-support_disposition = "retained"
+product_support = "supported"
+artifact_delivery = "redistributable_image"
+redistribution_permitted = true
 run_id = "run-1145"
 stage_id = "fastq.screen_taxonomy"
 input_role = "fastq"
@@ -434,7 +526,9 @@ acceptance_adapter = "stage-contract"
 
 [[tools]]
 tool_id = "king"
-support_disposition = "retained"
+product_support = "supported"
+artifact_delivery = "redistributable_image"
+redistribution_permitted = true
 run_id = "run-1146"
 stage_id = "bam.kinship"
 input_role = "bam"
@@ -443,7 +537,9 @@ acceptance_adapter = "stage-contract"
 
 [[tools]]
 tool_id = "kraken2"
-support_disposition = "retained"
+product_support = "supported"
+artifact_delivery = "redistributable_image"
+redistribution_permitted = true
 run_id = "run-1102"
 stage_id = "fastq.screen_taxonomy"
 input_role = "fastq"
@@ -452,7 +548,9 @@ acceptance_adapter = "stage-contract"
 
 [[tools]]
 tool_id = "krakenuniq"
-support_disposition = "retained"
+product_support = "supported"
+artifact_delivery = "redistributable_image"
+redistribution_permitted = true
 run_id = "run-1147"
 stage_id = "fastq.screen_taxonomy"
 input_role = "fastq"
@@ -461,7 +559,9 @@ acceptance_adapter = "stage-contract"
 
 [[tools]]
 tool_id = "leehom"
-support_disposition = "retained"
+product_support = "supported"
+artifact_delivery = "redistributable_image"
+redistribution_permitted = true
 run_id = "run-1016"
 stage_id = "fastq.merge_pairs"
 input_role = "fastq"
@@ -470,7 +570,9 @@ acceptance_adapter = "stage-contract"
 
 [[tools]]
 tool_id = "lighter"
-support_disposition = "retained"
+product_support = "supported"
+artifact_delivery = "redistributable_image"
+redistribution_permitted = true
 run_id = "run-1139"
 stage_id = "fastq.correct_errors"
 input_role = "fastq"
@@ -479,7 +581,9 @@ acceptance_adapter = "stage-contract"
 
 [[tools]]
 tool_id = "mapdamage2"
-support_disposition = "retained"
+product_support = "supported"
+artifact_delivery = "redistributable_image"
+redistribution_permitted = true
 run_id = "run-1050"
 stage_id = "bam.damage"
 input_role = "bam_with_reference"
@@ -488,7 +592,9 @@ acceptance_adapter = "stage-contract"
 
 [[tools]]
 tool_id = "metaphlan"
-support_disposition = "retained"
+product_support = "supported"
+artifact_delivery = "redistributable_image"
+redistribution_permitted = true
 run_id = "run-1148"
 stage_id = "container.runtime"
 input_role = "fastq"
@@ -497,7 +603,9 @@ acceptance_adapter = "runtime-contract"
 
 [[tools]]
 tool_id = "minimac4"
-support_disposition = "retained"
+product_support = "supported"
+artifact_delivery = "redistributable_image"
+redistribution_permitted = true
 run_id = "run-1149"
 stage_id = "vcf.imputation_metrics"
 input_role = "vcf"
@@ -506,7 +614,9 @@ acceptance_adapter = "stage-contract"
 
 [[tools]]
 tool_id = "mosdepth"
-support_disposition = "retained"
+product_support = "supported"
+artifact_delivery = "redistributable_image"
+redistribution_permitted = true
 run_id = "run-1088"
 stage_id = "bam.coverage"
 input_role = "bam"
@@ -515,7 +625,9 @@ acceptance_adapter = "stage-contract"
 
 [[tools]]
 tool_id = "multiqc"
-support_disposition = "retained"
+product_support = "supported"
+artifact_delivery = "redistributable_image"
+redistribution_permitted = true
 run_id = "run-1129"
 stage_id = "bam.qc_pre"
 input_role = "bam"
@@ -524,7 +636,9 @@ acceptance_adapter = "stage-contract"
 
 [[tools]]
 tool_id = "musket"
-support_disposition = "retained"
+product_support = "supported"
+artifact_delivery = "redistributable_image"
+redistribution_permitted = true
 run_id = "run-1025"
 stage_id = "fastq.correct_errors"
 input_role = "fastq"
@@ -533,7 +647,9 @@ acceptance_adapter = "stage-contract"
 
 [[tools]]
 tool_id = "ngsbriggs"
-support_disposition = "unsupported"
+product_support = "supported"
+artifact_delivery = "external_artifact"
+redistribution_permitted = false
 run_id = "run-1046"
 stage_id = "bam.damage"
 input_role = "bam"
@@ -542,7 +658,9 @@ acceptance_adapter = "stage-contract"
 
 [[tools]]
 tool_id = "pear"
-support_disposition = "retained"
+product_support = "supported"
+artifact_delivery = "redistributable_image"
+redistribution_permitted = true
 run_id = "run-1024"
 stage_id = "fastq.merge_pairs"
 input_role = "fastq"
@@ -551,7 +669,9 @@ acceptance_adapter = "stage-contract"
 
 [[tools]]
 tool_id = "picard"
-support_disposition = "retained"
+product_support = "supported"
+artifact_delivery = "redistributable_image"
+redistribution_permitted = true
 run_id = "run-1138"
 stage_id = "bam.duplication_metrics"
 input_role = "bam"
@@ -560,7 +680,9 @@ acceptance_adapter = "stage-contract"
 
 [[tools]]
 tool_id = "plink"
-support_disposition = "retained"
+product_support = "supported"
+artifact_delivery = "redistributable_image"
+redistribution_permitted = true
 run_id = "run-1066"
 stage_id = "vcf.admixture"
 input_role = "vcf"
@@ -569,7 +691,9 @@ acceptance_adapter = "stage-contract"
 
 [[tools]]
 tool_id = "plink2"
-support_disposition = "retained"
+product_support = "supported"
+artifact_delivery = "redistributable_image"
+redistribution_permitted = true
 run_id = "run-1064"
 stage_id = "vcf.admixture"
 input_role = "vcf"
@@ -578,7 +702,9 @@ acceptance_adapter = "stage-contract"
 
 [[tools]]
 tool_id = "pmdtools"
-support_disposition = "retained"
+product_support = "supported"
+artifact_delivery = "redistributable_image"
+redistribution_permitted = true
 run_id = "run-1137"
 stage_id = "bam.authenticity"
 input_role = "bam"
@@ -587,7 +713,9 @@ acceptance_adapter = "stage-contract"
 
 [[tools]]
 tool_id = "preseq"
-support_disposition = "retained"
+product_support = "supported"
+artifact_delivery = "redistributable_image"
+redistribution_permitted = true
 run_id = "run-1136"
 stage_id = "bam.complexity"
 input_role = "bam"
@@ -596,7 +724,9 @@ acceptance_adapter = "stage-contract"
 
 [[tools]]
 tool_id = "prinseq"
-support_disposition = "retained"
+product_support = "supported"
+artifact_delivery = "redistributable_image"
+redistribution_permitted = true
 run_id = "run-1018"
 stage_id = "fastq.filter_low_complexity"
 input_role = "fastq"
@@ -605,7 +735,9 @@ acceptance_adapter = "stage-contract"
 
 [[tools]]
 tool_id = "pydamage"
-support_disposition = "retained"
+product_support = "supported"
+artifact_delivery = "redistributable_image"
+redistribution_permitted = true
 run_id = "run-1134"
 stage_id = "bam.damage"
 input_role = "bam"
@@ -614,7 +746,9 @@ acceptance_adapter = "stage-contract"
 
 [[tools]]
 tool_id = "qualimap"
-support_disposition = "retained"
+product_support = "supported"
+artifact_delivery = "redistributable_image"
+redistribution_permitted = true
 run_id = "run-1030"
 stage_id = "container.runtime"
 input_role = "bam"
@@ -623,7 +757,9 @@ acceptance_adapter = "runtime-contract"
 
 [[tools]]
 tool_id = "rcorrector"
-support_disposition = "retained"
+product_support = "supported"
+artifact_delivery = "redistributable_image"
+redistribution_permitted = true
 run_id = "run-1150"
 stage_id = "fastq.correct_errors"
 input_role = "fastq"
@@ -632,7 +768,9 @@ acceptance_adapter = "stage-contract"
 
 [[tools]]
 tool_id = "rxy"
-support_disposition = "retained"
+product_support = "supported"
+artifact_delivery = "redistributable_image"
+redistribution_permitted = true
 run_id = "run-1151"
 stage_id = "bam.sex"
 input_role = "bam"
@@ -641,7 +779,9 @@ acceptance_adapter = "stage-contract"
 
 [[tools]]
 tool_id = "samtools"
-support_disposition = "retained"
+product_support = "supported"
+artifact_delivery = "redistributable_image"
+redistribution_permitted = true
 run_id = "run-1112"
 stage_id = "bam.coverage"
 input_role = "bam"
@@ -650,7 +790,9 @@ acceptance_adapter = "stage-contract"
 
 [[tools]]
 tool_id = "schmutzi"
-support_disposition = "retained"
+product_support = "supported"
+artifact_delivery = "redistributable_image"
+redistribution_permitted = true
 run_id = "run-1152"
 stage_id = "bam.contamination"
 input_role = "bam"
@@ -659,7 +801,9 @@ acceptance_adapter = "stage-contract"
 
 [[tools]]
 tool_id = "seqfu"
-support_disposition = "retained"
+product_support = "supported"
+artifact_delivery = "redistributable_image"
+redistribution_permitted = true
 run_id = "run-1031"
 stage_id = "fastq.profile_read_lengths"
 input_role = "fastq"
@@ -668,7 +812,9 @@ acceptance_adapter = "stage-contract"
 
 [[tools]]
 tool_id = "seqkit"
-support_disposition = "retained"
+product_support = "supported"
+artifact_delivery = "redistributable_image"
+redistribution_permitted = true
 run_id = "run-1071"
 stage_id = "fastq.filter_reads"
 input_role = "fastq"
@@ -677,7 +823,9 @@ acceptance_adapter = "stage-contract"
 
 [[tools]]
 tool_id = "seqkit_stats"
-support_disposition = "retained"
+product_support = "supported"
+artifact_delivery = "redistributable_image"
+redistribution_permitted = true
 run_id = "run-1072"
 stage_id = "fastq.profile_reads"
 input_role = "fastq"
@@ -686,7 +834,9 @@ acceptance_adapter = "stage-contract"
 
 [[tools]]
 tool_id = "seqprep"
-support_disposition = "retained"
+product_support = "supported"
+artifact_delivery = "redistributable_image"
+redistribution_permitted = true
 run_id = "run-1082"
 stage_id = "fastq.merge_pairs"
 input_role = "fastq"
@@ -695,7 +845,9 @@ acceptance_adapter = "stage-contract"
 
 [[tools]]
 tool_id = "seqpurge"
-support_disposition = "retained"
+product_support = "supported"
+artifact_delivery = "redistributable_image"
+redistribution_permitted = true
 run_id = "run-1012"
 stage_id = "container.runtime"
 input_role = "fastq"
@@ -704,7 +856,9 @@ acceptance_adapter = "runtime-contract"
 
 [[tools]]
 tool_id = "seqtk"
-support_disposition = "retained"
+product_support = "supported"
+artifact_delivery = "redistributable_image"
+redistribution_permitted = true
 run_id = "run-1073"
 stage_id = "fastq.validate_reads"
 input_role = "fastq"
@@ -713,7 +867,9 @@ acceptance_adapter = "stage-contract"
 
 [[tools]]
 tool_id = "shapeit"
-support_disposition = "retained"
+product_support = "supported"
+artifact_delivery = "redistributable_image"
+redistribution_permitted = true
 run_id = "run-1037"
 stage_id = "vcf.phasing"
 input_role = "vcf"
@@ -722,7 +878,9 @@ acceptance_adapter = "stage-contract"
 
 [[tools]]
 tool_id = "shapeit5"
-support_disposition = "retained"
+product_support = "supported"
+artifact_delivery = "redistributable_image"
+redistribution_permitted = true
 run_id = "run-1033"
 stage_id = "vcf.phasing"
 input_role = "vcf"
@@ -731,7 +889,9 @@ acceptance_adapter = "stage-contract"
 
 [[tools]]
 tool_id = "skewer"
-support_disposition = "retained"
+product_support = "supported"
+artifact_delivery = "redistributable_image"
+redistribution_permitted = true
 run_id = "run-1079"
 stage_id = "fastq.trim_reads"
 input_role = "fastq"
@@ -740,7 +900,9 @@ acceptance_adapter = "stage-contract"
 
 [[tools]]
 tool_id = "sortmerna"
-support_disposition = "retained"
+product_support = "supported"
+artifact_delivery = "redistributable_image"
+redistribution_permitted = true
 run_id = "run-1153"
 stage_id = "fastq.deplete_rrna"
 input_role = "fastq"
@@ -749,7 +911,9 @@ acceptance_adapter = "stage-contract"
 
 [[tools]]
 tool_id = "spades"
-support_disposition = "retained"
+product_support = "supported"
+artifact_delivery = "redistributable_image"
+redistribution_permitted = true
 run_id = "run-1135"
 stage_id = "container.runtime"
 input_role = "fastq"
@@ -758,7 +922,9 @@ acceptance_adapter = "runtime-contract"
 
 [[tools]]
 tool_id = "star"
-support_disposition = "retained"
+product_support = "supported"
+artifact_delivery = "redistributable_image"
+redistribution_permitted = true
 run_id = "run-1154"
 stage_id = "fastq.index_reference"
 input_role = "fastq"
@@ -767,7 +933,9 @@ acceptance_adapter = "stage-contract"
 
 [[tools]]
 tool_id = "trim_galore"
-support_disposition = "retained"
+product_support = "supported"
+artifact_delivery = "redistributable_image"
+redistribution_permitted = true
 run_id = "run-1124"
 stage_id = "fastq.trim_reads"
 input_role = "fastq"
@@ -776,7 +944,9 @@ acceptance_adapter = "stage-contract"
 
 [[tools]]
 tool_id = "trimmomatic"
-support_disposition = "retained"
+product_support = "supported"
+artifact_delivery = "redistributable_image"
+redistribution_permitted = true
 run_id = "run-1125"
 stage_id = "fastq.trim_reads"
 input_role = "fastq"
@@ -785,7 +955,9 @@ acceptance_adapter = "stage-contract"
 
 [[tools]]
 tool_id = "umi_tools"
-support_disposition = "retained"
+product_support = "supported"
+artifact_delivery = "redistributable_image"
+redistribution_permitted = true
 run_id = "run-1155"
 stage_id = "fastq.extract_umis"
 input_role = "fastq"
@@ -794,7 +966,9 @@ acceptance_adapter = "stage-contract"
 
 [[tools]]
 tool_id = "verifybamid2"
-support_disposition = "retained"
+product_support = "supported"
+artifact_delivery = "redistributable_image"
+redistribution_permitted = true
 run_id = "run-1156"
 stage_id = "bam.contamination"
 input_role = "bam"
@@ -803,7 +977,9 @@ acceptance_adapter = "stage-contract"
 
 [[tools]]
 tool_id = "vsearch"
-support_disposition = "retained"
+product_support = "supported"
+artifact_delivery = "redistributable_image"
+redistribution_permitted = true
 run_id = "run-1084"
 stage_id = "fastq.cluster_otus"
 input_role = "fastq"
@@ -812,7 +988,9 @@ acceptance_adapter = "stage-contract"
 
 [[tools]]
 tool_id = "yleaf"
-support_disposition = "retained"
+product_support = "supported"
+artifact_delivery = "redistributable_image"
+redistribution_permitted = true
 run_id = "run-1157"
 stage_id = "bam.haplogroups"
 input_role = "bam"
@@ -821,8 +999,8 @@ acceptance_adapter = "stage-contract"
 
 [[runs]]
 run_id = "run-1000"
-title = "Retained container image campaign"
-purpose = "Build and admit the exact retained container image roster from the governed catalog and recipes."
+title = "Redistributable container image campaign"
+purpose = "Build and admit the exact repository-distributable image roster from the governed catalog and recipes."
 owner = "bijux-dna-containers"
 operation = "image_build_campaign"
 stage_id = "container.image_campaign"
@@ -922,7 +1100,7 @@ corpus_roles = [
     "recipe_source",
     "tool_source",
 ]
-acceptance_policy = "all retained tools publish digest-bound build and image identity evidence"
+acceptance_policy = "all redistributable-image tools publish digest-bound build and image identity evidence"
 state = "campaign"
 supersedes_run_ids = []
 

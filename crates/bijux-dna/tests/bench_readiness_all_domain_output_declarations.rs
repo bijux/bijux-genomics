@@ -35,7 +35,7 @@ fn run_cli_json(args: &[&str]) -> serde_json::Value {
 }
 
 #[test]
-fn bench_readiness_all_domain_output_declarations_tracks_governed_rows() {
+fn bench_readiness_all_domain_output_declarations_tracks_governed_rows() -> anyhow::Result<()> {
     let payload =
         run_cli_json(&["bench", "readiness", "render-all-domain-output-declarations", "--json"]);
 
@@ -47,14 +47,14 @@ fn bench_readiness_all_domain_output_declarations_tracks_governed_rows() {
         payload.get("output_path").and_then(serde_json::Value::as_str),
         Some("artifacts/benchmark-smoke/readiness/output-declarations-all-domains.tsv")
     );
-    let rows = support::json_array(&payload, "rows");
+    let rows = support::json_array(&payload, "rows")?;
     let row_count = u64::try_from(rows.len()).expect("row count fits u64");
     assert_eq!(support::json_u64(&payload, "row_count"), Some(row_count));
     assert_eq!(support::json_u64(&payload, "result_id_count"), Some(row_count));
     assert_eq!(support::json_u64(&payload, "complete_row_count"), Some(row_count));
     assert_eq!(payload.get("incomplete_row_count").and_then(serde_json::Value::as_u64), Some(0));
 
-    let domain_counts = support::json_object(&payload, "domain_counts");
+    let domain_counts = support::json_object(&payload, "domain_counts")?;
     for domain in ["fastq", "bam", "vcf"] {
         let expected_count = u64::try_from(
             rows.iter()
@@ -69,7 +69,7 @@ fn bench_readiness_all_domain_output_declarations_tracks_governed_rows() {
     }
     assert_eq!(support::object_u64_sum(domain_counts), row_count);
 
-    let status_counts = support::json_object(&payload, "status_counts");
+    let status_counts = support::json_object(&payload, "status_counts")?;
     assert_eq!(status_counts.get("complete").and_then(serde_json::Value::as_u64), Some(row_count));
 
     let result_ids = rows
@@ -174,4 +174,5 @@ fn bench_readiness_all_domain_output_declarations_tracks_governed_rows() {
         .is_some_and(|outputs| outputs
             .iter()
             .any(|value| value.as_str() == Some("imputation_metrics_json"))));
+    Ok(())
 }

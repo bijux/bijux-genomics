@@ -325,6 +325,27 @@ fn ensure_all_domain_active_stage_tool_matrix_contract(
         ));
     }
 
+    let required_licensed_bindings = [
+        binding_key("bam", "bam.kinship", "angsd"),
+        binding_key("bam", "bam.sex", "angsd"),
+        binding_key("bam", "bam.damage", "ngsbriggs"),
+        binding_key("fastq", "fastq.remove_duplicates", "fastuniq"),
+        binding_key("vcf", "vcf.call_gl", "angsd"),
+        binding_key("vcf", "vcf.call_pseudohaploid", "angsd"),
+        binding_key("vcf", "vcf.imputation_metrics", "impute5"),
+        binding_key("vcf", "vcf.impute", "impute5"),
+    ];
+    for required in required_licensed_bindings {
+        if !row_keys.contains(&required) {
+            return Err(anyhow!(
+                "all-domain active stage-tool matrix is missing supported licensed binding `{}` / `{}` / `{}`",
+                required.domain,
+                required.stage_id,
+                required.tool_id
+            ));
+        }
+    }
+
     for row in rows {
         if row.domain.trim().is_empty()
             || row.stage_id.trim().is_empty()

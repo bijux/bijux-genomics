@@ -2,7 +2,6 @@ tool=seqfu
 tool_version=pinned
 stage=fastq.profile_read_lengths
 domain=fastq
-shipping=external
 fixture_kind=synthetic_truth
 command=seqfu
 args=

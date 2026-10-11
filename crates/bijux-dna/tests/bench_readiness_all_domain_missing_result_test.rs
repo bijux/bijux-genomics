@@ -37,7 +37,8 @@ fn run_cli_json(args: &[&str]) -> serde_json::Value {
 }
 
 #[test]
-fn bench_readiness_all_domain_missing_result_audit_tracks_three_governed_missing_rows() {
+fn bench_readiness_all_domain_missing_result_audit_tracks_three_governed_missing_rows(
+) -> anyhow::Result<()> {
     let payload =
         run_cli_json(&["bench", "readiness", "render-all-domain-missing-result-test", "--json"]);
 
@@ -63,9 +64,9 @@ fn bench_readiness_all_domain_missing_result_audit_tracks_three_governed_missing
     assert_eq!(missing_result_row_count, 3);
     assert_eq!(payload.get("passes_behavior_test"), Some(&serde_json::Value::Bool(true)));
 
-    let rows = support::json_array(&payload, "rows");
+    let rows = support::json_array(&payload, "rows")?;
     assert_eq!(u64::try_from(rows.len()).expect("row count fits u64"), expected_row_count);
-    let domain_counts = support::json_object(&payload, "domain_counts");
+    let domain_counts = support::json_object(&payload, "domain_counts")?;
     for domain in ["fastq", "bam", "vcf"] {
         let expected_count = u64::try_from(
             rows.iter()
@@ -167,4 +168,5 @@ fn bench_readiness_all_domain_missing_result_audit_tracks_three_governed_missing
         .get("observed_output_artifact_ids")
         .and_then(serde_json::Value::as_array)
         .is_some_and(|values| !values.is_empty()));
+    Ok(())
 }

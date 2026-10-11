@@ -31,7 +31,7 @@ pub use external_artifact::{
     ExternalArtifactAdmission, ExternalArtifactAdmissionRequest, ExternalArtifactAdmissionStatus,
     ExternalArtifactCommandBinding, ExternalArtifactIdentity, ExternalArtifactInput,
     ExternalArtifactKind, ExternalArtifactVersionProbe, EXTERNAL_ARTIFACT_ADMISSION_SCHEMA_V1,
-    EXTERNAL_ARTIFACT_IMAGE_SCHEME,
+    EXTERNAL_ARTIFACT_ADMISSION_SCHEMA_V2, EXTERNAL_ARTIFACT_IMAGE_SCHEME,
 };
 pub use image_activation::{
     apply_image_activation_plan, create_image_activation_plan, image_activation_plan_schema,
@@ -63,11 +63,11 @@ pub use model::{
     BuildContextIdentity, BuildEvidenceStatus, ContainerBuildEvidence, ContainerDetachedImage,
     ContainerImageCandidate, ContainerImageInventoryPublication, ContainerImageInventorySummary,
     ContainerImageInventoryTool, ContainerImageState, ContainerRuntimeEvidence,
-    ContainerStagedImage, ContainerSupportDisposition, DetachedImageDisposition,
-    EvidenceSourceIdentity, ImageCandidateDisposition, ImageInventoryPublicationIdentity,
-    RuntimeEvidenceStatus, RuntimeVerificationPublication,
-    CONTAINER_IMAGE_INVENTORY_PUBLICATION_SCHEMA_V1,
+    ContainerStagedImage, DetachedImageDisposition, EvidenceSourceIdentity,
+    ImageCandidateDisposition, ImageInventoryPublicationIdentity, RuntimeEvidenceStatus,
+    RuntimeVerificationPublication, CONTAINER_IMAGE_INVENTORY_PUBLICATION_SCHEMA_V1,
     CONTAINER_IMAGE_INVENTORY_PUBLICATION_SCHEMA_V2,
+    CONTAINER_IMAGE_INVENTORY_PUBLICATION_SCHEMA_V3,
     CONTAINER_RUNTIME_VERIFICATION_PUBLICATION_SCHEMA_V1,
     CONTAINER_RUNTIME_VERIFICATION_PUBLICATION_SCHEMA_V2,
 };
@@ -84,8 +84,8 @@ pub use qualification_registry::{
     QualificationRunDefinition, QualificationRunIdAudit, QualificationRunIdAuditRow,
     QualificationRunIdTombstone, QualificationRunNamespacePolicy, QualificationRunRegistry,
     QualificationRunRegistryEntry, QualificationRunRegistrySummary, QualificationRunState,
-    CONTAINER_RUN_INDEX_SCHEMA_V1, QUALIFICATION_RUN_ID_AUDIT_SCHEMA_V2,
-    QUALIFICATION_RUN_REGISTRY_SCHEMA_V2,
+    CONTAINER_RUN_INDEX_SCHEMA_V1, QUALIFICATION_RUN_ID_AUDIT_SCHEMA_V3,
+    QUALIFICATION_RUN_REGISTRY_SCHEMA_V3,
 };
 pub use run_evidence::{
     apply_final_run_evidence_plan, apply_result_layout, apply_superseded_result_archive,

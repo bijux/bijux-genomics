@@ -63,6 +63,8 @@ fn is_governed_publication_path(value: &str) -> bool {
         file_name,
         "publication-registry.json"
             | "publication-registry.md"
+            | "REPORT_INDEX.json"
+            | "REPORT_INDEX.md"
             | "scientific-benchmark-readiness.json"
             | "scientific-benchmark-readiness.md"
             | "stage-benchmark-coverage.json"
@@ -100,6 +102,8 @@ mod tests {
             "benchmarks/reports/run-2004-bam-mapping-summary.md",
             "benchmarks/reports/publication-registry.json",
             "benchmarks/reports/publication-registry.md",
+            "benchmarks/reports/REPORT_INDEX.json",
+            "benchmarks/reports/REPORT_INDEX.md",
             "benchmarks/reports/stage-benchmark-coverage.json",
             "benchmarks/reports/scientific-benchmark-readiness.md",
         ] {

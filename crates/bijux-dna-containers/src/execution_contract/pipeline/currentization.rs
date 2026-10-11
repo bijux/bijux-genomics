@@ -5,7 +5,7 @@ use anyhow::{bail, ensure, Context, Result};
 use crate::evidence::{
     load_container_catalog, load_image_inventory_publication,
     resolve_catalog_locked_apptainer_image, validate_container_inventory_catalog,
-    ContainerSupportDisposition,
+    ContainerArtifactDelivery,
 };
 use crate::site_policy::{validate_container_governance_host, ContainerGovernance};
 
@@ -163,7 +163,7 @@ fn render_currentization(
             .iter()
             .find(|tool| tool.tool == tool_id)
             .with_context(|| format!("image inventory does not declare tool {tool_id}"))?;
-        if inventory_tool.support_disposition == ContainerSupportDisposition::Unsupported {
+        if inventory_tool.artifact_delivery != ContainerArtifactDelivery::RedistributableImage {
             rendered.push(preserve_pipeline_document(
                 path,
                 source,
@@ -173,8 +173,8 @@ fn render_currentization(
             continue;
         }
         ensure!(
-            inventory_tool.support_disposition == ContainerSupportDisposition::Retained,
-            "pipeline tool {tool_id} is outside retained and external-artifact inventory policy"
+            inventory_tool.artifact_delivery == ContainerArtifactDelivery::RedistributableImage,
+            "pipeline tool {tool_id} is outside image and external-artifact inventory policy"
         );
         let image = resolve_catalog_locked_apptainer_image(
             &inventory,

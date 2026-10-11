@@ -261,6 +261,11 @@ pub fn tooling_registry() -> Vec<OpsCommandDefinition> {
             NativeOpsCommandKey::ToolingCiTest,
         ),
         native(
+            "ci-test-all-sharded",
+            "Run complete workspace nextest partitions through the event-driven Rust supervisor.",
+            NativeOpsCommandKey::ToolingCiTestAllSharded,
+        ),
+        native(
             "ci-test-slow",
             "Run governed slow nextest suites through the native control plane.",
             NativeOpsCommandKey::ToolingCiTestSlow,

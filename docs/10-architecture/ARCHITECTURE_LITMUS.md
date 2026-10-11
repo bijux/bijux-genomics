@@ -13,7 +13,8 @@ Keeps design consistent across contributions.
 - Dependency-layer litmus rules live in [BOUNDARY_MAP.md](BOUNDARY_MAP.md).
 - Contract ownership litmus lives in [CONTRACT_SPINE.md](CONTRACT_SPINE.md).
 - Single-source-of-truth litmus lives in [SSOT.md](SSOT.md).
-- Crate-family responsibility and placement litmus lives in [CRATE_AUTHORITY_MAP.md](CRATE_AUTHORITY_MAP.md).
+- Crate-family responsibility and placement litmus lives in
+  [TARGET_ARCHITECTURE.md](../../TARGET_ARCHITECTURE.md).
 - engine does not depend on runner or environment
 - prelude is exports-only
 - defaults live only in bijux-dna-pipelines

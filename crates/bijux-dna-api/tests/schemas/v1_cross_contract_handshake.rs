@@ -12,7 +12,7 @@ use bijux_dna_api::v1::api::bench::{
 };
 use bijux_dna_api::v1::api::qualification::{
     render_qualification_assessment_schema, render_qualification_report_schema,
-    QUALIFICATION_ASSESSMENT_SCHEMA_V2, QUALIFICATION_REPORT_SCHEMA_V3,
+    QUALIFICATION_ASSESSMENT_SCHEMA_V3, QUALIFICATION_REPORT_SCHEMA_V4,
 };
 
 fn load_fixture(path: &std::path::Path) -> Value {
@@ -174,12 +174,12 @@ fn checked_qualification_schema_matches_rust_type() -> anyhow::Result<()> {
         .and_then(std::path::Path::parent)
         .ok_or_else(|| anyhow::anyhow!("resolve repository root from API crate"))?;
     let checked: Value = serde_json::from_str(&fs::read_to_string(
-        repository_root.join("containers/contracts/schemas/qualification-assessment.v2.json"),
+        repository_root.join("containers/contracts/schemas/qualification-assessment.v3.json"),
     )?)?;
     let generated = render_qualification_assessment_schema();
     assert_eq!(
         generated.pointer("/properties/schema_version/const").and_then(Value::as_str),
-        Some(QUALIFICATION_ASSESSMENT_SCHEMA_V2)
+        Some(QUALIFICATION_ASSESSMENT_SCHEMA_V3)
     );
     assert_eq!(
         generated.pointer("/$defs/QualificationClaim/enum"),
@@ -209,7 +209,42 @@ fn qualification_report_schema_is_owned_by_rust_types() {
     let generated = render_qualification_report_schema();
     assert_eq!(
         generated.pointer("/properties/schema_version/const").and_then(Value::as_str),
-        Some(QUALIFICATION_REPORT_SCHEMA_V3)
+        Some(QUALIFICATION_REPORT_SCHEMA_V4)
     );
     assert_eq!(generated.pointer("/additionalProperties"), Some(&Value::Bool(false)));
+}
+
+#[test]
+fn historical_qualification_schemas_remain_immutable() -> anyhow::Result<()> {
+    let repository_root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .parent()
+        .and_then(std::path::Path::parent)
+        .ok_or_else(|| anyhow::anyhow!("resolve repository root from API crate"))?;
+    for (path, schema_version) in [
+        (
+            "containers/contracts/schemas/qualification-assessment.v1.json",
+            "bijux.container.qualification_assessment.v1",
+        ),
+        (
+            "containers/contracts/schemas/qualification-assessment.v2.json",
+            "bijux.container.qualification_assessment.v2",
+        ),
+        (
+            "containers/contracts/schemas/qualification-report.v2.json",
+            "bijux.container.qualification_report.v2",
+        ),
+        (
+            "containers/contracts/schemas/qualification-report.v3.json",
+            "bijux.container.qualification_report.v3",
+        ),
+    ] {
+        let historical: Value =
+            serde_json::from_str(&fs::read_to_string(repository_root.join(path))?)?;
+        assert_eq!(
+            historical.pointer("/properties/schema_version/const").and_then(Value::as_str),
+            Some(schema_version),
+            "historical qualification schema drifted: {path}"
+        );
+    }
+    Ok(())
 }

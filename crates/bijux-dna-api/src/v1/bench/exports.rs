@@ -10,8 +10,12 @@ use serde::{Deserialize, Serialize};
 pub use bijux_dna_analyze::compare::compare_runs_with_baseline;
 pub use bijux_dna_analyze::{build_rankings, compare_runs, print_bench_schema, RankInput};
 pub use bijux_dna_bench::{
-    acquire_fastq_corpus, materialize_fastq_corpus, publish_benchmark_data_index,
-    publish_governed_data_catalog_registry,
+    acquire_fastq_corpus, admit_checked_in_benchmark_campaign, ensure_stage_campaign_attempts,
+    load_checked_in_benchmark_campaign_plan, materialize_fastq_corpus,
+    plan_checked_in_benchmark_campaign, prepare_checked_in_benchmark_campaign,
+    publish_benchmark_campaign_report_with_presentation_authority, publish_benchmark_data_index,
+    publish_checked_in_benchmark_evidence_book, publish_governed_data_catalog_registry,
+    replay_checked_in_benchmark_publication, status_checked_in_benchmark_campaign,
 };
 use bijux_dna_bench::{
     admitted_benchmark_stage_report_schema, benchmark_attempt_archive_schema,
@@ -21,10 +25,14 @@ use bijux_dna_bench::{
 };
 pub use bijux_dna_bench::{
     AdmittedBenchmarkStageReport, BenchmarkAttemptArchive, BenchmarkAttemptRecord,
-    BenchmarkCycleStatus, BenchmarkDataIndexPublicationRequest, BenchmarkDataIndexRequest,
+    BenchmarkCycleAdmission, BenchmarkCycleAdmissionRequest, BenchmarkCycleAdmissionState,
+    BenchmarkCycleAdmissionUnit, BenchmarkCyclePlanRequest, BenchmarkCyclePreparation,
+    BenchmarkCyclePreparationRequest, BenchmarkCyclePreparationState,
+    BenchmarkCyclePreparationUnit, BenchmarkCycleStatus, BenchmarkCycleStatusRequest,
+    BenchmarkDataIndexPublicationRequest, BenchmarkDataIndexRequest, BenchmarkEvidenceBookRequest,
     BenchmarkJobReference, BenchmarkLifecycleStatus, BenchmarkPipelineParameterConfig,
-    BenchmarkStageInterfaceCatalog, BenchmarkStageReport, CorpusAcquisitionRequest,
-    CorpusMaterializationPublication, CorpusMaterializationRequest,
+    BenchmarkReplayRequest, BenchmarkStageInterfaceCatalog, BenchmarkStageReport,
+    CorpusAcquisitionRequest, CorpusMaterializationPublication, CorpusMaterializationRequest,
     GovernedDataCatalogRegistryPublication, GovernedDataCatalogRegistryPublicationRequest,
     BENCHMARK_ATTEMPT_ARCHIVE_SCHEMA_V1, BENCHMARK_ATTEMPT_SCHEMA_V1,
     BENCHMARK_CYCLE_STATUS_SCHEMA_V1, BENCHMARK_PIPELINE_PARAMETERS_SCHEMA_V1,
@@ -32,10 +40,12 @@ pub use bijux_dna_bench::{
     BENCHMARK_STAGE_REPORT_SCHEMA_V1,
 };
 pub use bijux_dna_runner::api::{
-    collect_corpus_materialization_slurm_job, load_corpus_materialization_slurm_job_handle,
-    load_corpus_materialization_slurm_spec, load_prepared_corpus_materialization_slurm_job,
-    observe_corpus_materialization_slurm_job, prepare_corpus_materialization_slurm_job,
-    publish_corpus_materialization_evidence_correction, submit_prepared_corpus_materialization_job,
+    collect_benchmark_campaign_cycle, collect_corpus_materialization_slurm_job,
+    load_corpus_materialization_slurm_job_handle, load_corpus_materialization_slurm_spec,
+    load_prepared_corpus_materialization_slurm_job, observe_corpus_materialization_slurm_job,
+    prepare_corpus_materialization_slurm_job, publish_corpus_materialization_evidence_correction,
+    submit_benchmark_campaign_frontier, submit_prepared_corpus_materialization_job,
+    BenchmarkCampaignSubmission, BenchmarkCampaignSubmissionState, BenchmarkCampaignSubmissionUnit,
     CorpusMaterializationCollection, CorpusMaterializationEvidence,
     CorpusMaterializationEvidenceCorrection, CorpusMaterializationEvidenceCorrectionRequest,
     CorpusMaterializationEvidenceStatus, CorpusMaterializationSlurmResources,

@@ -10,6 +10,7 @@ use crate::contract::{
     BENCHMARK_ATTEMPT_ARCHIVE_SCHEMA_V1, BENCHMARK_ATTEMPT_MIGRATION_LEDGER_SCHEMA_V1,
     BENCHMARK_ATTEMPT_MIGRATION_PLAN_SCHEMA_V1, BENCHMARK_ATTEMPT_MIGRATION_VERIFICATION_SCHEMA_V1,
     BENCHMARK_ATTEMPT_SCHEMA_V1, BENCHMARK_ATTEMPT_SCHEMA_V2, BENCHMARK_CAMPAIGN_PLAN_SCHEMA_V1,
+    BENCHMARK_CYCLE_ADMISSION_SCHEMA_V1, BENCHMARK_CYCLE_PREPARATION_SCHEMA_V1,
     BENCHMARK_CYCLE_STATUS_SCHEMA_V1, BENCHMARK_CYCLE_STATUS_SCHEMA_V2,
     BENCHMARK_SCHEDULER_OBSERVATION_SCHEMA_V1,
 };
@@ -346,6 +347,74 @@ pub struct BenchmarkCampaignPlan {
     pub cycle: BenchmarkCycleStatusV2,
 }
 
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum BenchmarkCyclePreparationState {
+    Prepared,
+    AlreadyPrepared,
+    NotReady,
+    Failed,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct BenchmarkCyclePreparationUnit {
+    pub identity: BenchmarkAttemptIdentity,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub prior_status: Option<BenchmarkLifecycleStatus>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub current_status: Option<BenchmarkLifecycleStatus>,
+    pub state: BenchmarkCyclePreparationState,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub execution_spec: Option<crate::model::BenchmarkExecutionSpec>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub error: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct BenchmarkCyclePreparation {
+    #[schemars(schema_with = "benchmark_cycle_preparation_schema_version")]
+    pub schema_version: String,
+    pub campaign_id: String,
+    pub prepared_at_utc: String,
+    pub units: Vec<BenchmarkCyclePreparationUnit>,
+}
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum BenchmarkCycleAdmissionState {
+    Admitted,
+    AlreadyAdmitted,
+    NotReady,
+    Failed,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct BenchmarkCycleAdmissionUnit {
+    pub identity: BenchmarkAttemptIdentity,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub prior_status: Option<BenchmarkLifecycleStatus>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub current_status: Option<BenchmarkLifecycleStatus>,
+    pub state: BenchmarkCycleAdmissionState,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub evidence: Option<BenchmarkEvidenceReference>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub error: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct BenchmarkCycleAdmission {
+    #[schemars(schema_with = "benchmark_cycle_admission_schema_version")]
+    pub schema_version: String,
+    pub campaign_id: String,
+    pub admitted_at_utc: String,
+    pub units: Vec<BenchmarkCycleAdmissionUnit>,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
 pub struct BenchmarkAttemptRecord {
@@ -497,6 +566,38 @@ impl BenchmarkCampaignPlan {
     }
 }
 
+impl BenchmarkCyclePreparation {
+    #[must_use]
+    pub fn new(
+        campaign_id: String,
+        prepared_at_utc: String,
+        units: Vec<BenchmarkCyclePreparationUnit>,
+    ) -> Self {
+        Self {
+            schema_version: BENCHMARK_CYCLE_PREPARATION_SCHEMA_V1.to_string(),
+            campaign_id,
+            prepared_at_utc,
+            units,
+        }
+    }
+}
+
+impl BenchmarkCycleAdmission {
+    #[must_use]
+    pub fn new(
+        campaign_id: String,
+        admitted_at_utc: String,
+        units: Vec<BenchmarkCycleAdmissionUnit>,
+    ) -> Self {
+        Self {
+            schema_version: BENCHMARK_CYCLE_ADMISSION_SCHEMA_V1.to_string(),
+            campaign_id,
+            admitted_at_utc,
+            units,
+        }
+    }
+}
+
 #[must_use]
 pub fn benchmark_attempt_schema() -> Schema {
     schemars::schema_for!(BenchmarkAttemptRecord)
@@ -545,6 +646,16 @@ pub fn benchmark_cycle_status_v2_schema() -> Schema {
 #[must_use]
 pub fn benchmark_campaign_plan_schema() -> Schema {
     schemars::schema_for!(BenchmarkCampaignPlan)
+}
+
+#[must_use]
+pub fn benchmark_cycle_preparation_schema() -> Schema {
+    schemars::schema_for!(BenchmarkCyclePreparation)
+}
+
+#[must_use]
+pub fn benchmark_cycle_admission_schema() -> Schema {
+    schemars::schema_for!(BenchmarkCycleAdmission)
 }
 
 #[must_use]
@@ -628,6 +739,20 @@ fn benchmark_campaign_plan_schema_version(_: &mut SchemaGenerator) -> Schema {
     json_schema!({
         "type": "string",
         "const": BENCHMARK_CAMPAIGN_PLAN_SCHEMA_V1,
+    })
+}
+
+fn benchmark_cycle_preparation_schema_version(_: &mut SchemaGenerator) -> Schema {
+    json_schema!({
+        "type": "string",
+        "const": BENCHMARK_CYCLE_PREPARATION_SCHEMA_V1,
+    })
+}
+
+fn benchmark_cycle_admission_schema_version(_: &mut SchemaGenerator) -> Schema {
+    json_schema!({
+        "type": "string",
+        "const": BENCHMARK_CYCLE_ADMISSION_SCHEMA_V1,
     })
 }
 

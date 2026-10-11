@@ -5,8 +5,9 @@ use bijux_dna_containers::api::{
     derive_qualification_run_registry, load_container_catalog, load_qualification_run_registry,
     render_container_run_index_json, render_container_run_index_markdown,
     render_qualification_run_registry, validate_container_run_index,
-    validate_qualification_run_registry, ContainerRunIndex, ContainerRunIndexSource,
-    QualificationRegistryDerivationRequest, QualificationRunState, CONTAINER_RUN_INDEX_SCHEMA_V1,
+    validate_qualification_run_registry, ContainerArtifactDelivery, ContainerProductSupport,
+    ContainerRunIndex, ContainerRunIndexSource, QualificationRegistryDerivationRequest,
+    QualificationRunState, CONTAINER_RUN_INDEX_SCHEMA_V1,
 };
 
 #[test]
@@ -35,8 +36,9 @@ fn registry_closes_all_catalog_tools_without_reusing_historical_ids() -> Result<
     assert_eq!(first.registry.runs[85].state, QualificationRunState::Reserved);
     assert_eq!(first.registry.runs[158].run_id, "run-1158");
     assert_eq!(first.registry.runs[158].citation.citation_key, "bijux-container-run-1158");
-    assert_eq!(first.audit.retained_mapping_count, 85);
-    assert_eq!(first.audit.unsupported_tool_count, 4);
+    assert_eq!(first.audit.supported_tool_count, 89);
+    assert_eq!(first.audit.redistributable_tool_count, 85);
+    assert_eq!(first.audit.external_artifact_tool_count, 4);
     assert_eq!(first.audit.allocated_mapping_count, 18);
     assert_eq!(first.audit.historical_identities.len(), 138);
     assert_eq!(first.audit.reserved_run_count, 2);
@@ -52,6 +54,15 @@ fn registry_closes_all_catalog_tools_without_reusing_historical_ids() -> Result<
     assert_eq!(run_id(&first, "impute5"), Some("run-1158"));
     assert_eq!(run_id(&first, "ngsbriggs"), Some("run-1046"));
     for tool_id in ["angsd", "fastuniq", "impute5", "ngsbriggs"] {
+        let entry = first
+            .registry
+            .tools
+            .iter()
+            .find(|candidate| candidate.tool_id == tool_id)
+            .context("external registry entry")?;
+        assert_eq!(entry.product_support, ContainerProductSupport::Supported);
+        assert_eq!(entry.artifact_delivery, ContainerArtifactDelivery::ExternalArtifact);
+        assert!(!entry.redistribution_permitted);
         let external_run_id = run_id(&first, tool_id).context("external run ID")?;
         let run = first
             .registry
@@ -94,6 +105,33 @@ fn registry_rejects_duplicate_ids_incomplete_external_execution_and_catalog_drif
         .context("angsd row")?
         .resource_profile = None;
     assert!(validate_qualification_run_registry(&catalog, &external).is_err());
+
+    let mut support_drift = derived.registry.clone();
+    support_drift
+        .tools
+        .iter_mut()
+        .find(|row| row.tool_id == "angsd")
+        .context("angsd row")?
+        .product_support = ContainerProductSupport::Retired;
+    assert!(validate_qualification_run_registry(&catalog, &support_drift).is_err());
+
+    let mut delivery_drift = derived.registry.clone();
+    delivery_drift
+        .tools
+        .iter_mut()
+        .find(|row| row.tool_id == "angsd")
+        .context("angsd row")?
+        .artifact_delivery = ContainerArtifactDelivery::RedistributableImage;
+    assert!(validate_qualification_run_registry(&catalog, &delivery_drift).is_err());
+
+    let mut redistribution_drift = derived.registry.clone();
+    redistribution_drift
+        .tools
+        .iter_mut()
+        .find(|row| row.tool_id == "angsd")
+        .context("angsd row")?
+        .redistribution_permitted = true;
+    assert!(validate_qualification_run_registry(&catalog, &redistribution_drift).is_err());
 
     let mut stage_drift = derived.registry;
     stage_drift

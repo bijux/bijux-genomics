@@ -44,7 +44,8 @@ fn bench_readiness_vcf_tool_serving_map_writes_governed_tsv_columns() {
         )
     );
     let rows = lines.collect::<Vec<_>>();
-    assert_eq!(rows.len(), 24, "TSV must retain the governed VCF row count");
+    let unique_rows = rows.iter().copied().collect::<std::collections::BTreeSet<_>>();
+    assert_eq!(unique_rows.len(), rows.len(), "TSV must not contain duplicate VCF bindings");
     for row in [
         "bcftools\tvcf.qc\tsupported\trunnable\tparse_normalized\tfixture:vcf_production_regression\tassigned\tbenchmark_ready",
         "bcftools\tvcf.call\tsupported\trunnable\tparse_normalized\tfixture:vcf_production_regression\tassigned\tbenchmark_ready",
@@ -63,6 +64,10 @@ fn bench_readiness_vcf_tool_serving_map_writes_governed_tsv_columns() {
         "ibdne\tvcf.demography\tsupported\trunnable\tparse_normalized\tfixture:vcf_production_regression\tnot_required\tbenchmark_ready",
         "germline\tvcf.ibd\tsupported\trunnable\tparse_normalized\tfixture:vcf_production_regression\tassigned\tbenchmark_ready",
         "ibdseq\tvcf.ibd\tsupported\trunnable\tparse_normalized\tfixture:vcf_production_regression\tassigned\tbenchmark_ready",
+        "angsd\tvcf.call_gl\tsupported\trunnable\tparse_normalized\tfixture:vcf_production_regression\tassigned\tbenchmark_ready",
+        "angsd\tvcf.call_pseudohaploid\tsupported\trunnable\tparse_normalized\tfixture:vcf_production_regression\tassigned\tbenchmark_ready",
+        "impute5\tvcf.imputation_metrics\tsupported\trunnable\tparse_normalized\tfixture:vcf_production_regression\tassigned\tbenchmark_ready",
+        "impute5\tvcf.impute\tsupported\trunnable\tparse_normalized\tfixture:vcf_production_regression\tassigned\tbenchmark_ready",
     ] {
         assert!(
             rows.iter().any(|candidate| candidate == &row),

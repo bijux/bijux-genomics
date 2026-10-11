@@ -594,7 +594,7 @@ fn display_output_path(repo_root: &Path, output_path: &Path) -> String {
 #[cfg(test)]
 mod tests {
     use super::{
-        build_vcf_imputation_metrics_ready_row, render_vcf_imputation_metrics_ready,
+        build_vcf_imputation_metrics_ready_report, build_vcf_imputation_metrics_ready_row,
         DEFAULT_VCF_IMPUTATION_METRICS_READY_PATH,
     };
     use crate::commands::benchmark::readiness::vcf_stage_readiness_support::collect_vcf_stage_readiness_bindings;
@@ -605,36 +605,64 @@ mod tests {
     }
 
     #[test]
-    fn render_vcf_imputation_metrics_ready_tracks_active_beagle_row() {
+    fn imputation_metrics_readiness_retains_unadmitted_impute5_blocker() {
         let repo_root = repo_root();
         let output_root = tempfile::tempdir().expect("tempdir");
-        let report = render_vcf_imputation_metrics_ready(
+        let report = build_vcf_imputation_metrics_ready_report(
             &repo_root,
-            output_root.path().join(DEFAULT_VCF_IMPUTATION_METRICS_READY_PATH),
+            &output_root.path().join(DEFAULT_VCF_IMPUTATION_METRICS_READY_PATH),
         )
-        .expect("render imputation metrics readiness");
+        .expect("build imputation metrics readiness");
 
         assert_eq!(report.schema_version, "bijux.bench.readiness.vcf_imputation_metrics_ready.v1");
         assert_eq!(
             report.output_path,
             "artifacts/benchmark-smoke/readiness/vcf/imputation-metrics-ready.json"
         );
-        assert_eq!(report.retained_row_count, 1);
-        assert_eq!(report.active_row_count, 1);
-        assert_eq!(report.complete_row_count, 1);
-        assert_eq!(report.incomplete_row_count, 0);
-        assert!(report.ok);
+        assert_eq!(report.retained_row_count, 2);
+        assert_eq!(report.active_row_count, 2);
+        assert_eq!(report.complete_row_count + report.incomplete_row_count, 2);
+        assert!(report.incomplete_row_count >= 1);
+        assert!(!report.ok);
 
-        let row = report.rows.first().expect("imputation metrics row");
+        let row = report.rows.iter().find(|row| row.tool_id == "beagle").expect("beagle row");
         assert_eq!(row.stage_id, "vcf.imputation_metrics");
         assert_eq!(row.tool_id, "beagle");
-        assert_eq!(row.coverage_status, "complete");
+        assert!(row.command_ready);
+        assert!(row.output_ready);
+        assert!(row.parser_ready);
+        assert!(row.expected_result_ready);
+        assert!(row.report_ready);
         assert!(row.expected_metrics.iter().any(|metric| metric == "concordance"));
         assert!(row.expected_metrics.iter().any(|metric| metric == "dosage_r2"));
         assert!(row.report_metric_columns.iter().any(|metric| metric == "concordance"));
         assert!(row.report_metric_columns.iter().any(|metric| metric == "dosage_r2"));
-        assert_eq!(row.smoke_concordance, Some(1.0));
-        assert_eq!(row.smoke_dosage_r2, Some(0.775));
+        if row.smoke_ready {
+            assert_eq!(row.coverage_status, "complete");
+            assert_eq!(row.smoke_concordance, Some(1.0));
+            assert_eq!(row.smoke_dosage_r2, Some(0.775));
+        } else {
+            assert_eq!(row.coverage_status, "incomplete");
+            assert!(row
+                .missing_surfaces
+                .iter()
+                .any(|surface| surface == "local_vcf_imputation_metrics_smoke"));
+        }
+
+        let impute5 = report.rows.iter().find(|row| row.tool_id == "impute5").expect("IMPUTE5 row");
+        assert_eq!(impute5.tool_status, "production");
+        assert!(impute5.command_ready);
+        assert!(impute5.output_ready);
+        assert!(impute5.parser_ready);
+        assert!(impute5.expected_result_ready);
+        assert!(impute5.report_ready);
+        assert!(!impute5.smoke_ready);
+        assert_eq!(impute5.coverage_status, "incomplete");
+        assert!(impute5
+            .missing_surfaces
+            .iter()
+            .any(|surface| surface == "local_vcf_imputation_metrics_smoke"));
+        assert!(report.violations.iter().any(|row| row.tool_id == "impute5"));
     }
 
     #[test]

@@ -185,11 +185,12 @@ cargo run -p bijux-dna-dev -- containers run image-storage -- \
   "${inventory_root}/image-storage.md"
 ```
 
-The report passes only when every retained tool is current, every non-retained
-tool is explicitly unsupported, and no unknown, staged, or unreferenced
-obsolete image remains. A failed report is evidence of an incomplete roster,
-not permission to weaken the checks. Until the plan is accepted, rollback is
-available with the same image root and a new UTC observation timestamp.
+The report passes only when every repository-delivered image is current, every
+external or site-delivered tool is explicitly not applicable to image storage,
+and no unknown, staged, or unreferenced obsolete image remains. A failed report
+is evidence of an incomplete roster, not permission to weaken the checks.
+Until the plan is accepted, rollback is available with the same image root and
+a new UTC observation timestamp.
 
 ## Verify version and help contracts
 
@@ -394,7 +395,8 @@ Archival accepts only failed terminal evidence with matching Slurm accounting.
 It hashes every submission and result file, verifies that both trees and the
 owner-specific archive root share one filesystem, then moves them through a
 recoverable partial directory. Qualification failures remain under
-`containers/evidence/failures/RUN-TOOL-slurm-JOB/`. This frees the canonical
+`governance.paths.containers_root/evidence/attempts/.attempt-archives/<run>/<tool>/<campaign>/<attempt>/`.
+This frees the canonical
 submission and result paths without deleting the failed attempt or allowing it
 into the final run index. A passed result and a benchmark attempt cannot be
 archived by this qualification command.

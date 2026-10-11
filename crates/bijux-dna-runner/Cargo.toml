@@ -21,6 +21,7 @@ bijux-dna-containers-qa = { path = "../bijux-dna-containers-qa" }
 bijux-dna-infra.workspace = true
 sha2.workspace = true
 walkdir.workspace = true
+wait-timeout.workspace = true
 
 [dev-dependencies]
 bijux-dna-policies.workspace = true

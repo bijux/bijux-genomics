@@ -14,9 +14,13 @@ pub fn run_and_exit(run: impl FnOnce() -> Result<()>) {
                 hint.id, hint.severity, hint.suggested_action
             );
         }
-        eprintln!("{err}");
+        eprintln!("{}", render_error_chain(&err));
         std::process::exit(exit_code_for_error(&err));
     }
+}
+
+fn render_error_chain(err: &anyhow::Error) -> String {
+    format!("{err:#}")
 }
 
 fn print_refusal_if_present(err: &anyhow::Error) {
@@ -102,7 +106,9 @@ fn error_category_from_chain(err: &anyhow::Error) -> Option<ErrorCategory> {
 mod tests {
     use anyhow::anyhow;
 
-    use super::{exit_code_for_error, refusal_payload_from_chain, RefusalPayload};
+    use super::{
+        exit_code_for_error, refusal_payload_from_chain, render_error_chain, RefusalPayload,
+    };
 
     #[test]
     fn fallback_exit_codes_keep_tool_failures_distinct_from_parse_failures() {
@@ -132,5 +138,14 @@ mod tests {
                 how: Some("retry".to_string()),
             })
         );
+    }
+
+    #[test]
+    fn operator_diagnostics_preserve_parse_causes() {
+        let err = anyhow!("EOF while parsing an object").context("parse stage-result.json");
+
+        let rendered = render_error_chain(&err);
+        assert!(rendered.contains("parse stage-result.json"));
+        assert!(rendered.contains("EOF while parsing an object"));
     }
 }

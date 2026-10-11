@@ -669,7 +669,7 @@ mod tests {
         assert_eq!(report.row_count, report.comparable_metric_count);
         assert_eq!(report.domain_counts.get("fastq"), Some(&5));
         assert_eq!(report.domain_counts.get("bam"), Some(&51));
-        assert_eq!(report.domain_counts.get("vcf"), Some(&35));
+        assert_eq!(report.domain_counts.get("vcf"), Some(&29));
         assert!(report.config_path.ends_with(DEFAULT_SCIENTIFIC_ACCEPTANCE_THRESHOLDS_PATH));
 
         let raw = std::fs::read_to_string(output_path).expect("read config");

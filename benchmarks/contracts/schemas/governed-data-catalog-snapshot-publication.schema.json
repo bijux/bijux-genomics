@@ -1,0 +1,116 @@
+{
+  "$defs": {
+    "GovernedDataCatalogRegistry": {
+      "additionalProperties": false,
+      "properties": {
+        "created_at_utc": {
+          "type": "string"
+        },
+        "data_root": {
+          "type": "string"
+        },
+        "records": {
+          "items": {
+            "$ref": "#/$defs/GovernedDataCatalogRegistryRecord"
+          },
+          "type": "array"
+        },
+        "schema_version": {
+          "const": "bijux.data_catalog_registry.v1",
+          "type": "string"
+        }
+      },
+      "required": [
+        "schema_version",
+        "created_at_utc",
+        "data_root",
+        "records"
+      ],
+      "type": "object"
+    },
+    "GovernedDataCatalogRegistryRecord": {
+      "additionalProperties": false,
+      "properties": {
+        "current_catalog_sha256": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "snapshots": {
+          "items": {
+            "$ref": "#/$defs/GovernedDataCatalogSnapshot"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "id",
+        "current_catalog_sha256",
+        "snapshots"
+      ],
+      "type": "object"
+    },
+    "GovernedDataCatalogSnapshot": {
+      "additionalProperties": false,
+      "properties": {
+        "catalog_path": {
+          "type": "string"
+        },
+        "catalog_schema_version": {
+          "type": "string"
+        },
+        "catalog_sha256": {
+          "type": "string"
+        },
+        "created_at_utc": {
+          "type": "string"
+        },
+        "source_commit": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "catalog_path",
+        "catalog_sha256",
+        "catalog_schema_version",
+        "source_commit",
+        "created_at_utc"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "candidate_registry_path": {
+      "type": "string"
+    },
+    "preserved_snapshot_count": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "registry": {
+      "$ref": "#/$defs/GovernedDataCatalogRegistry"
+    },
+    "retained_snapshot_count": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "schema_version": {
+      "const": "bijux.data_catalog_snapshot_publication.v1",
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "candidate_registry_path",
+    "preserved_snapshot_count",
+    "retained_snapshot_count",
+    "registry"
+  ],
+  "title": "GovernedDataCatalogSnapshotPublication",
+  "type": "object"
+}

@@ -7,12 +7,14 @@ use std::path::{Path, PathBuf};
 
 use anyhow::{bail, Context, Result};
 use bijux_dna_bench_model::{
-    validate_governed_data_catalog_registry, validate_governed_preserved_data_catalog,
-    validate_utc_timestamp, GovernedDataCatalogRegistry, GovernedDataCatalogRegistryRecord,
-    GovernedDataCatalogSnapshot, GovernedPreservedDataCatalog,
+    validate_governed_data_catalog_registry, validate_governed_data_catalog_snapshot_publication,
+    validate_governed_preserved_data_catalog, validate_utc_timestamp, GovernedDataCatalogRegistry,
+    GovernedDataCatalogRegistryRecord, GovernedDataCatalogSnapshot, GovernedPreservedDataCatalog,
     GOVERNED_DATA_CATALOG_REGISTRY_SCHEMA_V1, GOVERNED_DATA_CATALOG_SCHEMA_V1,
-    GOVERNED_DATA_CATALOG_SCHEMA_V2,
+    GOVERNED_DATA_CATALOG_SCHEMA_V2, GOVERNED_DATA_CATALOG_SNAPSHOT_PUBLICATION_SCHEMA_V1,
 };
+
+pub use bijux_dna_bench_model::GovernedDataCatalogSnapshotPublication;
 use serde::Serialize;
 
 const MAX_CATALOG_BYTES: usize = 16 * 1024 * 1024;
@@ -23,14 +25,6 @@ pub struct GovernedDataCatalogSnapshotRequest {
     pub source_commit: String,
     pub preserved_at_utc: String,
     pub previous_registry_path: Option<PathBuf>,
-}
-
-#[derive(Debug, Clone, Serialize, PartialEq, Eq)]
-pub struct GovernedDataCatalogSnapshotPublication {
-    pub candidate_registry_path: PathBuf,
-    pub preserved_snapshot_count: u64,
-    pub retained_snapshot_count: u64,
-    pub registry: GovernedDataCatalogRegistry,
 }
 
 /// Preserve every flat v1 authority under a source-addressed v2 envelope and compose a registry.
@@ -130,12 +124,16 @@ pub fn publish_governed_data_catalog_snapshots(
         .join(&request.source_commit)
         .join("registry.json");
     write_immutable_json(&candidate_registry_path, &registry, "catalog registry candidate")?;
-    Ok(GovernedDataCatalogSnapshotPublication {
+    let publication = GovernedDataCatalogSnapshotPublication {
+        schema_version: GOVERNED_DATA_CATALOG_SNAPSHOT_PUBLICATION_SCHEMA_V1.to_string(),
         candidate_registry_path,
         preserved_snapshot_count,
         retained_snapshot_count,
         registry,
-    })
+    };
+    validate_governed_data_catalog_snapshot_publication(&publication)
+        .context("validate governed data catalog snapshot publication")?;
+    Ok(publication)
 }
 
 struct FlatCatalog {

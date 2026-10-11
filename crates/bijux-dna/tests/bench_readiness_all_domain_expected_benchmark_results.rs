@@ -35,7 +35,8 @@ fn run_cli_json(args: &[&str]) -> serde_json::Value {
 }
 
 #[test]
-fn bench_readiness_all_domain_expected_benchmark_results_tracks_governed_rows() {
+fn bench_readiness_all_domain_expected_benchmark_results_tracks_governed_rows() -> anyhow::Result<()>
+{
     let payload = run_cli_json(&[
         "bench",
         "readiness",
@@ -51,7 +52,7 @@ fn bench_readiness_all_domain_expected_benchmark_results_tracks_governed_rows() 
         payload.get("output_path").and_then(serde_json::Value::as_str),
         Some("artifacts/benchmark-smoke/readiness/expected-benchmark-results-all-domains.tsv")
     );
-    let rows = support::json_array(&payload, "rows");
+    let rows = support::json_array(&payload, "rows")?;
     let row_count = support::json_u64(&payload, "row_count").expect("row_count");
     assert_eq!(u64::try_from(rows.len()).expect("row count fits u64"), row_count);
     let stage_count = u64::try_from(
@@ -74,7 +75,7 @@ fn bench_readiness_all_domain_expected_benchmark_results_tracks_governed_rows() 
     assert_eq!(payload.get("corpus_count").and_then(serde_json::Value::as_u64), Some(10));
     assert_eq!(payload.get("asset_profile_count").and_then(serde_json::Value::as_u64), Some(15));
 
-    let domain_counts = support::json_object(&payload, "domain_counts");
+    let domain_counts = support::json_object(&payload, "domain_counts")?;
     for domain in ["fastq", "bam", "vcf"] {
         let expected_count = u64::try_from(
             rows.iter()
@@ -90,7 +91,7 @@ fn bench_readiness_all_domain_expected_benchmark_results_tracks_governed_rows() 
     }
     assert_eq!(support::object_u64_sum(domain_counts), row_count);
 
-    let section_counts = support::json_object(&payload, "report_section_counts");
+    let section_counts = support::json_object(&payload, "report_section_counts")?;
     assert_eq!(support::object_u64_sum(section_counts), row_count);
     assert_eq!(section_counts.get("variant_calling").and_then(serde_json::Value::as_u64), Some(4));
     assert_eq!(section_counts.get("imputation").and_then(serde_json::Value::as_u64), Some(2));
@@ -294,4 +295,5 @@ fn bench_readiness_all_domain_expected_benchmark_results_tracks_governed_rows() 
         .is_some_and(|outputs| {
             outputs.iter().any(|value| value.as_str() == Some("population_structure_report"))
         }));
+    Ok(())
 }

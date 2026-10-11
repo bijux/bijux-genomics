@@ -8,14 +8,16 @@ use bijux_dna_containers::evidence::{
     ContainerCatalogTool, ContainerEvidenceChain, ContainerImageInventoryTool,
 };
 use bijux_dna_policies::{
-    evaluate_benchmark_evidence, evaluate_execution_evidence, evaluate_identity_evidence,
-    evaluate_source_identity, AdmittedSecurityEvidence, BenchmarkEvidenceObservation,
+    admit_release_evidence, evaluate_benchmark_evidence, evaluate_execution_evidence,
+    evaluate_identity_evidence, evaluate_source_identity, qualification_sources_sha256,
+    AdmittedReleaseEvidence, AdmittedSecurityEvidence, ArtifactAvailability, ArtifactDelivery,
+    BenchmarkEvidenceObservation, ContainerReleaseEvidencePublication,
     ContainerSecurityEvidencePublication, EvidenceDecision, EvidenceDimension,
-    ExecutionEvidenceObservation, ExecutionEvidenceStatus, PublicationDisposition,
-    QualificationAssessment, QualificationEvidenceSource, QualificationReport, SupportDisposition,
-    BUILD_EVIDENCE_RULE_V1, CATALOG_EVIDENCE_RULE_V1, FRESHNESS_EVIDENCE_RULE_V1,
-    RELEASE_EVIDENCE_RULE_V1, REQUIRED_EVIDENCE_DIMENSIONS, RUNTIME_EVIDENCE_RULE_V1,
-    SECURITY_EVIDENCE_RULE_V1, SUPPORT_DISPOSITION_RULE_V1,
+    ExecutionEvidenceObservation, ExecutionEvidenceStatus, ProductSupport, PublicationDisposition,
+    QualificationAssessment, QualificationEvidenceSource, QualificationReport,
+    ToolSecurityEvidence, BUILD_EVIDENCE_RULE_V1, CATALOG_EVIDENCE_RULE_V1,
+    FRESHNESS_EVIDENCE_RULE_V1, RELEASE_EVIDENCE_RULE_V1, REQUIRED_EVIDENCE_DIMENSIONS,
+    RUNTIME_EVIDENCE_RULE_V1, SECURITY_EVIDENCE_RULE_V1, SUPPORT_DIMENSIONS_RULE_V2,
 };
 use bijux_dna_runtime::{
     load_run_evidence_index, AttemptExecutionStatus, RunEvidenceRecord, ScientificAcceptanceStatus,
@@ -49,6 +51,34 @@ pub fn derive_container_qualification_report(
     repository_root: &Path,
     chain: &ContainerEvidenceChain,
     benchmark_reports: &[AdmittedBenchmarkStageReport],
+) -> Result<QualificationReport> {
+    derive_container_qualification_report_inner(repository_root, chain, benchmark_reports, None)
+}
+
+/// Compose a current qualification report and admit one explicit immutable release publication.
+///
+/// # Errors
+/// Returns an error when the release publication or any other evidence source is missing, stale,
+/// malformed, or internally inconsistent.
+pub fn derive_container_qualification_report_with_release(
+    repository_root: &Path,
+    chain: &ContainerEvidenceChain,
+    benchmark_reports: &[AdmittedBenchmarkStageReport],
+    release_publication_path: &Path,
+) -> Result<QualificationReport> {
+    derive_container_qualification_report_inner(
+        repository_root,
+        chain,
+        benchmark_reports,
+        Some(release_publication_path),
+    )
+}
+
+fn derive_container_qualification_report_inner(
+    repository_root: &Path,
+    chain: &ContainerEvidenceChain,
+    benchmark_reports: &[AdmittedBenchmarkStageReport],
+    release_publication_path: Option<&Path>,
 ) -> Result<QualificationReport> {
     let inventory_source = repository_source(repository_root, INVENTORY_PATH)?;
     let runtime_source = repository_source(repository_root, RUNTIME_PATH)?;
@@ -118,7 +148,7 @@ pub fn derive_container_qualification_report(
             records
         },
     );
-    let assessments = chain
+    let provisional_assessments = chain
         .catalog
         .tools
         .iter()
@@ -132,7 +162,61 @@ pub fn derive_container_qualification_report(
         })
         .collect::<Result<Vec<_>>>()?;
 
-    QualificationReport::v3(sources, assessments)
+    let release_publication = release_publication_path.map(load_release_publication).transpose()?;
+    let assessments = if let Some((publication, source)) = release_publication.as_ref() {
+        let sources_sha256 = qualification_sources_sha256(&sources)?;
+        let admitted = admit_release_evidence(
+            publication,
+            &source.sha256,
+            &chain.repository_commit,
+            &chain.catalog_sha256,
+            &sources_sha256,
+            &provisional_assessments,
+        )?;
+        let assessments = apply_release_evidence(provisional_assessments, &admitted)?;
+        sources.insert("release".to_string(), source.clone());
+        assessments
+    } else {
+        provisional_assessments
+    };
+
+    QualificationReport::v4(sources, assessments)
+}
+
+fn load_release_publication(
+    path: &Path,
+) -> Result<(ContainerReleaseEvidencePublication, QualificationEvidenceSource)> {
+    let bytes =
+        std::fs::read(path).with_context(|| format!("read release evidence {}", path.display()))?;
+    let sha256 = bijux_dna_infra::hash_bytes_sha256(&bytes);
+    let publication = serde_json::from_slice(&bytes)
+        .with_context(|| format!("parse release evidence {}", path.display()))?;
+    let source =
+        QualificationEvidenceSource { uri: format!("evidence://release/{sha256}"), sha256 };
+    Ok((publication, source))
+}
+
+fn apply_release_evidence(
+    assessments: Vec<QualificationAssessment>,
+    release: &AdmittedReleaseEvidence<'_>,
+) -> Result<Vec<QualificationAssessment>> {
+    assessments
+        .into_iter()
+        .map(|assessment| {
+            let mut dimensions = assessment.dimensions;
+            dimensions
+                .insert(EvidenceDimension::Release, release.tool_decision(&assessment.subject_id));
+            QualificationAssessment::v3(
+                assessment.subject_id,
+                assessment.product_support,
+                assessment.artifact_delivery,
+                assessment.redistribution_permitted,
+                assessment.availability,
+                assessment.publication_disposition,
+                dimensions,
+            )
+        })
+        .collect()
 }
 
 fn load_security_publication(
@@ -153,17 +237,24 @@ fn derive_tool_assessment(
     runs: &[&RunEvidenceRecord],
     context: &QualificationContext<'_>,
 ) -> Result<QualificationAssessment> {
-    if !tool.is_redistributable_image() {
+    if !tool.is_product_supported() {
         let dimensions = REQUIRED_EVIDENCE_DIMENSIONS
             .into_iter()
             .map(|dimension| (dimension, not_applicable(tool)))
             .collect();
-        return QualificationAssessment::v2(
+        return QualificationAssessment::v3(
             tool.id.clone(),
-            SupportDisposition::Unsupported,
+            product_support(tool.product_support),
+            artifact_delivery(tool.artifact_delivery),
+            tool.redistribution_permitted,
+            ArtifactAvailability::Unavailable,
             PublicationDisposition::Current,
             dimensions,
         );
+    }
+
+    if !tool.is_redistributable_image() {
+        return external_artifact_assessment(tool, runs, context);
     }
 
     let inventory = inventory.ok_or_else(|| {
@@ -173,11 +264,147 @@ fn derive_tool_assessment(
         .selected_image_sha256
         .as_deref()
         .ok_or_else(|| anyhow::anyhow!("qualification inventory has no image for {}", tool.id))?;
-    let execution_observations = execution_observations(runs);
-    let scientific_observations = scientific_observations(runs);
-    let stage = evaluate_execution_evidence(&execution_observations, &tool.real_test_stage);
-    let science = evaluate_scientific_acceptance(&scientific_observations, &tool.real_test_stage);
-    let dimensions = BTreeMap::from([
+    let dimensions = redistributable_image_dimensions(tool, runs, context, image_sha256);
+    QualificationAssessment::v3(
+        tool.id.clone(),
+        ProductSupport::Supported,
+        ArtifactDelivery::RedistributableImage,
+        tool.redistribution_permitted,
+        ArtifactAvailability::Admitted,
+        PublicationDisposition::Current,
+        dimensions,
+    )
+}
+
+fn external_artifact_assessment(
+    tool: &ContainerCatalogTool,
+    runs: &[&RunEvidenceRecord],
+    context: &QualificationContext<'_>,
+) -> Result<QualificationAssessment> {
+    let evidence = context.security_evidence.and_then(|security| security.tool_evidence(&tool.id));
+    let availability = evidence.map_or(ArtifactAvailability::Unavailable, |item| item.availability);
+    if let Some(item) = evidence {
+        validate_external_security_dimensions(tool, item)?;
+    }
+    let dimensions = match (availability, evidence) {
+        (ArtifactAvailability::Admitted, Some(item)) => {
+            admitted_external_artifact_dimensions(tool, runs, context, item)?
+        }
+        _ => unavailable_external_artifact_dimensions(tool, context, availability),
+    };
+    QualificationAssessment::v3(
+        tool.id.clone(),
+        ProductSupport::Supported,
+        artifact_delivery(tool.artifact_delivery),
+        tool.redistribution_permitted,
+        availability,
+        PublicationDisposition::Current,
+        dimensions,
+    )
+}
+
+fn validate_external_security_dimensions(
+    tool: &ContainerCatalogTool,
+    evidence: &ToolSecurityEvidence,
+) -> Result<()> {
+    if evidence.product_support != ProductSupport::Supported
+        || evidence.artifact_delivery != artifact_delivery(tool.artifact_delivery)
+        || evidence.redistribution_permitted != tool.redistribution_permitted
+    {
+        anyhow::bail!("security evidence support dimensions differ from catalog for {}", tool.id);
+    }
+    Ok(())
+}
+
+fn admitted_external_artifact_dimensions(
+    tool: &ContainerCatalogTool,
+    runs: &[&RunEvidenceRecord],
+    context: &QualificationContext<'_>,
+    evidence: &ToolSecurityEvidence,
+) -> Result<BTreeMap<EvidenceDimension, EvidenceDecision>> {
+    let artifact_sha256 = evidence
+        .artifact_sha256
+        .as_deref()
+        .ok_or_else(|| anyhow::anyhow!("admitted external tool lacks artifact identity"))?;
+    let admission_sha256 = evidence
+        .admission_evidence_sha256
+        .as_deref()
+        .ok_or_else(|| anyhow::anyhow!("admitted external tool lacks admission identity"))?;
+    let execution =
+        evaluate_execution_evidence(&execution_observations(runs), &tool.real_test_stage);
+    let science =
+        evaluate_scientific_acceptance(&scientific_observations(runs), &tool.real_test_stage);
+    Ok(BTreeMap::from([
+        (
+            EvidenceDimension::Catalog,
+            evaluate_identity_evidence(
+                CATALOG_EVIDENCE_RULE_V1,
+                "catalog_sha256",
+                &context.chain.catalog_sha256,
+            ),
+        ),
+        (
+            EvidenceDimension::Source,
+            evaluate_source_identity(
+                &tool.source_sha256,
+                &tool.pinned_commit,
+                &bijux_dna_infra::hash_bytes_sha256(
+                    format!("git:{}", tool.pinned_commit).as_bytes(),
+                ),
+            ),
+        ),
+        (
+            EvidenceDimension::Build,
+            evaluate_identity_evidence(
+                BUILD_EVIDENCE_RULE_V1,
+                "artifact_admission_sha256",
+                admission_sha256,
+            ),
+        ),
+        (EvidenceDimension::Runtime, execution.clone()),
+        (EvidenceDimension::Stage, execution.clone()),
+        (EvidenceDimension::RealData, execution),
+        (EvidenceDimension::Science, science),
+        (
+            EvidenceDimension::Benchmark,
+            evaluate_benchmark_evidence(
+                &benchmark_observations(&tool.id, context.benchmark_reports),
+                &context.chain.repository_commit,
+                artifact_sha256,
+            ),
+        ),
+        (EvidenceDimension::Security, security_decision(context, &tool.id, artifact_sha256)),
+        (
+            EvidenceDimension::Freshness,
+            evaluate_identity_evidence(
+                FRESHNESS_EVIDENCE_RULE_V1,
+                "bound_evidence_set_sha256",
+                context.freshness_sha256,
+            ),
+        ),
+        (
+            EvidenceDimension::Release,
+            missing_publication(
+                RELEASE_EVIDENCE_RULE_V1,
+                "immutable_publication",
+                "evidence_set_coverage",
+                "current immutable release publication",
+                "no immutable release publication covers this evidence set",
+            ),
+        ),
+    ]))
+}
+
+fn redistributable_image_dimensions(
+    tool: &ContainerCatalogTool,
+    runs: &[&RunEvidenceRecord],
+    context: &QualificationContext<'_>,
+    image_sha256: &str,
+) -> BTreeMap<EvidenceDimension, EvidenceDecision> {
+    let stage = evaluate_execution_evidence(&execution_observations(runs), &tool.real_test_stage);
+    let science =
+        evaluate_scientific_acceptance(&scientific_observations(runs), &tool.real_test_stage);
+    BTreeMap::from([
         (
             EvidenceDimension::Catalog,
             evaluate_identity_evidence(
@@ -238,13 +465,106 @@ fn derive_tool_assessment(
                 "no immutable release publication covers this evidence set",
             ),
         ),
-    ]);
-    QualificationAssessment::v2(
-        tool.id.clone(),
-        SupportDisposition::Retained,
-        PublicationDisposition::Current,
-        dimensions,
-    )
+    ])
+}
+
+fn product_support(
+    support: bijux_dna_containers::evidence::ContainerProductSupport,
+) -> ProductSupport {
+    match support {
+        bijux_dna_containers::evidence::ContainerProductSupport::Supported => {
+            ProductSupport::Supported
+        }
+        bijux_dna_containers::evidence::ContainerProductSupport::Retired => ProductSupport::Retired,
+        bijux_dna_containers::evidence::ContainerProductSupport::Excluded => {
+            ProductSupport::Excluded
+        }
+    }
+}
+
+fn artifact_delivery(
+    delivery: bijux_dna_containers::evidence::ContainerArtifactDelivery,
+) -> ArtifactDelivery {
+    match delivery {
+        bijux_dna_containers::evidence::ContainerArtifactDelivery::RedistributableImage => {
+            ArtifactDelivery::RedistributableImage
+        }
+        bijux_dna_containers::evidence::ContainerArtifactDelivery::ExternalArtifact => {
+            ArtifactDelivery::ExternalArtifact
+        }
+        bijux_dna_containers::evidence::ContainerArtifactDelivery::PrivateSiteBuild => {
+            ArtifactDelivery::PrivateSiteBuild
+        }
+        bijux_dna_containers::evidence::ContainerArtifactDelivery::SiteModule => {
+            ArtifactDelivery::SiteModule
+        }
+    }
+}
+
+fn unavailable_external_artifact_dimensions(
+    tool: &ContainerCatalogTool,
+    context: &QualificationContext<'_>,
+    availability: ArtifactAvailability,
+) -> BTreeMap<EvidenceDimension, EvidenceDecision> {
+    REQUIRED_EVIDENCE_DIMENSIONS
+        .into_iter()
+        .map(|dimension| {
+            let decision = match dimension {
+                EvidenceDimension::Catalog => evaluate_identity_evidence(
+                    CATALOG_EVIDENCE_RULE_V1,
+                    "catalog_sha256",
+                    &context.chain.catalog_sha256,
+                ),
+                EvidenceDimension::Source => evaluate_source_identity(
+                    &tool.source_sha256,
+                    &tool.pinned_commit,
+                    &bijux_dna_infra::hash_bytes_sha256(
+                        format!("git:{}", tool.pinned_commit).as_bytes(),
+                    ),
+                ),
+                EvidenceDimension::Security => context.security_evidence.map_or_else(
+                    || {
+                        missing_publication(
+                            SECURITY_EVIDENCE_RULE_V1,
+                            "admitted_publication",
+                            "artifact_coverage",
+                            "current admitted security publication",
+                            "no admitted security publication covers this external artifact",
+                        )
+                    },
+                    |security| security.tool_availability_decision(&tool.id),
+                ),
+                _ => EvidenceDecision::blocked(
+                    SUPPORT_DIMENSIONS_RULE_V2,
+                    BTreeMap::from([
+                        ("product_support".to_string(), "supported".to_string()),
+                        (
+                            "artifact_delivery".to_string(),
+                            tool.artifact_delivery.as_str().to_string(),
+                        ),
+                        (
+                            "availability".to_string(),
+                            artifact_availability_name(availability).to_string(),
+                        ),
+                    ]),
+                    BTreeMap::from([(
+                        "availability".to_string(),
+                        "admitted checksum-bound artifact".to_string(),
+                    )]),
+                    "no admitted external artifact is present in the current qualification evidence chain",
+                ),
+            };
+            (dimension, decision)
+        })
+        .collect()
+}
+
+const fn artifact_availability_name(value: ArtifactAvailability) -> &'static str {
+    match value {
+        ArtifactAvailability::Admitted => "admitted",
+        ArtifactAvailability::BlockedExternalAccess => "blocked_external_access",
+        ArtifactAvailability::Unavailable => "unavailable",
+    }
 }
 
 fn security_decision(
@@ -344,13 +664,16 @@ fn freshness_identity(
 
 fn not_applicable(tool: &ContainerCatalogTool) -> EvidenceDecision {
     EvidenceDecision::not_applicable(
-        SUPPORT_DISPOSITION_RULE_V1,
+        SUPPORT_DIMENSIONS_RULE_V2,
+        BTreeMap::from([
+            ("product_support".to_string(), tool.product_support.as_str().to_string()),
+            ("artifact_delivery".to_string(), tool.artifact_delivery.as_str().to_string()),
+        ]),
         BTreeMap::from([(
-            "support_disposition".to_string(),
-            tool.legacy_support_disposition().to_string(),
+            "product_support".to_string(),
+            "supported for qualification".to_string(),
         )]),
-        BTreeMap::from([("retained".to_string(), "required for qualification".to_string())]),
-        "tool is outside the retained qualification population",
+        "tool is retired or excluded from the product qualification population",
     )
 }
 
@@ -373,8 +696,19 @@ fn missing_publication(
 mod tests {
     use std::collections::BTreeMap;
 
-    use super::freshness_identity;
-    use bijux_dna_policies::QualificationEvidenceSource;
+    use super::{apply_release_evidence, freshness_identity, load_release_publication};
+    use bijux_dna_policies::{
+        admit_release_evidence, derive_release_evidence, qualification_sources_sha256,
+        ArtifactAvailability, ArtifactDelivery, EvidenceDecision, EvidenceDimension,
+        EvidenceVerdict, ProductSupport, PublicationDisposition, QualificationAssessment,
+        QualificationClaim, QualificationEvidenceSource, ReleaseEvidenceDerivationRequest,
+        REQUIRED_EVIDENCE_DIMENSIONS,
+    };
+
+    const REPOSITORY_COMMIT: &str = "1111111111111111111111111111111111111111";
+    const CATALOG_SHA256: &str = "2222222222222222222222222222222222222222222222222222222222222222";
+    const PUBLICATION_SHA256: &str =
+        "3333333333333333333333333333333333333333333333333333333333333333";
 
     #[test]
     fn freshness_identity_covers_benchmark_sources() -> anyhow::Result<()> {
@@ -391,6 +725,134 @@ mod tests {
             .ok_or_else(|| anyhow::anyhow!("benchmark source fixture is absent"))?;
         source.sha256 = "c".repeat(64);
         assert_ne!(original, freshness_identity(&"b".repeat(40), &sources)?);
+        Ok(())
+    }
+
+    #[test]
+    fn admitted_release_evidence_closes_the_release_dimension() -> anyhow::Result<()> {
+        let dimensions = REQUIRED_EVIDENCE_DIMENSIONS
+            .into_iter()
+            .map(|dimension| {
+                let measured = BTreeMap::from([("state".to_string(), "present".to_string())]);
+                let thresholds = BTreeMap::from([("state".to_string(), "present".to_string())]);
+                let decision = if dimension == EvidenceDimension::Release {
+                    EvidenceDecision::missing(
+                        "qualification.release.fixture.v1",
+                        measured,
+                        thresholds,
+                        "release publication is absent",
+                    )
+                } else {
+                    EvidenceDecision::passed(
+                        "qualification.release.fixture.v1",
+                        measured,
+                        thresholds,
+                        "a".repeat(64),
+                        "fixture evidence passes",
+                    )
+                };
+                (dimension, decision)
+            })
+            .collect();
+        let assessment = QualificationAssessment::v3(
+            "samtools".to_string(),
+            ProductSupport::Supported,
+            ArtifactDelivery::RedistributableImage,
+            true,
+            ArtifactAvailability::Admitted,
+            PublicationDisposition::Current,
+            dimensions,
+        )?;
+        let sources = BTreeMap::from([(
+            "catalog".to_string(),
+            QualificationEvidenceSource {
+                uri: "repository://containers/contracts/catalog.toml".to_string(),
+                sha256: CATALOG_SHA256.to_string(),
+            },
+        )]);
+        let sources_sha256 = qualification_sources_sha256(&sources)?;
+        let assessments = vec![assessment];
+        let publication = derive_release_evidence(&ReleaseEvidenceDerivationRequest {
+            released_at_utc: "2026-08-10T12:00:00Z",
+            repository_commit: REPOSITORY_COMMIT,
+            catalog_sha256: CATALOG_SHA256,
+            qualification_sources_sha256: &sources_sha256,
+            assessments: &assessments,
+        })?;
+        let admitted = admit_release_evidence(
+            &publication,
+            PUBLICATION_SHA256,
+            REPOSITORY_COMMIT,
+            CATALOG_SHA256,
+            &sources_sha256,
+            &assessments,
+        )?;
+        let closed = apply_release_evidence(assessments, &admitted)?;
+        assert_eq!(
+            closed[0].dimensions[&EvidenceDimension::Release].verdict,
+            EvidenceVerdict::Passed
+        );
+        assert!(closed[0].claims.contains(&QualificationClaim::Qualified));
+        Ok(())
+    }
+
+    #[test]
+    fn release_publication_source_is_content_addressed_not_path_addressed() -> anyhow::Result<()> {
+        let dimensions = REQUIRED_EVIDENCE_DIMENSIONS
+            .into_iter()
+            .map(|dimension| {
+                let decision = if dimension == EvidenceDimension::Release {
+                    EvidenceDecision::missing(
+                        "qualification.release.fixture.v1",
+                        BTreeMap::from([("state".to_string(), "missing".to_string())]),
+                        BTreeMap::from([("state".to_string(), "present".to_string())]),
+                        "release publication is absent",
+                    )
+                } else {
+                    EvidenceDecision::passed(
+                        "qualification.release.fixture.v1",
+                        BTreeMap::from([("state".to_string(), "present".to_string())]),
+                        BTreeMap::from([("state".to_string(), "present".to_string())]),
+                        "a".repeat(64),
+                        "fixture evidence passes",
+                    )
+                };
+                (dimension, decision)
+            })
+            .collect();
+        let assessments = vec![QualificationAssessment::v3(
+            "samtools".to_string(),
+            ProductSupport::Supported,
+            ArtifactDelivery::RedistributableImage,
+            true,
+            ArtifactAvailability::Admitted,
+            PublicationDisposition::Current,
+            dimensions,
+        )?];
+        let publication = derive_release_evidence(&ReleaseEvidenceDerivationRequest {
+            released_at_utc: "2026-08-10T12:00:00Z",
+            repository_commit: REPOSITORY_COMMIT,
+            catalog_sha256: CATALOG_SHA256,
+            qualification_sources_sha256: &qualification_sources_sha256(&BTreeMap::from([(
+                "catalog".to_string(),
+                QualificationEvidenceSource {
+                    uri: "repository://containers/contracts/catalog.toml".to_string(),
+                    sha256: CATALOG_SHA256.to_string(),
+                },
+            )]))?,
+            assessments: &assessments,
+        })?;
+        let bytes = serde_json::to_vec(&publication)?;
+        let directory = tempfile::tempdir()?;
+        let path = directory.path().join("governed-release.json");
+        std::fs::write(&path, &bytes)?;
+
+        let (loaded, source) = load_release_publication(&path)?;
+        let expected_sha256 = bijux_dna_infra::hash_bytes_sha256(&bytes);
+        assert_eq!(loaded, publication);
+        assert_eq!(source.sha256, expected_sha256);
+        assert_eq!(source.uri, format!("evidence://release/{expected_sha256}"));
+        assert!(!source.uri.contains(&path.to_string_lossy().to_string()));
         Ok(())
     }
 }

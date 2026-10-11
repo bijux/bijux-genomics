@@ -20,8 +20,9 @@ const LUNARC_GOVERNANCE_PATH: &str = "containers/contracts/sites/lunarc.yml";
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ContainerCatalogValidation {
     pub tool_count: usize,
-    pub retained_count: usize,
-    pub unsupported_count: usize,
+    pub supported_count: usize,
+    pub redistributable_image_count: usize,
+    pub external_delivery_count: usize,
     pub unresolved_source_identities: usize,
     pub errors: Vec<String>,
 }
@@ -44,23 +45,25 @@ pub fn validate_container_catalog(repository_root: &Path) -> Result<ContainerCat
     validate_tools(repository_root, &catalog, &mut errors);
     validate_recipe_closure(repository_root, &catalog, &mut errors)?;
 
-    let retained_count = count_disposition(&catalog, "retained");
-    let unsupported_count = count_disposition(&catalog, "unsupported");
     let supported_count = catalog.tools.iter().filter(|tool| tool.is_product_supported()).count();
+    let redistributable_image_count =
+        catalog.tools.iter().filter(|tool| tool.is_redistributable_image()).count();
+    let external_delivery_count =
+        catalog.tools.iter().filter(|tool| tool.permits_external_artifact()).count();
     if catalog.tools.len() != 89
         || supported_count != 89
-        || retained_count != 85
-        || unsupported_count != 4
+        || redistributable_image_count != 85
+        || external_delivery_count != 4
     {
         errors.push(format!(
             "catalog roster must contain 89 supported tools, 85 redistributable images, and 4 external deliveries; observed {}, {}, {}, and {}",
-            catalog.tools.len(), supported_count, retained_count, unsupported_count
+            catalog.tools.len(), supported_count, redistributable_image_count, external_delivery_count
         ));
     }
     let unresolved_source_identities = catalog
         .tools
         .iter()
-        .filter(|tool| tool.legacy_support_disposition() == "retained")
+        .filter(|tool| tool.is_redistributable_image())
         .filter(|tool| {
             (tool.source_sha256.is_empty() || is_placeholder_digest(&tool.source_sha256))
                 && (tool.pinned_commit.is_empty() || is_placeholder_digest(&tool.pinned_commit))
@@ -70,8 +73,9 @@ pub fn validate_container_catalog(repository_root: &Path) -> Result<ContainerCat
     errors.dedup();
     Ok(ContainerCatalogValidation {
         tool_count: catalog.tools.len(),
-        retained_count,
-        unsupported_count,
+        supported_count,
+        redistributable_image_count,
+        external_delivery_count,
         unresolved_source_identities,
         errors,
     })
@@ -370,10 +374,6 @@ fn compare_closure(
 
 fn strings<const N: usize>(values: [&str; N]) -> BTreeSet<String> {
     values.into_iter().map(ToOwned::to_owned).collect()
-}
-
-fn count_disposition(catalog: &ContainerCatalog, disposition: &str) -> usize {
-    catalog.tools.iter().filter(|tool| tool.legacy_support_disposition() == disposition).count()
 }
 
 fn is_snake_component(value: &str) -> bool {

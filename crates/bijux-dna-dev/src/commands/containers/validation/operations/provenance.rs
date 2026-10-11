@@ -64,7 +64,10 @@ pub(in super::super::super) fn check_build_provenance(
         };
         let tool = registry_tool_id(row);
         if table_bool(row, "container")
-            && support.get(&tool).is_some_and(|(disposition, _)| disposition == "retained")
+            && support.get(&tool).is_some_and(|summary| {
+                summary.artifact_delivery
+                == bijux_dna_containers::evidence::ContainerArtifactDelivery::RedistributableImage
+            })
         {
             retained.insert(tool);
         }

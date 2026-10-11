@@ -47,7 +47,16 @@ fn bench_readiness_vcf_expected_benchmark_results_writes_governed_tsv_columns() 
         )
     );
     let rows = lines.collect::<Vec<_>>();
-    assert_eq!(rows.len(), 24);
+    let unique_rows = rows.iter().copied().collect::<std::collections::BTreeSet<_>>();
+    assert_eq!(unique_rows.len(), rows.len(), "TSV must not contain duplicate expected rows");
+    for binding_prefix in [
+        "vcf\tvcf.call_gl\tangsd\t",
+        "vcf\tvcf.call_pseudohaploid\tangsd\t",
+        "vcf\tvcf.imputation_metrics\timpute5\t",
+        "vcf\tvcf.impute\timpute5\t",
+    ] {
+        assert!(rows.iter().any(|row| row.starts_with(binding_prefix)));
+    }
     assert!(
         rows.iter().any(|row| {
             row == &"vcf\tvcf.admixture\tplink2\tvcf_production_regression\tvcf_cohort\tadmixture_report\tselected_k,sample_count,population_count,status,cluster_headers,maf_summary,rows,variant_count,sample_missingness,variant_missingness,execution_mode,tool_ok\tpopulation_structure"

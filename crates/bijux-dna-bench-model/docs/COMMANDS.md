@@ -26,6 +26,22 @@ not own CLI commands or process execution.
 | `validate-stage-report` | `contract::validate_stage_report` | Validate benchmark stage-report identity, execution design, tool evidence, comparability, metrics, and verdict. |
 | `validate-stage-report-alignment` | `contract::validate_stage_report_alignment` | Validate a stage report against its campaign and optional stage-interface authority. |
 | `validate-report-admission` | `contract::validate_report_admission` | Validate exact source bytes, canonical parsed-report identity, and the nested stage-report contract. |
+| `validate-container-report-portfolio-index` | `contract::validate_container_report_portfolio_index` | Validate report identity, checksummed file closure, summary counts, and conservative freshness promotion. |
+| `container-report-portfolio-index-schema` | `container_report_portfolio_index_schema` | Generate the persisted container report-portfolio JSON Schema from its Rust model. |
+| `validate-appraisal-report` | `contract::validate_appraisal_report` | Validate persisted appraisal identity, finding vocabulary and order, uniqueness, and exact summary closure. |
+| `appraisal-report-schema` | `appraisal_report_schema` | Generate the persisted benchmark-appraisal JSON Schema from its Rust model. |
+| `validate-hardening-queue-report` | `contract::validate_hardening_queue_report` | Validate deterministic queue allocation, canonical ordering, and grouped row/appraiser links. |
+| `hardening-queue-report-schema` | `hardening_queue_report_schema` | Generate the persisted hardening-queue JSON Schema from its Rust model. |
+| `validate-cross-benchmark-campaign-report` | `contract::validate_cross_benchmark_campaign_report` | Validate cross-domain campaign identity, selected-goal closure, nested evidence links, status semantics, and exact summary totals. |
+| `cross-benchmark-campaign-report-schema` | `cross_benchmark_campaign_report_schema` | Generate the persisted cross-domain benchmark-campaign JSON Schema from its Rust model. |
+| `validate-domain-benchmark-campaign-reports` | `validate_fastq_benchmark_campaign_report`, `validate_bam_benchmark_campaign_report`, `validate_vcf_benchmark_campaign_report`, `validate_hardening_benchmark_campaign_report` | Validate domain campaign identity, selected-goal closure, nested evidence links, status semantics, and exact summary totals. |
+| `domain-benchmark-campaign-report-schemas` | `fastq_benchmark_campaign_report_schema`, `bam_benchmark_campaign_report_schema`, `vcf_benchmark_campaign_report_schema`, `hardening_benchmark_campaign_report_schema` | Generate the four persisted domain and hardening campaign schemas from their Rust models. |
+| `validate-benchmark-matrix-report` | `contract::validate_benchmark_matrix_report` | Validate persisted matrix identity, unique rows, readiness semantics, surface matches, and exact summary closure. |
+| `benchmark-matrix-report-schema` | `benchmark_matrix_report_schema` | Generate the persisted benchmark-matrix JSON Schema from its Rust model. |
+| `validate-governed-data-catalog-snapshot-publication` | `contract::validate_governed_data_catalog_snapshot_publication` | Validate the versioned candidate-registry path, exact preserved/retained count closure, and embedded governed catalog registry. |
+| `validate-governed-data-catalog-registry-publication` | `contract::validate_governed_data_catalog_registry_publication` | Validate the versioned immutable registry path, digest, and embedded governed catalog registry. |
+| `validate-benchmark-campaign-report-publication` | `contract::validate_benchmark_campaign_report_publication` | Validate the versioned report paths, digests, campaign identity, presentation source, and overlay set. |
+| `publication-outcome-schemas` | `governed_data_catalog_snapshot_publication_schema`, `governed_data_catalog_registry_publication_schema`, `benchmark_campaign_report_publication_schema` | Generate schemas for the persisted outcomes returned by repository and campaign publication workflows. |
 | `validate-benchmark-run-definition` | `contract::validate_benchmark_run_definition` | Validate one versioned permanent run protocol and its explicit supersession lineage. |
 | `validate-benchmark-run-definition-revision` | `contract::validate_benchmark_run_definition_revision` | Require a same-run protocol version increase or a replacement run that explicitly supersedes the prior semantic stage protocol. |
 | `benchmark-run-definition-sha256` | `contract::benchmark_run_definition_sha256` | Derive the deterministic canonical SHA-256 identity of a valid run protocol. |
@@ -36,6 +52,8 @@ not own CLI commands or process execution.
 | `validate-attempt-record-v2` | `contract::validate_attempt_record_v2` | Validate permanent attempt identity, append-only transition order, Slurm jobs, terminal accounting, checksummed evidence, and terminal admission. |
 | `append-attempt-transition` | `contract::append_attempt_transition` | Append a legal transition without mutating the record when validation fails. |
 | `validate-cycle-status-v2` | `contract::validate_cycle_status_v2` | Validate cycle identity, retry lineage, and single-active-attempt ownership per run and tool. |
+| `validate-cycle-preparation` | `contract::validate_cycle_preparation` | Validate one versioned non-barrier preparation pass, including exact attempt, execution-spec, status, and outcome consistency. |
+| `validate-cycle-admission` | `contract::validate_cycle_admission` | Validate one versioned non-barrier evidence-admission pass, including exact attempt, evidence, status, and outcome consistency. |
 | `validate-attempt-archive` | `contract::validate_attempt_archive` | Validate identity-complete retained evidence for a failed or superseded historical attempt. |
 | `validate-observation` | `contract::validate_observation` | Validate one `BenchmarkObservation` before summarization. |
 | `validate-summary` | `contract::validate_summary` | Validate a `BenchmarkSummary` before persistence or comparison. |

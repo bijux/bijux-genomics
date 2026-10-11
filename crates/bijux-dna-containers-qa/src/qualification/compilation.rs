@@ -11,7 +11,7 @@ use bijux_dna_containers::api::{
 };
 use bijux_dna_core::ids::{StageId, ToolId};
 use bijux_dna_stage_contract::{
-    canonical_retained_tool_bindings, render_tool_command, ToolBinding, ToolBindingRenderContext,
+    canonical_tool_bindings, render_tool_command, ToolBinding, ToolBindingRenderContext,
 };
 use schemars::{schema_for, JsonSchema, Schema};
 use serde::{Deserialize, Serialize};
@@ -19,8 +19,8 @@ use serde_json::json;
 
 pub const QUALIFICATION_SPECIFICATION_SOURCE_SCHEMA_V1: &str =
     "bijux.container.qualification_specification_source.v1";
-pub const QUALIFICATION_SPECIFICATION_COVERAGE_SCHEMA_V1: &str =
-    "bijux.container.qualification_specification_coverage.v1";
+pub const QUALIFICATION_SPECIFICATION_COVERAGE_SCHEMA_V2: &str =
+    "bijux.container.qualification_specification_coverage.v2";
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct QualificationSpecificationCompilationRequest {
@@ -119,7 +119,7 @@ pub struct QualificationSpecificationCoverageUnit {
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct QualificationSpecificationCoverageSummary {
-    pub retained_tool_count: usize,
+    pub supported_tool_count: usize,
     pub binding_ready_count: usize,
     pub image_ready_count: usize,
     pub source_present_count: usize,
@@ -193,8 +193,10 @@ pub fn compile_container_qualification_specification(
         .iter()
         .find(|tool| tool.id == source.tool_id)
         .context("qualification tool is absent from the catalog")?;
-    if !catalog_tool.is_redistributable_image() || !catalog_tool.apptainer_supported {
-        bail!("qualification compiler accepts only retained distributable tools");
+    if !catalog_tool.is_product_supported()
+        || (!catalog_tool.apptainer_supported && !catalog_tool.permits_external_artifact())
+    {
+        bail!("qualification compiler requires a supported tool with an admitted delivery path");
     }
     let run = registry
         .runs
@@ -220,7 +222,7 @@ pub fn compile_container_qualification_specification(
         bail!("qualification source conflicts with its tool registry row");
     }
 
-    let bindings = canonical_retained_tool_bindings()?;
+    let bindings = canonical_tool_bindings()?;
     let binding = bindings
         .binding(&StageId::new(&run.stage_id), &ToolId::new(&source.tool_id))
         .context("qualification stage/tool binding is not implemented")?;
@@ -359,11 +361,13 @@ pub fn derive_qualification_specification_coverage(
     let catalog_sha256 = hash(&request.repository_root.join("containers/contracts/catalog.toml"))?;
     let registry_sha256 = hash(&request.registry_path)?;
     let inventory_sha256 = hash(&request.inventory_path)?;
-    let bindings = canonical_retained_tool_bindings()?;
+    let bindings = canonical_tool_bindings()?;
     let inventory_current = inventory.catalog_sha256 == catalog_sha256;
     let mut units = Vec::new();
-    for row in registry.tools.iter().filter(|row| row.support_disposition == "retained") {
-        let run_id = row.run_id.clone().context("retained qualification tool has no run ID")?;
+    for row in registry.tools.iter().filter(|row| {
+        row.product_support == bijux_dna_containers::api::ContainerProductSupport::Supported
+    }) {
+        let run_id = row.run_id.clone().context("supported qualification tool has no run ID")?;
         let binding_ready =
             bindings.binding(&StageId::new(&row.stage_id), &ToolId::new(&row.tool_id)).is_some();
         let image_ready = inventory_current && inventory_tool_is_ready(&inventory, &row.tool_id);
@@ -410,7 +414,7 @@ pub fn derive_qualification_specification_coverage(
         });
     }
     let summary = QualificationSpecificationCoverageSummary {
-        retained_tool_count: units.len(),
+        supported_tool_count: units.len(),
         binding_ready_count: units.iter().filter(|unit| unit.binding_ready).count(),
         image_ready_count: units.iter().filter(|unit| unit.image_ready).count(),
         source_present_count: units.iter().filter(|unit| unit.source_present).count(),
@@ -420,7 +424,7 @@ pub fn derive_qualification_specification_coverage(
             .count(),
     };
     Ok(QualificationSpecificationCoverage {
-        schema_version: QUALIFICATION_SPECIFICATION_COVERAGE_SCHEMA_V1.to_string(),
+        schema_version: QUALIFICATION_SPECIFICATION_COVERAGE_SCHEMA_V2.to_string(),
         catalog_sha256,
         registry_sha256,
         inventory_sha256,
@@ -816,6 +820,38 @@ mod tests {
         assert_eq!(pipeline.run.tool, "bedtools");
         assert!(pipeline.commands.real[2].contains("qualification-metrics.json"));
         assert_negative_refusals(&request, &source)?;
+
+        let mut external = source.clone();
+        external.run_id = "run-1094".to_string();
+        external.tool_id = "angsd".to_string();
+        external.negative_command[0] = "angsd".to_string();
+        let Err(error) = compile_container_qualification_specification(&request, &external) else {
+            anyhow::bail!("ANGSD lacks admitted external-artifact evidence in the test inventory");
+        };
+        assert!(!error.to_string().contains("retained distributable"));
+        Ok(())
+    }
+
+    #[test]
+    fn coverage_preserves_all_product_supported_tools() -> Result<()> {
+        let repository_root = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..");
+        let request = QualificationSpecificationCompilationRequest {
+            registry_path: repository_root.join("containers/contracts/qualification-runs.toml"),
+            inventory_path: repository_root.join("containers/reports/image-inventory.json"),
+            repository_root,
+        };
+        let sources = bijux_dna_infra::temp_dir("qualification-coverage-supported-tools")?;
+        let coverage = derive_qualification_specification_coverage(&request, sources.path())?;
+        assert_eq!(coverage.schema_version, QUALIFICATION_SPECIFICATION_COVERAGE_SCHEMA_V2);
+        assert_eq!(coverage.summary.supported_tool_count, 89);
+        for tool_id in ["angsd", "fastuniq", "impute5", "ngsbriggs"] {
+            let unit = coverage
+                .units
+                .iter()
+                .find(|unit| unit.tool_id == tool_id)
+                .context("licensed external tool is missing from coverage")?;
+            assert!(unit.binding_ready);
+        }
         Ok(())
     }
 

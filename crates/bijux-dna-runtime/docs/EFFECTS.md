@@ -9,7 +9,8 @@
   caller-declared benchmark roots.
 - Append runtime-owned JSONL event files.
 - Write bounded execution log captures provided by runner callers.
-- Acquire file locks for runtime journal and telemetry writes.
+- Acquire file locks with one attempt for runtime journal and telemetry writes; contention returns to the
+  caller without sleeping.
 - Read governed runtime profiles, registry files, fixtures, and declared artifact inputs.
 - Hash declared artifacts.
 - Record explicit timestamps through runtime contracts.

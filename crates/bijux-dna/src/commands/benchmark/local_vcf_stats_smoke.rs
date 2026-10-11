@@ -1,6 +1,6 @@
 use std::fs;
 use std::path::Path;
-use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
+use std::time::{Instant, SystemTime, UNIX_EPOCH};
 
 use anyhow::{anyhow, bail, Context, Result};
 use bijux_dna_domain_vcf::metrics::VcfStatsMetricsV1;
@@ -214,11 +214,9 @@ pub(crate) fn run_local_vcf_stats_smoke(
     validate_stage_result_manifest(&stage_result_manifest)?;
     bijux_dna_infra::atomic_write_json(&stage_result_manifest_path, &stage_result_manifest)?;
 
-    let _publish_lock = bijux_dna_infra::FileLock::acquire(
-        &repo_root.join(VCF_STATS_SMOKE_LOCK_PATH),
-        Duration::from_secs(30),
-    )
-    .context("acquire VCF stats smoke publish lock")?;
+    let _publish_lock =
+        bijux_dna_infra::FileLock::try_acquire(&repo_root.join(VCF_STATS_SMOKE_LOCK_PATH))
+            .context("acquire VCF stats smoke publish lock")?;
     if published_output_root.exists() {
         fs::remove_dir_all(&published_output_root)
             .with_context(|| format!("remove {}", published_output_root.display()))?;

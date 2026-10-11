@@ -391,6 +391,8 @@ fn sanitize_tsv(value: &str) -> String {
 mod tests {
     use std::path::PathBuf;
 
+    use crate::commands::benchmark::readiness::vcf_tool_serving_map::collect_vcf_tool_serving_map_rows;
+
     use super::{
         coverage_status_label, render_vcf_parser_fixture_coverage, VcfParserFixtureCoverageStatus,
         DEFAULT_VCF_PARSER_FIXTURE_COVERAGE_PATH, VCF_PARSER_FIXTURE_COVERAGE_SCHEMA_VERSION,
@@ -415,12 +417,25 @@ mod tests {
         assert_eq!(report.schema_version, VCF_PARSER_FIXTURE_COVERAGE_SCHEMA_VERSION);
         assert_eq!(report.output_path, DEFAULT_VCF_PARSER_FIXTURE_COVERAGE_PATH);
         assert_eq!(report.stage_count, 20);
-        assert_eq!(report.tool_count, 9);
-        assert_eq!(report.row_count, 24);
-        assert_eq!(report.covered_row_count, 24);
+        assert_eq!(
+            report.tool_count,
+            report
+                .rows
+                .iter()
+                .map(|row| row.tool_id.as_str())
+                .collect::<std::collections::BTreeSet<_>>()
+                .len()
+        );
+        let benchmark_ready_row_count = collect_vcf_tool_serving_map_rows()
+            .expect("collect VCF tool-serving rows")
+            .into_iter()
+            .filter(|row| row.benchmark_status == "benchmark_ready")
+            .count();
+        assert_eq!(report.row_count, benchmark_ready_row_count);
+        assert_eq!(report.covered_row_count, benchmark_ready_row_count);
         assert_eq!(report.missing_row_count, 0);
         assert!((report.parser_fixture_coverage_percent - 100.0).abs() < f64::EPSILON);
-        assert_eq!(report.coverage_status_counts.get("covered"), Some(&24));
+        assert_eq!(report.coverage_status_counts.get("covered"), Some(&benchmark_ready_row_count));
         assert!(report.rows.iter().all(|row| {
             row.schema_id.starts_with("bijux.schemas.bench.vcf-normalized-metrics.")
                 && row.parser_fixture_schema_id.starts_with("bijux.vcf.")

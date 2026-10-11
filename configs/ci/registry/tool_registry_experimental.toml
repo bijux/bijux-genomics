@@ -1,5 +1,5 @@
 # GENERATED - DO NOT EDIT - source: domain/** + containers/contracts/catalog.toml
-# source_commit: 8ac9ff518ae6c91938467194190d5b8856bf949c
+# source_commit: cece7ea6d55625167ea59e1d70494c12551efc85
 # domain_schema_version: bijux.domain.v1
 # Regenerate with: cargo run -p bijux-dna-domain-compiler --bin compile_domain_configs -- --domain-dir domain --configs-dir configs
 # schema_version = 1
@@ -14,7 +14,11 @@ id = "angsd"
 tool_id = "angsd"
 domain = "bam"
 domains = ["bam"]
-status = "unsupported"
+status = "supported"
+product_support = "supported"
+artifact_delivery = "external_artifact"
+redistribution_permitted = false
+external_artifact_supported = true
 stage_ids = ["bam.kinship", "bam.sex"]
 bindings = ["bam.kinship", "bam.sex"]
 tool_role = "transform"
@@ -48,7 +52,11 @@ id = "fastuniq"
 tool_id = "fastuniq"
 domain = "fastq"
 domains = ["fastq"]
-status = "unsupported"
+status = "supported"
+product_support = "supported"
+artifact_delivery = "external_artifact"
+redistribution_permitted = false
+external_artifact_supported = true
 stage_ids = ["fastq.remove_duplicates"]
 bindings = ["fastq.remove_duplicates"]
 tool_role = "transform"
@@ -82,7 +90,11 @@ id = "ngsbriggs"
 tool_id = "ngsbriggs"
 domain = "bam"
 domains = ["bam"]
-status = "unsupported"
+status = "supported"
+product_support = "supported"
+artifact_delivery = "external_artifact"
+redistribution_permitted = false
+external_artifact_supported = true
 stage_ids = ["bam.damage"]
 bindings = ["bam.damage"]
 tool_role = "transform"

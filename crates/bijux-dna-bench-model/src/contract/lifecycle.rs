@@ -9,16 +9,18 @@ use sha2::{Digest, Sha256};
 use crate::diagnostics::BenchError;
 use crate::model::{
     BenchmarkAttemptArchive, BenchmarkAttemptDisposition, BenchmarkAttemptRecordV2,
-    BenchmarkAttemptTransition, BenchmarkCampaignPlan, BenchmarkCycleStatusV2,
-    BenchmarkEvidenceReference, BenchmarkJobReference, BenchmarkLifecycleStatus,
-    BenchmarkRunIdentity, BenchmarkSchedulerAccounting, BenchmarkSchedulerEvidenceSource,
-    BenchmarkSchedulerObservation, BenchmarkSchedulerObservedState,
-    BenchmarkSchedulerTerminalState,
+    BenchmarkAttemptTransition, BenchmarkCampaignPlan, BenchmarkCycleAdmission,
+    BenchmarkCycleAdmissionState, BenchmarkCyclePreparation, BenchmarkCyclePreparationState,
+    BenchmarkCycleStatusV2, BenchmarkEvidenceReference, BenchmarkJobReference,
+    BenchmarkLifecycleStatus, BenchmarkRunIdentity, BenchmarkSchedulerAccounting,
+    BenchmarkSchedulerEvidenceSource, BenchmarkSchedulerObservation,
+    BenchmarkSchedulerObservedState, BenchmarkSchedulerTerminalState,
 };
 
 use super::{
     BENCHMARK_ATTEMPT_ARCHIVE_SCHEMA_V1, BENCHMARK_ATTEMPT_SCHEMA_V2,
-    BENCHMARK_CAMPAIGN_PLAN_SCHEMA_V1, BENCHMARK_CYCLE_STATUS_SCHEMA_V2,
+    BENCHMARK_CAMPAIGN_PLAN_SCHEMA_V1, BENCHMARK_CYCLE_ADMISSION_SCHEMA_V1,
+    BENCHMARK_CYCLE_PREPARATION_SCHEMA_V1, BENCHMARK_CYCLE_STATUS_SCHEMA_V2,
     BENCHMARK_SCHEDULER_OBSERVATION_SCHEMA_V1,
 };
 
@@ -241,6 +243,127 @@ pub fn validate_cycle_status_v2(cycle: &BenchmarkCycleStatusV2) -> Result<(), Be
             .ok_or_else(|| invalid("benchmark attempt supersedes an unknown attempt"))?;
         if !superseded.current_status().is_some_and(is_terminal) {
             return Err(invalid("benchmark attempt supersedes a nonterminal attempt"));
+        }
+    }
+    Ok(())
+}
+
+/// Validate one complete non-barrier benchmark preparation pass.
+///
+/// # Errors
+/// Returns an error for schema, campaign, timestamp, identity, execution-spec, or state drift.
+pub fn validate_cycle_preparation(
+    preparation: &BenchmarkCyclePreparation,
+) -> Result<(), BenchError> {
+    if preparation.schema_version != BENCHMARK_CYCLE_PREPARATION_SCHEMA_V1 {
+        return Err(invalid("benchmark cycle preparation schema mismatch"));
+    }
+    validate_component(&preparation.campaign_id, "preparation campaign_id")?;
+    let pass_prepared_at = parse_timestamp(&preparation.prepared_at_utc, "prepared_at_utc")?;
+    let mut identities = BTreeSet::new();
+    for unit in &preparation.units {
+        validate_attempt_identity(&unit.identity)?;
+        if unit.identity.campaign_id != preparation.campaign_id {
+            return Err(invalid("preparation unit campaign differs from preparation campaign"));
+        }
+        if !identities.insert((
+            unit.identity.run.run_id.as_str(),
+            unit.identity.tool_id.as_str(),
+            unit.identity.attempt_id.as_str(),
+        )) {
+            return Err(invalid("benchmark preparation duplicates an attempt identity"));
+        }
+        if let Some(spec) = &unit.execution_spec {
+            super::execution::validate_execution_spec(spec)?;
+            let spec_prepared_at = parse_timestamp(&spec.prepared_at_utc, "spec prepared_at_utc")?;
+            if spec.identity != unit.identity {
+                return Err(invalid("preparation execution spec differs from its unit identity"));
+            }
+            if spec_prepared_at > pass_prepared_at {
+                return Err(invalid("execution spec was prepared after its preparation pass"));
+            }
+        }
+        let valid = match unit.state {
+            BenchmarkCyclePreparationState::Prepared => {
+                unit.prior_status == Some(BenchmarkLifecycleStatus::Planned)
+                    && unit.current_status == Some(BenchmarkLifecycleStatus::Ready)
+                    && unit.execution_spec.is_some()
+                    && unit.error.is_none()
+            }
+            BenchmarkCyclePreparationState::AlreadyPrepared => {
+                unit.prior_status == Some(BenchmarkLifecycleStatus::Ready)
+                    && unit.current_status == Some(BenchmarkLifecycleStatus::Ready)
+                    && unit.execution_spec.is_some()
+                    && unit.error.is_none()
+            }
+            BenchmarkCyclePreparationState::NotReady => {
+                unit.current_status == unit.prior_status
+                    && unit.execution_spec.is_none()
+                    && unit.error.is_none()
+            }
+            BenchmarkCyclePreparationState::Failed => {
+                unit.execution_spec.is_none()
+                    && unit.error.as_deref().is_some_and(|value| !value.trim().is_empty())
+            }
+        };
+        if !valid {
+            return Err(invalid("benchmark preparation unit state is inconsistent"));
+        }
+    }
+    Ok(())
+}
+
+/// Validate one complete non-barrier benchmark evidence-admission pass.
+///
+/// # Errors
+/// Returns an error for schema, campaign, timestamp, identity, evidence, or state drift.
+pub fn validate_cycle_admission(admission: &BenchmarkCycleAdmission) -> Result<(), BenchError> {
+    if admission.schema_version != BENCHMARK_CYCLE_ADMISSION_SCHEMA_V1 {
+        return Err(invalid("benchmark cycle admission schema mismatch"));
+    }
+    validate_component(&admission.campaign_id, "admission campaign_id")?;
+    parse_timestamp(&admission.admitted_at_utc, "admitted_at_utc")?;
+    let mut identities = BTreeSet::new();
+    for unit in &admission.units {
+        validate_attempt_identity(&unit.identity)?;
+        if unit.identity.campaign_id != admission.campaign_id {
+            return Err(invalid("admission unit campaign differs from admission campaign"));
+        }
+        if !identities.insert((
+            unit.identity.run.run_id.as_str(),
+            unit.identity.tool_id.as_str(),
+            unit.identity.attempt_id.as_str(),
+        )) {
+            return Err(invalid("benchmark admission duplicates an attempt identity"));
+        }
+        if let Some(evidence) = &unit.evidence {
+            validate_evidence_reference(evidence)?;
+        }
+        let valid = match unit.state {
+            BenchmarkCycleAdmissionState::Admitted => {
+                unit.prior_status == Some(BenchmarkLifecycleStatus::Collecting)
+                    && unit.current_status == Some(BenchmarkLifecycleStatus::Passed)
+                    && unit.evidence.is_some()
+                    && unit.error.is_none()
+            }
+            BenchmarkCycleAdmissionState::AlreadyAdmitted => {
+                unit.prior_status == Some(BenchmarkLifecycleStatus::Passed)
+                    && unit.current_status == Some(BenchmarkLifecycleStatus::Passed)
+                    && unit.evidence.is_some()
+                    && unit.error.is_none()
+            }
+            BenchmarkCycleAdmissionState::NotReady => {
+                unit.current_status == unit.prior_status
+                    && unit.evidence.is_none()
+                    && unit.error.is_none()
+            }
+            BenchmarkCycleAdmissionState::Failed => {
+                unit.evidence.is_none()
+                    && unit.error.as_deref().is_some_and(|value| !value.trim().is_empty())
+            }
+        };
+        if !valid {
+            return Err(invalid("benchmark admission unit state is inconsistent"));
         }
     }
     Ok(())

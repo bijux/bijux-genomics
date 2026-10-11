@@ -26,6 +26,7 @@ metrics:
   - name: "damage_strategy_applied"
   - name: "damage_bias_before_after_summary"
 compatible_tools: ["bcftools"]
+single_tool_justification: "bcftools is the sole admitted backend that applies explicit damage-mask expressions while preserving a normalized VCF and auditable before/after site counts."
 defaults_source: "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md"
 assumptions:
   - "C>T/G>A and PMD thresholds are explicit and versioned."

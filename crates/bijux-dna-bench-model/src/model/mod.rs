@@ -3,10 +3,16 @@
 //! Must not perform IO or depend on repo/policy/compare logic.
 
 pub mod admission;
+pub mod appraisal;
+pub mod benchmark_matrix;
 pub mod campaign_engine;
+pub mod container_report_portfolio;
 pub mod corpus;
+pub mod cross_campaign;
 pub mod data_catalog_registry;
+pub mod data_fitness;
 pub mod data_portfolio_audit;
+pub mod domain_campaign;
 pub mod execution;
 pub mod graph;
 pub mod interfaces;
@@ -17,6 +23,7 @@ pub mod observation;
 pub mod planning;
 pub mod protocol;
 pub mod publication;
+pub mod publication_outcome;
 pub mod publication_registry;
 pub mod replay;
 pub mod report;
@@ -32,6 +39,18 @@ pub use admission::{
     BenchmarkExecutionAdmissionPublication, BenchmarkMetricAssessment, BenchmarkOutputFileEvidence,
 };
 #[allow(unused_imports)]
+pub use appraisal::{
+    appraisal_report_schema, hardening_queue_report_schema, AppraisalFinding, AppraisalReport,
+    AppraisalSummary, HardeningQueueEntry, HardeningQueueReport, APPRAISAL_REPORT_SCHEMA_V1,
+    HARDENING_QUEUE_REPORT_SCHEMA_V1,
+};
+#[allow(unused_imports)]
+pub use benchmark_matrix::{
+    benchmark_matrix_report_schema, BenchmarkMatrixReport, BenchmarkMatrixRow,
+    BenchmarkMatrixSummary, BenchmarkReadiness, BenchmarkSurfaceMatch,
+    BENCHMARK_MATRIX_REPORT_SCHEMA_V1,
+};
+#[allow(unused_imports)]
 pub use campaign_engine::{
     benchmark_admitted_case_observation_schema, benchmark_admitted_case_observation_set_schema,
     benchmark_admitted_case_observation_v2_schema, benchmark_case_aggregation_schema,
@@ -43,6 +62,12 @@ pub use campaign_engine::{
     BenchmarkCaseMatrixV1, BenchmarkCaseMatrixV2, BenchmarkCaseMeasurementPlanV1,
     BenchmarkCaseRepetitionObservationV1, BenchmarkCaseSciencePlanV1, BenchmarkCorpusSnapshotV1,
     BenchmarkDataSnapshotRoleV1, BenchmarkDataSnapshotV1,
+};
+#[allow(unused_imports)]
+pub use container_report_portfolio::{
+    container_report_portfolio_index_schema, ContainerIndexedReport, ContainerIndexedReportFile,
+    ContainerReportFreshness, ContainerReportPortfolioIndex, ContainerReportPortfolioSummary,
+    CONTAINER_REPORT_PORTFOLIO_INDEX_SCHEMA_V1,
 };
 #[allow(unused_imports)]
 pub use corpus::{
@@ -57,15 +82,43 @@ pub use corpus::{
     FastqReadLengthExpectations, TruthSetHook, TruthSetStatus,
 };
 #[allow(unused_imports)]
+pub use cross_campaign::{
+    cross_benchmark_campaign_report_schema, CrossBenchmarkCampaignReport,
+    CrossBenchmarkCampaignSummary, CrossBenchmarkGoalEntry, CrossMatrixRowRef, CrossScenario,
+    CROSS_BENCHMARK_CAMPAIGN_SCHEMA_V1,
+};
+#[allow(unused_imports)]
 pub use data_catalog_registry::{
     governed_data_catalog_registry_schema, GovernedDataCatalogRegistry,
     GovernedDataCatalogRegistryRecord, GovernedDataCatalogSnapshot,
+};
+#[allow(unused_imports)]
+pub use data_fitness::{
+    benchmark_data_fitness_rubric_schema, BenchmarkDataAccessRequirement,
+    BenchmarkDataFitnessDefaults, BenchmarkDataFitnessExceptionPolicy, BenchmarkDataFitnessProfile,
+    BenchmarkDataFitnessRubric, BenchmarkFitnessException, BenchmarkFitnessExceptionDimension,
+    BenchmarkStratificationRequirement, BenchmarkTruthEvidenceRequirement,
 };
 #[allow(unused_imports)]
 pub use data_portfolio_audit::{
     benchmark_data_portfolio_audit_schema, BenchmarkCorpusDataAudit, BenchmarkDataPortfolioAudit,
     BenchmarkDataPortfolioAuditSummary, BenchmarkDataSourceSpecIdentity,
     BenchmarkGovernedDataBinding, BenchmarkUnboundDataAsset,
+};
+#[allow(unused_imports)]
+pub use domain_campaign::{
+    bam_benchmark_campaign_report_schema, fastq_benchmark_campaign_report_schema,
+    hardening_benchmark_campaign_report_schema, vcf_benchmark_campaign_report_schema,
+    BamBenchmarkCampaignReport, BamBenchmarkCampaignSummary, BamBenchmarkGoalEntry,
+    BamMatrixRowRef, BamScenario, DomainBenchmarkCampaignSummary, DomainBenchmarkGoalEntry,
+    DomainBenchmarkMatrixRowRef, DomainBenchmarkScenario, FastqBenchmarkCampaignReport,
+    FastqBenchmarkCampaignSummary, FastqBenchmarkGoalEntry, FastqMatrixRowRef, FastqScenario,
+    HardeningBenchmarkCampaignReport, HardeningBenchmarkCampaignSummary,
+    HardeningBenchmarkGoalEntry, HardeningMatrixRowRef, HardeningScenario,
+    VcfBenchmarkCampaignReport, VcfBenchmarkCampaignSummary, VcfBenchmarkGoalEntry,
+    VcfMatrixRowRef, VcfScenario, BAM_BENCHMARK_CAMPAIGN_SCHEMA_V1,
+    FASTQ_BENCHMARK_CAMPAIGN_SCHEMA_V1, HARDENING_BENCHMARK_CAMPAIGN_SCHEMA_V1,
+    VCF_BENCHMARK_CAMPAIGN_SCHEMA_V1,
 };
 #[allow(unused_imports)]
 pub use execution::{
@@ -92,7 +145,8 @@ pub use interfaces::{
 #[allow(unused_imports)]
 pub use lifecycle::{
     benchmark_attempt_identity_schema, benchmark_attempt_migration_verification_schema,
-    benchmark_campaign_plan_schema, benchmark_scheduler_observation_schema,
+    benchmark_campaign_plan_schema, benchmark_cycle_admission_schema,
+    benchmark_cycle_preparation_schema, benchmark_scheduler_observation_schema,
     BenchmarkArchiveFileRecord, BenchmarkArchiveSourcePaths, BenchmarkAttemptArchive,
     BenchmarkAttemptDisposition, BenchmarkAttemptDocument, BenchmarkAttemptIdentity,
     BenchmarkAttemptMigrationEntry, BenchmarkAttemptMigrationExclusion,
@@ -100,7 +154,9 @@ pub use lifecycle::{
     BenchmarkAttemptMigrationPlan, BenchmarkAttemptMigrationState,
     BenchmarkAttemptMigrationVerification, BenchmarkAttemptMigrationVerificationEntry,
     BenchmarkAttemptRecord, BenchmarkAttemptRecordV2, BenchmarkAttemptTransition,
-    BenchmarkAttemptV1MigrationContext, BenchmarkCampaignPlan, BenchmarkCycleDocument,
+    BenchmarkAttemptV1MigrationContext, BenchmarkCampaignPlan, BenchmarkCycleAdmission,
+    BenchmarkCycleAdmissionState, BenchmarkCycleAdmissionUnit, BenchmarkCycleDocument,
+    BenchmarkCyclePreparation, BenchmarkCyclePreparationState, BenchmarkCyclePreparationUnit,
     BenchmarkCycleStatus, BenchmarkCycleStatusV2, BenchmarkEvidenceReference,
     BenchmarkJobReference, BenchmarkLifecycleStatus, BenchmarkRunIdentity,
     BenchmarkSchedulerAccounting, BenchmarkSchedulerEvidenceSource, BenchmarkSchedulerObservation,
@@ -148,6 +204,13 @@ pub use publication::{
     benchmark_publication_receipt_schema, BenchmarkCitationAssetIdentity, BenchmarkCitationRecord,
     BenchmarkCitationToolIdentity, BenchmarkEvidenceBook, BenchmarkEvidenceBookEntry,
     BenchmarkEvidenceBookStatus, BenchmarkPublicationReceipt,
+};
+#[allow(unused_imports)]
+pub use publication_outcome::{
+    benchmark_campaign_report_publication_schema,
+    governed_data_catalog_registry_publication_schema,
+    governed_data_catalog_snapshot_publication_schema, BenchmarkCampaignReportPublication,
+    GovernedDataCatalogRegistryPublication, GovernedDataCatalogSnapshotPublication,
 };
 #[allow(unused_imports)]
 pub use publication_registry::{

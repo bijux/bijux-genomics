@@ -10,6 +10,7 @@ pub const BENCHMARK_DATA_PORTFOLIO_AUDIT_SCHEMA_V1: &str =
     "bijux.benchmark.data_portfolio_audit.v1";
 pub const BENCHMARK_DATA_PORTFOLIO_AUDIT_SCHEMA_V2: &str =
     "bijux.benchmark.data_portfolio_audit.v2";
+pub const BENCHMARK_DATA_FITNESS_SCHEMA_V1: &str = "bijux.benchmark.data_fitness.v1";
 pub const CORPUS_ACQUISITION_SCHEMA_V1: &str = "bijux.benchmark.corpus_acquisition.v1";
 pub const CORPUS_ACQUISITION_SCHEMA_V2: &str = "bijux.benchmark.corpus_acquisition.v2";
 pub const FASTQ_CORPUS_SOURCE_SCHEMA_V1: &str = "bijux.benchmark.fastq_corpus_source.v1";
@@ -19,6 +20,12 @@ pub const BENCHMARK_CORPUS_MATERIALIZATION_PUBLICATION_SCHEMA_V1: &str =
 pub const GOVERNED_DATA_CATALOG_SCHEMA_V1: &str = "bijux.data_catalog.v1";
 pub const GOVERNED_DATA_CATALOG_SCHEMA_V2: &str = "bijux.data_catalog.v2";
 pub const GOVERNED_DATA_CATALOG_REGISTRY_SCHEMA_V1: &str = "bijux.data_catalog_registry.v1";
+pub const GOVERNED_DATA_CATALOG_SNAPSHOT_PUBLICATION_SCHEMA_V1: &str =
+    "bijux.data_catalog_snapshot_publication.v1";
+pub const GOVERNED_DATA_CATALOG_REGISTRY_PUBLICATION_SCHEMA_V1: &str =
+    "bijux.data_catalog_registry_publication.v1";
+pub const BENCHMARK_CAMPAIGN_REPORT_PUBLICATION_SCHEMA_V1: &str =
+    "bijux.benchmark.campaign_report_publication.v1";
 pub const OBSERVATION_SCHEMA_V1: &str = "bijux.bench.observation.v1";
 pub const SUMMARY_SCHEMA_V1: &str = "bijux.bench.summary.v1";
 pub const DECISION_SCHEMA_V1: &str = "bijux.bench.gate.v1";
@@ -33,6 +40,8 @@ pub const BENCHMARK_ATTEMPT_MIGRATION_VERIFICATION_SCHEMA_V1: &str =
     "bijux.benchmark.attempt_migration_verification.v1";
 pub const BENCHMARK_CYCLE_STATUS_SCHEMA_V1: &str = "bijux.benchmark.cycle_status.v1";
 pub const BENCHMARK_CYCLE_STATUS_SCHEMA_V2: &str = "bijux.benchmark.cycle_status.v2";
+pub const BENCHMARK_CYCLE_PREPARATION_SCHEMA_V1: &str = "bijux.benchmark.cycle_preparation.v1";
+pub const BENCHMARK_CYCLE_ADMISSION_SCHEMA_V1: &str = "bijux.benchmark.cycle_admission.v1";
 pub const BENCHMARK_CAMPAIGN_PLAN_SCHEMA_V1: &str = "bijux.benchmark.campaign_plan.v1";
 pub const BENCHMARK_RUN_DEFINITION_SCHEMA_V1: &str = "bijux.benchmark.run_definition.v1";
 pub const BENCHMARK_CASE_DEFINITION_SCHEMA_V1: &str = "bijux.benchmark.case_definition.v1";

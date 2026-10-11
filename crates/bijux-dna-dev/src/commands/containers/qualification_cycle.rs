@@ -8,7 +8,7 @@ use anyhow::{bail, Context};
 
 use super::{path_from_arg, write_utf8, ContainerCommandOutcome, Result, Workspace};
 
-const USAGE: &str = "Usage:\n  bijux-dna-dev containers cycle plan <registry> <publication-root> <submission-root> [<external-artifact-admission-root>] <observed-at-utc>\n  bijux-dna-dev containers cycle advance <registry> <publication-root> <submission-root> [<external-artifact-admission-root>] <observed-at-utc>\n  bijux-dna-dev containers cycle status <registry> <publication-root> <submission-root> [<external-artifact-admission-root>] <observed-at-utc>\n  bijux-dna-dev containers cycle collect <registry> <publication-root> <submission-root> [<external-artifact-admission-root>] <observed-at-utc>\n  bijux-dna-dev containers cycle book <runs-root> <json-output> <markdown-output>\n  bijux-dna-dev containers cycle replay <result-root> <empty-publication-root> <json-output> <markdown-output>";
+const USAGE: &str = "Usage:\n  bijux-dna-dev containers cycle plan <registry> <publication-root> <submission-root> [<external-artifact-admission-root>] <observed-at-utc>\n  bijux-dna-dev containers cycle advance <registry> <publication-root> <submission-root> [<external-artifact-admission-root>] <observed-at-utc>\n  bijux-dna-dev containers cycle status <registry> <publication-root> <submission-root> [<external-artifact-admission-root>] <observed-at-utc>\n  bijux-dna-dev containers cycle collect <registry> <publication-root> <submission-root> [<external-artifact-admission-root>] <observed-at-utc>\n  bijux-dna-dev containers cycle admit <registry> <publication-root> <submission-root> [<external-artifact-admission-root>] <observed-at-utc>\n  bijux-dna-dev containers cycle book <runs-root> <json-output> <markdown-output>\n  bijux-dna-dev containers cycle replay <result-root> <empty-publication-root> <json-output> <markdown-output>";
 
 pub(super) fn run(workspace: &Workspace, args: &[String]) -> Result<ContainerCommandOutcome> {
     let Some((operation, options)) = args.split_first() else {
@@ -22,6 +22,7 @@ pub(super) fn run(workspace: &Workspace, args: &[String]) -> Result<ContainerCom
         "advance" => scheduler_pass(workspace, options, SchedulerPass::Advance),
         "status" => scheduler_pass(workspace, options, SchedulerPass::Status),
         "collect" => scheduler_pass(workspace, options, SchedulerPass::Collect),
+        "admit" => scheduler_pass(workspace, options, SchedulerPass::Admit),
         "book" => book(workspace, options),
         "replay" => replay(workspace, options),
         _ => bail!(USAGE),
@@ -34,6 +35,7 @@ enum SchedulerPass {
     Advance,
     Status,
     Collect,
+    Admit,
 }
 
 fn scheduler_pass(
@@ -79,6 +81,9 @@ fn scheduler_pass(
         }
         SchedulerPass::Collect => {
             bijux_dna_runner::api::collect_container_qualification_cycle(&paths, &request)?
+        }
+        SchedulerPass::Admit => {
+            bijux_dna_runner::api::admit_container_qualification_cycle(&request)?
         }
     };
     json_out(&status)
@@ -172,7 +177,7 @@ mod tests {
     fn help_exposes_complete_non_waiting_surface() -> Result<()> {
         let workspace = Workspace { root: PathBuf::from("/workspace") };
         let output = run(&workspace, &["--help".to_string()])?;
-        for operation in ["plan", "advance", "status", "collect", "book", "replay"] {
+        for operation in ["plan", "advance", "status", "collect", "admit", "book", "replay"] {
             assert!(output.stdout.contains(operation));
         }
         Ok(())

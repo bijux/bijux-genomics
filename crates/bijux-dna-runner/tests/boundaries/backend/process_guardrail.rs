@@ -64,3 +64,29 @@ fn command_spawning_is_confined_to_runner_and_env_tooling() {
         offenders.join("\n")
     );
 }
+
+#[test]
+fn runner_scheduler_paths_do_not_sleep() {
+    let root = workspace_root().join("crates/bijux-dna-runner/src");
+    let mut offenders = Vec::new();
+
+    for entry in WalkDir::new(root).into_iter().filter_map(Result::ok) {
+        if !entry.file_type().is_file()
+            || entry.path().extension().and_then(|extension| extension.to_str()) != Some("rs")
+        {
+            continue;
+        }
+        let source = std::fs::read_to_string(entry.path())
+            .unwrap_or_else(|error| panic!("read {}: {error}", entry.path().display()));
+        let production = bijux_dna_testkit::workspace_support::strip_rust_test_modules(&source);
+        if production.contains("thread::sleep") || production.contains("std::thread::sleep") {
+            offenders.push(entry.path().display().to_string());
+        }
+    }
+
+    assert!(
+        offenders.is_empty(),
+        "runner scheduler and lifecycle paths must return without sleeping:\n{}",
+        offenders.join("\n")
+    );
+}

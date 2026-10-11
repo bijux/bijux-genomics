@@ -47,23 +47,23 @@ fn bench_readiness_stage_scoring_reports_governed_stage_decision_contracts() {
         payload.get("config_path").and_then(serde_json::Value::as_str),
         Some("configs/bench/local/stage-scoring.toml")
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(69));
-    assert_eq!(payload.get("multi_tool_stage_count").and_then(serde_json::Value::as_u64), Some(31));
+    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(71));
+    assert_eq!(payload.get("multi_tool_stage_count").and_then(serde_json::Value::as_u64), Some(36));
     assert_eq!(
         payload.get("single_tool_stage_count").and_then(serde_json::Value::as_u64),
-        Some(38)
+        Some(35)
     );
-    assert_eq!(payload.get("scientific_stage_count").and_then(serde_json::Value::as_u64), Some(29));
+    assert_eq!(payload.get("scientific_stage_count").and_then(serde_json::Value::as_u64), Some(28));
     assert_eq!(payload.get("failure_class_count").and_then(serde_json::Value::as_u64), Some(7));
 
     let domain_counts =
         payload.get("domain_counts").and_then(serde_json::Value::as_object).expect("domain counts");
     assert_eq!(domain_counts.get("fastq").and_then(serde_json::Value::as_u64), Some(27));
     assert_eq!(domain_counts.get("bam").and_then(serde_json::Value::as_u64), Some(24));
-    assert_eq!(domain_counts.get("vcf").and_then(serde_json::Value::as_u64), Some(18));
+    assert_eq!(domain_counts.get("vcf").and_then(serde_json::Value::as_u64), Some(20));
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
-    assert_eq!(rows.len(), 69);
+    assert_eq!(rows.len(), 71);
 
     let validate_reads = rows
         .iter()
@@ -204,6 +204,6 @@ fn bench_readiness_stage_scoring_validation_reports_governed_config_contract() {
         payload.get("config_path").and_then(serde_json::Value::as_str),
         Some("configs/bench/local/stage-scoring.toml")
     );
-    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(69));
-    assert_eq!(payload.get("scientific_stage_count").and_then(serde_json::Value::as_u64), Some(29));
+    assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(71));
+    assert_eq!(payload.get("scientific_stage_count").and_then(serde_json::Value::as_u64), Some(28));
 }

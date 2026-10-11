@@ -42,6 +42,10 @@ pub fn run_native_check(
         NativeCheckKey::CiAutomationSurface => {
             automation_boundary::check_ci_automation_surface(workspace, check)
         }
+        NativeCheckKey::CiBuildAuthority => repo_checks::check_ci_build_authority(workspace, check),
+        NativeCheckKey::CiDependencyGraph => {
+            repo_checks::check_ci_dependency_graph(workspace, check)
+        }
         NativeCheckKey::ClippyAllowlistExpiry => {
             repo_checks::check_clippy_allowlist_expiry(workspace, check)
         }
@@ -82,6 +86,7 @@ pub fn run_native_check(
             automation_boundary::check_automation_network_usage(workspace, check)
         }
         NativeCheckKey::NoFakeArtifacts => repo_checks::check_no_fake_artifacts(workspace, check),
+        NativeCheckKey::NoWaitGate => repo_checks::check_no_wait_gate(workspace, check),
         NativeCheckKey::LegacyAutomationReferences => {
             automation_boundary::check_legacy_automation_references(workspace, check)
         }

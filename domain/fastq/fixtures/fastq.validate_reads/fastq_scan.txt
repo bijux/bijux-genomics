@@ -2,7 +2,6 @@ tool=fastq_scan
 tool_version=pinned
 stage=fastq.validate_reads
 domain=fastq
-shipping=external
 fixture_kind=truth
 command=fastq_scan
 args=

@@ -18,6 +18,30 @@ struct ExplicitVcfBenchmarkBinding {
 
 const EXPLICIT_VCF_BENCHMARK_BINDINGS: &[ExplicitVcfBenchmarkBinding] = &[
     ExplicitVcfBenchmarkBinding {
+        stage: VcfDomainStage::CallGl,
+        tool_id: "angsd",
+        corpus_id: "vcf_production_regression",
+        asset_profile_id: "bam_bundle",
+    },
+    ExplicitVcfBenchmarkBinding {
+        stage: VcfDomainStage::CallPseudohaploid,
+        tool_id: "angsd",
+        corpus_id: "vcf_production_regression",
+        asset_profile_id: "bam_bundle",
+    },
+    ExplicitVcfBenchmarkBinding {
+        stage: VcfDomainStage::ImputationMetrics,
+        tool_id: "impute5",
+        corpus_id: "vcf_production_regression",
+        asset_profile_id: "vcf_cohort_with_panel",
+    },
+    ExplicitVcfBenchmarkBinding {
+        stage: VcfDomainStage::Impute,
+        tool_id: "impute5",
+        corpus_id: "vcf_production_regression",
+        asset_profile_id: "vcf_cohort_with_panel",
+    },
+    ExplicitVcfBenchmarkBinding {
         stage: VcfDomainStage::Qc,
         tool_id: "bcftools",
         corpus_id: "vcf_production_regression",
@@ -70,7 +94,25 @@ pub(crate) fn collect_vcf_benchmark_binding_rows() -> Result<Vec<VcfStageMatrixR
             "VCF benchmark bindings must keep exactly one row per stage/tool/corpus/asset binding"
         ));
     }
+    ensure_licensed_external_bindings(&rows)?;
     Ok(rows)
+}
+
+fn ensure_licensed_external_bindings(rows: &[VcfStageMatrixRow]) -> Result<()> {
+    for (stage, tool_id) in [
+        (VcfDomainStage::CallGl, "angsd"),
+        (VcfDomainStage::CallPseudohaploid, "angsd"),
+        (VcfDomainStage::ImputationMetrics, "impute5"),
+        (VcfDomainStage::Impute, "impute5"),
+    ] {
+        if !rows.iter().any(|row| row.stage_id == stage.as_str() && row.tool_id == tool_id) {
+            return Err(anyhow!(
+                "VCF benchmark bindings are missing supported licensed external binding `{}` / `{tool_id}`",
+                stage.as_str()
+            ));
+        }
+    }
+    Ok(())
 }
 
 pub(crate) fn collect_vcf_qc_benchmark_binding_rows() -> Result<Vec<VcfStageMatrixRow>> {
@@ -121,4 +163,28 @@ fn explicit_vcf_benchmark_binding_rows() -> Result<Vec<VcfStageMatrixRow>> {
             })
         })
         .collect()
+}
+
+#[cfg(test)]
+mod tests {
+    use std::collections::BTreeSet;
+
+    use super::collect_vcf_benchmark_binding_rows;
+
+    #[test]
+    fn licensed_external_tools_remain_in_supported_vcf_bindings() {
+        let observed = collect_vcf_benchmark_binding_rows()
+            .expect("collect VCF benchmark bindings")
+            .into_iter()
+            .map(|row| (row.stage_id, row.tool_id))
+            .collect::<BTreeSet<_>>();
+        let expected = BTreeSet::from([
+            ("vcf.call_gl".to_string(), "angsd".to_string()),
+            ("vcf.call_pseudohaploid".to_string(), "angsd".to_string()),
+            ("vcf.imputation_metrics".to_string(), "impute5".to_string()),
+            ("vcf.impute".to_string(), "impute5".to_string()),
+        ]);
+
+        assert!(expected.is_subset(&observed));
+    }
 }

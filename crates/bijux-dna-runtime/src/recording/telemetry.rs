@@ -1,6 +1,5 @@
 use std::io::Write;
 use std::path::Path;
-use std::time::Duration;
 
 use anyhow::{Context, Result};
 
@@ -10,11 +9,8 @@ pub fn write_telemetry_event(path: &Path, event: &crate::TelemetryEventV1) -> Re
     if let Some(parent) = path.parent() {
         bijux_dna_infra::ensure_dir(parent).context("create telemetry dir")?;
     }
-    let _lock = bijux_dna_infra::FileLock::acquire(
-        &path.with_extension("jsonl.lock"),
-        Duration::from_secs(5),
-    )
-    .context("acquire telemetry jsonl lock")?;
+    let _lock = bijux_dna_infra::FileLock::try_acquire(&path.with_extension("jsonl.lock"))
+        .context("acquire telemetry jsonl lock")?;
     let line = bijux_dna_core::contract::canonical::to_canonical_json_bytes(event)?;
     std::fs::OpenOptions::new()
         .create(true)

@@ -1,0 +1,270 @@
+{
+  "$defs": {
+    "AppraisalFinding": {
+      "additionalProperties": false,
+      "properties": {
+        "appraiser_id": {
+          "type": "string"
+        },
+        "confidence": {
+          "type": "string"
+        },
+        "failure_class": {
+          "type": "string"
+        },
+        "recommendation": {
+          "type": "string"
+        },
+        "result_scope": {
+          "type": "string"
+        },
+        "row_id": {
+          "type": "string"
+        },
+        "severity": {
+          "type": "string"
+        },
+        "summary": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "appraiser_id",
+        "row_id",
+        "severity",
+        "confidence",
+        "failure_class",
+        "result_scope",
+        "summary",
+        "recommendation"
+      ],
+      "type": "object"
+    },
+    "DomainBenchmarkCampaignSummary": {
+      "additionalProperties": false,
+      "properties": {
+        "status_counts": {
+          "additionalProperties": {
+            "format": "uint",
+            "minimum": 0,
+            "type": "integer"
+          },
+          "type": "object"
+        },
+        "total_findings": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "total_goals": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "total_queue_entries": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "total_rows": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "total_goals",
+        "total_rows",
+        "total_findings",
+        "total_queue_entries",
+        "status_counts"
+      ],
+      "type": "object"
+    },
+    "DomainBenchmarkGoalEntry": {
+      "additionalProperties": false,
+      "properties": {
+        "appraisal_findings": {
+          "items": {
+            "$ref": "#/$defs/AppraisalFinding"
+          },
+          "type": "array"
+        },
+        "goal_checks": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "goal_id": {
+          "type": "string"
+        },
+        "hardening_entries": {
+          "items": {
+            "$ref": "#/$defs/HardeningQueueEntry"
+          },
+          "type": "array"
+        },
+        "matched_rows": {
+          "items": {
+            "$ref": "#/$defs/DomainBenchmarkMatrixRowRef"
+          },
+          "type": "array"
+        },
+        "scenarios": {
+          "items": {
+            "$ref": "#/$defs/DomainBenchmarkScenario"
+          },
+          "type": "array"
+        },
+        "stage_ids": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "status": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "goal_id",
+        "title",
+        "stage_ids",
+        "scenarios",
+        "matched_rows",
+        "appraisal_findings",
+        "hardening_entries",
+        "goal_checks",
+        "status"
+      ],
+      "type": "object"
+    },
+    "DomainBenchmarkMatrixRowRef": {
+      "additionalProperties": false,
+      "properties": {
+        "readiness_class": {
+          "type": "string"
+        },
+        "repetitions": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "row_id": {
+          "type": "string"
+        },
+        "stage_id": {
+          "type": "string"
+        },
+        "tool_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "row_id",
+        "stage_id",
+        "tool_id",
+        "readiness_class",
+        "repetitions"
+      ],
+      "type": "object"
+    },
+    "DomainBenchmarkScenario": {
+      "additionalProperties": false,
+      "properties": {
+        "focus": {
+          "type": "string"
+        },
+        "scenario_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "scenario_id",
+        "focus"
+      ],
+      "type": "object"
+    },
+    "HardeningQueueEntry": {
+      "additionalProperties": false,
+      "properties": {
+        "affected_rows": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "failure_class": {
+          "type": "string"
+        },
+        "queue_id": {
+          "type": "string"
+        },
+        "recommendation": {
+          "type": "string"
+        },
+        "severity": {
+          "type": "string"
+        },
+        "source_appraisers": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "queue_id",
+        "severity",
+        "failure_class",
+        "recommendation",
+        "affected_rows",
+        "source_appraisers"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "campaign_id": {
+      "type": "string"
+    },
+    "domain": {
+      "type": "string"
+    },
+    "entries": {
+      "items": {
+        "$ref": "#/$defs/DomainBenchmarkGoalEntry"
+      },
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "bijux.hpc.hardening_benchmark_campaign.v1",
+      "type": "string"
+    },
+    "selected_goals": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "summary": {
+      "$ref": "#/$defs/DomainBenchmarkCampaignSummary"
+    }
+  },
+  "required": [
+    "schema_version",
+    "campaign_id",
+    "domain",
+    "selected_goals",
+    "summary",
+    "entries"
+  ],
+  "title": "HardeningBenchmarkCampaignReport",
+  "type": "object"
+}

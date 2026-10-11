@@ -1,5 +1,4 @@
 tool=glimpse
-shipping=external
 tool_version=pinned
 stage=vcf.impute
 domain=vcf

@@ -14,6 +14,15 @@ contains only executable campaigns whose complete tool closure, inputs,
 parameters, resource measurements, quality metrics, interpretation, and
 limitations have been reviewed.
 
+`data-fitness.toml` is the machine-evaluable corpus fitness policy for every
+scientific profile in `portfolio.toml`. It sets minimum real-sample, case,
+study, and input-scale requirements; requires representative layouts, truth,
+controls, contamination or damage treatment, ancestry treatment, access
+identity, bias assessment, and limitations; and permits a reduced minimum only
+through an explicit, claim-restricted scientific exception. Checked-in
+planning and governed data audits reject drift between the rubric and the
+portfolio profile universe.
+
 `run-registry.json` is the generated permanent namespace authority for
 `run-2001` through `run-2071`. It records lifecycle, retained-tool closure,
 scientific profile and corpus roles, interface contracts, supersession fields,
@@ -76,6 +85,43 @@ The checked `suite`, `corpus`, `bundle`, `observation`, `summary`, and `decision
 schemas are also generated from `bijux-dna-bench-model`. `GateDecision` is the
 only persisted decision record; schema changes must originate in the model
 crate and pass its generated-schema drift tests.
+
+`schemas/cycle-preparation.schema.json` and
+`schemas/cycle-admission.schema.json` define the persisted results of one
+non-barrier lifecycle pass. They preserve every independent attempt outcome
+without making an aggregate campaign result a scheduling barrier.
+
+`schemas/benchmark-matrix-report.schema.json` defines the persisted readiness
+matrix consumed by campaign planning and appraisal. The model crate owns its
+version, row and summary invariants; command surfaces only adapt inputs and
+render the validated record.
+
+`schemas/appraisal-report.schema.json` and
+`schemas/hardening-queue-report.schema.json` define the admitted findings and
+deterministic remediation queue derived from that matrix. The benchmark model
+owns their versions, vocabulary, ordering, identity, and exact aggregate
+closure; the benchmark workflow owns derivation and atomic publication.
+
+`schemas/cross-benchmark-campaign-report.schema.json` defines the persisted
+cross-domain goal selection, scenario and matrix-row references, appraisal and
+hardening subsets, and exact campaign summary. The benchmark model owns its
+version and admission rules; command surfaces only adapt arguments and render
+validated records.
+
+`schemas/fastq-benchmark-campaign-report.schema.json`,
+`schemas/bam-benchmark-campaign-report.schema.json`,
+`schemas/vcf-benchmark-campaign-report.schema.json`, and
+`schemas/hardening-benchmark-campaign-report.schema.json` define the persisted
+domain and portfolio-hardening campaign records. The benchmark model owns their
+versions, selected-goal closure, nested evidence references, status semantics,
+and exact summaries; command surfaces only derive and render admitted records.
+
+`schemas/governed-data-catalog-snapshot-publication.schema.json`,
+`schemas/governed-data-catalog-registry-publication.schema.json`, and
+`schemas/campaign-report-publication.schema.json` define the versioned outcomes
+of catalog preservation, catalog admission, and campaign report publication.
+The benchmark workflow owns filesystem effects; the model crate owns their
+persisted identities and admission rules.
 
 All benchmark model schemas are generated into `schemas/`. The separate
 `benchmarks/schemas/` tree owns only domain-normalized metric contracts and must

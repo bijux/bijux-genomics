@@ -37,7 +37,8 @@ fn run_cli_json(args: &[&str]) -> serde_json::Value {
 }
 
 #[test]
-fn bench_readiness_full_benchmark_result_collector_merges_all_governed_surfaces() {
+fn bench_readiness_full_benchmark_result_collector_merges_all_governed_surfaces(
+) -> anyhow::Result<()> {
     let payload =
         run_cli_json(&["bench", "readiness", "render-full-benchmark-result-collector", "--json"]);
 
@@ -94,7 +95,7 @@ fn bench_readiness_full_benchmark_result_collector_merges_all_governed_surfaces(
         Some(true)
     );
 
-    let surface_kind_counts = support::json_object(&payload, "surface_kind_counts");
+    let surface_kind_counts = support::json_object(&payload, "surface_kind_counts")?;
     assert_eq!(
         surface_kind_counts.get("benchmark_expected").and_then(serde_json::Value::as_u64),
         Some(benchmark_expected_row_count)
@@ -126,7 +127,7 @@ fn bench_readiness_full_benchmark_result_collector_merges_all_governed_surfaces(
     );
     assert_eq!(support::object_u64_sum(surface_kind_counts), row_count);
 
-    let result_status_counts = support::json_object(&payload, "result_status_counts");
+    let result_status_counts = support::json_object(&payload, "result_status_counts")?;
     assert_eq!(
         result_status_counts.get("expected").and_then(serde_json::Value::as_u64),
         Some(benchmark_expected_row_count)
@@ -152,13 +153,13 @@ fn bench_readiness_full_benchmark_result_collector_merges_all_governed_surfaces(
         Some(1)
     );
 
-    let domain_counts = support::json_object(&payload, "domain_counts");
+    let domain_counts = support::json_object(&payload, "domain_counts")?;
     assert_eq!(domain_counts.get("fastq").and_then(serde_json::Value::as_u64), Some(306));
     assert_eq!(domain_counts.get("bam").and_then(serde_json::Value::as_u64), Some(228));
     assert_eq!(domain_counts.get("vcf").and_then(serde_json::Value::as_u64), Some(133));
     assert_eq!(support::object_u64_sum(domain_counts), row_count);
 
-    let rows = support::json_array(&payload, "rows");
+    let rows = support::json_array(&payload, "rows")?;
     assert_eq!(rows.len() as u64, row_count);
 
     let record_ids = rows
@@ -250,4 +251,5 @@ fn bench_readiness_full_benchmark_result_collector_merges_all_governed_surfaces(
         real_smoke_bridge.get("detail").and_then(serde_json::Value::as_str),
         Some("governed real-smoke pipeline bridge execution")
     );
+    Ok(())
 }

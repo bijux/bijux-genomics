@@ -6,9 +6,9 @@ use std::path::{Component, Path, PathBuf};
 use anyhow::{bail, Context, Result};
 
 use super::{
-    validate_container_inventory_catalog, validate_image_inventory_publication, ContainerCatalog,
-    ContainerImageInventoryPublication, ContainerImageState, ContainerSupportDisposition,
-    ImageCandidateDisposition,
+    validate_container_inventory_catalog, validate_image_inventory_publication,
+    ContainerArtifactDelivery, ContainerCatalog, ContainerImageInventoryPublication,
+    ContainerImageState, ImageCandidateDisposition,
 };
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -62,16 +62,16 @@ fn resolve_current_apptainer_image(
         .iter()
         .find(|tool| tool.tool == tool_id)
         .with_context(|| format!("image inventory does not declare tool {tool_id}"))?;
-    if tool.support_disposition != ContainerSupportDisposition::Retained
+    if tool.artifact_delivery != ContainerArtifactDelivery::RedistributableImage
         || tool.state != ContainerImageState::Current
         || !tool.apptainer_supported
     {
-        bail!("tool {tool_id} has no current retained Apptainer image");
+        bail!("tool {tool_id} has no current redistributable Apptainer image");
     }
     let selected_sha256 = tool
         .selected_image_sha256
         .as_deref()
-        .context("current retained tool has no selected image digest")?;
+        .context("current redistributable-image tool has no selected image digest")?;
     let candidate = tool
         .candidates
         .iter()

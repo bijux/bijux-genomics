@@ -4,10 +4,12 @@
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-pub const QUALIFICATION_RUN_REGISTRY_SCHEMA_V2: &str =
-    "bijux.container.qualification_run_registry.v2";
-pub const QUALIFICATION_RUN_ID_AUDIT_SCHEMA_V2: &str =
-    "bijux.container.qualification_run_id_audit.v2";
+use crate::evidence::tool_contract::{ContainerArtifactDelivery, ContainerProductSupport};
+
+pub const QUALIFICATION_RUN_REGISTRY_SCHEMA_V3: &str =
+    "bijux.container.qualification_run_registry.v3";
+pub const QUALIFICATION_RUN_ID_AUDIT_SCHEMA_V3: &str =
+    "bijux.container.qualification_run_id_audit.v3";
 pub const CONTAINER_RUN_INDEX_SCHEMA_V1: &str = "bijux.container.run_index.v1";
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
@@ -109,7 +111,9 @@ pub struct QualificationRunDefinition {
 #[serde(deny_unknown_fields)]
 pub struct QualificationRunRegistryEntry {
     pub tool_id: String,
-    pub support_disposition: String,
+    pub product_support: ContainerProductSupport,
+    pub artifact_delivery: ContainerArtifactDelivery,
+    pub redistribution_permitted: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub run_id: Option<String>,
     pub stage_id: String,
@@ -131,8 +135,9 @@ pub struct QualificationRunIdAudit {
     pub observed_historical_run_count: usize,
     pub reserved_run_count: usize,
     pub historical_max_run_number: u64,
-    pub retained_mapping_count: usize,
-    pub unsupported_tool_count: usize,
+    pub supported_tool_count: usize,
+    pub redistributable_tool_count: usize,
+    pub external_artifact_tool_count: usize,
     pub allocated_mapping_count: usize,
     pub historical_identities: Vec<QualificationHistoricalRunIdentity>,
     pub reserved_run_ids: Vec<QualificationRunIdTombstone>,
@@ -158,7 +163,9 @@ pub struct QualificationRunIdTombstone {
 #[serde(deny_unknown_fields)]
 pub struct QualificationRunIdAuditRow {
     pub tool_id: String,
-    pub support_disposition: String,
+    pub product_support: ContainerProductSupport,
+    pub artifact_delivery: ContainerArtifactDelivery,
+    pub redistribution_permitted: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub run_id: Option<String>,
     pub identity_source: String,

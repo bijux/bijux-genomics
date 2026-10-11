@@ -5,7 +5,6 @@ use std::fs;
 use std::os::unix::fs::PermissionsExt as _;
 use std::path::Path;
 use std::process::Command;
-use std::time::Duration;
 
 use anyhow::{bail, Context, Result};
 use bijux_dna_containers::api::{
@@ -55,9 +54,6 @@ fn canonical_publication_closes_build_inspection_and_inventory_identity() -> Res
             tool_id: "contract_tool".to_string(),
             architecture: "linux/amd64".to_string(),
             apptainer_executable: executable,
-            maximum_build_invocations: 1,
-            retry_delay: Duration::ZERO,
-            lock_timeout: Duration::from_secs(1),
             destination: CanonicalApptainerImageDestination::CommitCampaign,
             campaign_scope: None,
         });
@@ -168,8 +164,9 @@ id = "contract_tool"
 display_name = "Contract Tool"
 purpose = "contract fixture"
 version = "1.0"
-support_disposition = "retained"
-support_reason = ""
+product_support = "supported"
+artifact_delivery = "redistributable_image"
+redistribution_permitted = true
 upstream = "https://example.invalid"
 documentation = "https://example.invalid/docs"
 license = "MIT"
