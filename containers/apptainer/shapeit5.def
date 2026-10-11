@@ -1,0 +1,68 @@
+# Container recipe license: GPL-3.0-only.
+# This container recipe is maintained by Bijux Genomics.
+# Bijux Genomics source code is licensed under Apache-2.0.
+# Copyright (C) 2026 Bijan Mousavi
+# Tool ID: shapeit5
+# Version policy: verified official repository commit and archive digest
+# Upstream source: https://github.com/odelaneau/shapeit
+# Build date policy: captured by immutable build evidence
+# Network source policy: build-only access to the locked Ubuntu snapshot and source archive
+# Runtime UID policy: non-root runtime with caller-owned output paths
+# VERSION_SOURCE: containers/contracts/catalog.toml
+
+Bootstrap: docker
+From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
+
+%labels
+    org.opencontainers.image.source https://github.com/odelaneau/shapeit
+    org.opencontainers.image.title SHAPEIT5
+    org.opencontainers.image.revision c34d4db3e99a2f7e23deb727671ae260901a5886
+    org.opencontainers.image.created governed-by-build-evidence
+    org.opencontainers.image.licenses MIT
+    org.opencontainers.image.version 5.1.1
+    org.opencontainers.image.tool shapeit5
+
+%environment
+    export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+    export LC_ALL=C
+    export TZ=UTC
+
+%files
+    containers/tools/shapeit5/shapeit5 /usr/local/bin/shapeit5
+
+%post
+    set -eux
+    umask 022
+    export DEBIAN_FRONTEND=noninteractive
+    sed -i 's#http://archive.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubuntu/20260802T000000Z/#g; s#http://security.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubuntu/20260802T000000Z/#g' /etc/apt/sources.list.d/ubuntu.sources
+    apt-get -o Acquire::https::Verify-Peer=false -o Acquire::Check-Valid-Until=false update
+    apt-get -o Acquire::https::Verify-Peer=false install -y --no-install-recommends ca-certificates
+    apt-get -o Acquire::Check-Valid-Until=false update
+    apt-get install -y --no-install-recommends build-essential curl libboost-iostreams-dev libboost-program-options-dev libboost-serialization-dev libbz2-dev libcurl4-gnutls-dev libdeflate-dev libhts-dev liblzma-dev libssl-dev zlib1g-dev
+    curl --fail --location --silent --show-error --output /opt/shapeit5.tar.gz https://github.com/odelaneau/shapeit/archive/c34d4db3e99a2f7e23deb727671ae260901a5886.tar.gz
+    echo 'dcdad851e86ba01d8ddbf330e426f97c16e40cf64950dfd25d0641f1cd5f61f8  /opt/shapeit5.tar.gz' | sha256sum --check --strict
+    mkdir /opt/shapeit5
+    tar --extract --gzip --file /opt/shapeit5.tar.gz --directory /opt/shapeit5 --strip-components 1
+    for project in phase_common phase_rare ligate switch xcftools; do
+        make --directory "/opt/shapeit5/${project}" -j"$(nproc)" COMMIT_VERS=c34d4db3 COMMIT_DATE=2026-05-19 HTSLIB_INC=/usr/include HTSLIB_LIB=-lhts BOOST_INC=/usr/include BOOST_LIB_IO=-lboost_iostreams BOOST_LIB_PO=-lboost_program_options BOOST_LIB_SE=-lboost_serialization
+    done
+    install -d -m 0755 /usr/local/libexec/shapeit5
+    for project in phase_common phase_rare ligate switch xcftools; do
+        install -m 0755 "/opt/shapeit5/${project}/bin/${project}" "/usr/local/libexec/shapeit5/${project}"
+    done
+    chmod 0755 /usr/local/bin/shapeit5
+    shapeit5 --version | grep -Fx 'shapeit5 5.1.1 (commit c34d4db3e99a2f7e23deb727671ae260901a5886)'
+    shapeit5 --help | grep -F 'phase_common'
+    rm -rf /opt/shapeit5 /opt/shapeit5.tar.gz
+    rm -rf /var/lib/apt/lists/*
+
+%runscript
+    exec shapeit5 "$@"
+
+%test
+    shapeit5 --version | grep -Fx 'shapeit5 5.1.1 (commit c34d4db3e99a2f7e23deb727671ae260901a5886)'
+    shapeit5 --help | grep -F 'phase_common'
+    shapeit5 phase_common --help 2>&1 | grep -F 'SHAPEIT5'
+
+%help
+    SHAPEIT5 5.1.1 suite compiled from its checksum-verified official repository commit.

@@ -2,13 +2,15 @@
 version = "2.3.4"
 source = "https://github.com/MikkelSchubert/adapterremoval"
 date_pinned = "2026-02-12"
-pinned_commit = "0000000000000000000000000000000000000000"
+pinned_commit = "79b296b8fcfd853757d798528128c37a166331a9"
+source_sha256 = "47cc1f41af7de6e9b8057a1ff80748e96df1a1e653bf39d8f6b8321a6f050c20"
+upstream_license = "GPL-3.0"
 
 [addeam]
 version = "1.0.0"
 source = "https://github.com/LouisPwr/AdDeam"
 date_pinned = "2026-02-12"
-pinned_commit = "0000000000000000000000000000000000000000"
+pinned_commit = "8122b9a99d560ef8ea8abdd5b1aacccd00ea0cdd"
 
 [alientrimmer]
 version = "3.2"
@@ -22,31 +24,31 @@ upstream_license = "GPL-3.0"
 version = "0.940"
 source = "https://github.com/ANGSD/angsd"
 date_pinned = "2026-02-12"
-pinned_commit = "0000000000000000000000000000000000000000"
+pinned_commit = "b3099ed756e7aff87d2d1dd4fd30cdf36998380b"
 
 [atropos]
 version = "1.1.31"
 source = "https://github.com/jdidion/atropos"
 date_pinned = "2026-02-12"
-pinned_commit = "0000000000000000000000000000000000000000"
+pinned_commit = "916a0bfbc18149bbefb83ccff9fe2a0807415807"
 
 [authenticct]
 version = "1.0.0"
 source = "https://github.com/StephanePeyregne/AuthentiCT"
 date_pinned = "2026-02-12"
-pinned_commit = "0000000000000000000000000000000000000000"
+pinned_commit = "13ba26ef82f5a3febd74401f65fb8c1776aa16b2"
 
 [bamtools]
 version = "2.5.2"
 source = "https://github.com/pezmaster31/bamtools"
 date_pinned = "2026-02-12"
-pinned_commit = "0000000000000000000000000000000000000000"
+pinned_commit = "9f2fa61d5c10588a426dec12422255d6d0c87d84"
 
 [bayeshammer]
 version = "3.15.5"
 source = "https://github.com/ablab/spades"
 date_pinned = "2026-02-12"
-pinned_commit = "0000000000000000000000000000000000000000"
+pinned_commit = "896694ce5c7a9050a6ffa9fccc950a4cd9f04363"
 
 [bbduk]
 version = "39.06"
@@ -64,7 +66,7 @@ pinned_commit = "0000000000000000000000000000000000000000"
 version = "1.20"
 source = "https://github.com/samtools/bcftools"
 date_pinned = "2026-02-12"
-pinned_commit = "0000000000000000000000000000000000000000"
+pinned_commit = "02ee548d77916357dcd3699eab88273acd8f9f7c"
 
 [beagle]
 version = "5.4"
@@ -85,63 +87,67 @@ source_sha256 = "a6662f59c7283ff89d7f7c3b6aa23bcb2fda58f07fc2dd2831d85639166bc5f
 version = "2.31.1"
 source = "https://github.com/arq5x/bedtools2"
 date_pinned = "2026-02-12"
-pinned_commit = "0000000000000000000000000000000000000000"
+pinned_commit = "705ccfdf2c9a77d71560c8adcece0663c2f5e18e"
 
 [bowtie2]
 version = "2.5.4"
 source = "https://github.com/BenLangmead/bowtie2"
 date_pinned = "2026-02-12"
-pinned_commit = "0000000000000000000000000000000000000000"
+pinned_commit = "4cf8d526f4b7ec6519a79ed4c6f826caf09e0bba"
 
 [bowtie2_build]
 version = "2.5.4"
 source = "https://github.com/BenLangmead/bowtie2"
 date_pinned = "2026-02-12"
-pinned_commit = "0000000000000000000000000000000000000000"
+pinned_commit = "4cf8d526f4b7ec6519a79ed4c6f826caf09e0bba"
 
 [bracken]
 version = "2.9"
 source = "https://github.com/jenniferlu717/Bracken"
 date_pinned = "2026-02-12"
-pinned_commit = "0000000000000000000000000000000000000000"
+pinned_commit = "c5bfec1929fe30feef21afbde67b16bda44de448"
 
 [bwa]
 version = "0.7.17"
 source = "https://github.com/lh3/bwa"
 date_pinned = "2026-02-12"
-pinned_commit = "0000000000000000000000000000000000000000"
+pinned_commit = "9f26bfcc7780753129b60717ecab0ebba6f04b7c"
+source_sha256 = "79763dd6c48e8b01b8e27d99e6e5575d8bbca419e3eed9f3e330af072e63b370"
+upstream_license = "GPL-3.0"
 
 [centrifuge]
 version = "1.0.4"
 source = "https://github.com/DaehwanKimLab/centrifuge"
 date_pinned = "2026-02-12"
-pinned_commit = "0000000000000000000000000000000000000000"
+pinned_commit = "92d6e7969afd786ba196b019620453a965a46cdd"
 
 [contammix]
 version = "1.0.11"
-source = "https://bioconductor.org/packages/contamMix"
-date_pinned = "2026-02-12"
-pinned_commit = "0000000000000000000000000000000000000000"
+source = "https://github.com/plfjohnson/contamMix/archive/refs/tags/v1.0-11.tar.gz"
+date_pinned = "2026-08-02"
+pinned_commit = "46c2b9c9fa82c2507f2b084f0b37d862a0825f4b"
+source_sha256 = "1bfd53eca5554c957771daa51a2520306e90da17423dded39454ac8f23424a22"
 
 [cutadapt]
 version = "4.9"
 source = "https://github.com/marcelm/cutadapt"
 date_pinned = "2026-02-12"
-pinned_commit = "0000000000000000000000000000000000000000"
+pinned_commit = "9276a89d5df9282ff51602b042b40c3b48c98566"
 
 [damageprofiler]
 version = "1.1"
 source = "https://github.com/Integrative-Transcriptomics/DamageProfiler"
 date_pinned = "2026-02-12"
-pinned_commit = "0000000000000000000000000000000000000000"
+pinned_commit = "3be52404124ae294f0eaf2fa622fe8af548bb6ed"
 
 [eagle]
 version = "2.4.1"
-source = "https://alkesgroup.broadinstitute.org/Eagle/"
-date_pinned = "2026-02-13"
-status = "planned"
-upstream_license = "GPL-3.0"
-source_sha256 = "4444444444444444444444444444444444444444444444444444444444444444"
+source = "https://github.com/poruloh/Eagle/archive/dec140eefc0eda3b7f02233a3c02361eaeb8227c.tar.gz"
+date_pinned = "2026-08-02"
+status = "production"
+upstream_license = "GPL-3.0-or-later"
+pinned_commit = "dec140eefc0eda3b7f02233a3c02361eaeb8227c"
+source_sha256 = "6ea8f16fb17ca92ebec9cf4ae6b16cccc0ab63f1ca445e6a83b4c16bf4e50255"
 
 [eigensoft]
 version = "8.0.0"
@@ -161,7 +167,7 @@ source_sha256 = "4fad6db156e769d46071add8a778a13a5cb5186bc1e1a5f9b1ffd499d84d72b
 version = "0.15.3"
 source = "https://github.com/StevenWingett/FastQ-Screen"
 date_pinned = "2026-02-12"
-pinned_commit = "0000000000000000000000000000000000000000"
+pinned_commit = "6dfa1eef0d3103dd7829eb1f586b4d8a121f911b"
 
 [fastqc]
 version = "0.12.1"
@@ -173,25 +179,25 @@ source_sha256 = "5f4dba8780231a25a6b8e11ab2c238601920c9704caa5458d9de559575d58aa
 version = "0.1.1"
 source = "https://github.com/statgen/fastQValidator"
 date_pinned = "2026-02-12"
-pinned_commit = "0000000000000000000000000000000000000000"
+pinned_commit = "fb764e0d5ba0c791eb0293b544f44e49da05e3d0"
 
 [fastx_clipper]
 version = "0.0.14"
 source = "https://github.com/agordon/fastx_toolkit"
 date_pinned = "2026-02-12"
-pinned_commit = "0000000000000000000000000000000000000000"
+pinned_commit = "105a189a102d66d246bd618f07af2b861916272c"
 
 [flash2]
 version = "2.2.00"
 source = "https://github.com/dstreett/FLASH2"
 date_pinned = "2026-02-12"
-pinned_commit = "0000000000000000000000000000000000000000"
+pinned_commit = "64826f4574b11b3c0ae7460826f30be16f49c3ea"
 
 [fqtools]
-version = "2.0"
+version = "2.3"
 source = "https://github.com/alastair-droop/fqtools"
 date_pinned = "2026-02-12"
-pinned_commit = "0000000000000000000000000000000000000000"
+pinned_commit = "63c6fa707fabc7569c2f256b8bcfc6ebb760f72a"
 
 [germline]
 version = "1.5.3"
@@ -203,11 +209,11 @@ source_sha256 = "2712053ab9d4dea7b2346e7f5a70ec84f6f003720f5e1ab5fbe1c709c7c8f6d
 
 [glimpse]
 version = "1.1.1"
-source = "https://odelaneau.github.io/GLIMPSE/"
-date_pinned = "2026-02-13"
-status = "planned"
+source = "https://github.com/odelaneau/GLIMPSE"
+date_pinned = "2026-08-02"
 upstream_license = "MIT"
-source_sha256 = "2222222222222222222222222222222222222222222222222222222222222222"
+source_sha256 = "d58b8881981db2feb3dd62f8a73d3cd0325ada056a885d5a0e0bfa3571569e5c"
+pinned_commit = "c27e90d0f8df6b64c0ecf26af13ad6f112c94a9a"
 
 [ibdhap]
 version = "0.1.0"
@@ -218,34 +224,33 @@ upstream_license = "unknown"
 pinned_commit = "0000000000000000000000000000000000000000"
 
 [ibdne]
-version = "1.0"
-source = "https://faculty.washington.edu/browning/ibdne.shtml"
-date_pinned = "2026-02-13"
-status = "planned"
-upstream_license = "GPL-3.0"
-pinned_commit = "0000000000000000000000000000000000000000"
+version = "23Apr20.ae9"
+source = "https://faculty.washington.edu/browning/ibdne.html"
+date_pinned = "2026-08-02"
+status = "production"
+upstream_license = "Apache-2.0"
+source_sha256 = "b3324ebd74ed69477067e0aec1dd22be56b1bcedbbe72d8757cda28746312665"
 
 [ibdseq]
-version = "3.0"
-source = "https://faculty.washington.edu/browning/ibdseq.shtml"
-date_pinned = "2026-02-13"
-status = "planned"
-upstream_license = "GPL-3.0"
-pinned_commit = "0000000000000000000000000000000000000000"
+version = "r1206"
+source = "https://faculty.washington.edu/browning/ibdseq.html"
+date_pinned = "2026-08-02"
+status = "production"
+upstream_license = "Apache-2.0"
+source_sha256 = "a835c7282444d8920109362ca012f9a9ac1eb54665d34fb0ca0380a3e0fed8ec"
 
 [impute5]
 version = "1.2.0"
 source = "https://jmarchini.org/software/#impute-5"
 date_pinned = "2026-02-13"
-status = "planned"
-upstream_license = "research-only"
-source_sha256 = "3333333333333333333333333333333333333333333333333333333333333333"
+status = "unsupported"
+upstream_license = "LicenseRef-Oxford-Academic-Use"
 
 [kaiju]
 version = "1.10.0"
 source = "https://github.com/bioinformatics-centre/kaiju"
 date_pinned = "2026-02-12"
-pinned_commit = "0000000000000000000000000000000000000000"
+pinned_commit = "4653635b1321f5779707adc79c054012ed28b221"
 
 [king]
 version = "2.3.0"
@@ -263,63 +268,70 @@ source_sha256 = "5269fa14adfb02e38c2da2e605e909a432d76c680d73e2e0e80e27ccd04d7c6
 version = "1.0.4"
 source = "https://github.com/fbreitwieser/krakenuniq"
 date_pinned = "2026-02-12"
-pinned_commit = "0000000000000000000000000000000000000000"
+pinned_commit = "d3305ac7d7fddbd3e62240ab62869aded869f133"
 
 [leehom]
-version = "1.0.17"
+version = "1.2.18"
 source = "https://github.com/grenaud/leeHom"
-date_pinned = "2026-02-12"
-pinned_commit = "0000000000000000000000000000000000000000"
+date_pinned = "2026-08-02"
+source_sha256 = "87cbc83c04b51264b7d986aaf9bf7abaedaa827d1a72f783d4c43b63b3cc95ca"
+pinned_commit = "fea84b803aefb00b05386d802b5382d7d268f3be"
 
 [lighter]
 version = "1.1.2"
 source = "https://github.com/mourisl/Lighter"
 date_pinned = "2026-02-12"
-pinned_commit = "0000000000000000000000000000000000000000"
+pinned_commit = "fecf71152ee923033358306264aaed0a693622cd"
 
 [mapdamage2]
 version = "2.2.2"
-source = "https://github.com/ginolhac/mapDamage"
-date_pinned = "2026-02-12"
-pinned_commit = "0000000000000000000000000000000000000000"
+source = "https://github.com/ginolhac/mapDamage/archive/55518aa83141d8f885ce10751c22113f674e95de.tar.gz"
+date_pinned = "2026-08-02"
+status = "production"
+upstream_license = "MIT"
+pinned_commit = "55518aa83141d8f885ce10751c22113f674e95de"
+source_sha256 = "a7dd300489674eeb72e28c5e99627f73840dd7a74c6efce76c1eaee8e7898c54"
 
 [metaphlan]
 version = "4.1.1"
 source = "https://github.com/biobakery/MetaPhlAn"
 date_pinned = "2026-02-12"
-pinned_commit = "0000000000000000000000000000000000000000"
+pinned_commit = "66d5a7ebd21c64c5b6fd6db6a35ff44b820dfbd2"
 
 [minimac4]
 version = "4.1.6"
-source = "https://genome.sph.umich.edu/wiki/Minimac4"
-date_pinned = "2026-02-13"
-status = "planned"
-upstream_license = "MIT"
-source_sha256 = "5555555555555555555555555555555555555555555555555555555555555555"
+source = "https://github.com/statgen/Minimac4"
+date_pinned = "2026-08-02"
+status = "production"
+upstream_license = "GPL-3.0-only"
+pinned_commit = "0c4a8d894338809eb257be2a9f4bf37ced0e2a6c"
+source_sha256 = "5f03dc946ae6f98b1116778bfc550872b86e47dceae6bf169d07137a8de5efe3"
 
 [mosdepth]
 version = "0.3.11"
 source = "https://github.com/brentp/mosdepth"
 date_pinned = "2026-02-12"
-pinned_commit = "0000000000000000000000000000000000000000"
+pinned_commit = "e065a5f38ad6ff6c612a63d32f82fcfb6c00915d"
 
 [multiqc]
 version = "1.21"
 source = "https://github.com/multiqc/multiqc"
 date_pinned = "2026-02-12"
-pinned_commit = "0000000000000000000000000000000000000000"
+pinned_commit = "abe4d3d8a0aaebada77dc5ffcb0c352c23d8de82"
 
 [musket]
 version = "1.1"
 source = "https://sourceforge.net/projects/musket/"
-date_pinned = "2026-02-12"
+date_pinned = "2026-08-02"
 pinned_commit = "0000000000000000000000000000000000000000"
+source_sha256 = "306772803ef72e6a7dfdfdf382d0fafa77de0eaa226500b0525940f6b5497aba"
 
 [pear]
 version = "0.9.6"
 source = "https://cme.h-its.org/exelixis/web/software/pear/"
-date_pinned = "2026-02-12"
+date_pinned = "2026-08-02"
 pinned_commit = "0000000000000000000000000000000000000000"
+source_sha256 = "f7728371e26a5b46fa928b0f7ae1b552ed6a78815b117ba48ef1af98e96c8e2b"
 
 [plink]
 version = "1.90"
@@ -341,49 +353,54 @@ source_sha256 = "e73d87c395f6eb0f0b2f513f67d55bdb37f8f948d26554f9e4537806e96ca2e
 version = "0.60"
 source = "https://github.com/pontussk/PMDtools"
 date_pinned = "2026-02-12"
-pinned_commit = "0000000000000000000000000000000000000000"
+pinned_commit = "18b5901e93d417ea91fd675b499e401deadfe3c5"
 
 [prinseq]
 version = "1.2.4"
-source = "https://github.com/uwb-linux/prinseq"
-date_pinned = "2026-02-12"
-pinned_commit = "0000000000000000000000000000000000000000"
+source = "https://github.com/Adrian-Cantu/PRINSEQ-plus-plus"
+date_pinned = "2026-08-02"
+pinned_commit = "3dde89b381c9df27792478f68e7e4f3bca4d45ff"
+source_sha256 = "957fd45f035ef94e5b8a478f4de82e2f2099d490a69a5acd73a4bdad4dd0eea3"
 
 [pydamage]
 version = "0.80"
 source = "https://github.com/maxibor/pydamage"
 date_pinned = "2026-02-12"
-pinned_commit = "0000000000000000000000000000000000000000"
+pinned_commit = "65f40b4dec0d414d1cb3962e8692f3e990e68491"
 
 [qualimap]
 version = "2.3"
-source = "http://qualimap.conesalab.org/"
-date_pinned = "2026-02-12"
+source = "https://bitbucket.org/kokonech/qualimap"
+date_pinned = "2026-08-02"
 pinned_commit = "0000000000000000000000000000000000000000"
+source_sha256 = "2a04dd864b712da30923cce3bc8dfc6ea59612118e8b0ff1a246fe43b8d34c40"
 
 [rcorrector]
 version = "1.0.7"
 source = "https://github.com/mourisl/Rcorrector"
 date_pinned = "2026-02-12"
-pinned_commit = "0000000000000000000000000000000000000000"
+pinned_commit = "f8915b79363e896409bd9ca56819f56c3f77a47e"
 
 [rxy]
 version = "1.0.0"
 source = "https://github.com/bijux/bijux-genomics"
-date_pinned = "2026-02-12"
-pinned_commit = "0000000000000000000000000000000000000000"
+date_pinned = "2026-08-02"
+source_sha256 = "c241ef8c284b9c8eb764f3be75a63cb433a769d40b3411535e677fbbda32095b"
+pinned_commit = ""
 
 [samtools]
 version = "1.20"
 source = "https://github.com/samtools/samtools"
 date_pinned = "2026-02-12"
-pinned_commit = "0000000000000000000000000000000000000000"
+pinned_commit = "906a3b562ef985d2a9777768f8a81001d6ce6dcb"
+source_sha256 = "c71be865e241613c2ca99679c074f1a0daeb55288af577db945bdabe3eb2cf10"
+upstream_license = "MIT"
 
 [schmutzi]
 version = "1.5.4"
 source = "https://github.com/grenaud/schmutzi"
 date_pinned = "2026-02-12"
-pinned_commit = "0000000000000000000000000000000000000000"
+pinned_commit = "a42e6a90b2cb6ee395f17c87ceeb76bde5127017"
 
 [seqkit]
 version = "2.8.2"
@@ -395,59 +412,60 @@ source_sha256 = "8c12816c0bf6c01cfcda329fdb5f6c1479cf2485ce9413ce36b96237524da9d
 version = "2.8.2"
 source = "https://github.com/shenwei356/seqkit"
 date_pinned = "2026-02-12"
-pinned_commit = "0000000000000000000000000000000000000000"
+pinned_commit = "1aef84fbc2381db2e73639632bc44a5f7a0a8bcc"
 
 [seqtk]
 version = "1.4"
 source = "https://github.com/lh3/seqtk.git"
 date_pinned = "2026-02-12"
-pinned_commit = "0000000000000000000000000000000000000000"
+pinned_commit = "ae7defa8bead3ef77d241f12194dc66acdd40fca"
 
 [shapeit]
 version = "4.2.2"
-source = "https://odelaneau.github.io/shapeit4/"
-date_pinned = "2026-02-13"
-status = "planned"
+source = "https://github.com/odelaneau/shapeit4"
+date_pinned = "2026-08-02"
 upstream_license = "MIT"
-pinned_commit = "0000000000000000000000000000000000000000"
+pinned_commit = "16865e593ad50689271ead985dc8f4296d2f491d"
+source_sha256 = "2ee4e369ada23e58d6d3bbb4e0ac7a252b2769f24d63fc635ffbbace0f2b3ce9"
 
 [shapeit5]
 version = "5.1.1"
-source = "https://odelaneau.github.io/shapeit5/"
-date_pinned = "2026-02-13"
-status = "planned"
+source = "https://github.com/odelaneau/shapeit/archive/c34d4db3e99a2f7e23deb727671ae260901a5886.tar.gz"
+date_pinned = "2026-08-02"
+status = "production"
 upstream_license = "MIT"
-source_sha256 = "1111111111111111111111111111111111111111111111111111111111111111"
+pinned_commit = "c34d4db3e99a2f7e23deb727671ae260901a5886"
+source_sha256 = "dcdad851e86ba01d8ddbf330e426f97c16e40cf64950dfd25d0641f1cd5f61f8"
 
 [skewer]
 version = "0.2.2"
 source = "https://github.com/relipmoc/skewer"
 date_pinned = "2026-02-12"
-pinned_commit = "0000000000000000000000000000000000000000"
+pinned_commit = "978e8e46cba44595ece623e5387749284a86b74b"
 
 [sortmerna]
 version = "4.3.7"
 source = "https://github.com/biocore/sortmerna"
 date_pinned = "2026-02-12"
-pinned_commit = "0000000000000000000000000000000000000000"
+pinned_commit = "307e84021ab3561c38fbee2854bef3eba8e6cfda"
 
 [spades]
 version = "4.0.0"
 source = "https://github.com/ablab/spades"
 date_pinned = "2026-02-12"
-pinned_commit = "0000000000000000000000000000000000000000"
+pinned_commit = "38af83de44403f833a32073fd47ba469d998efd1"
 
 [star]
 version = "2.7.11b"
 source = "https://github.com/alexdobin/STAR"
 date_pinned = "2026-02-12"
-pinned_commit = "0000000000000000000000000000000000000000"
+pinned_commit = "b1edc1208d91a53bf40ebae8669f71d50b994851"
 
 [trim_galore]
 version = "0.6.10"
 source = "https://github.com/FelixKrueger/TrimGalore"
 date_pinned = "2026-02-12"
-pinned_commit = "0000000000000000000000000000000000000000"
+pinned_commit = "4edff97d22f3837d42a29e4afbfaeb6e07ffb11b"
 
 [trimmomatic]
 version = "0.39"
@@ -459,31 +477,32 @@ source_sha256 = "2f97e3a237378d55c221abfc38e4b11ea232c8a41d511b8b4871f00c0476abc
 version = "1.1.6"
 source = "https://github.com/CGATOxford/UMI-tools"
 date_pinned = "2026-02-12"
-pinned_commit = "0000000000000000000000000000000000000000"
+pinned_commit = "3f2cb4f41e07fe4a6cea3b3389f534bee957176b"
 
 [verifybamid2]
 version = "2.0.1"
 source = "https://github.com/Griffan/VerifyBamID"
 date_pinned = "2026-02-12"
-pinned_commit = "0000000000000000000000000000000000000000"
+pinned_commit = "83a1c936ef2e1a8c9e78ed2d2e2d328adf0c6447"
 
 [vsearch]
 version = "2.29.3"
 source = "https://github.com/torognes/vsearch"
 date_pinned = "2026-02-12"
-pinned_commit = "0000000000000000000000000000000000000000"
+pinned_commit = "bbd17a05faaf7401176e36b7947874c1e5152cee"
 
 [yleaf]
-version = "3.0.3"
+version = "4.1.4"
 source = "https://github.com/genid/Yleaf"
-date_pinned = "2026-02-12"
-pinned_commit = "0000000000000000000000000000000000000000"
+date_pinned = "2026-08-02"
+source_sha256 = "b98f63250878caa3b20d40dea352f2fb81438bcf45bc0830693c6e74f69ab9c4"
+pinned_commit = "a2368eaaf08c0af53063514ed435d9e844b0ac1e"
 
 [bamutil]
 version = "1.0.15"
 source = "https://github.com/statgen/bamUtil"
 date_pinned = "2026-02-16"
-pinned_commit = "0000000000000000000000000000000000000000"
+pinned_commit = "3ad3980a3a3a3fc35eca3636b7206676c8303ce6"
 
 [clumpify]
 version = "39.06"
@@ -493,72 +512,86 @@ pinned_commit = "0000000000000000000000000000000000000000"
 
 [dada2]
 version = "1.30.0"
-source = "https://bioconductor.org/packages/dada2"
-date_pinned = "2026-02-16"
-pinned_commit = "0000000000000000000000000000000000000000"
+source = "https://bioconductor.org/packages/3.18/bioc/html/dada2.html"
+date_pinned = "2026-08-02"
+status = "production"
+upstream_license = "LGPL-2.0-only"
+pinned_commit = "ec87892"
+source_sha256 = "c6653fe77c3d62dd91207bbbf6641ec143fb8a498967e240a97af26de7e27667"
 
 [diamond]
 version = "2.1.10"
 source = "https://github.com/bbuchfink/diamond"
 date_pinned = "2026-02-16"
-pinned_commit = "0000000000000000000000000000000000000000"
+pinned_commit = "1130513e06223ffd12c74a11e8e2c967e108a825"
 
 [dustmasker]
 version = "2.15.0"
 source = "https://www.ncbi.nlm.nih.gov/books/NBK279690/"
-date_pinned = "2026-02-16"
-pinned_commit = "0000000000000000000000000000000000000000"
+date_pinned = "2026-08-02"
+status = "production"
+upstream_license = "LicenseRef-NCBI-Public-Domain"
+source_sha256 = "6918c370524c8d44e028bf491e8f245a895e07c66c77b261ce3b38d6058216e0"
 
 [fastq_scan]
-version = "0.0.1"
-source = "https://github.com/bijux/bijux-genomics"
+version = "1.0.1"
+source = "https://github.com/rpetit3/fastq-scan"
 date_pinned = "2026-02-16"
-pinned_commit = "0000000000000000000000000000000000000000"
+pinned_commit = "966991c58bd44cbf7644851b7118f7d06146f3c5"
 
 [fastuniq]
 version = "1.1"
 source = "https://sourceforge.net/projects/fastuniq/"
-date_pinned = "2026-02-16"
+date_pinned = "2026-08-02"
 pinned_commit = "0000000000000000000000000000000000000000"
+source_sha256 = "9ebf251566d097226393fb5aa9db30a827e60c7a4bd9f6e06022b4af4cee0eae"
 
 [gatk]
 version = "4.6.2.0"
 source = "https://github.com/broadinstitute/gatk"
 date_pinned = "2026-02-16"
-pinned_commit = "0000000000000000000000000000000000000000"
+pinned_commit = "76edc75c26504da94bbaee66584e107e76ee15de"
 
 [ngsbriggs]
-version = "0.1.3"
-source = "https://pypi.org/project/ngsbriggs/"
-date_pinned = "2026-02-16"
-pinned_commit = "0000000000000000000000000000000000000000"
+version = "0.01"
+source = "https://github.com/RAHenriksen/ngsBriggs/archive/ab3b5ae8a388b9b1874dd2854fdec32bd9195f22.tar.gz"
+date_pinned = "2026-08-02"
+status = "production"
+upstream_license = "NOASSERTION"
+pinned_commit = "ab3b5ae8a388b9b1874dd2854fdec32bd9195f22"
+source_sha256 = "afa0d40a8ab85074363cbb6415461504888bb707f04a40ee31b4f632ce629cf7"
 
 [picard]
 version = "3.3.0"
 source = "https://github.com/broadinstitute/picard"
 date_pinned = "2026-02-16"
-pinned_commit = "0000000000000000000000000000000000000000"
+pinned_commit = "63138fc8b7ae33eb0490a8ef707b61befa2f51d4"
 
 [preseq]
 version = "3.2.0"
 source = "https://github.com/smithlabcode/preseq"
 date_pinned = "2026-02-16"
-pinned_commit = "0000000000000000000000000000000000000000"
+pinned_commit = "3dc2a7b1a2d3fdadedaeffebdceb29ea88dbd8bb"
 
 [seqfu]
-version = "2.4.0"
-source = "https://github.com/telatin/seqfu2"
-date_pinned = "2026-02-16"
-pinned_commit = "0000000000000000000000000000000000000000"
+version = "1.26.0"
+source = "https://github.com/telatin/seqfu2/archive/refs/tags/v1.26.0.tar.gz"
+date_pinned = "2026-08-02"
+pinned_commit = "681a8fe013f8bed1590ff68e2f62820d2d4303c5"
+source_sha256 = "2b3aa5d6f983aed570d26b0cf48d910f847704d57401ef64e5b026de3dd0afff"
+linux_amd64_package_sha256 = "e215acc98bd5f0e1d637b9931c9929b565b30688be714b4dc421fe61bf9cd689"
+linux_arm64_package_sha256 = "158efdbdb2c47bf4ed7397805ea69d35800672ca289ac25c0bc8e2fc40f145f6"
+linux_amd64_pcre_sha256 = "8f35c244b1631a4f31fb1d66ab6e1d9bfac0ca9b679deced1112c7225b3ad138"
+linux_arm64_pcre_sha256 = "7a6062de76f695f6d8f0ddda0ff171e4b47e2b863d6012def440c7703aea0069"
 
 [seqprep]
 version = "1.3.2"
 source = "https://github.com/jstjohn/SeqPrep"
 date_pinned = "2026-02-16"
-pinned_commit = "0000000000000000000000000000000000000000"
+pinned_commit = "575507b0b9c94701bdf67bb592da8ba91ba9639c"
 
 [seqpurge]
-version = "0.1.0"
-source = "https://github.com/bijux/bijux-genomics"
-date_pinned = "2026-02-16"
-pinned_commit = "0000000000000000000000000000000000000000"
+version = "2026_06"
+source = "https://github.com/imgag/ngs-bits"
+date_pinned = "2026-08-02"
+pinned_commit = "1c7f71b1cf653d1f52c720290e5d5d2fe34adfe1"

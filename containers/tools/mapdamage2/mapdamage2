@@ -1,0 +1,168 @@
+#!/usr/bin/env sh
+set -eu
+
+raw_mapdamage=/usr/local/libexec/mapDamage
+
+require_readable_input() {
+    option=$1
+    path=$2
+    if [ ! -r "$path" ]; then
+        printf 'mapdamage2: %s input is not readable: %s\n' "$option" "$path" >&2
+        exit 66
+    fi
+}
+
+terminal_damage_rates() {
+    awk -F '\t' '
+        /^#/ { next }
+        $1 == "Chr" {
+            for (column = 1; column <= NF; column++) {
+                if ($column == "End") end_column = column
+                if ($column == "Pos") position_column = column
+                if ($column == "C") c_column = column
+                if ($column == "G") g_column = column
+                if ($column == "C>T") c_to_t_column = column
+                if ($column == "G>A") g_to_a_column = column
+            }
+            next
+        }
+        $end_column == "5p" && $position_column == 1 {
+            c_to_t_count += $c_to_t_column
+            c_count += $c_column
+        }
+        $end_column == "3p" && $position_column == 1 {
+            g_to_a_count += $g_to_a_column
+            g_count += $g_column
+        }
+        END {
+            if (!end_column || !position_column || !c_column || !g_column ||
+                !c_to_t_column || !g_to_a_column || c_count <= 0 || g_count <= 0) {
+                exit 1
+            }
+            printf "%.12g %.12g\n", c_to_t_count / c_count, g_to_a_count / g_count
+        }
+    ' "$1"
+}
+
+validate_raw_inputs() {
+    expected_path=
+    for argument do
+        if [ -n "$expected_path" ]; then
+            require_readable_input "$expected_path" "$argument"
+            expected_path=
+            continue
+        fi
+        case "$argument" in
+            -i|--input|-r|--reference)
+                expected_path=$argument
+                ;;
+        esac
+    done
+    if [ -n "$expected_path" ]; then
+        printf 'mapdamage2: %s requires a path\n' "$expected_path" >&2
+        exit 64
+    fi
+}
+
+run_analysis() {
+    bam=
+    reference=
+    out_dir=
+    shift
+    while [ "$#" -gt 0 ]; do
+        option=$1
+        shift
+        case "$option" in
+            --bam|--reference|--out-dir)
+                if [ "$#" -eq 0 ]; then
+                    printf 'mapdamage2 analyze: %s requires a value\n' "$option" >&2
+                    exit 64
+                fi
+                value=$1
+                shift
+                case "$option" in
+                    --bam) bam=$value ;;
+                    --reference) reference=$value ;;
+                    --out-dir) out_dir=$value ;;
+                esac
+                ;;
+            *)
+                printf 'mapdamage2 analyze: unsupported option: %s\n' "$option" >&2
+                exit 64
+                ;;
+        esac
+    done
+
+    if [ -z "$bam" ] || [ -z "$reference" ] || [ -z "$out_dir" ]; then
+        printf 'Usage: mapdamage2 analyze --bam FILE --reference FASTA --out-dir DIR\n' >&2
+        exit 64
+    fi
+    require_readable_input --bam "$bam"
+    require_readable_input --reference "$reference"
+    require_readable_input --reference-index "${reference}.fai"
+    if [ ! -d "$out_dir" ]; then
+        printf 'mapdamage2 analyze: output directory does not exist: %s\n' "$out_dir" >&2
+        exit 73
+    fi
+
+    native_out="$out_dir/mapdamage2-native"
+    report_out="$out_dir/damage.mapdamage2.txt"
+    if [ -e "$native_out" ] || [ -e "$report_out" ]; then
+        printf 'mapdamage2 analyze: refusing to overwrite existing output\n' >&2
+        exit 73
+    fi
+    suffix=".partial.$$"
+    native_tmp="$native_out$suffix"
+    report_tmp="$report_out$suffix"
+    cleanup() {
+        rm -rf "$native_tmp"
+        rm -f "$report_tmp"
+    }
+    trap cleanup EXIT HUP INT TERM
+
+    "$raw_mapdamage" \
+        -i "$bam" \
+        -r "$reference" \
+        -d "$native_tmp" \
+        --no-stats \
+        --no-plot \
+        --merge-reference-sequences
+
+    if ! rates=$(terminal_damage_rates "$native_tmp/misincorporation.txt"); then
+        printf 'mapdamage2 analyze: terminal damage counts are absent or invalid\n' >&2
+        exit 65
+    fi
+    c_to_t_5p=${rates%% *}
+    g_to_a_3p=${rates#* }
+    if [ "$c_to_t_5p" = "$rates" ] || [ -z "$g_to_a_3p" ] || [ "$g_to_a_3p" != "${g_to_a_3p%% *}" ]; then
+        printf 'mapdamage2 analyze: terminal damage rates are absent or invalid\n' >&2
+        exit 65
+    fi
+    if ! awk -v ct="$c_to_t_5p" -v ga="$g_to_a_3p" \
+        'BEGIN { exit !(ct ~ /^[0-9.]+$/ && ga ~ /^[0-9.]+$/ && ct >= 0 && ct <= 1 && ga >= 0 && ga <= 1) }'; then
+        printf 'mapdamage2 analyze: terminal damage rates are absent or invalid\n' >&2
+        exit 65
+    fi
+    printf 'pos C->T G->A\n1 %.8f %.8f\n' "$c_to_t_5p" "$g_to_a_3p" >"$report_tmp"
+
+    mv "$native_tmp" "$native_out"
+    mv "$report_tmp" "$report_out"
+    trap - EXIT HUP INT TERM
+}
+
+case "${1:-}" in
+    --version)
+        echo 'mapdamage2 2.2.2 (commit 55518aa83141d8f885ce10751c22113f674e95de)'
+        ;;
+    --help|-h|"")
+        printf '%s\n' 'Bijux interface: mapdamage2 analyze --bam FILE --reference FASTA --out-dir DIR'
+        "$raw_mapdamage" --help
+        ;;
+    analyze)
+        run_analysis "$@"
+        ;;
+    *)
+        validate_raw_inputs "$@"
+        exec "$raw_mapdamage" "$@"
+        ;;
+esac

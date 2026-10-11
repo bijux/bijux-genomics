@@ -1,0 +1,73 @@
+# Container recipe license: GPL-3.0-only.
+# This container recipe is maintained by Bijux Genomics.
+# Bijux Genomics source code is licensed under Apache-2.0.
+# Copyright (C) 2026 Bijan Mousavi
+# BIJUX_TEMPLATE: v1
+
+# Tool ID: king
+# Version policy: pinned_or_registry_locked
+# Upstream source: see org.opencontainers.image.source label
+# Build date policy: org.opencontainers.image.created set by release pipeline
+# Network source policy: NETWORK_SOURCE_VERIFIED_BY_LOCK
+# Runtime UID policy: RUNTIME_UID_SAFE
+
+# VERSION_SOURCE: containers/versions/versions.toml
+Bootstrap: docker
+From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
+
+%labels
+    VERSION unknown
+    org.opencontainers.image.source https://github.com/bijux/bijux-genomics
+    org.opencontainers.image.revision unknown
+    org.opencontainers.image.created unknown
+    org.opencontainers.image.licenses GPL-3.0
+    org.opencontainers.image.version 2.3.0
+    org.opencontainers.image.tool king
+    org.opencontainers.image.title king
+
+%environment
+    export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+    export LC_ALL=C
+    export TZ=UTC
+    DEBIAN_FRONTEND=noninteractive
+
+%post
+    set -eux
+    umask 022
+    export DEBIAN_FRONTEND=noninteractive
+    apt-get update -qq && apt-get install -y --no-install-recommends ca-certificates curl libgomp1 libquadmath0 && rm -rf /var/lib/apt/lists/*
+    mkdir -p /usr/local/libexec/king
+    curl -L --retry 5 --retry-delay 3 --connect-timeout 20 --max-time 300 \
+        -o /tmp/Linux-king230.tar.gz \
+        "https://www.kingrelatedness.com/executables/Linux-king230.tar.gz"
+    tar -xzf /tmp/Linux-king230.tar.gz -C /usr/local/libexec/king
+    install -m 0755 /usr/local/libexec/king/king /usr/local/libexec/king/king-bin
+    rm -f /tmp/Linux-king230.tar.gz
+    cat > /usr/local/bin/king <<'EOS'
+#!/usr/bin/env sh
+set -eu
+bin="/usr/local/libexec/king/king-bin"
+show_help() {
+  tmp="$(mktemp)"
+  "$@" >"$tmp" 2>&1 || rc="$?"
+  cat "$tmp"
+  if grep -q "error while loading shared libraries" "$tmp"; then
+    rm -f "$tmp"
+    exit "${rc:-1}"
+  fi
+  rm -f "$tmp"
+  exit 0
+}
+case "${1:-}" in
+  --version) echo "KING 2.3.0"; exit 0 ;;
+  --help|-h|"") show_help "$bin" --help ;;
+esac
+exec "$bin" "$@"
+EOS
+    chmod +x /usr/local/bin/king
+%runscript
+    exec king "$@"
+
+%help
+    Apptainer image for king.
+    Default runscript forwards arguments to the tool entrypoint.

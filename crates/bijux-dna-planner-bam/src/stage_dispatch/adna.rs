@@ -17,7 +17,13 @@ pub fn plan(stage: BamStage, request: &StagePlanRequest<'_>) -> Result<StagePlan
             let BamEffectiveParams::Damage(params) = params else {
                 return Err(anyhow!("damage params mismatch"));
             };
-            tool_adapters::stages_adna::damage::plan(request.tool, bam, request.out_dir, &params)
+            tool_adapters::stages_adna::damage::plan(
+                request.tool,
+                bam,
+                request.reference,
+                request.out_dir,
+                &params,
+            )
         }
         BamStage::Authenticity => {
             let bam = request.bam.ok_or_else(|| anyhow!("authenticity requires bam"))?;

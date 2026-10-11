@@ -44,16 +44,29 @@ pub fn parse_sex_json(path: &std::path::Path) -> anyhow::Result<SexInferenceV1> 
     let value: serde_json::Value = serde_json::from_str(&raw)?;
     let x_to_y = value.get("x_to_y_ratio").and_then(serde_json::Value::as_f64).unwrap_or(0.0);
     let confidence = value.get("confidence").and_then(serde_json::Value::as_f64).unwrap_or(0.0);
-    let sufficient = confidence >= 0.6 && x_to_y > 0.0;
-    let classification = if !sufficient {
-        SexConfidenceClass::Insufficient
-    } else if x_to_y <= 0.6 {
-        SexConfidenceClass::Male
-    } else if x_to_y >= 1.5 {
-        SexConfidenceClass::Female
-    } else {
-        SexConfidenceClass::Ambiguous
-    };
+    let declared_sufficient = value.get("sufficient_data").and_then(serde_json::Value::as_bool);
+    let declared_classification = value
+        .get("classification")
+        .and_then(serde_json::Value::as_str)
+        .and_then(|classification| match classification {
+            "male" => Some(SexConfidenceClass::Male),
+            "female" => Some(SexConfidenceClass::Female),
+            "ambiguous" => Some(SexConfidenceClass::Ambiguous),
+            "insufficient" => Some(SexConfidenceClass::Insufficient),
+            _ => None,
+        });
+    let sufficient = declared_sufficient.unwrap_or(confidence >= 0.6 && x_to_y > 0.0);
+    let classification = declared_classification.unwrap_or({
+        if !sufficient {
+            SexConfidenceClass::Insufficient
+        } else if x_to_y <= 0.6 {
+            SexConfidenceClass::Male
+        } else if x_to_y >= 1.5 {
+            SexConfidenceClass::Female
+        } else {
+            SexConfidenceClass::Ambiguous
+        }
+    });
     Ok(SexInferenceV1 {
         x_to_y_ratio: x_to_y,
         confidence,

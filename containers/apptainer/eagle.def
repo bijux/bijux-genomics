@@ -1,0 +1,65 @@
+# Container recipe license: GPL-3.0-only.
+# This container recipe is maintained by Bijux Genomics.
+# Bijux Genomics source code is licensed under Apache-2.0.
+# Copyright (C) 2026 Bijan Mousavi
+# Tool ID: eagle
+# Version policy: verified upstream release commit and archive digest
+# Upstream source: https://github.com/poruloh/Eagle
+# Build date policy: captured by immutable build evidence
+# Network source policy: build-only access to the locked Ubuntu snapshot and source archive
+# Runtime UID policy: non-root runtime with caller-owned output paths
+# VERSION_SOURCE: containers/contracts/catalog.toml
+
+Bootstrap: docker
+From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
+
+%labels
+    org.opencontainers.image.source https://github.com/poruloh/Eagle
+    org.opencontainers.image.title Eagle
+    org.opencontainers.image.revision dec140eefc0eda3b7f02233a3c02361eaeb8227c
+    org.opencontainers.image.created governed-by-build-evidence
+    org.opencontainers.image.licenses GPL-3.0-or-later
+    org.opencontainers.image.version 2.4.1
+    org.opencontainers.image.tool eagle
+
+%environment
+    export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+    export LC_ALL=C
+    export TZ=UTC
+
+%files
+    containers/tools/eagle/eagle /usr/local/bin/eagle
+    containers/tools/eagle/portable-aligned-memory.patch /opt/portable-aligned-memory.patch
+
+%post
+    set -eux
+    umask 022
+    export DEBIAN_FRONTEND=noninteractive
+    sed -i 's#http://archive.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubuntu/20260802T000000Z/#g; s#http://security.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubuntu/20260802T000000Z/#g' /etc/apt/sources.list.d/ubuntu.sources
+    apt-get -o Acquire::https::Verify-Peer=false -o Acquire::Check-Valid-Until=false update
+    apt-get -o Acquire::https::Verify-Peer=false install -y --no-install-recommends ca-certificates
+    apt-get -o Acquire::Check-Valid-Until=false update
+    apt-get install -y --no-install-recommends build-essential curl libboost-iostreams-dev libboost-program-options-dev libbz2-dev libcurl4-gnutls-dev libhts-dev liblzma-dev libopenblas-dev patch zlib1g-dev
+    curl --fail --location --silent --show-error --output /opt/eagle.tar.gz https://github.com/poruloh/Eagle/archive/dec140eefc0eda3b7f02233a3c02361eaeb8227c.tar.gz
+    echo '6ea8f16fb17ca92ebec9cf4ae6b16cccc0ab63f1ca445e6a83b4c16bf4e50255  /opt/eagle.tar.gz' | sha256sum --check --strict
+    mkdir /opt/eagle
+    tar --extract --gzip --file /opt/eagle.tar.gz --directory /opt/eagle --strip-components 1
+    patch --directory /opt/eagle --strip 1 < /opt/portable-aligned-memory.patch
+    make --directory /opt/eagle/src -j"$(nproc)" BOOST_INSTALL_DIR=/usr HTSLIB_DIR=/usr BLAS_DIR=/usr/lib/$(uname -m)-linux-gnu LBLAS=-lopenblas CFLAGS='-O2 -std=c++0x -fopenmp -Wall'
+    install -d -m 0755 /usr/local/libexec
+    install -m 0755 /opt/eagle/src/eagle /usr/local/libexec/eagle
+    chmod 0755 /usr/local/bin/eagle
+    eagle --version | grep -Fx 'eagle 2.4.1 (commit dec140eefc0eda3b7f02233a3c02361eaeb8227c)'
+    eagle --help >/dev/null
+    rm -rf /opt/eagle /opt/eagle.tar.gz /opt/portable-aligned-memory.patch
+    rm -rf /var/lib/apt/lists/*
+
+%runscript
+    exec eagle "$@"
+
+%test
+    eagle --version | grep -Fx 'eagle 2.4.1 (commit dec140eefc0eda3b7f02233a3c02361eaeb8227c)'
+    eagle --help | grep -F 'Options:'
+
+%help
+    Eagle 2.4.1 built from its checksum-verified upstream release commit.

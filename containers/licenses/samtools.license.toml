@@ -1,12 +1,12 @@
 # schema_version = 1
-# owner = bijux-dna-platform
+# owner = bijux-genomics
 tool_id = "samtools"
 container_kind = "bijux"
-spdx = "NOASSERTION"
-upstream_license_id = "NOASSERTION"
+spdx = "MIT"
+upstream_license_id = "MIT"
 upstream_url = "https://github.com/samtools/samtools"
 upstream_version = "1.20"
-upstream_checksum = "sha256:7f915fd8e302a115c068f864994f23ff8f44857b185fba8f4aef62b1db0bad4f"
+upstream_checksum = "sha256:c71be865e241613c2ca99679c074f1a0daeb55288af577db945bdabe3eb2cf10"
 redistribution_note = "Redistribution follows upstream license obligations; verify notice/source requirements before release."
 citation = "upstream:https://github.com/samtools/samtools"
 version = "1.20"

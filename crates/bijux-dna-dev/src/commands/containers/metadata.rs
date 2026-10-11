@@ -134,8 +134,8 @@ fn generate_container_index_content(workspace: &Workspace) -> Result<String> {
         let Some((tool_id, status)) = line.split_once('\t') else {
             return Err(anyhow!("invalid TOOL_IDS row: {line}"));
         };
-        let apptainer = workspace.path(&format!("containers/apptainer/shared/{tool_id}.def"));
-        let docker_arm64 = workspace.path(&format!("containers/docker/arm64/Dockerfile.{tool_id}"));
+        let apptainer = workspace.path(&format!("containers/apptainer/{tool_id}.def"));
+        let docker_arm64 = workspace.path(&format!("containers/docker/Dockerfile.arm64.{tool_id}"));
         let docker_amd64 = workspace.path(&format!("containers/docker/amd64/Dockerfile.{tool_id}"));
         let apptainer_source = if apptainer.exists() {
             if read_utf8(&apptainer).unwrap_or_default().contains("NON_BIJUX_SOURCES.md")
@@ -211,8 +211,9 @@ fn generate_container_index_content(workspace: &Workspace) -> Result<String> {
         "- Container version metadata: [containers/versions/versions.toml](../versions/versions.toml) + [containers/versions/lock.json](../versions/lock.json).".to_string(),
         "- GHCR Docker arm64 matrix: `cargo run -q -p bijux-dna-dev -- containers run generate-ghcr-publish-matrix -- artifacts/containers/ghcr/docker-arm64-publish-matrix.json`.".to_string(),
         "- GHCR Apptainer matrix: `cargo run -q -p bijux-dna-dev -- containers run generate-ghcr-apptainer-publish-matrix -- artifacts/containers/ghcr/apptainer-publish-matrix.json`.".to_string(),
-        "- Non-bijux provenance: [containers/apptainer/shared/NON_BIJUX_SOURCES.md](../apptainer/shared/NON_BIJUX_SOURCES.md).".to_string(),
-        "- Ownership map: [containers/OWNERS.toml](../OWNERS.toml).".to_string(),
+        "- Non-bijux provenance: [containers/docs/UPSTREAM_SOURCES.md](UPSTREAM_SOURCES.md).".to_string(),
+        "- Ownership authority: [containers/contracts/catalog.toml](../contracts/catalog.toml)."
+            .to_string(),
         String::new(),
         "## Tool Container Coverage".to_string(),
         "| tool_id | status | apptainer_source | docker_source |".to_string(),
@@ -435,7 +436,7 @@ fn ghcr_publish_matrix_value(
                     map.insert(
                         "dockerfile".to_string(),
                         serde_json::Value::String(format!(
-                            "containers/docker/arm64/Dockerfile.{tool_id}"
+                            "containers/docker/Dockerfile.arm64.{tool_id}"
                         )),
                     );
                     map.insert(
@@ -583,7 +584,7 @@ fn license_metadata_entries(workspace: &Workspace) -> Result<Vec<LicenseMetadata
     let registry = registry_tool_map(workspace)?;
     let versions = tool_versions(workspace)?;
     let mut entries = Vec::new();
-    for (tool, _status) in governed_container_statuses(workspace)? {
+    for (tool, status) in governed_container_statuses(workspace)? {
         let row = registry.get(&tool).cloned().unwrap_or_default();
         let version_row = versions.get(&tool);
         let kind = if is_non_bijux_apptainer_source(workspace, &tool)
@@ -613,6 +614,8 @@ fn license_metadata_entries(workspace: &Workspace) -> Result<Vec<LicenseMetadata
             version_row.map(|value| table_string(value, "source_sha256")).unwrap_or_default();
         let checksum = if source_sha.len() == 64 {
             format!("sha256:{source_sha}")
+        } else if status == "unsupported" {
+            "not-distributed".to_string()
         } else {
             format!("sha256:{}", sha256_hex(format!("{tool}:{source}:{version}").as_bytes()))
         };
@@ -626,7 +629,7 @@ fn license_metadata_entries(workspace: &Workspace) -> Result<Vec<LicenseMetadata
             .unwrap_or_else(|| "NOASSERTION".to_string());
         let file_content = [
             "# schema_version = 1".to_string(),
-            "# owner = bijux-dna-platform".to_string(),
+            "# owner = bijux-genomics".to_string(),
             format!("tool_id = \"{tool}\""),
             format!("container_kind = \"{kind}\""),
             format!("spdx = \"{spdx}\""),
@@ -803,14 +806,16 @@ pub(super) fn check_license_metadata(workspace: &Workspace) -> Result<ContainerC
             errors.push(format!("{} upstream_url must be URL", workspace.rel(&meta).display()));
         }
         let checksum = table_string(data, "upstream_checksum");
-        let checksum_ok = checksum.starts_with("sha256:")
-            && checksum.len() == "sha256:".len() + 64
-            && checksum["sha256:".len()..]
-                .chars()
-                .all(|ch| ch.is_ascii_hexdigit() && !ch.is_ascii_uppercase());
+        let checksum_ok = checksum == "not-distributed"
+            && governed_statuses.get(tool).is_some_and(|status| status == "unsupported")
+            || checksum.starts_with("sha256:")
+                && checksum.len() == "sha256:".len() + 64
+                && checksum["sha256:".len()..]
+                    .chars()
+                    .all(|ch| ch.is_ascii_hexdigit() && !ch.is_ascii_uppercase());
         if !checksum_ok {
             errors.push(format!(
-                "{} upstream_checksum must be exact sha256:<64hex>",
+                "{} upstream_checksum must be exact sha256:<64hex> or not-distributed for an unsupported tool",
                 workspace.rel(&meta).display()
             ));
         }
@@ -880,7 +885,7 @@ fn generate_network_usage_content(workspace: &Workspace) -> Result<String> {
                 || path
                     .file_name()
                     .and_then(|name| name.to_str())
-                    .is_some_and(|name| name.starts_with("Dockerfile."))
+                    .is_some_and(|name| name.starts_with("Dockerfile.arm64."))
         })
         .collect::<Vec<_>>();
     recipe_paths.sort();
@@ -1099,21 +1104,19 @@ fn tool_docs_content(workspace: &Workspace) -> Result<BTreeMap<String, String>> 
         }
     }
 
-    let docker_ids = fs::read_dir(workspace.path("containers/docker/arm64"))
-        .with_context(|| format!("read {}", workspace.path("containers/docker/arm64").display()))?
+    let docker_ids = fs::read_dir(workspace.path("containers/docker"))
+        .with_context(|| format!("read {}", workspace.path("containers/docker").display()))?
         .filter_map(std::result::Result::ok)
         .filter_map(|entry| {
             entry
                 .file_name()
                 .to_str()
-                .and_then(|name| name.strip_prefix("Dockerfile."))
+                .and_then(|name| name.strip_prefix("Dockerfile.arm64."))
                 .map(ToString::to_string)
         })
         .collect::<BTreeSet<_>>();
-    let apptainer_ids = fs::read_dir(workspace.path("containers/apptainer/shared"))
-        .with_context(|| {
-            format!("read {}", workspace.path("containers/apptainer/shared").display())
-        })?
+    let apptainer_ids = fs::read_dir(workspace.path("containers/apptainer"))
+        .with_context(|| format!("read {}", workspace.path("containers/apptainer").display()))?
         .filter_map(std::result::Result::ok)
         .filter_map(|entry| {
             entry.path().file_stem().and_then(|name| name.to_str()).map(ToString::to_string)

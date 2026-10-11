@@ -1,0 +1,65 @@
+# Container recipe license: GPL-3.0-only.
+# This container recipe is maintained by Bijux Genomics.
+# Bijux Genomics source code is licensed under Apache-2.0.
+# Copyright (C) 2026 Bijan Mousavi
+# Tool ID: yleaf
+# Version policy: immutable release commit, source archive, and hashed Python lock
+# Upstream source: https://github.com/genid/Yleaf
+# Build date policy: captured by immutable build evidence
+# Network source policy: build-only access to the locked Ubuntu snapshot, source archive, and Python index
+# Runtime UID policy: non-root runtime with caller-owned output paths
+# VERSION_SOURCE: containers/contracts/catalog.toml
+
+Bootstrap: docker
+From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
+
+%labels
+    org.opencontainers.image.source https://github.com/genid/Yleaf
+    org.opencontainers.image.revision a2368eaaf08c0af53063514ed435d9e844b0ac1e
+    org.opencontainers.image.created governed-by-build-evidence
+    org.opencontainers.image.licenses MIT
+    org.opencontainers.image.version 4.1.4
+    org.opencontainers.image.tool yleaf
+    org.opencontainers.image.title Yleaf
+
+%files
+    containers/tools/yleaf/requirements.lock /opt/yleaf-requirements.lock
+
+%environment
+    export PATH=/opt/yleaf-venv/bin:/usr/local/bin:/usr/bin:/bin
+    export LANG=C
+    export LC_ALL=C
+    export TZ=UTC
+
+%post
+    set -eux
+    umask 022
+    export DEBIAN_FRONTEND=noninteractive
+    sed -i 's#http://archive.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubuntu/20260802T000000Z/#g; s#http://security.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubuntu/20260802T000000Z/#g' /etc/apt/sources.list.d/ubuntu.sources
+    apt-get -o Acquire::https::Verify-Peer=false -o Acquire::Check-Valid-Until=false update
+    apt-get -o Acquire::https::Verify-Peer=false install -y --no-install-recommends ca-certificates
+    apt-get -o Acquire::Check-Valid-Until=false update
+    apt-get install -y --no-install-recommends bcftools curl graphviz minimap2 python3 python3-pip python3-venv samtools tabix
+    curl --fail --location --silent --show-error --output /opt/yleaf-source.tar.gz https://github.com/genid/Yleaf/archive/a2368eaaf08c0af53063514ed435d9e844b0ac1e.tar.gz
+    echo 'b98f63250878caa3b20d40dea352f2fb81438bcf45bc0830693c6e74f69ab9c4  /opt/yleaf-source.tar.gz' | sha256sum --check --strict
+    mkdir -p /opt/yleaf-source
+    tar --extract --gzip --file /opt/yleaf-source.tar.gz --directory /opt/yleaf-source --strip-components=1
+    python3 -m venv /opt/yleaf-venv
+    /opt/yleaf-venv/bin/pip install --no-cache-dir --require-hashes --requirement /opt/yleaf-requirements.lock
+    /opt/yleaf-venv/bin/pip install --no-cache-dir --no-deps --no-build-isolation /opt/yleaf-source
+    ln -s /opt/yleaf-venv/bin/Yleaf /usr/local/bin/Yleaf
+    printf '%s\n' '#!/usr/bin/env sh' 'set -eu' 'case "${1:-}" in' '  --version) printf "%s\n" "Yleaf 4.1.4" ;;' '  --help|-h|"") exec /usr/local/bin/Yleaf -h ;;' '  *) exec /usr/local/bin/Yleaf "$@" ;;' 'esac' > /usr/local/bin/yleaf
+    chmod 0755 /usr/local/bin/yleaf
+    yleaf --version | grep -F 'Yleaf 4.1.4'
+    rm -rf /opt/yleaf-source /opt/yleaf-source.tar.gz
+    rm -rf /var/lib/apt/lists/*
+
+%runscript
+    exec /usr/local/bin/yleaf "$@"
+
+%test
+    yleaf --version | grep -F 'Yleaf 4.1.4'
+    yleaf --help >/dev/null
+
+%help
+    Yleaf 4.1.4 with immutable source and hashed Python dependencies.

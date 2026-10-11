@@ -1,0 +1,64 @@
+# Container recipe license: GPL-3.0-only.
+# This container recipe is maintained by Bijux Genomics.
+# Bijux Genomics source code is licensed under Apache-2.0.
+# Copyright (C) 2026 Bijan Mousavi
+# BIJUX_TEMPLATE: v1
+# Tool ID: adapterremoval
+# Version policy: immutable upstream commit and verified source archive
+# Upstream source: https://github.com/MikkelSchubert/adapterremoval
+# Build date policy: captured by immutable build evidence
+# Network source policy: build-only access to the locked Ubuntu snapshot and source archive
+# Runtime UID policy: non-root runtime with caller-owned output paths
+# VERSION_SOURCE: containers/contracts/catalog.toml
+
+Bootstrap: docker
+From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
+
+%labels
+    org.opencontainers.image.source https://github.com/MikkelSchubert/adapterremoval
+    org.opencontainers.image.revision 79b296b8fcfd853757d798528128c37a166331a9
+    org.opencontainers.image.created governed-by-build-evidence
+    org.opencontainers.image.licenses GPL-3.0
+    org.opencontainers.image.version 2.3.4
+    org.opencontainers.image.tool adapterremoval
+    org.opencontainers.image.title AdapterRemoval
+
+%environment
+    export PATH=/usr/local/bin:/usr/bin:/bin
+    export LANG=C
+    export LC_ALL=C
+    export TZ=UTC
+
+%post
+    set -eux
+    umask 022
+    export DEBIAN_FRONTEND=noninteractive
+    sed -i 's#http://archive.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubuntu/20260802T000000Z/#g; s#http://security.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubuntu/20260802T000000Z/#g' /etc/apt/sources.list.d/ubuntu.sources
+    # The digest-pinned Ubuntu root has archive keys but no TLS trust store. The
+    # signed snapshot index authenticates this one-time CA bootstrap package.
+    apt-get -o Acquire::https::Verify-Peer=false -o Acquire::Check-Valid-Until=false update
+    apt-get -o Acquire::https::Verify-Peer=false install -y --no-install-recommends ca-certificates
+    apt-get -o Acquire::Check-Valid-Until=false update
+    apt-get install -y --no-install-recommends curl g++ make zlib1g-dev libbz2-dev
+    curl --fail --location --silent --show-error \
+        --output /tmp/adapterremoval.tar.gz \
+        https://github.com/MikkelSchubert/adapterremoval/archive/79b296b8fcfd853757d798528128c37a166331a9.tar.gz
+    echo '47cc1f41af7de6e9b8057a1ff80748e96df1a1e653bf39d8f6b8321a6f050c20  /tmp/adapterremoval.tar.gz' | sha256sum --check --strict
+    tar --extract --gzip --file /tmp/adapterremoval.tar.gz --directory /tmp
+    make --directory /tmp/adapterremoval-79b296b8fcfd853757d798528128c37a166331a9 -j"$(nproc)"
+    make --directory /tmp/adapterremoval-79b296b8fcfd853757d798528128c37a166331a9 install
+    ln -s /usr/local/bin/AdapterRemoval /usr/local/bin/adapterremoval
+    adapterremoval --version
+    rm -rf /tmp/adapterremoval*
+    rm -rf /var/lib/apt/lists/*
+
+%runscript
+    exec /usr/local/bin/adapterremoval "$@"
+
+%test
+    adapterremoval --version
+    adapterremoval --help >/dev/null
+
+%help
+    AdapterRemoval 2.3.4 built from the catalog-locked upstream commit.
+    The runscript forwards arguments directly to the authentic binary.

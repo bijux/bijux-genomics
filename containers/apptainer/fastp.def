@@ -1,0 +1,69 @@
+# Container recipe license: GPL-3.0-only.
+# This container recipe is maintained by Bijux Genomics.
+# Bijux Genomics source code is licensed under Apache-2.0.
+# Copyright (C) 2026 Bijan Mousavi
+# BIJUX_TEMPLATE: v1
+
+# Tool ID: fastp
+# Version policy: pinned_or_registry_locked
+# Upstream source: see org.opencontainers.image.source label
+# Build date policy: org.opencontainers.image.created set by release pipeline
+# Network source policy: NETWORK_SOURCE_VERIFIED_BY_LOCK
+# Runtime UID policy: RUNTIME_UID_SAFE
+
+# VERSION_SOURCE: containers/versions/versions.toml
+Bootstrap: docker
+From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
+
+%labels
+    MAINTAINER Bijan Mousavi <bijan@bijux.io>
+    VERSION Fastp-v0.23.4
+    org.opencontainers.image.source https://github.com/OpenGene/fastp
+
+    org.opencontainers.image.source https://github.com/bijux/bijux-genomics
+    org.opencontainers.image.revision unknown
+    org.opencontainers.image.created unknown
+    org.opencontainers.image.licenses GPL-3.0
+    org.opencontainers.image.version 0.23.4
+    org.opencontainers.image.tool fastp
+    org.opencontainers.image.title fastp
+%environment
+    export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+    export LC_ALL=C
+    export TZ=UTC
+    DEBIAN_FRONTEND=noninteractive
+
+%post
+    set -eux
+    umask 022
+    export DEBIAN_FRONTEND=noninteractive
+
+    apt-get update && \
+    apt-get install -y --no-install-recommends \
+        wget ca-certificates build-essential zlib1g-dev libdeflate-dev && \
+
+    ARCH=$(uname -m) && \
+    if [ "$ARCH" = "x86_64" ]; then \
+        apt-get install -y --no-install-recommends libisal-dev; \
+    fi && \
+
+    wget -q https://github.com/OpenGene/fastp/archive/v0.23.4.tar.gz -O /tmp/fastp.tar.gz && \
+    tar -xzf /tmp/fastp.tar.gz -C /opt && \
+    cd /opt/fastp-0.23.4 && \
+    make && \
+    cp fastp /usr/local/bin/fastp && \
+
+    cd / && \
+    rm -rf /tmp/fastp.tar.gz /opt/fastp-0.23.4 && \
+    rm -rf /var/lib/apt/lists/*
+%runscript
+    if [ $# -eq 0 ]; then
+        exec /usr/local/bin/fastp --help
+    else
+        exec /usr/local/bin/fastp "$@"
+    fi
+
+%help
+    This Apptainer image provides fastp version 0.23.4, compiled from source.
+    ISA-L acceleration is enabled on x86_64 hosts (where supported); other architectures use available optimizations.
+    Run with arguments to execute fastp, or without arguments to display detailed help.

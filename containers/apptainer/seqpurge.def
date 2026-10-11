@@ -1,0 +1,93 @@
+# Container recipe license: GPL-3.0-only.
+# This container recipe is maintained by Bijux Genomics.
+# Bijux Genomics source code is licensed under Apache-2.0.
+# Copyright (C) 2026 Bijan Mousavi
+# Tool ID: seqpurge
+# Version policy: immutable upstream and submodule commits
+# Upstream source: https://github.com/imgag/ngs-bits
+# Build date policy: captured by immutable build evidence
+# Network source policy: build-only access to the locked Ubuntu snapshot and Git commits
+# Runtime UID policy: non-root runtime with caller-owned output paths
+# VERSION_SOURCE: containers/contracts/catalog.toml
+
+Bootstrap: docker
+From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
+
+%labels
+    org.opencontainers.image.source https://github.com/imgag/ngs-bits
+    org.opencontainers.image.revision 1c7f71b1cf653d1f52c720290e5d5d2fe34adfe1
+    org.opencontainers.image.created governed-by-build-evidence
+    org.opencontainers.image.licenses MIT
+    org.opencontainers.image.version 2026_06
+    org.opencontainers.image.tool seqpurge
+    org.opencontainers.image.title SeqPurge
+
+%environment
+    export PATH=/usr/local/bin:/usr/bin:/bin
+    export LD_LIBRARY_PATH=/usr/local/lib
+    export QT_QPA_PLATFORM=offscreen
+    export LANG=C
+    export LC_ALL=C
+    export TZ=UTC
+
+%files
+    containers/tools/seqpurge/seqpurge /usr/local/bin/seqpurge
+
+%post
+    set -eux
+    umask 022
+    export DEBIAN_FRONTEND=noninteractive
+    sed -i 's#http://archive.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubuntu/20260802T000000Z/#g; s#http://security.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubuntu/20260802T000000Z/#g' /etc/apt/sources.list.d/ubuntu.sources
+    apt-get -o Acquire::https::Verify-Peer=false -o Acquire::Check-Valid-Until=false update
+    apt-get -o Acquire::https::Verify-Peer=false install -y --no-install-recommends ca-certificates
+    apt-get -o Acquire::Check-Valid-Until=false update
+    apt-get install -y --no-install-recommends build-essential git libhts-dev libqt6charts6-dev libxml2-dev pkg-config qmake6 zlib1g-dev
+    git init /opt/ngs-bits-source
+    git -C /opt/ngs-bits-source remote add origin https://github.com/imgag/ngs-bits.git
+    git -C /opt/ngs-bits-source fetch --depth 1 origin 1c7f71b1cf653d1f52c720290e5d5d2fe34adfe1
+    git -C /opt/ngs-bits-source checkout --detach FETCH_HEAD
+    test "$(git -C /opt/ngs-bits-source rev-parse HEAD)" = 1c7f71b1cf653d1f52c720290e5d5d2fe34adfe1
+    git init /opt/ngs-bits-source/src/cppCORE
+    git -C /opt/ngs-bits-source/src/cppCORE remote add origin https://github.com/imgag/cppCORE.git
+    git -C /opt/ngs-bits-source/src/cppCORE fetch --depth 1 origin 3d3d6c3fa083285a883700b910130a70b914eeec
+    git -C /opt/ngs-bits-source/src/cppCORE checkout --detach FETCH_HEAD
+    test "$(git -C /opt/ngs-bits-source/src/cppCORE rev-parse HEAD)" = 3d3d6c3fa083285a883700b910130a70b914eeec
+    git init /opt/ngs-bits-source/src/cppXML
+    git -C /opt/ngs-bits-source/src/cppXML remote add origin https://github.com/imgag/cppXML.git
+    git -C /opt/ngs-bits-source/src/cppXML fetch --depth 1 origin d9a47278def57b0680393dd55c0a1d6126b8255f
+    git -C /opt/ngs-bits-source/src/cppXML checkout --detach FETCH_HEAD
+    test "$(git -C /opt/ngs-bits-source/src/cppXML rev-parse HEAD)" = d9a47278def57b0680393dd55c0a1d6126b8255f
+    : > /opt/ngs-bits-source/src/cppCORE/CRYPT_KEY.txt
+    sed -i 's/$$system(cd .. && git describe --tags)/2026_06/' /opt/ngs-bits-source/src/cppCORE/cppCORE.pro
+    mkdir -p /opt/ngs-bits-source/src/build/cppCORE /opt/ngs-bits-source/src/build/cppXML /opt/ngs-bits-source/src/build/cppNGS /opt/ngs-bits-source/src/build/SeqPurge
+    cd /opt/ngs-bits-source/src/build/cppCORE
+    qmake6 ../../cppCORE/cppCORE.pro 'CONFIG-=debug' 'CONFIG+=release'
+    make -j"$(nproc)"
+    cd /opt/ngs-bits-source/src/build/cppXML
+    qmake6 ../../cppXML/cppXML.pro 'CONFIG-=debug' 'CONFIG+=release'
+    make -j"$(nproc)"
+    cd /opt/ngs-bits-source/src/build/cppNGS
+    qmake6 ../../cppNGS/cppNGS.pro 'CONFIG-=debug' 'CONFIG+=release'
+    make -j"$(nproc)"
+    cd /opt/ngs-bits-source/src/build/SeqPurge
+    qmake6 ../../SeqPurge/SeqPurge.pro 'CONFIG-=debug' 'CONFIG+=release'
+    make -j"$(nproc)"
+    install -m 0755 /opt/ngs-bits-source/bin/SeqPurge /usr/local/libexec-seqpurge
+    install -m 0755 /opt/ngs-bits-source/bin/libcppCORE.so* /usr/local/lib/
+    install -m 0755 /opt/ngs-bits-source/bin/libcppXML.so* /usr/local/lib/
+    install -m 0755 /opt/ngs-bits-source/bin/libcppNGS.so* /usr/local/lib/
+    chmod 0755 /usr/local/bin/seqpurge
+    ldconfig
+    seqpurge --version | grep -F '2026_06'
+    rm -rf /opt/ngs-bits-source
+    rm -rf /var/lib/apt/lists/*
+
+%runscript
+    exec /usr/local/bin/seqpurge "$@"
+
+%test
+    seqpurge --version | grep -F '2026_06'
+    seqpurge --help >/dev/null
+
+%help
+    SeqPurge from ngs-bits 2026_06, built from exact upstream Git commits.

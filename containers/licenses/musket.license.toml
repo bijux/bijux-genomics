@@ -1,12 +1,12 @@
 # schema_version = 1
-# owner = bijux-dna-platform
+# owner = bijux-genomics
 tool_id = "musket"
 container_kind = "bijux"
 spdx = "NOASSERTION"
 upstream_license_id = "NOASSERTION"
 upstream_url = "https://sourceforge.net/projects/musket/"
 upstream_version = "1.1"
-upstream_checksum = "sha256:973cc8f959b73532423188df557eaed7c0b107b85e002d3af7f2fde9e5eb9708"
+upstream_checksum = "sha256:306772803ef72e6a7dfdfdf382d0fafa77de0eaa226500b0525940f6b5497aba"
 redistribution_note = "Redistribution follows upstream license obligations; verify notice/source requirements before release."
 citation = "upstream:https://sourceforge.net/projects/musket/"
 version = "1.1"

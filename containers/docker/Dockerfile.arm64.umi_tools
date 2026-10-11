@@ -1,0 +1,50 @@
+# SPDX-License-Identifier: GPL-3.0
+# Copyright (C) 2026 Bijan Mousavi
+#
+# Container definition license: GPL-3.0.
+# Bijux Genomics source code is licensed under Apache-2.0.
+# VERSION_SOURCE: containers/versions/versions.toml
+FROM python:3.9-slim@sha256:2d97f6910b16bd338d3060f261f53f144965f755599aab1acda1e13cf1731b1b
+ARG OCI_REVISION=unknown
+ARG OCI_CREATED=unknown
+ARG TOOL_VERSION=unknown
+LABEL org.opencontainers.image.source="https://github.com/bijux/bijux-genomics" \
+      org.opencontainers.image.revision="${OCI_REVISION}" \
+      org.opencontainers.image.created="${OCI_CREATED}" \
+      org.opencontainers.image.licenses="GPL-3.0" \
+      org.opencontainers.image.version="${TOOL_VERSION}"
+LABEL org.opencontainers.image.tool="umi_tools"
+LABEL org.opencontainers.image.title="umi_tools"
+LABEL org.opencontainers.image.base.name="python:3.9-slim@sha256:2d97f6910b16bd338d3060f261f53f144965f755599aab1acda1e13cf1731b1b"
+LABEL org.opencontainers.image.base.digest="sha256:2d97f6910b16bd338d3060f261f53f144965f755599aab1acda1e13cf1731b1b"
+ENV DEBIAN_FRONTEND=noninteractive
+
+ARG VERSION_UMI_TOOLS=1.1.6
+ENV VERSION_UMI_TOOLS=${VERSION_UMI_TOOLS}
+
+RUN apt-get update -qq && \
+    apt-get install -y --no-install-recommends \
+        build-essential \
+        ca-certificates \
+        git \
+        liblzma-dev && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN python3 -m venv /opt/venv && \
+    /opt/venv/bin/pip install --no-cache-dir --upgrade "pip==24.3.1" "setuptools<81" wheel && \
+    PIP_USE_PEP517=0 /opt/venv/bin/pip install --no-cache-dir "umi_tools==${VERSION_UMI_TOOLS}" && \
+    mv /opt/venv/bin/umi_tools /usr/local/bin/umi_tools-bin && \
+    printf '%s\n' \
+      '#!/bin/sh' \
+      'case "${1:-}" in' \
+      '  --version) echo "${VERSION_UMI_TOOLS}"; exit 0;;' \
+      '  --help|-h|"") exec /usr/local/bin/umi_tools-bin --help;;' \
+      '  *) exec /usr/local/bin/umi_tools-bin "$@";; esac' \
+      > /usr/local/bin/umi_tools && \
+    chmod +x /usr/local/bin/umi_tools
+
+ENV PATH="/opt/venv/bin:${PATH}"
+
+WORKDIR /data
+ENTRYPOINT ["umi_tools"]
+CMD ["--help"]

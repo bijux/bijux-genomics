@@ -32,12 +32,12 @@ See also: [VCF Downstream Roadmap](vcf/ROADMAP.md)
 - `ibdhap` (planned) : vcf.ibd
 - `ibdne` (planned) : vcf.ibd, vcf.demography
 - `ibdseq` (planned) : vcf.ibd
-- `impute5` (planned) : vcf.impute, vcf.imputation_metrics
+- `impute5` (unsupported) : vcf.impute, vcf.imputation_metrics
 - `minimac4` (planned) : vcf.impute, vcf.imputation_metrics
 - `plink` (experimental) : vcf.qc, vcf.admixture
 - `plink2` (experimental) : vcf.qc, vcf.pca, vcf.population_structure, vcf.roh, vcf.admixture
 - `shapeit` (planned) : vcf.phasing
-- `shapeit5` (experimental) : vcf.phasing
+- `shapeit5` (production) : vcf.phasing
 
 | Tool ID | Purpose | Stage Bindings | Container Ref | Version | Citation | Status |
 |---|---|---|---|---|---|---|
@@ -81,7 +81,7 @@ See also: [VCF Downstream Roadmap](vcf/ROADMAP.md)
 | `ibdhap` | `relatedness` | `vcf.ibd` | `registry_lock` | `0.1.0-planned` | planned | `planned` |
 | `ibdne` | `demography` | `vcf.ibd, vcf.demography` | `registry_lock` | `1.0-planned` | planned | `planned` |
 | `ibdseq` | `relatedness` | `vcf.ibd` | `registry_lock` | `3.0-planned` | planned | `planned` |
-| `impute5` | `imputation` | `vcf.impute, vcf.imputation_metrics` | `registry_lock` | `0.0.0-planned` | planned | `planned` |
+| `impute5` | `imputation` | `vcf.impute, vcf.imputation_metrics` | `external@licensed-installation` | `1.2.0` | paper:https://journals.plos.org/plosgenetics/article?id=10.1371/journal.pgen.1009049 | `unsupported` |
 | `kaiju` | `screen` | `fastq.screen_taxonomy` | `bijuxdna/kaiju@sha256:4f30fd9becc62e873bc223231c717bba5b42db8a4f993979bf26c7fc00979f9b` | `1.10.0` | paper:https://www.nature.com/articles/ncomms11257 | `production` |
 | `king` | `transform` | `bam.kinship` | `bijuxdna/king:2.3.0` | `2.3.0` | paper:https://academic.oup.com/bioinformatics/article/26/22/2867/228512 | `production` |
 | `kraken2` | `screen` | `fastq.screen_taxonomy` | `bijuxdna/kraken2@sha256:e493061d26aeea71812ed8b587a0e65f67617b192e225d8d53eba896dfe7cb35` | `2.1.3` | paper:https://genomebiology.biomedcentral.com/articles/10.1186/s13059-019-1891-0 | `production` |
@@ -111,7 +111,7 @@ See also: [VCF Downstream Roadmap](vcf/ROADMAP.md)
 | `seqkit_stats` | `transform` | `fastq.profile_read_lengths, fastq.profile_reads` | `bijuxdna/seqkit@sha256:ca3dc13e3fef5d34927c44b2d8cd2bc6708c2c256f42e51369d7b1203b0d2991` | `2.7.0` | paper:https://pmc.ncbi.nlm.nih.gov/articles/PMC5051824/ | `production` |
 | `seqtk` | `validator` | `fastq.validate_reads` | `bijuxdna/seqtk@sha256:16e615286a66f1654278a862ad47c3d62bdfabbbf17cb2e12a568256d1b05024` | `1.5-r133` | software:https://github.com/lh3/seqtk | `production` |
 | `shapeit` | `phasing` | `vcf.phasing` | `registry_lock` | `4.2.2-planned` | planned | `planned` |
-| `shapeit5` | `phasing` | `vcf.phasing` | `registry_lock` | `5.4` | planned | `experimental` |
+| `shapeit5` | `phasing` | `vcf.phasing` | `registry_lock` | `5.1.1` | paper:https://www.nature.com/articles/s41588-023-01415-w | `production` |
 | `skewer` | `trimmer` | `fastq.trim_reads` | `bijuxdna/skewer:978e8e46cba4` | `978e8e46cba4` | paper:https://bmcbioinformatics.biomedcentral.com/articles/10.1186/1471-2105-15-182 | `production` |
 | `sortmerna` | `transform` | `fastq.deplete_rrna` | `bijuxdna/sortmerna@sha256:2021b21d075d06404339ec019b9729f2dfb820685c86835df654c2fb7d8b447c` | `4.3.7` | paper:https://academic.oup.com/bioinformatics/article/28/24/3211/246053 | `production` |
 | `star` | `transform` | `fastq.index_reference` | `bijuxdna/star:2.7.11b` | `2.7.11b` | paper:https://academic.oup.com/bioinformatics/article/29/1/15/272537 | `production` |

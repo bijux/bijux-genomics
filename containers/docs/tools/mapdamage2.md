@@ -12,7 +12,7 @@ Purpose: generated per-tool container contract summary.
 - Tool license record: [containers/licenses/mapdamage2.license.toml](../../licenses/mapdamage2.license.toml)
 
 - Version: `2.2.2`
-- License: `NOASSERTION`
+- License: `MIT`
 - Runtime support: `docker-arm64, apptainer`
 - Smoke status: `unknown`
 

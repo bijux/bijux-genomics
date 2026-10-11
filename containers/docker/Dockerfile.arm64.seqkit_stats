@@ -1,0 +1,40 @@
+# SPDX-License-Identifier: GPL-3.0
+# Copyright (C) 2026 Bijan Mousavi
+#
+# Container definition license: GPL-3.0.
+# Bijux Genomics source code is licensed under Apache-2.0.
+# VERSION_SOURCE: containers/versions/versions.toml
+FROM ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
+ARG OCI_REVISION=unknown
+ARG OCI_CREATED=unknown
+ARG TOOL_VERSION=2.8.2
+LABEL org.opencontainers.image.source="https://github.com/bijux/bijux-genomics" \
+      org.opencontainers.image.revision="${OCI_REVISION}" \
+      org.opencontainers.image.created="${OCI_CREATED}" \
+      org.opencontainers.image.licenses="GPL-3.0" \
+      org.opencontainers.image.version="${TOOL_VERSION}"
+LABEL org.opencontainers.image.tool="seqkit_stats"
+LABEL org.opencontainers.image.title="seqkit_stats"
+LABEL org.opencontainers.image.base.name="ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b"
+LABEL org.opencontainers.image.base.digest="sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b"
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update -qq && \
+    apt-get install -y --no-install-recommends ca-certificates=20240203 seqkit=2.3.1+ds-2ubuntu0.3 && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN cat > /usr/local/bin/seqkit_stats <<'EOS'
+#!/usr/bin/env sh
+if [ "${1:-}" = "--version" ]; then
+  seqkit version | awk '{print $2}'
+  exit 0
+fi
+if [ "${1:-}" = "--help" ] || [ $# -eq 0 ]; then
+  exec seqkit stats --help
+fi
+exec seqkit stats "$@"
+EOS
+RUN chmod +x /usr/local/bin/seqkit_stats
+
+ENTRYPOINT ["/usr/local/bin/seqkit_stats"]
+CMD ["--help"]

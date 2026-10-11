@@ -73,11 +73,11 @@ Each package gets:
 - Tool runtime coverage:
   [configs/ci/registry/](../../configs/ci/registry/)
 - Docker build surface:
-  [containers/docker/arm64/](../docker/arm64/)
+  [containers/docker/](../docker/)
 - Apptainer build surface:
-  [containers/apptainer/shared/](../apptainer/shared/)
+  [containers/apptainer/](../apptainer/)
 - Non-bijux provenance:
-  [containers/apptainer/shared/NON_BIJUX_SOURCES.md](../apptainer/shared/NON_BIJUX_SOURCES.md)
+  [containers/docs/UPSTREAM_SOURCES.md](UPSTREAM_SOURCES.md)
 
 ## Pull Contract
 

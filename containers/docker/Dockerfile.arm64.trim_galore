@@ -1,0 +1,41 @@
+# SPDX-License-Identifier: GPL-3.0
+# Copyright (C) 2026 Bijan Mousavi
+#
+# Container definition license: GPL-3.0.
+# Bijux Genomics source code is licensed under Apache-2.0.
+# VERSION_SOURCE: containers/versions/versions.toml
+FROM ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
+ARG OCI_REVISION=unknown
+ARG OCI_CREATED=unknown
+ARG TOOL_VERSION=unknown
+LABEL org.opencontainers.image.source="https://github.com/bijux/bijux-genomics" \
+      org.opencontainers.image.revision="${OCI_REVISION}" \
+      org.opencontainers.image.created="${OCI_CREATED}" \
+      org.opencontainers.image.licenses="GPL-3.0" \
+      org.opencontainers.image.version="${TOOL_VERSION}"
+LABEL org.opencontainers.image.tool="trim_galore"
+LABEL org.opencontainers.image.title="trim_galore"
+LABEL org.opencontainers.image.base.name="ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b"
+LABEL org.opencontainers.image.base.digest="sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b"
+ENV DEBIAN_FRONTEND=noninteractive
+
+ARG VERSION_TRIM_GALORE=0.6.10
+ENV TRIM_GALORE=${VERSION_TRIM_GALORE}
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    python3 python3-pip python3-dev build-essential fastqc wget && \
+    rm -rf /var/lib/apt/lists/*
+
+
+RUN wget -q https://github.com/FelixKrueger/TrimGalore/archive/${VERSION_TRIM_GALORE}.tar.gz \
+    -O /tmp/trimgalore.tar.gz && \
+    tar -xzf /tmp/trimgalore.tar.gz -C /opt && \
+    ln -sf /opt/TrimGalore-${VERSION_TRIM_GALORE}/trim_galore /usr/local/bin/trim_galore && \
+    chmod +x /usr/local/bin/trim_galore && \
+    rm /tmp/trimgalore.tar.gz
+
+RUN pip3 install --no-cache-dir --break-system-packages cutadapt
+
+WORKDIR /data
+ENTRYPOINT ["trim_galore"]
+CMD []

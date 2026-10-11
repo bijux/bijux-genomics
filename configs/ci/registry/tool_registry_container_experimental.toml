@@ -17,8 +17,8 @@ runtimes = ["docker", "apptainer"]
 expected_bin = "bamutil"
 smoke_version_cmd = "bamutil --version"
 smoke_help_cmd = "bamutil --help"
-dockerfile = "containers/docker/arm64/Dockerfile.bamutil"
-apptainer_def = "containers/apptainer/shared/bamutil.def"
+dockerfile = "containers/docker/Dockerfile.arm64.bamutil"
+apptainer_def = "containers/apptainer/bamutil.def"
 
 [[tools]]
 id = "bracken"
@@ -31,8 +31,8 @@ runtimes = ["docker", "apptainer"]
 expected_bin = "bracken"
 smoke_version_cmd = "bracken --version"
 smoke_help_cmd = "bracken -h"
-dockerfile = "containers/docker/arm64/Dockerfile.bracken"
-apptainer_def = "containers/apptainer/shared/bracken.def"
+dockerfile = "containers/docker/Dockerfile.arm64.bracken"
+apptainer_def = "containers/apptainer/bracken.def"
 
 [[tools]]
 id = "diamond"
@@ -45,8 +45,8 @@ runtimes = ["docker", "apptainer"]
 expected_bin = "diamond"
 smoke_version_cmd = "diamond --version"
 smoke_help_cmd = "diamond help"
-dockerfile = "containers/docker/arm64/Dockerfile.diamond"
-apptainer_def = "containers/apptainer/shared/diamond.def"
+dockerfile = "containers/docker/Dockerfile.arm64.diamond"
+apptainer_def = "containers/apptainer/diamond.def"
 
 [[tools]]
 id = "dustmasker"
@@ -59,8 +59,8 @@ runtimes = ["docker", "apptainer"]
 expected_bin = "dustmasker"
 smoke_version_cmd = "dustmasker --version"
 smoke_help_cmd = "dustmasker --help"
-dockerfile = "containers/docker/arm64/Dockerfile.dustmasker"
-apptainer_def = "containers/apptainer/shared/dustmasker.def"
+dockerfile = "containers/docker/Dockerfile.arm64.dustmasker"
+apptainer_def = "containers/apptainer/dustmasker.def"
 
 [[tools]]
 id = "fastq_screen"
@@ -73,8 +73,8 @@ runtimes = ["docker", "apptainer"]
 expected_bin = "fastq_screen"
 smoke_version_cmd = "fastq_screen --version"
 smoke_help_cmd = "fastq_screen --help"
-dockerfile = "containers/docker/arm64/Dockerfile.fastq_screen"
-apptainer_def = "containers/apptainer/shared/fastq_screen.def"
+dockerfile = "containers/docker/Dockerfile.arm64.fastq_screen"
+apptainer_def = "containers/apptainer/fastq_screen.def"
 
 [[tools]]
 id = "gatk"
@@ -87,8 +87,8 @@ runtimes = ["docker", "apptainer"]
 expected_bin = "gatk"
 smoke_version_cmd = "gatk --version"
 smoke_help_cmd = "gatk --help"
-dockerfile = "containers/docker/arm64/Dockerfile.gatk"
-apptainer_def = "containers/apptainer/shared/gatk.def"
+dockerfile = "containers/docker/Dockerfile.arm64.gatk"
+apptainer_def = "containers/apptainer/gatk.def"
 
 [[tools]]
 id = "metaphlan"
@@ -101,8 +101,8 @@ runtimes = ["docker", "apptainer"]
 expected_bin = "metaphlan"
 smoke_version_cmd = "metaphlan --version"
 smoke_help_cmd = "metaphlan --help"
-dockerfile = "containers/docker/arm64/Dockerfile.metaphlan"
-apptainer_def = "containers/apptainer/shared/metaphlan.def"
+dockerfile = "containers/docker/Dockerfile.arm64.metaphlan"
+apptainer_def = "containers/apptainer/metaphlan.def"
 
 [[tools]]
 id = "ngsbriggs"
@@ -115,8 +115,8 @@ runtimes = ["docker", "apptainer"]
 expected_bin = "ngsbriggs"
 smoke_version_cmd = "ngsbriggs --version"
 smoke_help_cmd = "ngsbriggs --help"
-dockerfile = "containers/docker/arm64/Dockerfile.ngsbriggs"
-apptainer_def = "containers/apptainer/shared/ngsbriggs.def"
+dockerfile = "containers/docker/Dockerfile.arm64.ngsbriggs"
+apptainer_def = "containers/apptainer/ngsbriggs.def"
 
 [[tools]]
 id = "picard"
@@ -129,8 +129,8 @@ runtimes = ["docker", "apptainer"]
 expected_bin = "picard"
 smoke_version_cmd = "picard --version"
 smoke_help_cmd = "picard --help"
-dockerfile = "containers/docker/arm64/Dockerfile.picard"
-apptainer_def = "containers/apptainer/shared/picard.def"
+dockerfile = "containers/docker/Dockerfile.arm64.picard"
+apptainer_def = "containers/apptainer/picard.def"
 
 [[tools]]
 id = "preseq"
@@ -143,8 +143,8 @@ runtimes = ["docker", "apptainer"]
 expected_bin = "preseq"
 smoke_version_cmd = "preseq --version"
 smoke_help_cmd = "preseq --help"
-dockerfile = "containers/docker/arm64/Dockerfile.preseq"
-apptainer_def = "containers/apptainer/shared/preseq.def"
+dockerfile = "containers/docker/Dockerfile.arm64.preseq"
+apptainer_def = "containers/apptainer/preseq.def"
 
 [[tools]]
 id = "qualimap"
@@ -157,8 +157,8 @@ runtimes = ["docker", "apptainer"]
 expected_bin = "qualimap"
 smoke_version_cmd = "qualimap --version"
 smoke_help_cmd = "qualimap --help"
-dockerfile = "containers/docker/arm64/Dockerfile.qualimap"
-apptainer_def = "containers/apptainer/shared/qualimap.def"
+dockerfile = "containers/docker/Dockerfile.arm64.qualimap"
+apptainer_def = "containers/apptainer/qualimap.def"
 
 [[tools]]
 id = "seqprep"
@@ -171,8 +171,8 @@ runtimes = ["docker", "apptainer"]
 expected_bin = "seqprep"
 smoke_version_cmd = "seqprep --version"
 smoke_help_cmd = "seqprep --help"
-dockerfile = "containers/docker/arm64/Dockerfile.seqprep"
-apptainer_def = "containers/apptainer/shared/seqprep.def"
+dockerfile = "containers/docker/Dockerfile.arm64.seqprep"
+apptainer_def = "containers/apptainer/seqprep.def"
 
 [[tools]]
 id = "seqpurge"
@@ -185,8 +185,8 @@ runtimes = ["docker", "apptainer"]
 expected_bin = "seqpurge"
 smoke_version_cmd = "seqpurge --version"
 smoke_help_cmd = "seqpurge --help"
-dockerfile = "containers/docker/arm64/Dockerfile.seqpurge"
-apptainer_def = "containers/apptainer/shared/seqpurge.def"
+dockerfile = "containers/docker/Dockerfile.arm64.seqpurge"
+apptainer_def = "containers/apptainer/seqpurge.def"
 
 [[tools]]
 id = "spades"
@@ -199,5 +199,5 @@ runtimes = ["docker", "apptainer"]
 expected_bin = "spades.py"
 smoke_version_cmd = "spades.py --version"
 smoke_help_cmd = "spades.py --help"
-dockerfile = "containers/docker/arm64/Dockerfile.spades"
-apptainer_def = "containers/apptainer/shared/spades.def"
+dockerfile = "containers/docker/Dockerfile.arm64.spades"
+apptainer_def = "containers/apptainer/spades.def"

@@ -73,14 +73,12 @@ fn load_registry_tool_defs_for_runtime(runtime: &str) -> Vec<RuntimeDefSpec> {
 fn docker_defs() -> BTreeSet<String> {
     let root = support::workspace_root();
     let mut defs = BTreeSet::new();
-    for entry in
-        WalkDir::new(root.join("containers/docker/arm64")).into_iter().filter_map(Result::ok)
-    {
+    for entry in WalkDir::new(root.join("containers/docker")).into_iter().filter_map(Result::ok) {
         if !entry.file_type().is_file() {
             continue;
         }
         if entry.path().extension().and_then(|ext| ext.to_str()) != Some("def")
-            && !entry.file_name().to_string_lossy().starts_with("Dockerfile.")
+            && !entry.file_name().to_string_lossy().starts_with("Dockerfile.arm64.")
         {
             continue;
         }
@@ -98,8 +96,7 @@ fn docker_defs() -> BTreeSet<String> {
 fn apptainer_defs() -> BTreeSet<String> {
     let root = support::workspace_root();
     let mut defs = BTreeSet::new();
-    for entry in
-        WalkDir::new(root.join("containers/apptainer/shared")).into_iter().filter_map(Result::ok)
+    for entry in WalkDir::new(root.join("containers/apptainer")).into_iter().filter_map(Result::ok)
     {
         if !entry.file_type().is_file() {
             continue;

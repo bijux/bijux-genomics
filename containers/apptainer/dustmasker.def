@@ -1,0 +1,62 @@
+# Container recipe license: GPL-3.0-only.
+# This container recipe is maintained by Bijux Genomics.
+# Bijux Genomics source code is licensed under Apache-2.0.
+# Copyright (C) 2026 Bijan Mousavi
+# Tool ID: dustmasker
+# Version policy: verified official binary and source archives
+# Upstream source: https://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/2.15.0/
+# Build date policy: captured by immutable build evidence
+# Network source policy: build-only access to the locked Ubuntu snapshot and release files
+# Runtime UID policy: non-root runtime with caller-owned output paths
+# VERSION_SOURCE: containers/contracts/catalog.toml
+
+Bootstrap: docker
+From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
+
+%labels
+    org.opencontainers.image.source https://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/2.15.0/
+    org.opencontainers.image.revision 6918c370524c8d44e028bf491e8f245a895e07c66c77b261ce3b38d6058216e0
+    org.opencontainers.image.created governed-by-build-evidence
+    org.opencontainers.image.licenses LicenseRef-NCBI-Public-Domain
+    org.opencontainers.image.version 2.15.0
+    org.opencontainers.image.tool dustmasker
+    org.opencontainers.image.title DustMasker
+
+%environment
+    export PATH=/usr/local/bin:/usr/bin:/bin
+    export LANG=C
+    export LC_ALL=C
+    export TZ=UTC
+
+%files
+    containers/tools/dustmasker/dustmasker /usr/local/bin/dustmasker
+
+%post
+    set -eux
+    umask 022
+    export DEBIAN_FRONTEND=noninteractive
+    sed -i 's#http://archive.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubuntu/20260802T000000Z/#g; s#http://security.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubuntu/20260802T000000Z/#g' /etc/apt/sources.list.d/ubuntu.sources
+    apt-get -o Acquire::https::Verify-Peer=false -o Acquire::Check-Valid-Until=false update
+    apt-get -o Acquire::https::Verify-Peer=false install -y --no-install-recommends ca-certificates
+    apt-get -o Acquire::Check-Valid-Until=false update
+    apt-get install -y --no-install-recommends curl libgomp1
+    curl --fail --location --silent --show-error --output /opt/blast.tar.gz 'https://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/2.15.0/ncbi-blast-2.15.0+-x64-linux.tar.gz'
+    curl --fail --location --silent --show-error --output /opt/blast-source.tar.gz 'https://ftp.ncbi.nlm.nih.gov/blast/executables/blast+/2.15.0/ncbi-blast-2.15.0+-src.tar.gz'
+    echo 'c5c0b7029069fe5b9cd5913ae606c7f2aa901db8264ca92cfaf04e4d4768c054  /opt/blast.tar.gz' | sha256sum --check --strict
+    echo '6918c370524c8d44e028bf491e8f245a895e07c66c77b261ce3b38d6058216e0  /opt/blast-source.tar.gz' | sha256sum --check --strict
+    tar --extract --gzip --file /opt/blast.tar.gz --directory /opt
+    install -m 0755 '/opt/ncbi-blast-2.15.0+/bin/dustmasker' /usr/local/libexec-dustmasker
+    chmod 0755 /usr/local/bin/dustmasker
+    dustmasker --version | grep -Fx 'dustmasker 2.15.0'
+    rm -rf '/opt/ncbi-blast-2.15.0+' /opt/blast.tar.gz /opt/blast-source.tar.gz
+    rm -rf /var/lib/apt/lists/*
+
+%runscript
+    exec /usr/local/bin/dustmasker "$@"
+
+%test
+    dustmasker --version | grep -Fx 'dustmasker 2.15.0'
+    dustmasker --help >/dev/null
+
+%help
+    DustMasker from NCBI BLAST+ 2.15.0 official x86-64 binary and source archives.

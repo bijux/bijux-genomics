@@ -1,0 +1,27 @@
+# SPDX-License-Identifier: GPL-3.0
+# Copyright (C) 2026 Bijan Mousavi
+#
+# Container definition license: GPL-3.0.
+# Bijux Genomics source code is licensed under Apache-2.0.
+# VERSION_SOURCE: containers/versions/versions.toml
+FROM ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b AS builder
+ARG OCI_REVISION=unknown
+ARG OCI_CREATED=unknown
+ARG TOOL_VERSION=0.940
+LABEL org.opencontainers.image.source="https://github.com/bijux/bijux-genomics"       org.opencontainers.image.revision="${OCI_REVISION}"       org.opencontainers.image.created="${OCI_CREATED}"       org.opencontainers.image.licenses="GPL-3.0"       org.opencontainers.image.version="${TOOL_VERSION}"
+LABEL org.opencontainers.image.tool="angsd"
+LABEL org.opencontainers.image.title="angsd"
+LABEL org.opencontainers.image.base.name="ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b"
+LABEL org.opencontainers.image.base.digest="sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b"
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update -qq && apt-get install -y --no-install-recommends     git build-essential zlib1g-dev libbz2-dev liblzma-dev libcurl4-openssl-dev     ca-certificates make autoconf automake libtool pkg-config &&     rm -rf /var/lib/apt/lists/*
+
+RUN git clone --depth 1 https://github.com/ANGSD/angsd.git /opt/angsd &&     cd /opt/angsd && git checkout 6b5d90641cc6924a0fab06584297f9a1cd1f46ac &&     make -j1
+
+FROM ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt-get update -qq && apt-get install -y --no-install-recommends     ca-certificates libbz2-1.0 liblzma5 libcurl4 zlib1g && rm -rf /var/lib/apt/lists/*
+COPY --from=builder /opt/angsd/angsd /usr/local/bin/angsd
+ENTRYPOINT ["/usr/local/bin/angsd"]
+CMD ["--help"]

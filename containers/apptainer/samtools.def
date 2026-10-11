@@ -1,0 +1,67 @@
+# Container recipe license: GPL-3.0-only.
+# This container recipe is maintained by Bijux Genomics.
+# Bijux Genomics source code is licensed under Apache-2.0.
+# Copyright (C) 2026 Bijan Mousavi
+# BIJUX_TEMPLATE: v1
+# Tool ID: samtools
+# Version policy: immutable upstream release archive and verified checksum
+# Upstream source: https://github.com/samtools/samtools
+# Build date policy: captured by immutable build evidence
+# Network source policy: build-only access to the locked Ubuntu snapshot and source archive
+# Runtime UID policy: non-root runtime with caller-owned output paths
+# VERSION_SOURCE: containers/contracts/catalog.toml
+
+Bootstrap: docker
+From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
+
+%labels
+    org.opencontainers.image.source https://github.com/samtools/samtools
+    org.opencontainers.image.revision 906a3b562ef985d2a9777768f8a81001d6ce6dcb
+    org.opencontainers.image.created governed-by-build-evidence
+    org.opencontainers.image.licenses MIT
+    org.opencontainers.image.version 1.20
+    org.opencontainers.image.tool samtools
+    org.opencontainers.image.title Samtools
+
+%environment
+    export PATH=/usr/local/bin:/usr/bin:/bin
+    export LANG=C
+    export LC_ALL=C
+    export TZ=UTC
+
+%post
+    set -eux
+    umask 022
+    export DEBIAN_FRONTEND=noninteractive
+    sed -i 's#http://archive.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubuntu/20260802T000000Z/#g; s#http://security.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubuntu/20260802T000000Z/#g' /etc/apt/sources.list.d/ubuntu.sources
+    # The digest-pinned Ubuntu root has archive keys but no TLS trust store. The
+    # signed snapshot index authenticates this one-time CA bootstrap package.
+    apt-get -o Acquire::https::Verify-Peer=false -o Acquire::Check-Valid-Until=false update
+    apt-get -o Acquire::https::Verify-Peer=false install -y --no-install-recommends ca-certificates
+    apt-get -o Acquire::Check-Valid-Until=false update
+    apt-get install -y --no-install-recommends \
+        bzip2 curl gcc make perl \
+        zlib1g-dev libbz2-dev liblzma-dev libcurl4-openssl-dev libssl-dev libdeflate-dev libncurses-dev
+    curl --fail --location --silent --show-error \
+        --output /tmp/samtools.tar.bz2 \
+        https://github.com/samtools/samtools/releases/download/1.20/samtools-1.20.tar.bz2
+    echo 'c71be865e241613c2ca99679c074f1a0daeb55288af577db945bdabe3eb2cf10  /tmp/samtools.tar.bz2' | sha256sum --check --strict
+    tar --extract --bzip2 --file /tmp/samtools.tar.bz2 --directory /tmp
+    cd /tmp/samtools-1.20
+    ./configure --prefix=/usr/local
+    make -j"$(nproc)"
+    make install
+    samtools --version | grep '^samtools 1.20$'
+    rm -rf /tmp/samtools*
+    rm -rf /var/lib/apt/lists/*
+
+%runscript
+    exec /usr/local/bin/samtools "$@"
+
+%test
+    samtools --version | grep '^samtools 1.20$'
+    samtools --help >/dev/null
+
+%help
+    Samtools 1.20 built from the catalog-locked and checksummed release archive.
+    The runscript forwards arguments directly to the authentic binary.

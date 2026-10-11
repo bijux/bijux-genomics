@@ -1,12 +1,12 @@
 # schema_version = 1
-# owner = bijux-dna-platform
+# owner = bijux-genomics
 tool_id = "fqtools"
 container_kind = "bijux"
 spdx = "NOASSERTION"
 upstream_license_id = "NOASSERTION"
 upstream_url = "https://github.com/alastair-droop/fqtools"
-upstream_version = "2.0"
-upstream_checksum = "sha256:6f4f0846dc2d7756769d979fd5708cbd120444f97d331163164027f000ebf7ff"
+upstream_version = "2.3"
+upstream_checksum = "sha256:af3aa3e7d5db3a503cab3cea73c58ca19ea2108f8ebc54f50283fe733028eec2"
 redistribution_note = "Redistribution follows upstream license obligations; verify notice/source requirements before release."
 citation = "upstream:https://github.com/alastair-droop/fqtools"
-version = "2.0"
+version = "2.3"

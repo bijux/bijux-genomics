@@ -150,6 +150,17 @@ pub(super) fn check_apptainer_hardening(workspace: &Workspace) -> Result<Contain
             if !from_line.contains("@sha256:") {
                 errors.push(format!("{rel}: base image must be digest pinned"));
             }
+            if from_line
+                .split_once("@sha256:")
+                .map(|(repository, _)| {
+                    repository.rsplit('/').next().is_some_and(|image| image.contains(':'))
+                })
+                .unwrap_or(false)
+            {
+                errors.push(format!(
+                    "{rel}: Apptainer base reference must not combine a tag and digest"
+                ));
+            }
             if !allowed_from_re.is_match(from_line) {
                 errors.push(format!(
                     "{rel}: base image repo must follow policy (ubuntu/debian/python/quay.io/*)"
@@ -328,7 +339,7 @@ pub(super) fn check_bijux_apptainer_built(
         .collect::<BTreeMap<_, _>>();
     let bijux_defs = apptainer_def_paths(workspace)
         .into_iter()
-        .filter(|path| path.starts_with(workspace.path("containers/apptainer/shared")))
+        .filter(|path| path.starts_with(workspace.path("containers/apptainer")))
         .filter_map(|path| path.file_stem().and_then(|name| name.to_str()).map(ToOwned::to_owned))
         .collect::<Vec<_>>();
     let mut errors = Vec::new();
@@ -419,7 +430,7 @@ pub(super) fn check_missing_images(workspace: &Workspace) -> Result<ContainerCom
 }
 
 pub(super) fn check_non_bijux_sources(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
-    let sources_doc = workspace.path("containers/apptainer/shared/NON_BIJUX_SOURCES.md");
+    let sources_doc = workspace.path("containers/docs/UPSTREAM_SOURCES.md");
     if !sources_doc.exists() {
         return Ok(ContainerCommandOutcome::failure(format!(
             "missing required provenance index: {}\n",
@@ -460,7 +471,7 @@ pub(super) fn check_non_bijux_sources(workspace: &Workspace) -> Result<Container
             errors.push(format!("{tool_id}: missing row in NON_BIJUX_SOURCES.md"));
             continue;
         };
-        let expected_path = format!("containers/apptainer/shared/{tool_id}.def");
+        let expected_path = format!("containers/apptainer/{tool_id}.def");
         if def_path != &expected_path {
             errors.push(format!(
                 "{tool_id}: def path mismatch, expected {expected_path}, got {def_path}"
@@ -501,48 +512,19 @@ pub(super) fn check_non_bijux_sources(workspace: &Workspace) -> Result<Container
 }
 
 pub(super) fn check_owners(workspace: &Workspace) -> Result<ContainerCommandOutcome> {
-    let owners_path = workspace.path("containers/OWNERS.toml");
-    if !owners_path.exists() {
-        return Ok(ContainerCommandOutcome::failure("missing containers/OWNERS.toml\n"));
-    }
-    let owners_data = load_toml(&owners_path)?;
-    let owner_rows =
-        owners_data.get("owner").and_then(toml::Value::as_array).cloned().unwrap_or_default();
-    if owner_rows.is_empty() {
-        return Ok(ContainerCommandOutcome::failure(
-            "containers/OWNERS.toml has no [[owner]] rows\n",
-        ));
-    }
-    let mut rows = Vec::new();
-    for row in owner_rows {
-        let Some(row) = row.as_table() else {
-            continue;
-        };
-        let tool_id = table_string(row, "tool_id");
-        let team = table_string(row, "team");
-        let contact = table_string(row, "contact");
-        if tool_id.is_empty() || team.is_empty() || contact.is_empty() {
-            return Ok(ContainerCommandOutcome::failure(
-                "each [[owner]] row must include tool_id, team, contact\n",
-            ));
-        }
-        if tool_id == "*" {
-            return Ok(ContainerCommandOutcome::failure(
-                "containers/OWNERS.toml: wildcard tool_id='*' is not allowed; map each tool explicitly\n",
-            ));
-        }
-        rows.push((tool_id, team));
-    }
-    let tool_ids = tool_status_manifest(workspace)?.into_keys().collect::<Vec<_>>();
+    let catalog = load_toml(&workspace.path("containers/contracts/catalog.toml"))?;
     let mut errors = Vec::new();
-    for tool_id in tool_ids {
-        let matches = rows.iter().filter(|(pattern, _)| pattern == &tool_id).count();
-        if matches != 1 {
-            errors.push(format!("{tool_id}: expected exactly one owner match, got {matches}"));
-        }
+    if catalog.get("owner").and_then(toml::Value::as_str) != Some("Bijan Mousavi") {
+        errors.push("catalog owner must be Bijan Mousavi".to_string());
+    }
+    if catalog.get("contact").and_then(toml::Value::as_str) != Some("bijan@bijux.io") {
+        errors.push("catalog contact must be bijan@bijux.io".to_string());
+    }
+    if catalog.get("tools").and_then(toml::Value::as_array).is_none_or(Vec::is_empty) {
+        errors.push("catalog must own at least one tool contract".to_string());
     }
     if errors.is_empty() {
-        return success_line("container owners: OK");
+        return success_line("container ownership authority: OK (catalog.toml)");
     }
     failure_lines("container owners check failed:", &errors)
 }

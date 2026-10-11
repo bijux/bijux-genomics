@@ -137,7 +137,7 @@ version = "planned"
 enabled = false
 
 [impute5]
-version = "planned"
+version = "1.2.0"
 enabled = false
 
 [kaiju]
@@ -259,4 +259,3 @@ version = "latest-pinned"
 
 [yleaf]
 version = "latest-pinned"
-

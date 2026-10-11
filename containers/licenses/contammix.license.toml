@@ -1,12 +1,12 @@
 # schema_version = 1
-# owner = bijux-dna-platform
+# owner = bijux-genomics
 tool_id = "contammix"
 container_kind = "bijux"
 spdx = "NOASSERTION"
 upstream_license_id = "NOASSERTION"
-upstream_url = "https://bioconductor.org/packages/contamMix"
+upstream_url = "https://github.com/plfjohnson/contamMix/archive/refs/tags/v1.0-11.tar.gz"
 upstream_version = "1.0.11"
-upstream_checksum = "sha256:856f6c5c3c2d20a30d989b7271686e6db2df9f2359e076d568467c74ff97acc1"
+upstream_checksum = "sha256:1bfd53eca5554c957771daa51a2520306e90da17423dded39454ac8f23424a22"
 redistribution_note = "Redistribution follows upstream license obligations; verify notice/source requirements before release."
-citation = "upstream:https://bioconductor.org/packages/contamMix"
+citation = "upstream:https://github.com/plfjohnson/contamMix/archive/refs/tags/v1.0-11.tar.gz"
 version = "1.0.11"

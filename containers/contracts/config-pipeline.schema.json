@@ -1,0 +1,118 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://bijux.github.io/bijux-genomics/schemas/container-pipeline-v1.json",
+  "title": "Bijux Genomics immutable container execution pipeline",
+  "type": "object",
+  "required": ["schema_version", "run", "repository", "image", "data", "commands", "outputs", "resources", "execution", "acceptance"],
+  "properties": {
+    "schema_version": {"const": "bijux.container.pipeline.v1"},
+    "run": {
+      "type": "object",
+      "required": ["id", "campaign", "corpus", "sample", "domain", "stage", "tool", "operator"],
+      "properties": {
+        "id": {"type": "string", "pattern": "^run-[1-9][0-9]{3,}$"},
+        "campaign": {"type": "string", "minLength": 1},
+        "corpus": {"type": "string", "minLength": 1},
+        "sample": {"type": "string", "minLength": 1},
+        "domain": {"type": "string", "minLength": 1},
+        "stage": {"type": "string", "minLength": 1},
+        "tool": {"type": "string", "minLength": 1},
+        "operator": {"type": "string", "minLength": 1}
+      },
+      "additionalProperties": false
+    },
+    "repository": {
+      "type": "object",
+      "required": ["path", "commit", "clean"],
+      "properties": {
+        "path": {"type": "string", "minLength": 1},
+        "commit": {"type": "string", "pattern": "^[0-9a-f]{40}$"},
+        "clean": {"const": true}
+      },
+      "additionalProperties": false
+    },
+    "image": {
+      "type": "object",
+      "required": ["path", "sha256"],
+      "properties": {
+        "path": {"type": "string", "minLength": 1},
+        "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+      },
+      "additionalProperties": false
+    },
+    "data": {
+      "type": "object",
+      "required": ["inputs"],
+      "properties": {
+        "inputs": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["id", "path", "sha256"],
+            "properties": {
+              "id": {"type": "string", "minLength": 1},
+              "kind": {"enum": ["data", "reference", "database", "upstream_result"]},
+              "path": {"type": "string", "minLength": 1},
+              "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "commands": {
+      "type": "object",
+      "required": ["version", "help", "real", "negative"],
+      "properties": {
+        "version": {"$ref": "#/$defs/argv"},
+        "help": {"$ref": "#/$defs/argv"},
+        "real": {"$ref": "#/$defs/argv"},
+        "negative": {"$ref": "#/$defs/argv"}
+      },
+      "additionalProperties": false
+    },
+    "outputs": {
+      "type": "object",
+      "required": ["result_root", "required_files"],
+      "properties": {
+        "result_root": {"type": "string", "minLength": 1},
+        "required_files": {"type": "array", "items": {"type": "string", "minLength": 1}}
+      },
+      "additionalProperties": false
+    },
+    "resources": {
+      "type": "object",
+      "required": ["account", "partition", "cpus", "memory_mb", "walltime", "scratch_mb"],
+      "properties": {
+        "account": {"type": "string", "minLength": 1},
+        "partition": {"type": "string", "minLength": 1},
+        "cpus": {"type": "integer", "minimum": 1},
+        "memory_mb": {"type": "integer", "minimum": 1},
+        "walltime": {"type": "string", "pattern": "^[0-9]{2,3}:[0-5][0-9]:[0-5][0-9]$"},
+        "scratch_mb": {"type": "integer", "minimum": 1}
+      },
+      "additionalProperties": false
+    },
+    "execution": {
+      "type": "object",
+      "required": ["locale", "timezone", "runtime_network"],
+      "properties": {"locale": {"const": "C"}, "timezone": {"const": "UTC"}, "runtime_network": {"const": false}},
+      "additionalProperties": false
+    },
+    "acceptance": {
+      "type": "object",
+      "required": ["version_regex", "negative_exit_nonzero"],
+      "properties": {
+        "version_regex": {"type": "string", "minLength": 1},
+        "negative_exit_nonzero": {"const": true}
+      },
+      "additionalProperties": false
+    }
+  },
+  "$defs": {
+    "argv": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}}
+  },
+  "additionalProperties": false
+}

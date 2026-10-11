@@ -1,12 +1,12 @@
 # schema_version = 1
-# owner = bijux-dna-platform
+# owner = bijux-genomics
 tool_id = "impute5"
 container_kind = "non-bijux"
-spdx = "research-only"
-upstream_license_id = "research-only"
+spdx = "LicenseRef-Oxford-Academic-Use"
+upstream_license_id = "LicenseRef-Oxford-Academic-Use"
 upstream_url = "https://jmarchini.org/software/#impute-5"
 upstream_version = "1.2.0"
-upstream_checksum = "sha256:3333333333333333333333333333333333333333333333333333333333333333"
+upstream_checksum = "not-distributed"
 redistribution_note = "Redistribution follows upstream license obligations; verify notice/source requirements before release."
 citation = "upstream:https://jmarchini.org/software/#impute-5"
 version = "1.2.0"

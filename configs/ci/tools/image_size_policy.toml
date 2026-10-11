@@ -1,7 +1,7 @@
 # schema_version = 1
-# owner = bijux-dna-platform
+# owner = bijux-genomics
 # purpose = Contract config for configs/ci/tools/image_size_policy.toml
-# authority = bijux-dna-platform
+# authority = bijux-genomics
 # stability = stable
 # last_updated = 2026-02-13
 
@@ -14,6 +14,6 @@ max_growth_percent_for_promoted = 20
 # to_version = "1.1.0"
 # max_growth_percent = 55
 # reason = "Upstream static data index added."
-# owner = "bijux-dna-platform"
+# owner = "bijux-genomics"
 # expires_on = "2026-12-31"
 

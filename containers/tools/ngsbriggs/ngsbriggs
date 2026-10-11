@@ -1,0 +1,140 @@
+#!/usr/bin/env sh
+set -eu
+
+raw_ngsbriggs=/usr/local/libexec/ngsbriggs
+
+require_readable_input() {
+    option=$1
+    path=$2
+    if [ ! -r "$path" ]; then
+        printf 'ngsbriggs: %s input is not readable: %s\n' "$option" "$path" >&2
+        exit 66
+    fi
+}
+
+validate_raw_inputs() {
+    expected_path=
+    for argument do
+        if [ -n "$expected_path" ]; then
+            require_readable_input "$expected_path" "$argument"
+            expected_path=
+            continue
+        fi
+        case "$argument" in
+            -bam|-ibam|-ref|-iref)
+                expected_path=$argument
+                ;;
+        esac
+    done
+    if [ -n "$expected_path" ]; then
+        printf 'ngsbriggs: %s requires a path\n' "$expected_path" >&2
+        exit 64
+    fi
+}
+
+run_analysis() {
+    bam=
+    reference=
+    json_out=
+    model=nb
+    shift
+    while [ "$#" -gt 0 ]; do
+        option=$1
+        shift
+        case "$option" in
+            --bam|--reference|--json-out|--model)
+                if [ "$#" -eq 0 ]; then
+                    printf 'ngsbriggs analyze: %s requires a value\n' "$option" >&2
+                    exit 64
+                fi
+                value=$1
+                shift
+                case "$option" in
+                    --bam) bam=$value ;;
+                    --reference) reference=$value ;;
+                    --json-out) json_out=$value ;;
+                    --model) model=$value ;;
+                esac
+                ;;
+            *)
+                printf 'ngsbriggs analyze: unsupported option: %s\n' "$option" >&2
+                exit 64
+                ;;
+        esac
+    done
+
+    if [ -z "$bam" ] || [ -z "$reference" ] || [ -z "$json_out" ]; then
+        printf 'Usage: ngsbriggs analyze --bam FILE --reference FASTA --json-out FILE [--model b|nb]\n' >&2
+        exit 64
+    fi
+    case "$model" in
+        b|nb) ;;
+        *)
+            printf 'ngsbriggs analyze: --model must be b or nb\n' >&2
+            exit 64
+            ;;
+    esac
+    require_readable_input --bam "$bam"
+    require_readable_input --reference "$reference"
+    require_readable_input --reference-index "${reference}.fai"
+
+    output_dir=$(dirname "$json_out")
+    if [ ! -d "$output_dir" ]; then
+        printf 'ngsbriggs analyze: output directory does not exist: %s\n' "$output_dir" >&2
+        exit 73
+    fi
+    output_name=$(basename "$json_out" .json)
+    table_out="$output_dir/$output_name.misincorporation.tsv.gz"
+    parameters_out="$output_dir/$output_name.parameters.txt.gz"
+    lengths_out="$output_dir/$output_name.lengths.txt.gz"
+    suffix=".partial.$$"
+    table_tmp="$table_out$suffix"
+    parameters_tmp="$parameters_out$suffix"
+    lengths_tmp="$lengths_out$suffix"
+    json_tmp="$json_out$suffix"
+    cleanup() {
+        rm -f "$table_tmp" "$parameters_tmp" "$lengths_tmp" "$json_tmp"
+    }
+    trap cleanup EXIT HUP INT TERM
+
+    "$raw_ngsbriggs" \
+        -bam "$bam" \
+        -ref "$reference" \
+        -model "$model" \
+        -otab "$table_tmp" \
+        -oinf "$parameters_tmp" \
+        -olen "$lengths_tmp"
+
+    c_to_t_5p=$(gzip -dc "$table_tmp" | awk '$1 == "5\047" && $2 == 1 { print $19; exit }')
+    g_to_a_3p=$(gzip -dc "$table_tmp" | awk '$1 == "3\047" && $2 == 1 { print $20; exit }')
+    if ! awk -v ct="$c_to_t_5p" -v ga="$g_to_a_3p" \
+        'BEGIN { exit !(ct ~ /^[0-9.]+$/ && ga ~ /^[0-9.]+$/ && ct >= 0 && ct <= 1 && ga >= 0 && ga <= 1) }'; then
+        printf 'ngsbriggs analyze: terminal damage rates are absent or invalid\n' >&2
+        exit 65
+    fi
+    printf '{"schema_version":"bijux.bam.damage.v1","c_to_t_5p":%s,"g_to_a_3p":%s,"pmd_score_histogram":[]}\n' \
+        "$c_to_t_5p" "$g_to_a_3p" >"$json_tmp"
+
+    mv "$table_tmp" "$table_out"
+    mv "$parameters_tmp" "$parameters_out"
+    mv "$lengths_tmp" "$lengths_out"
+    mv "$json_tmp" "$json_out"
+    trap - EXIT HUP INT TERM
+}
+
+case "${1:-}" in
+    --version)
+        echo 'ngsbriggs 0.01 (commit ab3b5ae8a388b9b1874dd2854fdec32bd9195f22)'
+        ;;
+    --help|-h|"")
+        printf '%s\n' 'Bijux interface: ngsbriggs analyze --bam FILE --reference FASTA --json-out FILE [--model b|nb]'
+        "$raw_ngsbriggs" 2>&1 || true
+        ;;
+    analyze)
+        run_analysis "$@"
+        ;;
+    *)
+        validate_raw_inputs "$@"
+        exec "$raw_ngsbriggs" "$@"
+        ;;
+esac

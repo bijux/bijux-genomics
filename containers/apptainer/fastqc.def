@@ -1,0 +1,69 @@
+# Container recipe license: GPL-3.0-only.
+# This container recipe is maintained by Bijux Genomics.
+# Bijux Genomics source code is licensed under Apache-2.0.
+# Copyright (C) 2026 Bijan Mousavi
+# BIJUX_TEMPLATE: v1
+
+# Tool ID: fastqc
+# Version policy: pinned_or_registry_locked
+# Upstream source: see org.opencontainers.image.source label
+# Build date policy: org.opencontainers.image.created set by release pipeline
+# Network source policy: NETWORK_SOURCE_VERIFIED_BY_LOCK
+# Runtime UID policy: RUNTIME_UID_SAFE
+
+# VERSION_SOURCE: containers/versions/versions.toml
+Bootstrap: docker
+From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
+
+%labels
+    MAINTAINER Bijan Mousavi <bijan@bijux.io>
+    VERSION FastQC-v0.12.1
+    org.opencontainers.image.source https://www.bioinformatics.babraham.ac.uk/projects/fastqc/
+
+    org.opencontainers.image.source https://github.com/bijux/bijux-genomics
+    org.opencontainers.image.revision unknown
+    org.opencontainers.image.created unknown
+    org.opencontainers.image.licenses GPL-3.0
+    org.opencontainers.image.version 0.12.1
+    org.opencontainers.image.tool fastqc
+    org.opencontainers.image.title fastqc
+%environment
+    export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+    export LC_ALL=C
+    export TZ=UTC
+    DEBIAN_FRONTEND=noninteractive
+
+%post
+    set -eux
+    umask 022
+    export DEBIAN_FRONTEND=noninteractive
+
+    apt-get update && \
+    apt-get install -y --no-install-recommends \
+        bash \
+        perl \
+        fontconfig \
+        fonts-dejavu-core \
+        libharfbuzz0b \
+        unzip \
+        wget \
+        openjdk-11-jre-headless && \
+
+    wget -q https://www.bioinformatics.babraham.ac.uk/projects/fastqc/fastqc_v0.12.1.zip -O /tmp/fastqc.zip && \
+    unzip -q /tmp/fastqc.zip -d /opt && \
+    chmod +x /opt/FastQC/fastqc && \
+    ln -sf /opt/FastQC/fastqc /usr/local/bin/fastqc && \
+    rm /tmp/fastqc.zip && \
+
+    rm -rf /var/lib/apt/lists/*
+%runscript
+    if [ $# -eq 0 ]; then
+        exec /usr/local/bin/fastqc --help
+    else
+        exec /usr/local/bin/fastqc "$@"
+    fi
+
+%help
+    This Apptainer image provides FastQC version 0.12.1.
+    Run with arguments to execute fastqc, or without arguments to display help.
+    Java 11 JRE and required fonts are included for full functionality (including HTML report generation).

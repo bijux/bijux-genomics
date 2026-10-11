@@ -230,7 +230,7 @@ pub(in super::super::super) fn check_imputation_hardening(
     let cmd_regex = Regex::new(r"(?m)^CMD\s+\[")?;
     let mut errors = Vec::new();
     for tool in vcf_imputation_core_tools() {
-        let dockerfile = workspace.path(&format!("containers/docker/arm64/Dockerfile.{tool}"));
+        let dockerfile = workspace.path(&format!("containers/docker/Dockerfile.arm64.{tool}"));
         if !dockerfile.exists() {
             errors.push(format!("{tool}: missing dockerfile"));
             continue;

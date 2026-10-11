@@ -1,0 +1,38 @@
+diff --git a/src/MemoryUtils.cpp b/src/MemoryUtils.cpp
+index a6b1683..3f2ec7c 100644
+--- a/src/MemoryUtils.cpp
++++ b/src/MemoryUtils.cpp
+@@ -23,7 +23,10 @@ void *ALIGNED_MALLOC(uint64 size) {
+ #ifdef USE_MKL_MALLOC
+   void *p = mkl_malloc(size, MEM_ALIGNMENT);
+ #else
+-  void *p = _mm_malloc(size, MEM_ALIGNMENT);
++  void *p = NULL;
++  if (posix_memalign(&p, MEM_ALIGNMENT, size) != 0) {
++    p = NULL;
++  }
+ #endif
+   // TODO: change to assert() or dispense with altogether and change ALIGNED_MALLOC to macro?
+   if (p == NULL) {
+diff --git a/src/MemoryUtils.hpp b/src/MemoryUtils.hpp
+index 6d552e8..777cfc3 100644
+--- a/src/MemoryUtils.hpp
++++ b/src/MemoryUtils.hpp
+@@ -29,6 +29,6 @@ void *ALIGNED_MALLOC(uint64 size);
+ #include <mkl.h>
+ #define ALIGNED_FREE mkl_free
+ #else
+-#include <xmmintrin.h>
+-#define ALIGNED_FREE _mm_free
++#include <cstdlib>
++#define ALIGNED_FREE free
+ #endif
+diff --git a/src/Makefile b/src/Makefile
+index 45ff463..7689dda 100644
+--- a/src/Makefile
++++ b/src/Makefile
+@@ -95,3 +95,3 @@ endif
+ T = eagle
+-O = DipTreePBWT.o Eagle.o EagleImpMiss.o EagleParams.o EaglePBWT.o FileUtils.o GenoData.o HapHedge.o MapInterpolater.o MemoryUtils.o NumericUtils.o StaticMultimap.o StringUtils.o SyncedVcfData.o Timer.o memcpy.o
++O = DipTreePBWT.o Eagle.o EagleImpMiss.o EagleParams.o EaglePBWT.o FileUtils.o GenoData.o HapHedge.o MapInterpolater.o MemoryUtils.o NumericUtils.o StaticMultimap.o StringUtils.o SyncedVcfData.o Timer.o
+ OMAIN = EagleMain.o $O

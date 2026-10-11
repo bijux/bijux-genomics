@@ -1,0 +1,73 @@
+# Container recipe license: GPL-3.0-only.
+# This container recipe is maintained by Bijux Genomics.
+# Bijux Genomics source code is licensed under Apache-2.0.
+# Copyright (C) 2026 Bijan Mousavi
+# BIJUX_TEMPLATE: v1
+
+# Tool ID: pear
+# Version policy: pinned_or_registry_locked
+# Upstream source: see org.opencontainers.image.source label
+# Build date policy: org.opencontainers.image.created set by release pipeline
+# Network source policy: NETWORK_SOURCE_VERIFIED_BY_LOCK
+# Runtime UID policy: RUNTIME_UID_SAFE
+
+# VERSION_SOURCE: containers/versions/versions.toml
+Bootstrap: docker
+From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
+
+%labels
+    org.opencontainers.image.source https://cme.h-its.org/exelixis/web/software/pear/
+    org.opencontainers.image.revision f7728371e26a5b46fa928b0f7ae1b552ed6a78815b117ba48ef1af98e96c8e2b
+    org.opencontainers.image.created governed-by-build-evidence
+    org.opencontainers.image.licenses GPL-3.0
+    org.opencontainers.image.version 0.9.6
+    org.opencontainers.image.tool pear
+    org.opencontainers.image.title pear
+%environment
+    export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+    export LC_ALL=C
+    export TZ=UTC
+    export VERSION_PEAR=0.9.6
+
+%files
+    containers/tools/pear/pear /opt/pear-wrapper
+
+%post
+    set -eux
+    umask 022
+    export DEBIAN_FRONTEND=noninteractive
+
+    sed -i 's#http://archive.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubuntu/20260802T000000Z/#g; s#http://security.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubuntu/20260802T000000Z/#g' /etc/apt/sources.list.d/ubuntu.sources
+    apt-get -o Acquire::https::Verify-Peer=false -o Acquire::Check-Valid-Until=false update
+    apt-get -o Acquire::https::Verify-Peer=false install -y --no-install-recommends ca-certificates
+    apt-get -o Acquire::Check-Valid-Until=false update
+    apt-get install -y --no-install-recommends autoconf automake build-essential curl libbz2-dev liblzma-dev libtool m4 pkg-config zlib1g-dev
+    curl --fail --location --silent --show-error --output /opt/pear.tar.gz https://depot.galaxyproject.org/software/pear/pear_0.9.6_src_all.tar.gz
+    echo 'f7728371e26a5b46fa928b0f7ae1b552ed6a78815b117ba48ef1af98e96c8e2b  /opt/pear.tar.gz' | sha256sum --check --strict
+    tar --extract --gzip --file /opt/pear.tar.gz --directory /opt
+    cd /opt/pear-0.9.6-src
+    autoreconf --install
+    ./configure --prefix=/usr/local
+    make -j"$(nproc)"
+    make install
+    mv /usr/local/bin/pear /usr/local/libexec-pear
+    install -m 0755 /opt/pear-wrapper /usr/local/bin/pear
+    pear --version | grep -Fx '0.9.6'
+    cd /
+    rm -rf /opt/pear-0.9.6-src /opt/pear.tar.gz
+    rm -rf /var/lib/apt/lists/*
+%runscript
+    if [ $# -eq 0 ]; then
+        exec /usr/local/bin/pear --help
+    else
+        exec /usr/local/bin/pear "$@"
+    fi
+
+%test
+    pear --version | grep -Fx '0.9.6'
+    pear --help >/dev/null
+
+%help
+    This Apptainer image provides PEAR version 0.9.6, compiled from source.
+    The default command is 'pear' (with wrapper for consistent --version output).
+    Run without arguments to display help.

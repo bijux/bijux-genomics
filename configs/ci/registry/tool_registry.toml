@@ -39,8 +39,8 @@ expected_bin = "adapterremoval"
 expected_artifacts = ["trimmed_reads_r1", "trimmed_reads_r2", "merged_reads", "unmerged_reads_r1", "unmerged_reads_r2", "report_json", "raw_backend_report_txt"]
 metrics_schema = "bijux.stage.metrics.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
-dockerfile = "containers/docker/arm64/Dockerfile.adapterremoval"
-apptainer_def = "containers/apptainer/shared/adapterremoval.def"
+dockerfile = "containers/docker/Dockerfile.arm64.adapterremoval"
+apptainer_def = "containers/apptainer/adapterremoval.def"
 require_labels = true
 
 [[tools]]
@@ -73,8 +73,8 @@ expected_bin = "addeam"
 expected_artifacts = ["damage_profile", "damage_clusters"]
 metrics_schema = "bijux.bam.damage.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
-dockerfile = "containers/docker/arm64/Dockerfile.addeam"
-apptainer_def = "containers/apptainer/shared/addeam.def"
+dockerfile = "containers/docker/Dockerfile.arm64.addeam"
+apptainer_def = "containers/apptainer/addeam.def"
 require_labels = true
 
 [[tools]]
@@ -107,8 +107,8 @@ expected_bin = "alientrimmer"
 expected_artifacts = ["trimmed_reads_r1", "trimmed_reads_r2", "report_json"]
 metrics_schema = "bijux.fastq.trim_reads.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
-dockerfile = "containers/docker/arm64/Dockerfile.alientrimmer"
-apptainer_def = "containers/apptainer/shared/alientrimmer.def"
+dockerfile = "containers/docker/Dockerfile.arm64.alientrimmer"
+apptainer_def = "containers/apptainer/alientrimmer.def"
 require_labels = true
 
 [[tools]]
@@ -141,8 +141,8 @@ expected_bin = "angsd"
 expected_artifacts = ["population_metrics"]
 metrics_schema = "bijux.bam.population.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
-dockerfile = "containers/docker/arm64/Dockerfile.angsd"
-apptainer_def = "containers/apptainer/shared/angsd.def"
+dockerfile = "containers/docker/Dockerfile.arm64.angsd"
+apptainer_def = "containers/apptainer/angsd.def"
 require_labels = true
 
 [[tools]]
@@ -175,8 +175,8 @@ expected_bin = "atropos"
 expected_artifacts = ["trimmed_reads_r1", "trimmed_reads_r2", "report_json"]
 metrics_schema = "bijux.fastq.trim_reads.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
-dockerfile = "containers/docker/arm64/Dockerfile.atropos"
-apptainer_def = "containers/apptainer/shared/atropos.def"
+dockerfile = "containers/docker/Dockerfile.arm64.atropos"
+apptainer_def = "containers/apptainer/atropos.def"
 require_labels = true
 
 [[tools]]
@@ -209,8 +209,8 @@ expected_bin = "authenticct"
 expected_artifacts = ["authenticity_report"]
 metrics_schema = "bijux.bam.authenticity.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
-dockerfile = "containers/docker/arm64/Dockerfile.authenticct"
-apptainer_def = "containers/apptainer/shared/authenticct.def"
+dockerfile = "containers/docker/Dockerfile.arm64.authenticct"
+apptainer_def = "containers/apptainer/authenticct.def"
 require_labels = true
 
 [[tools]]
@@ -243,8 +243,8 @@ expected_bin = "bamtools"
 expected_artifacts = ["bam_validation_report"]
 metrics_schema = "bijux.bam.validation.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
-dockerfile = "containers/docker/arm64/Dockerfile.bamtools"
-apptainer_def = "containers/apptainer/shared/bamtools.def"
+dockerfile = "containers/docker/Dockerfile.arm64.bamtools"
+apptainer_def = "containers/apptainer/bamtools.def"
 require_labels = true
 
 [[tools]]
@@ -277,8 +277,8 @@ expected_bin = "bamutil"
 expected_artifacts = ["overlap_corrected_bam", "overlap_corrected_bai", "flagstat_before", "flagstat_after", "idxstats_before", "idxstats_after", "summary", "stage_metrics"]
 metrics_schema = "bijux.bam.overlap_correction.v1"
 comparability_notes = "Comparable only within overlap-correction stage with identical paired-end inputs."
-dockerfile = "containers/docker/arm64/Dockerfile.bamutil"
-apptainer_def = "containers/apptainer/shared/bamutil.def"
+dockerfile = "containers/docker/Dockerfile.arm64.bamutil"
+apptainer_def = "containers/apptainer/bamutil.def"
 require_labels = true
 
 [[tools]]
@@ -311,8 +311,8 @@ expected_bin = "bayeshammer"
 expected_artifacts = ["corrected_reads_r1", "corrected_reads_r2", "report_json"]
 metrics_schema = "bijux.stage.metrics.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
-dockerfile = "containers/docker/arm64/Dockerfile.bayeshammer"
-apptainer_def = "containers/apptainer/shared/bayeshammer.def"
+dockerfile = "containers/docker/Dockerfile.arm64.bayeshammer"
+apptainer_def = "containers/apptainer/bayeshammer.def"
 require_labels = true
 
 [[tools]]
@@ -345,8 +345,8 @@ expected_bin = "bbduk"
 expected_artifacts = ["trimmed_reads_r1", "trimmed_reads_r2", "report_json", "raw_backend_report_txt", "filtered_reads_r1", "filtered_reads_r2", "filtered_fastq_r1", "filtered_fastq_r2", "filter_report_json"]
 metrics_schema = "bijux.stage.metrics.v1"
 comparability_notes = "Comparable with governed trimming and filtering backends when the same stage contract, read layout, and retained summary artifacts are used."
-dockerfile = "containers/docker/arm64/Dockerfile.bbduk"
-apptainer_def = "containers/apptainer/shared/bbduk.def"
+dockerfile = "containers/docker/Dockerfile.arm64.bbduk"
+apptainer_def = "containers/apptainer/bbduk.def"
 require_labels = true
 
 [[tools]]
@@ -379,8 +379,8 @@ expected_bin = "bbmerge"
 expected_artifacts = ["merged_reads", "unmerged_reads_r1", "unmerged_reads_r2", "report_json", "raw_backend_report_txt"]
 metrics_schema = "bijux.fastq.merge_pairs.v1"
 comparability_notes = "Comparable with other governed paired-end merge backends when overlap policy, retained unmerged mate policy, and input layout are matched."
-dockerfile = "containers/docker/arm64/Dockerfile.bbmerge"
-apptainer_def = "containers/apptainer/shared/bbmerge.def"
+dockerfile = "containers/docker/Dockerfile.arm64.bbmerge"
+apptainer_def = "containers/apptainer/bbmerge.def"
 require_labels = true
 
 [[tools]]
@@ -413,8 +413,8 @@ expected_bin = "bedtools"
 expected_artifacts = ["interval_report"]
 metrics_schema = "bijux.bam.validation.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
-dockerfile = "containers/docker/arm64/Dockerfile.bedtools"
-apptainer_def = "containers/apptainer/shared/bedtools.def"
+dockerfile = "containers/docker/Dockerfile.arm64.bedtools"
+apptainer_def = "containers/apptainer/bedtools.def"
 require_labels = true
 
 [[tools]]
@@ -447,8 +447,8 @@ expected_bin = "bijux-dna"
 expected_artifacts = ["adapter_bank", "asset_lock", "asset_verification_report", "concatenated_reads", "contaminant_database", "demultiplex_report", "duplicate_signal_report", "host_reference_bundle", "instrument_artifact_report", "interleaved_reads", "lane_manifest_out", "layout_classification", "layout_report", "library_complexity_report", "name_normalization_report", "normalized_reads", "primer_bank", "provenance_snapshot", "qc_manifest", "reads_r1", "reads_r2", "repair_report", "repaired_reads_r1", "repaired_reads_r2", "rrna_database", "sample_reads", "subsample_report", "subsampled_reads", "taxonomy_database"]
 metrics_schema = "bijux.stage.metrics.v1"
 comparability_notes = "Contract harness fixtures are not comparable with scientific backend tools."
-dockerfile = "containers/docker/arm64/Dockerfile.bijux_dna"
-apptainer_def = "containers/apptainer/shared/bijux_dna.def"
+dockerfile = "containers/docker/Dockerfile.arm64.bijux_dna"
+apptainer_def = "containers/apptainer/bijux_dna.def"
 require_labels = true
 
 [[tools]]
@@ -481,8 +481,8 @@ expected_bin = "bowtie2"
 expected_artifacts = ["align_bai", "align_bam", "align_metrics", "contaminant_screen_report_json", "contaminant_screened_reads_r1", "contaminant_screened_reads_r2", "flagstat", "host_depleted_reads_r1", "host_depleted_reads_r2", "host_depletion_report_json", "idxstats", "removed_contaminant_reads_r1", "removed_contaminant_reads_r2", "removed_host_reads_r1", "removed_host_reads_r2", "stage_metrics", "stats"]
 metrics_schema = "bijux.stage.metrics.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
-dockerfile = "containers/docker/arm64/Dockerfile.bowtie2"
-apptainer_def = "containers/apptainer/shared/bowtie2.def"
+dockerfile = "containers/docker/Dockerfile.arm64.bowtie2"
+apptainer_def = "containers/apptainer/bowtie2.def"
 require_labels = true
 
 [[tools]]
@@ -515,8 +515,8 @@ expected_bin = "bowtie2-build"
 expected_artifacts = ["reference_index", "report_json"]
 metrics_schema = "bijux.fastq.index.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
-dockerfile = "containers/docker/arm64/Dockerfile.bowtie2_build"
-apptainer_def = "containers/apptainer/shared/bowtie2_build.def"
+dockerfile = "containers/docker/Dockerfile.arm64.bowtie2_build"
+apptainer_def = "containers/apptainer/bowtie2_build.def"
 require_labels = true
 
 [[tools]]
@@ -549,8 +549,8 @@ expected_bin = "bwa"
 expected_artifacts = ["align_bam", "align_bai", "align_metrics", "flagstat", "idxstats", "stats", "stage_metrics"]
 metrics_schema = "bijux.bam.align.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
-dockerfile = "containers/docker/arm64/Dockerfile.bwa"
-apptainer_def = "containers/apptainer/shared/bwa.def"
+dockerfile = "containers/docker/Dockerfile.arm64.bwa"
+apptainer_def = "containers/apptainer/bwa.def"
 require_labels = true
 
 [[tools]]
@@ -583,8 +583,8 @@ expected_bin = "centrifuge"
 expected_artifacts = ["classification_report_json", "screen_report_tsv"]
 metrics_schema = "bijux.fastq.classify.v1"
 comparability_notes = "Comparable with governed taxonomy classifiers only when database lineage, report normalization, and read layout are held constant."
-dockerfile = "containers/docker/arm64/Dockerfile.centrifuge"
-apptainer_def = "containers/apptainer/shared/centrifuge.def"
+dockerfile = "containers/docker/Dockerfile.arm64.centrifuge"
+apptainer_def = "containers/apptainer/centrifuge.def"
 require_labels = true
 
 [[tools]]
@@ -617,8 +617,8 @@ expected_bin = "clumpify"
 expected_artifacts = ["dedup_reads_r1", "dedup_reads_r2", "duplicate_classes_tsv", "duplicate_provenance_json", "report_json"]
 metrics_schema = "bijux.stage.metrics.v1"
 comparability_notes = "Comparable when duplicate model and optical-duplicate handling are harmonized and the governed report_json plus duplicate_provenance_json artifacts are compared together."
-dockerfile = "containers/docker/arm64/Dockerfile.clumpify"
-apptainer_def = "containers/apptainer/shared/clumpify.def"
+dockerfile = "containers/docker/Dockerfile.arm64.clumpify"
+apptainer_def = "containers/apptainer/clumpify.def"
 require_labels = true
 
 [[tools]]
@@ -651,8 +651,8 @@ expected_bin = "contammix"
 expected_artifacts = ["contamination_estimate", "contammix_report"]
 metrics_schema = "bijux.bam.contamination.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
-dockerfile = "containers/docker/arm64/Dockerfile.contammix"
-apptainer_def = "containers/apptainer/shared/contammix.def"
+dockerfile = "containers/docker/Dockerfile.arm64.contammix"
+apptainer_def = "containers/apptainer/contammix.def"
 require_labels = true
 
 [[tools]]
@@ -685,8 +685,8 @@ expected_bin = "cutadapt"
 expected_artifacts = ["trimmed_reads_r1", "trimmed_reads_r2", "report_json", "raw_backend_report_json", "normalized_reads_r1", "normalized_reads_r2", "report_json", "primer_orientation_report", "primer_stats_json"]
 metrics_schema = "bijux.fastq.trim_reads.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
-dockerfile = "containers/docker/arm64/Dockerfile.cutadapt"
-apptainer_def = "containers/apptainer/shared/cutadapt.def"
+dockerfile = "containers/docker/Dockerfile.arm64.cutadapt"
+apptainer_def = "containers/apptainer/cutadapt.def"
 require_labels = true
 
 [[tools]]
@@ -719,8 +719,8 @@ expected_bin = "dada2"
 expected_artifacts = ["asv_table_tsv", "asv_sequences_fasta", "taxonomy_ready_fasta", "taxonomy_ready_fastq", "report_json"]
 metrics_schema = "bijux.stage.metrics.v1"
 comparability_notes = "ASV outputs are not directly comparable with OTU centroid outputs, but they are governed within the infer-asvs stage contract."
-dockerfile = "containers/docker/arm64/Dockerfile.dada2"
-apptainer_def = "containers/apptainer/shared/dada2.def"
+dockerfile = "containers/docker/Dockerfile.arm64.dada2"
+apptainer_def = "containers/apptainer/dada2.def"
 require_labels = true
 
 [[tools]]
@@ -753,8 +753,8 @@ expected_bin = "damageprofiler"
 expected_artifacts = ["damage_profile", "damage_plot"]
 metrics_schema = "bijux.bam.damage.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
-dockerfile = "containers/docker/arm64/Dockerfile.damageprofiler"
-apptainer_def = "containers/apptainer/shared/damageprofiler.def"
+dockerfile = "containers/docker/Dockerfile.arm64.damageprofiler"
+apptainer_def = "containers/apptainer/damageprofiler.def"
 require_labels = true
 
 [[tools]]
@@ -787,8 +787,8 @@ expected_bin = "fastp"
 expected_artifacts = ["trimmed_reads_r1", "trimmed_reads_r2", "report_json", "raw_backend_report_json", "filtered_reads_r1", "filtered_reads_r2", "filtered_fastq_r1", "filtered_fastq_r2", "filter_report_json", "length_distribution_tsv", "length_distribution_json"]
 metrics_schema = "bijux.stage.metrics.v1"
 comparability_notes = "Comparable with other governed trimming and filtering backends only when stage contract, read layout, and retained report artifacts are matched."
-dockerfile = "containers/docker/arm64/Dockerfile.fastp"
-apptainer_def = "containers/apptainer/shared/fastp.def"
+dockerfile = "containers/docker/Dockerfile.arm64.fastp"
+apptainer_def = "containers/apptainer/fastp.def"
 require_labels = true
 
 [[tools]]
@@ -821,8 +821,8 @@ expected_bin = "fastq_scan"
 expected_artifacts = ["validation_report", "validated_reads_manifest", "overrepresented_sequences_tsv", "overrepresented_sequences_json", "report_json"]
 metrics_schema = "bijux.fastq.qc.v1"
 comparability_notes = "Comparable for governed validation and overrepresented-sequence profiling when the same read layout and canonical summary artifacts are emitted."
-dockerfile = "containers/docker/arm64/Dockerfile.fastq_scan"
-apptainer_def = "containers/apptainer/shared/fastq_scan.def"
+dockerfile = "containers/docker/Dockerfile.arm64.fastq_scan"
+apptainer_def = "containers/apptainer/fastq_scan.def"
 require_labels = true
 
 [[tools]]
@@ -855,8 +855,8 @@ expected_bin = "fastqc"
 expected_artifacts = ["validation_report", "validated_reads_manifest", "adapter_report", "adapter_evidence_dir", "overrepresented_sequences_json", "overrepresented_sequences_tsv", "report_json"]
 metrics_schema = "bijux.fastq.qc.v1"
 comparability_notes = "Comparable for governed validation, adapter detection, and overrepresented-sequence profiling when the same read layout and canonical summary artifacts are emitted."
-dockerfile = "containers/docker/arm64/Dockerfile.fastqc"
-apptainer_def = "containers/apptainer/shared/fastqc.def"
+dockerfile = "containers/docker/Dockerfile.arm64.fastqc"
+apptainer_def = "containers/apptainer/fastqc.def"
 require_labels = true
 
 [[tools]]
@@ -889,8 +889,8 @@ expected_bin = "fastqvalidator"
 expected_artifacts = ["validation_report", "validated_reads_manifest"]
 metrics_schema = "bijux.fastq.validate.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
-dockerfile = "containers/docker/arm64/Dockerfile.fastqvalidator"
-apptainer_def = "containers/apptainer/shared/fastqvalidator.def"
+dockerfile = "containers/docker/Dockerfile.arm64.fastqvalidator"
+apptainer_def = "containers/apptainer/fastqvalidator.def"
 require_labels = true
 
 [[tools]]
@@ -923,8 +923,8 @@ expected_bin = "fastuniq"
 expected_artifacts = ["dedup_reads_r1", "dedup_reads_r2", "duplicate_classes_tsv", "duplicate_provenance_json", "report_json"]
 metrics_schema = "bijux.stage.metrics.v1"
 comparability_notes = "Comparable when duplicate definition and pair-handling parameters are aligned and the governed report_json plus duplicate_provenance_json artifacts are compared together."
-dockerfile = "containers/docker/arm64/Dockerfile.fastuniq"
-apptainer_def = "containers/apptainer/shared/fastuniq.def"
+dockerfile = "containers/docker/Dockerfile.arm64.fastuniq"
+apptainer_def = "containers/apptainer/fastuniq.def"
 require_labels = true
 
 [[tools]]
@@ -957,8 +957,8 @@ expected_bin = "fastx_clipper"
 expected_artifacts = ["trimmed_reads_r1", "trimmed_reads_r2", "report_json"]
 metrics_schema = "bijux.fastq.trim_reads.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
-dockerfile = "containers/docker/arm64/Dockerfile.fastx_clipper"
-apptainer_def = "containers/apptainer/shared/fastx_clipper.def"
+dockerfile = "containers/docker/Dockerfile.arm64.fastx_clipper"
+apptainer_def = "containers/apptainer/fastx_clipper.def"
 require_labels = true
 
 [[tools]]
@@ -991,8 +991,8 @@ expected_bin = "flash2"
 expected_artifacts = ["merged_reads", "unmerged_reads_r1", "unmerged_reads_r2", "report_json", "raw_backend_report_txt"]
 metrics_schema = "bijux.fastq.merge_pairs.v1"
 comparability_notes = "Comparable with other governed paired-end merge backends when overlap policy, retained unmerged mate policy, and input layout are matched."
-dockerfile = "containers/docker/arm64/Dockerfile.flash2"
-apptainer_def = "containers/apptainer/shared/flash2.def"
+dockerfile = "containers/docker/Dockerfile.arm64.flash2"
+apptainer_def = "containers/apptainer/flash2.def"
 require_labels = true
 
 [[tools]]
@@ -1025,8 +1025,8 @@ expected_bin = "fqtools"
 expected_artifacts = ["validation_report", "validated_reads_manifest"]
 metrics_schema = "bijux.fastq.validate.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
-dockerfile = "containers/docker/arm64/Dockerfile.fqtools"
-apptainer_def = "containers/apptainer/shared/fqtools.def"
+dockerfile = "containers/docker/Dockerfile.arm64.fqtools"
+apptainer_def = "containers/apptainer/fqtools.def"
 require_labels = true
 
 [[tools]]
@@ -1059,8 +1059,8 @@ expected_bin = "gatk"
 expected_artifacts = ["recal_report"]
 metrics_schema = "bijux.bam.recalibration.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
-dockerfile = "containers/docker/arm64/Dockerfile.gatk"
-apptainer_def = "containers/apptainer/shared/gatk.def"
+dockerfile = "containers/docker/Dockerfile.arm64.gatk"
+apptainer_def = "containers/apptainer/gatk.def"
 require_labels = true
 
 [[tools]]
@@ -1093,8 +1093,8 @@ expected_bin = "kaiju"
 expected_artifacts = ["classification_report_json", "screen_report_tsv"]
 metrics_schema = "bijux.fastq.classify.v1"
 comparability_notes = "Comparable with governed taxonomy classifiers only when the benchmark uses the same database release and normalized taxonomy report contract."
-dockerfile = "containers/docker/arm64/Dockerfile.kaiju"
-apptainer_def = "containers/apptainer/shared/kaiju.def"
+dockerfile = "containers/docker/Dockerfile.arm64.kaiju"
+apptainer_def = "containers/apptainer/kaiju.def"
 require_labels = true
 
 [[tools]]
@@ -1127,8 +1127,8 @@ expected_bin = "king"
 expected_artifacts = ["kinship_report"]
 metrics_schema = "bijux.bam.kinship.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
-dockerfile = "containers/docker/arm64/Dockerfile.king"
-apptainer_def = "containers/apptainer/shared/king.def"
+dockerfile = "containers/docker/Dockerfile.arm64.king"
+apptainer_def = "containers/apptainer/king.def"
 require_labels = true
 
 [[tools]]
@@ -1161,8 +1161,8 @@ expected_bin = "kraken2"
 expected_artifacts = ["classification_report_json", "screen_report_tsv", "unclassified_reads_r1", "unclassified_reads_r2"]
 metrics_schema = "bijux.fastq.classify.v1"
 comparability_notes = "Comparable with governed taxonomy classifiers only when database lineage, rank collapsing, and normalized report artifacts are equivalent."
-dockerfile = "containers/docker/arm64/Dockerfile.kraken2"
-apptainer_def = "containers/apptainer/shared/kraken2.def"
+dockerfile = "containers/docker/Dockerfile.arm64.kraken2"
+apptainer_def = "containers/apptainer/kraken2.def"
 require_labels = true
 
 [[tools]]
@@ -1195,8 +1195,8 @@ expected_bin = "krakenuniq"
 expected_artifacts = ["classification_report_json", "screen_report_tsv"]
 metrics_schema = "bijux.fastq.classify.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
-dockerfile = "containers/docker/arm64/Dockerfile.krakenuniq"
-apptainer_def = "containers/apptainer/shared/krakenuniq.def"
+dockerfile = "containers/docker/Dockerfile.arm64.krakenuniq"
+apptainer_def = "containers/apptainer/krakenuniq.def"
 require_labels = true
 
 [[tools]]
@@ -1229,8 +1229,8 @@ expected_bin = "leehom"
 expected_artifacts = ["trimmed_reads_r1", "trimmed_reads_r2", "merged_reads", "unmerged_reads_r1", "unmerged_reads_r2", "report_json", "raw_backend_report_txt"]
 metrics_schema = "bijux.stage.metrics.v1"
 comparability_notes = "Comparable with other governed paired-end merge backends when overlap policy, retained unmerged mate policy, and input layout are matched."
-dockerfile = "containers/docker/arm64/Dockerfile.leehom"
-apptainer_def = "containers/apptainer/shared/leehom.def"
+dockerfile = "containers/docker/Dockerfile.arm64.leehom"
+apptainer_def = "containers/apptainer/leehom.def"
 require_labels = true
 
 [[tools]]
@@ -1263,8 +1263,8 @@ expected_bin = "lighter"
 expected_artifacts = ["corrected_reads_r1", "corrected_reads_r2", "report_json"]
 metrics_schema = "bijux.stage.metrics.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
-dockerfile = "containers/docker/arm64/Dockerfile.lighter"
-apptainer_def = "containers/apptainer/shared/lighter.def"
+dockerfile = "containers/docker/Dockerfile.arm64.lighter"
+apptainer_def = "containers/apptainer/lighter.def"
 require_labels = true
 
 [[tools]]
@@ -1280,9 +1280,9 @@ version = "2.2.2"
 default_version = "2.2.2"
 upstream = "https://github.com/ginolhac/mapDamage"
 version_rule = "pinned"
-license = "GPL-3.0"
+license = "MIT"
 citation = "paper:https://academic.oup.com/bioinformatics/article/29/13/1682/184965"
-pinned_commit = "git:484bb3094de69422c2308385aa2bfaf0ef12fa27"
+pinned_commit = "git:55518aa83141d8f885ce10751c22113f674e95de"
 pin_strategy = "pinned"
 container_ref = "bijuxdna/mapdamage2:2.2.2"
 runtimes = ["docker", "apptainer"]
@@ -1291,14 +1291,14 @@ version_cmd = "mapdamage2 --version"
 help_cmd = "mapdamage2 --help"
 smoke_version_cmd = "mapdamage2 --version"
 smoke_help_cmd = "mapdamage2 --help"
-expected_version_regex = "v?[0-9]+[.][0-9]+([.-][0-9A-Za-z]+)?"
+expected_version_regex = "mapdamage2 2[.]2[.]2 [(]commit 55518aa83141d8f885ce10751c22113f674e95de[)]"
 healthcheck_cmd = "mapdamage2 --help"
 expected_bin = "mapdamage2"
 expected_artifacts = ["damage_profile", "damage_plot", "bias_report"]
 metrics_schema = "bijux.bam.damage.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
-dockerfile = "containers/docker/arm64/Dockerfile.mapdamage2"
-apptainer_def = "containers/apptainer/shared/mapdamage2.def"
+dockerfile = "containers/docker/Dockerfile.arm64.mapdamage2"
+apptainer_def = "containers/apptainer/mapdamage2.def"
 require_labels = true
 
 [[tools]]
@@ -1331,8 +1331,8 @@ expected_bin = "mosdepth"
 expected_artifacts = ["coverage_summary", "coverage_depth", "stage_metrics"]
 metrics_schema = "bijux.bam.coverage.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
-dockerfile = "containers/docker/arm64/Dockerfile.mosdepth"
-apptainer_def = "containers/apptainer/shared/mosdepth.def"
+dockerfile = "containers/docker/Dockerfile.arm64.mosdepth"
+apptainer_def = "containers/apptainer/mosdepth.def"
 require_labels = true
 
 [[tools]]
@@ -1365,8 +1365,8 @@ expected_bin = "multiqc"
 expected_artifacts = ["governed_qc_inputs_manifest", "multiqc_data", "multiqc_report", "report_json"]
 metrics_schema = "bijux.stage.metrics.v1"
 comparability_notes = "Comparable only within the same governed stage contract and emitted artifact set."
-dockerfile = "containers/docker/arm64/Dockerfile.multiqc"
-apptainer_def = "containers/apptainer/shared/multiqc.def"
+dockerfile = "containers/docker/Dockerfile.arm64.multiqc"
+apptainer_def = "containers/apptainer/multiqc.def"
 require_labels = true
 
 [[tools]]
@@ -1399,8 +1399,8 @@ expected_bin = "musket"
 expected_artifacts = ["corrected_reads_r1", "corrected_reads_r2", "report_json"]
 metrics_schema = "bijux.stage.metrics.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
-dockerfile = "containers/docker/arm64/Dockerfile.musket"
-apptainer_def = "containers/apptainer/shared/musket.def"
+dockerfile = "containers/docker/Dockerfile.arm64.musket"
+apptainer_def = "containers/apptainer/musket.def"
 require_labels = true
 
 [[tools]]
@@ -1433,8 +1433,8 @@ expected_bin = "ngsbriggs"
 expected_artifacts = ["damage_profile", "damage_parameters"]
 metrics_schema = "bijux.bam.damage.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
-dockerfile = "containers/docker/arm64/Dockerfile.ngsbriggs"
-apptainer_def = "containers/apptainer/shared/ngsbriggs.def"
+dockerfile = "containers/docker/Dockerfile.arm64.ngsbriggs"
+apptainer_def = "containers/apptainer/ngsbriggs.def"
 require_labels = true
 
 [[tools]]
@@ -1467,8 +1467,8 @@ expected_bin = "pear"
 expected_artifacts = ["merged_reads", "unmerged_reads_r1", "unmerged_reads_r2", "report_json", "raw_backend_report_txt"]
 metrics_schema = "bijux.fastq.merge_pairs.v1"
 comparability_notes = "Comparable with governed paired-end merge backends when overlap policy, read layout, and retained unmerged mate artifacts are matched."
-dockerfile = "containers/docker/arm64/Dockerfile.pear"
-apptainer_def = "containers/apptainer/shared/pear.def"
+dockerfile = "containers/docker/Dockerfile.arm64.pear"
+apptainer_def = "containers/apptainer/pear.def"
 require_labels = true
 
 [[tools]]
@@ -1501,8 +1501,8 @@ expected_bin = "picard"
 expected_artifacts = ["markdup_bam", "dup_metrics"]
 metrics_schema = "bijux.bam.markdup.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
-dockerfile = "containers/docker/arm64/Dockerfile.picard"
-apptainer_def = "containers/apptainer/shared/picard.def"
+dockerfile = "containers/docker/Dockerfile.arm64.picard"
+apptainer_def = "containers/apptainer/picard.def"
 require_labels = true
 
 [[tools]]
@@ -1535,8 +1535,8 @@ expected_bin = "pmdtools"
 expected_artifacts = ["pmd_scores", "damage_profile"]
 metrics_schema = "bijux.bam.authenticity.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
-dockerfile = "containers/docker/arm64/Dockerfile.pmdtools"
-apptainer_def = "containers/apptainer/shared/pmdtools.def"
+dockerfile = "containers/docker/Dockerfile.arm64.pmdtools"
+apptainer_def = "containers/apptainer/pmdtools.def"
 require_labels = true
 
 [[tools]]
@@ -1569,8 +1569,8 @@ expected_bin = "preseq"
 expected_artifacts = ["complexity_curve"]
 metrics_schema = "bijux.bam.complexity.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
-dockerfile = "containers/docker/arm64/Dockerfile.preseq"
-apptainer_def = "containers/apptainer/shared/preseq.def"
+dockerfile = "containers/docker/Dockerfile.arm64.preseq"
+apptainer_def = "containers/apptainer/preseq.def"
 require_labels = true
 
 [[tools]]
@@ -1603,8 +1603,8 @@ expected_bin = "prinseq++"
 expected_artifacts = ["trimmed_reads_r1", "trimmed_reads_r2", "report_json", "filtered_reads_r1", "filtered_reads_r2", "filtered_fastq_r1", "filtered_fastq_r2", "filter_report_json", "length_distribution_tsv", "length_distribution_json"]
 metrics_schema = "bijux.tool.metrics.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
-dockerfile = "containers/docker/arm64/Dockerfile.prinseq"
-apptainer_def = "containers/apptainer/shared/prinseq.def"
+dockerfile = "containers/docker/Dockerfile.arm64.prinseq"
+apptainer_def = "containers/apptainer/prinseq.def"
 require_labels = true
 
 [[tools]]
@@ -1637,8 +1637,8 @@ expected_bin = "pydamage"
 expected_artifacts = ["damage_profile"]
 metrics_schema = "bijux.bam.damage.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
-dockerfile = "containers/docker/arm64/Dockerfile.pydamage"
-apptainer_def = "containers/apptainer/shared/pydamage.def"
+dockerfile = "containers/docker/Dockerfile.arm64.pydamage"
+apptainer_def = "containers/apptainer/pydamage.def"
 require_labels = true
 
 [[tools]]
@@ -1671,8 +1671,8 @@ expected_bin = "rcorrector"
 expected_artifacts = ["corrected_reads_r1", "corrected_reads_r2", "report_json"]
 metrics_schema = "bijux.stage.metrics.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
-dockerfile = "containers/docker/arm64/Dockerfile.rcorrector"
-apptainer_def = "containers/apptainer/shared/rcorrector.def"
+dockerfile = "containers/docker/Dockerfile.arm64.rcorrector"
+apptainer_def = "containers/apptainer/rcorrector.def"
 require_labels = true
 
 [[tools]]
@@ -1705,8 +1705,8 @@ expected_bin = "rxy"
 expected_artifacts = ["sex_estimate"]
 metrics_schema = "bijux.bam.sex.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
-dockerfile = "containers/docker/arm64/Dockerfile.rxy"
-apptainer_def = "containers/apptainer/shared/rxy.def"
+dockerfile = "containers/docker/Dockerfile.arm64.rxy"
+apptainer_def = "containers/apptainer/rxy.def"
 require_labels = true
 
 [[tools]]
@@ -1739,8 +1739,8 @@ expected_bin = "samtools"
 expected_artifacts = ["bam_index", "bam_stats"]
 metrics_schema = "bijux.bam.validation.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
-dockerfile = "containers/docker/arm64/Dockerfile.samtools"
-apptainer_def = "containers/apptainer/shared/samtools.def"
+dockerfile = "containers/docker/Dockerfile.arm64.samtools"
+apptainer_def = "containers/apptainer/samtools.def"
 require_labels = true
 
 [[tools]]
@@ -1773,8 +1773,8 @@ expected_bin = "schmutzi"
 expected_artifacts = ["contamination_estimate", "mt_consensus"]
 metrics_schema = "bijux.bam.contamination.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
-dockerfile = "containers/docker/arm64/Dockerfile.schmutzi"
-apptainer_def = "containers/apptainer/shared/schmutzi.def"
+dockerfile = "containers/docker/Dockerfile.arm64.schmutzi"
+apptainer_def = "containers/apptainer/schmutzi.def"
 require_labels = true
 
 [[tools]]
@@ -1807,8 +1807,8 @@ expected_bin = "seqfu"
 expected_artifacts = ["length_distribution_tsv", "length_distribution_json", "report_json", "qc_json", "qc_tsv"]
 metrics_schema = "bijux.fastq.stats.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
-dockerfile = "containers/docker/arm64/Dockerfile.seqfu"
-apptainer_def = "containers/apptainer/shared/seqfu.def"
+dockerfile = "containers/docker/Dockerfile.arm64.seqfu"
+apptainer_def = "containers/apptainer/seqfu.def"
 require_labels = true
 
 [[tools]]
@@ -1841,8 +1841,8 @@ expected_bin = "seqkit"
 expected_artifacts = ["trimmed_reads_r1", "trimmed_reads_r2", "report_json", "filtered_reads_r1", "filtered_reads_r2", "normalized_abundance_tsv", "report_json", "overrepresented_sequences_tsv", "overrepresented_sequences_json", "report_json", "qc_json", "qc_tsv"]
 metrics_schema = "bijux.stage.metrics.v1"
 comparability_notes = "Comparable with governed read filtering, trimming, and abundance-normalization backends only inside the same stage contract and lineage."
-dockerfile = "containers/docker/arm64/Dockerfile.seqkit"
-apptainer_def = "containers/apptainer/shared/seqkit.def"
+dockerfile = "containers/docker/Dockerfile.arm64.seqkit"
+apptainer_def = "containers/apptainer/seqkit.def"
 require_labels = true
 
 [[tools]]
@@ -1875,8 +1875,8 @@ expected_bin = "seqkit_stats"
 expected_artifacts = ["qc_json", "qc_tsv", "qc_plots_dir", "report_json", "length_distribution_tsv", "length_distribution_json"]
 metrics_schema = "bijux.fastq.stats.v1"
 comparability_notes = "Comparable with governed read-statistics backends when dataset class, read layout, and emitted QC tables are held constant."
-dockerfile = "containers/docker/arm64/Dockerfile.seqkit_stats"
-apptainer_def = "containers/apptainer/shared/seqkit_stats.def"
+dockerfile = "containers/docker/Dockerfile.arm64.seqkit_stats"
+apptainer_def = "containers/apptainer/seqkit_stats.def"
 require_labels = true
 
 [[tools]]
@@ -1909,8 +1909,8 @@ expected_bin = "seqtk"
 expected_artifacts = ["validation_report", "validated_reads_manifest"]
 metrics_schema = "bijux.fastq.validate.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
-dockerfile = "containers/docker/arm64/Dockerfile.seqtk"
-apptainer_def = "containers/apptainer/shared/seqtk.def"
+dockerfile = "containers/docker/Dockerfile.arm64.seqtk"
+apptainer_def = "containers/apptainer/seqtk.def"
 require_labels = true
 
 [[tools]]
@@ -1943,8 +1943,8 @@ expected_bin = "skewer"
 expected_artifacts = ["trimmed_reads_r1", "trimmed_reads_r2", "report_json"]
 metrics_schema = "bijux.fastq.trim_reads.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
-dockerfile = "containers/docker/arm64/Dockerfile.skewer"
-apptainer_def = "containers/apptainer/shared/skewer.def"
+dockerfile = "containers/docker/Dockerfile.arm64.skewer"
+apptainer_def = "containers/apptainer/skewer.def"
 require_labels = true
 
 [[tools]]
@@ -1977,8 +1977,8 @@ expected_bin = "sortmerna"
 expected_artifacts = ["rrna_filtered_reads_r1", "rrna_filtered_reads_r2", "rrna_removed_reads_r1", "rrna_removed_reads_r2", "rrna_report_tsv", "rrna_report_json"]
 metrics_schema = "bijux.stage.metrics.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
-dockerfile = "containers/docker/arm64/Dockerfile.sortmerna"
-apptainer_def = "containers/apptainer/shared/sortmerna.def"
+dockerfile = "containers/docker/Dockerfile.arm64.sortmerna"
+apptainer_def = "containers/apptainer/sortmerna.def"
 require_labels = true
 
 [[tools]]
@@ -2011,8 +2011,8 @@ expected_bin = "star"
 expected_artifacts = ["reference_index", "report_json"]
 metrics_schema = "bijux.fastq.index.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
-dockerfile = "containers/docker/arm64/Dockerfile.star"
-apptainer_def = "containers/apptainer/shared/star.def"
+dockerfile = "containers/docker/Dockerfile.arm64.star"
+apptainer_def = "containers/apptainer/star.def"
 require_labels = true
 
 [[tools]]
@@ -2045,8 +2045,8 @@ expected_bin = "trim_galore"
 expected_artifacts = ["trimmed_reads_r1", "trimmed_reads_r2", "report_json"]
 metrics_schema = "bijux.fastq.trim_reads.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
-dockerfile = "containers/docker/arm64/Dockerfile.trim_galore"
-apptainer_def = "containers/apptainer/shared/trim_galore.def"
+dockerfile = "containers/docker/Dockerfile.arm64.trim_galore"
+apptainer_def = "containers/apptainer/trim_galore.def"
 require_labels = true
 
 [[tools]]
@@ -2079,8 +2079,8 @@ expected_bin = "trimmomatic"
 expected_artifacts = ["trimmed_reads_r1", "trimmed_reads_r2", "report_json"]
 metrics_schema = "bijux.fastq.trim_reads.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
-dockerfile = "containers/docker/arm64/Dockerfile.trimmomatic"
-apptainer_def = "containers/apptainer/shared/trimmomatic.def"
+dockerfile = "containers/docker/Dockerfile.arm64.trimmomatic"
+apptainer_def = "containers/apptainer/trimmomatic.def"
 require_labels = true
 
 [[tools]]
@@ -2113,8 +2113,8 @@ expected_bin = "umi_tools"
 expected_artifacts = ["umi_reads_r1", "umi_reads_r2", "report_json"]
 metrics_schema = "bijux.tool.metrics.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
-dockerfile = "containers/docker/arm64/Dockerfile.umi_tools"
-apptainer_def = "containers/apptainer/shared/umi_tools.def"
+dockerfile = "containers/docker/Dockerfile.arm64.umi_tools"
+apptainer_def = "containers/apptainer/umi_tools.def"
 require_labels = true
 
 [[tools]]
@@ -2147,8 +2147,8 @@ expected_bin = "verifybamid2"
 expected_artifacts = ["contamination_estimate"]
 metrics_schema = "bijux.bam.contamination.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
-dockerfile = "containers/docker/arm64/Dockerfile.verifybamid2"
-apptainer_def = "containers/apptainer/shared/verifybamid2.def"
+dockerfile = "containers/docker/Dockerfile.arm64.verifybamid2"
+apptainer_def = "containers/apptainer/verifybamid2.def"
 require_labels = true
 
 [[tools]]
@@ -2181,8 +2181,8 @@ expected_bin = "vsearch"
 expected_artifacts = ["merged_reads", "unmerged_reads_r1", "unmerged_reads_r2", "report_json", "raw_backend_report_txt", "chimera_filtered_reads", "chimera_metrics_json", "chimeras_fasta", "uchime_report_tsv", "otu_table", "otu_representatives", "taxonomy_ready_fasta", "taxonomy_ready_fastq"]
 metrics_schema = "bijux.stage.metrics.v1"
 comparability_notes = "Comparable across merge, chimera-removal, and OTU-clustering experiments only within the same governed stage contract and lineage branch."
-dockerfile = "containers/docker/arm64/Dockerfile.vsearch"
-apptainer_def = "containers/apptainer/shared/vsearch.def"
+dockerfile = "containers/docker/Dockerfile.arm64.vsearch"
+apptainer_def = "containers/apptainer/vsearch.def"
 require_labels = true
 
 [[tools]]
@@ -2215,8 +2215,8 @@ expected_bin = "yleaf"
 expected_artifacts = ["haplogroup_report"]
 metrics_schema = "bijux.bam.sex.v1"
 comparability_notes = "Comparable only within same stage contract and input constraints."
-dockerfile = "containers/docker/arm64/Dockerfile.yleaf"
-apptainer_def = "containers/apptainer/shared/yleaf.def"
+dockerfile = "containers/docker/Dockerfile.arm64.yleaf"
+apptainer_def = "containers/apptainer/yleaf.def"
 require_labels = true
 
 [[stages]]
@@ -2830,4 +2830,3 @@ planned_out_of_scope = []
 default_rationale = "Validation default has broad FASTQ format coverage."
 requires_validation = false
 requires_reporting = false
-

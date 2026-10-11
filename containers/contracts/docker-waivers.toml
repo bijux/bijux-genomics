@@ -1,0 +1,10 @@
+# schema_version = 1
+# owner = bijux-genomics
+
+# Keep empty unless an apptainer tool is intentionally not shipped for docker/arm64.
+# [[waiver]]
+# tool_id = "example_tool"
+# reason = "Upstream does not publish arm64 artifacts."
+# owner = "bijux-genomics"
+# expires_on = "2026-12-31"
+

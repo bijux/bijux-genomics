@@ -1,0 +1,61 @@
+# Container recipe license: GPL-3.0-only.
+# This container recipe is maintained by Bijux Genomics.
+# Bijux Genomics source code is licensed under Apache-2.0.
+# Copyright (C) 2026 Bijan Mousavi
+# Tool ID: shapeit
+# Version policy: immutable upstream release commit and archive digest
+# Upstream source: https://github.com/odelaneau/shapeit4
+# Build date policy: captured by immutable build evidence
+# Network source policy: build-only access to the locked Ubuntu snapshot and source archive
+# Runtime UID policy: non-root runtime with caller-owned output paths
+# VERSION_SOURCE: containers/contracts/catalog.toml
+Bootstrap: docker
+From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
+
+%labels
+    org.opencontainers.image.source https://github.com/odelaneau/shapeit4
+    org.opencontainers.image.revision 16865e593ad50689271ead985dc8f4296d2f491d
+    org.opencontainers.image.created governed-by-build-evidence
+    org.opencontainers.image.licenses MIT
+    org.opencontainers.image.version 4.2.2
+    org.opencontainers.image.tool shapeit
+    org.opencontainers.image.title shapeit
+
+%environment
+    export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+    export LC_ALL=C
+    export TZ=UTC
+    export LD_LIBRARY_PATH=/usr/local/lib
+
+%files
+    containers/tools/shapeit/shapeit /usr/local/bin/shapeit
+
+%post
+    set -eux
+    umask 022
+    export DEBIAN_FRONTEND=noninteractive
+    sed -i 's#http://archive.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubuntu/20260802T000000Z/#g; s#http://security.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubuntu/20260802T000000Z/#g' /etc/apt/sources.list.d/ubuntu.sources
+    apt-get -o Acquire::https::Verify-Peer=false -o Acquire::Check-Valid-Until=false update
+    apt-get -o Acquire::https::Verify-Peer=false install -y --no-install-recommends ca-certificates
+    apt-get -o Acquire::Check-Valid-Until=false update
+    apt-get install -y --no-install-recommends build-essential curl libboost-iostreams-dev libboost-program-options-dev libbz2-dev libhts-dev liblzma-dev libssl-dev zlib1g-dev
+    curl --fail --location --silent --show-error --output /opt/shapeit4.tar.gz https://github.com/odelaneau/shapeit4/archive/16865e593ad50689271ead985dc8f4296d2f491d.tar.gz
+    echo '2ee4e369ada23e58d6d3bbb4e0ac7a252b2769f24d63fc635ffbbace0f2b3ce9  /opt/shapeit4.tar.gz' | sha256sum --check --strict
+    tar --extract --gzip --file /opt/shapeit4.tar.gz --directory /opt
+    make --directory /opt/shapeit4-16865e593ad50689271ead985dc8f4296d2f491d -j"$(nproc)" CXXFLAG=-O3 HTSLIB_INC=/usr/include HTSLIB_LIB=-lhts BOOST_INC=/usr/include BOOST_LIB_IO=-lboost_iostreams BOOST_LIB_PO=-lboost_program_options
+    install -m 0755 /opt/shapeit4-16865e593ad50689271ead985dc8f4296d2f491d/bin/shapeit4.2 /usr/local/libexec-shapeit
+    chmod 0755 /usr/local/bin/shapeit
+    shapeit --version | grep -Fx 'shapeit 4.2.2'
+    shapeit --help >/dev/null
+    rm -rf /opt/shapeit4.tar.gz /opt/shapeit4-16865e593ad50689271ead985dc8f4296d2f491d
+    rm -rf /var/lib/apt/lists/*
+
+%test
+    shapeit --version | grep -Fx 'shapeit 4.2.2'
+    shapeit --help >/dev/null
+
+%runscript
+    exec shapeit "$@"
+
+%help
+    SHAPEIT4 4.2.2 built from its authenticated upstream release commit.

@@ -12,7 +12,7 @@ Purpose: generated per-tool container contract summary.
 - Tool license record: [containers/licenses/dustmasker.license.toml](../../licenses/dustmasker.license.toml)
 
 - Version: `2.15.0`
-- License: `NOASSERTION`
+- License: `LicenseRef-NCBI-Public-Domain`
 - Runtime support: `docker-arm64, apptainer`
 - Smoke status: `unknown`
 

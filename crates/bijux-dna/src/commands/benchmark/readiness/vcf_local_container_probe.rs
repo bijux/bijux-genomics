@@ -468,7 +468,7 @@ fn ensure_vcf_local_container_smoke_contract(
             "apptainer",
             "shapeit",
             "bijux-dna env smoke apptainer shapeit",
-            "containers/apptainer/shared/shapeit.def",
+            "containers/apptainer/shapeit.def",
             "shapeit --help",
         ),
         (
@@ -479,7 +479,7 @@ fn ensure_vcf_local_container_smoke_contract(
             "docker-arm64",
             "ibdseq",
             "bijux-dna env smoke docker-arm64 ibdseq",
-            "containers/docker/arm64/Dockerfile.ibdseq",
+            "containers/docker/Dockerfile.arm64.ibdseq",
             "ibdseq --help",
         ),
     ];

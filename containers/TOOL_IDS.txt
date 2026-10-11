@@ -45,7 +45,7 @@ glimpse	planned
 ibdhap	planned
 ibdne	planned
 ibdseq	planned
-impute5	planned
+impute5	unsupported
 kaiju	production
 king	production
 kraken2	production
@@ -79,7 +79,7 @@ seqprep	experimental
 seqpurge	experimental
 seqtk	production
 shapeit	planned
-shapeit5	experimental
+shapeit5	production
 skewer	production
 sortmerna	production
 spades	experimental

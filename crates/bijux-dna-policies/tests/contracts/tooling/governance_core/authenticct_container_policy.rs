@@ -8,8 +8,7 @@ fn policy__contracts__authenticct_container_policy__authenticct_container_uses_v
     let path = support::workspace_root()
         .join("containers")
         .join("docker")
-        .join("arm64")
-        .join("Dockerfile.authenticct");
+        .join("Dockerfile.arm64.authenticct");
     let raw = std::fs::read_to_string(&path)
         .unwrap_or_else(|err| panic!("read {}: {err}", path.display()));
     let required_markers = [

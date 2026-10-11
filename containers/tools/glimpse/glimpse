@@ -1,0 +1,8 @@
+#!/usr/bin/env sh
+set -eu
+
+case "${1:-}" in
+    --version) echo 'glimpse 1.1.1' ;;
+    --help|-h|"") exec GLIMPSE_phase --help ;;
+    *) exec GLIMPSE_phase "$@" ;;
+esac

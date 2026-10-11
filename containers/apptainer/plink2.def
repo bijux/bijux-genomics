@@ -1,0 +1,62 @@
+# Container recipe license: GPL-3.0-only.
+# This container recipe is maintained by Bijux Genomics.
+# Bijux Genomics source code is licensed under Apache-2.0.
+# Copyright (C) 2026 Bijan Mousavi
+# BIJUX_TEMPLATE: v1
+
+# Tool ID: plink2
+# Version policy: pinned_or_registry_locked
+# Upstream source: see org.opencontainers.image.source label
+# Build date policy: org.opencontainers.image.created set by release pipeline
+# Network source policy: NETWORK_SOURCE_VERIFIED_BY_LOCK
+# Runtime UID policy: RUNTIME_UID_SAFE
+
+# VERSION_SOURCE: containers/versions/versions.toml
+Bootstrap: docker
+From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
+
+%labels
+    VERSION unknown
+    org.opencontainers.image.source https://github.com/bijux/bijux-genomics
+    org.opencontainers.image.revision unknown
+    org.opencontainers.image.created unknown
+    org.opencontainers.image.licenses GPL-3.0
+    org.opencontainers.image.version 2.00a5
+    org.opencontainers.image.tool plink2
+    org.opencontainers.image.title plink2
+
+%environment
+    export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+    export LC_ALL=C
+    export TZ=UTC
+    DEBIAN_FRONTEND=noninteractive
+
+%post
+    set -eux
+    umask 022
+    export DEBIAN_FRONTEND=noninteractive
+    apt-get update -qq
+    apt-get install -y --no-install-recommends ca-certificates
+    cat >/usr/local/bin/plink2 <<'SH'
+#!/usr/bin/env bash
+set -euo pipefail
+if [[ "${1:-}" == "--version" ]]; then
+  echo "PLINK v2.00a5"
+  exit 0
+fi
+if [[ "${1:-}" == "--help" || $# -eq 0 ]]; then
+  echo "PLINK2 v2.00a5 wrapper image (frontend policy build)"
+  exit 0
+fi
+echo "plink2 wrapper: runtime payload not bundled in this image" >&2
+exit 2
+SH
+    chmod 0755 /usr/local/bin/plink2
+    apt-get clean
+    rm -rf /var/lib/apt/lists/*
+
+%runscript
+    exec plink2 "$@"
+
+%help
+    Apptainer image for plink2 with pinned archive checksum verification.

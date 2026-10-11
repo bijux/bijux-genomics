@@ -10,4 +10,4 @@ Policy:
 
 | tool_id | rationale | owner |
 |---|---|---|
-| `*` | Transition period while legacy Dockerfiles are migrated away from shell-wrapper entrypoints and non-standard CMD defaults. | `bijux-dna-platform` |
+| `*` | Transition period while legacy Dockerfiles are migrated away from shell-wrapper entrypoints and non-standard CMD defaults. | `bijux-genomics` |

@@ -1,0 +1,5 @@
+--- a/mapdamage/parseoptions.py
++++ b/mapdamage/parseoptions.py
+@@ -267 +267 @@ def options():
+-    if check_R_lib():
++    if not options.no_r and check_R_lib():

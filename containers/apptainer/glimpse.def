@@ -1,0 +1,62 @@
+# Container recipe license: GPL-3.0-only.
+# This container recipe is maintained by Bijux Genomics.
+# Bijux Genomics source code is licensed under Apache-2.0.
+# Copyright (C) 2026 Bijan Mousavi
+# Tool ID: glimpse
+# Version policy: immutable upstream release commit and archive digest
+# Upstream source: https://github.com/odelaneau/GLIMPSE
+# Build date policy: captured by immutable build evidence
+# Network source policy: build-only access to the locked Ubuntu snapshot and source archive
+# Runtime UID policy: non-root runtime with caller-owned output paths
+# VERSION_SOURCE: containers/contracts/catalog.toml
+Bootstrap: docker
+From: ubuntu@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
+
+%labels
+    org.opencontainers.image.source https://github.com/odelaneau/GLIMPSE
+    org.opencontainers.image.revision c27e90d0f8df6b64c0ecf26af13ad6f112c94a9a
+    org.opencontainers.image.created governed-by-build-evidence
+    org.opencontainers.image.licenses MIT
+    org.opencontainers.image.version 1.1.1
+    org.opencontainers.image.tool glimpse
+    org.opencontainers.image.title glimpse
+
+%environment
+    export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+    export LC_ALL=C
+    export TZ=UTC
+    export LD_LIBRARY_PATH=/usr/local/lib
+
+%files
+    containers/tools/glimpse/glimpse /usr/local/bin/glimpse
+
+%post
+    set -eux
+    umask 022
+    export DEBIAN_FRONTEND=noninteractive
+    sed -i 's#http://archive.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubuntu/20260802T000000Z/#g; s#http://security.ubuntu.com/ubuntu/#https://snapshot.ubuntu.com/ubuntu/20260802T000000Z/#g' /etc/apt/sources.list.d/ubuntu.sources
+    apt-get -o Acquire::https::Verify-Peer=false -o Acquire::Check-Valid-Until=false update
+    apt-get -o Acquire::https::Verify-Peer=false install -y --no-install-recommends ca-certificates
+    apt-get -o Acquire::Check-Valid-Until=false update
+    apt-get install -y --no-install-recommends build-essential curl libboost-iostreams-dev libboost-program-options-dev libbz2-dev libhts-dev liblzma-dev libssl-dev zlib1g-dev
+    curl --fail --location --silent --show-error --output /opt/glimpse.tar.gz https://github.com/odelaneau/GLIMPSE/archive/c27e90d0f8df6b64c0ecf26af13ad6f112c94a9a.tar.gz
+    echo 'd58b8881981db2feb3dd62f8a73d3cd0325ada056a885d5a0e0bfa3571569e5c  /opt/glimpse.tar.gz' | sha256sum --check --strict
+    tar --extract --gzip --file /opt/glimpse.tar.gz --directory /opt
+    for project in chunk concordance ligate phase sample snparray; do
+        make --directory "/opt/GLIMPSE-c27e90d0f8df6b64c0ecf26af13ad6f112c94a9a/${project}" -j"$(nproc)" HTSLIB_INC=/usr/include HTSLIB_LIB=-lhts BOOST_INC=/usr/include BOOST_LIB_IO=-lboost_iostreams BOOST_LIB_PO=-lboost_program_options
+        install -m 0755 "/opt/GLIMPSE-c27e90d0f8df6b64c0ecf26af13ad6f112c94a9a/${project}/bin/GLIMPSE_${project}" "/usr/local/bin/GLIMPSE_${project}"
+    done
+    chmod 0755 /usr/local/bin/glimpse
+    glimpse --version | grep -Fx 'glimpse 1.1.1'
+    glimpse --help >/dev/null
+    rm -rf /opt/glimpse.tar.gz /opt/GLIMPSE-c27e90d0f8df6b64c0ecf26af13ad6f112c94a9a
+    rm -rf /var/lib/apt/lists/*
+
+%test
+    glimpse --version | grep -Fx 'glimpse 1.1.1'
+    glimpse --help >/dev/null
+%runscript
+    exec glimpse "$@"
+
+%help
+    GLIMPSE 1.1.1 suite built from its authenticated upstream release commit.

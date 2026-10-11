@@ -1,0 +1,43 @@
+# Container recipe license: GPL-3.0-only.
+# This container recipe is maintained by Bijux Genomics.
+# Bijux Genomics source code is licensed under Apache-2.0.
+# Copyright (C) 2026 Bijan Mousavi
+
+# Tool ID: bcftools
+# Version policy: pinned_or_registry_locked
+# Upstream source: see org.opencontainers.image.source label
+# Build date policy: org.opencontainers.image.created set by release pipeline
+# Network source policy: NETWORK_SOURCE_VERIFIED_BY_LOCK
+# Runtime UID policy: RUNTIME_UID_SAFE
+
+# VERSION_SOURCE: containers/versions/versions.toml
+Bootstrap: docker
+From: quay.io/biocontainers/bcftools@sha256:badc3a0c7af72a83e5761ab0e881aa84204694bdead003b47552cb283958f78d
+
+%labels
+    VERSION unknown
+    org.opencontainers.image.source https://github.com/bijux/bijux-genomics
+    org.opencontainers.image.revision unknown
+    org.opencontainers.image.created unknown
+    org.opencontainers.image.licenses MIT
+    org.opencontainers.image.version 1.20
+    org.opencontainers.image.tool bcftools
+    org.opencontainers.image.title bcftools
+
+%environment
+    export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+    export TZ=UTC
+    export LC_ALL=C.UTF-8
+    export LANG=C.UTF-8
+
+%post
+    set -eux
+    umask 022
+    set -eu
+    bcftools --version >/dev/null 2>&1 || true
+%runscript
+    exec bcftools "$@"
+
+%help
+    Apptainer image for bcftools.
+    Default runscript forwards arguments to the tool entrypoint.

@@ -11,7 +11,7 @@ Purpose: generated per-tool container contract summary.
 - License index: [containers/licenses/README.md](../../licenses/README.md)
 - Tool license record: [containers/licenses/yleaf.license.toml](../../licenses/yleaf.license.toml)
 
-- Version: `3.0.3`
+- Version: `4.1.4`
 - License: `NOASSERTION`
 - Runtime support: `docker-arm64, apptainer`
 - Smoke status: `unknown`

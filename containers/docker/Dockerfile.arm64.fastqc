@@ -1,0 +1,46 @@
+# SPDX-License-Identifier: GPL-3.0
+# Copyright (C) 2026 Bijan Mousavi
+#
+# Container definition license: GPL-3.0.
+# Bijux Genomics source code is licensed under Apache-2.0.
+# VERSION_SOURCE: containers/versions/versions.toml
+FROM ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
+ARG OCI_REVISION=unknown
+ARG OCI_CREATED=unknown
+ARG TOOL_VERSION=unknown
+LABEL org.opencontainers.image.source="https://github.com/bijux/bijux-genomics" \
+      org.opencontainers.image.revision="${OCI_REVISION}" \
+      org.opencontainers.image.created="${OCI_CREATED}" \
+      org.opencontainers.image.licenses="GPL-3.0" \
+      org.opencontainers.image.version="${TOOL_VERSION}"
+LABEL org.opencontainers.image.tool="fastqc"
+LABEL org.opencontainers.image.title="fastqc"
+LABEL org.opencontainers.image.base.name="ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b"
+LABEL org.opencontainers.image.base.digest="sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b"
+ENV DEBIAN_FRONTEND=noninteractive
+
+ARG VERSION_FASTQC=0.12.1
+ENV VERSION_FASTQC=${VERSION_FASTQC}
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        bash \
+        perl \
+        fontconfig \
+        fonts-dejavu-core \
+        libharfbuzz0b \
+        unzip \
+        wget \
+        openjdk-11-jre-headless && \
+    wget -q https://www.bioinformatics.babraham.ac.uk/projects/fastqc/fastqc_v${VERSION_FASTQC}.zip -O /tmp/fastqc.zip && \
+    unzip -q /tmp/fastqc.zip -d /opt && \
+    chmod +x /opt/FastQC/fastqc && \
+    ln -sf /opt/FastQC/fastqc /usr/local/bin/fastqc && \
+    rm /tmp/fastqc.zip && \
+    apt-get remove -y unzip wget && \
+    apt-get autoremove -y && \
+    rm -rf /var/lib/apt/lists/*
+
+WORKDIR /data
+ENTRYPOINT ["fastqc"]
+CMD ["--help"]

@@ -13,7 +13,7 @@ Purpose: generated per-tool container contract summary.
 
 - Version: `5.1.1`
 - License: `MIT`
-- Runtime support: `docker-arm64, apptainer`
+- Runtime support: `apptainer`
 - Smoke status: `unknown`
 
 ## Known Limitations

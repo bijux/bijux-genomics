@@ -199,7 +199,7 @@ pub(in super::super) fn check_tool_container_coverage(
             if !docker_path.exists() {
                 errors.push(format!("{tool_id} dockerfile missing: {dockerfile}"));
             }
-            let expected = format!("Dockerfile.{tool_id}");
+            let expected = format!("Dockerfile.arm64.{tool_id}");
             if docker_path.file_name().and_then(|name| name.to_str()) != Some(expected.as_str()) {
                 errors.push(format!("{tool_id} dockerfile naming mismatch: expected {expected}"));
             }
@@ -622,16 +622,16 @@ fn planned_coverage_label(apptainer_source: &str, docker_source: &str) -> String
 pub(in super::super) fn check_bijux_template_markers(
     workspace: &Workspace,
 ) -> Result<ContainerCommandOutcome> {
-    let template = workspace.path("containers/apptainer/shared/TEMPLATE.def.inc");
+    let template = workspace.path("containers/contracts/apptainer-recipe-contract.def.inc");
     let mut errors = Vec::new();
     if !template.exists() {
-        errors
-            .push("missing template file containers/apptainer/shared/TEMPLATE.def.inc".to_string());
+        errors.push(
+            "missing template file containers/contracts/apptainer-recipe-contract.def.inc"
+                .to_string(),
+        );
     }
-    for path in fs::read_dir(workspace.path("containers/apptainer/shared"))
-        .with_context(|| {
-            format!("read {}", workspace.path("containers/apptainer/shared").display())
-        })?
+    for path in fs::read_dir(workspace.path("containers/apptainer"))
+        .with_context(|| format!("read {}", workspace.path("containers/apptainer").display()))?
         .filter_map(std::result::Result::ok)
         .map(|entry| entry.path())
         .filter(|path| path.extension().and_then(|ext| ext.to_str()) == Some("def"))
@@ -766,7 +766,7 @@ pub(in super::super) fn check_docker_arch_policy(
                     .path()
                     .file_name()
                     .and_then(|name| name.to_str())
-                    .is_some_and(|name| name.starts_with("Dockerfile."))
+                    .is_some_and(|name| name.starts_with("Dockerfile.arm64."))
             })
     {
         errors.push(
@@ -799,7 +799,7 @@ pub(in super::super) fn check_docker_arm64_completeness(
             required.insert(tool);
         }
     }
-    let waiver_path = workspace.path("containers/docker/arm64/WAIVERS.toml");
+    let waiver_path = workspace.path("containers/contracts/docker-waivers.toml");
     let mut waived = BTreeSet::new();
     if waiver_path.exists() {
         let data = load_toml(&waiver_path)?;
@@ -887,19 +887,18 @@ pub(in super::super) fn check_docker_context(
             }
         }
     }
-    let dockerignore = workspace.path("containers/docker/arm64/.dockerignore");
+    let dockerignore = workspace.path("containers/docker/.dockerignore");
     if dockerignore.exists() {
         let dockerignore_text = read_utf8(&dockerignore)?;
         for pattern in [".git", "artifacts", "assets", "**/*.pem", "**/*.key", ".env"] {
             if !dockerignore_text.contains(pattern) {
-                errors.push(format!(
-                    "containers/docker/arm64/.dockerignore: missing pattern '{pattern}'"
-                ));
+                errors
+                    .push(format!("containers/docker/.dockerignore: missing pattern '{pattern}'"));
             }
         }
     } else {
         errors.push(
-            "containers/docker/arm64/.dockerignore: missing (required for context minimization)"
+            "containers/docker/.dockerignore: missing (required for context minimization)"
                 .to_string(),
         );
     }
@@ -977,7 +976,7 @@ pub(in super::super) fn check_docker_hardening(
         let tool_id = path
             .file_name()
             .and_then(|name| name.to_str())
-            .and_then(|name| name.strip_prefix("Dockerfile."))
+            .and_then(|name| name.strip_prefix("Dockerfile.arm64."))
             .unwrap_or_default()
             .to_string();
         let text = read_utf8(&path)?;
@@ -1085,7 +1084,7 @@ pub(in super::super) fn check_docker_labels(
         let tool_id = path
             .file_name()
             .and_then(|name| name.to_str())
-            .and_then(|name| name.strip_prefix("Dockerfile."))
+            .and_then(|name| name.strip_prefix("Dockerfile.arm64."))
             .unwrap_or_default()
             .to_string();
         if let Some(captures) = tool_re.captures(&text) {
@@ -1199,7 +1198,7 @@ pub(in super::super) fn check_docker_version_sync(
         let tool = dockerfile
             .file_name()
             .and_then(|name| name.to_str())
-            .and_then(|name| name.strip_prefix("Dockerfile."))
+            .and_then(|name| name.strip_prefix("Dockerfile.arm64."))
             .unwrap_or_default()
             .to_string();
         let text = read_utf8(&dockerfile)?;
@@ -1264,7 +1263,7 @@ pub(in super::super) fn check_dockerfiles_built(
         .filter_map(|path| {
             path.file_name()
                 .and_then(|name| name.to_str())
-                .and_then(|name| name.strip_prefix("Dockerfile."))
+                .and_then(|name| name.strip_prefix("Dockerfile.arm64."))
                 .map(ToOwned::to_owned)
         })
         .collect::<Vec<_>>();
@@ -1412,7 +1411,7 @@ pub(in super::super) fn check_runtime_downloads(
         let tool = path
             .file_name()
             .and_then(|name| name.to_str())
-            .and_then(|name| name.strip_prefix("Dockerfile."))
+            .and_then(|name| name.strip_prefix("Dockerfile.arm64."))
             .unwrap_or_default()
             .to_string();
         for (index, line) in read_utf8(&path)?.lines().enumerate() {

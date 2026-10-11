@@ -32,8 +32,8 @@ Purpose: Authoritative tool/container index for container governance and CI chec
 - Container version metadata: [containers/versions/versions.toml](../versions/versions.toml) + [containers/versions/lock.json](../versions/lock.json).
 - GHCR Docker arm64 matrix: `cargo run -q -p bijux-dna-dev -- containers run generate-ghcr-publish-matrix -- artifacts/containers/ghcr/docker-arm64-publish-matrix.json`.
 - GHCR Apptainer matrix: `cargo run -q -p bijux-dna-dev -- containers run generate-ghcr-apptainer-publish-matrix -- artifacts/containers/ghcr/apptainer-publish-matrix.json`.
-- Non-bijux provenance: [containers/apptainer/shared/NON_BIJUX_SOURCES.md](../apptainer/shared/NON_BIJUX_SOURCES.md).
-- Ownership map: [containers/OWNERS.toml](../OWNERS.toml).
+- Non-bijux provenance: [containers/docs/UPSTREAM_SOURCES.md](UPSTREAM_SOURCES.md).
+- Ownership authority: [containers/contracts/catalog.toml](../contracts/catalog.toml).
 
 ## Tool Container Coverage
 | tool_id | status | apptainer_source | docker_source |
@@ -82,7 +82,7 @@ Purpose: Authoritative tool/container index for container governance and CI chec
 | `ibdhap` | `planned` | `non-bijux` | `arm64` |
 | `ibdne` | `planned` | `non-bijux` | `arm64` |
 | `ibdseq` | `planned` | `bijux` | `arm64` |
-| `impute5` | `planned` | `non-bijux` | `arm64` |
+| `impute5` | `unsupported` | `none` | `none` |
 | `kaiju` | `production` | `bijux` | `arm64` |
 | `king` | `production` | `bijux` | `arm64` |
 | `kraken2` | `production` | `bijux` | `arm64` |
@@ -116,7 +116,7 @@ Purpose: Authoritative tool/container index for container governance and CI chec
 | `seqpurge` | `experimental` | `bijux` | `arm64` |
 | `seqtk` | `production` | `bijux` | `arm64` |
 | `shapeit` | `planned` | `bijux` | `none` |
-| `shapeit5` | `experimental` | `non-bijux` | `arm64` |
+| `shapeit5` | `production` | `non-bijux` | `none` |
 | `skewer` | `production` | `bijux` | `arm64` |
 | `sortmerna` | `production` | `bijux` | `arm64` |
 | `spades` | `experimental` | `bijux` | `arm64` |

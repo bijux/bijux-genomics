@@ -1,7 +1,7 @@
 # schema_version = 1
-# owner = bijux-dna-platform
+# owner = bijux-genomics
 # purpose = Temporary CVE allowlist for frontend container vulnerability gate.
-# authority = bijux-dna-platform
+# authority = bijux-genomics
 # stability = experimental
 # last_updated = 2026-02-13
 

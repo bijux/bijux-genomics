@@ -86,7 +86,7 @@ fn platform_spec_toml_roundtrip_is_stable() -> Result<(), EnvError> {
     let toml = r#"
 name = "docker-mac-arm64"
 runner = "docker"
-container_dir = "containers/docker/arm64"
+container_dir = "containers/docker"
 image_prefix = "bijuxdna"
 arch = "arm64"
 "#;
@@ -142,7 +142,7 @@ fn resolve_image_builds_tagged_and_digest_pinned_names() -> Result<(), EnvError>
     let platform = PlatformSpec {
         name: "docker-mac-arm64".to_string(),
         runner: RuntimeKind::Docker,
-        container_dir: PathBuf::from("containers/docker/arm64"),
+        container_dir: PathBuf::from("containers/docker"),
         image_prefix: "bijuxdna".to_string(),
         arch: "arm64".to_string(),
     };
@@ -164,7 +164,7 @@ fn resolve_image_rejects_incomplete_image_inputs() {
     let platform = PlatformSpec {
         name: "docker-mac-arm64".to_string(),
         runner: RuntimeKind::Docker,
-        container_dir: PathBuf::from("containers/docker/arm64"),
+        container_dir: PathBuf::from("containers/docker"),
         image_prefix: "bijuxdna".to_string(),
         arch: "arm64".to_string(),
     };
@@ -201,7 +201,7 @@ fn resolved_image_and_runtime_spec_report_compatibility_consistently() {
     let docker_platform = PlatformSpec {
         name: "docker-mac-arm64".to_string(),
         runner: RuntimeKind::Docker,
-        container_dir: PathBuf::from("containers/docker/arm64"),
+        container_dir: PathBuf::from("containers/docker"),
         image_prefix: "bijuxdna".to_string(),
         arch: "arm64".to_string(),
     };

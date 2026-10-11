@@ -1,12 +1,12 @@
 # schema_version = 1
-# owner = bijux-dna-platform
+# owner = bijux-genomics
 tool_id = "glimpse"
 container_kind = "non-bijux"
 spdx = "MIT"
 upstream_license_id = "MIT"
-upstream_url = "https://odelaneau.github.io/GLIMPSE/"
+upstream_url = "https://github.com/odelaneau/GLIMPSE"
 upstream_version = "1.1.1"
-upstream_checksum = "sha256:2222222222222222222222222222222222222222222222222222222222222222"
+upstream_checksum = "sha256:d58b8881981db2feb3dd62f8a73d3cd0325ada056a885d5a0e0bfa3571569e5c"
 redistribution_note = "Redistribution follows upstream license obligations; verify notice/source requirements before release."
-citation = "upstream:https://odelaneau.github.io/GLIMPSE/"
+citation = "upstream:https://github.com/odelaneau/GLIMPSE"
 version = "1.1.1"

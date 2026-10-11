@@ -207,14 +207,11 @@ Visible aliases are part of the operator surface:
   `paths validate --strict` writes `benchmarks/readiness/benchmark-paths-validation.json` and
   proves that the tracked `benchmarks/`, `benchmarks/configs/`, `benchmarks/schemas/`,
   `benchmarks/tests/`, and `benchmarks/readiness/` roots exist, are not ignored by git, and each
-  carries a tracked marker file. It also proves that the repository-root `tests/` tree has been
-  reduced to `tests/README.md` plus a compatibility symlink at
-  `tests/fixtures -> ../benchmarks/tests/fixtures`. It fails closed when any benchmark root is
-  missing, ignored, or only present as an untracked local directory, or when the retired root
-  fixture path drifts back into a stored directory tree. Benchmark-owned config, schema, fixture,
-  and pipeline consumers resolve that root through the shared benchmark path contract, with
-  explicit `--benchmark-root` taking precedence over `BIJUX_BENCHMARK_ROOT`, and the repo default
-  falling back to `benchmarks/`.
+  carries a tracked marker file. It fails closed when any benchmark root is missing, ignored, or
+  only present as an untracked local directory. Benchmark-owned config, schema, fixture, and
+  pipeline consumers resolve fixtures directly through the shared benchmark path contract, with
+  explicit `--benchmark-root` taking precedence over `BIJUX_BENCHMARK_ROOT`, and the repository
+  default falling back to `benchmarks/`.
 - `bijux-dna bench paths prove-disposable-root-cleanup`
   `paths prove-disposable-root-cleanup` deletes the disposable repository roots `target/`,
   `artifacts/`, and `runs/`, reruns strict benchmark path validation, and writes

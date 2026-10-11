@@ -1,0 +1,17 @@
+#!/usr/bin/env sh
+set -eu
+
+if [ -z "${XDG_RUNTIME_DIR:-}" ] || [ ! -d "$XDG_RUNTIME_DIR" ] || [ ! -w "$XDG_RUNTIME_DIR" ]; then
+    XDG_RUNTIME_DIR="${TMPDIR:-/tmp}/bijux-seqpurge-$(id -u)"
+    umask 077
+    mkdir -p "$XDG_RUNTIME_DIR"
+    chmod 0700 "$XDG_RUNTIME_DIR"
+    export XDG_RUNTIME_DIR
+fi
+
+if [ "${1:-}" = "--version" ]; then
+    printf '%s\n' 'seqpurge 2026_06'
+    exit 0
+fi
+
+exec /usr/local/libexec-seqpurge "$@"

@@ -1,12 +1,12 @@
 # schema_version = 1
-# owner = bijux-dna-platform
+# owner = bijux-genomics
 tool_id = "yleaf"
 container_kind = "bijux"
 spdx = "NOASSERTION"
 upstream_license_id = "NOASSERTION"
 upstream_url = "https://github.com/genid/Yleaf"
-upstream_version = "3.0.3"
-upstream_checksum = "sha256:dd56e6914c331d33dcb8d3584f75d05829238f421be68784a561eabe6484a174"
+upstream_version = "4.1.4"
+upstream_checksum = "sha256:b98f63250878caa3b20d40dea352f2fb81438bcf45bc0830693c6e74f69ab9c4"
 redistribution_note = "Redistribution follows upstream license obligations; verify notice/source requirements before release."
 citation = "upstream:https://github.com/genid/Yleaf"
-version = "3.0.3"
+version = "4.1.4"

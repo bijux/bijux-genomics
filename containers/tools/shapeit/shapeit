@@ -1,0 +1,8 @@
+#!/usr/bin/env sh
+set -eu
+
+case "${1:-}" in
+    --version) echo 'shapeit 4.2.2' ;;
+    --help|-h|"") exec /usr/local/libexec-shapeit --help ;;
+    *) exec /usr/local/libexec-shapeit "$@" ;;
+esac

@@ -49,8 +49,8 @@ pub(super) fn build_tool_registries_toml(
     let mut experimental_tool_count = 0usize;
     let workspace_root = domain_dir.parent().unwrap_or(domain_dir);
     for tool in tools.values() {
-        let dockerfile_rel = format!("containers/docker/arm64/Dockerfile.{}", tool.id);
-        let apptainer_def_rel = format!("containers/apptainer/shared/{}.def", tool.id);
+        let dockerfile_rel = format!("containers/docker/Dockerfile.arm64.{}", tool.id);
+        let apptainer_def_rel = format!("containers/apptainer/{}.def", tool.id);
         let dockerfile_path = workspace_root.join(&dockerfile_rel);
         let apptainer_def_path = workspace_root.join(&apptainer_def_rel);
         let docker_exists = dockerfile_path.exists();

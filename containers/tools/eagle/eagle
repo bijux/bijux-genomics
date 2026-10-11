@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+case "${1:-}" in
+    --version)
+        echo 'eagle 2.4.1 (commit dec140eefc0eda3b7f02233a3c02361eaeb8227c)'
+        ;;
+    *)
+        exec /usr/local/libexec/eagle "$@"
+        ;;
+esac

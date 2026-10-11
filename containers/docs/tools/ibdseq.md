@@ -11,8 +11,8 @@ Purpose: generated per-tool container contract summary.
 - License index: [containers/licenses/README.md](../../licenses/README.md)
 - Tool license record: [containers/licenses/ibdseq.license.toml](../../licenses/ibdseq.license.toml)
 
-- Version: `3.0`
-- License: `GPL-3.0`
+- Version: `r1206`
+- License: `Apache-2.0`
 - Runtime support: `docker-arm64, apptainer`
 - Smoke status: `unknown`
 

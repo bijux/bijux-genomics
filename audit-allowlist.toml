@@ -5,20 +5,6 @@ owner = "platform/infra"
 [advisories]
 ignore = []
 
-[[advisory]]
-id = "RUSTSEC-2024-0436"
-why = "The warning is transitively introduced by parquet in the Arrow stack; removal needs an upstream parquet migration plan before replacement."
-expiry = "2026-12-31"
-owner = "bijux-dna-infra"
-link = "https://rustsec.org/advisories/RUSTSEC-2024-0436"
-
-[[advisory]]
-id = "RUSTSEC-2026-0097"
-why = "This advisory is currently transitive through opentelemetry_sdk and reqwest/quinn in workspace-critical runtime crates. Keep this temporary allowlist until upstream dependency releases provide a non-advisory path that can be adopted without destabilizing runtime telemetry and HTTP client stacks."
-expiry = "2026-09-30"
-owner = "platform/infra"
-link = "https://rustsec.org/advisories/RUSTSEC-2026-0097"
-
 # For each ignored advisory use:
 # [[advisory]]
 # id = "RUSTSEC-YYYY-NNNN"

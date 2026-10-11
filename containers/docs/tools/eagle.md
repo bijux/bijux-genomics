@@ -12,7 +12,7 @@ Purpose: generated per-tool container contract summary.
 - Tool license record: [containers/licenses/eagle.license.toml](../../licenses/eagle.license.toml)
 
 - Version: `2.4.1`
-- License: `GPL-3.0`
+- License: `GPL-3.0-or-later`
 - Runtime support: `docker-arm64, apptainer`
 - Smoke status: `unknown`
 

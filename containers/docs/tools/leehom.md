@@ -11,7 +11,7 @@ Purpose: generated per-tool container contract summary.
 - License index: [containers/licenses/README.md](../../licenses/README.md)
 - Tool license record: [containers/licenses/leehom.license.toml](../../licenses/leehom.license.toml)
 
-- Version: `1.0.17`
+- Version: `1.2.18`
 - License: `NOASSERTION`
 - Runtime support: `docker-arm64, apptainer`
 - Smoke status: `unknown`

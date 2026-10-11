@@ -1,0 +1,7 @@
+{
+  "classification": "female",
+  "confidence": 0.95,
+  "method": "r_y",
+  "sufficient_data": true,
+  "x_to_y_ratio": 0.0
+}

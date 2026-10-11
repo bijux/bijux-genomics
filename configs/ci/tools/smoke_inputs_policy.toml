@@ -1,7 +1,7 @@
 # schema_version = 1
-# owner = bijux-dna-platform
+# owner = bijux-genomics
 # purpose = Minimal shared input assets required by selected container smoke checks.
-# authority = bijux-dna-platform
+# authority = bijux-genomics
 # stability = stable
 # last_updated = 2026-02-14
 

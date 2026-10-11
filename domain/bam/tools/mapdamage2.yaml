@@ -7,7 +7,7 @@ default_version: "2.2.2"
 install_kind: "container"
 container:
   image: "bijuxdna/mapdamage2:2.2.2"
-license: "GPL-3.0"
+license: "MIT"
 citation: "paper:https://academic.oup.com/bioinformatics/article/29/13/1682/184965"
 outputs:
   - name: "damage_report"
@@ -37,6 +37,7 @@ outputs:
 execution_contract:
   required_inputs:
     - "bam"
+    - "reference"
   expected_outputs:
     - "damage_report"
     - "terminal_position_metrics"
@@ -55,6 +56,7 @@ stage_contracts:
   bam.damage:
     required_inputs:
       - "bam"
+      - "reference"
     expected_artifacts:
       - "damage_report"
       - "terminal_position_metrics"
@@ -84,8 +86,10 @@ comparability:
 comparability_notes: "Comparable only within same stage contract and input constraints."
 capabilities:
   - bam_input
+  - reference_input
 io_contract:
   required_inputs:
     - bam
+    - reference
 
 notes: "Domain SSOT tool contract entry."

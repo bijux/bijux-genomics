@@ -107,6 +107,21 @@ fn native_container_commands() -> Vec<ContainerCommandDefinition> {
             NativeContainerCommandKey::ContainerRuntimeCheck,
         ),
         native(
+            "check-contract-catalog",
+            "Validate the canonical container catalog and recipe coverage.",
+            NativeContainerCommandKey::CheckContractCatalog,
+        ),
+        native(
+            "generate-contract-lock",
+            "Generate the immutable lock derived from the canonical container catalog.",
+            NativeContainerCommandKey::GenerateContractLock,
+        ),
+        native(
+            "check-contract-lock",
+            "Validate the canonical container contract lock against its source catalog.",
+            NativeContainerCommandKey::CheckContractLock,
+        ),
+        native(
             "generate-tool-ids",
             "Generate the authoritative container tool id manifest.",
             NativeContainerCommandKey::GenerateToolIds,

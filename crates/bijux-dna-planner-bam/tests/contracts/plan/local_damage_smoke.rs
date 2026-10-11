@@ -29,6 +29,12 @@ fn local_damage_smoke_plans_use_governed_bam_fixture() -> Result<()> {
             "benchmarks/tests/fixtures/corpora/corpus-01-adna-damage-mini/aligned/adna_damage_non_udg.sam"
         )
     );
+    assert_eq!(
+        case.reference,
+        PathBuf::from(
+            "benchmarks/tests/fixtures/corpora/corpus-01-adna-damage-mini/reference/adna_damage_reference.fasta"
+        )
+    );
     assert_eq!(case.expected_terminal_c_to_t_5p, 0.18);
     assert_eq!(case.expected_terminal_g_to_a_3p, 0.11);
     assert_eq!(case.expected_short_fragment_fraction, 1.0);
@@ -44,6 +50,13 @@ fn local_damage_smoke_plans_use_governed_bam_fixture() -> Result<()> {
             "benchmarks/tests/fixtures/corpora/corpus-01-adna-damage-mini/aligned/adna_damage_non_udg.sam"
         )
     );
+    assert_eq!(case.plan.params["reference"], serde_json::json!(case.reference));
+    assert!(case
+        .plan
+        .io
+        .inputs
+        .iter()
+        .any(|input| { input.name.as_str() == "reference" && input.path == case.reference }));
     assert_eq!(case.plan.params["udg_model"], serde_json::json!("non_udg"));
     assert_eq!(case.plan.params["damage_tool_profile"], serde_json::json!("ancient_dna_evidence"));
     assert_eq!(case.plan.params["evidence_only"], serde_json::json!(true));
@@ -117,6 +130,29 @@ fn local_damage_output_contract_plans_cover_all_governed_tools() -> Result<()> {
             "pydamage".to_string(),
         ])
     );
+    let mapdamage2 = plans
+        .iter()
+        .find(|case| case.plan.tool_id.as_str() == "mapdamage2")
+        .unwrap_or_else(|| panic!("mapdamage2 damage plan missing"));
+    assert_eq!(
+        mapdamage2.plan.command.template,
+        vec![
+            "mapdamage2",
+            "analyze",
+            "--bam",
+            mapdamage2.bam.to_str().unwrap_or_default(),
+            "--reference",
+            mapdamage2.reference.to_str().unwrap_or_default(),
+            "--out-dir",
+            mapdamage2.plan.out_dir.to_str().unwrap_or_default(),
+        ]
+    );
+    assert!(mapdamage2
+        .plan
+        .io
+        .inputs
+        .iter()
+        .any(|input| { input.name.as_str() == "reference" && input.path == mapdamage2.reference }));
     assert!(
         plans.iter().any(|case| {
             case.plan.tool_id.as_str() == "addeam"
@@ -160,6 +196,7 @@ tool_id = "pydamage"
 [[cases]]
 sample_id = " "
 bam = "assets/toy/core-v1/bam/damage_short_fragments.sam"
+reference = "assets/toy/core-v1/bam/damage_reference.fasta"
 expected_terminal_c_to_t_5p = 0.18
 expected_terminal_g_to_a_3p = 0.11
 expected_short_fragment_fraction = 1.0
@@ -186,6 +223,7 @@ tool_id = "pydamage"
 [[cases]]
 sample_id = "duplicate-case"
 bam = "assets/toy/core-v1/bam/damage_short_fragments.sam"
+reference = "assets/toy/core-v1/bam/damage_reference.fasta"
 expected_terminal_c_to_t_5p = 0.18
 expected_terminal_g_to_a_3p = 0.11
 expected_short_fragment_fraction = 1.0
@@ -195,6 +233,7 @@ expected_strict_profile_upgraded = false
 [[cases]]
 sample_id = "duplicate-case"
 bam = "assets/toy/core-v1/bam/damage_short_fragments.sam"
+reference = "assets/toy/core-v1/bam/damage_reference.fasta"
 expected_terminal_c_to_t_5p = 0.18
 expected_terminal_g_to_a_3p = 0.11
 expected_short_fragment_fraction = 1.0
@@ -223,6 +262,7 @@ tool_id = "pydamage"
 [[cases]]
 sample_id = "bad-c-to-t"
 bam = "{bam}"
+reference = "{bam}"
 expected_terminal_c_to_t_5p = 1.1
 expected_terminal_g_to_a_3p = 0.11
 expected_short_fragment_fraction = 1.0
@@ -256,6 +296,7 @@ tool_id = "pydamage"
 [[cases]]
 sample_id = "unknown-signal"
 bam = "{bam}"
+reference = "{bam}"
 expected_terminal_c_to_t_5p = 0.18
 expected_terminal_g_to_a_3p = 0.11
 expected_short_fragment_fraction = 1.0
@@ -289,6 +330,7 @@ tool_id = "pydamage"
 [[cases]]
 sample_id = "signal-mismatch"
 bam = "{bam}"
+reference = "{bam}"
 expected_terminal_c_to_t_5p = 0.18
 expected_terminal_g_to_a_3p = 0.11
 expected_short_fragment_fraction = 1.0
@@ -322,6 +364,7 @@ tool_id = "pydamage"
 [[cases]]
 sample_id = "unexpected-strict-upgrade"
 bam = "{bam}"
+reference = "{bam}"
 expected_terminal_c_to_t_5p = 0.18
 expected_terminal_g_to_a_3p = 0.11
 expected_short_fragment_fraction = 1.0

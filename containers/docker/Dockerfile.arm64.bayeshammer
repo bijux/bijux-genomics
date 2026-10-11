@@ -1,0 +1,66 @@
+# SPDX-License-Identifier: GPL-3.0
+# Copyright (C) 2026 Bijan Mousavi
+#
+# Container definition license: GPL-3.0.
+# Bijux Genomics source code is licensed under Apache-2.0.
+# VERSION_SOURCE: containers/versions/versions.toml
+FROM ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b
+ARG OCI_REVISION=unknown
+ARG OCI_CREATED=unknown
+ARG TOOL_VERSION=unknown
+LABEL org.opencontainers.image.source="https://github.com/bijux/bijux-genomics" \
+      org.opencontainers.image.revision="${OCI_REVISION}" \
+      org.opencontainers.image.created="${OCI_CREATED}" \
+      org.opencontainers.image.licenses="GPL-3.0" \
+      org.opencontainers.image.version="${TOOL_VERSION}"
+LABEL org.opencontainers.image.tool="bayeshammer"
+LABEL org.opencontainers.image.title="bayeshammer"
+LABEL org.opencontainers.image.base.name="ubuntu:24.04@sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b"
+LABEL org.opencontainers.image.base.digest="sha256:cd1dba651b3080c3686ecf4e3c4220f026b521fb76978881737d24f200828b2b"
+
+ARG  VERSION_SPADES=4.2.0
+ENV  VERSION_SPADES=${VERSION_SPADES} \
+     DEBIAN_FRONTEND=noninteractive \
+     TZ=UTC
+
+# ------------------------------------------------------------------
+# 1. Install SPAdes from the published Linux release
+# ------------------------------------------------------------------
+RUN set -eux; \
+    apt-get update && \
+    apt-get install -y --no-install-recommends \
+        wget \
+        python3 \
+        ca-certificates \
+        grep && \
+    apt-get install -y --no-install-recommends libgomp1 && \
+    wget -qO /tmp/spades.tar.gz \
+        "https://github.com/ablab/spades/releases/download/v${VERSION_SPADES}/SPAdes-${VERSION_SPADES}-Linux.tar.gz" && \
+    tar -xzf /tmp/spades.tar.gz -C /opt && \
+    cp -r /opt/SPAdes-${VERSION_SPADES}-Linux/bin/* /usr/local/bin/ && \
+    ln -sf spades.py /usr/local/bin/spades && \
+    mkdir -p /usr/local/share && \
+    cp -r /opt/SPAdes-${VERSION_SPADES}-Linux/share/spades /usr/local/share/ && \
+    spades --version | grep -q "${VERSION_SPADES}" && \
+    cd / && rm -rf /opt/SPAdes-${VERSION_SPADES}-Linux /tmp/spades.tar.gz && \
+    rm -rf /var/lib/apt/lists/*
+
+# ------------------------------------------------------------------
+# 2. Thin helper for convenience (optional)
+# ------------------------------------------------------------------
+RUN printf '%s\n' \
+  '#!/usr/bin/env bash' \
+  'set -euo pipefail' \
+  'case "$1" in' \
+  '  --version) exec spades --version ;;' \
+  '  --help|-h|"") exec spades --only-error-correction --help ;;' \
+  'esac' \
+  'exec spades --only-error-correction "$@"' \
+  > /usr/local/bin/bayeshammer && chmod +x /usr/local/bin/bayeshammer
+
+# ------------------------------------------------------------------
+# 3. Default behaviour
+# ------------------------------------------------------------------
+WORKDIR /data
+ENTRYPOINT ["bayeshammer"]
+CMD ["--help"]

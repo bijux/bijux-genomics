@@ -3,7 +3,7 @@ source_id: "source.fastq.container-apptainer-defs"
 kind: "repo_directory"
 access: "repo_path"
 title: "FASTQ apptainer definitions"
-locator: "containers/apptainer/shared"
+locator: "containers/apptainer"
 authority: "containers.apptainer.shared"
 notes:
   - "This source confirms that governed FASTQ tool registry entries point at stable apptainer definition paths."

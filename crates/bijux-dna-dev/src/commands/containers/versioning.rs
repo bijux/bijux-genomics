@@ -299,7 +299,8 @@ pub(super) fn check_version_hash_pin(workspace: &Workspace) -> Result<ContainerC
         }
         let source_sha = table_string(&row, "source_sha256");
         let pin = table_string(&row, "pinned_commit");
-        if source_sha.is_empty() && pin.is_empty() {
+        let status = table_string(&row, "status");
+        if source_sha.is_empty() && pin.is_empty() && status != "unsupported" {
             errors.push(format!("{tool}: missing source_sha256 or pinned_commit"));
         }
         if !source_sha.is_empty()
@@ -855,8 +856,7 @@ pub(super) fn check_version_authority(workspace: &Workspace) -> Result<Container
     }
 
     let version_source_marker = "VERSION_SOURCE: containers/versions/versions.toml";
-    for root in [workspace.path("containers/apptainer"), workspace.path("containers/docker/arm64")]
-    {
+    for root in [workspace.path("containers/apptainer"), workspace.path("containers/docker")] {
         for entry in walkdir::WalkDir::new(&root)
             .into_iter()
             .filter_map(std::result::Result::ok)
@@ -865,7 +865,7 @@ pub(super) fn check_version_authority(workspace: &Workspace) -> Result<Container
             let ext = entry.path().extension().and_then(|ext| ext.to_str());
             let file_name =
                 entry.path().file_name().and_then(|name| name.to_str()).unwrap_or_default();
-            if ext != Some("def") && !file_name.starts_with("Dockerfile.") {
+            if ext != Some("def") && !file_name.starts_with("Dockerfile.arm64.") {
                 continue;
             }
             let raw = read_utf8(entry.path()).unwrap_or_default();
@@ -1185,7 +1185,7 @@ pub(super) fn deprecate_version(
             Utc::now().date_naive().format("%Y-%m-%d"),
             rationale.replace('"', "\\\""),
         ),
-        "# schema_version = 1\n# owner = bijux-dna-platform\n\n",
+        "# schema_version = 1\n# owner = bijux-genomics\n\n",
     )?;
     regenerate_lifecycle_outputs(workspace)?;
     success_line(format!("deprecated {tool}@{version} (compatibility_mode={compatibility_mode})"))

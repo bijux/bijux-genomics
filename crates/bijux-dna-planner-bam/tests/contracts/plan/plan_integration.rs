@@ -102,6 +102,7 @@ fn bam_plan_integration_has_stable_stage_chain() -> Result<()> {
     let damage = bijux_dna_planner_bam::tool_adapters::bam::damage::plan(
         &dummy_tool("pydamage"),
         output_path(&markdup, "markdup_bam").as_path(),
+        None,
         out.join("damage").as_path(),
         &damage_params,
     )?;
@@ -174,6 +175,7 @@ fn mini_local_chain_align_markdup_damage_coverage_has_expected_artifacts() -> Re
     let damage = bijux_dna_planner_bam::tool_adapters::bam::damage::plan(
         &dummy_tool("damageprofiler"),
         output_path(&markdup, "markdup_bam").as_path(),
+        None,
         out.join("damage").as_path(),
         &damage_params,
     )?;

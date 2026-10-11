@@ -83,7 +83,7 @@ fn bench_paths_validate_writes_governed_validation_report() {
 
     assert_eq!(
         payload.get("schema_version").and_then(serde_json::Value::as_str),
-        Some("bijux.bench.paths_validate.v1")
+        Some("bijux.bench.paths_validate.v2")
     );
     assert_eq!(payload.get("ok").and_then(serde_json::Value::as_bool), Some(true));
     assert_eq!(payload.get("violation_count").and_then(serde_json::Value::as_u64), Some(0));
@@ -132,21 +132,7 @@ fn bench_paths_validate_writes_governed_validation_report() {
     let rerun_payload: serde_json::Value =
         serde_json::from_slice(&rerun_output.stdout).expect("parse rerun stdout as json");
     assert_eq!(
-        rerun_payload
-            .get("legacy_fixture_wrapper")
-            .and_then(|value| value.get("wrapper_path"))
-            .and_then(serde_json::Value::as_str),
-        Some("tests/fixtures")
-    );
-    assert_eq!(
         rerun_payload.get("readiness_snapshot_count").and_then(serde_json::Value::as_u64),
         payload.get("readiness_snapshot_count").and_then(serde_json::Value::as_u64)
-    );
-    assert_eq!(
-        rerun_payload
-            .get("legacy_fixture_wrapper")
-            .and_then(|value| value.get("actual_target"))
-            .and_then(serde_json::Value::as_str),
-        Some("../benchmarks/tests/fixtures")
     );
 }
