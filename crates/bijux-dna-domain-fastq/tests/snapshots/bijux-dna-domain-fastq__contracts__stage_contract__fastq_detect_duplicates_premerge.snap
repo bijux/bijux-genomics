@@ -11,7 +11,18 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
     ],
     "kind": "SingleEnd"
   },
-  "metrics": {},
+  "metrics": {
+    "classes": [
+      "Integrity"
+    ],
+    "invariants": [
+      "duplicate_signal_reads <= reads_in",
+      "duplicate_signal_fraction in [0, 1]",
+      "compared_read_pairs <= reads_in / 2 when present",
+      "counts are non-negative"
+    ],
+    "notes": "Premerge duplicate detection reports sequence-signature evidence without mutating reads."
+  },
   "outputs": {
     "emits_fastq": false,
     "kind": "StatsOnly",

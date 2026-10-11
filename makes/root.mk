@@ -18,6 +18,7 @@ include $(ROOT_MK_DIR)/lab.mk
 include $(ROOT_MK_DIR)/lunarc.mk
 include $(ROOT_MK_DIR)/docs.mk
 include $(ROOT_MK_DIR)/policies.mk
+include $(ROOT_MK_DIR)/python.mk
 include $(ROOT_MK_DIR)/bijux-std.mk
 include $(BIJUX_MAKES_SHARED_ROOT)/bijux-makes-rs/bijux.mk
 

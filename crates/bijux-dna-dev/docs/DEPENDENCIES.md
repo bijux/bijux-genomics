@@ -16,6 +16,8 @@ This crate is allowed to depend on stable workspace primitives and developer-pol
   `walkdir`, and `reqwest` support CLI parsing, error context, structured data, checksums,
   bounded multi-pattern caller analysis, deterministic traversal, and explicit automation workflows.
 
+- `twox-hash` supplies only xxHash64 for the qualified Nextest hash partition protocol. It is already present in the workspace lockfile; developer planning reuses the implementation without enabling its random or allocation features.
+
 ## Allowed direction
 - `bijux-dna-dev` may depend on low-level shared crates that do not depend back on it.
 - `bijux-dna-dev` may compose stable runtime transitions and runner effects, but must not implement

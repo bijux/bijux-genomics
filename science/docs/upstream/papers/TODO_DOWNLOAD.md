@@ -1,7 +1,10 @@
 # FASTQ Paper Archive Backlog
 
-This file is the operator-facing worklist for local paper payloads under
-`science/docs/upstream/papers/`.
+This file is the operator-facing worklist for paper locators under
+`science/docs/upstream/papers/`. Store payloads in the external sibling
+`../bijux-genomics-science/upstream/papers/`, or the corresponding directory
+under `BIJUX_SCIENCE_ARCHIVE_ROOT`. These locators are not download destinations
+inside the product checkout.
 
 Use [README.md](README.md) for the durable paper-root contract and
 [../../generated/current/evidence/README.md](../../generated/current/evidence/README.md)
@@ -16,10 +19,11 @@ paper matrix.
 
 ## Local Payload Layout
 
-For each `paper_root`, place material under:
+Resolve each `paper_root` against the external archive, stripping its
+`science/docs/` prefix, then place material under:
 
-- [<paper-id>/original/](<paper-id>/original/)
-- [<paper-id>/notes/](<paper-id>/notes/)
+- `<paper-id>/original/`
+- `<paper-id>/notes/`
 
 Use the same root for PDFs, supplementary files, homepage snapshots, README
 exports, and local notes about access constraints.

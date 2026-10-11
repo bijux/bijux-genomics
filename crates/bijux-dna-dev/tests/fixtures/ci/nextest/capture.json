@@ -1,0 +1,29 @@
+{
+  "executor": "cargo-nextest 0.9.100",
+  "format": "libtest-json-plus",
+  "format_version": "0.1",
+  "documentation": "https://nexte.st/docs/machine-readable/libtest-json/",
+  "captures": [
+    {
+      "fixture": "library.jsonl",
+      "sha256": "c90cc58109ce25b70b70984bfedb25293ad50cce252c4737f84adc96660676ed",
+      "source_commit": "e421498c3426e71f4f87924938efea01d6b85166",
+      "binary_sha256": "2971205013b9fccb8c7d587bb7e5f5054339b972cdd56dcda9c394fe45a49c00",
+      "scope": "One previously compiled pure contract case with narrowed binary metadata probes pinned nextest0.9.100 structured output. No compiler or broad product verification."
+    },
+    {
+      "fixture": "integration.jsonl",
+      "sha256": "7d9f86449e9ec71cdebac9795beac212c7c5e77619a427508902c73892fbd2fe",
+      "source_commit": "e421498c3426e71f4f87924938efea01d6b85166",
+      "binary_sha256": "d04e168a4c447b8051c55a5e484f21b853d743adea1eaaf32dbe35253a4d2ee2",
+      "scope": "One previously compiled pure contract case with narrowed binary metadata probes pinned nextest0.9.100 structured output. No compiler or broad product verification."
+    },
+    {
+      "fixture": "ignored.jsonl",
+      "sha256": "bc5b4215eafc90969f87ef0f49e4b3befa0e8c04fa7975a1eee5cfd2ce8556b6",
+      "fixture_source_sha256": "2f3050f2b1518b3765ed1d650c66e1e63350000e5b390c6e4515d948acbfb3c4",
+      "binary_sha256": "f3b05f54edd2ec086f26fc84593faa49f9aac29da998830706e10398d7c84fd2",
+      "scope": "Standalone generated Rust test harness probes ignored and failed event semantics. Historic Cargo metadata supplies package naming only; these are not product tests or source coverage."
+    }
+  ]
+}

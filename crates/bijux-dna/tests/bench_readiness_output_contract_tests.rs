@@ -66,9 +66,9 @@ fn bench_readiness_output_contract_audit_report_governs_all_retained_bindings() 
     );
     assert_eq!(
         payload.get("passed_row_count").and_then(serde_json::Value::as_u64),
-        Some(rows.len() as u64 - 24)
+        Some(rows.len() as u64 - 23)
     );
-    assert_eq!(payload.get("blocked_row_count").and_then(serde_json::Value::as_u64), Some(24));
+    assert_eq!(payload.get("blocked_row_count").and_then(serde_json::Value::as_u64), Some(23));
     assert_eq!(payload.get("failed_row_count").and_then(serde_json::Value::as_u64), Some(0));
     assert_eq!(
         payload.get("blocked_tool_ids").and_then(serde_json::Value::as_array),
@@ -83,7 +83,6 @@ fn bench_readiness_output_contract_audit_report_governs_all_retained_bindings() 
             serde_json::Value::String("ibdne".to_string()),
             serde_json::Value::String("ibdseq".to_string()),
             serde_json::Value::String("impute5".to_string()),
-            serde_json::Value::String("minimac4".to_string()),
             serde_json::Value::String("ngsbriggs".to_string()),
             serde_json::Value::String("plink".to_string()),
             serde_json::Value::String("plink2".to_string()),
@@ -221,13 +220,10 @@ fn bench_readiness_output_contract_audit_report_governs_all_retained_bindings() 
             row.get("stage_id").and_then(serde_json::Value::as_str) == Some(stage_id)
                 && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("minimac4")
                 && row.get("output_proof_surface").and_then(serde_json::Value::as_str)
-                    == Some("tool_contract_planning_refusal")
-                && row.get("execution_blocker").and_then(serde_json::Value::as_str).is_some_and(
-                    |reason| {
-                        reason.starts_with("invalid_tool_contract:")
-                            && reason.contains("not compatible with tool minimac4")
-                    },
-                )
+                    == Some("direct_tool_smoke")
+                && row.get("independent_execution_proven").and_then(serde_json::Value::as_bool)
+                    == Some(true)
+                && row.get("passed").and_then(serde_json::Value::as_bool) == Some(true)
         }));
     }
     for tool_id in ["plink", "plink2"] {
@@ -244,6 +240,21 @@ fn bench_readiness_output_contract_audit_report_governs_all_retained_bindings() 
                     .is_some_and(|reason| reason.contains("tool_ok=false"))
         }));
     }
+    assert!(rows.iter().any(|row| {
+        row.get("stage_id").and_then(serde_json::Value::as_str) == Some("vcf.population_structure")
+            && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("plink")
+            && row.get("output_proof_surface").and_then(serde_json::Value::as_str)
+                == Some("direct_tool_smoke")
+            && row.get("passed").and_then(serde_json::Value::as_bool) == Some(false)
+            && row.get("independent_execution_proven").and_then(serde_json::Value::as_bool)
+                == Some(false)
+            && row.get("execution_blocker").and_then(serde_json::Value::as_str).is_some_and(
+                |reason| {
+                    reason.contains("population-structure component plan")
+                        && reason.contains("MDS `plink` ok=false")
+                },
+            )
+    }));
 
     assert!(rows.iter().any(|row| {
         row.get("domain").and_then(serde_json::Value::as_str) == Some("vcf")
@@ -308,7 +319,7 @@ fn bench_readiness_output_contract_audit_write_governed_json_file() {
         Some(rows.len() as u64)
     );
     assert_eq!(payload.get("failed_row_count").and_then(serde_json::Value::as_u64), Some(0));
-    assert_eq!(payload.get("blocked_row_count").and_then(serde_json::Value::as_u64), Some(24));
+    assert_eq!(payload.get("blocked_row_count").and_then(serde_json::Value::as_u64), Some(23));
     assert!(
         rows.iter().any(|row| {
             row.get("tool_id").and_then(serde_json::Value::as_str) == Some("mapdamage2")

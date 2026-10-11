@@ -43,7 +43,7 @@ const FASTQ_VALIDATE_READS_READY_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.fastq_validate_reads_ready.v1";
 const FASTQ_VALIDATE_READS_STAGE_ID: &str = "fastq.validate_reads";
 const FASTQ_VALIDATE_READS_SMOKE_PATH: &str =
-    "runs/bench/local-smoke/fastq.validate_reads/report.json";
+    "artifacts/runs/bench/local-smoke/fastq.validate_reads/report.json";
 const COVERAGE_STATUS_COMPLETE: &str = "complete";
 const COVERAGE_STATUS_INCOMPLETE: &str = "incomplete";
 const VALIDATION_STATUS_FIELD_ID: &str = "strict_pass";

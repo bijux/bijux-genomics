@@ -45,13 +45,16 @@ fn write_local_kinship_smoke_report_materializes_governed_outputs() -> Result<()
     let _lock = crate::support::bench_output_lock()
         .unwrap_or_else(|err| panic!("repo lock BAM kinship benchmark output: {err}"));
     let _guard = RepoRootOverrideGuard::install(&repo_root);
-    let output_dir = repo_root.join("runs/bench/local-smoke/bam.kinship");
+    let output_dir = repo_root.join("artifacts/runs/bench/local-smoke/bam.kinship");
     if output_dir.exists() {
         std::fs::remove_dir_all(&output_dir)?;
     }
 
     let report_path = bijux_dna_api::v1::api::bam::write_local_kinship_smoke_report()?;
-    assert_eq!(report_path, repo_root.join("runs/bench/local-smoke/bam.kinship/kinship.json"));
+    assert_eq!(
+        report_path,
+        repo_root.join("artifacts/runs/bench/local-smoke/bam.kinship/kinship.json")
+    );
     assert!(report_path.is_file(), "local-smoke BAM kinship report must exist");
 
     let payload: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(&report_path)?)?;
@@ -181,7 +184,7 @@ fn write_local_kinship_smoke_report_writes_governed_tool_reports() -> Result<()>
     let _lock = crate::support::bench_output_lock()
         .unwrap_or_else(|err| panic!("repo lock BAM kinship benchmark output: {err}"));
     let _guard = RepoRootOverrideGuard::install(&repo_root);
-    let output_dir = repo_root.join("runs/bench/local-smoke/bam.kinship");
+    let output_dir = repo_root.join("artifacts/runs/bench/local-smoke/bam.kinship");
     if output_dir.exists() {
         std::fs::remove_dir_all(&output_dir)?;
     }
@@ -233,7 +236,7 @@ fn write_local_kinship_smoke_report_writes_governed_stage_metrics() -> Result<()
     let _lock = crate::support::bench_output_lock()
         .unwrap_or_else(|err| panic!("repo lock BAM kinship benchmark output: {err}"));
     let _guard = RepoRootOverrideGuard::install(&repo_root);
-    let output_dir = repo_root.join("runs/bench/local-smoke/bam.kinship");
+    let output_dir = repo_root.join("artifacts/runs/bench/local-smoke/bam.kinship");
     if output_dir.exists() {
         std::fs::remove_dir_all(&output_dir)?;
     }

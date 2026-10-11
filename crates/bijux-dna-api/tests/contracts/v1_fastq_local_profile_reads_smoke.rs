@@ -32,7 +32,7 @@ fn repo_root() -> Result<PathBuf> {
 fn write_local_profile_reads_smoke_report_materializes_governed_outputs() -> Result<()> {
     let repo_root = repo_root()?;
     let _guard = RepoRootOverrideGuard::install(&repo_root);
-    let output_dir = repo_root.join("runs/bench/local-smoke/fastq.profile_reads");
+    let output_dir = repo_root.join("artifacts/runs/bench/local-smoke/fastq.profile_reads");
     if output_dir.exists() {
         std::fs::remove_dir_all(&output_dir)?;
     }
@@ -40,7 +40,7 @@ fn write_local_profile_reads_smoke_report_materializes_governed_outputs() -> Res
     let report_path = bijux_dna_api::v1::api::fastq::write_local_profile_reads_smoke_report()?;
     assert_eq!(
         report_path,
-        repo_root.join("runs/bench/local-smoke/fastq.profile_reads/profile.json")
+        repo_root.join("artifacts/runs/bench/local-smoke/fastq.profile_reads/profile.json")
     );
     assert!(report_path.is_file(), "local profile summary must exist");
 

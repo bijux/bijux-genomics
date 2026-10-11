@@ -56,7 +56,7 @@ fn read_gz_fastq_headers(path: &Path) -> Result<Vec<String>> {
 fn write_local_extract_umis_smoke_report_materializes_governed_outputs() -> Result<()> {
     let repo_root = repo_root()?;
     let _guard = RepoRootOverrideGuard::install(&repo_root);
-    let output_dir = repo_root.join("runs/bench/local-smoke/fastq.extract_umis");
+    let output_dir = repo_root.join("artifacts/runs/bench/local-smoke/fastq.extract_umis");
     if output_dir.exists() {
         std::fs::remove_dir_all(&output_dir)?;
     }
@@ -64,7 +64,7 @@ fn write_local_extract_umis_smoke_report_materializes_governed_outputs() -> Resu
     let report_path = bijux_dna_api::v1::api::fastq::write_local_extract_umis_smoke_report()?;
     assert_eq!(
         report_path,
-        repo_root.join("runs/bench/local-smoke/fastq.extract_umis/report.json")
+        repo_root.join("artifacts/runs/bench/local-smoke/fastq.extract_umis/report.json")
     );
     assert!(report_path.is_file(), "local extract-umis summary must exist");
 

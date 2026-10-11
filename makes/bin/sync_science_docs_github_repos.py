@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import os
 import re
 import subprocess
 import sys
@@ -64,10 +65,15 @@ class RepoRecord:
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Sync the local science/docs GitHub repository evidence archive."
+        description="Sync upstream repository evidence into the external science archive."
     )
     repo_root_default = Path(__file__).resolve().parents[2]
     parser.add_argument("--repo-root", type=Path, default=repo_root_default)
+    parser.add_argument(
+        "--evidence-root",
+        type=Path,
+        help="external payload root; defaults to BIJUX_SCIENCE_ARCHIVE_ROOT or sibling bijux-genomics-science",
+    )
     parser.add_argument(
         "--manifest-out",
         type=Path,
@@ -76,12 +82,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--mirror-root",
         type=Path,
-        default=Path("science/docs/upstream/github-repos/mirrors"),
+        default=Path("upstream/github-repos/mirrors"),
     )
     parser.add_argument(
         "--archive-root",
         type=Path,
-        default=Path("science/docs/upstream/github-repos/archives"),
+        default=Path("upstream/github-repos/archives"),
     )
     parser.add_argument(
         "--state-out",
@@ -150,6 +156,25 @@ def ensure_parent(path: Path) -> None:
 
 def resolve_path(repo_root: Path, path: Path) -> Path:
     return path if path.is_absolute() else repo_root / path
+
+
+def resolve_evidence_root(repo_root: Path, requested: Path | None) -> Path:
+    configured = requested or os.environ.get("BIJUX_SCIENCE_ARCHIVE_ROOT")
+    root = Path(configured) if configured else repo_root.parent / "bijux-genomics-science"
+    root = resolve_path(repo_root, root).resolve()
+    if root.is_relative_to(repo_root.resolve()):
+        raise ValueError("science payload archive must be outside the product repository")
+    return root
+
+
+def resolve_payload_root(repo_root: Path, evidence_root: Path, path: Path) -> Path:
+    # Persisted archive locators retain their namespace independently of storage.
+    if path.as_posix().startswith("science/docs/"):
+        path = Path(path.as_posix().removeprefix("science/docs/"))
+    resolved = resolve_path(evidence_root, path).resolve()
+    if not resolved.is_relative_to(evidence_root) or resolved.is_relative_to(repo_root):
+        raise ValueError("science payload destination must remain inside the external archive")
+    return resolved
 
 
 def write_manifest(repo_root: Path, manifest_path: Path, records: list[RepoRecord]) -> None:
@@ -251,9 +276,10 @@ def write_local_state(
 def main() -> int:
     args = parse_args()
     repo_root = args.repo_root.resolve()
+    evidence_root = resolve_evidence_root(repo_root, args.evidence_root)
     manifest_path = resolve_path(repo_root, args.manifest_out)
-    mirror_root = resolve_path(repo_root, args.mirror_root)
-    archive_root = resolve_path(repo_root, args.archive_root)
+    mirror_root = resolve_payload_root(repo_root, evidence_root, args.mirror_root)
+    archive_root = resolve_payload_root(repo_root, evidence_root, args.archive_root)
     state_path = resolve_path(repo_root, args.state_out)
 
     records = discover_repo_records(repo_root)
@@ -267,22 +293,26 @@ def main() -> int:
     failures: list[str] = []
 
     for record in records:
-        mirror_dir = mirror_root / record.owner / f"{record.repo}.git"
-        archive_path = archive_root / f"{record.owner}--{record.repo}.tar.gz"
         print(f"sync {record.repo_id}")
         try:
+            mirror_dir = resolve_payload_root(
+                repo_root, evidence_root, mirror_root / record.owner / f"{record.repo}.git"
+            )
+            archive_path = resolve_payload_root(
+                repo_root, evidence_root, archive_root / f"{record.owner}--{record.repo}.tar.gz"
+            )
             sync_status, head_ref, head_commit = sync_mirror(record, mirror_dir)
             archive_value = ""
             if args.archive_format == "tar.gz":
                 write_tar_gz_archive(mirror_dir, archive_path)
-                archive_value = str(archive_path.relative_to(repo_root))
+                archive_value = os.path.relpath(archive_path, repo_root)
             state_rows.append(
                 (
                     record.repo_id,
                     sync_status,
                     head_ref,
                     head_commit,
-                    str(mirror_dir.relative_to(repo_root)),
+                    os.path.relpath(mirror_dir, repo_root),
                     archive_value,
                 )
             )

@@ -9,6 +9,12 @@ stable names and use namespaces only when they need grouped operations such as
 
 Model contracts:
 
+- `BenchmarkLocalPipelineDagConfig`
+- `BenchmarkLocalPipelineDagDomain`
+- `BenchmarkLocalPipelineDagMetadataConfig`
+- `BenchmarkLocalPipelineDagStagesConfig`
+- `BenchmarkLocalPipelineDagNode`
+- `BenchmarkLocalPipelineProjectSourceConfig`
 - `BenchmarkSlurmSubmissionIntent`
 - `BenchmarkSlurmSubmissionMaterial`
 - `BenchmarkSlurmArraySpec`
@@ -456,3 +462,18 @@ Run from the repository root when changing public exports:
 ```sh
 CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-bench-model --test schemas --no-default-features
 ```
+
+## Local Pipeline Configuration
+
+`validate_benchmark_local_pipeline_dag_config` admits the version and required identity/node
+envelope of `bijux.bench.local_pipeline_dag.v1`. The model owns both the combined TOML
+configuration shape and the separate YAML metadata/stages shapes, preserving strict
+unknown-field handling and the project-source retry default of three.
+
+`benchmark_local_pipeline_dag_config_schema`, `benchmark_local_pipeline_dag_metadata_config_schema`,
+and `benchmark_local_pipeline_dag_stages_config_schema` produce their registered input schemas.
+Existing validation-report schemas retain their persisted identities. Graph topology, stage
+readiness, reference resolution and scientific profile validation are additional service
+obligations; schema admission does not certify executable or scientifically compatible inputs.
+
+`BenchmarkLocalStageMatrixConfig` owns the existing FASTQ/BAM local matrix input shape, with generated `benchmark_local_stage_matrix_config_schema()` and the two exact v1 schema identities. VCF retains `LocalVcfStageMatrixConfig`. Structural deserialization rejects unknown fields and readiness values; repository admission additionally checks the requested domain, exact version, non-empty inventory and unique stage identities. Serialization preserves matrix declaration order.

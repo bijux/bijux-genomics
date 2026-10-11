@@ -43,7 +43,7 @@ fn row(domain: &str, result_id: &str) -> BenchmarkLocalHpcCandidateJob {
             artifact_role: Some("reads".to_string()),
             source_kind: "file".to_string(),
             source_path: source_path.clone(),
-            staged_path: format!("runs/bench/hpc-dry-run/staged/{source_path}"),
+            staged_path: format!("artifacts/runs/bench/hpc-dry-run/staged/{source_path}"),
             checksum_sha256: "a".repeat(64),
             size_bytes: 1024,
             member_count: 1,

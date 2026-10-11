@@ -1,4 +1,4 @@
-use super::{path_from_arg, read_utf8, success_line, ContainerCommandOutcome, Result, Workspace};
+use super::{path_from_arg, success_line, ContainerCommandOutcome, Result, Workspace};
 
 const PLAN_SCHEMA_PATH: &str = "containers/contracts/schemas/image-storage-plan.v1.json";
 const REPORT_SCHEMA_PATH: &str = "containers/contracts/schemas/image-storage-report.v1.json";
@@ -94,12 +94,12 @@ fn report(workspace: &Workspace, args: &[String], check: bool) -> Result<Contain
     let json_output = path_from_arg(workspace, json_output);
     let markdown_output = path_from_arg(workspace, markdown_output);
     if check {
-        let publication =
-            bijux_dna_containers::api::derive_image_storage_report(&plan, &after_inventory)?;
-        let markdown =
-            bijux_dna_containers::api::render_image_storage_report_markdown(&publication);
-        let expected_json = serde_json::to_string_pretty(&publication)?;
-        if read_utf8(&json_output)? != expected_json || read_utf8(&markdown_output)? != markdown {
+        if !bijux_dna_containers::api::image_storage_report_matches(
+            &plan,
+            &after_inventory,
+            &json_output,
+            &markdown_output,
+        )? {
             return Ok(ContainerCommandOutcome::failure(
                 "image-storage report drifted from governed evidence\n",
             ));
@@ -136,13 +136,9 @@ fn check_schemas(workspace: &Workspace, args: &[String]) -> Result<ContainerComm
     }
     let plan_path = workspace.path(PLAN_SCHEMA_PATH);
     let report_path = workspace.path(REPORT_SCHEMA_PATH);
-    let checked_plan: serde_json::Value = serde_json::from_str(&read_utf8(&plan_path)?)?;
-    let checked_report: serde_json::Value = serde_json::from_str(&read_utf8(&report_path)?)?;
-    if checked_plan != bijux_dna_containers::api::image_storage_plan_schema()
-        || checked_report != bijux_dna_containers::api::image_storage_report_schema()
-    {
+    if !bijux_dna_containers::api::image_storage_schemas_match(&plan_path, &report_path)? {
         return Ok(ContainerCommandOutcome::failure(
-            "image-storage schemas drifted from Rust environment types\n",
+            "image-storage schemas drifted from Rust container types\n",
         ));
     }
     success_line("image-storage schemas: OK")

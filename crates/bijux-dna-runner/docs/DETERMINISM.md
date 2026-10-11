@@ -14,6 +14,9 @@ Runner determinism is about stable invocation identity, stable records, and repl
   compatibility readers reproduce their historical paths without rewriting evidence.
 - Failed current qualification attempts preserve that identity through the shared complete-file
   archive receipt; rollback re-verifies the same inventory before restoring the active path.
+- Corpus materialization v2 derives its catalog and evidence identity from the acquisition plan's
+  `corpus_id`; `portfolio_id` remains grouping metadata and cannot merge independent collections.
+  Historical v1 specifications retain their portfolio-keyed replay paths.
 
 ## Replay
 Replay does:

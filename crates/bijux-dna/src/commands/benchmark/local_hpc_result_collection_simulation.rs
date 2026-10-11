@@ -30,7 +30,7 @@ use crate::commands::cli::render;
 const LOCAL_HPC_RESULT_COLLECTION_SIMULATION_SCHEMA_VERSION: &str =
     BENCHMARK_LOCAL_HPC_RESULT_COLLECTION_SIMULATION_SCHEMA_V1;
 pub(crate) const DEFAULT_HPC_RESULT_COLLECTION_SIMULATION_PATH: &str =
-    "runs/bench/hpc-dry-run/result-collection-simulation.json";
+    "artifacts/runs/bench/hpc-dry-run/result-collection-simulation.json";
 const DEFAULT_HPC_RESULT_COLLECTION_SIMULATION_TREE_NAME: &str =
     "result-collection-simulation-tree";
 

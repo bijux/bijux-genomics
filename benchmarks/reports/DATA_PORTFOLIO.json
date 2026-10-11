@@ -1,0 +1,1283 @@
+{
+  "schema_version": "bijux.benchmark.data_portfolio_audit.v2",
+  "source_commit": "da640659bb3475166a7810f789db7322fee9f715",
+  "portfolio_path": "benchmarks/contracts/portfolio.toml",
+  "portfolio_sha256": "03fb5b5edeb33aaa39a689fd6d7530a5004b3cb0252ad04ddf82443402e1a5d1",
+  "data_index_path": "study://data/evidence/indexes/f62473c409b7cbd8c87dcc21040adf876f239718/data-index.json",
+  "data_index_sha256": "4151f74b59317a09a24c75442807b6df3b6c3621533aac5aa90cfda710df43fb",
+  "summary": {
+    "corpus_count": 16,
+    "admitted_corpus_count": 7,
+    "source_defined_corpus_count": 9,
+    "missing_corpus_count": 0,
+    "publishable_data_ready_count": 7,
+    "bound_catalog_count": 33,
+    "missing_catalog_binding_count": 0,
+    "unbound_catalog_count": 1,
+    "verified_bound_file_count": 267,
+    "verified_bound_size_bytes": 96839352197,
+    "unknown_storage_projection_count": 0,
+    "unknown_compute_projection_count": 5,
+    "suspected_nonproduction_asset_count": 0,
+    "publishable_contamination_count": 0
+  },
+  "corpora": [
+    {
+      "corpus_id": "alignment-truth-panel",
+      "status": "source_defined",
+      "evidence_scope": "comparative",
+      "class": "production_real",
+      "declared_sample_count": 0,
+      "minimum_sample_count": 10,
+      "data_types": [
+        "bam",
+        "fasta",
+        "fastq"
+      ],
+      "truth_roles": [
+        "alignment_truth"
+      ],
+      "truth_strategy": "real_reference_material_with_orthogonal_truth_and_supplementary_simulation",
+      "source_specs": [
+        {
+          "path": "benchmarks/corpora/alignment-truth-panel.toml",
+          "sha256": "7938ddb06c9bcf41b89db7d3e5fe4d03cb92daa5e7904c2bdce36b50d6c96464",
+          "projected_storage_bytes": 1000000000000,
+          "projected_cpu_hours": 5000,
+          "selection_group_count": 2,
+          "planned_sample_count": 17,
+          "planned_accession_count": 17,
+          "selected_accession_count": 0,
+          "selection_complete": false
+        }
+      ],
+      "catalog_bindings": [],
+      "verified_storage_bytes": 0,
+      "projected_storage_bytes": 1000000000000,
+      "projected_cpu_hours": 5000,
+      "publishable_data_ready": false,
+      "blockers": [
+        "source selection is not frozen by exact accessions",
+        "source-defined corpus has not been admitted"
+      ]
+    },
+    {
+      "corpus_id": "amplicon-community-challenge",
+      "status": "source_defined",
+      "evidence_scope": "comparative",
+      "class": "production_real",
+      "declared_sample_count": 0,
+      "minimum_sample_count": 10,
+      "data_types": [
+        "amplicon_reference",
+        "fastq"
+      ],
+      "truth_roles": [
+        "amplicon_truth"
+      ],
+      "truth_strategy": "real_mock_communities_with_known_composition",
+      "source_specs": [
+        {
+          "path": "benchmarks/corpora/amplicon-community-challenge.toml",
+          "sha256": "878260a780beb6f1ea34fd908b57bab81cedc807d164c90fbc0234c02d78a0b7",
+          "projected_storage_bytes": 25000000000,
+          "projected_cpu_hours": 500,
+          "selection_group_count": 2,
+          "planned_sample_count": 11,
+          "planned_accession_count": 11,
+          "selected_accession_count": 11,
+          "selection_complete": true
+        }
+      ],
+      "catalog_bindings": [
+        {
+          "catalog_id": "amplicon-community-challenge-extreme-mock-community",
+          "present": true,
+          "catalog_path": "study://data/catalog/snapshots/99a0558f923866bad9d83880433e8df6f6b14cef/amplicon-community-challenge-extreme-mock-community.json",
+          "catalog_sha256": "3678d6d4e6cced891c68bce58506d34c0e59ff5718b85e141c41b63a23162818",
+          "access_classification": "public",
+          "redistribution_classification": "accession-referenced-source-copy",
+          "access_terms": "not declared by governed catalog",
+          "integrity_verified": true,
+          "benchmark_eligible": true,
+          "verified_file_count": 2,
+          "verified_size_bytes": 567380588,
+          "observed_sample_count": 1,
+          "sample_count_authority": "catalog.samples",
+          "file_roles": [
+            "raw-fastq"
+          ]
+        },
+        {
+          "catalog_id": "amplicon-community-challenge-hmp-amplicon-mock",
+          "present": true,
+          "catalog_path": "study://data/catalog/snapshots/99a0558f923866bad9d83880433e8df6f6b14cef/amplicon-community-challenge-hmp-amplicon-mock.json",
+          "catalog_sha256": "55466dc5cf155d0140902aef0d348405990d1eed737a5434b4bff2dec3ce1b43",
+          "access_classification": "public",
+          "redistribution_classification": "accession-referenced-source-copy",
+          "access_terms": "not declared by governed catalog",
+          "integrity_verified": true,
+          "benchmark_eligible": true,
+          "verified_file_count": 10,
+          "verified_size_bytes": 32745634,
+          "observed_sample_count": 10,
+          "sample_count_authority": "catalog.samples",
+          "file_roles": [
+            "raw-fastq"
+          ]
+        }
+      ],
+      "verified_storage_bytes": 600126222,
+      "projected_storage_bytes": 25000000000,
+      "projected_cpu_hours": 500,
+      "publishable_data_ready": false,
+      "blockers": [
+        "source-defined corpus has not been admitted"
+      ]
+    },
+    {
+      "corpus_id": "amplicon-stage-qualification",
+      "status": "admitted",
+      "evidence_scope": "qualification",
+      "class": "qualification_real",
+      "declared_sample_count": 1,
+      "minimum_sample_count": 1,
+      "data_types": [
+        "fastq"
+      ],
+      "truth_roles": [
+        "amplicon_stage_qualification"
+      ],
+      "truth_strategy": "observational_only",
+      "source_specs": [],
+      "catalog_bindings": [
+        {
+          "catalog_id": "ena-prjdb2953-drr021371",
+          "present": true,
+          "catalog_path": "study://data/catalog/snapshots/53272b45c7be125586ec95fee255c383a515e0e7/ena-prjdb2953-drr021371.json",
+          "catalog_sha256": "d16b910f1d17fad94c9a94d11f9f59af8008e92c66e6246ca31c6860de1f0c35",
+          "access_classification": "public",
+          "redistribution_classification": "public-source-copy",
+          "access_terms": "not declared by governed catalog",
+          "integrity_verified": true,
+          "benchmark_eligible": true,
+          "verified_file_count": 2,
+          "verified_size_bytes": 1969171,
+          "observed_sample_count": 1,
+          "sample_count_authority": "catalog.sample_identity",
+          "file_roles": [
+            "catalog.preserved_catalog.files.0",
+            "catalog.preserved_catalog.files.1"
+          ]
+        },
+        {
+          "catalog_id": "ena-prjdb4000-drr037766",
+          "present": true,
+          "catalog_path": "study://data/catalog/snapshots/53272b45c7be125586ec95fee255c383a515e0e7/ena-prjdb4000-drr037766.json",
+          "catalog_sha256": "f7dcab08951fc10200b183e3db0af8414243d6b251caaeedf39ea885530b1100",
+          "access_classification": "public",
+          "redistribution_classification": "public-source-copy",
+          "access_terms": "not declared by governed catalog",
+          "integrity_verified": true,
+          "benchmark_eligible": true,
+          "verified_file_count": 1,
+          "verified_size_bytes": 1062672,
+          "observed_sample_count": 1,
+          "sample_count_authority": "catalog.sample_identity",
+          "file_roles": [
+            "catalog.preserved_catalog.files.0"
+          ]
+        },
+        {
+          "catalog_id": "mothur-miseq-sop-f3d0",
+          "present": true,
+          "catalog_path": "study://data/catalog/snapshots/53272b45c7be125586ec95fee255c383a515e0e7/mothur-miseq-sop-f3d0.json",
+          "catalog_sha256": "60c300fb61e3634b2ab252e6d1e1706fcdb50ee8995598786f3459c6ee5488bc",
+          "access_classification": "public",
+          "redistribution_classification": "public-tutorial-copy",
+          "access_terms": "not declared by governed catalog",
+          "integrity_verified": true,
+          "benchmark_eligible": true,
+          "verified_file_count": 2,
+          "verified_size_bytes": 8746360,
+          "observed_sample_count": 1,
+          "sample_count_authority": "catalog.sample_identity",
+          "file_roles": [
+            "catalog.preserved_catalog.files.0",
+            "catalog.preserved_catalog.files.1"
+          ]
+        }
+      ],
+      "verified_storage_bytes": 11778203,
+      "projected_storage_bytes": 11778203,
+      "projected_cpu_hours": null,
+      "publishable_data_ready": true,
+      "blockers": []
+    },
+    {
+      "corpus_id": "ancient-dna-bam-diversity",
+      "status": "admitted",
+      "evidence_scope": "comparative",
+      "class": "production_real",
+      "declared_sample_count": 10,
+      "minimum_sample_count": 10,
+      "data_types": [
+        "bam",
+        "fasta"
+      ],
+      "truth_roles": [
+        "bam_diversity"
+      ],
+      "truth_strategy": "observational_alignment_diversity_with_separate_orthogonal_controls",
+      "source_specs": [
+        {
+          "path": "benchmarks/corpora/ancient-dna-bam-diversity.toml",
+          "sha256": "3b42ec3da975f814eacec68212ebc571cd9706e7f6ce4676dd833cf82a7847b2",
+          "projected_storage_bytes": 250000000000,
+          "projected_cpu_hours": 3000,
+          "selection_group_count": 2,
+          "planned_sample_count": 10,
+          "planned_accession_count": 10,
+          "selected_accession_count": 10,
+          "selection_complete": true
+        }
+      ],
+      "catalog_bindings": [
+        {
+          "catalog_id": "ancient-dna-bam-diversity",
+          "present": true,
+          "catalog_path": "study://data/catalog/snapshots/490714d08907cf38992370b4f440caf3d7f864bf/ancient-dna-bam-diversity.json",
+          "catalog_sha256": "c6e99d63b20257a5710df26a90a5df859e30a549d115bfeddf54e190765a142b",
+          "access_classification": "public",
+          "redistribution_classification": "accession-referenced-derived-alignments",
+          "access_terms": "not declared by governed catalog",
+          "integrity_verified": true,
+          "benchmark_eligible": true,
+          "verified_file_count": 20,
+          "verified_size_bytes": 1398901168,
+          "observed_sample_count": 10,
+          "sample_count_authority": "catalog.samples",
+          "file_roles": [
+            "bam-index",
+            "coordinate-sorted-deduplicated-bam"
+          ]
+        },
+        {
+          "catalog_id": "grch38-reference",
+          "present": true,
+          "catalog_path": "study://data/catalog/snapshots/e50b2b8eae3959a5dc682f9a30a9116e61df713c/grch38-reference.json",
+          "catalog_sha256": "296f1f8de62216594ab1b6e6b58852bfe7c7b16f5304a07dd5e797c78916bb79",
+          "access_classification": "public",
+          "redistribution_classification": "public-reference-assembly",
+          "access_terms": "not declared by governed catalog",
+          "integrity_verified": true,
+          "benchmark_eligible": true,
+          "verified_file_count": 4,
+          "verified_size_bytes": 4312724563,
+          "observed_sample_count": null,
+          "sample_count_authority": null,
+          "file_roles": [
+            "reference-fasta",
+            "reference-fasta-index",
+            "reference-sequence-dictionary",
+            "reference-source-archive"
+          ]
+        }
+      ],
+      "verified_storage_bytes": 5711625731,
+      "projected_storage_bytes": 250000000000,
+      "projected_cpu_hours": 3000,
+      "publishable_data_ready": true,
+      "blockers": []
+    },
+    {
+      "corpus_id": "ancient-dna-damage-controls",
+      "status": "source_defined",
+      "evidence_scope": "comparative",
+      "class": "production_real",
+      "declared_sample_count": 0,
+      "minimum_sample_count": 10,
+      "data_types": [
+        "bam",
+        "fasta",
+        "fastq",
+        "orthogonal_assay",
+        "sample_metadata"
+      ],
+      "truth_roles": [
+        "ancient_damage_truth"
+      ],
+      "truth_strategy": "paired_udg_treatment_labels_with_extraction_blank_and_observational_modern_negatives",
+      "source_specs": [
+        {
+          "path": "benchmarks/corpora/ancient-dna-damage-controls.toml",
+          "sha256": "084f6e871dd4d68f9bdd7cdd65f76c37751d5a03926d1541db1bef1e6f64e43b",
+          "projected_storage_bytes": 100000000000,
+          "projected_cpu_hours": 1500,
+          "selection_group_count": 4,
+          "planned_sample_count": 21,
+          "planned_accession_count": 31,
+          "selected_accession_count": 31,
+          "selection_complete": true
+        }
+      ],
+      "catalog_bindings": [
+        {
+          "catalog_id": "ancient-dna-damage-controls-ena-prjeb19769-matched-udg-pairs",
+          "present": true,
+          "catalog_path": "study://data/catalog/snapshots/99a0558f923866bad9d83880433e8df6f6b14cef/ancient-dna-damage-controls-ena-prjeb19769-matched-udg-pairs.json",
+          "catalog_sha256": "8a4d80f647bbff3d2b3dc659dc34a69d0b8fa59fff956e820476cf793d63b60a",
+          "access_classification": "public",
+          "redistribution_classification": "accession-referenced-derived-alignments",
+          "access_terms": "not declared by governed catalog",
+          "integrity_verified": true,
+          "benchmark_eligible": true,
+          "verified_file_count": 40,
+          "verified_size_bytes": 18171459349,
+          "observed_sample_count": 20,
+          "sample_count_authority": "catalog.samples",
+          "file_roles": [
+            "raw-fastq"
+          ]
+        },
+        {
+          "catalog_id": "ancient-dna-damage-controls-ncbi-prjna688065-extraction-blank",
+          "present": true,
+          "catalog_path": "study://data/catalog/snapshots/99a0558f923866bad9d83880433e8df6f6b14cef/ancient-dna-damage-controls-ncbi-prjna688065-extraction-blank.json",
+          "catalog_sha256": "127af95ec28ca5c4c1caca21e9306436f1f772c7051812d76d02e9ad3f010bc5",
+          "access_classification": "public",
+          "redistribution_classification": "accession-referenced-derived-alignments",
+          "access_terms": "not declared by governed catalog",
+          "integrity_verified": true,
+          "benchmark_eligible": true,
+          "verified_file_count": 1,
+          "verified_size_bytes": 1018364,
+          "observed_sample_count": 1,
+          "sample_count_authority": "catalog.samples",
+          "file_roles": [
+            "raw-fastq"
+          ]
+        },
+        {
+          "catalog_id": "ancient-dna-damage-controls-public-modern-human-observational-controls",
+          "present": true,
+          "catalog_path": "study://data/catalog/snapshots/99a0558f923866bad9d83880433e8df6f6b14cef/ancient-dna-damage-controls-public-modern-human-observational-controls.json",
+          "catalog_sha256": "c5f9dc96e5dcf837c49ca57eb586891650767689cd8be046534ba1afa7a4358a",
+          "access_classification": "public",
+          "redistribution_classification": "accession-referenced-derived-alignments",
+          "access_terms": "not declared by governed catalog",
+          "integrity_verified": true,
+          "benchmark_eligible": true,
+          "verified_file_count": 15,
+          "verified_size_bytes": 2442546526,
+          "observed_sample_count": 10,
+          "sample_count_authority": "catalog.samples",
+          "file_roles": [
+            "raw-fastq"
+          ]
+        },
+        {
+          "catalog_id": "grch38-reference",
+          "present": true,
+          "catalog_path": "study://data/catalog/snapshots/e50b2b8eae3959a5dc682f9a30a9116e61df713c/grch38-reference.json",
+          "catalog_sha256": "296f1f8de62216594ab1b6e6b58852bfe7c7b16f5304a07dd5e797c78916bb79",
+          "access_classification": "public",
+          "redistribution_classification": "public-reference-assembly",
+          "access_terms": "not declared by governed catalog",
+          "integrity_verified": true,
+          "benchmark_eligible": true,
+          "verified_file_count": 4,
+          "verified_size_bytes": 4312724563,
+          "observed_sample_count": null,
+          "sample_count_authority": null,
+          "file_roles": [
+            "reference-fasta",
+            "reference-fasta-index",
+            "reference-sequence-dictionary",
+            "reference-source-archive"
+          ]
+        }
+      ],
+      "verified_storage_bytes": 24927748802,
+      "projected_storage_bytes": 100000000000,
+      "projected_cpu_hours": 1500,
+      "publishable_data_ready": false,
+      "blockers": [
+        "source-defined corpus has not been admitted"
+      ]
+    },
+    {
+      "corpus_id": "ancient-horse-alignment-qualification",
+      "status": "admitted",
+      "evidence_scope": "qualification",
+      "class": "qualification_real",
+      "declared_sample_count": 1,
+      "minimum_sample_count": 1,
+      "data_types": [
+        "bam"
+      ],
+      "truth_roles": [
+        "ancient_bam_qualification"
+      ],
+      "truth_strategy": "observational_only",
+      "source_specs": [],
+      "catalog_bindings": [
+        {
+          "catalog_id": "ena-prjeb22390-err2112767-bam",
+          "present": true,
+          "catalog_path": "study://data/catalog/snapshots/53272b45c7be125586ec95fee255c383a515e0e7/ena-prjeb22390-err2112767-bam.json",
+          "catalog_sha256": "0c90b9345d5578b91ba7f64d764dc553e81a818be75cdeee9421e5307c9ff33b",
+          "access_classification": "public",
+          "redistribution_classification": "accession-referenced-derived-alignment",
+          "access_terms": "not declared by governed catalog",
+          "integrity_verified": true,
+          "benchmark_eligible": true,
+          "verified_file_count": 4,
+          "verified_size_bytes": 26593038,
+          "observed_sample_count": 1,
+          "sample_count_authority": "catalog.sample_identity",
+          "file_roles": [
+            "bam-index",
+            "coordinate-sorted-deduplicated-bam",
+            "prior-damage-qc",
+            "source-qc"
+          ]
+        },
+        {
+          "catalog_id": "ena-prjeb22390-err2112767-ngsbriggs-input",
+          "present": true,
+          "catalog_path": "study://data/catalog/snapshots/310d99daf951f3690a4701c0a99325b1b1d382d3/ena-prjeb22390-err2112767-ngsbriggs-input.json",
+          "catalog_sha256": "7acf0d447c503cc0aab58d143742d96b4f182c13ba4df90ccf8fbe35a894951c",
+          "access_classification": "public",
+          "redistribution_classification": "accession-referenced-derived-alignment",
+          "access_terms": "not declared by governed catalog",
+          "integrity_verified": true,
+          "benchmark_eligible": true,
+          "verified_file_count": 2,
+          "verified_size_bytes": 1712310,
+          "observed_sample_count": 1,
+          "sample_count_authority": "catalog.samples",
+          "file_roles": [
+            "bam-index",
+            "coordinate-sorted-deduplicated-bam"
+          ]
+        },
+        {
+          "catalog_id": "ensembl-113-equcab3-refseq-genotyping-inputs-10mb",
+          "present": true,
+          "catalog_path": "study://data/catalog/snapshots/53272b45c7be125586ec95fee255c383a515e0e7/ensembl-113-equcab3-refseq-genotyping-inputs-10mb.json",
+          "catalog_sha256": "68d83322fd4b3c9b92eb14b87ecb0212b49bffab815933ec069dec2965581e3f",
+          "access_classification": "public",
+          "redistribution_classification": "public-derived-reference-database",
+          "access_terms": "not declared by governed catalog",
+          "integrity_verified": true,
+          "benchmark_eligible": true,
+          "verified_file_count": 1,
+          "verified_size_bytes": 3341979,
+          "observed_sample_count": null,
+          "sample_count_authority": null,
+          "file_roles": [
+            "bcftools-constrained-calling-alleles"
+          ]
+        },
+        {
+          "catalog_id": "ensembl-113-equcab3-refseq-known-sites-10mb",
+          "present": true,
+          "catalog_path": "study://data/catalog/snapshots/53272b45c7be125586ec95fee255c383a515e0e7/ensembl-113-equcab3-refseq-known-sites-10mb.json",
+          "catalog_sha256": "2bbce4eb1909ef9ad6a9b62f41894d1360fe372f52c6fd13fe897b9d72126262",
+          "access_classification": "public",
+          "redistribution_classification": "public-derived-reference-database",
+          "access_terms": "not declared by governed catalog",
+          "integrity_verified": true,
+          "benchmark_eligible": true,
+          "verified_file_count": 4,
+          "verified_size_bytes": 5331471,
+          "observed_sample_count": null,
+          "sample_count_authority": null,
+          "file_roles": [
+            "known-sites-vcf-index",
+            "normalized-known-sites-vcf",
+            "reviewable-vcf-header",
+            "zero-based-candidate-regions"
+          ]
+        },
+        {
+          "catalog_id": "ensembl-113-equcab3-variation",
+          "present": true,
+          "catalog_path": "study://data/catalog/snapshots/53272b45c7be125586ec95fee255c383a515e0e7/ensembl-113-equcab3-variation.json",
+          "catalog_sha256": "356fe56a911026b8545ddc0b1c822d49a63076074c74368f237f7f6f717b07b4",
+          "access_classification": "public",
+          "redistribution_classification": "public-reference-database",
+          "access_terms": "not declared by governed catalog",
+          "integrity_verified": true,
+          "benchmark_eligible": true,
+          "verified_file_count": 4,
+          "verified_size_bytes": 430487581,
+          "observed_sample_count": null,
+          "sample_count_authority": null,
+          "file_roles": [
+            "assembly-report-derived-contig-audit",
+            "ensembl-to-refseq-contig-map",
+            "source-vcf",
+            "source-vcf-index"
+          ]
+        },
+        {
+          "catalog_id": "equcab3-gcf-002863925.1",
+          "present": true,
+          "catalog_path": "study://data/catalog/snapshots/53272b45c7be125586ec95fee255c383a515e0e7/equcab3-gcf-002863925.1.json",
+          "catalog_sha256": "1573581d79ee2e2f79fd3a82026a57bd543ad6aa9235457d40f2ca765511df2b",
+          "access_classification": "public",
+          "redistribution_classification": "public-reference-accession",
+          "access_terms": "not declared by governed catalog",
+          "integrity_verified": true,
+          "benchmark_eligible": true,
+          "verified_file_count": 5,
+          "verified_size_bytes": 2553427967,
+          "observed_sample_count": null,
+          "sample_count_authority": null,
+          "file_roles": [
+            "catalog.preserved_catalog.files.0",
+            "catalog.preserved_catalog.files.1",
+            "catalog.preserved_catalog.files.2",
+            "catalog.preserved_catalog.files.3",
+            "catalog.preserved_catalog.files.4"
+          ]
+        },
+        {
+          "catalog_id": "equus-mitochondrial-candidates",
+          "present": true,
+          "catalog_path": "study://data/catalog/snapshots/53272b45c7be125586ec95fee255c383a515e0e7/equus-mitochondrial-candidates.json",
+          "catalog_sha256": "6dc64cf64825f7216266b573adaa8f49ec1b76b78016ceacb10e0c390dd6a16c",
+          "access_classification": "public",
+          "redistribution_classification": "public-reference-sequences",
+          "access_terms": "not declared by governed catalog",
+          "integrity_verified": true,
+          "benchmark_eligible": true,
+          "verified_file_count": 4,
+          "verified_size_bytes": 101830,
+          "observed_sample_count": null,
+          "sample_count_authority": null,
+          "file_roles": [
+            "candidate-contaminant",
+            "catalog.preserved_catalog.alignment",
+            "consensus-reference"
+          ]
+        }
+      ],
+      "verified_storage_bytes": 3020996176,
+      "projected_storage_bytes": 3020996176,
+      "projected_cpu_hours": null,
+      "publishable_data_ready": true,
+      "blockers": []
+    },
+    {
+      "corpus_id": "ancient-population-panel",
+      "status": "source_defined",
+      "evidence_scope": "comparative",
+      "class": "production_real",
+      "declared_sample_count": 0,
+      "minimum_sample_count": 10,
+      "data_types": [
+        "genotype_likelihoods",
+        "sample_metadata",
+        "vcf"
+      ],
+      "truth_roles": [
+        "ancient_population_diversity"
+      ],
+      "truth_strategy": "real_cohort_with_independent_metadata_and_sensitivity_analysis",
+      "source_specs": [
+        {
+          "path": "benchmarks/corpora/ancient-population-panel.toml",
+          "sha256": "4f8d77e312c0f0667ce9f90d6895461c92d9ce6ebdd39e244f04661665ab2933",
+          "projected_storage_bytes": 200000000000,
+          "projected_cpu_hours": 3000,
+          "selection_group_count": 1,
+          "planned_sample_count": 100,
+          "planned_accession_count": 100,
+          "selected_accession_count": 0,
+          "selection_complete": false
+        }
+      ],
+      "catalog_bindings": [],
+      "verified_storage_bytes": 0,
+      "projected_storage_bytes": 200000000000,
+      "projected_cpu_hours": 3000,
+      "publishable_data_ready": false,
+      "blockers": [
+        "source selection is not frozen by exact accessions",
+        "source-defined corpus has not been admitted"
+      ]
+    },
+    {
+      "corpus_id": "environmental-taxonomy-challenge",
+      "status": "source_defined",
+      "evidence_scope": "comparative",
+      "class": "production_real",
+      "declared_sample_count": 0,
+      "minimum_sample_count": 10,
+      "data_types": [
+        "fastq",
+        "taxonomy_database"
+      ],
+      "truth_roles": [
+        "environmental_taxonomy_truth",
+        "host_and_rrna_challenge"
+      ],
+      "truth_strategy": "real_edna_with_mock_community_and_orthogonal_assays",
+      "source_specs": [
+        {
+          "path": "benchmarks/corpora/environmental-taxonomy-challenge.toml",
+          "sha256": "e4caf3e274737721330c603a08efc2da9981fe65512a8863bf23413f2ad79835",
+          "projected_storage_bytes": 100000000000,
+          "projected_cpu_hours": 2000,
+          "selection_group_count": 3,
+          "planned_sample_count": 20,
+          "planned_accession_count": 20,
+          "selected_accession_count": 20,
+          "selection_complete": true
+        }
+      ],
+      "catalog_bindings": [
+        {
+          "catalog_id": "environmental-taxonomy-challenge-ena-tara-oceans",
+          "present": true,
+          "catalog_path": "study://data/catalog/snapshots/99a0558f923866bad9d83880433e8df6f6b14cef/environmental-taxonomy-challenge-ena-tara-oceans.json",
+          "catalog_sha256": "6ce8d0561dbeec54593fcd3612f868974eefb0fe86485e55e37c3bf709d408ac",
+          "access_classification": "public",
+          "redistribution_classification": "accession-referenced-source-copy",
+          "access_terms": "not declared by governed catalog",
+          "integrity_verified": true,
+          "benchmark_eligible": true,
+          "verified_file_count": 19,
+          "verified_size_bytes": 17167643384,
+          "observed_sample_count": 10,
+          "sample_count_authority": "catalog.samples",
+          "file_roles": [
+            "raw-fastq"
+          ]
+        },
+        {
+          "catalog_id": "environmental-taxonomy-challenge-hmp-mock-community",
+          "present": true,
+          "catalog_path": "study://data/catalog/snapshots/99a0558f923866bad9d83880433e8df6f6b14cef/environmental-taxonomy-challenge-hmp-mock-community.json",
+          "catalog_sha256": "349646637a037c4d3d35f838da8e9fdd49bbf04ef389622fe4fd211628d3f60d",
+          "access_classification": "public",
+          "redistribution_classification": "accession-referenced-source-copy",
+          "access_terms": "not declared by governed catalog",
+          "integrity_verified": true,
+          "benchmark_eligible": true,
+          "verified_file_count": 10,
+          "verified_size_bytes": 32745634,
+          "observed_sample_count": 10,
+          "sample_count_authority": "catalog.samples",
+          "file_roles": [
+            "raw-fastq"
+          ]
+        }
+      ],
+      "verified_storage_bytes": 17200389018,
+      "projected_storage_bytes": 100000000000,
+      "projected_cpu_hours": 2000,
+      "publishable_data_ready": false,
+      "blockers": [
+        "source-defined corpus has not been admitted"
+      ]
+    },
+    {
+      "corpus_id": "equine-read-stage-qualification",
+      "status": "admitted",
+      "evidence_scope": "qualification",
+      "class": "qualification_real",
+      "declared_sample_count": 1,
+      "minimum_sample_count": 1,
+      "data_types": [
+        "fasta",
+        "fastq"
+      ],
+      "truth_roles": [
+        "equine_read_stage_qualification"
+      ],
+      "truth_strategy": "observational_only",
+      "source_specs": [],
+      "catalog_bindings": [
+        {
+          "catalog_id": "ena-prjeb10854-err1021817-full",
+          "present": true,
+          "catalog_path": "study://data/catalog/snapshots/53272b45c7be125586ec95fee255c383a515e0e7/ena-prjeb10854-err1021817-full.json",
+          "catalog_sha256": "dee487d1dc4b4ab8c12b6d239a8ad078134c662a5cbb0a1c45707d654b85a584",
+          "access_classification": "public",
+          "redistribution_classification": "accession-referenced-source-copy",
+          "access_terms": "not declared by governed catalog",
+          "integrity_verified": true,
+          "benchmark_eligible": true,
+          "verified_file_count": 2,
+          "verified_size_bytes": 12371927616,
+          "observed_sample_count": 1,
+          "sample_count_authority": "catalog.sample_identity",
+          "file_roles": [
+            "catalog.preserved_catalog.files.0",
+            "catalog.preserved_catalog.files.1"
+          ]
+        },
+        {
+          "catalog_id": "ena-prjeb10854-err1021817-read-prefix-100000",
+          "present": true,
+          "catalog_path": "study://data/catalog/snapshots/53272b45c7be125586ec95fee255c383a515e0e7/ena-prjeb10854-err1021817-read-prefix-100000.json",
+          "catalog_sha256": "b9ec1e7e8632e848d0cf88adb25cb044974268787ed1cc7754f18d79ac29ff64",
+          "access_classification": "public",
+          "redistribution_classification": "accession-referenced-derived-subset",
+          "access_terms": "not declared by governed catalog",
+          "integrity_verified": true,
+          "benchmark_eligible": true,
+          "verified_file_count": 2,
+          "verified_size_bytes": 15037655,
+          "observed_sample_count": 1,
+          "sample_count_authority": "catalog.sample_identity",
+          "file_roles": [
+            "catalog.preserved_catalog.files.0",
+            "catalog.preserved_catalog.files.1"
+          ]
+        },
+        {
+          "catalog_id": "ena-prjeb10854-err1021817-split-paired-fastq",
+          "present": true,
+          "catalog_path": "study://data/catalog/snapshots/53272b45c7be125586ec95fee255c383a515e0e7/ena-prjeb10854-err1021817-split-paired-fastq.json",
+          "catalog_sha256": "ca736294c555637db714bb7f43f35da982f7260626a89ae25ff3ffa34fdd154b",
+          "access_classification": "public",
+          "redistribution_classification": "accession-referenced-source-copy",
+          "access_terms": "not declared by governed catalog",
+          "integrity_verified": true,
+          "benchmark_eligible": true,
+          "verified_file_count": 2,
+          "verified_size_bytes": 12371927616,
+          "observed_sample_count": 1,
+          "sample_count_authority": "catalog.sample_identity",
+          "file_roles": [
+            "catalog.preserved_catalog.files.0",
+            "catalog.preserved_catalog.files.1"
+          ]
+        },
+        {
+          "catalog_id": "equcab3-nc_009144.3-first-megabase",
+          "present": true,
+          "catalog_path": "study://data/catalog/snapshots/53272b45c7be125586ec95fee255c383a515e0e7/equcab3-nc_009144.3-first-megabase.json",
+          "catalog_sha256": "a44e42e8864af1dad857c785a28b96499e18a25e41752da4d4e8dd43781ec94e",
+          "access_classification": "public",
+          "redistribution_classification": "public-derived-subset",
+          "access_terms": "not declared by governed catalog",
+          "integrity_verified": true,
+          "benchmark_eligible": true,
+          "verified_file_count": 3,
+          "verified_size_bytes": 2540180652,
+          "observed_sample_count": null,
+          "sample_count_authority": null,
+          "file_roles": [
+            "catalog.preserved_catalog.files.0",
+            "catalog.preserved_catalog.parents.0",
+            "catalog.preserved_catalog.parents.1"
+          ]
+        }
+      ],
+      "verified_storage_bytes": 27299073539,
+      "projected_storage_bytes": 27299073539,
+      "projected_cpu_hours": null,
+      "publishable_data_ready": true,
+      "blockers": []
+    },
+    {
+      "corpus_id": "human-population-stage-qualification",
+      "status": "admitted",
+      "evidence_scope": "qualification",
+      "class": "qualification_real",
+      "declared_sample_count": 100,
+      "minimum_sample_count": 100,
+      "data_types": [
+        "ibd_segments",
+        "vcf"
+      ],
+      "truth_roles": [
+        "human_population_stage_qualification"
+      ],
+      "truth_strategy": "observational_only",
+      "source_specs": [],
+      "catalog_bindings": [
+        {
+          "catalog_id": "1000-genomes-phase3-chr22-100-samples-ibdseq-segments-full-chromosome",
+          "present": true,
+          "catalog_path": "study://data/catalog/snapshots/53272b45c7be125586ec95fee255c383a515e0e7/1000-genomes-phase3-chr22-100-samples-ibdseq-segments-full-chromosome.json",
+          "catalog_sha256": "65124fef85dbaf2ce5e7d62b4b7e20a008f888137715aa4ec15f3a56b0a0e4fa",
+          "access_classification": "public",
+          "redistribution_classification": "public-derived-analysis",
+          "access_terms": "not declared by governed catalog",
+          "integrity_verified": true,
+          "benchmark_eligible": true,
+          "verified_file_count": 4,
+          "verified_size_bytes": 24787096,
+          "observed_sample_count": 100,
+          "sample_count_authority": "catalog.sample_count",
+          "file_roles": [
+            "catalog.preserved_catalog.files.0",
+            "catalog.preserved_catalog.files.1",
+            "catalog.preserved_catalog.parents.0",
+            "catalog.preserved_catalog.parents.1"
+          ]
+        },
+        {
+          "catalog_id": "1000-genomes-phase3-chr22-biallelic-100-samples",
+          "present": true,
+          "catalog_path": "study://data/catalog/snapshots/53272b45c7be125586ec95fee255c383a515e0e7/1000-genomes-phase3-chr22-biallelic-100-samples.json",
+          "catalog_sha256": "a0c64df5d37cc48211f6db5d10a49331cfb2721ee285232a168d40d7642f3d9b",
+          "access_classification": "public",
+          "redistribution_classification": "public-derived-subset",
+          "access_terms": "not declared by governed catalog",
+          "integrity_verified": true,
+          "benchmark_eligible": true,
+          "verified_file_count": 5,
+          "verified_size_bytes": 9124775,
+          "observed_sample_count": 100,
+          "sample_count_authority": "catalog.sample_count",
+          "file_roles": [
+            "catalog.preserved_catalog.files.0",
+            "catalog.preserved_catalog.files.1",
+            "catalog.preserved_catalog.files.2",
+            "catalog.preserved_catalog.parents.0",
+            "catalog.preserved_catalog.parents.1"
+          ]
+        },
+        {
+          "catalog_id": "1000-genomes-phase3-chr22-biallelic-100-samples-full-chromosome",
+          "present": true,
+          "catalog_path": "study://data/catalog/snapshots/53272b45c7be125586ec95fee255c383a515e0e7/1000-genomes-phase3-chr22-biallelic-100-samples-full-chromosome.json",
+          "catalog_sha256": "f850f74dda668de512688121d863ff5bc89bf6ddd968315097205c4ffaec2f8b",
+          "access_classification": "public",
+          "redistribution_classification": "public-derived-subset",
+          "access_terms": "not declared by governed catalog",
+          "integrity_verified": true,
+          "benchmark_eligible": true,
+          "verified_file_count": 5,
+          "verified_size_bytes": 230284522,
+          "observed_sample_count": 100,
+          "sample_count_authority": "catalog.sample_count",
+          "file_roles": [
+            "catalog.preserved_catalog.files.0",
+            "catalog.preserved_catalog.files.1",
+            "catalog.preserved_catalog.files.2",
+            "catalog.preserved_catalog.parents.0",
+            "catalog.preserved_catalog.parents.1"
+          ]
+        },
+        {
+          "catalog_id": "1000-genomes-phase3-chr22-biallelic-20-22mb",
+          "present": true,
+          "catalog_path": "study://data/catalog/snapshots/53272b45c7be125586ec95fee255c383a515e0e7/1000-genomes-phase3-chr22-biallelic-20-22mb.json",
+          "catalog_sha256": "a426ad8df0a1b4c7116a4ecd02b1a656deeb9a014d8cca262444831cf82f5b91",
+          "access_classification": "public",
+          "redistribution_classification": "public-derived-subset",
+          "access_terms": "not declared by governed catalog",
+          "integrity_verified": true,
+          "benchmark_eligible": true,
+          "verified_file_count": 4,
+          "verified_size_bytes": 213659455,
+          "observed_sample_count": null,
+          "sample_count_authority": null,
+          "file_roles": [
+            "catalog.preserved_catalog.files.0",
+            "catalog.preserved_catalog.files.1",
+            "catalog.preserved_catalog.parents.0",
+            "catalog.preserved_catalog.parents.1"
+          ]
+        },
+        {
+          "catalog_id": "1000-genomes-phase3-chr22-ibdseq-segments",
+          "present": true,
+          "catalog_path": "study://data/catalog/snapshots/53272b45c7be125586ec95fee255c383a515e0e7/1000-genomes-phase3-chr22-ibdseq-segments.json",
+          "catalog_sha256": "a0a95d5dfaaa058dd13e36c74134840478a9108c0d35f44b122a63e677bc230b",
+          "access_classification": "public",
+          "redistribution_classification": "public-derived-result",
+          "access_terms": "not declared by governed catalog",
+          "integrity_verified": true,
+          "benchmark_eligible": true,
+          "verified_file_count": 3,
+          "verified_size_bytes": 1118680,
+          "observed_sample_count": 100,
+          "sample_count_authority": "catalog.sample_count",
+          "file_roles": [
+            "catalog.preserved_catalog.files.0",
+            "catalog.preserved_catalog.files.1",
+            "catalog.preserved_catalog.parents.0"
+          ]
+        }
+      ],
+      "verified_storage_bytes": 478974528,
+      "projected_storage_bytes": 478974528,
+      "projected_cpu_hours": null,
+      "publishable_data_ready": true,
+      "blockers": []
+    },
+    {
+      "corpus_id": "human-short-read-diversity",
+      "status": "admitted",
+      "evidence_scope": "comparative",
+      "class": "production_real",
+      "declared_sample_count": 20,
+      "minimum_sample_count": 20,
+      "data_types": [
+        "fasta",
+        "fastq"
+      ],
+      "truth_roles": [
+        "short_read_diversity",
+        "ancient_and_modern_reads",
+        "single_and_paired_reads"
+      ],
+      "truth_strategy": "observational_only",
+      "source_specs": [
+        {
+          "path": "benchmarks/corpora/human-short-read-diversity.toml",
+          "sha256": "812eae674201d458c89e2956fcc577d4df8e51e7eec2d60a96f9d4860d630b6a",
+          "projected_storage_bytes": 5457128348,
+          "projected_cpu_hours": 240,
+          "selection_group_count": 1,
+          "planned_sample_count": 20,
+          "planned_accession_count": 20,
+          "selected_accession_count": 20,
+          "selection_complete": true
+        }
+      ],
+      "catalog_bindings": [
+        {
+          "catalog_id": "grch38-reference",
+          "present": true,
+          "catalog_path": "study://data/catalog/snapshots/e50b2b8eae3959a5dc682f9a30a9116e61df713c/grch38-reference.json",
+          "catalog_sha256": "296f1f8de62216594ab1b6e6b58852bfe7c7b16f5304a07dd5e797c78916bb79",
+          "access_classification": "public",
+          "redistribution_classification": "public-reference-assembly",
+          "access_terms": "not declared by governed catalog",
+          "integrity_verified": true,
+          "benchmark_eligible": true,
+          "verified_file_count": 4,
+          "verified_size_bytes": 4312724563,
+          "observed_sample_count": null,
+          "sample_count_authority": null,
+          "file_roles": [
+            "reference-fasta",
+            "reference-fasta-index",
+            "reference-sequence-dictionary",
+            "reference-source-archive"
+          ]
+        },
+        {
+          "catalog_id": "human-short-read-diversity",
+          "present": true,
+          "catalog_path": "study://data/catalog/snapshots/dcba94b7211029b25af4b3f839d32fef9d6bbb5c/human-short-read-diversity.json",
+          "catalog_sha256": "42e858aa58c286a4f83d2a05cbd372aa85a3c5b3bac946bcfe6a9398a83d939f",
+          "access_classification": "public",
+          "redistribution_classification": "accession-referenced",
+          "access_terms": "ENA public data access terms apply; publication identifies source accessions.",
+          "integrity_verified": true,
+          "benchmark_eligible": true,
+          "verified_file_count": 30,
+          "verified_size_bytes": 3638085565,
+          "observed_sample_count": 20,
+          "sample_count_authority": "catalog.samples",
+          "file_roles": [
+            "raw-fastq"
+          ]
+        }
+      ],
+      "verified_storage_bytes": 7950810128,
+      "projected_storage_bytes": 5457128348,
+      "projected_cpu_hours": 240,
+      "publishable_data_ready": true,
+      "blockers": []
+    },
+    {
+      "corpus_id": "masked-genotype-truth-panel",
+      "status": "source_defined",
+      "evidence_scope": "comparative",
+      "class": "production_real",
+      "declared_sample_count": 0,
+      "minimum_sample_count": 100,
+      "data_types": [
+        "genetic_map",
+        "reference_panel",
+        "sample_metadata",
+        "vcf"
+      ],
+      "truth_roles": [
+        "masked_genotype_truth"
+      ],
+      "truth_strategy": "held_out_high_coverage_genotypes_with_panel_exclusion",
+      "source_specs": [
+        {
+          "path": "benchmarks/corpora/masked-genotype-truth-panel.toml",
+          "sha256": "327e38087396b0b925c7644db9c789a7b428dc93d25e77d4cede05fa7258a518",
+          "projected_storage_bytes": 750000000000,
+          "projected_cpu_hours": 4000,
+          "selection_group_count": 1,
+          "planned_sample_count": 100,
+          "planned_accession_count": 100,
+          "selected_accession_count": 0,
+          "selection_complete": false
+        }
+      ],
+      "catalog_bindings": [],
+      "verified_storage_bytes": 0,
+      "projected_storage_bytes": 750000000000,
+      "projected_cpu_hours": 4000,
+      "publishable_data_ready": false,
+      "blockers": [
+        "source selection is not frozen by exact accessions",
+        "source-defined corpus has not been admitted"
+      ]
+    },
+    {
+      "corpus_id": "population-inference-truth-panel",
+      "status": "source_defined",
+      "evidence_scope": "comparative",
+      "class": "production_real",
+      "declared_sample_count": 0,
+      "minimum_sample_count": 100,
+      "data_types": [
+        "pedigree",
+        "sample_metadata",
+        "vcf"
+      ],
+      "truth_roles": [
+        "population_inference_truth"
+      ],
+      "truth_strategy": "masked_population_metadata_and_pedigree_relationship_truth",
+      "source_specs": [
+        {
+          "path": "benchmarks/corpora/population-inference-truth-panel.toml",
+          "sha256": "c8840c29fd141aad7aa92b3d99696aea1d2dcb5ea4d0ff9cefc986d631a56cbe",
+          "projected_storage_bytes": 300000000000,
+          "projected_cpu_hours": 2500,
+          "selection_group_count": 1,
+          "planned_sample_count": 100,
+          "planned_accession_count": 100,
+          "selected_accession_count": 0,
+          "selection_complete": false
+        }
+      ],
+      "catalog_bindings": [],
+      "verified_storage_bytes": 0,
+      "projected_storage_bytes": 300000000000,
+      "projected_cpu_hours": 2500,
+      "publishable_data_ready": false,
+      "blockers": [
+        "source selection is not frozen by exact accessions",
+        "source-defined corpus has not been admitted"
+      ]
+    },
+    {
+      "corpus_id": "read-processing-challenge",
+      "status": "source_defined",
+      "evidence_scope": "comparative",
+      "class": "production_real",
+      "declared_sample_count": 0,
+      "minimum_sample_count": 10,
+      "data_types": [
+        "fastq"
+      ],
+      "truth_roles": [
+        "read_processing_truth",
+        "adapter_damage_complexity_challenge"
+      ],
+      "truth_strategy": "real_reads_with_calibrated_spike_ins",
+      "source_specs": [
+        {
+          "path": "benchmarks/corpora/read-processing-challenge.toml",
+          "sha256": "14edfd365e7613bb6a4f4e1879167d6101ed6d8981e0db9f75d746b09fc155bd",
+          "projected_storage_bytes": 100000000000,
+          "projected_cpu_hours": 1000,
+          "selection_group_count": 2,
+          "planned_sample_count": 20,
+          "planned_accession_count": 20,
+          "selected_accession_count": 20,
+          "selection_complete": true
+        }
+      ],
+      "catalog_bindings": [
+        {
+          "catalog_id": "read-processing-challenge-ena-ancient-read-panel",
+          "present": true,
+          "catalog_path": "study://data/catalog/snapshots/99a0558f923866bad9d83880433e8df6f6b14cef/read-processing-challenge-ena-ancient-read-panel.json",
+          "catalog_sha256": "201a6f418064a964209e100709d28187b3b695375ab900d667ba7c8aaca760d6",
+          "access_classification": "mixed-public",
+          "redistribution_classification": "accession-referenced-source-copy",
+          "access_terms": "not declared by governed catalog",
+          "integrity_verified": true,
+          "benchmark_eligible": true,
+          "verified_file_count": 15,
+          "verified_size_bytes": 1195539039,
+          "observed_sample_count": 10,
+          "sample_count_authority": "catalog.samples",
+          "file_roles": [
+            "raw-fastq"
+          ]
+        },
+        {
+          "catalog_id": "read-processing-challenge-seqc-reference-rna",
+          "present": true,
+          "catalog_path": "study://data/catalog/snapshots/99a0558f923866bad9d83880433e8df6f6b14cef/read-processing-challenge-seqc-reference-rna.json",
+          "catalog_sha256": "3bdf0e80e912d3ca88ebe5556da12447bde2b2a68cd9eddb4f73643b684ad47a",
+          "access_classification": "mixed-public",
+          "redistribution_classification": "accession-referenced-source-copy",
+          "access_terms": "not declared by governed catalog",
+          "integrity_verified": true,
+          "benchmark_eligible": true,
+          "verified_file_count": 20,
+          "verified_size_bytes": 14812606713,
+          "observed_sample_count": 10,
+          "sample_count_authority": "catalog.samples",
+          "file_roles": [
+            "raw-fastq"
+          ]
+        }
+      ],
+      "verified_storage_bytes": 16008145752,
+      "projected_storage_bytes": 100000000000,
+      "projected_cpu_hours": 1000,
+      "publishable_data_ready": false,
+      "blockers": [
+        "source-defined corpus has not been admitted"
+      ]
+    },
+    {
+      "corpus_id": "variant-truth-panel",
+      "status": "source_defined",
+      "evidence_scope": "comparative",
+      "class": "production_real",
+      "declared_sample_count": 0,
+      "minimum_sample_count": 10,
+      "data_types": [
+        "bam",
+        "genetic_map",
+        "reference_panel",
+        "vcf"
+      ],
+      "truth_roles": [
+        "variant_truth"
+      ],
+      "truth_strategy": "independently_curated_genotypes_with_mendelian_consistency",
+      "source_specs": [
+        {
+          "path": "benchmarks/corpora/variant-truth-panel.toml",
+          "sha256": "27f2fbaaa66221a101660165ea36d4db9f80342a61b8af171c62b067ce22508d",
+          "projected_storage_bytes": 1000000000000,
+          "projected_cpu_hours": 5000,
+          "selection_group_count": 2,
+          "planned_sample_count": 17,
+          "planned_accession_count": 17,
+          "selected_accession_count": 0,
+          "selection_complete": false
+        }
+      ],
+      "catalog_bindings": [],
+      "verified_storage_bytes": 0,
+      "projected_storage_bytes": 1000000000000,
+      "projected_cpu_hours": 5000,
+      "publishable_data_ready": false,
+      "blockers": [
+        "source selection is not frozen by exact accessions",
+        "source-defined corpus has not been admitted"
+      ]
+    },
+    {
+      "corpus_id": "viral-taxonomy-stage-qualification",
+      "status": "admitted",
+      "evidence_scope": "qualification",
+      "class": "qualification_real",
+      "declared_sample_count": 1,
+      "minimum_sample_count": 1,
+      "data_types": [
+        "fasta",
+        "taxonomy_database"
+      ],
+      "truth_roles": [
+        "viral_taxonomy_stage_qualification"
+      ],
+      "truth_strategy": "observational_only",
+      "source_specs": [],
+      "catalog_bindings": [
+        {
+          "catalog_id": "centrifuge-nc-038500.1-single-reference",
+          "present": true,
+          "catalog_path": "study://data/catalog/snapshots/53272b45c7be125586ec95fee255c383a515e0e7/centrifuge-nc-038500.1-single-reference.json",
+          "catalog_sha256": "827cf4f385764071c9fb8293a91740d22bd099c911f9f7c34aa3780857667a39",
+          "access_classification": "public",
+          "redistribution_classification": "public-reference-sequence",
+          "access_terms": "not declared by governed catalog",
+          "integrity_verified": true,
+          "benchmark_eligible": true,
+          "verified_file_count": 4,
+          "verified_size_bytes": 509067630,
+          "observed_sample_count": 1,
+          "sample_count_authority": "catalog.sample_identity",
+          "file_roles": [
+            "catalog.preserved_catalog.files.0",
+            "catalog.preserved_catalog.files.1",
+            "catalog.preserved_catalog.taxonomy_parents.0",
+            "catalog.preserved_catalog.taxonomy_parents.1"
+          ]
+        },
+        {
+          "catalog_id": "kraken2-viral-20260626",
+          "present": true,
+          "catalog_path": "study://data/catalog/snapshots/53272b45c7be125586ec95fee255c383a515e0e7/kraken2-viral-20260626.json",
+          "catalog_sha256": "9f054b21ac973153180c6ef2bf78497bc798bd25e9afd341ddb0e7d22ec8a155",
+          "access_classification": "public",
+          "redistribution_classification": "public-reference-database",
+          "access_terms": "not declared by governed catalog",
+          "integrity_verified": true,
+          "benchmark_eligible": true,
+          "verified_file_count": 18,
+          "verified_size_bytes": 1746065594,
+          "observed_sample_count": null,
+          "sample_count_authority": null,
+          "file_roles": [
+            "catalog.preserved_catalog.archive",
+            "catalog.preserved_catalog.checksum_manifest",
+            "catalog.preserved_catalog.files.0",
+            "catalog.preserved_catalog.files.1",
+            "catalog.preserved_catalog.files.10",
+            "catalog.preserved_catalog.files.11",
+            "catalog.preserved_catalog.files.12",
+            "catalog.preserved_catalog.files.13",
+            "catalog.preserved_catalog.files.14",
+            "catalog.preserved_catalog.files.15",
+            "catalog.preserved_catalog.files.2",
+            "catalog.preserved_catalog.files.3",
+            "catalog.preserved_catalog.files.4",
+            "catalog.preserved_catalog.files.5",
+            "catalog.preserved_catalog.files.6",
+            "catalog.preserved_catalog.files.7",
+            "catalog.preserved_catalog.files.8",
+            "catalog.preserved_catalog.files.9"
+          ]
+        }
+      ],
+      "verified_storage_bytes": 2255133224,
+      "projected_storage_bytes": 2255133224,
+      "projected_cpu_hours": null,
+      "publishable_data_ready": true,
+      "blockers": []
+    }
+  ],
+  "unbound_assets": [
+    {
+      "catalog_id": "corpus-01",
+      "purpose": "Human FASTQ benchmark corpus for Lunarc with balanced ancient and modern DNA cohorts.",
+      "access_classification": "public",
+      "redistribution_classification": "public-accession-referenced-source-copy",
+      "verified_file_count": 30,
+      "verified_size_bytes": 3638085565,
+      "suspected_nonproduction": false,
+      "classification_reasons": []
+    }
+  ],
+  "publishable_contamination": []
+}

@@ -27,7 +27,7 @@ use crate::commands::cli::render;
 const LOCAL_HPC_EXECUTION_RESOLVER_SCHEMA_VERSION: &str =
     BENCHMARK_LOCAL_HPC_EXECUTION_RESOLVER_SCHEMA_V1;
 pub(crate) const DEFAULT_HPC_EXECUTION_RESOLVER_PATH: &str =
-    "runs/bench/hpc-dry-run/execution-resolver.tsv";
+    "artifacts/runs/bench/hpc-dry-run/execution-resolver.tsv";
 const UNCLASSIFIED_EXECUTION_MODE: &str = "unclassified";
 const UNCLASSIFIED_EXECUTION_MODE_SUMMARY: &str =
     "Selected tool is outside the governed benchmark execution-mode map; the resolver falls back to governed runtime probe evidence.";

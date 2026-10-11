@@ -83,8 +83,11 @@ pub use crate::contract::{
     validate_benchmark_local_hpc_resume_simulation, validate_benchmark_local_hpc_scratch_layout,
     validate_benchmark_local_hpc_stage_benchmark_array,
     validate_benchmark_local_hpc_submission_readiness,
+    validate_benchmark_local_pipeline_dag_config,
+    validate_benchmark_local_pipeline_dag_declarations,
     validate_benchmark_local_pipeline_dag_validation,
-    validate_benchmark_local_pipeline_dag_validation_set, validate_benchmark_local_runtime_metrics,
+    validate_benchmark_local_pipeline_dag_validation_set,
+    validate_benchmark_local_pipeline_execution_context, validate_benchmark_local_runtime_metrics,
     validate_benchmark_local_slurm_dependency_check, validate_benchmark_local_slurm_dry_run,
     validate_benchmark_local_slurm_shell_syntax, validate_benchmark_local_slurm_submit_manifest,
     validate_benchmark_local_stage_commands, validate_benchmark_local_stage_fake_failure_manifest,
@@ -165,6 +168,7 @@ pub use crate::contract::{
     BENCHMARK_LOCAL_HPC_RESUME_SIMULATION_SCHEMA_V1, BENCHMARK_LOCAL_HPC_SCRATCH_LAYOUT_SCHEMA_V1,
     BENCHMARK_LOCAL_HPC_STAGE_BENCHMARK_ARRAY_SCHEMA_V1,
     BENCHMARK_LOCAL_HPC_SUBMISSION_READINESS_SCHEMA_V1,
+    BENCHMARK_LOCAL_PIPELINE_DAG_CONFIG_SCHEMA_V1,
     BENCHMARK_LOCAL_PIPELINE_DAG_VALIDATION_SCHEMA_V1,
     BENCHMARK_LOCAL_PIPELINE_DAG_VALIDATION_SET_SCHEMA_V1,
     BENCHMARK_LOCAL_RUNTIME_METRICS_SCHEMA_V1, BENCHMARK_LOCAL_SLURM_DEPENDENCY_CHECK_SCHEMA_V1,
@@ -452,11 +456,17 @@ pub use crate::model::local_hpc_submission_readiness::{
     BenchmarkLocalHpcSubmissionReadinessReport,
 };
 pub use crate::model::local_pipeline_dag::{
+    benchmark_local_pipeline_dag_config_schema,
+    benchmark_local_pipeline_dag_metadata_config_schema,
+    benchmark_local_pipeline_dag_stages_config_schema,
     benchmark_local_pipeline_dag_validation_schema,
     benchmark_local_pipeline_dag_validation_set_schema, BenchmarkLocalPipelineAncientDnaPolicy,
-    BenchmarkLocalPipelineDagValidationNode, BenchmarkLocalPipelineDagValidationProfile,
-    BenchmarkLocalPipelineDagValidationReport, BenchmarkLocalPipelineDagValidationSetReport,
-    BenchmarkLocalPipelineExecutionContext, BenchmarkLocalPipelineProjectSource,
+    BenchmarkLocalPipelineDagConfig, BenchmarkLocalPipelineDagDomain,
+    BenchmarkLocalPipelineDagMetadataConfig, BenchmarkLocalPipelineDagNode,
+    BenchmarkLocalPipelineDagStagesConfig, BenchmarkLocalPipelineDagValidationNode,
+    BenchmarkLocalPipelineDagValidationProfile, BenchmarkLocalPipelineDagValidationReport,
+    BenchmarkLocalPipelineDagValidationSetReport, BenchmarkLocalPipelineExecutionContext,
+    BenchmarkLocalPipelineProjectSource, BenchmarkLocalPipelineProjectSourceConfig,
     BenchmarkLocalPipelineReferenceAssets, BenchmarkLocalPipelineReferenceContext,
     BenchmarkLocalPipelineSnpEffAssets, BenchmarkLocalPipelineVariantAssets,
 };
@@ -499,8 +509,10 @@ pub use crate::model::local_stage_fake_run::{
 };
 pub use crate::model::local_stage_inventory::{
     benchmark_local_all_domain_stage_inventory_schema, benchmark_local_stage_inventory_schema,
-    BenchmarkLocalAllDomainStageInventory, BenchmarkLocalStageInventory,
-    BenchmarkLocalStageInventoryEntry,
+    benchmark_local_stage_matrix_config_schema, BenchmarkLocalAllDomainStageInventory,
+    BenchmarkLocalStageInventory, BenchmarkLocalStageInventoryEntry,
+    BenchmarkLocalStageMatrixConfig, BENCHMARK_LOCAL_BAM_STAGE_MATRIX_SCHEMA_V1,
+    BENCHMARK_LOCAL_FASTQ_STAGE_MATRIX_SCHEMA_V1,
 };
 pub use crate::model::local_vcf_call_gl_smoke::{
     benchmark_local_vcf_call_gl_smoke_metrics_schema, benchmark_local_vcf_call_gl_smoke_schema,

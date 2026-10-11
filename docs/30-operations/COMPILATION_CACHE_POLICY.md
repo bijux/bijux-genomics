@@ -56,6 +56,12 @@ targets, and isolated concurrent target roots.
   `ARTIFACT_ROOT`; high-volume archives, clones, targets, extraction trees, and runtime products
   use the disjoint absolute `BIJUX_CI_FULL_SHARD_SCRATCH_ROOT` when configured and are removed
   before the command returns.
+- Complete-workspace shards also verify every executable and exact version line in the runtime
+  dependency contract before compiling the shared archive. The receipt records the observed
+  version and provisioning policy; a missing or drifted dependency fails once at preflight instead
+  of cascading through unrelated test shards.
+  LUNARC supplies BCFtools by loading `GCC/13.3.0` followed by `BCFtools/1.21` before invoking the
+  shard command.
 - The local helper surface for cache-aware Rust workflows is
   [makes/cargo-dev.mk](../../makes/cargo-dev.mk).
 - Crate-local `RUSTFLAGS` overrides require governance review.

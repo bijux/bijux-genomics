@@ -14,30 +14,30 @@ fn report() -> BenchmarkLocalVcfIbdSmokeReport {
         input_fixture_id: "vcf_mini_multisample_cohort".to_string(),
         fixture_manifest_path: "benchmarks/tests/fixtures/corpora/vcf-mini/manifest.toml"
             .to_string(),
-        input_vcf_path: "runs/bench/local-smoke/vcf.ibd/germline/artifacts/input/ibd_input.vcf"
+        input_vcf_path: "artifacts/runs/bench/local-smoke/vcf.ibd/germline/artifacts/input/ibd_input.vcf"
             .to_string(),
         sample_metadata_path:
-            "runs/bench/local-smoke/vcf.ibd/germline/artifacts/input/sample_metadata.tsv"
+            "artifacts/runs/bench/local-smoke/vcf.ibd/germline/artifacts/input/sample_metadata.tsv"
                 .to_string(),
-        output_root: "runs/bench/local-smoke/vcf.ibd/germline".to_string(),
-        ibd_tsv_path: "runs/bench/local-smoke/vcf.ibd/germline/ibd.tsv".to_string(),
-        ibd_json_path: "runs/bench/local-smoke/vcf.ibd/germline/ibd.json".to_string(),
-        source_ibd_input_path: "runs/bench/local-smoke/vcf.ibd/germline/source_ibd_input.tsv"
+        output_root: "artifacts/runs/bench/local-smoke/vcf.ibd/germline".to_string(),
+        ibd_tsv_path: "artifacts/runs/bench/local-smoke/vcf.ibd/germline/ibd.tsv".to_string(),
+        ibd_json_path: "artifacts/runs/bench/local-smoke/vcf.ibd/germline/ibd.json".to_string(),
+        source_ibd_input_path: "artifacts/runs/bench/local-smoke/vcf.ibd/germline/source_ibd_input.tsv"
             .to_string(),
         source_ibd_segments_path:
-            "runs/bench/local-smoke/vcf.ibd/germline/source_ibd_segments.tsv".to_string(),
+            "artifacts/runs/bench/local-smoke/vcf.ibd/germline/source_ibd_segments.tsv".to_string(),
         source_ibd_merged_segments_path:
-            "runs/bench/local-smoke/vcf.ibd/germline/source_ibd_merged_segments.tsv".to_string(),
+            "artifacts/runs/bench/local-smoke/vcf.ibd/germline/source_ibd_merged_segments.tsv".to_string(),
         source_ibd_filtered_segments_path:
-            "runs/bench/local-smoke/vcf.ibd/germline/source_ibd_filtered_segments.tsv"
+            "artifacts/runs/bench/local-smoke/vcf.ibd/germline/source_ibd_filtered_segments.tsv"
                 .to_string(),
         source_ibd_summary_path:
-            "runs/bench/local-smoke/vcf.ibd/germline/source_ibd_summary.json".to_string(),
+            "artifacts/runs/bench/local-smoke/vcf.ibd/germline/source_ibd_summary.json".to_string(),
         source_ibd_metrics_path:
-            "runs/bench/local-smoke/vcf.ibd/germline/source_ibd_metrics.json".to_string(),
-        source_logs_path: "runs/bench/local-smoke/vcf.ibd/germline/source_logs.txt".to_string(),
+            "artifacts/runs/bench/local-smoke/vcf.ibd/germline/source_ibd_metrics.json".to_string(),
+        source_logs_path: "artifacts/runs/bench/local-smoke/vcf.ibd/germline/source_logs.txt".to_string(),
         stage_result_manifest_path:
-            "runs/bench/local-smoke/vcf.ibd/germline/stage-result.json".to_string(),
+            "artifacts/runs/bench/local-smoke/vcf.ibd/germline/stage-result.json".to_string(),
         started_at: "unix:1".to_string(),
         finished_at: "unix:2".to_string(),
         elapsed_seconds: 0.5,
@@ -57,26 +57,26 @@ fn report() -> BenchmarkLocalVcfIbdSmokeReport {
         }],
         insufficient_overlap_probe: BenchmarkLocalVcfIbdInsufficientOverlapProbe {
             input_vcf_path:
-                "runs/bench/local-smoke/vcf.ibd/germline/artifacts/probe/probe_sparse_overlap.vcf"
+                "artifacts/runs/bench/local-smoke/vcf.ibd/germline/artifacts/probe/probe_sparse_overlap.vcf"
                     .to_string(),
             ibd_status: "insufficient_marker_overlap".to_string(),
             insufficient_data_reason: "no_pairs_met_min_marker_or_length_threshold".to_string(),
             overlap_marker_count: 1,
             filtered_segment_count: 0,
             source_ibd_summary_path:
-                "runs/bench/local-smoke/vcf.ibd/germline/artifacts/probe/probe_source_ibd_summary.json"
+                "artifacts/runs/bench/local-smoke/vcf.ibd/germline/artifacts/probe/probe_source_ibd_summary.json"
                     .to_string(),
             source_ibd_filtered_segments_path:
-                "runs/bench/local-smoke/vcf.ibd/germline/artifacts/probe/probe_source_ibd_filtered_segments.tsv"
+                "artifacts/runs/bench/local-smoke/vcf.ibd/germline/artifacts/probe/probe_source_ibd_filtered_segments.tsv"
                     .to_string(),
             unrelated_stage_id: "vcf.roh".to_string(),
             unrelated_stage_status: "complete".to_string(),
             unrelated_stage_segment_count: 2,
             source_roh_summary_path:
-                "runs/bench/local-smoke/vcf.ibd/germline/artifacts/probe/probe_source_roh_summary.json"
+                "artifacts/runs/bench/local-smoke/vcf.ibd/germline/artifacts/probe/probe_source_roh_summary.json"
                     .to_string(),
             source_roh_segments_path:
-                "runs/bench/local-smoke/vcf.ibd/germline/artifacts/probe/probe_source_roh_segments.tsv"
+                "artifacts/runs/bench/local-smoke/vcf.ibd/germline/artifacts/probe/probe_source_roh_segments.tsv"
                     .to_string(),
         },
         status: "complete".to_string(),

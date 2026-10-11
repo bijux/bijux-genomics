@@ -8,12 +8,14 @@ use crate::commands::command_support::{
 use crate::model::check::{CheckDefinition, CheckOutcome};
 use crate::runtime::workspace::Workspace;
 
+mod artifact_paths;
 mod artifacts;
 mod build_authority;
 mod dependency_graph;
 mod governance;
 mod no_wait;
 mod ownership;
+mod science_archive;
 mod workspace_contracts;
 
 pub(crate) use artifacts::{

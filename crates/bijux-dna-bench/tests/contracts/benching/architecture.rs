@@ -55,8 +55,8 @@ fn publishable_benchmark_authorities_exclude_disposable_data_roots() -> Result<(
     ];
     const DISPOSABLE_ROOTS: &[&str] = &[
         "assets/toy",
-        "runs/bench/local-fake-runs",
-        "runs/bench/readiness-probes",
+        "artifacts/runs/bench/local-fake-runs",
+        "artifacts/runs/bench/readiness-probes",
         "artifacts/benchmark-smoke/readiness",
         "artifacts/benchmark-smoke/simulated-runs",
     ];

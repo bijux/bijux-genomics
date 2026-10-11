@@ -525,14 +525,14 @@ fn load_vcf_evidence(repo_root: &Path) -> Result<BTreeMap<(String, String), VcfE
     merge_call_summary(
         repo_root,
         &mut rows,
-        "runs/bench/local-smoke/vcf.call/bcftools/metrics.json",
+        "artifacts/runs/bench/local-smoke/vcf.call/bcftools/metrics.json",
         "variant_count",
         "variant_count",
     )?;
     merge_call_summary(
         repo_root,
         &mut rows,
-        "runs/bench/local-smoke/vcf.call_diploid/bcftools/metrics.json",
+        "artifacts/runs/bench/local-smoke/vcf.call_diploid/bcftools/metrics.json",
         "called_genotypes",
         "called_genotypes",
     )?;
@@ -546,8 +546,16 @@ fn load_vcf_evidence(repo_root: &Path) -> Result<BTreeMap<(String, String), VcfE
     merge_ibd_summary(repo_root, &mut rows, "ibdseq")?;
     merge_imputation_metrics_summary(repo_root, &mut rows)?;
     merge_impute_summary(repo_root, &mut rows)?;
-    merge_pca_summary(repo_root, &mut rows, "runs/bench/local-smoke/vcf.pca/plink2/pca.json")?;
-    merge_pca_summary(repo_root, &mut rows, "runs/bench/local-smoke/vcf.pca/eigensoft/pca.json")?;
+    merge_pca_summary(
+        repo_root,
+        &mut rows,
+        "artifacts/runs/bench/local-smoke/vcf.pca/plink2/pca.json",
+    )?;
+    merge_pca_summary(
+        repo_root,
+        &mut rows,
+        "artifacts/runs/bench/local-smoke/vcf.pca/eigensoft/pca.json",
+    )?;
     merge_phasing_summary(repo_root, &mut rows)?;
     merge_population_structure_summary(repo_root, &mut rows)?;
     merge_postprocess_summary(repo_root, &mut rows)?;
@@ -555,19 +563,19 @@ fn load_vcf_evidence(repo_root: &Path) -> Result<BTreeMap<(String, String), VcfE
     merge_qc_summary(
         repo_root,
         &mut rows,
-        "runs/bench/local-smoke/vcf.qc/bcftools/qc_summary.json",
+        "artifacts/runs/bench/local-smoke/vcf.qc/bcftools/qc_summary.json",
         "bcftools",
     )?;
     merge_qc_summary(
         repo_root,
         &mut rows,
-        "runs/bench/local-smoke/vcf.qc/plink/qc_summary.json",
+        "artifacts/runs/bench/local-smoke/vcf.qc/plink/qc_summary.json",
         "plink",
     )?;
     merge_qc_summary(
         repo_root,
         &mut rows,
-        "runs/bench/local-smoke/vcf.qc/plink2/qc_summary.json",
+        "artifacts/runs/bench/local-smoke/vcf.qc/plink2/qc_summary.json",
         "plink2",
     )?;
     merge_roh_summary(repo_root, &mut rows)?;
@@ -580,7 +588,8 @@ fn merge_demography_summary(
     repo_root: &Path,
     rows: &mut BTreeMap<(String, String), VcfEvidenceAggregate>,
 ) -> Result<()> {
-    let path = repo_root.join("runs/bench/local-smoke/vcf.demography/ibdne/demography.json");
+    let path =
+        repo_root.join("artifacts/runs/bench/local-smoke/vcf.demography/ibdne/demography.json");
     let Some(root) = load_optional_json_value(&path)? else {
         return Ok(());
     };
@@ -618,7 +627,8 @@ fn merge_ibd_summary(
     rows: &mut BTreeMap<(String, String), VcfEvidenceAggregate>,
     tool_id: &str,
 ) -> Result<()> {
-    let path = repo_root.join(format!("runs/bench/local-smoke/vcf.ibd/{tool_id}/ibd.json"));
+    let path =
+        repo_root.join(format!("artifacts/runs/bench/local-smoke/vcf.ibd/{tool_id}/ibd.json"));
     let Some(root) = load_optional_json_value(&path)? else {
         return Ok(());
     };
@@ -661,7 +671,8 @@ fn merge_admixture_summary(
     repo_root: &Path,
     rows: &mut BTreeMap<(String, String), VcfEvidenceAggregate>,
 ) -> Result<()> {
-    let path = repo_root.join("runs/bench/local-smoke/vcf.admixture/plink2/admixture.json");
+    let path =
+        repo_root.join("artifacts/runs/bench/local-smoke/vcf.admixture/plink2/admixture.json");
     let Some(root) = load_optional_json_value(&path)? else {
         return Ok(());
     };
@@ -754,7 +765,7 @@ fn merge_call_gl_summary(
     repo_root: &Path,
     rows: &mut BTreeMap<(String, String), VcfEvidenceAggregate>,
 ) -> Result<()> {
-    let path = repo_root.join("runs/bench/local-smoke/vcf.call_gl/bcftools/metrics.json");
+    let path = repo_root.join("artifacts/runs/bench/local-smoke/vcf.call_gl/bcftools/metrics.json");
     let Some(root) = load_optional_json_value(&path)? else {
         return Ok(());
     };
@@ -805,8 +816,8 @@ fn merge_call_pseudohaploid_summary(
     repo_root: &Path,
     rows: &mut BTreeMap<(String, String), VcfEvidenceAggregate>,
 ) -> Result<()> {
-    let path =
-        repo_root.join("runs/bench/local-smoke/vcf.call_pseudohaploid/bcftools/metrics.json");
+    let path = repo_root
+        .join("artifacts/runs/bench/local-smoke/vcf.call_pseudohaploid/bcftools/metrics.json");
     let Some(root) = load_optional_json_value(&path)? else {
         return Ok(());
     };
@@ -851,7 +862,8 @@ fn merge_damage_filter_summary(
     repo_root: &Path,
     rows: &mut BTreeMap<(String, String), VcfEvidenceAggregate>,
 ) -> Result<()> {
-    let path = repo_root.join("runs/bench/local-smoke/vcf.damage_filter/bcftools/metrics.json");
+    let path =
+        repo_root.join("artifacts/runs/bench/local-smoke/vcf.damage_filter/bcftools/metrics.json");
     let Some(root) = load_optional_json_value(&path)? else {
         return Ok(());
     };
@@ -898,7 +910,7 @@ fn merge_filter_summary(
     repo_root: &Path,
     rows: &mut BTreeMap<(String, String), VcfEvidenceAggregate>,
 ) -> Result<()> {
-    let path = repo_root.join("runs/bench/local-smoke/vcf.filter/bcftools/metrics.json");
+    let path = repo_root.join("artifacts/runs/bench/local-smoke/vcf.filter/bcftools/metrics.json");
     let Some(root) = load_optional_json_value(&path)? else {
         return Ok(());
     };
@@ -937,7 +949,8 @@ fn merge_gl_propagation_summary(
     repo_root: &Path,
     rows: &mut BTreeMap<(String, String), VcfEvidenceAggregate>,
 ) -> Result<()> {
-    let path = repo_root.join("runs/bench/local-smoke/vcf.gl_propagation/bcftools/metrics.json");
+    let path =
+        repo_root.join("artifacts/runs/bench/local-smoke/vcf.gl_propagation/bcftools/metrics.json");
     let Some(root) = load_optional_json_value(&path)? else {
         return Ok(());
     };
@@ -998,8 +1011,9 @@ fn merge_imputation_metrics_summary(
     repo_root: &Path,
     rows: &mut BTreeMap<(String, String), VcfEvidenceAggregate>,
 ) -> Result<()> {
-    let path = repo_root
-        .join("runs/bench/local-smoke/vcf.imputation_metrics/beagle/imputation_metrics.json");
+    let path = repo_root.join(
+        "artifacts/runs/bench/local-smoke/vcf.imputation_metrics/beagle/imputation_metrics.json",
+    );
     let Some(root) = load_optional_json_value(&path)? else {
         return Ok(());
     };
@@ -1040,7 +1054,7 @@ fn merge_impute_summary(
     repo_root: &Path,
     rows: &mut BTreeMap<(String, String), VcfEvidenceAggregate>,
 ) -> Result<()> {
-    let path = repo_root.join("runs/bench/local-smoke/vcf.impute/beagle/metrics.json");
+    let path = repo_root.join("artifacts/runs/bench/local-smoke/vcf.impute/beagle/metrics.json");
     let Some(root) = load_optional_json_value(&path)? else {
         return Ok(());
     };
@@ -1146,12 +1160,13 @@ fn merge_phasing_summary(
     repo_root: &Path,
     rows: &mut BTreeMap<(String, String), VcfEvidenceAggregate>,
 ) -> Result<()> {
-    let metrics_path = repo_root.join("runs/bench/local-smoke/vcf.phasing/shapeit5/metrics.json");
+    let metrics_path =
+        repo_root.join("artifacts/runs/bench/local-smoke/vcf.phasing/shapeit5/metrics.json");
     let Some(metrics) = load_optional_json_value(&metrics_path)? else {
         return Ok(());
     };
-    let stage_result_path =
-        repo_root.join("runs/bench/local-smoke/vcf/vcf.phasing/shapeit5/stage-result.json");
+    let stage_result_path = repo_root
+        .join("artifacts/runs/bench/local-smoke/vcf/vcf.phasing/shapeit5/stage-result.json");
     let stage_result = load_optional_json_value(&stage_result_path)?;
     let input_genotypes = required_u64(&metrics, "input_genotypes")?;
     let phased_genotypes = required_u64(&metrics, "phased_genotypes")?;
@@ -1214,7 +1229,7 @@ fn merge_population_structure_summary(
     rows: &mut BTreeMap<(String, String), VcfEvidenceAggregate>,
 ) -> Result<()> {
     let path = repo_root
-        .join("runs/bench/local-smoke/vcf.population_structure/plink2/population_structure.json");
+        .join("artifacts/runs/bench/local-smoke/vcf.population_structure/plink2/population_structure.json");
     let Some(root) = load_optional_json_value(&path)? else {
         return Ok(());
     };
@@ -1260,7 +1275,8 @@ fn merge_postprocess_summary(
     repo_root: &Path,
     rows: &mut BTreeMap<(String, String), VcfEvidenceAggregate>,
 ) -> Result<()> {
-    let path = repo_root.join("runs/bench/local-smoke/vcf.postprocess/bcftools/metrics.json");
+    let path =
+        repo_root.join("artifacts/runs/bench/local-smoke/vcf.postprocess/bcftools/metrics.json");
     let Some(root) = load_optional_json_value(&path)? else {
         return Ok(());
     };
@@ -1302,8 +1318,8 @@ fn merge_prepare_reference_panel_summary(
     repo_root: &Path,
     rows: &mut BTreeMap<(String, String), VcfEvidenceAggregate>,
 ) -> Result<()> {
-    let path =
-        repo_root.join("runs/bench/local-smoke/vcf.prepare_reference_panel/bcftools/metrics.json");
+    let path = repo_root
+        .join("artifacts/runs/bench/local-smoke/vcf.prepare_reference_panel/bcftools/metrics.json");
     let Some(root) = load_optional_json_value(&path)? else {
         return Ok(());
     };
@@ -1390,7 +1406,7 @@ fn merge_roh_summary(
     repo_root: &Path,
     rows: &mut BTreeMap<(String, String), VcfEvidenceAggregate>,
 ) -> Result<()> {
-    let path = repo_root.join("runs/bench/local-smoke/vcf.roh/plink2/roh.json");
+    let path = repo_root.join("artifacts/runs/bench/local-smoke/vcf.roh/plink2/roh.json");
     let Some(root) = load_optional_json_value(&path)? else {
         return Ok(());
     };
@@ -1424,7 +1440,7 @@ fn merge_stats_summary(
     repo_root: &Path,
     rows: &mut BTreeMap<(String, String), VcfEvidenceAggregate>,
 ) -> Result<()> {
-    let path = repo_root.join("runs/bench/local-smoke/vcf.stats/bcftools/stats.json");
+    let path = repo_root.join("artifacts/runs/bench/local-smoke/vcf.stats/bcftools/stats.json");
     let Some(root) = load_optional_json_value(&path)? else {
         return Ok(());
     };

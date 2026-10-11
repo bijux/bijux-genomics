@@ -22,6 +22,8 @@ const DISPOSABLE_PRODUCTION_ROOTS: &[&str] = &[
     "assets/toy",
     "benchmarks/tests/fixtures",
     "configs/bench/local",
+    "artifacts/runs/bench/local-fake-runs",
+    "artifacts/runs/bench/readiness-probes",
     "runs/bench/local-fake-runs",
     "runs/bench/readiness-probes",
     "artifacts/benchmark-smoke",

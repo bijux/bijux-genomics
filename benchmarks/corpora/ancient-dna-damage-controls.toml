@@ -42,6 +42,30 @@ source_url = "https://www.ebi.ac.uk/ena/browser/view/PRJEB19769"
 access_terms_url = "https://www.ebi.ac.uk/ena/browser/about/policies"
 data_types = ["fastq", "orthogonal_assay", "sample_metadata"]
 planned_sample_count = 10
+planned_accession_count = 20
+selected_accessions = [
+  "ERR1883817",
+  "ERR1883907",
+  "ERR1883912",
+  "ERR1883932",
+  "ERR1884128",
+  "ERR1884139",
+  "ERR1884144",
+  "ERR1884150",
+  "ERR1884155",
+  "ERR1884159",
+  "ERR1884165",
+  "ERR1884171",
+  "ERR1884180",
+  "ERR1884186",
+  "ERR1884189",
+  "ERR1884198",
+  "ERR1884201",
+  "ERR1884204",
+  "ERR1884207",
+  "ERR1884210",
+]
+sample_era = "ancient"
 selection_scope = "Freeze the ten listed same-individual shotgun pairs in pair order: G189, G1042, G28, G914, G166, G154, G117, G417, G896, and G397. Within each pair, the first run is UDG-treated and the second is non-UDG; materialization must preserve run, BioSample, individual, treatment, layout, study, and file-checksum fields."
 truth_basis = "Each selected individual has paired UDG-treated and non-UDG shotgun libraries, and the source study independently reports terminal misincorporation profiles from mapDamage, including lower aggregate terminal damage after UDG treatment. The frozen supplementary expectation table is required before accuracy use."
 known_limitations = ["The paired treatment contrast supports damage-profile discrimination and calibration but does not identify which individual molecules carry authentic postmortem lesions."]
@@ -65,6 +89,8 @@ source_url = "https://www.ncbi.nlm.nih.gov/bioproject/PRJNA688065"
 access_terms_url = "https://www.ncbi.nlm.nih.gov/home/about/policies/"
 data_types = ["fastq", "orthogonal_assay", "sample_metadata"]
 planned_sample_count = 1
+selected_accessions = ["SRR13355795"]
+sample_era = "ancient"
 selection_scope = "Freeze shotgun extraction blank AndrewDecon (SRR13355795), including the archive FASTQ checksum, study treatment metadata, library layout, and the study's declared blank interpretation."
 truth_basis = "The source study states that one extraction blank accompanied shotgun processing, providing an independently designated non-template control for contamination and spurious-signal checks."
 known_limitations = ["This dental-calculus extraction blank is not a matched control for the human UDG/non-UDG libraries and may contain too few alignable reads for a stable terminal-damage estimate."]
@@ -77,6 +103,19 @@ source_url = "https://www.ebi.ac.uk/ena/browser/view/PRJDA67461"
 access_terms_url = "https://www.ebi.ac.uk/ena/browser/about/policies"
 data_types = ["fastq", "sample_metadata"]
 planned_sample_count = 10
+selected_accessions = [
+  "DRR000093",
+  "DRR000095",
+  "DRR000550",
+  "DRR001059",
+  "DRR001066",
+  "DRR001073",
+  "DRR001076",
+  "DRR001083",
+  "DRR015482",
+  "DRR015568",
+]
+sample_era = "modern"
 selection_scope = "Reuse exactly the ten listed modern public human runs selected by the human-short-read-diversity acquisition plan, retaining their four study accessions, single/paired layout, library strategy, selection, platform, and file checksums."
 truth_basis = "Modern biological libraries provide an observational low-damage comparison for false-positive checks when analyzed separately from the paired ancient treatment contrast."
 known_limitations = ["Different study, extraction, library, sequencing, and storage contexts prevent treating these modern libraries as matched negatives or exact no-damage truth."]

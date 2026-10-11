@@ -75,11 +75,8 @@ fn bench_readiness_all_domain_retained_tools_reports_governed_rows() {
     for external_tool_id in ["angsd", "fastuniq", "impute5", "ngsbriggs"] {
         assert!(rows.iter().any(|row| {
             row.get("tool_id").and_then(serde_json::Value::as_str) == Some(external_tool_id)
-                && row.get("benchmark_statuses").and_then(serde_json::Value::as_array).is_some_and(
-                    |statuses| {
-                        statuses.iter().any(|status| status.as_str() == Some("benchmark_ready"))
-                    },
-                )
+                && row.get("benchmark_statuses").and_then(serde_json::Value::as_array)
+                    == Some(&vec![serde_json::Value::String("benchmark_ready".to_string())])
         }));
     }
 
@@ -121,14 +118,14 @@ fn bench_readiness_all_domain_retained_tools_reports_governed_rows() {
         row.get("tool_id").and_then(serde_json::Value::as_str) == Some("beagle")
             && row.get("domains").and_then(serde_json::Value::as_array)
                 == Some(&vec![serde_json::Value::String("vcf".to_string())])
-            && row.get("active_stage_count").and_then(serde_json::Value::as_u64) == Some(2)
-            && row.get("benchmark_ready_stage_count").and_then(serde_json::Value::as_u64) == Some(2)
+            && row.get("active_stage_count").and_then(serde_json::Value::as_u64) == Some(3)
+            && row.get("benchmark_ready_stage_count").and_then(serde_json::Value::as_u64) == Some(3)
     }));
     assert!(rows.iter().any(|row| {
         row.get("tool_id").and_then(serde_json::Value::as_str) == Some("eigensoft")
-            && row.get("active_binding_count").and_then(serde_json::Value::as_u64) == Some(1)
+            && row.get("active_binding_count").and_then(serde_json::Value::as_u64) == Some(2)
             && row.get("benchmark_ready_binding_count").and_then(serde_json::Value::as_u64)
-                == Some(1)
+                == Some(2)
     }));
     assert!(rows.iter().any(|row| {
         row.get("tool_id").and_then(serde_json::Value::as_str) == Some("seqkit")

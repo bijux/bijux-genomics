@@ -2,15 +2,8 @@
 #[path = "../../../support/fs.rs"]
 mod support;
 
-use std::process::Command;
-
 fn normalize_help(input: &str) -> String {
     input.lines().map(str::trim_end).collect::<Vec<_>>().join("\n")
-}
-
-fn cargo_target_dir(root: &std::path::Path) -> std::path::PathBuf {
-    std::env::var_os("CARGO_TARGET_DIR")
-        .map_or_else(|| root.join("artifacts/target"), std::path::PathBuf::from)
 }
 
 fn run_workspace_bijux_dna(
@@ -18,24 +11,8 @@ fn run_workspace_bijux_dna(
     args: &[&str],
     context: &str,
 ) -> std::process::Output {
-    let debug_binary = cargo_target_dir(root).join("debug/bijux-dna");
-    let mut command = if debug_binary.exists() {
-        let mut command = Command::new(debug_binary);
-        command.current_dir(root);
-        command
-    } else {
-        let mut command = Command::new("cargo");
-        command.current_dir(root).args([
-            "run",
-            "-q",
-            "-p",
-            "bijux-dna",
-            "--bin",
-            "bijux-dna",
-            "--",
-        ]);
-        command
-    };
+    let mut command = support::workspace_binary_command(root, "bijux-dna", "bijux-dna")
+        .unwrap_or_else(|error| panic!("{context}: {error}"));
     command.args(args).output().unwrap_or_else(|err| {
         panic!("{context}: {err}");
     })

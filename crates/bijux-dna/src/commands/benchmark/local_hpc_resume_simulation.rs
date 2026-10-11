@@ -32,7 +32,7 @@ use crate::commands::cli::render;
 const LOCAL_HPC_RESUME_SIMULATION_SCHEMA_VERSION: &str =
     BENCHMARK_LOCAL_HPC_RESUME_SIMULATION_SCHEMA_V1;
 pub(crate) const DEFAULT_HPC_RESUME_SIMULATION_PATH: &str =
-    "runs/bench/hpc-dry-run/resume-simulation.json";
+    "artifacts/runs/bench/hpc-dry-run/resume-simulation.json";
 const DEFAULT_HPC_RESUME_SIMULATION_TREE_NAME: &str = "resume-simulation-tree";
 const FAILED_STAGE_RESULT_JOB_ID: &str = BENCHMARK_LOCAL_HPC_RESUME_FAILED_JOB_ID;
 const DEPENDENCY_RERUN_JOB_ID: &str = BENCHMARK_LOCAL_HPC_RESUME_DEPENDENCY_JOB_ID;

@@ -38,6 +38,26 @@ pub fn publish_image_storage_report(
     Ok(report)
 }
 
+/// Verify an existing JSON and Markdown image-storage report pair against governed sources.
+///
+/// # Errors
+/// Returns an error when report derivation fails or either publication member is unsafe to read.
+pub fn image_storage_report_matches(
+    plan_path: &Path,
+    after_inventory_path: &Path,
+    json_output: &Path,
+    markdown_output: &Path,
+) -> Result<bool> {
+    if json_output == markdown_output {
+        bail!("image-storage report destinations must differ");
+    }
+    let report = derive_image_storage_report(plan_path, after_inventory_path)?;
+    let json = serde_json::to_vec_pretty(&report).context("serialize image-storage report")?;
+    let markdown = render_image_storage_report_markdown(&report);
+    Ok(publication_bytes_match(json_output, &json)?
+        && publication_bytes_match(markdown_output, markdown.as_bytes())?)
+}
+
 /// Derive a portable storage report from an applied plan and a post-storage inventory.
 ///
 /// # Errors
@@ -230,4 +250,15 @@ fn ensure_publication_bytes(path: &Path, expected: &[u8]) -> Result<()> {
             format!("inspect image-storage report destination {}", path.display())
         }),
     }
+}
+
+fn publication_bytes_match(path: &Path, expected: &[u8]) -> Result<bool> {
+    let metadata = std::fs::symlink_metadata(path)
+        .with_context(|| format!("inspect image-storage report destination {}", path.display()))?;
+    if !metadata.file_type().is_file() {
+        bail!("image-storage report destination is not a regular file: {}", path.display());
+    }
+    let observed = bijux_dna_infra::read_to_end_bounded(path, MAX_IMAGE_STORAGE_REPORT_BYTES)
+        .with_context(|| format!("read image-storage report destination {}", path.display()))?;
+    Ok(observed == expected)
 }

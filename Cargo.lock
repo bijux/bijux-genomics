@@ -505,6 +505,7 @@ dependencies = [
  "bijux-dna-policies",
  "serde",
  "serde_json",
+ "tempfile",
  "toml",
 ]
 
@@ -537,6 +538,7 @@ dependencies = [
  "sha2",
  "tempfile",
  "toml",
+ "twox-hash",
  "walkdir",
 ]
 
@@ -737,7 +739,7 @@ name = "bijux-dna-policies"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "bijux-dna",
+ "bijux-dna-containers",
  "bijux-dna-core",
  "bijux-dna-pipelines",
  "bijux-dna-runtime",

@@ -1,0 +1,53 @@
+{
+  "$defs": {
+    "BenchmarkLocalStageInventoryEntry": {
+      "additionalProperties": false,
+      "properties": {
+        "readiness_kind": {
+          "$ref": "#/$defs/BenchmarkLocalStageReadinessKind"
+        },
+        "stage_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "stage_id",
+        "readiness_kind"
+      ],
+      "type": "object"
+    },
+    "BenchmarkLocalStageReadinessKind": {
+      "enum": [
+        "dry_run",
+        "smoke",
+        "dry_or_smoke"
+      ],
+      "type": "string"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Declared local stages for the FASTQ and BAM matrix protocols.\n\nRepository admission checks the selected domain, unique stage identities and order.\nVCF matrices have their own row-oriented input contract.",
+  "properties": {
+    "schema_version": {
+      "enum": [
+        "bijux.bench.fastq.local_stage_matrix.v1",
+        "bijux.bench.bam.local_stage_matrix.v1"
+      ],
+      "type": "string"
+    },
+    "stages": {
+      "items": {
+        "$ref": "#/$defs/BenchmarkLocalStageInventoryEntry"
+      },
+      "minItems": 1,
+      "type": "array"
+    }
+  },
+  "required": [
+    "schema_version",
+    "stages"
+  ],
+  "title": "BenchmarkLocalStageMatrixConfig",
+  "type": "object"
+}

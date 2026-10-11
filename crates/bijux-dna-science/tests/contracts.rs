@@ -1,3 +1,6 @@
+#[path = "contracts/archive_sync.rs"]
+mod archive_sync;
+
 use bijux_dna_science::domain::{
     BindingId, ClaimId, DecisionId, EvidenceId, ScienceReleaseId, SourceId,
 };

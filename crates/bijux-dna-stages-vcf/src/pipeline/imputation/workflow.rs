@@ -427,3 +427,23 @@ fn compare_masked_truth(
 include!("execution_engine.rs");
 
 include!("postprocess.rs");
+
+#[cfg(test)]
+mod backend_selection_tests {
+    use super::{choose_backend_by_regime, BackendEvidence, ImputeBackend};
+
+    #[test]
+    fn phased_panel_capabilities_keep_impute5_and_minimac_independent() {
+        assert_eq!(
+            choose_backend_by_regime(ImputeBackend::Beagle, BackendEvidence::PhasedWithMap),
+            ImputeBackend::Impute5
+        );
+        assert_eq!(
+            choose_backend_by_regime(
+                ImputeBackend::Beagle,
+                BackendEvidence::PhasedWithMapMinimac,
+            ),
+            ImputeBackend::Minimac4
+        );
+    }
+}

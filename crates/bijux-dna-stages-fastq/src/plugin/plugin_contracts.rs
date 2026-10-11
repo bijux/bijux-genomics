@@ -274,7 +274,7 @@ fn parse_outputs_normalizes_premerge_duplicate_and_complexity_reports() -> anyho
         ),
     ] {
         let report_path = temp.path().join(format!("{metric}.json"));
-        std::fs::write(&report_path, serde_json::to_vec(&payload)?)?;
+        bijux_dna_infra::write_bytes(&report_path, &serde_json::to_vec(&payload)?)?;
         let mut plan = plan(stage_id);
         plan.tool_id = ToolId::from_static("bijux_dna");
         let outputs = vec![ArtifactRef::required(
@@ -296,7 +296,7 @@ fn parse_outputs_normalizes_premerge_duplicate_and_complexity_reports() -> anyho
             Some(bijux_dna_core::prelude::invariants::InvariantStatusV1::Pass)
         );
 
-        std::fs::write(&outputs[0].path, b"{}")?;
+        bijux_dna_infra::write_bytes(&outputs[0].path, b"{}")?;
         let malformed = plugin.parse_outputs(&plan, &outputs)?;
         assert_eq!(
             malformed.verdict.as_ref().map(|verdict| verdict.verdict.clone()),

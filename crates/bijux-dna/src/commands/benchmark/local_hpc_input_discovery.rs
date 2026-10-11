@@ -1,10 +1,13 @@
 use std::collections::{BTreeMap, BTreeSet};
-use std::fs;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 use anyhow::{anyhow, Context, Result};
 use regex::Regex;
-use sha2::{Digest, Sha256};
+
+pub(crate) use bijux_dna_api::v1::api::bench::{
+    inspect_benchmark_source_asset as resolve_local_hpc_source_asset,
+    BenchmarkSourceAsset as LocalHpcResolvedSourceAsset,
+};
 
 use super::local_stage_commands::local_stage_plans;
 use super::readiness::benchmark_command_rows::DEFAULT_STAGE_TOOL_COMMAND_ROOT;
@@ -32,15 +35,6 @@ pub(crate) struct LocalHpcStageInputHint {
     pub(crate) artifact_id: String,
     pub(crate) artifact_role: String,
     pub(crate) source_path: String,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub(crate) struct LocalHpcResolvedSourceAsset {
-    pub(crate) source_kind: String,
-    pub(crate) source_path: String,
-    pub(crate) checksum_sha256: String,
-    pub(crate) size_bytes: u64,
-    pub(crate) member_count: usize,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -271,41 +265,6 @@ pub(crate) fn materialize_stage_id(argv: &[String]) -> Option<String> {
     argv.windows(2).find(|window| window[0] == "--stage-id").map(|window| window[1].clone())
 }
 
-pub(crate) fn resolve_local_hpc_source_asset(
-    repo_root: &Path,
-    source_path: &str,
-) -> Result<Option<LocalHpcResolvedSourceAsset>> {
-    let absolute_source = repo_root.join(source_path);
-    if absolute_source.is_file() {
-        let checksum_sha256 = bijux_dna_infra::hash_file_sha256(&absolute_source)
-            .map_err(|err| anyhow!(err.to_string()))?;
-        let size_bytes = absolute_source
-            .metadata()
-            .with_context(|| format!("read metadata for {}", absolute_source.display()))?
-            .len();
-        return Ok(Some(LocalHpcResolvedSourceAsset {
-            source_kind: "file".to_string(),
-            source_path: source_path.to_string(),
-            checksum_sha256,
-            size_bytes,
-            member_count: 1,
-        }));
-    }
-    if absolute_source.is_dir() {
-        let (checksum_sha256, size_bytes, member_count) =
-            digest_directory_members(&absolute_source, &absolute_source)?;
-        return Ok(Some(LocalHpcResolvedSourceAsset {
-            source_kind: "directory".to_string(),
-            source_path: source_path.to_string(),
-            checksum_sha256,
-            size_bytes,
-            member_count,
-        }));
-    }
-
-    resolve_prefix_bundle(&absolute_source, source_path)
-}
-
 pub(crate) fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
     path.strip_prefix(repo_root).map_or_else(
         |_| path.to_string_lossy().replace('\\', "/"),
@@ -463,105 +422,6 @@ fn is_generated_benchmark_output_path(value: &str) -> bool {
         || value
             .strip_prefix(DEFAULT_STAGE_TOOL_COMMAND_ROOT)
             .is_some_and(|suffix| suffix.starts_with('/'))
-}
-
-fn resolve_prefix_bundle(
-    absolute_source: &Path,
-    source_path: &str,
-) -> Result<Option<LocalHpcResolvedSourceAsset>> {
-    let Some(parent) = absolute_source.parent() else {
-        return Ok(None);
-    };
-    if !parent.exists() {
-        return Ok(None);
-    }
-    let Some(prefix) = absolute_source.file_name().and_then(|value| value.to_str()) else {
-        return Ok(None);
-    };
-
-    let mut members = fs::read_dir(parent)
-        .with_context(|| format!("read {}", parent.display()))?
-        .filter_map(Result::ok)
-        .map(|entry| entry.path())
-        .filter(|path| path.is_file())
-        .filter(|path| {
-            path.file_name()
-                .and_then(|value| value.to_str())
-                .is_some_and(|name| name.starts_with(&format!("{prefix}.")))
-        })
-        .collect::<Vec<_>>();
-    members.sort();
-
-    if members.is_empty() {
-        return Ok(None);
-    }
-
-    let (checksum_sha256, size_bytes, member_count) = digest_explicit_members(&members, parent)?;
-    Ok(Some(LocalHpcResolvedSourceAsset {
-        source_kind: "prefix_bundle".to_string(),
-        source_path: source_path.to_string(),
-        checksum_sha256,
-        size_bytes,
-        member_count,
-    }))
-}
-
-fn digest_directory_members(root: &Path, path: &Path) -> Result<(String, u64, usize)> {
-    let mut members = Vec::new();
-    collect_directory_files(path, &mut members)?;
-    members.sort();
-    digest_explicit_members(&members, root)
-}
-
-fn collect_directory_files(path: &Path, members: &mut Vec<PathBuf>) -> Result<()> {
-    for entry in fs::read_dir(path).with_context(|| format!("read {}", path.display()))? {
-        let entry = entry.with_context(|| format!("read entry in {}", path.display()))?;
-        let entry_path = entry.path();
-        if entry_path.is_dir() {
-            collect_directory_files(&entry_path, members)?;
-        } else if entry_path.is_file() {
-            members.push(entry_path);
-        }
-    }
-    Ok(())
-}
-
-fn digest_explicit_members(
-    members: &[PathBuf],
-    relative_root: &Path,
-) -> Result<(String, u64, usize)> {
-    let mut hasher = Sha256::new();
-    let mut size_bytes = 0u64;
-
-    for member in members {
-        let digest =
-            bijux_dna_infra::hash_file_sha256(member).map_err(|err| anyhow!(err.to_string()))?;
-        let metadata =
-            member.metadata().with_context(|| format!("read metadata for {}", member.display()))?;
-        let relative_member = member
-            .strip_prefix(relative_root)
-            .unwrap_or(member)
-            .to_string_lossy()
-            .replace('\\', "/");
-        size_bytes += metadata.len();
-        hasher.update(relative_member.as_bytes());
-        hasher.update([0]);
-        hasher.update(digest.as_bytes());
-        hasher.update([0]);
-        hasher.update(metadata.len().to_string().as_bytes());
-        hasher.update([b'\n']);
-    }
-
-    Ok((hex_sha256_digest(hasher), size_bytes, members.len()))
-}
-
-fn hex_sha256_digest(hasher: Sha256) -> String {
-    let digest = hasher.finalize();
-    let mut hex = String::with_capacity(digest.len() * 2);
-    for byte in digest {
-        hex.push_str(&format!("{byte:02x}"));
-    }
-    hex
 }
 
 #[cfg(test)]

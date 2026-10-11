@@ -1,18 +1,25 @@
 # Science Docs Archive
 
-`science/docs/` is the local evidence archive for `bijux-genomics`.
+`science/docs/` contains tracked archive contracts, locator tables, and acquisition
+instructions. Downloaded papers, upstream repositories, compressed exports, and
+tool-source packets live outside the product checkout, in the sibling directory
+`../bijux-genomics-science/` by default.
 
-It exists for source material that is useful for review and validation but should
-not be committed into Git, such as downloaded papers, cloned upstream
-repositories, supplementary documents, and local notes tied to licensed access.
+Existing `archive_path`, `paper_root`, and mirror locator fields retain the
+logical `science/docs/` namespace. Remove that prefix and resolve the remaining
+path below the external archive. For example,
+`science/docs/upstream/papers/<paper-id>/original/` resolves to
+`../bijux-genomics-science/upstream/papers/<paper-id>/original/`.
+The archive's `archive-inventory.json` preserves original paths and payload hashes.
+Do not recreate product-local payload directories or compatibility symlinks.
 
 ## Purpose
 
 - keep non-shareable science evidence near the repository without publishing it
-- give `science/` a stable local landing area for manually acquired evidence
+- give science records stable locators independent of external payload storage
 - preserve a durable folder contract for later reviews, audits, and release work
 
-## What Belongs Here
+## What Belongs In The External Archive
 
 - manually downloaded papers
 - manually cloned upstream repositories
@@ -28,15 +35,18 @@ repositories, supplementary documents, and local notes tied to licensed access.
 
 ## Handling Rules
 
-- keep actual evidence payloads untracked
+- keep actual evidence payloads outside the product checkout
 - keep durable identifiers and download instructions in [TODO_DOWNLOAD.md](TODO_DOWNLOAD.md)
 - treat [fastq_download_backlog.tsv](../generated/current/evidence/fastq_download_backlog.tsv) as the
   machine-readable source for FASTQ archive planning and keep
   [TODO_DOWNLOAD.md](TODO_DOWNLOAD.md) aligned with it
 - use [science/generated/current/evidence/README.md](../generated/current/evidence/README.md)
   when a review needs the wider generated evidence inventory behind that backlog
-- place each acquired item under a stable path that matches the planned archive
-  path recorded in the TODO list or a future science source record
+- resolve each planned archive locator against the external root before acquisition
+- use `--evidence-root` or `BIJUX_SCIENCE_ARCHIVE_ROOT` for an alternate external root
+  with the GitHub sync command; mirror and export overrides must stay beneath it
+- normal science validation and generation consume tracked declarations and do not
+  require the local payload archive or infer fresh acquisition from its presence
 
 ## Canonical Layout
 
@@ -62,6 +72,5 @@ repositories, supplementary documents, and local notes tied to licensed access.
   governs the untracked local bare clones used as the canonical GitHub repo archive
   plus optional compressed exports when a smaller portable snapshot is needed
 
-Do not treat `science/docs/github-repos/` at the archive root as the canonical
-shape going forward. The governed location for GitHub repository evidence is
-`science/docs/upstream/github-repos/`.
+GitHub payloads use `upstream/github-repos/` below the external archive root.
+Their tracked instructions and manifest remain under `science/docs/upstream/github-repos/`.

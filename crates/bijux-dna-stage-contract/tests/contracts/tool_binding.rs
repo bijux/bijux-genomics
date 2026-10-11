@@ -2811,3 +2811,28 @@ fn binding(stage_id: &str, artifact_source: ToolArtifactSourceV1) -> ToolBinding
         limitations: vec!["interleaved_reads_not_supported".to_string()],
     }
 }
+
+#[test]
+fn registry_admission_and_runtime_expansion_share_sidecar_rejection() -> Result<()> {
+    use bijux_dna_stage_contract::OutputSidecarDiscoveryV1;
+    let registry = canonical_retained_tool_bindings()?;
+    let binding = registry
+        .binding(&StageId::new(DUPLICATION_METRICS_STAGE), &ToolId::new("samtools"))
+        .context("canonical samtools duplication binding is missing")?;
+    for sidecars in [
+        vec![OutputSidecarDiscoveryV1::AppendSuffix { suffix: ".".to_owned() }],
+        vec![OutputSidecarDiscoveryV1::ReplaceExtension { extension: "bai\0".to_owned() }],
+        vec![OutputSidecarDiscoveryV1::AppendSuffix { suffix: ".bai".to_owned() }; 2],
+    ] {
+        let mut invalid = binding.clone();
+        let output = invalid
+            .outputs
+            .iter_mut()
+            .find(|output| output.name == "marked_bam")
+            .context("canonical marked BAM output is missing")?;
+        output.discovery = OutputDiscoveryV1::ExactPathWithSidecars { sidecars };
+        assert!(required_binding_output_paths(output, Path::new("sample.bam")).is_err());
+        assert!(validate_tool_binding(&invalid).is_err());
+    }
+    Ok(())
+}

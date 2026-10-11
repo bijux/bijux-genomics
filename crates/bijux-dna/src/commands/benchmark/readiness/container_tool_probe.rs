@@ -13,7 +13,8 @@ use super::version_probes::{collect_version_probe_rows, VersionProbeRow};
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
-pub(crate) const DEFAULT_CONTAINER_TOOL_SMOKE_ROOT: &str = "runs/bench/tool-smoke/container";
+pub(crate) const DEFAULT_CONTAINER_TOOL_SMOKE_ROOT: &str =
+    "artifacts/runs/bench/tool-smoke/container";
 pub(crate) const DEFAULT_CONTAINER_TOOL_SMOKE_TIMEOUT_SECONDS: u64 = 300;
 const CONTAINER_TOOL_SMOKE_REPORT_SCHEMA_VERSION: &str =
     "bijux.bench.container_tool_smoke_report.v1";
@@ -405,12 +406,18 @@ fn prepare_runtime_smoke_command(
 }
 
 fn current_smoke_executable(repo_root: &Path) -> Result<Option<String>> {
-    let dev_executable = repo_root.join("artifacts/rust/target/debug/bijux-dna-dev");
-    if dev_executable.is_file() {
-        return Ok(Some(path_relative_to_repo(repo_root, &dev_executable)));
-    }
     let executable = std::env::current_exe().context("resolve current executable")?;
-    Ok(Some(path_relative_to_repo(repo_root, &executable)))
+    Ok(resolve_smoke_executable(repo_root, &executable))
+}
+
+fn resolve_smoke_executable(repo_root: &Path, executable: &Path) -> Option<String> {
+    let dev_name = format!("bijux-dna-dev{}", std::env::consts::EXE_SUFFIX);
+    let dev_executable = repo_root.join("artifacts/rust/target/debug").join(&dev_name);
+    if dev_executable.is_file() {
+        return Some(path_relative_to_repo(repo_root, &dev_executable));
+    }
+    let sibling = executable.with_file_name(dev_name);
+    sibling.is_file().then(|| path_relative_to_repo(repo_root, &sibling))
 }
 
 fn governed_bijux_bin_env(repo_root: &Path) -> Result<Option<String>> {
@@ -595,6 +602,34 @@ mod tests {
     }
 
     #[test]
+    fn smoke_executable_uses_dev_binary_beside_archived_bijux_binary() -> Result<()> {
+        let repo_root = tempfile::tempdir()?;
+        let archive = tempfile::tempdir()?;
+        let executable = archive.path().join(format!("bijux-dna{}", std::env::consts::EXE_SUFFIX));
+        let dev_executable =
+            archive.path().join(format!("bijux-dna-dev{}", std::env::consts::EXE_SUFFIX));
+        bijux_dna_infra::write_bytes(&executable, b"archived operator")?;
+        bijux_dna_infra::write_bytes(&dev_executable, b"archived developer operator")?;
+
+        let resolved = resolve_smoke_executable(repo_root.path(), &executable)
+            .context("resolve archived developer operator")?;
+
+        assert_eq!(resolved, dev_executable.to_string_lossy().replace('\\', "/"));
+        Ok(())
+    }
+
+    #[test]
+    fn smoke_executable_rejects_bijux_binary_as_dev_fallback() -> Result<()> {
+        let repo_root = tempfile::tempdir()?;
+        let archive = tempfile::tempdir()?;
+        let executable = archive.path().join(format!("bijux-dna{}", std::env::consts::EXE_SUFFIX));
+        bijux_dna_infra::write_bytes(&executable, b"archived operator")?;
+
+        assert_eq!(resolve_smoke_executable(repo_root.path(), &executable), None);
+        Ok(())
+    }
+
+    #[test]
     fn render_container_tool_smoke_records_unavailable_and_success_rows() -> Result<()> {
         let repo_root = tempfile::tempdir()?;
         let dev_binary = repo_root.path().join("artifacts/rust/target/debug/bijux-dna-dev");
@@ -602,7 +637,7 @@ mod tests {
         bijux_dna_infra::ensure_dir(dev_binary.parent().expect("dev binary parent"))?;
         bijux_dna_infra::write_bytes(&dev_binary, b"#!/bin/sh\nexit 0\n")?;
         bijux_dna_infra::write_bytes(&bijux_binary, b"#!/bin/sh\nexit 0\n")?;
-        let output_root = PathBuf::from("runs/bench/tool-smoke/container");
+        let output_root = PathBuf::from("artifacts/runs/bench/tool-smoke/container");
         let rows = vec![
             sample_row("adapterremoval", "docker_image"),
             sample_row("angsd", "external_artifact"),
@@ -654,18 +689,18 @@ mod tests {
         assert_eq!(report.failure_count, 0);
         assert!(repo_root
             .path()
-            .join("runs/bench/tool-smoke/container/adapterremoval/manifest.json")
+            .join("artifacts/runs/bench/tool-smoke/container/adapterremoval/manifest.json")
             .is_file());
         assert!(repo_root
             .path()
-            .join("runs/bench/tool-smoke/container/angsd/manifest.json")
+            .join("artifacts/runs/bench/tool-smoke/container/angsd/manifest.json")
             .is_file());
         assert!(repo_root
             .path()
-            .join("runs/bench/tool-smoke/container/shapeit5/manifest.json")
+            .join("artifacts/runs/bench/tool-smoke/container/shapeit5/manifest.json")
             .is_file());
         let external_manifest: serde_json::Value = serde_json::from_slice(&std::fs::read(
-            repo_root.path().join("runs/bench/tool-smoke/container/angsd/manifest.json"),
+            repo_root.path().join("artifacts/runs/bench/tool-smoke/container/angsd/manifest.json"),
         )?)?;
         assert_eq!(
             external_manifest.get("status").and_then(serde_json::Value::as_str),
@@ -689,7 +724,7 @@ mod tests {
         bijux_dna_infra::write_bytes(&dev_binary, b"#!/bin/sh\nexit 0\n").expect("seed dev binary");
         bijux_dna_infra::write_bytes(&bijux_binary, b"#!/bin/sh\nexit 0\n")
             .expect("seed bijux binary");
-        let output_root = PathBuf::from("runs/bench/tool-smoke/container");
+        let output_root = PathBuf::from("artifacts/runs/bench/tool-smoke/container");
         let rows = vec![sample_row("adapterremoval", "docker_image")];
 
         let err = render_container_tool_smoke_with_executor(
@@ -727,7 +762,7 @@ mod tests {
 
         let report = render_container_tool_smoke_with_executor(
             repo_root.path(),
-            PathBuf::from("runs/bench/tool-smoke/container"),
+            PathBuf::from("artifacts/runs/bench/tool-smoke/container"),
             &[sample_row("adapterremoval", "docker_image")],
             &SmokeRuntimeAvailability {
                 docker_unavailable_reason: Some(unavailable_reason.to_string()),
@@ -759,7 +794,7 @@ mod tests {
 
         let report = render_container_tool_smoke_with_executor(
             repo_root.path(),
-            PathBuf::from("runs/bench/tool-smoke/container"),
+            PathBuf::from("artifacts/runs/bench/tool-smoke/container"),
             &[sample_row("adapterremoval", "docker_image")],
             &SmokeRuntimeAvailability {
                 docker_unavailable_reason: Some("docker daemon unavailable".to_string()),

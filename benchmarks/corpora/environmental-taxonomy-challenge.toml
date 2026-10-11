@@ -2,7 +2,7 @@
 # purpose = Source authorities for environmental taxonomy and depletion truth
 # authority = bijux-genomics-benchmarks
 # stability = stable
-# last_updated = 2026-08-08
+# last_updated = 2026-08-16
 
 schema_version = "bijux.benchmark.data_source.v1"
 portfolio_id = "environmental-taxonomy-challenge"
@@ -40,9 +40,25 @@ source_url = "https://www.ebi.ac.uk/ena/browser/view/PRJEB402"
 access_terms_url = "https://www.ebi.ac.uk/ena/browser/about/policies"
 data_types = ["fastq"]
 planned_sample_count = 10
-selection_scope = "Ten size-fractionated Tara Oceans libraries selected across stations, depth, physicochemical context, and barcoding or shotgun strategies with exact run accessions frozen during acquisition."
+selected_accessions = [
+  "ERR1726937",
+  "ERR1726950",
+  "ERR318619",
+  "ERR538187",
+  "ERR594366",
+  "ERR594380",
+  "ERR598981",
+  "ERR599370",
+  "ERR599383",
+  "ERR868408",
+]
+sample_era = "not_applicable"
+selection_scope = "Ten exact paired-end WGS runs spanning surface, deep-chlorophyll-maximum, mesopelagic, oxygen-minimum, viral, bacterial, and protist fractions across independent Tara Oceans stations."
 truth_basis = "Standardized global-ocean sampling, morphological and physicochemical contextual measurements, and published barcoding and metagenomic analyses establish real environmental diversity context."
-known_limitations = ["Environmental community composition is observational and cannot be scored as complete taxonomic ground truth."]
+known_limitations = [
+  "Environmental community composition is observational and cannot be scored as complete taxonomic ground truth.",
+  "The selected compressed FASTQ holdings total approximately 17.2 GB, but reference indexes and derived evidence remain additional storage obligations.",
+]
 
 [[collections]]
 id = "hmp-mock-community"
@@ -52,9 +68,25 @@ source_url = "https://www.ncbi.nlm.nih.gov/bioproject/48341"
 access_terms_url = "https://www.ncbi.nlm.nih.gov/home/about/policies/"
 data_types = ["fastq"]
 planned_sample_count = 10
-selection_scope = "Ten public HMP mock-community runs spanning sequencing centers, amplified regions, and technical replicates, frozen by exact run accession during acquisition."
-truth_basis = "The HMP mock material has declared organism membership and cross-center protocol-validation replication."
-known_limitations = ["The source does not supply a representative environmental matrix or complete host and rRNA negative-control truth."]
+selected_accessions = [
+  "SRR042318",
+  "SRR042328",
+  "SRR042334",
+  "SRR042347",
+  "SRR042354",
+  "SRR042364",
+  "SRR042377",
+  "SRR042386",
+  "SRR042391",
+  "SRR042548",
+]
+sample_era = "not_applicable"
+selection_scope = "Ten exact 454 amplicon runs spanning ten protocol-validation experiments and both HMP mock-community sample records."
+truth_basis = "The HMP mock material has declared organism membership and within-authority protocol-validation replication."
+known_limitations = [
+  "The selected runs are HMP-DACC 454 protocol-validation records and do not establish cross-center or Illumina repeatability.",
+  "The source does not supply a representative environmental matrix or complete host and rRNA negative-control truth.",
+]
 
 [[collections]]
 id = "ncbi-reference-database"

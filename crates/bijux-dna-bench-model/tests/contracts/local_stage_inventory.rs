@@ -79,3 +79,45 @@ fn assert_schema(file_name: &str, schema: schemars::Schema) -> anyhow::Result<()
     anyhow::ensure!(checked == generated, "{file_name} drifted from model authority");
     Ok(())
 }
+
+#[test]
+fn local_matrix_inputs_retain_governed_order_and_round_trip() -> anyhow::Result<()> {
+    use bijux_dna_bench_model::BenchmarkLocalStageMatrixConfig;
+    let root = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..");
+    for (domain, count) in [("fastq", 27), ("bam", 24)] {
+        let path = root.join(format!("configs/bench/local/{domain}-stage-matrix.toml"));
+        let text = std::fs::read_to_string(path)?;
+        let original: toml::Value = toml::from_str(&text)?;
+        let parsed: BenchmarkLocalStageMatrixConfig = toml::from_str(&text)?;
+        assert_eq!(parsed.stages.len(), count);
+        assert_eq!(parsed.schema_version, format!("bijux.bench.{domain}.local_stage_matrix.v1"));
+        let encoded = toml::to_string(&parsed)?;
+        assert_eq!(toml::from_str::<toml::Value>(&encoded)?, original);
+        assert_eq!(
+            serde_json::from_slice::<BenchmarkLocalStageMatrixConfig>(&serde_json::to_vec(
+                &parsed
+            )?)?,
+            parsed
+        );
+    }
+    Ok(())
+}
+
+#[test]
+fn local_matrix_inputs_reject_unknown_fields_missing_values_and_invalid_readiness() {
+    use bijux_dna_bench_model::BenchmarkLocalStageMatrixConfig;
+    use serde_json::json;
+    let valid = json!({"schema_version": "bijux.bench.fastq.local_stage_matrix.v1", "stages": [{"stage_id": "fastq.validate_reads", "readiness_kind": "smoke"}]});
+    let mut unknown_root = valid.clone();
+    unknown_root["unexpected"] = json!(true);
+    let mut unknown_stage = valid.clone();
+    unknown_stage["stages"][0]["unexpected"] = json!(true);
+    let mut invalid_readiness = valid.clone();
+    invalid_readiness["stages"][0]["readiness_kind"] = json!("unsupported");
+    let mut missing_stage = valid.clone();
+    missing_stage["stages"][0] = json!({"readiness_kind": "smoke"});
+    let missing_version = json!({"stages": valid["stages"]});
+    for input in [unknown_root, unknown_stage, invalid_readiness, missing_stage, missing_version] {
+        assert!(serde_json::from_value::<BenchmarkLocalStageMatrixConfig>(input).is_err());
+    }
+}

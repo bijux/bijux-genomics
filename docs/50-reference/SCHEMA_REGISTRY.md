@@ -20,6 +20,7 @@ This page is generated from governed registries in code and must be updated via 
 |---|---|---|---|---|---|---|
 | `workflow_manifest` | `bijux.workflow_manifest.v1` | `1.0.0` | `workflow` | `migratable` | `upgrade_with_governed_tooling` | `bijux-dna-core` |
 | `plan_manifest` | `bijux.plan_manifest.v1` | `1.0.0` | `plan` | `migratable` | `upgrade_with_governed_tooling` | `bijux-dna-core` |
+| `artifact_contract` | `bijux.artifact_contract.v1` | `1.0.0` | `artifact` | `exact_match` | `refuse_unknown_versions` | `bijux-dna-stage-contract` |
 | `artifact_inventory` | `bijux.artifact_inventory.v1` | `1.0.0` | `artifact` | `migratable` | `support_n_and_n_minus_one` | `bijux-dna-runtime` |
 | `evidence_bundle` | `bijux.evidence_bundle.v1` | `1.0.0` | `evidence` | `migratable` | `support_n_and_n_minus_one` | `bijux-dna-analyze` |
 | `evidence_verification` | `bijux.evidence_verification.v1` | `1.0.0` | `evidence` | `additive` | `add_optional_fields_only` | `bijux-dna-analyze` |

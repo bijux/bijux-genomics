@@ -34,7 +34,9 @@ fn local_detect_adapters_smoke_plans_use_governed_corpus_fixtures() -> Result<()
     assert_eq!(adapter_hit.r2, None);
     assert_eq!(
         adapter_hit.plan.out_dir,
-        PathBuf::from("runs/bench/local-smoke/fastq.detect_adapters/adapter-hit-se/fastqc")
+        PathBuf::from(
+            "artifacts/runs/bench/local-smoke/fastq.detect_adapters/adapter-hit-se/fastqc"
+        )
     );
     assert_eq!(adapter_hit.plan.resources.threads, 4);
 
@@ -51,12 +53,14 @@ fn local_detect_adapters_smoke_plans_use_governed_corpus_fixtures() -> Result<()
     assert_eq!(adapter_clear.r2, None);
     assert_eq!(
         adapter_clear.plan.out_dir,
-        PathBuf::from("runs/bench/local-smoke/fastq.detect_adapters/adapter-clear-se/fastqc")
+        PathBuf::from(
+            "artifacts/runs/bench/local-smoke/fastq.detect_adapters/adapter-clear-se/fastqc"
+        )
     );
     assert_eq!(
         adapter_clear.plan.params["adapter_evidence_dir"],
         serde_json::json!(
-            "runs/bench/local-smoke/fastq.detect_adapters/adapter-clear-se/fastqc/fastqc"
+            "artifacts/runs/bench/local-smoke/fastq.detect_adapters/adapter-clear-se/fastqc/fastqc"
         )
     );
 

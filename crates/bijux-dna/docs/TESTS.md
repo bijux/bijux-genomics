@@ -6,6 +6,15 @@ shared path helpers. It should not contain README placeholder files or empty tax
 
 ```text
 tests/
+├── bench_readiness_bam.rs
+├── bench_readiness_fastq.rs
+├── bench_readiness_vcf.rs
+├── benchmark_readiness.rs
+├── benchmark/
+│   ├── bam_readiness/
+│   ├── fastq_readiness/
+│   ├── vcf_readiness/
+│   └── readiness/
 ├── boundaries.rs
 ├── boundaries/
 ├── contracts.rs
@@ -19,6 +28,9 @@ tests/
 ```
 
 ## Coverage Map
+- `tests/bench_readiness_bam.rs` and `tests/bench_readiness_vcf.rs`: domain readiness contracts grouped by inventory, adapter, metric and scientific responsibility. Standard-harness cases share one process guard per executable; nextest retains case-level scheduling. The four dedicated VCF parser-failure and missing-input targets remain entrypoints for their native fast lanes.
+- `tests/bench_readiness_fastq.rs`: FASTQ stage bindings, execution surfaces, evidence maps and metrics contracts, grouped under `tests/benchmark/fastq_readiness/`. Cases retain their function names and use one shared process guard; nextest partitions individual cases and retains the full-profile repository mutation group.
+- `tests/benchmark_readiness.rs`: active stage/tool scope, adapters, parser fixtures, output declarations/contracts, expected results and report maps. JSON and TSV assertions live in `tests/benchmark/readiness/`. One executable retains individual case identities under report modules; the slow roster matches the unchanged function-name suffixes. The standard harness shares one process environment guard, while nextest can schedule separate cases.
 - `tests/boundaries.rs`: layout, docs placement, dependency, public-surface, no-process-spawn, and
   guardrail checks.
 - `tests/boundaries/architecture_tree.rs`: root, docs, source, command, and public API tree
@@ -56,3 +68,12 @@ CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna --no-default-fea
 ## Snapshot Rules
 Update snapshots only when the command surface, output format, or public export intentionally
 changes. Snapshot diffs must be reviewed as contract changes, not accepted mechanically.
+
+Scientific fixture command contracts are grouped in `fixtures_fastq`, `fixtures_bam`,
+`fixtures_vcf`, `fixtures_ancient_dna`, and `fixtures_amplicon`. The corresponding
+`tests/fixtures/` subtrees separate corpus families and observed/expected JSON/text
+interfaces. Each executable shares the existing environment/cwd guard; full-profile
+repository mutation serialization and function-based slow selection still apply.
+`science-fixtures-fast` selects these suites plus its existing corpus, aggregate,
+and population smoke targets. Test function names remain stable beneath module
+namespaces so function-based routing and slow rosters retain their meaning.

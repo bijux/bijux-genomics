@@ -11,6 +11,9 @@ CARGO_HOME ?= $(ARTIFACT_CARGO_HOME)
 TMPDIR ?= $(ARTIFACT_TMP_DIR)
 TMP ?= $(TMPDIR)
 TEMP ?= $(TMPDIR)
+PYTHONPYCACHEPREFIX ?= $(abspath $(ARTIFACT_ROOT)/python/bytecode)
+RUFF_CACHE_DIR ?= $(abspath $(ARTIFACT_ROOT)/python/ruff)
+PYTEST_DEBUG_TEMPROOT ?= $(ARTIFACT_TMP_DIR)
 
 export ISO_ROOT
 export CARGO_TARGET_DIR
@@ -18,6 +21,9 @@ export CARGO_HOME
 export TMPDIR
 export TMP
 export TEMP
+export PYTHONPYCACHEPREFIX
+export RUFF_CACHE_DIR
+export PYTEST_DEBUG_TEMPROOT
 
 require_tool = command -v $(1) >/dev/null 2>&1 || { echo "$(1) is required" >&2; exit 1; }
 require_file = test -f "$(1)" || { echo "required file missing: $(1)" >&2; exit 1; }

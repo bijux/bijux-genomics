@@ -33,6 +33,7 @@ fn dependency_graph_matches_dev_boundary() {
         "serde_yaml",
         "sha2",
         "toml",
+        "twox-hash",
         "walkdir",
     ]
     .into_iter()

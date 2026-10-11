@@ -45,7 +45,7 @@ fn bench_local_render_all_domain_slurm_scripts_reports_governed_job_counts() {
     );
     assert_eq!(
         payload.get("output_root").and_then(serde_json::Value::as_str),
-        Some("runs/bench/slurm-dry-run/all-domains")
+        Some("artifacts/runs/bench/slurm-dry-run/all-domains")
     );
     let script_count = payload["script_count"].as_u64().expect("script count");
     let benchmark_job_count = payload["benchmark_job_count"].as_u64().expect("benchmark job count");
@@ -77,10 +77,10 @@ fn bench_local_render_all_domain_slurm_scripts_reports_governed_job_counts() {
         entry.get("job_kind").and_then(serde_json::Value::as_str) == Some("benchmark_result")
             && entry.get("domain").and_then(serde_json::Value::as_str) == Some("vcf")
             && entry.get("stdout_path").and_then(serde_json::Value::as_str).is_some_and(|path| {
-                path == "runs/bench/slurm-dry-run/all-domains/runs/all-domain-benchmark-dry-run/vcf/vcf.stats/bcftools/vcf_production_regression/vcf_cohort/stdout.log"
+                path == "artifacts/runs/bench/slurm-dry-run/all-domains/runs/all-domain-benchmark-dry-run/vcf/vcf.stats/bcftools/vcf_production_regression/vcf_cohort/stdout.log"
             })
             && entry.get("script_path").and_then(serde_json::Value::as_str).is_some_and(|path| {
-                path.starts_with("runs/bench/slurm-dry-run/all-domains/benchmark-results/vcf/")
+                path.starts_with("artifacts/runs/bench/slurm-dry-run/all-domains/benchmark-results/vcf/")
                     && path.ends_with("/job.sbatch")
             })
     }));
@@ -93,13 +93,13 @@ fn bench_local_render_all_domain_slurm_scripts_reports_governed_job_counts() {
             && entry.get("corpus_id").and_then(serde_json::Value::as_str)
                 == Some("vcf_production_regression")
             && entry.get("stdout_path").and_then(serde_json::Value::as_str).is_some_and(|path| {
-                path == "runs/bench/slurm-dry-run/all-domains/runs/all-domain-benchmark-dry-run/vcf/relatedness-segments-vcf/vcf.ibd/germline/vcf_production_regression/sample-set/stdout.log"
+                path == "artifacts/runs/bench/slurm-dry-run/all-domains/runs/all-domain-benchmark-dry-run/vcf/relatedness-segments-vcf/vcf.ibd/germline/vcf_production_regression/sample-set/stdout.log"
             })
             && entry
                 .get("script_path")
                 .and_then(serde_json::Value::as_str)
                 .is_some_and(|path| {
-                    path == "runs/bench/slurm-dry-run/all-domains/essential-pipelines/relatedness-segments-vcf/vcf.ibd/job.sbatch"
+                    path == "artifacts/runs/bench/slurm-dry-run/all-domains/essential-pipelines/relatedness-segments-vcf/vcf.ibd/job.sbatch"
                 })
     }));
 }

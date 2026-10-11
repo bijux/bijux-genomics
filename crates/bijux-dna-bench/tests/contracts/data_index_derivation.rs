@@ -5,9 +5,10 @@ use anyhow::Result;
 use bijux_dna_bench::{
     admit_governed_derived_data_catalog, build_benchmark_data_index, publish_benchmark_data_index,
     publish_governed_data_catalog_registry, publish_governed_data_catalog_snapshots,
-    BenchmarkDataIndexPublicationRequest, BenchmarkDataIndexRequest, BenchmarkEligibility,
-    GovernedDataCatalogRegistryPublicationRequest, GovernedDataCatalogSnapshotRequest,
-    GovernedDerivedDataCatalogAdmissionRequest,
+    publish_governed_materialized_data_catalog_snapshots, BenchmarkDataIndexPublicationRequest,
+    BenchmarkDataIndexRequest, BenchmarkEligibility, GovernedDataCatalogRegistryPublicationRequest,
+    GovernedDataCatalogSnapshotRequest, GovernedDerivedDataCatalogAdmissionRequest,
+    GovernedMaterializedDataCatalogSnapshotRequest,
 };
 use serde_json::{json, Value};
 use tempfile::TempDir;
@@ -200,6 +201,52 @@ fn preserves_heterogeneous_catalogs_and_composes_complete_registry() -> Result<(
     })?;
     assert_eq!(index.schema_version, "bijux.data_index.v2");
     assert_eq!(index.records.len(), 2);
+    Ok(())
+}
+
+#[test]
+fn publishes_materialized_catalogs_as_one_validated_registry_generation() -> Result<()> {
+    let fixture = data_index_fixture()?;
+    let materialization_commit = "4".repeat(40);
+    let registry_source_commit = "5".repeat(40);
+    write_materialized_catalog(&fixture, &materialization_commit, "fastq-alpha")?;
+    let beta = write_materialized_catalog(&fixture, &materialization_commit, "fastq-beta")?;
+    mutate_catalog(&beta, |catalog| {
+        catalog["files"][0]["sha256"] = "f".repeat(64).into();
+    })?;
+    let request = GovernedMaterializedDataCatalogSnapshotRequest {
+        data_root: fixture.data_root.clone(),
+        materialization_commit,
+        registry_source_commit: registry_source_commit.clone(),
+        created_at_utc: "2026-08-16T00:00:00Z".to_string(),
+        previous_registry_path: fixture.catalog_registry_path.clone(),
+    };
+
+    let error = publish_governed_materialized_data_catalog_snapshots(&request)
+        .expect_err("one invalid candidate must reject the complete generation");
+    assert!(
+        format!("{error:#}").contains("materialized catalog file identity drifted"),
+        "{error:#}"
+    );
+    assert!(!fixture
+        .data_root
+        .join("evidence/catalog-registries")
+        .join(&registry_source_commit)
+        .join("registry.json")
+        .exists());
+
+    write_materialized_catalog(&fixture, &request.materialization_commit, "fastq-beta")?;
+    let publication = publish_governed_materialized_data_catalog_snapshots(&request)?;
+    let replay = publish_governed_materialized_data_catalog_snapshots(&request)?;
+
+    assert_eq!(publication, replay);
+    assert_eq!(publication.preserved_snapshot_count, 2);
+    assert_eq!(publication.retained_snapshot_count, 1);
+    assert_eq!(publication.registry.records.len(), 3);
+    assert_eq!(
+        publication.registry.records.iter().map(|record| record.id.as_str()).collect::<Vec<_>>(),
+        ["ancient-horse-bam", "fastq-alpha", "fastq-beta"]
+    );
     Ok(())
 }
 
@@ -886,6 +933,100 @@ fn write_derived_catalog(
             }]
         }),
     )
+}
+
+fn write_materialized_catalog(
+    fixture: &DataIndexFixture,
+    source_commit: &str,
+    id: &str,
+) -> Result<PathBuf> {
+    let source_record =
+        fixture.data_root.join("evidence/acquisition-plans").join(format!("{id}.json"));
+    fs::create_dir_all(source_record.parent().expect("source record parent"))?;
+    fs::write(&source_record, format!("{{\"corpus_id\":\"{id}\"}}\n"))?;
+    let candidate =
+        fixture.data_root.join("catalog/snapshots").join(source_commit).join(format!("{id}.json"));
+    fs::create_dir_all(candidate.parent().expect("materialized candidate parent"))?;
+    let fastq = fixture.data_root.join("corpora").join(id).join("sample.fastq.gz");
+    fs::create_dir_all(fastq.parent().expect("materialized FASTQ parent"))?;
+    fs::write(&fastq, b"governed-fastq")?;
+    let file_sha256 = bijux_dna_infra::hash_file_sha256(&fastq)?;
+    let file_size = fs::metadata(&fastq)?.len();
+    let sample = json!({
+        "accession": "ERR000001",
+        "study_accession": "PRJEB1",
+        "sample_accession": "SAMEA1",
+        "experiment_accession": "ERX1",
+        "era": "modern",
+        "layout": "se",
+        "size_band": "bounded",
+        "selection_reason": "contract fixture",
+        "scientific_name": "Equus caballus",
+        "library_source": "GENOMIC",
+        "library_strategy": "WGS",
+        "library_selection": "RANDOM",
+        "instrument_platform": "ILLUMINA",
+        "instrument_model": "Illumina NovaSeq 6000",
+        "archive_base_count": 12,
+        "archive_read_count": 1,
+        "first_public": "2026-08-01",
+        "last_updated": "2026-08-02"
+    });
+    let file = json!({
+        "path": fastq,
+        "sha256": file_sha256,
+        "size_bytes": file_size,
+        "kind": "raw-fastq",
+        "accession": "ERR000001",
+        "study_accession": "PRJEB1",
+        "sample_accession": "SAMEA1",
+        "experiment_accession": "ERX1",
+        "era": "modern",
+        "layout": "se",
+        "mate": null,
+        "read_count": 1,
+        "base_count": 12,
+        "source_url": "https://example.org/ERR000001.fastq.gz",
+        "source_md5": "11111111111111111111111111111111",
+        "materialization_status": "downloaded"
+    });
+    write_json(
+        &candidate,
+        &json!({
+            "schema_version": "bijux.data_catalog.v2",
+            "id": id,
+            "purpose": "real checksum-closed FASTQ benchmark corpus",
+            "source": "ENA",
+            "class": "production_real",
+            "access_classification": "public",
+            "redistribution_classification": "accession-referenced",
+            "access_terms_url": "https://www.ebi.ac.uk/ena/browser/about/policies",
+            "attribution": "cite source study and accession",
+            "projected_storage_bytes": file_size,
+            "projected_cpu_hours": 1,
+            "projection_basis": "one bounded materialization",
+            "truth_roles": ["read_identity"],
+            "truth_strategy": "checksum_identity",
+            "known_limitations": ["one sample does not represent a population"],
+            "sample_context": "one public sequencing run",
+            "assay_context": "whole-genome sequencing",
+            "strata": ["single-end"],
+            "controls": ["checksum"],
+            "held_out_split": "evaluation",
+            "lineage": "ENA acquisition plan",
+            "allowed_uses": ["comparative_benchmarking"],
+            "source_record": format!(
+                "study://data/evidence/acquisition-plans/{id}.json"
+            ),
+            "source_record_sha256": bijux_dna_infra::hash_file_sha256(&source_record)?,
+            "retrieved_at_utc": "2026-08-15T00:00:00Z",
+            "admitted_at_utc": "2026-08-16T00:00:00Z",
+            "scientific_name": "Equus caballus",
+            "samples": [sample],
+            "files": [file]
+        }),
+    )?;
+    Ok(candidate)
 }
 
 fn mutate_registered_catalog(

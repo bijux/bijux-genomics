@@ -1,0 +1,14 @@
+mod angsd_adapter;
+mod angsd_adapter_file;
+mod bcftools_adapter;
+mod bcftools_adapter_file;
+mod descent_family_adapter;
+mod descent_family_adapter_file;
+mod eigensoft_adapter;
+mod eigensoft_adapter_file;
+mod imputation_family_adapter;
+mod imputation_family_adapter_file;
+mod phasing_family_adapter;
+mod phasing_family_adapter_file;
+mod plink_family_adapter;
+mod plink_family_adapter_file;

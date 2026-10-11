@@ -1,0 +1,11 @@
+# Tool discovery belongs at the repository root; generated output belongs under artifacts.
+[dependency-groups]
+checks = ["pytest==8.4.2", "ruff==0.12.12"]
+
+[tool.pytest.ini_options]
+cache_dir = "artifacts/python/pytest"
+testpaths = ["benchmarks/tests", "benchmarks/adapters/tests", "containers/contracts/tests"]
+
+[tool.ruff]
+cache-dir = "artifacts/python/ruff"
+extend-exclude = ["artifacts"]

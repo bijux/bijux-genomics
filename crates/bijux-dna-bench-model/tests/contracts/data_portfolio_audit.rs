@@ -2,8 +2,9 @@ use anyhow::Context;
 use bijux_dna_bench_model::{
     benchmark_data_portfolio_audit_schema, validate_benchmark_data_portfolio_audit,
     BenchmarkCorpusClass, BenchmarkCorpusDataAudit, BenchmarkCorpusStatus,
-    BenchmarkDataPortfolioAudit, BenchmarkDataPortfolioAuditSummary, BenchmarkEvidenceScope,
-    BenchmarkGovernedDataBinding, BENCHMARK_DATA_PORTFOLIO_AUDIT_SCHEMA_V2,
+    BenchmarkDataPortfolioAudit, BenchmarkDataPortfolioAuditSummary,
+    BenchmarkDataSourceSpecIdentity, BenchmarkEvidenceScope, BenchmarkGovernedDataBinding,
+    BENCHMARK_DATA_PORTFOLIO_AUDIT_SCHEMA_V2,
 };
 use std::path::{Path, PathBuf};
 
@@ -122,11 +123,38 @@ fn data_portfolio_audit_rejects_fixture_class() {
 }
 
 #[test]
+fn data_portfolio_audit_rejects_inconsistent_source_selection_authority() {
+    let mut audit = audit();
+    audit.corpora[0].source_specs = vec![BenchmarkDataSourceSpecIdentity {
+        path: "benchmarks/corpora/real-corpus.toml".to_string(),
+        sha256: "5".repeat(64),
+        projected_storage_bytes: Some(100),
+        projected_cpu_hours: Some(1),
+        selection_group_count: Some(1),
+        planned_sample_count: Some(10),
+        planned_accession_count: Some(10),
+        selected_accession_count: Some(9),
+        selection_complete: Some(true),
+    }];
+
+    let error =
+        validate_benchmark_data_portfolio_audit(&audit).err().map(|error| error.to_string());
+    assert!(error
+        .as_deref()
+        .is_some_and(|message| message.contains("selection authority is inconsistent")));
+}
+
+#[test]
 fn checked_data_portfolio_audit_schema_matches_model() -> anyhow::Result<()> {
-    let checked: serde_json::Value = serde_json::from_slice(&std::fs::read(
-        repository_root()?.join("benchmarks/contracts/schemas/data-portfolio-audit.schema.json"),
-    )?)?;
+    let path =
+        repository_root()?.join("benchmarks/contracts/schemas/data-portfolio-audit.schema.json");
     let generated = serde_json::to_value(benchmark_data_portfolio_audit_schema())?;
+    if std::env::var_os("BIJUX_UPDATE_GENERATED_SCHEMAS").is_some() {
+        let mut bytes = serde_json::to_vec_pretty(&generated)?;
+        bytes.push(b'\n');
+        std::fs::write(&path, bytes)?;
+    }
+    let checked: serde_json::Value = serde_json::from_slice(&std::fs::read(path)?)?;
     assert_eq!(checked, generated);
     Ok(())
 }

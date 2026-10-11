@@ -9,6 +9,7 @@ These operations are exported through the crate root and `public_api`.
 
 | Operation | Rust entrypoint | Purpose |
 | --- | --- | --- |
+| `validate-pipeline-profiles` | `validate_benchmark_pipeline_profiles(config, evidence)` | Check selected scientific benchmark profile handoffs against a typed evidence provider. |
 | `load-suite` | `load_suite(path)` | Load and validate a benchmark suite TOML file. |
 | `load-corpus-manifest` | `load_corpus_manifest(path)` | Load and validate one benchmark corpus TOML manifest. |
 | `load-corpus-catalog` | `load_corpus_catalog()` | Load and validate all checked-in benchmark corpus manifests. |
@@ -52,7 +53,9 @@ These operations are exported through the crate root and `public_api`.
 | `derive-container-report-portfolio-index` | `derive_container_report_portfolio_index(repository_root)` | Require the permanent run index to match its source authority, then derive checksummed current and historical container report entries. |
 | `render-container-report-portfolio-index` | `render_container_report_portfolio_index_json(index)`, `render_container_report_portfolio_index_markdown(index)` | Render the admitted container report portfolio deterministically for machine and paper-facing consumers. |
 | `acquire-fastq-corpus` | `acquire_fastq_corpus(request)` | Resolve a reviewed corpus specification against exact ENA run metadata and atomically publish a checksum-pinned acquisition plan. |
+| `acquire-selected-fastq-collection` | `acquire_selected_fastq_collection(request)` | Resolve one explicitly frozen FASTQ collection from a domain-neutral source authority, preserving mixed-species portfolios as separate checksum-pinned plans. |
 | `derive-fastq-corpus-acquisition-plan` | `derive_fastq_corpus_acquisition_plan(spec_path, records, retrieved_at_utc)` | Deterministically replay acquisition-plan derivation from typed offline ENA records. |
+| `derive-selected-fastq-collection-acquisition-plan` | `derive_selected_fastq_collection_acquisition_plan(spec_path, collection_id, records, retrieved_at_utc)` | Deterministically replay selected-collection acquisition from typed offline ENA records. |
 | `materialize-fastq-corpus` | `materialize_fastq_corpus(request)` | Re-verify or transfer checksum-pinned ENA files, validate every gzip FASTQ record, make admitted bytes read-only, and atomically publish a source-addressed governed catalog snapshot. |
 | `materialize-reference-bundle` | `materialize_checked_in_reference_bundle(request)` | Re-verify a checksum-pinned reference archive, normalize its FASTA, derive FAI and sequence-dictionary identities, and compose a governed catalog snapshot without overwriting prior material. |
 | `publish-governed-data-catalog-registry` | `publish_governed_data_catalog_registry(request)` | Re-hash every explicitly declared catalog snapshot and publish or idempotently revalidate one source-addressed immutable registry. |
@@ -147,3 +150,5 @@ CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-bench --test con
 CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-bench --test determinism --no-default-features
 CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-bench --test semantics --no-default-features
 ```
+
+The CLI local stage-list commands delegate matrix admission to `load_benchmark_local_stage_inventory` and aggregate publication to `render_benchmark_all_domain_stage_inventory`. Both receive an explicit repository root through the public API.

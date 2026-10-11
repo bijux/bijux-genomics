@@ -313,7 +313,7 @@ mod tests {
     }
 
     #[test]
-    fn derived_catalog_file_requires_exact_source_and_tool_identity() {
+    fn derived_catalog_file_requires_exact_source_and_tool_identity() -> anyhow::Result<()> {
         let source = CatalogFileEntry {
             name: "panel_vcf".to_string(),
             path: "panel.vcf.gz".to_string(),
@@ -359,8 +359,7 @@ mod tests {
             "supported",
             Some("Byrska-Bishop et al. 2022"),
             &[source.clone(), derived.clone()],
-        )
-        .expect("exact derived artifact provenance must validate");
+        )?;
 
         derived.source_checksum = "e".repeat(64);
         let Err(error) = validate_catalog_source_authority(
@@ -373,5 +372,6 @@ mod tests {
             panic!("derived artifact with drifted source identity must fail");
         };
         assert!(error.to_string().contains("source artifact SHA-256"));
+        Ok(())
     }
 }

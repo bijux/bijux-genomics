@@ -1226,18 +1226,19 @@ mod tests {
             "artifacts/benchmark-smoke/micro/pipelines/core-germline/MICRO_PIPELINE_SUMMARY.json",
         );
         let evidence_path =
-            repo_root.join("runs/bench/local-smoke/vcf.stats/bcftools/metrics.json");
+            repo_root.join("artifacts/runs/bench/local-smoke/vcf.stats/bcftools/metrics.json");
         let fastq_evidence_path =
-            repo_root.join("runs/bench/local-smoke/fastq.validate_reads/report.json");
+            repo_root.join("artifacts/runs/bench/local-smoke/fastq.validate_reads/report.json");
         let vcf_evidence_path =
-            repo_root.join("runs/bench/local-smoke/vcf.call/bcftools/stage-result.json");
+            repo_root.join("artifacts/runs/bench/local-smoke/vcf.call/bcftools/stage-result.json");
         let adna_evidence_path = repo_root
             .join("artifacts/benchmark-smoke/micro/pipelines/adna/artifacts/vcf.stats/report.json");
         let edna_evidence_path = repo_root
             .join("artifacts/benchmark-smoke/micro/pipelines/edna/artifacts/benchmark.taxonomy_output_judgment/report.json");
         let pipeline_evidence_path = repo_root
             .join("artifacts/benchmark-smoke/micro/pipelines/core-germline/artifacts/vcf.call/report.json");
-        let output_path = repo_root.join("runs/bench/local-smoke/vcf.stats/bcftools/stats.txt");
+        let output_path =
+            repo_root.join("artifacts/runs/bench/local-smoke/vcf.stats/bcftools/stats.txt");
         let log_path = repo_root.join("artifacts/benchmark-smoke/micro/logs/MICRO_RUN.log");
         let result_rows_path =
             repo_root.join("artifacts/benchmark-smoke/micro/results/MICRO_RESULT_ROWS.json");
@@ -1293,7 +1294,7 @@ mod tests {
                 source_report_path: "artifacts/benchmark-smoke/micro/core/REAL_SMOKE_CORE_SUMMARY.json"
                     .to_string(),
                 evidence_path: Some(
-                    "runs/bench/local-smoke/vcf.stats/bcftools/metrics.json".to_string(),
+                    "artifacts/runs/bench/local-smoke/vcf.stats/bcftools/metrics.json".to_string(),
                 ),
                 stage_result_manifest_path: None,
                 normalized_metric_count: 2,
@@ -1317,7 +1318,7 @@ mod tests {
                 ),
                 source_report_path: "artifacts/benchmark-smoke/micro/fastq/MICRO_FASTQ_SUMMARY.json".to_string(),
                 evidence_path: Some(
-                    "runs/bench/local-smoke/fastq.validate_reads/report.json".to_string(),
+                    "artifacts/runs/bench/local-smoke/fastq.validate_reads/report.json".to_string(),
                 ),
                 stage_result_manifest_path: None,
                 normalized_metric_count: 0,
@@ -1361,7 +1362,7 @@ mod tests {
                 ),
                 source_report_path: "artifacts/benchmark-smoke/micro/vcf/MICRO_VCF_SUMMARY.json".to_string(),
                 evidence_path: Some(
-                    "runs/bench/local-smoke/vcf.call/bcftools/stage-result.json".to_string(),
+                    "artifacts/runs/bench/local-smoke/vcf.call/bcftools/stage-result.json".to_string(),
                 ),
                 stage_result_manifest_path: None,
                 normalized_metric_count: 0,
@@ -1444,7 +1445,7 @@ mod tests {
                 component_id: "real_smoke_core_subset".to_string(),
                 artifact_id: "evidence".to_string(),
                 role: "evidence_report".to_string(),
-                path: "runs/bench/local-smoke/vcf.stats/bcftools/stats.txt".to_string(),
+                path: "artifacts/runs/bench/local-smoke/vcf.stats/bcftools/stats.txt".to_string(),
                 exists: true,
                 source: "real_smoke_core_subset".to_string(),
             },
@@ -1453,7 +1454,7 @@ mod tests {
                 component_id: "fastq_micro_smoke_subset".to_string(),
                 artifact_id: "evidence".to_string(),
                 role: "family_evidence".to_string(),
-                path: "runs/bench/local-smoke/fastq.validate_reads/report.json".to_string(),
+                path: "artifacts/runs/bench/local-smoke/fastq.validate_reads/report.json".to_string(),
                 exists: true,
                 source: "fastq_micro_smoke_subset".to_string(),
             },
@@ -1462,7 +1463,7 @@ mod tests {
                 component_id: "vcf_micro_smoke_subset".to_string(),
                 artifact_id: "evidence".to_string(),
                 role: "family_evidence".to_string(),
-                path: "runs/bench/local-smoke/vcf.call/bcftools/stage-result.json".to_string(),
+                path: "artifacts/runs/bench/local-smoke/vcf.call/bcftools/stage-result.json".to_string(),
                 exists: true,
                 source: "vcf_micro_smoke_subset".to_string(),
             },
@@ -1510,14 +1511,16 @@ mod tests {
                 component_id: "real_smoke_core_subset".to_string(),
                 metric_id: "variant_count".to_string(),
                 value: serde_json::json!(42),
-                source_path: "runs/bench/local-smoke/vcf.stats/bcftools/metrics.json".to_string(),
+                source_path: "artifacts/runs/bench/local-smoke/vcf.stats/bcftools/metrics.json"
+                    .to_string(),
             },
             MicroBenchmarkNormalizedMetricRow {
                 execution_id: "vcf.stats".to_string(),
                 component_id: "real_smoke_core_subset".to_string(),
                 metric_id: "snp_count".to_string(),
                 value: serde_json::json!(40),
-                source_path: "runs/bench/local-smoke/vcf.stats/bcftools/metrics.json".to_string(),
+                source_path: "artifacts/runs/bench/local-smoke/vcf.stats/bcftools/metrics.json"
+                    .to_string(),
             },
         ];
         let mut manifest = MicroBenchmarkRunManifest {

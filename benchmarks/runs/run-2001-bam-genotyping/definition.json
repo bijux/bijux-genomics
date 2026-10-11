@@ -16,7 +16,9 @@
     "bcftools"
   ],
   "accepted_input_contracts": [
-    "bijux.bam.artifact.coordinate_sorted_indexed.v1"
+    "bijux.auxiliary.artifact.table.v1",
+    "bijux.bam.artifact.coordinate_sorted_indexed.v1",
+    "bijux.reference.artifact.fasta.v1"
   ],
   "output_contract": "bijux.benchmark.bam.genotyping.bundle.v1",
   "normalized_result_contract": "benchmarks/contracts/schemas/bam-genotyping-result.schema.json",

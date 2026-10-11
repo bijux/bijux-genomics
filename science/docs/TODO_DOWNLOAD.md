@@ -1,6 +1,9 @@
 # Science Docs Download Backlog
 
-This file tracks manual evidence acquisition for `science/docs/`.
+This file tracks manual evidence acquisition using the `science/docs/` locator namespace.
+Payloads live in the external sibling `../bijux-genomics-science/`, or the
+configured `BIJUX_SCIENCE_ARCHIVE_ROOT`. Strip `science/docs/` from each locator
+and resolve the remainder under that external root; never download into this checkout.
 
 ## Purpose
 
@@ -26,8 +29,8 @@ GitHub repository evidence is governed separately through
 and
 [science/docs/upstream/github-repos/MANIFEST.tsv](upstream/github-repos/MANIFEST.tsv).
 
-That manifest is the durable target list for local repository mirrors under
-`science/docs/upstream/github-repos/mirrors/`.
+That manifest is the durable target list for repository mirrors with logical
+locators under `science/docs/upstream/github-repos/mirrors/`, stored externally.
 
 Paper payloads are governed separately through
 [science/docs/upstream/papers/README.md](upstream/papers/README.md)

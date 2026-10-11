@@ -17,6 +17,9 @@ const USAGE: &str = concat!(
     "--candidate <path> --data-root <path> --preserved-at-utc <timestamp> ",
     "--previous-registry <path> --source-commit <sha> ",
     "[--expected-previous-sha256 <sha256>]\n",
+    "  cargo run -p bijux-dna-dev -- tooling run benchmark-data-catalog-snapshots -- publish-materialized ",
+    "--data-root <path> --materialization-commit <sha> --preserved-at-utc <timestamp> ",
+    "--previous-registry <path> --source-commit <sha>\n",
     "  cargo run -p bijux-dna-dev -- tooling run benchmark-data-catalog-snapshots -- build-bam-diversity ",
     "--admitted-at-utc <timestamp> --candidate <path> --data-root <path> ",
     "--plan <path> --result-root <path> --source-spec <path>\n",
@@ -33,9 +36,55 @@ pub(in super::super) fn tooling_benchmark_data_catalog_snapshots(
     match operation.as_str() {
         "publish" => publish_snapshots(workspace, &options),
         "admit-derived" => admit_derived(workspace, &options),
+        "publish-materialized" => publish_materialized(workspace, &options),
         "build-bam-diversity" => build_bam_diversity(workspace, &options),
         _ => Ok(OpsCommandOutcome::failure(USAGE)),
     }
+}
+
+fn publish_materialized(
+    workspace: &Workspace,
+    options: &BTreeMap<String, String>,
+) -> Result<OpsCommandOutcome> {
+    let actual = options.keys().map(String::as_str).collect::<Vec<_>>();
+    let expected = [
+        "--data-root",
+        "--materialization-commit",
+        "--preserved-at-utc",
+        "--previous-registry",
+        "--source-commit",
+    ];
+    if actual != expected {
+        bail!("materialized catalog publication options differ from the operation contract");
+    }
+    let data_root = resolve_path(workspace, required(options, "--data-root")?);
+    let source_commit = required(options, "--source-commit")?.to_string();
+    let snapshots = bijux_dna_bench::publish_governed_materialized_data_catalog_snapshots(
+        &bijux_dna_bench::GovernedMaterializedDataCatalogSnapshotRequest {
+            data_root: data_root.clone(),
+            materialization_commit: required(options, "--materialization-commit")?.to_string(),
+            registry_source_commit: source_commit.clone(),
+            created_at_utc: required(options, "--preserved-at-utc")?.to_string(),
+            previous_registry_path: resolve_path(
+                workspace,
+                required(options, "--previous-registry")?,
+            ),
+        },
+    )?;
+    let registry = bijux_dna_bench::publish_governed_data_catalog_registry(
+        &bijux_dna_bench::GovernedDataCatalogRegistryPublicationRequest {
+            data_root,
+            source_commit,
+        },
+    )?;
+    Ok(OpsCommandOutcome::success(format!(
+        "published materialized data catalogs: {} admitted, {} retained, {} records, registry {}, sha256 {}\n",
+        snapshots.preserved_snapshot_count,
+        snapshots.retained_snapshot_count,
+        snapshots.registry.records.len(),
+        registry.registry_path.display(),
+        registry.registry_sha256,
+    )))
 }
 
 fn build_bam_diversity(

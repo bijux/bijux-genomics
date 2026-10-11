@@ -1,4 +1,5 @@
 pub mod checks;
+pub(crate) mod ci;
 pub mod containers;
 pub mod domain;
 pub mod ops;

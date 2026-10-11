@@ -290,7 +290,7 @@ fn bench_readiness_real_output_parser_smoke_writes_governed_json_file() {
                 && row.get("parser_surface").and_then(serde_json::Value::as_str)
                     == Some("serde_json::<Value> + governed vcf qc metric keys")
                 && row.get("proof_path").and_then(serde_json::Value::as_str).is_some_and(|path| {
-                    path.ends_with("runs/bench/local-smoke/vcf.qc/plink/metrics.json")
+                    path.ends_with("artifacts/runs/bench/local-smoke/vcf.qc/plink/metrics.json")
                 })
         }),
         "report file must retain governed VCF QC parser coverage"

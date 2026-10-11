@@ -69,6 +69,7 @@
 - `SlurmEvidenceSource`
 - `SLURM_JOB_HANDLE_SCHEMA_V1`
 - `PreparedBenchmarkSlurmJob`
+- `plan_corpus_materialization_slurm_spec`
 - `prepare_corpus_materialization_slurm_job`
 - `submit_prepared_corpus_materialization_job`
 - `load_corpus_materialization_slurm_job_handle`
@@ -77,13 +78,16 @@
 - `observe_corpus_materialization_slurm_job`
 - `collect_corpus_materialization_slurm_job`
 - `CorpusMaterializationSlurmSpec`
+- `CorpusMaterializationSlurmPlanRequest`
 - `CorpusMaterializationSlurmResources`
 - `PreparedCorpusMaterializationSlurmJob`
 - `CorpusMaterializationCollection`
 - `CorpusMaterializationEvidence`
 - `CorpusMaterializationEvidenceStatus`
 - `CORPUS_MATERIALIZATION_SLURM_SPEC_SCHEMA_V1`
+- `CORPUS_MATERIALIZATION_SLURM_SPEC_SCHEMA_V2`
 - `CORPUS_MATERIALIZATION_EVIDENCE_SCHEMA_V1`
+- `CORPUS_MATERIALIZATION_EVIDENCE_SCHEMA_V2`
 - `CORPUS_MATERIALIZATION_PREPARED_JOB_SCHEMA_V1`
 - `prepare_container_qualification_slurm_job`
 - `submit_prepared_container_qualification_job`
@@ -131,7 +135,8 @@
 ## Stability Rules
 - Prefer `bijux_dna_runner::api::*` for consumer-facing use.
 - `ApptainerRunner`, `DockerRunner`, and `LocalRunner` are the concrete runtime adapters exported at the crate root for higher layers.
-- Backend modules may expose backend contracts, but planning and CLI concerns must stay outside this crate.
+- Backend modules may expose scheduler contracts and source-locked execution planning; CLI parsing
+  stays outside this crate and product semantics stay with their owning domain crates.
 
 ## Source Authorities
 - `src/lib.rs` controls public module visibility and root re-exports.
@@ -155,3 +160,9 @@ Missing selections remain blocked per tool and do not form a portfolio barrier.
 runner-owned lifecycle for an exact external worker. The API binds source, worker, resources,
 dependencies, attempt layout, scheduler identity, accounting, and log hashes while leaving product
 semantics to the worker's owning crate.
+
+Corpus materialization planning derives the clean repository commit, executable and acquisition
+plan digests, collection-level corpus identity, catalog precondition, command projection, and
+immutable evidence root. Version 2 isolates each selected collection by `corpus_id`, so multiple
+single-species catalogs in one benchmark portfolio can materialize without a portfolio-wide lock or
+catalog collision; version 1 remains loadable for historical replay.

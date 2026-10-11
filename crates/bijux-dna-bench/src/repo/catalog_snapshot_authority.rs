@@ -7,10 +7,11 @@ use std::path::{Path, PathBuf};
 
 use anyhow::{bail, Context, Result};
 use bijux_dna_bench_model::{
-    validate_governed_data_catalog_registry, validate_governed_data_catalog_snapshot_publication,
-    validate_governed_derived_data_catalog, validate_governed_preserved_data_catalog,
-    validate_utc_timestamp, GovernedDataCatalogRegistry, GovernedDataCatalogRegistryRecord,
-    GovernedDataCatalogSnapshot, GovernedDerivedDataCatalog, GovernedPreservedDataCatalog,
+    validate_governed_data_catalog, validate_governed_data_catalog_registry,
+    validate_governed_data_catalog_snapshot_publication, validate_governed_derived_data_catalog,
+    validate_governed_preserved_data_catalog, validate_utc_timestamp, GovernedDataCatalog,
+    GovernedDataCatalogRegistry, GovernedDataCatalogRegistryRecord, GovernedDataCatalogSnapshot,
+    GovernedDerivedDataCatalog, GovernedPreservedDataCatalog,
     GOVERNED_DATA_CATALOG_REGISTRY_SCHEMA_V1, GOVERNED_DATA_CATALOG_SCHEMA_V1,
     GOVERNED_DATA_CATALOG_SCHEMA_V2, GOVERNED_DATA_CATALOG_SNAPSHOT_PUBLICATION_SCHEMA_V1,
     GOVERNED_DERIVED_DATA_CATALOG_SCHEMA_V1,
@@ -42,6 +43,205 @@ pub struct GovernedDerivedDataCatalogAdmission {
     pub catalog_path: PathBuf,
     pub catalog_sha256: String,
     pub replaced_catalog_sha256: Option<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct GovernedMaterializedDataCatalogSnapshotRequest {
+    pub data_root: PathBuf,
+    pub materialization_commit: String,
+    pub registry_source_commit: String,
+    pub created_at_utc: String,
+    pub previous_registry_path: PathBuf,
+}
+
+/// Compose every native materialized catalog for one source commit into a registry generation.
+///
+/// The complete candidate directory is validated before the registry is written. Prior records
+/// and their snapshot lineage are retained, while a newly materialized identity becomes current.
+/// Replays with identical candidates and registry bytes are idempotent.
+///
+/// # Errors
+/// Returns an error for an empty or unsafe candidate directory, malformed native catalogs,
+/// incomplete source or file closure, prior-registry drift, or an immutable publication conflict.
+pub fn publish_governed_materialized_data_catalog_snapshots(
+    request: &GovernedMaterializedDataCatalogSnapshotRequest,
+) -> Result<GovernedDataCatalogSnapshotPublication> {
+    require_commit(&request.materialization_commit)?;
+    require_commit(&request.registry_source_commit)?;
+    validate_utc_timestamp(&request.created_at_utc, "materialized catalog registry")?;
+    let data_root = canonical_directory(&request.data_root, "governed data root")?;
+    let prior = load_prior_registry(&request.previous_registry_path, &data_root)?;
+    let candidate_root = canonical_directory(
+        &data_root.join("catalog/snapshots").join(&request.materialization_commit),
+        "materialized catalog snapshot root",
+    )?;
+    if !candidate_root.starts_with(&data_root) {
+        bail!("materialized catalog snapshot root escapes governed data root");
+    }
+    let candidates = load_materialized_catalog_snapshots(
+        &candidate_root,
+        &data_root,
+        &request.materialization_commit,
+    )?;
+
+    let mut records = prior
+        .records
+        .into_iter()
+        .map(|record| (record.id.clone(), record))
+        .collect::<BTreeMap<_, _>>();
+    let mut preserved_snapshot_count = 0_u64;
+    for candidate in candidates {
+        preserved_snapshot_count = preserved_snapshot_count
+            .checked_add(1)
+            .context("materialized catalog snapshot count overflow")?;
+        match records.get_mut(&candidate.id) {
+            Some(record) => {
+                if let Some(existing) = record
+                    .snapshots
+                    .iter()
+                    .find(|snapshot| snapshot.catalog_path == candidate.snapshot.catalog_path)
+                {
+                    if existing != &candidate.snapshot {
+                        bail!(
+                            "materialized catalog snapshot conflicts with registered path: {}",
+                            candidate.snapshot.catalog_path
+                        );
+                    }
+                    continue;
+                }
+                if record
+                    .snapshots
+                    .iter()
+                    .any(|snapshot| snapshot.catalog_sha256 == candidate.snapshot.catalog_sha256)
+                {
+                    continue;
+                }
+                record.current_catalog_sha256 = candidate.snapshot.catalog_sha256.clone();
+                record.snapshots.push(candidate.snapshot);
+                record.snapshots.sort_by(|left, right| left.catalog_path.cmp(&right.catalog_path));
+            }
+            None => {
+                records.insert(
+                    candidate.id.clone(),
+                    GovernedDataCatalogRegistryRecord {
+                        id: candidate.id,
+                        current_catalog_sha256: candidate.snapshot.catalog_sha256.clone(),
+                        snapshots: vec![candidate.snapshot],
+                    },
+                );
+            }
+        }
+    }
+    let registry = GovernedDataCatalogRegistry {
+        schema_version: GOVERNED_DATA_CATALOG_REGISTRY_SCHEMA_V1.to_string(),
+        created_at_utc: request.created_at_utc.clone(),
+        data_root: "study://data".to_string(),
+        records: records.into_values().collect(),
+    };
+    validate_governed_data_catalog_registry(&registry)
+        .context("validate materialized governed data catalog registry")?;
+    let candidate_registry_path = data_root
+        .join("evidence/catalog-registries")
+        .join(&request.registry_source_commit)
+        .join("registry.json");
+    write_immutable_json(
+        &candidate_registry_path,
+        &registry,
+        "materialized catalog registry candidate",
+    )?;
+    let retained_snapshot_count = u64::try_from(registry.records.len())?
+        .checked_sub(preserved_snapshot_count)
+        .context("materialized registry retained count underflow")?;
+    let publication = GovernedDataCatalogSnapshotPublication {
+        schema_version: GOVERNED_DATA_CATALOG_SNAPSHOT_PUBLICATION_SCHEMA_V1.to_string(),
+        candidate_registry_path,
+        preserved_snapshot_count,
+        retained_snapshot_count,
+        registry,
+    };
+    validate_governed_data_catalog_snapshot_publication(&publication)
+        .context("validate materialized catalog snapshot publication")?;
+    Ok(publication)
+}
+
+struct MaterializedCatalogSnapshot {
+    id: String,
+    snapshot: GovernedDataCatalogSnapshot,
+}
+
+fn load_materialized_catalog_snapshots(
+    candidate_root: &Path,
+    data_root: &Path,
+    source_commit: &str,
+) -> Result<Vec<MaterializedCatalogSnapshot>> {
+    let mut paths = fs::read_dir(candidate_root)
+        .with_context(|| format!("read materialized catalog root {}", candidate_root.display()))?
+        .map(|entry| entry.map(|entry| entry.path()))
+        .collect::<std::io::Result<Vec<_>>>()?;
+    paths.sort();
+    let mut candidates = Vec::new();
+    let mut ids = BTreeSet::new();
+    for path in paths {
+        if path.extension().and_then(|value| value.to_str()) != Some("json") {
+            continue;
+        }
+        let path = canonical_file(&path, data_root, "materialized catalog snapshot")?;
+        let bytes = bijux_dna_infra::read_to_end_bounded(&path, MAX_CATALOG_BYTES)?;
+        let catalog: GovernedDataCatalog = serde_json::from_slice(&bytes)
+            .with_context(|| format!("parse native materialized catalog {}", path.display()))?;
+        validate_governed_data_catalog(&catalog)
+            .with_context(|| format!("validate native materialized catalog {}", path.display()))?;
+        if path.file_stem().and_then(|value| value.to_str()) != Some(catalog.id.as_str())
+            || !ids.insert(catalog.id.clone())
+        {
+            bail!("materialized catalog identity or filename is invalid: {}", path.display());
+        }
+        verify_materialized_catalog_closure(&catalog, data_root)?;
+        candidates.push(MaterializedCatalogSnapshot {
+            id: catalog.id.clone(),
+            snapshot: GovernedDataCatalogSnapshot {
+                catalog_path: format!(
+                    "study://data/catalog/snapshots/{source_commit}/{}.json",
+                    catalog.id
+                ),
+                catalog_sha256: bijux_dna_infra::hash_bytes_sha256(&bytes),
+                catalog_schema_version: GOVERNED_DATA_CATALOG_SCHEMA_V2.to_string(),
+                source_commit: source_commit.to_string(),
+                created_at_utc: catalog.admitted_at_utc,
+            },
+        });
+    }
+    if candidates.is_empty() {
+        bail!("materialized catalog snapshot root contains no native catalogs");
+    }
+    Ok(candidates)
+}
+
+fn verify_materialized_catalog_closure(
+    catalog: &GovernedDataCatalog,
+    data_root: &Path,
+) -> Result<()> {
+    let source_record = catalog
+        .source_record
+        .strip_prefix("study://data/")
+        .context("materialized catalog source record escapes governed data root")?;
+    let source_path = canonical_file(
+        &data_root.join(source_record),
+        data_root,
+        "materialized catalog source record",
+    )?;
+    if bijux_dna_infra::hash_file_sha256(&source_path)? != catalog.source_record_sha256 {
+        bail!("materialized catalog source record digest drifted: {}", source_path.display());
+    }
+    for file in &catalog.files {
+        let path = canonical_file(Path::new(&file.path), data_root, "materialized catalog file")?;
+        if fs::metadata(&path)?.len() != file.size_bytes
+            || bijux_dna_infra::hash_file_sha256(&path)? != file.sha256
+        {
+            bail!("materialized catalog file identity drifted: {}", path.display());
+        }
+    }
+    Ok(())
 }
 
 /// Admit one checksum-closed derived catalog as the flat current authority.

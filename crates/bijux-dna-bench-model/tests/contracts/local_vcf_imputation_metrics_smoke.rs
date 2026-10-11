@@ -16,21 +16,21 @@ fn report() -> BenchmarkLocalVcfImputationMetricsSmokeReport {
         input_fixture_id: "masked-truth-sample".to_string(),
         panel_id: "reference-panel".to_string(),
         map_id: "genetic-map".to_string(),
-        output_root: "runs/bench/local-smoke/vcf.imputation_metrics/impute5".to_string(),
+        output_root: "artifacts/runs/bench/local-smoke/vcf.imputation_metrics/impute5".to_string(),
         imputation_metrics_path:
-            "runs/bench/local-smoke/vcf.imputation_metrics/impute5/imputation_metrics.json"
+            "artifacts/runs/bench/local-smoke/vcf.imputation_metrics/impute5/imputation_metrics.json"
                 .to_string(),
         source_imputation_qc_path:
-            "runs/bench/local-smoke/vcf.imputation_metrics/impute5/source_imputation_qc.json"
+            "artifacts/runs/bench/local-smoke/vcf.imputation_metrics/impute5/source_imputation_qc.json"
                 .to_string(),
         source_impute_smoke_metrics_path:
-            "runs/bench/local-smoke/vcf.imputation_metrics/impute5/source_impute_smoke_metrics.json"
+            "artifacts/runs/bench/local-smoke/vcf.imputation_metrics/impute5/source_impute_smoke_metrics.json"
                 .to_string(),
         source_imputation_manifest_path:
-            "runs/bench/local-smoke/vcf.imputation_metrics/impute5/source_imputation_manifest.json"
+            "artifacts/runs/bench/local-smoke/vcf.imputation_metrics/impute5/source_imputation_manifest.json"
                 .to_string(),
         stage_result_manifest_path:
-            "runs/bench/local-smoke/vcf.imputation_metrics/impute5/stage-result.json".to_string(),
+            "artifacts/runs/bench/local-smoke/vcf.imputation_metrics/impute5/stage-result.json".to_string(),
         started_at: "unix:1".to_string(),
         finished_at: "unix:2".to_string(),
         elapsed_seconds: 0.25,

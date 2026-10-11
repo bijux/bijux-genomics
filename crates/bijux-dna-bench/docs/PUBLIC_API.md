@@ -11,9 +11,16 @@ The `public_api` module itself is private. Stable exports are owned by
 
 ## Stable Operations
 
+- `inspect_benchmark_source_asset(root, path)` returns an optional typed content
+  identity for a file, directory, or index-prefix bundle before staging. It
+  preserves logical source paths and sorted compound digests, rejects directory
+  cycles, and creates no outputs. `BenchmarkSourceKind::as_str()` preserves the
+  existing `file`, `directory`, and `prefix_bundle` manifest spellings.
 - `load_suite(path)` loads and validates a benchmark suite TOML file.
 - `load_stage_campaign_registry(path)` loads and validates a benchmark stage-campaign registry TOML file.
 - `load_benchmark_portfolio(path)` loads and validates a benchmark portfolio TOML file.
+- `load_benchmark_progress_ledger(path)` performs bounded non-symlink loading and validates task,
+  execution-unit, attempt, check, commit, external-wait, and frontier references.
 - `load_stage_interface_catalog(path)` loads and validates the stage-interface catalog, parameter configuration, and referenced repository contracts.
 - `load_stage_interface_catalog_from_repo(path, repository_root)` performs the same admission against an explicit workspace root for production callers.
 - `load_stage_interface_catalog_for_publication(path, source_repository_root, presentation_repository_root)` keeps historical interface fields source-locked while completing only absent render metadata from an explicit presentation authority.
@@ -70,8 +77,10 @@ The `public_api` module itself is private. Stable exports are owned by
 - `publish_benchmark_campaign_report_with_presentation_authority(source_repository_root, presentation_repository_root, study_root, benchmark_root, plan, output_root)` publishes a source-locked historical campaign and returns the exact presentation commit, catalog digest, and overlaid stage IDs in its receipt.
 - `publish_case_benchmark_campaign_report_with_presentation_authority(source_repository_root, presentation_repository_root, study_root, benchmark_root, plan, case_matrix, output_root)` preserves the exact verified case-matrix authority through generic dispatch and stage-owned publication.
 - `acquire_fastq_corpus(request)` resolves a reviewed corpus specification against exact ENA run metadata and atomically publishes a no-clobber acquisition plan.
+- `acquire_selected_fastq_collection(request)` resolves one explicitly frozen FASTQ collection from a domain-neutral source authority and publishes a no-clobber plan without conflating different scientific names.
 - `derive_fastq_corpus_acquisition_plan(spec_path, records, retrieved_at_utc)` deterministically derives the same validated plan from typed offline ENA records.
-- `materialize_fastq_corpus(request)` re-verifies or transfers checksum-pinned ENA files, validates every gzip FASTQ record, makes the admitted files read-only, and atomically publishes a no-clobber governed catalog.
+- `derive_selected_fastq_collection_acquisition_plan(spec_path, collection_id, records, retrieved_at_utc)` deterministically derives the selected-collection plan from typed offline ENA records.
+- `materialize_fastq_corpus(request)` re-verifies or transfers checksum-pinned ENA files, validates every gzip FASTQ record, makes the admitted files read-only, and atomically publishes a no-clobber collection catalog keyed by the acquisition plan's `corpus_id`; `portfolio_id` remains grouping metadata.
 - `admit_fastq_benchmark_corpus(study_root, data_index_path, corpus_id, expected_sample_count, expected_file_count)` re-hashes and admits one exact governed FASTQ closure.
 - `admit_bam_benchmark_corpus(study_root, data_index_path, corpus_id)` re-hashes and admits one exact governed coordinate-sorted BAM and BAI closure.
 - `ensure_fastq_read_length_expectations(study_root, data_index_path, corpus_id, expected_sample_count, expected_file_count)` independently derives and immutably publishes exact read-length evidence.
@@ -173,6 +182,7 @@ including:
 - `BenchmarkAttemptRecordV2`
 - `BenchmarkAttemptTransition`
 - `BenchmarkCycleStatusV2`
+- `BenchmarkProgressLedger`
 - `BenchmarkCampaignPlan`
 - `BenchmarkExecutionSpec`
 - `BenchmarkStagePlanManifest`
@@ -259,3 +269,17 @@ including:
   operations.
 - Update `docs/COMMANDS.md`, `docs/BENCH_CONTRACT.md`, and tests when adding a
   new public benchmark operation or artifact shape.
+
+Normalized FASTQ metadata is exposed through `NormalizedFastqSample`, `load_fastq_corpus_source_for_id`, `normalized_fastq_expected_sample_total`, `expected_fastq_publication_cohort_counts`, `discover_normalized_fastq_samples`, `match_normalized_fastq_corpus_metadata`, and `select_normalized_fastq_paired_samples`. These admit the normalized-directory and MANIFEST.json publication contract. Governed data-index admission remains the separate versioned catalog boundary.
+
+Normalized FASTQ metadata admission verifies the v1 manifest schema (including the legacy omitted version), unique canonical paths, current raw and normalized SHA-256 content, exact sample/accession closure, mate agreement and curated layout. The manifest is bounded to 64 MiB; read content is hashed with fixed-size buffers. Symlinked authority paths are rejected. Full and paired selection retain declared zero-sized cohorts. Digest identity does not establish FASTQ record semantics or read-pair scientific compatibility; those require domain validation. Inputs must remain unchanged between admission and consumption.
+
+## Pipeline Profile Admission
+
+`validate_benchmark_pipeline_profiles` consumes the model-owned local pipeline configuration and a `PipelineProfileEvidence` provider. It returns the existing profile-validation reports and retains provider failures. The provider supplies governed corpus/stage compatibility and VCF matrix evidence only when selected rules request it. Admission of graph topology and repository metadata remains a caller obligation; these symbolic profile checks do not qualify executed scientific tools.
+
+## Local Stage Inventory
+
+`load_benchmark_local_stage_inventory(root, domain)` reads the governed FASTQ, BAM or VCF matrix under an explicit repository root, checks its schema and stage identity, and preserves declaration order without writing outputs. `BenchmarkLocalStageInventoryDomain` selects the domain. `render_benchmark_all_domain_stage_inventory(root, domains, output)` preserves requested domain order, validates aggregate closure, and atomically publishes the existing report schema. Invalid selections or matrices leave existing report bytes intact. These operations admit declared readiness; they do not establish execution or tool qualification.
+
+FASTQ/BAM stage matrix inputs use the model-owned `BenchmarkLocalStageMatrixConfig`; its registered JSON Schema is `benchmarks/contracts/schemas/local-stage-matrix-config.schema.json`. The repository loader remains the semantic admission boundary for selected domain and stage identity.

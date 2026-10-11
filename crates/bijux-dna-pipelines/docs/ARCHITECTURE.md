@@ -3,6 +3,7 @@
 `bijux-dna-pipelines` owns canonical pipeline profiles, defaults, manifests, and registry lookup contracts. It does not execute pipelines.
 
 ## Source Layout
+- `src/artifact_flow.rs` validates symbolic producers, dependency closure, and deterministic DAG order without repository IO or benchmark readiness policy.
 - `src/lib.rs` exposes the stable module tree and root reexports.
 - `src/public_api/` mirrors the curated stable surface for downstream imports.
 - `src/contract/` owns profile, manifest, capability, invariant, projection, and vocabulary contracts.

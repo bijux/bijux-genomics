@@ -1058,10 +1058,9 @@ mod tests {
             .required_local_smoke_fields
             .iter()
             .any(|field| field == "read_pairs"));
-        assert!(insert_size_row
-            .local_smoke_artifact_paths
-            .iter()
-            .any(|path| path == "runs/bench/local-smoke/bam.insert_size/insert_size.json"));
+        assert!(insert_size_row.local_smoke_artifact_paths.iter().any(
+            |path| path == "artifacts/runs/bench/local-smoke/bam.insert_size/insert_size.json"
+        ));
 
         let gc_bias_row =
             report.rows.iter().find(|row| row.stage_id == "bam.gc_bias").expect("bam.gc_bias row");

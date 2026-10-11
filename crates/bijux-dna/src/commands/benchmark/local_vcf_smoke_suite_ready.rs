@@ -73,7 +73,7 @@ pub(crate) fn validate_vcf_smoke_suite_ready(
         &mut checks,
         211,
         "vcf.call smoke",
-        Some("runs/bench/local-smoke/vcf.call/bcftools/calls.vcf.gz".to_string()),
+        Some("artifacts/runs/bench/local-smoke/vcf.call/bcftools/calls.vcf.gz".to_string()),
         || {
             let _report = run_local_vcf_call_smoke(repo_root, GOVERNED_VCF_CALL_TOOL_ID)?;
             Ok("validated governed single-sample call smoke output".to_string())
@@ -83,7 +83,9 @@ pub(crate) fn validate_vcf_smoke_suite_ready(
         &mut checks,
         212,
         "vcf.call_diploid smoke",
-        Some("runs/bench/local-smoke/vcf.call_diploid/bcftools/diploid.vcf.gz".to_string()),
+        Some(
+            "artifacts/runs/bench/local-smoke/vcf.call_diploid/bcftools/diploid.vcf.gz".to_string(),
+        ),
         || {
             let _report = run_local_vcf_call_diploid_smoke(repo_root, GOVERNED_VCF_CALL_TOOL_ID)?;
             Ok("validated governed diploid genotype smoke output".to_string())
@@ -94,7 +96,7 @@ pub(crate) fn validate_vcf_smoke_suite_ready(
         213,
         "vcf.call_pseudohaploid smoke",
         Some(
-            "runs/bench/local-smoke/vcf.call_pseudohaploid/bcftools/pseudohaploid.vcf.gz"
+            "artifacts/runs/bench/local-smoke/vcf.call_pseudohaploid/bcftools/pseudohaploid.vcf.gz"
                 .to_string(),
         ),
         || {
@@ -107,7 +109,7 @@ pub(crate) fn validate_vcf_smoke_suite_ready(
         &mut checks,
         214,
         "vcf.call_gl smoke",
-        Some("runs/bench/local-smoke/vcf.call_gl/bcftools/gl.vcf.gz".to_string()),
+        Some("artifacts/runs/bench/local-smoke/vcf.call_gl/bcftools/gl.vcf.gz".to_string()),
         || {
             let _report = run_local_vcf_call_gl_smoke(repo_root, GOVERNED_VCF_CALL_TOOL_ID)?;
             Ok("validated governed likelihood-bearing GL smoke output".to_string())
@@ -118,7 +120,7 @@ pub(crate) fn validate_vcf_smoke_suite_ready(
         215,
         "vcf.damage_filter smoke",
         Some(
-            "runs/bench/local-smoke/vcf.damage_filter/bcftools/damage_filter_summary.json"
+            "artifacts/runs/bench/local-smoke/vcf.damage_filter/bcftools/damage_filter_summary.json"
                 .to_string(),
         ),
         || {
@@ -131,7 +133,7 @@ pub(crate) fn validate_vcf_smoke_suite_ready(
         216,
         "vcf.gl_propagation smoke",
         Some(
-            "runs/bench/local-smoke/vcf.gl_propagation/bcftools/gl_propagation_report.json"
+            "artifacts/runs/bench/local-smoke/vcf.gl_propagation/bcftools/gl_propagation_report.json"
                 .to_string(),
         ),
         || {
@@ -143,7 +145,9 @@ pub(crate) fn validate_vcf_smoke_suite_ready(
         &mut checks,
         217,
         "vcf.filter smoke",
-        Some("runs/bench/local-smoke/vcf.filter/bcftools/filter_explain.json".to_string()),
+        Some(
+            "artifacts/runs/bench/local-smoke/vcf.filter/bcftools/filter_explain.json".to_string(),
+        ),
         || {
             let _report = run_local_vcf_filter_smoke(repo_root, GOVERNED_VCF_CALL_TOOL_ID)?;
             Ok("validated governed filter smoke thresholds and reviewer-facing breakdown"
@@ -154,7 +158,7 @@ pub(crate) fn validate_vcf_smoke_suite_ready(
         &mut checks,
         218,
         "vcf.stats smoke",
-        Some("runs/bench/local-smoke/vcf.stats/bcftools/stats.json".to_string()),
+        Some("artifacts/runs/bench/local-smoke/vcf.stats/bcftools/stats.json".to_string()),
         || {
             let _report = run_local_vcf_stats_smoke(repo_root, GOVERNED_VCF_CALL_TOOL_ID)?;
             Ok("validated governed stats smoke metrics and normalized ti/tv output".to_string())
@@ -164,7 +168,7 @@ pub(crate) fn validate_vcf_smoke_suite_ready(
         &mut checks,
         219,
         "vcf.qc smoke",
-        Some("runs/bench/local-smoke/vcf.qc/plink2/qc.json".to_string()),
+        Some("artifacts/runs/bench/local-smoke/vcf.qc/plink2/qc.json".to_string()),
         || {
             let _report = run_local_vcf_qc_smoke(repo_root, GOVERNED_VCF_QC_TOOL_ID)?;
             Ok("validated governed QC smoke exclusion evidence".to_string())
@@ -175,7 +179,8 @@ pub(crate) fn validate_vcf_smoke_suite_ready(
         220,
         "vcf.prepare_reference_panel smoke",
         Some(
-            "runs/bench/local-smoke/vcf.prepare_reference_panel/bcftools/panel.vcf.gz".to_string(),
+            "artifacts/runs/bench/local-smoke/vcf.prepare_reference_panel/bcftools/panel.vcf.gz"
+                .to_string(),
         ),
         || {
             let _report =
@@ -188,7 +193,7 @@ pub(crate) fn validate_vcf_smoke_suite_ready(
         &mut checks,
         221,
         "vcf.phasing smoke",
-        Some("runs/bench/local-smoke/vcf.phasing/shapeit5/phased.vcf.gz".to_string()),
+        Some("artifacts/runs/bench/local-smoke/vcf.phasing/shapeit5/phased.vcf.gz".to_string()),
         || {
             let _report =
                 run_local_vcf_phasing_smoke(repo_root, GOVERNED_VCF_PANEL_WORKFLOW_TOOL_ID)?;
@@ -199,7 +204,7 @@ pub(crate) fn validate_vcf_smoke_suite_ready(
         &mut checks,
         222,
         "vcf.impute smoke",
-        Some("runs/bench/local-smoke/vcf.impute/beagle/imputed.vcf.gz".to_string()),
+        Some("artifacts/runs/bench/local-smoke/vcf.impute/beagle/imputed.vcf.gz".to_string()),
         || {
             let _report = run_local_vcf_impute_smoke(repo_root, GOVERNED_VCF_IMPUTE_TOOL_ID)?;
             Ok("validated governed impute smoke output and masked-truth evidence".to_string())
@@ -210,7 +215,7 @@ pub(crate) fn validate_vcf_smoke_suite_ready(
         223,
         "vcf.imputation_metrics smoke",
         Some(
-            "runs/bench/local-smoke/vcf.imputation_metrics/beagle/imputation_metrics.json"
+            "artifacts/runs/bench/local-smoke/vcf.imputation_metrics/beagle/imputation_metrics.json"
                 .to_string(),
         ),
         || {
@@ -223,7 +228,7 @@ pub(crate) fn validate_vcf_smoke_suite_ready(
         &mut checks,
         224,
         "vcf.pca smoke",
-        Some("runs/bench/local-smoke/vcf.pca/plink2/pca.json".to_string()),
+        Some("artifacts/runs/bench/local-smoke/vcf.pca/plink2/pca.json".to_string()),
         || {
             let _report = run_local_vcf_pca_smoke(repo_root, GOVERNED_VCF_COHORT_TOOL_ID)?;
             Ok("validated governed PCA smoke report with sample and eigenvalue evidence"
@@ -234,7 +239,7 @@ pub(crate) fn validate_vcf_smoke_suite_ready(
         &mut checks,
         225,
         "vcf.admixture smoke",
-        Some("runs/bench/local-smoke/vcf.admixture/plink2/admixture.json".to_string()),
+        Some("artifacts/runs/bench/local-smoke/vcf.admixture/plink2/admixture.json".to_string()),
         || {
             let _report = run_local_vcf_admixture_smoke(repo_root, GOVERNED_VCF_COHORT_TOOL_ID)?;
             Ok("validated governed admixture smoke report and structured insufficiency evidence"
@@ -246,7 +251,7 @@ pub(crate) fn validate_vcf_smoke_suite_ready(
         226,
         "vcf.population_structure smoke",
         Some(
-            "runs/bench/local-smoke/vcf.population_structure/plink2/population_structure.json"
+            "artifacts/runs/bench/local-smoke/vcf.population_structure/plink2/population_structure.json"
                 .to_string(),
         ),
         || {
@@ -259,7 +264,7 @@ pub(crate) fn validate_vcf_smoke_suite_ready(
         &mut checks,
         227,
         "vcf.roh smoke",
-        Some("runs/bench/local-smoke/vcf.roh/plink2/roh.json".to_string()),
+        Some("artifacts/runs/bench/local-smoke/vcf.roh/plink2/roh.json".to_string()),
         || {
             let _report = run_local_vcf_roh_smoke(repo_root, GOVERNED_VCF_COHORT_TOOL_ID)?;
             Ok("validated governed ROH smoke report and per-sample segment evidence".to_string())
@@ -269,7 +274,7 @@ pub(crate) fn validate_vcf_smoke_suite_ready(
         &mut checks,
         228,
         "vcf.ibd smoke",
-        Some("runs/bench/local-smoke/vcf.ibd/germline/ibd.json".to_string()),
+        Some("artifacts/runs/bench/local-smoke/vcf.ibd/germline/ibd.json".to_string()),
         || {
             let _report = run_local_vcf_ibd_smoke(repo_root, GOVERNED_VCF_IBD_TOOL_ID)?;
             Ok("validated governed IBD smoke report and localized insufficient-overlap probe"
@@ -280,7 +285,7 @@ pub(crate) fn validate_vcf_smoke_suite_ready(
         &mut checks,
         229,
         "vcf.demography smoke",
-        Some("runs/bench/local-smoke/vcf.demography/ibdne/demography.json".to_string()),
+        Some("artifacts/runs/bench/local-smoke/vcf.demography/ibdne/demography.json".to_string()),
         || {
             let _report =
                 run_local_vcf_demography_smoke(repo_root, GOVERNED_VCF_DEMOGRAPHY_TOOL_ID)?;
@@ -385,7 +390,7 @@ mod tests {
                 goal_id: 211,
                 surface: "vcf.call smoke".to_string(),
                 output_path: Some(
-                    "runs/bench/local-smoke/vcf.call/bcftools/calls.vcf.gz".to_string(),
+                    "artifacts/runs/bench/local-smoke/vcf.call/bcftools/calls.vcf.gz".to_string(),
                 ),
                 ok: true,
                 detail: "ok".to_string(),
@@ -394,7 +399,8 @@ mod tests {
                 goal_id: 229,
                 surface: "vcf.demography smoke".to_string(),
                 output_path: Some(
-                    "runs/bench/local-smoke/vcf.demography/ibdne/demography.json".to_string(),
+                    "artifacts/runs/bench/local-smoke/vcf.demography/ibdne/demography.json"
+                        .to_string(),
                 ),
                 ok: false,
                 detail: "insufficient-data probe missing".to_string(),
@@ -424,7 +430,7 @@ mod tests {
                 goal_id: 211,
                 surface: "vcf.call smoke".to_string(),
                 output_path: Some(
-                    "runs/bench/local-smoke/vcf.call/bcftools/calls.vcf.gz".to_string(),
+                    "artifacts/runs/bench/local-smoke/vcf.call/bcftools/calls.vcf.gz".to_string(),
                 ),
                 ok: true,
                 detail: "ok".to_string(),
@@ -433,7 +439,8 @@ mod tests {
                 goal_id: 212,
                 surface: "vcf.call_diploid smoke".to_string(),
                 output_path: Some(
-                    "runs/bench/local-smoke/vcf.call_diploid/bcftools/diploid.vcf.gz".to_string(),
+                    "artifacts/runs/bench/local-smoke/vcf.call_diploid/bcftools/diploid.vcf.gz"
+                        .to_string(),
                 ),
                 ok: true,
                 detail: "ok".to_string(),

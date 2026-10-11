@@ -1,4 +1,4 @@
-use super::{path_from_arg, read_utf8, success_line, ContainerCommandOutcome, Result, Workspace};
+use super::{path_from_arg, success_line, ContainerCommandOutcome, Result, Workspace};
 
 const SCHEMA_PATH: &str = "containers/contracts/schemas/external-artifact-admission.v2.json";
 const USAGE: &str = "Usage:\n  bijux-dna-dev containers run external-artifact -- admit <repository-root> <active-image-root> <repository-commit> <tool-id> <binary|apptainer_sif> <artifact> <sha256> <lawful-access-basis> <recorded-at-utc> <output> [<apptainer>]\n  bijux-dna-dev containers run external-artifact -- block <repository-root> <active-image-root> <repository-commit> <tool-id> <recorded-at-utc> <output> <reason>\n  bijux-dna-dev containers run external-artifact -- unavailable <repository-root> <active-image-root> <repository-commit> <tool-id> <recorded-at-utc> <output> <reason>\n  bijux-dna-dev containers run external-artifact -- verify <repository-root> <active-image-root> <record>\n  bijux-dna-dev containers run external-artifact -- bind <repository-root> <active-image-root> <record> <stage-id> <apptainer-or-dash> <program> [<argument> ...]\n  bijux-dna-dev containers run external-artifact -- generate-schema [<output>]\n  bijux-dna-dev containers run external-artifact -- check-schema";
@@ -157,22 +157,18 @@ fn check_schema(workspace: &Workspace, args: &[String]) -> Result<ContainerComma
     if !args.is_empty() {
         anyhow::bail!(USAGE);
     }
-    let checked: serde_json::Value =
-        serde_json::from_str(&read_utf8(&workspace.path(SCHEMA_PATH))?)?;
-    if checked != bijux_dna_containers::api::external_artifact_admission_schema() {
+    if !bijux_dna_containers::api::external_artifact_admission_schema_matches(
+        &workspace.path(SCHEMA_PATH),
+    )? {
         return Ok(ContainerCommandOutcome::failure(
-            "external-artifact schema drifted from Rust environment types\n",
+            "external-artifact schema drifted from Rust container types\n",
         ));
     }
     success_line("external-artifact schema: OK")
 }
 
 fn parse_kind(value: &str) -> Result<bijux_dna_containers::api::ExternalArtifactKind> {
-    match value {
-        "binary" => Ok(bijux_dna_containers::api::ExternalArtifactKind::Binary),
-        "apptainer_sif" => Ok(bijux_dna_containers::api::ExternalArtifactKind::ApptainerSif),
-        _ => anyhow::bail!("unsupported external artifact kind: {value}"),
-    }
+    value.parse()
 }
 
 #[cfg(test)]

@@ -30,7 +30,7 @@ use crate::commands::cli::render;
 
 const LOCAL_HPC_SCRATCH_LAYOUT_SCHEMA_VERSION: &str = BENCHMARK_LOCAL_HPC_SCRATCH_LAYOUT_SCHEMA_V1;
 pub(crate) const DEFAULT_HPC_SCRATCH_LAYOUT_PATH: &str =
-    "runs/bench/hpc-dry-run/scratch-layout.json";
+    "artifacts/runs/bench/hpc-dry-run/scratch-layout.json";
 const CLEANUP_POLICY_ID: &str = "copy_back_outputs_remove_successful_scratch";
 const DEFAULT_ALL_DOMAIN_RENDERED_COMMANDS_ARGV_PATH: &str =
     "artifacts/benchmark-smoke/readiness/hpc/rendered-commands-all-domains.argv.jsonl";
@@ -492,7 +492,7 @@ fn to_input_link(
     Ok(LocalHpcScratchInputLink {
         artifact_id: input.artifact_id,
         artifact_role: input.artifact_role,
-        source_kind: input.source_asset.source_kind,
+        source_kind: input.source_asset.kind.as_str().to_string(),
         source_path: input.source_asset.source_path,
         staged_path,
         link_path,
@@ -585,7 +585,7 @@ mod tests {
     }
 
     fn manifest_path(repo_root: &Path, label: &str) -> (tempfile::TempDir, PathBuf) {
-        let temp_root = repo_root.join("runs/bench/hpc-dry-run");
+        let temp_root = repo_root.join("artifacts/runs/bench/hpc-dry-run");
         std::fs::create_dir_all(&temp_root).expect("create HPC scratch-layout test root");
         let temp_dir = tempfile::Builder::new()
             .prefix(label)
@@ -632,7 +632,7 @@ mod tests {
             .expect("governed BAM benchmark job");
         assert!(benchmark_job
             .scratch_root
-            .starts_with("runs/bench/hpc-dry-run/scratch/benchmark-results/"));
+            .starts_with("artifacts/runs/bench/hpc-dry-run/scratch/benchmark-results/"));
         assert_eq!(
             benchmark_job.cleanup_policy.policy_id,
             "copy_back_outputs_remove_successful_scratch"
@@ -640,7 +640,7 @@ mod tests {
         assert!(benchmark_job.input_links.iter().any(|input| {
             input.source_path == "assets/reference/host/references/toy_host_reference"
                 && input.staged_path
-                    == "runs/bench/hpc-dry-run/staged/assets/reference/host/references/toy_host_reference"
+                    == "artifacts/runs/bench/hpc-dry-run/staged/assets/reference/host/references/toy_host_reference"
                 && input.link_path.starts_with(&benchmark_job.input_links_root)
         }));
 
@@ -651,7 +651,7 @@ mod tests {
             .expect("essential pipeline job");
         assert!(pipeline_job
             .scratch_root
-            .starts_with("runs/bench/hpc-dry-run/scratch/essential-pipelines/"));
+            .starts_with("artifacts/runs/bench/hpc-dry-run/scratch/essential-pipelines/"));
         assert!(!pipeline_job.output_root.is_empty());
         assert!(!pipeline_job.log_root.is_empty());
         assert!(pipeline_job.resources.scratch_gb > 0);

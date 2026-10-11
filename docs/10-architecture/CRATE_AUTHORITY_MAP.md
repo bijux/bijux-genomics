@@ -8,7 +8,7 @@ responsibility table.
 ## Authority
 
 The repository-wide ownership source of truth is
-[TARGET_ARCHITECTURE.md](../../TARGET_ARCHITECTURE.md). It defines the exclusive container and
+[TARGET_ARCHITECTURE.md](TARGET_ARCHITECTURE.md). It defines the exclusive container and
 benchmark product owners, supporting crate boundaries, generic lifecycle, and thin CLI/operator
 rules.
 

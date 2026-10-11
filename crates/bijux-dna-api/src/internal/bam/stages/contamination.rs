@@ -86,7 +86,7 @@ struct LocalContaminationCasePaths {
 
 /// Materialize the governed local-smoke `bam.contamination` bundle for all retained tools.
 ///
-/// The written report lives at `runs/bench/local-smoke/bam.contamination/local_smoke.json`
+/// The written report lives at `artifacts/runs/bench/local-smoke/bam.contamination/local_smoke.json`
 /// under the active repository root.
 ///
 /// # Errors
@@ -101,7 +101,7 @@ pub fn write_local_contamination_smoke_report() -> Result<PathBuf> {
         ));
     }
 
-    let output_root = repo_root.join("runs/bench/local-smoke/bam.contamination");
+    let output_root = repo_root.join("artifacts/runs/bench/local-smoke/bam.contamination");
     bijux_dna_infra::ensure_dir(&output_root)?;
 
     let sample_id = required_string_param(&plans[0], "sample_id")?;
@@ -242,7 +242,7 @@ fn resolve_local_contamination_case_paths(
     proof_case: ProofCaseKind,
 ) -> Result<LocalContaminationCasePaths> {
     let case_dir = repo_root
-        .join("runs/bench/local-smoke/bam.contamination")
+        .join("artifacts/runs/bench/local-smoke/bam.contamination")
         .join(tool_id)
         .join(proof_case.as_str());
     bijux_dna_infra::ensure_dir(&case_dir)?;

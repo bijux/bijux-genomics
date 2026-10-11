@@ -10,7 +10,7 @@ fn input(source: &str, consumer: &str) -> BenchmarkLocalHpcAssetStagingInput {
         artifact_role: Some("reference".to_string()),
         source_kind: "file".to_string(),
         source_path: source.to_string(),
-        staged_path: format!("runs/bench/hpc-dry-run/staged/{source}"),
+        staged_path: format!("artifacts/runs/bench/hpc-dry-run/staged/{source}"),
         checksum_sha256: "a".repeat(64),
         size_bytes: 1024,
         member_count: 1,
@@ -40,8 +40,8 @@ fn manifest() -> BenchmarkLocalHpcAssetStagingManifest {
     let shared = "assets/reference/genome.fasta";
     BenchmarkLocalHpcAssetStagingManifest {
         schema_version: BENCHMARK_LOCAL_HPC_ASSET_STAGING_SCHEMA_V1.to_string(),
-        output_path: "runs/bench/hpc-dry-run/asset-staging-manifest.json".to_string(),
-        staging_root: "runs/bench/hpc-dry-run/staged".to_string(),
+        output_path: "artifacts/runs/bench/hpc-dry-run/asset-staging-manifest.json".to_string(),
+        staging_root: "artifacts/runs/bench/hpc-dry-run/staged".to_string(),
         selected_job_count: 2,
         staged_input_count: 3,
         unique_source_path_count: 2,
@@ -121,7 +121,7 @@ fn local_hpc_asset_staging_rejects_counter_identity_and_order_drift() {
 fn local_hpc_asset_staging_rejects_unsafe_or_incomplete_inputs() {
     let mut overlapping_roots = manifest();
     overlapping_roots.staging_root =
-        "runs/bench/hpc-dry-run/asset-staging-manifest.json/staged".to_string();
+        "artifacts/runs/bench/hpc-dry-run/asset-staging-manifest.json/staged".to_string();
     assert!(validate_benchmark_local_hpc_asset_staging_manifest(&overlapping_roots).is_err());
 
     let mut consumer = manifest();
@@ -130,7 +130,7 @@ fn local_hpc_asset_staging_rejects_unsafe_or_incomplete_inputs() {
 
     let mut staged_lineage = manifest();
     staged_lineage.jobs[0].staged_inputs[0].staged_path =
-        "runs/bench/hpc-dry-run/staged/other.fasta".to_string();
+        "artifacts/runs/bench/hpc-dry-run/staged/other.fasta".to_string();
     assert!(validate_benchmark_local_hpc_asset_staging_manifest(&staged_lineage).is_err());
 
     let mut traversal = manifest();
@@ -139,7 +139,7 @@ fn local_hpc_asset_staging_rejects_unsafe_or_incomplete_inputs() {
 
     let mut already_staged = manifest();
     already_staged.jobs[0].staged_inputs[0].source_path =
-        "runs/bench/hpc-dry-run/staged/already-present.fasta".to_string();
+        "artifacts/runs/bench/hpc-dry-run/staged/already-present.fasta".to_string();
     assert!(validate_benchmark_local_hpc_asset_staging_manifest(&already_staged).is_err());
 
     let mut source_kind = manifest();

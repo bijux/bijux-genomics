@@ -2,7 +2,7 @@
 # purpose = Source authorities for amplicon community truth
 # authority = bijux-genomics-benchmarks
 # stability = stable
-# last_updated = 2026-08-08
+# last_updated = 2026-08-16
 
 schema_version = "bijux.benchmark.data_source.v1"
 portfolio_id = "amplicon-community-challenge"
@@ -40,6 +40,8 @@ source_url = "https://www.ncbi.nlm.nih.gov/sra/SRX1478507"
 access_terms_url = "https://www.ncbi.nlm.nih.gov/home/about/policies/"
 data_types = ["amplicon_reference", "fastq"]
 planned_sample_count = 1
+selected_accessions = ["SRR2990088"]
+sample_era = "not_applicable"
 selection_scope = "The single paired-end MiSeq run and its declared 27-isolate composition spanning six orders of abundance."
 truth_basis = "The archive record declares isolate membership, fine-scale 16S differences, and designed frequency range."
 known_limitations = ["One run cannot establish cross-batch or cross-laboratory repeatability."]
@@ -52,6 +54,22 @@ source_url = "https://www.ncbi.nlm.nih.gov/bioproject/48341"
 access_terms_url = "https://www.ncbi.nlm.nih.gov/home/about/policies/"
 data_types = ["amplicon_reference", "fastq"]
 planned_sample_count = 10
-selection_scope = "Ten protocol-validation runs selected across HMP centers, amplified regions, and replicates with exact accessions frozen at acquisition."
-truth_basis = "A common mock material with known organism membership supports membership and cross-center consistency measurements."
-known_limitations = ["Expected relative abundance and reference-copy-number corrections require a separately checksummed truth table."]
+selected_accessions = [
+  "SRR042318",
+  "SRR042328",
+  "SRR042334",
+  "SRR042347",
+  "SRR042354",
+  "SRR042364",
+  "SRR042377",
+  "SRR042386",
+  "SRR042391",
+  "SRR042548",
+]
+sample_era = "not_applicable"
+selection_scope = "Ten exact 454 amplicon runs spanning ten protocol-validation experiments and both HMP mock-community sample records."
+truth_basis = "A common mock material with known organism membership supports membership and within-authority protocol consistency measurements."
+known_limitations = [
+  "The selected runs are HMP-DACC 454 protocol-validation records and do not establish cross-center or Illumina repeatability.",
+  "Expected relative abundance and reference-copy-number corrections require a separately checksummed truth table.",
+]

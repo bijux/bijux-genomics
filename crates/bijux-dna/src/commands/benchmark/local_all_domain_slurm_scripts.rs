@@ -35,7 +35,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_ALL_DOMAIN_SLURM_DRY_RUN_ROOT: &str =
-    "runs/bench/slurm-dry-run/all-domains";
+    "artifacts/runs/bench/slurm-dry-run/all-domains";
 const LOCAL_ALL_DOMAIN_SLURM_SCRIPTS_SCHEMA_VERSION: &str =
     "bijux.bench.local_all_domain_slurm_scripts.v1";
 

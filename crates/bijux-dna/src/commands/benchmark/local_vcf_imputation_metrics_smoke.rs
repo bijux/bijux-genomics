@@ -21,7 +21,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 const DEFAULT_VCF_IMPUTATION_METRICS_SMOKE_ROOT: &str =
-    "runs/bench/local-smoke/vcf.imputation_metrics";
+    "artifacts/runs/bench/local-smoke/vcf.imputation_metrics";
 const LOCAL_VCF_IMPUTATION_METRICS_COMMAND: &str =
     "bijux-dna bench local run-vcf-imputation-metrics-smoke";
 const LOCAL_VCF_IMPUTATION_METRICS_STAGE_ID: &str = "vcf.imputation_metrics";

@@ -32,7 +32,9 @@ fn local_filter_reads_smoke_plans_use_governed_corpus_fixture() -> Result<()> {
     assert_eq!(se_case.low_complexity_threshold, Some(20.0));
     assert_eq!(
         se_case.plan.out_dir,
-        PathBuf::from("runs/bench/local-smoke/fastq.filter_reads/n-and-complexity-se/fastp")
+        PathBuf::from(
+            "artifacts/runs/bench/local-smoke/fastq.filter_reads/n-and-complexity-se/fastp"
+        )
     );
     assert_eq!(se_case.plan.effective_params["max_n_count"], serde_json::json!(1));
     assert_eq!(se_case.plan.effective_params["low_complexity_threshold"], serde_json::json!(20.0));
@@ -56,7 +58,9 @@ fn local_filter_reads_smoke_plans_use_governed_corpus_fixture() -> Result<()> {
     );
     assert_eq!(
         pe_case.plan.out_dir,
-        PathBuf::from("runs/bench/local-smoke/fastq.filter_reads/human-like-pe-layout/fastp")
+        PathBuf::from(
+            "artifacts/runs/bench/local-smoke/fastq.filter_reads/human-like-pe-layout/fastp"
+        )
     );
     assert_eq!(pe_case.plan.effective_params["paired_mode"], serde_json::json!("paired_end"));
 

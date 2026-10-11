@@ -22,7 +22,8 @@ pub(crate) const DEFAULT_MISSING_RESULT_REPORT_TEST_PATH: &str =
     "artifacts/benchmark-smoke/readiness/missing-result/fastq-bam/report.json";
 const DEFAULT_MISSING_RESULT_REPORT_FIXTURE_ROOT: &str =
     "artifacts/benchmark-smoke/readiness/missing-result/fastq-bam/results";
-const EXPECTED_RESULT_ROOT_PREFIX: &str = "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/";
+const EXPECTED_RESULT_ROOT_PREFIX: &str =
+    "artifacts/runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/";
 const MISSING_RESULT_REPORT_SCHEMA_VERSION: &str = "bijux.bench.readiness.missing_result_report.v1";
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]

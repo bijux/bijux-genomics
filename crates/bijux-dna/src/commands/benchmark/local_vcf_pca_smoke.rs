@@ -23,7 +23,7 @@ use super::vcf_benchmark_bindings::collect_vcf_benchmark_binding_rows;
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
-const DEFAULT_VCF_PCA_SMOKE_ROOT: &str = "runs/bench/local-smoke/vcf.pca";
+const DEFAULT_VCF_PCA_SMOKE_ROOT: &str = "artifacts/runs/bench/local-smoke/vcf.pca";
 const LOCAL_VCF_PCA_SMOKE_SCHEMA_VERSION: &str = "bijux.bench.local_vcf_pca_smoke.v1";
 const LOCAL_VCF_PCA_SMOKE_COMMAND: &str = "bijux-dna bench local run-vcf-pca-smoke";
 const GOVERNED_VCF_PCA_STAGE_ID: &str = "vcf.pca";

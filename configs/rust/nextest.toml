@@ -35,7 +35,7 @@ status-level = "pass"
 # Full-suite hash shards isolate workspaces from one another. Within each shard, every
 # product-facing CLI generator shares governed repository paths and must remain serialized.
 [[profile.full.overrides]]
-filter = 'package(bijux-dna) and binary(/^(?:bench_|config_|dev_crates_|fixtures_|plan_validate_)/)'
+filter = 'package(bijux-dna) and binary(/^(?:bench_|benchmark_readiness$|config_|dev_crates_|fixtures_|plan_validate_)/)'
 test-group = 'benchmark-repository-mutators'
 
 [[profile.full.overrides]]

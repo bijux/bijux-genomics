@@ -280,6 +280,22 @@
         "path": {
           "type": "string"
         },
+        "planned_accession_count": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint64",
+          "minimum": 0
+        },
+        "planned_sample_count": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint64",
+          "minimum": 0
+        },
         "projected_cpu_hours": {
           "type": [
             "integer",
@@ -289,6 +305,28 @@
           "minimum": 0
         },
         "projected_storage_bytes": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint64",
+          "minimum": 0
+        },
+        "selected_accession_count": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "format": "uint64",
+          "minimum": 0
+        },
+        "selection_complete": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "selection_group_count": {
           "type": [
             "integer",
             "null"

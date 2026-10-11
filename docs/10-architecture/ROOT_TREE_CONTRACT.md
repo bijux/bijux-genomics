@@ -13,6 +13,26 @@ Keep the repository layout reviewable and prevent generated paths from recreatin
 
 The repository root is governed by the native `check-root-layout` allowlist. New root entries require an architecture decision and a corresponding validator change. Generated output belongs under `artifacts/` unless another governed destination is part of a product contract.
 
+`pyproject.toml` is the discoverable Python tool configuration, including the
+verification dependency group. Keeping this configuration at the root lets both
+pytest and Ruff resolve their cache paths when invoked from nested source
+directories. Their caches live in `artifacts/python/`; root `.pytest_cache`,
+`.ruff_cache`, and `__pycache__` directories remain forbidden.
+
+Local benchmark smoke, readiness, fake-run, and Slurm dry-run defaults use
+`artifacts/runs/bench/`. The analysis run-index default is
+`artifacts/runs/bijux-dna-runs/index.jsonl`. Explicit input paths in previously
+serialized reports retain their original meaning; published evidence is not
+rewritten when a default output location changes.
+
+When importing an existing root `runs/` tree, inventory every file and checksum
+before moving it into `artifacts/runs/archive/`. Preserve its original relative
+tree and record the old-to-new prefix mapping alongside the inventory. Archived
+reports remain historical evidence, separate from newly generated outputs and
+current readiness claims. Consumers replaying an archived report must resolve
+its original paths against that recorded mapping and its original input locks.
+Do not recreate root `runs/` as a compatibility symlink.
+
 ## Container product root
 
 `containers/` has these direct directories:
@@ -60,3 +80,9 @@ If an embedded mirror is discovered, record its inventory and checksums, move it
 - `make ci-fast`
 
 The root-layout check is part of `ci-fast` and fails before longer checks when the governed tree drifts.
+
+`check-artifacts-layout` validates declared CI build, archive and report
+destinations in the build-authority, fast-groups and full-shards contracts.
+They must be relative children of `artifacts/` without parent traversal; existing
+ancestors must not escape through symlinks. The check preserves all files and
+reports the owning configuration field when a destination is invalid.

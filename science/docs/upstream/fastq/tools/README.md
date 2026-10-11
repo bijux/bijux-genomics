@@ -3,6 +3,10 @@
 This directory is the tracked instruction surface for manual FASTQ tool evidence
 packets.
 
+Downloaded payloads live in the external sibling `bijux-genomics-science/`
+archive. Strip the logical `science/docs/` prefix from a stored locator before
+resolving it there; only contracts and locator tables remain in this directory.
+
 ## Purpose
 
 - reserve durable archive paths under `science/docs/upstream/fastq/tools/<tool-id>/`

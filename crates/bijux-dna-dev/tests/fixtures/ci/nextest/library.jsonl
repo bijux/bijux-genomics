@@ -1,0 +1,4 @@
+{"type":"suite","event":"started","test_count":1,"nextest":{"crate":"bijux-dna-bench","test_binary":"bijux_dna_bench","kind":"lib"}}
+{"type":"test","event":"started","name":"bijux-dna-bench::bijux_dna_bench$workflow::summary::row_metrics::tests::metric_outliers_map_to_metric_bearing_replicates"}
+{"type":"test","event":"ok","name":"bijux-dna-bench::bijux_dna_bench$workflow::summary::row_metrics::tests::metric_outliers_map_to_metric_bearing_replicates","exec_time":0.023533584}
+{"type":"suite","event":"ok","passed":1,"failed":0,"ignored":0,"measured":0,"filtered_out":422,"exec_time":0.023533584,"nextest":{"crate":"bijux-dna-bench","test_binary":"bijux_dna_bench","kind":"lib"}}

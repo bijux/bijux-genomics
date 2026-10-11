@@ -24,7 +24,7 @@ use super::local_vcf_call_bam_smoke_support::{
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
-const DEFAULT_VCF_CALL_GL_SMOKE_ROOT: &str = "runs/bench/local-smoke/vcf.call_gl";
+const DEFAULT_VCF_CALL_GL_SMOKE_ROOT: &str = "artifacts/runs/bench/local-smoke/vcf.call_gl";
 const LOCAL_VCF_CALL_GL_SMOKE_COMMAND: &str = "bijux-dna bench local run-vcf-call-gl-smoke";
 const GOVERNED_VCF_CALL_GL_STAGE_ID: &str = "vcf.call_gl";
 const DEFAULT_OUTPUT_VCF_NAME: &str = "gl.vcf.gz";

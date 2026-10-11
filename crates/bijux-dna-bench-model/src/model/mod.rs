@@ -419,11 +419,17 @@ pub use local_hpc_submission_readiness::{
 };
 #[allow(unused_imports)]
 pub use local_pipeline_dag::{
+    benchmark_local_pipeline_dag_config_schema,
+    benchmark_local_pipeline_dag_metadata_config_schema,
+    benchmark_local_pipeline_dag_stages_config_schema,
     benchmark_local_pipeline_dag_validation_schema,
     benchmark_local_pipeline_dag_validation_set_schema, BenchmarkLocalPipelineAncientDnaPolicy,
-    BenchmarkLocalPipelineDagValidationNode, BenchmarkLocalPipelineDagValidationProfile,
-    BenchmarkLocalPipelineDagValidationReport, BenchmarkLocalPipelineDagValidationSetReport,
-    BenchmarkLocalPipelineExecutionContext, BenchmarkLocalPipelineProjectSource,
+    BenchmarkLocalPipelineDagConfig, BenchmarkLocalPipelineDagDomain,
+    BenchmarkLocalPipelineDagMetadataConfig, BenchmarkLocalPipelineDagNode,
+    BenchmarkLocalPipelineDagStagesConfig, BenchmarkLocalPipelineDagValidationNode,
+    BenchmarkLocalPipelineDagValidationProfile, BenchmarkLocalPipelineDagValidationReport,
+    BenchmarkLocalPipelineDagValidationSetReport, BenchmarkLocalPipelineExecutionContext,
+    BenchmarkLocalPipelineProjectSource, BenchmarkLocalPipelineProjectSourceConfig,
     BenchmarkLocalPipelineReferenceAssets, BenchmarkLocalPipelineReferenceContext,
     BenchmarkLocalPipelineSnpEffAssets, BenchmarkLocalPipelineVariantAssets,
 };
@@ -473,8 +479,10 @@ pub use local_stage_fake_run::{
 #[allow(unused_imports)]
 pub use local_stage_inventory::{
     benchmark_local_all_domain_stage_inventory_schema, benchmark_local_stage_inventory_schema,
-    BenchmarkLocalAllDomainStageInventory, BenchmarkLocalStageInventory,
-    BenchmarkLocalStageInventoryEntry,
+    benchmark_local_stage_matrix_config_schema, BenchmarkLocalAllDomainStageInventory,
+    BenchmarkLocalStageInventory, BenchmarkLocalStageInventoryEntry,
+    BenchmarkLocalStageMatrixConfig, BENCHMARK_LOCAL_BAM_STAGE_MATRIX_SCHEMA_V1,
+    BENCHMARK_LOCAL_FASTQ_STAGE_MATRIX_SCHEMA_V1,
 };
 #[allow(unused_imports)]
 pub use local_vcf_call_gl_smoke::{

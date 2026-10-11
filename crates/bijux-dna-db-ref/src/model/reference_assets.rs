@@ -83,6 +83,14 @@ pub enum ContigNormalizationPolicy {
     DeterministicRemap,
 }
 
+/// Metadata identity projected from a complete reference bundle declaration.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+pub struct ReferenceBundleIdentity {
+    pub bundle_id: String,
+    pub species_id: String,
+    pub build_id: String,
+}
+
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub struct ReferenceBundle {
     pub bundle_id: String,

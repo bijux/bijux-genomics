@@ -10,6 +10,8 @@ not own CLI commands or process execution.
 
 | Operation | Rust entrypoint | Purpose |
 | --- | --- | --- |
+| `validate-local-pipeline-config` | `validate_benchmark_local_pipeline_dag_config` | Admit local pipeline configuration version and required identity/node envelope. |
+| `local-pipeline-config-schemas` | `benchmark_local_pipeline_dag_config_schema`, `benchmark_local_pipeline_dag_metadata_config_schema`, `benchmark_local_pipeline_dag_stages_config_schema` | Generate strict combined and split configuration input schemas. |
 | `validate-suite` | `contract::validate_suite` | Validate `BenchmarkSuiteSpec` shape, graph, stage ids, tool ids, and parameter bindings. |
 | `validate-stage-campaign-registry` | `contract::validate_stage_campaign_registry` | Validate `BenchmarkStageCampaignRegistry` shape and campaign-level invariants. |
 | `validate-stage-coverage` | `contract::validate_stage_coverage` | Validate version, ordering, identities, state consistency, and exact summary closure for a stage-coverage publication. |

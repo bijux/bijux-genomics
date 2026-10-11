@@ -1,8 +1,9 @@
 # Science Docs Upstream Archive
 
-`science/docs/upstream/` is the canonical local archive root for upstream source
-material used to support science, container, and provenance review in
-`bijux-genomics`.
+`science/docs/upstream/` holds tracked metadata for upstream source material.
+Payloads live under `upstream/` in the external `../bijux-genomics-science/`
+archive. Resolve stored `science/docs/` locators through the mapping in
+[../README.md](../README.md).
 
 [../README.md](../README.md) defines the broader local archive boundary, and
 [../TODO_DOWNLOAD.md](../TODO_DOWNLOAD.md) remains the operator-facing backlog
@@ -49,9 +50,9 @@ for manual acquisition outside the GitHub mirror workflow.
 
 ## Rules
 
-- keep the archive payloads untracked
+- keep archive payloads outside the product checkout
 - keep the target list and archive contract tracked
 - prefer one stable upstream location per evidence family instead of ad hoc
-  directories at the root of `science/docs/`
+  directories inside the product checkout
 - keep FASTQ, BAM, and VCF closure authorities separate so one domain does not
   inherit release status from another

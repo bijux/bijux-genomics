@@ -22,7 +22,9 @@ Layout:
   temporary, coverage, and profile-output roots under one declared build authority. Its
   `report_root` rebases beneath `ARTIFACT_ROOT`; archive and shard declarations are logical paths
   remapped beneath the absolute `BIJUX_CI_FULL_SHARD_SCRATCH_ROOT` when supplied, or a disjoint
-  local `artifacts/ci/full-shards-scratch` authority otherwise.
+  local `artifacts/ci/full-shards-scratch` authority otherwise. Declared runtime executables are
+  checked against their exact version line once before archive compilation, with a retained
+  preflight receipt under the report root.
 - `configs/ci/fast-groups.json`: bounded independent fast-lane groups, reference runner,
   warm-cache timing target, exact excluded-lane declarations, and current critical-path baseline
   output executed by the same event-driven supervisor.

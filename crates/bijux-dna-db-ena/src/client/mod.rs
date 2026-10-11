@@ -68,22 +68,33 @@ pub fn fetch_records_from_offline_fixture(
         )));
     }
     query.validate()?;
-    let sample_filter = query
-        .samples
-        .iter()
-        .map(|value| value.trim().to_string())
-        .filter(|value| !value.is_empty())
-        .collect::<std::collections::BTreeSet<_>>();
-    if sample_filter.is_empty() {
-        return Ok(fixture.runs);
-    }
     Ok(fixture
         .runs
         .into_iter()
-        .filter(|record| {
-            record.sample_accession.as_deref().is_some_and(|sample| sample_filter.contains(sample))
-        })
+        .filter(|record| offline_record_matches_query(record, query))
         .collect())
+}
+
+fn offline_record_matches_query(record: &EnaRecord, query: &EnaQuery) -> bool {
+    let samples = normalized_selector_set(&query.samples);
+    if !samples.is_empty() {
+        return record.sample_accession.as_deref().is_some_and(|value| samples.contains(value));
+    }
+    let projects = normalized_selector_set(&query.projects);
+    let accessions = normalized_selector_set(&query.extra_accessions);
+    record.study_accession.as_deref().is_some_and(|value| projects.contains(value))
+        || [
+            record.run_accession.as_deref(),
+            record.analysis_accession.as_deref(),
+            record.experiment_accession.as_deref(),
+        ]
+        .into_iter()
+        .flatten()
+        .any(|value| accessions.contains(value))
+}
+
+fn normalized_selector_set(values: &[String]) -> std::collections::BTreeSet<&str> {
+    values.iter().map(String::as_str).map(str::trim).filter(|value| !value.is_empty()).collect()
 }
 
 #[cfg(test)]
@@ -253,6 +264,51 @@ mod tests {
         assert_eq!(rows.len(), 2);
         assert_eq!(rows[0].run_accession.as_deref(), Some("ERR_SINGLE"));
         assert_eq!(rows[1].run_accession.as_deref(), Some("ERR_PAIRED"));
+        Ok(())
+    }
+
+    #[test]
+    fn offline_fixture_fetch_filters_exact_run_accessions() -> anyhow::Result<()> {
+        let query = EnaQuery {
+            projects: Vec::new(),
+            samples: Vec::new(),
+            extra_accessions: vec!["ERR_SELECTED".to_string()],
+            result: EnaResultKind::ReadRun,
+        };
+        let record = |accession: &str| EnaRecord {
+            study_accession: Some("PRJEB1".to_string()),
+            sample_accession: Some(format!("SAMEA-{accession}")),
+            experiment_accession: Some(format!("ERX-{accession}")),
+            run_accession: Some(accession.to_string()),
+            analysis_accession: None,
+            tax_id: None,
+            scientific_name: None,
+            library_layout: None,
+            library_source: None,
+            library_strategy: None,
+            library_selection: None,
+            instrument_platform: None,
+            instrument_model: None,
+            base_count: None,
+            read_count: None,
+            fastq_bytes: Vec::new(),
+            fastq_ftp: Vec::new(),
+            fastq_md5: Vec::new(),
+            first_public: None,
+            last_updated: None,
+            submitted_ftp: Vec::new(),
+            sra_ftp: Vec::new(),
+            bam_ftp: Vec::new(),
+        };
+        let fixture = serde_json::json!({
+            "schema_version": "bijux.ena.offline_fixture.v1",
+            "runs": [record("ERR_SELECTED"), record("ERR_UNRELATED")],
+        });
+
+        let rows = fetch_records_from_offline_fixture(&fixture.to_string(), &query)?;
+
+        assert_eq!(rows.len(), 1);
+        assert_eq!(rows[0].run_accession.as_deref(), Some("ERR_SELECTED"));
         Ok(())
     }
 }

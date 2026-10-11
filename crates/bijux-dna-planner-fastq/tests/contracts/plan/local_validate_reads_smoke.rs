@@ -33,7 +33,9 @@ fn local_validate_reads_smoke_plans_use_governed_toy_fixtures() -> Result<()> {
     );
     assert_eq!(
         single_end.plan.out_dir,
-        PathBuf::from("runs/bench/local-smoke/fastq.validate_reads/toy-se/fastqvalidator")
+        PathBuf::from(
+            "artifacts/runs/bench/local-smoke/fastq.validate_reads/toy-se/fastqvalidator"
+        )
     );
     assert_eq!(single_end.plan.resources.threads, 4);
 
@@ -49,7 +51,9 @@ fn local_validate_reads_smoke_plans_use_governed_toy_fixtures() -> Result<()> {
     );
     assert_eq!(
         paired_end.plan.out_dir,
-        PathBuf::from("runs/bench/local-smoke/fastq.validate_reads/toy-pe/fastqvalidator")
+        PathBuf::from(
+            "artifacts/runs/bench/local-smoke/fastq.validate_reads/toy-pe/fastqvalidator"
+        )
     );
     assert_eq!(paired_end.plan.params["validation_mode"], serde_json::json!("strict"));
     assert_eq!(

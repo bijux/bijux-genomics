@@ -1,5 +1,6 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
+use std::path::Path;
 
 use anyhow::{bail, Context, Result};
 
@@ -130,6 +131,37 @@ pub fn derive_image_inventory_evidence(
     };
     crate::evidence::validate_image_inventory_evidence(&scan, &publication)?;
     Ok(DerivedImageInventory { scan, publication })
+}
+
+/// Derive and immutably publish both the complete scan and admitted inventory.
+///
+/// # Errors
+/// Returns an error when output identities overlap or already exist, derivation fails, or either
+/// publication cannot be created atomically.
+pub fn publish_image_inventory_evidence(
+    request: &ImageInventoryDerivationRequest,
+    scan_output: &Path,
+    publication_output: &Path,
+) -> Result<DerivedImageInventory> {
+    if scan_output == publication_output {
+        bail!("image-inventory scan and publication outputs must be distinct");
+    }
+    if scan_output.try_exists()? || publication_output.try_exists()? {
+        bail!("refusing to replace existing image-inventory evidence output");
+    }
+    let evidence = derive_image_inventory_evidence(request)?;
+    bijux_dna_infra::atomic_create_json(scan_output, &evidence.scan).with_context(|| {
+        format!("publish immutable image-inventory scan {}", scan_output.display())
+    })?;
+    bijux_dna_infra::atomic_create_json(publication_output, &evidence.publication).with_context(
+        || {
+            format!(
+                "publish immutable image-inventory publication {}",
+                publication_output.display()
+            )
+        },
+    )?;
+    Ok(evidence)
 }
 
 fn derive_tool(

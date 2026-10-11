@@ -1,6 +1,8 @@
 # bijux-dna-dev Tests
 
 ## Coverage
+- `tests/bootstrap.rs` checks developer executable freshness after direct and transitive source changes.
+- `src/runtime/workspace.rs` tests artifact root admission; CI destination contracts reuse that owner and cover nested symlink escapes.
 - `tests/boundaries.rs` is the integration-test entrypoint for boundary-oriented coverage.
 - `tests/boundaries/architecture.rs` enforces the documented crate tree and layout contract.
 - `tests/boundaries/architecture.rs` also rejects Markdown files outside the root `README.md` and `docs/`.
@@ -28,3 +30,5 @@
 - Prefer targeted command-module tests when changing one automation surface.
 - Re-run policy tests after updating docs, command names, or generated-control outputs.
 - Do not add README files under `tests/`; crate narrative docs belong under `docs/`.
+
+CI coverage contracts replay captured Nextest 0.9.100 library and integration event streams from `tests/fixtures/ci/nextest/`. The fixture capture manifest binds their source/binary hashes and format version. Adversarial cases reject omissions, duplicate identities, incomplete event sequences, incorrect suite counters, unexpected cases, failed outcomes and filtered inventories.

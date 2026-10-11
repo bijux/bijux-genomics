@@ -15,6 +15,7 @@ pub use crate::surface::request_contracts::{
 };
 pub use crate::v1::bam::plan::plan_for_bam_stage_with_profile;
 pub use bijux_dna_core::contract::ExecutionGraph;
+pub use bijux_dna_pipelines::artifact_flow::{validate_artifact_flow, ArtifactFlowNode};
 pub use bijux_dna_pipelines::bam::{
     validate_bam_profile, BamProfileValidationReport, BamProfileViolation, BAM_INVARIANTS,
 };

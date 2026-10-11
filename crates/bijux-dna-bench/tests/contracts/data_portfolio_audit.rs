@@ -36,11 +36,56 @@ fn audits_live_portfolio_sources_without_promoting_unadmitted_corpora() -> Resul
     assert_eq!(audit.summary.source_defined_corpus_count, 9);
     assert_eq!(audit.summary.missing_corpus_count, 0);
     assert_eq!(audit.summary.publishable_data_ready_count, 1);
-    assert_eq!(audit.summary.bound_catalog_count, 4);
+    assert_eq!(audit.summary.bound_catalog_count, 13);
     assert_eq!(audit.summary.missing_catalog_binding_count, 20);
     assert_eq!(audit.summary.unbound_catalog_count, 1);
     assert_eq!(audit.summary.suspected_nonproduction_asset_count, 1);
     assert_eq!(audit.summary.publishable_contamination_count, 0);
+    for (corpus_id, expected_catalog_ids) in [
+        (
+            "read-processing-challenge",
+            vec![
+                "read-processing-challenge-ena-ancient-read-panel",
+                "read-processing-challenge-seqc-reference-rna",
+            ],
+        ),
+        (
+            "environmental-taxonomy-challenge",
+            vec![
+                "environmental-taxonomy-challenge-ena-tara-oceans",
+                "environmental-taxonomy-challenge-hmp-mock-community",
+            ],
+        ),
+        (
+            "amplicon-community-challenge",
+            vec![
+                "amplicon-community-challenge-extreme-mock-community",
+                "amplicon-community-challenge-hmp-amplicon-mock",
+            ],
+        ),
+        (
+            "ancient-dna-damage-controls",
+            vec![
+                "ancient-dna-damage-controls-ena-prjeb19769-matched-udg-pairs",
+                "ancient-dna-damage-controls-ncbi-prjna688065-extraction-blank",
+                "ancient-dna-damage-controls-public-modern-human-observational-controls",
+                "grch38-reference",
+            ],
+        ),
+    ] {
+        let corpus = audit
+            .corpora
+            .iter()
+            .find(|corpus| corpus.corpus_id == corpus_id)
+            .context("source-defined corpus")?;
+        let observed = corpus
+            .catalog_bindings
+            .iter()
+            .map(|binding| binding.catalog_id.as_str())
+            .collect::<Vec<_>>();
+        assert_eq!(observed, expected_catalog_ids);
+        assert_eq!(corpus.blockers, ["source-defined corpus has not been admitted"]);
+    }
     assert!(audit
         .corpora
         .iter()
@@ -75,6 +120,41 @@ fn audits_live_portfolio_sources_without_promoting_unadmitted_corpora() -> Resul
                 && corpus.source_specs.len() == 1
                 && corpus.projected_storage_bytes == Some(100_000_000_000)
                 && corpus.projected_cpu_hours == Some(1_500)
+                && corpus.source_specs[0].planned_sample_count == Some(21)
+                && corpus.source_specs[0].planned_accession_count == Some(31)
+                && corpus.source_specs[0].selected_accession_count == Some(31)
+                && corpus.source_specs[0].selection_complete == Some(true)
+                && corpus.blockers == ["source-defined corpus has not been admitted"]
+        }));
+    assert!(audit
+        .corpora
+        .iter()
+        .find(|corpus| corpus.corpus_id == "read-processing-challenge")
+        .is_some_and(|corpus| {
+            corpus.source_specs[0].planned_sample_count == Some(20)
+                && corpus.source_specs[0].planned_accession_count == Some(20)
+                && corpus.source_specs[0].selected_accession_count == Some(20)
+                && corpus.source_specs[0].selection_complete == Some(true)
+                && corpus.blockers == ["source-defined corpus has not been admitted"]
+        }));
+    assert!(audit
+        .corpora
+        .iter()
+        .find(|corpus| corpus.corpus_id == "amplicon-community-challenge")
+        .is_some_and(|corpus| {
+            corpus.source_specs[0].planned_sample_count == Some(11)
+                && corpus.source_specs[0].selected_accession_count == Some(11)
+                && corpus.source_specs[0].selection_complete == Some(true)
+        }));
+    assert!(audit
+        .corpora
+        .iter()
+        .find(|corpus| corpus.corpus_id == "environmental-taxonomy-challenge")
+        .is_some_and(|corpus| {
+            corpus.source_specs[0].planned_sample_count == Some(20)
+                && corpus.source_specs[0].planned_accession_count == Some(20)
+                && corpus.source_specs[0].selected_accession_count == Some(20)
+                && corpus.source_specs[0].selection_complete == Some(true)
                 && corpus.blockers == ["source-defined corpus has not been admitted"]
         }));
     assert!(audit
@@ -83,7 +163,11 @@ fn audits_live_portfolio_sources_without_promoting_unadmitted_corpora() -> Resul
         .find(|corpus| corpus.corpus_id == "variant-truth-panel")
         .is_some_and(|corpus| {
             !corpus.publishable_data_ready
-                && corpus.blockers == ["source-defined corpus has not been admitted"]
+                && corpus.blockers
+                    == [
+                        "source selection is not frozen by exact accessions",
+                        "source-defined corpus has not been admitted",
+                    ]
                 && corpus.source_specs.len() == 1
                 && corpus.projected_storage_bytes.is_some()
                 && corpus.projected_cpu_hours.is_some()
@@ -92,7 +176,11 @@ fn audits_live_portfolio_sources_without_promoting_unadmitted_corpora() -> Resul
         assert!(audit.corpora.iter().find(|corpus| corpus.corpus_id == corpus_id).is_some_and(
             |corpus| {
                 !corpus.publishable_data_ready
-                    && corpus.blockers == ["source-defined corpus has not been admitted"]
+                    && corpus.blockers
+                        == [
+                            "source selection is not frozen by exact accessions",
+                            "source-defined corpus has not been admitted",
+                        ]
                     && corpus.source_specs.len() == 1
                     && corpus.projected_storage_bytes.is_some()
                     && corpus.projected_cpu_hours.is_some()
@@ -113,6 +201,8 @@ fn audits_live_portfolio_sources_without_promoting_unadmitted_corpora() -> Resul
     let markdown = render_benchmark_data_portfolio_audit_markdown(&audit);
     assert!(markdown.contains("eligibility proves governed file identity"));
     assert!(markdown.contains("## Corpus inventory and projections"));
+    assert!(markdown.contains("## Source selection closure"));
+    assert!(markdown.contains("Selected/planned accessions"));
     assert!(markdown.contains("## Truth-role matrix"));
     assert!(markdown.contains("## Bound catalog access matrix"));
     assert!(markdown.contains("not declared by governed catalog"));
@@ -176,6 +266,25 @@ impl DataAuditFixture {
             "real horse reference assembly",
             None,
         )?;
+        for id in [
+            "read-processing-challenge-ena-ancient-read-panel",
+            "read-processing-challenge-seqc-reference-rna",
+            "environmental-taxonomy-challenge-ena-tara-oceans",
+            "environmental-taxonomy-challenge-hmp-mock-community",
+            "amplicon-community-challenge-extreme-mock-community",
+            "amplicon-community-challenge-hmp-amplicon-mock",
+            "ancient-dna-damage-controls-ena-prjeb19769-matched-udg-pairs",
+            "ancient-dna-damage-controls-ncbi-prjna688065-extraction-blank",
+            "ancient-dna-damage-controls-public-modern-human-observational-controls",
+        ] {
+            write_catalog(
+                &data_root,
+                &catalog_root,
+                id,
+                "real source-defined corpus authority",
+                None,
+            )?;
+        }
         write_catalog(
             &data_root,
             &catalog_root,

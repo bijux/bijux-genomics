@@ -65,7 +65,7 @@ fn valid_rows() -> Vec<AllDomainOutputDeclarationRow> {
             "sample-set",
             &["summary"],
             &["kinship_report"],
-            "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-kinship-mini/bam.kinship/sample-set/king/stage-result.json",
+            "artifacts/runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-01-kinship-mini/bam.kinship/sample-set/king/stage-result.json",
             &[],
         ),
         row(
@@ -77,7 +77,7 @@ fn valid_rows() -> Vec<AllDomainOutputDeclarationRow> {
             "sample-set",
             &["screen_report_tsv"],
             &["classification_report_json"],
-            "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-02-edna-mini/fastq.screen_taxonomy/sample-set/kraken2/stage-result.json",
+            "artifacts/runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-02-edna-mini/fastq.screen_taxonomy/sample-set/kraken2/stage-result.json",
             &[],
         ),
         row(
@@ -89,7 +89,7 @@ fn valid_rows() -> Vec<AllDomainOutputDeclarationRow> {
             "corpus_only",
             &["called_vcf"],
             &["called_vcf"],
-            "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/vcf_production_regression/vcf.call/bam_bundle/bcftools/stage-result.json",
+            "artifacts/runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/vcf_production_regression/vcf.call/bam_bundle/bcftools/stage-result.json",
             &["called_vcf_tbi"],
         ),
     ]

@@ -53,7 +53,7 @@ fn dev_tree_matches_architecture_contract() {
 
     let application_entries = dir_entries(&root.join("src/application"));
     let expected_application: BTreeSet<_> =
-        ["checks/", "checks.rs", "containers.rs", "domain.rs", "mod.rs", "ops.rs"]
+        ["checks/", "checks.rs", "ci/", "containers.rs", "domain.rs", "mod.rs", "ops.rs"]
             .into_iter()
             .map(str::to_string)
             .collect();
@@ -107,12 +107,14 @@ fn dev_tree_matches_architecture_contract() {
 
     let repo_checks_entries = dir_entries(&root.join("src/commands/repo_checks"));
     let expected_repo_checks: BTreeSet<_> = [
+        "artifact_paths.rs",
         "artifacts.rs",
         "build_authority.rs",
         "dependency_graph.rs",
         "governance.rs",
         "no_wait.rs",
         "ownership.rs",
+        "science_archive.rs",
         "workspace_contracts.rs",
     ]
     .into_iter()
@@ -173,7 +175,7 @@ fn dev_tree_matches_architecture_contract() {
 
     let runtime_entries = dir_entries(&root.join("src/runtime"));
     let expected_runtime: BTreeSet<_> =
-        ["mod.rs", "process.rs", "workspace.rs", "workspace_root.rs"]
+        ["mod.rs", "process.rs", "source_snapshot/", "workspace.rs", "workspace_root.rs"]
             .into_iter()
             .map(str::to_string)
             .collect();
@@ -183,11 +185,18 @@ fn dev_tree_matches_architecture_contract() {
     );
 
     let test_entries = dir_entries(&root.join("tests"));
-    let expected_tests: BTreeSet<_> =
-        ["boundaries/", "boundaries.rs", "guardrails.rs", "snapshots/", "support/"]
-            .into_iter()
-            .map(str::to_string)
-            .collect();
+    let expected_tests: BTreeSet<_> = [
+        "bootstrap.rs",
+        "boundaries/",
+        "boundaries.rs",
+        "fixtures/",
+        "guardrails.rs",
+        "snapshots/",
+        "support/",
+    ]
+    .into_iter()
+    .map(str::to_string)
+    .collect();
     assert_eq!(test_entries, expected_tests, "dev test tree must match the documented taxonomy");
 
     let support_entries = dir_entries(&root.join("tests/support"));
@@ -228,6 +237,24 @@ fn dev_markdown_docs_stay_in_root_readme_or_docs_dir() {
         "crate markdown must be root README.md or live under docs/: {}",
         offenders.join(", ")
     );
+}
+
+#[test]
+fn example_artifact_consumers_honor_the_configured_artifact_root() {
+    let root = crate::support::crate_root("bijux-dna-dev")
+        .unwrap_or_else(|err| panic!("resolve crate root: {err}"));
+
+    for relative_path in
+        ["src/commands/ops/tooling/acquisition.rs", "src/commands/ops/tooling/certification.rs"]
+    {
+        let path = root.join(relative_path);
+        let source = std::fs::read_to_string(&path)
+            .unwrap_or_else(|err| panic!("read {}: {err}", path.display()));
+        assert!(
+            !source.contains("workspace.path(\"artifacts/examples"),
+            "{relative_path} must derive example artifacts from artifact_root_path"
+        );
+    }
 }
 
 fn dir_entries(path: &std::path::Path) -> BTreeSet<String> {

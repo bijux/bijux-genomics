@@ -184,19 +184,11 @@ pub(super) fn path_from_arg(workspace: &Workspace, raw: &str) -> PathBuf {
 pub(super) fn artifact_root_path(workspace: &Workspace) -> Result<PathBuf> {
     let configured = std::env::var("ARTIFACT_ROOT")
         .unwrap_or_else(|_| std::env::var("ISO_ROOT").unwrap_or_else(|_| "artifacts".to_string()));
-    let path = if PathBuf::from(&configured).is_absolute() {
-        PathBuf::from(&configured)
-    } else {
-        workspace.root.join(&configured)
-    };
-    Ok(path)
+    workspace.admit_artifact_path(Path::new(&configured))
 }
 
 pub(super) fn ensure_artifact_root_inside_artifacts(workspace: &Workspace) -> Result<()> {
-    let display = artifact_root_path(workspace)?.display().to_string();
-    if !display.contains("/artifacts") && !display.ends_with("artifacts") {
-        return Err(anyhow!("artifact root must stay under artifacts/: {display}"));
-    }
+    artifact_root_path(workspace)?;
     Ok(())
 }
 

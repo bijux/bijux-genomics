@@ -6,6 +6,7 @@
 - `evidence`
 - `execution_contract`
 - `public_api`
+- `registry`
 - `resolve`
 - `runtime_spec`
 - `site_policy`
@@ -37,6 +38,8 @@
 - `execution_contract`: strict credential-reference loading, validation, and generated schema
   ownership; dual-version pipeline declaration and execution-site admission; and resumable
   inventory-bound repository/image currentization without execution or scheduler submission.
+- `registry`: deterministic container manifest projection from the generated tool registry,
+  retaining tool/version/recipe identity and rejecting empty registries.
 - `resolve`: environment errors, image and platform models, catalog loading, image resolution,
   cache helpers, local command probes, shell capture, smoke helpers, and reference registration.
 - `runtime_spec`: pure compatibility checks between a platform and selected runtime.

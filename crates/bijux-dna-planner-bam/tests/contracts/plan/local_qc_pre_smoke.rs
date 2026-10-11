@@ -44,7 +44,7 @@ fn local_qc_pre_smoke_plans_use_governed_bam_metrics_fixture() -> Result<()> {
     assert_eq!(
         case.plan.out_dir,
         PathBuf::from(
-            "runs/bench/local-smoke/bam.qc_pre/human_like_duplicate_flagged_multicontig/samtools"
+            "artifacts/runs/bench/local-smoke/bam.qc_pre/human_like_duplicate_flagged_multicontig/samtools"
         )
     );
 
@@ -67,7 +67,7 @@ fn local_qc_pre_smoke_plans_use_governed_bam_metrics_fixture() -> Result<()> {
     assert_eq!(
         idxstats_output.path,
         PathBuf::from(
-            "runs/bench/local-smoke/bam.qc_pre/human_like_duplicate_flagged_multicontig/samtools/idxstats.txt"
+            "artifacts/runs/bench/local-smoke/bam.qc_pre/human_like_duplicate_flagged_multicontig/samtools/idxstats.txt"
         )
     );
 
@@ -98,7 +98,7 @@ fn local_qc_pre_smoke_plans_use_governed_bam_metrics_fixture() -> Result<()> {
     assert_eq!(
         multiqc_case.plan.out_dir,
         PathBuf::from(
-            "runs/bench/local-smoke/bam.qc_pre/human_like_duplicate_flagged_multicontig/multiqc"
+            "artifacts/runs/bench/local-smoke/bam.qc_pre/human_like_duplicate_flagged_multicontig/multiqc"
         )
     );
 

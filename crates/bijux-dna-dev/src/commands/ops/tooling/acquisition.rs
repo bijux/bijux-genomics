@@ -829,8 +829,9 @@ pub(in super::super) fn tooling_validate_frontend_mini_domain_stacks(
     }
     let mut errors = Vec::new();
     let mut checks = Vec::new();
+    let example_artifact_root = artifact_root_path(workspace)?.join("examples");
     for (example_id, example_dir) in &examples {
-        let artifact_dir = workspace.path("artifacts/examples").join(example_id);
+        let artifact_dir = example_artifact_root.join(example_id);
         for name in [
             "plan.json",
             "explain.json",

@@ -51,7 +51,7 @@ fn local_coverage_smoke_plans_use_governed_target_windows_fixture() -> Result<()
     assert_eq!(
         case.plan.out_dir,
         PathBuf::from(
-            "runs/bench/local-smoke/bam.coverage/human_like_target_window_coverage/samtools"
+            "artifacts/runs/bench/local-smoke/bam.coverage/human_like_target_window_coverage/samtools"
         )
     );
     assert_eq!(case.plan.params["depth_thresholds"], serde_json::json!([1, 5]));
@@ -76,7 +76,7 @@ fn local_coverage_smoke_plans_use_governed_target_windows_fixture() -> Result<()
     assert_eq!(
         depth_output.path,
         PathBuf::from(
-            "runs/bench/local-smoke/bam.coverage/human_like_target_window_coverage/samtools/coverage.depth.txt"
+            "artifacts/runs/bench/local-smoke/bam.coverage/human_like_target_window_coverage/samtools/coverage.depth.txt"
         )
     );
 

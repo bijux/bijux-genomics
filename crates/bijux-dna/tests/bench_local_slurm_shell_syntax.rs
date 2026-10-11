@@ -44,7 +44,7 @@ fn run_cli_json(args: &[&str]) -> serde_json::Value {
 #[test]
 fn bench_local_validate_slurm_shell_syntax_refuses_invalid_sbatch_syntax() {
     let repo_root = support::repo_root().expect("repo root");
-    let runs_root = repo_root.join("runs/bench");
+    let runs_root = repo_root.join("artifacts/runs/bench");
     std::fs::create_dir_all(&runs_root).expect("create runs root");
     let fixture_root = tempfile::Builder::new()
         .prefix("slurm-shell-syntax-")
@@ -141,7 +141,7 @@ fn bench_local_validate_slurm_shell_syntax_accepts_governed_fastq_and_bam_script
     );
     assert_eq!(
         payload.get("root_path").and_then(serde_json::Value::as_str),
-        Some("runs/bench/slurm-dry-run")
+        Some("artifacts/runs/bench/slurm-dry-run")
     );
     assert_eq!(payload.get("findings_count").and_then(serde_json::Value::as_u64), Some(0));
     assert_eq!(payload.get("ok").and_then(serde_json::Value::as_bool), Some(true));
@@ -156,7 +156,7 @@ fn bench_local_validate_slurm_shell_syntax_accepts_governed_fastq_and_bam_script
     assert!(scripts.iter().all(|entry| {
         entry.get("ok").and_then(serde_json::Value::as_bool) == Some(true)
             && entry.get("script_path").and_then(serde_json::Value::as_str).is_some_and(|path| {
-                path.starts_with("runs/bench/slurm-dry-run/") && path.ends_with(".sbatch")
+                path.starts_with("artifacts/runs/bench/slurm-dry-run/") && path.ends_with(".sbatch")
             })
     }));
 }
@@ -187,11 +187,11 @@ fn bench_local_validate_slurm_shell_syntax_writes_governed_report_path() {
     let payload = run_cli_json(&["bench", "local", "validate-slurm-shell-syntax", "--json"]);
     assert_eq!(
         payload.get("report_path").and_then(serde_json::Value::as_str),
-        Some("runs/bench/slurm-dry-run/bash-n-report.json")
+        Some("artifacts/runs/bench/slurm-dry-run/bash-n-report.json")
     );
 
     let repo_root = support::repo_root().expect("repo root");
-    let report_path = repo_root.join("runs/bench/slurm-dry-run/bash-n-report.json");
+    let report_path = repo_root.join("artifacts/runs/bench/slurm-dry-run/bash-n-report.json");
     assert!(report_path.is_file(), "governed bash-n report must exist on disk");
 
     let written_payload: serde_json::Value =

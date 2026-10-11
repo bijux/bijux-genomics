@@ -121,7 +121,7 @@ fn bench_readiness_expected_benchmark_results_report_tracks_governed_result_rows
             .get("stage_result_manifest_path")
             .and_then(serde_json::Value::as_str),
         Some(
-            "runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-02-edna-mini/fastq.screen_taxonomy/sample-set/kraken2/stage-result.json"
+            "artifacts/runs/bench/slurm-dry-run/runs/local-benchmark-dry-run/corpus-02-edna-mini/fastq.screen_taxonomy/sample-set/kraken2/stage-result.json"
         )
     );
     let taxonomy_rows = rows

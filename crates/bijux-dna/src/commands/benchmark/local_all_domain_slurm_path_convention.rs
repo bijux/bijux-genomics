@@ -17,7 +17,7 @@ use crate::commands::cli::render;
 const LOCAL_ALL_DOMAIN_SLURM_PATH_CONVENTION_SCHEMA_VERSION: &str =
     "bijux.bench.local_all_domain_slurm_path_convention.v1";
 const DEFAULT_ALL_DOMAIN_SLURM_PATH_CONVENTION_REPORT_PATH: &str =
-    "runs/bench/slurm-dry-run/all-domains/path-convention-check.json";
+    "artifacts/runs/bench/slurm-dry-run/all-domains/path-convention-check.json";
 
 #[derive(Debug, Clone, Serialize)]
 pub(crate) struct BenchLocalAllDomainSlurmPathConventionReport {
@@ -228,8 +228,9 @@ fn parse_run_path(
     kind: &str,
     findings: &mut Vec<String>,
 ) -> Result<ParsedRunPath> {
-    let expected_prefix =
-        format!("runs/bench/slurm-dry-run/all-domains/runs/{LOCAL_ALL_DOMAIN_SLURM_RUN_ID}/");
+    let expected_prefix = format!(
+        "artifacts/runs/bench/slurm-dry-run/all-domains/runs/{LOCAL_ALL_DOMAIN_SLURM_RUN_ID}/"
+    );
     if !path.starts_with(&expected_prefix) {
         findings.push(format!(
             "{kind} path for `{}` must start with `{expected_prefix}`, found `{path}`",

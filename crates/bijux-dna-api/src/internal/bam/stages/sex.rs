@@ -123,7 +123,7 @@ struct LocalSexToolExpectation {
 
 /// Materialize the governed local-smoke `bam.sex` artifacts and top-level report.
 ///
-/// The written report lives at `runs/bench/local-smoke/bam.sex/sex.json`
+/// The written report lives at `artifacts/runs/bench/local-smoke/bam.sex/sex.json`
 /// under the active repository root.
 ///
 /// # Errors
@@ -139,7 +139,7 @@ pub fn write_local_sex_smoke_report() -> Result<PathBuf> {
         ));
     };
 
-    let output_root = repo_root.join("runs/bench/local-smoke/bam.sex");
+    let output_root = repo_root.join("artifacts/runs/bench/local-smoke/bam.sex");
     bijux_dna_infra::ensure_dir(&output_root)?;
     let report = materialize_local_sex_smoke_case(&repo_root, case)?;
     let report_path = output_root.join("sex.json");
@@ -149,7 +149,7 @@ pub fn write_local_sex_smoke_report() -> Result<PathBuf> {
 
 /// Materialize governed `bam.sex` tool-smoke outputs for all retained tools.
 ///
-/// The written report lives at `runs/bench/local-smoke/bam.sex/tool_smoke.json`
+/// The written report lives at `artifacts/runs/bench/local-smoke/bam.sex/tool_smoke.json`
 /// under the active repository root.
 ///
 /// # Errors
@@ -164,7 +164,7 @@ pub fn write_local_sex_tool_smoke_report() -> Result<PathBuf> {
         ));
     }
 
-    let output_root = repo_root.join("runs/bench/local-smoke/bam.sex");
+    let output_root = repo_root.join("artifacts/runs/bench/local-smoke/bam.sex");
     bijux_dna_infra::ensure_dir(&output_root)?;
 
     let ready_sample_id = plans[0].sample_id.clone();
@@ -297,7 +297,7 @@ fn materialize_local_sex_tool_case(
     }
 
     let case_dir = repo_root
-        .join("runs/bench/local-smoke/bam.sex")
+        .join("artifacts/runs/bench/local-smoke/bam.sex")
         .join("tool_smoke")
         .join(tool_id)
         .join(proof_case.as_str());

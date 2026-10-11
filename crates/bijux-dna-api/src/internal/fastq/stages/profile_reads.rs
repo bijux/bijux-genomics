@@ -90,7 +90,7 @@ struct LocalFastqRecord {
 
 /// Materialize the governed local-smoke `fastq.profile_reads` report bundle.
 ///
-/// The written summary artifact lives at `runs/bench/local-smoke/fastq.profile_reads/profile.json`
+/// The written summary artifact lives at `artifacts/runs/bench/local-smoke/fastq.profile_reads/profile.json`
 /// under the active repository root.
 ///
 /// # Errors
@@ -99,7 +99,7 @@ struct LocalFastqRecord {
 pub fn write_local_profile_reads_smoke_report() -> Result<PathBuf> {
     let repo_root = crate::support::workspace::resolve_repo_root()?;
     let cases = bijux_dna_planner_fastq::stage_api::local_profile_reads_smoke_plans(&repo_root)?;
-    let output_root = repo_root.join("runs/bench/local-smoke/fastq.profile_reads");
+    let output_root = repo_root.join("artifacts/runs/bench/local-smoke/fastq.profile_reads");
     bijux_dna_infra::ensure_dir(&output_root)?;
 
     let case_reports = cases

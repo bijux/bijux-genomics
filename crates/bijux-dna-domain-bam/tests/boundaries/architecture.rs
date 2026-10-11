@@ -51,6 +51,29 @@ fn crate_tree_matches_domain_boundary() {
     .collect();
     assert_eq!(dir_entries(&root.join("src")), expected_src, "source tree changed");
 
+    let report_models: BTreeSet<_> = [
+        "mod.rs",
+        "identity.rs",
+        "alignment.rs",
+        "filtering.rs",
+        "duplicates.rs",
+        "coverage.rs",
+        "recalibration.rs",
+        "ancient_dna.rs",
+        "population.rs",
+        "workflow.rs",
+        "resources.rs",
+        "corpus.rs",
+    ]
+    .into_iter()
+    .map(str::to_string)
+    .collect();
+    assert_eq!(
+        dir_entries(&root.join("src/types/artifact_reports")),
+        report_models,
+        "persisted artifact schemas must retain explicit scientific owners"
+    );
+
     let expected_boundaries: BTreeSet<_> =
         ["architecture.rs", "commands.rs", "dependencies.rs", "guardrails.rs", "purity.rs"]
             .into_iter()

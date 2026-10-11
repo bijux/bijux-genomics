@@ -1,6 +1,5 @@
 ---
 source: crates/bijux-dna-domain-fastq/tests/contracts/stage_contract_snapshots.rs
-assertion_line: 20
 expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
 ---
 {
@@ -12,7 +11,18 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
     ],
     "kind": "SingleEnd"
   },
-  "metrics": {},
+  "metrics": {
+    "classes": [
+      "Integrity"
+    ],
+    "invariants": [
+      "estimated_unique_fraction in [0, 1]",
+      "estimated_duplicate_fraction in [0, 1]",
+      "estimated_unique_fraction + estimated_duplicate_fraction ~= 1 when reads_in > 0",
+      "kmer_size > 0"
+    ],
+    "notes": "Prealignment library-complexity estimation reports k-mer redundancy without mutating reads."
+  },
   "outputs": {
     "emits_fastq": false,
     "kind": "StatsOnly",

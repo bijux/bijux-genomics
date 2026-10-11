@@ -195,7 +195,7 @@ fn bench_local_materialize_stage_report_qc_json_writes_governed_smoke_bundle() {
     );
     assert_eq!(
         payload.get("artifact_path").and_then(serde_json::Value::as_str),
-        Some("runs/bench/local-smoke/fastq.report_qc/report.json")
+        Some("artifacts/runs/bench/local-smoke/fastq.report_qc/report.json")
     );
 }
 
@@ -213,7 +213,7 @@ fn bench_local_materialize_stage_bam_validate_json_writes_governed_smoke_bundle(
     assert_eq!(payload.get("stage_id").and_then(serde_json::Value::as_str), Some("bam.validate"));
     assert_eq!(
         payload.get("artifact_path").and_then(serde_json::Value::as_str),
-        Some("runs/bench/local-smoke/bam.validate/validation.json")
+        Some("artifacts/runs/bench/local-smoke/bam.validate/validation.json")
     );
 
     let artifact_path = repo_root.join(
@@ -265,7 +265,7 @@ fn bench_local_materialize_stage_bam_qc_pre_json_writes_governed_smoke_bundle() 
     assert_eq!(payload.get("stage_id").and_then(serde_json::Value::as_str), Some("bam.qc_pre"));
     assert_eq!(
         payload.get("artifact_path").and_then(serde_json::Value::as_str),
-        Some("runs/bench/local-smoke/bam.qc_pre/qc_pre.json")
+        Some("artifacts/runs/bench/local-smoke/bam.qc_pre/qc_pre.json")
     );
 
     let artifact_path = repo_root.join(
@@ -323,15 +323,15 @@ fn bench_local_materialize_stage_bam_qc_pre_json_writes_governed_smoke_bundle() 
                             == Some("multiqc")
                         && case.get("report_json").and_then(serde_json::Value::as_str)
                             == Some(
-                                "runs/bench/local-smoke/bam.qc_pre/human_like_duplicate_flagged_multicontig/multiqc/qc_pre_report.json"
+                                "artifacts/runs/bench/local-smoke/bam.qc_pre/human_like_duplicate_flagged_multicontig/multiqc/qc_pre_report.json"
                             )
                         && case.get("multiqc_report").and_then(serde_json::Value::as_str)
                             == Some(
-                                "runs/bench/local-smoke/bam.qc_pre/human_like_duplicate_flagged_multicontig/multiqc/multiqc_report.html"
+                                "artifacts/runs/bench/local-smoke/bam.qc_pre/human_like_duplicate_flagged_multicontig/multiqc/multiqc_report.html"
                             )
                         && case.get("governed_qc_inputs_manifest").and_then(serde_json::Value::as_str)
                             == Some(
-                                "runs/bench/local-smoke/bam.qc_pre/human_like_duplicate_flagged_multicontig/multiqc/governed_qc_inputs_manifest.json"
+                                "artifacts/runs/bench/local-smoke/bam.qc_pre/human_like_duplicate_flagged_multicontig/multiqc/governed_qc_inputs_manifest.json"
                             )
                 })
         }),
@@ -356,7 +356,7 @@ fn bench_local_materialize_stage_bam_mapping_summary_json_writes_governed_smoke_
     );
     assert_eq!(
         payload.get("artifact_path").and_then(serde_json::Value::as_str),
-        Some("runs/bench/local-smoke/bam.mapping_summary/mapping_summary.tsv")
+        Some("artifacts/runs/bench/local-smoke/bam.mapping_summary/mapping_summary.tsv")
     );
 
     let artifact_path = repo_root.join(
@@ -374,7 +374,7 @@ fn bench_local_materialize_stage_bam_mapping_summary_json_writes_governed_smoke_
     assert_eq!(rows.len(), 1, "mapping_summary smoke bundle must contain exactly one row");
     assert_eq!(
         rows[0],
-        "human_like_partial_mapping\t3\t2\t1\t0.666667\t0\t0\tchr1\ttrue\truns/bench/local-smoke/bam.mapping_summary/human_like_partial_mapping/samtools/mapping.summary.json\truns/bench/local-smoke/bam.mapping_summary/human_like_partial_mapping/samtools/flagstat.txt\truns/bench/local-smoke/bam.mapping_summary/human_like_partial_mapping/samtools/idxstats.txt\truns/bench/local-smoke/bam.mapping_summary/human_like_partial_mapping/samtools/samtools_stats.txt\truns/bench/local-smoke/bam.mapping_summary/human_like_partial_mapping/samtools/stage.metrics.json"
+        "human_like_partial_mapping\t3\t2\t1\t0.666667\t0\t0\tchr1\ttrue\tartifacts/runs/bench/local-smoke/bam.mapping_summary/human_like_partial_mapping/samtools/mapping.summary.json\tartifacts/runs/bench/local-smoke/bam.mapping_summary/human_like_partial_mapping/samtools/flagstat.txt\tartifacts/runs/bench/local-smoke/bam.mapping_summary/human_like_partial_mapping/samtools/idxstats.txt\tartifacts/runs/bench/local-smoke/bam.mapping_summary/human_like_partial_mapping/samtools/samtools_stats.txt\tartifacts/runs/bench/local-smoke/bam.mapping_summary/human_like_partial_mapping/samtools/stage.metrics.json"
     );
 }
 
@@ -392,7 +392,7 @@ fn bench_local_materialize_stage_bam_filter_json_writes_governed_smoke_bundle() 
     assert_eq!(payload.get("stage_id").and_then(serde_json::Value::as_str), Some("bam.filter"));
     assert_eq!(
         payload.get("artifact_path").and_then(serde_json::Value::as_str),
-        Some("runs/bench/local-smoke/bam.filter/filter_metrics.json")
+        Some("artifacts/runs/bench/local-smoke/bam.filter/filter_metrics.json")
     );
 
     let artifact_path = repo_root.join(
@@ -458,7 +458,7 @@ fn bench_local_materialize_stage_bam_mapq_filter_json_writes_governed_smoke_bund
     );
     assert_eq!(
         payload.get("artifact_path").and_then(serde_json::Value::as_str),
-        Some("runs/bench/local-smoke/bam.mapq_filter/mapq_filter.json")
+        Some("artifacts/runs/bench/local-smoke/bam.mapq_filter/mapq_filter.json")
     );
 
     let artifact_path = repo_root.join(
@@ -516,7 +516,7 @@ fn bench_local_materialize_stage_bam_length_filter_json_writes_governed_smoke_bu
     );
     assert_eq!(
         payload.get("artifact_path").and_then(serde_json::Value::as_str),
-        Some("runs/bench/local-smoke/bam.length_filter/length_filter.json")
+        Some("artifacts/runs/bench/local-smoke/bam.length_filter/length_filter.json")
     );
 
     let artifact_path = repo_root.join(
@@ -572,7 +572,7 @@ fn bench_local_materialize_stage_bam_markdup_json_writes_governed_smoke_bundle()
     assert_eq!(payload.get("stage_id").and_then(serde_json::Value::as_str), Some("bam.markdup"));
     assert_eq!(
         payload.get("artifact_path").and_then(serde_json::Value::as_str),
-        Some("runs/bench/local-smoke/bam.markdup/duplicates.json")
+        Some("artifacts/runs/bench/local-smoke/bam.markdup/duplicates.json")
     );
 
     let artifact_path = repo_root.join(
@@ -632,7 +632,7 @@ fn bench_local_materialize_stage_bam_duplication_metrics_json_writes_governed_sm
     );
     assert_eq!(
         payload.get("artifact_path").and_then(serde_json::Value::as_str),
-        Some("runs/bench/local-smoke/bam.duplication_metrics/duplication_metrics.json")
+        Some("artifacts/runs/bench/local-smoke/bam.duplication_metrics/duplication_metrics.json")
     );
 
     let artifact_path = repo_root.join(
@@ -701,7 +701,7 @@ fn bench_local_materialize_stage_bam_complexity_json_writes_governed_smoke_bundl
     assert_eq!(payload.get("stage_id").and_then(serde_json::Value::as_str), Some("bam.complexity"));
     assert_eq!(
         payload.get("artifact_path").and_then(serde_json::Value::as_str),
-        Some("runs/bench/local-smoke/bam.complexity/complexity.json")
+        Some("artifacts/runs/bench/local-smoke/bam.complexity/complexity.json")
     );
 
     let artifact_path = repo_root.join(
@@ -767,7 +767,7 @@ fn bench_local_materialize_stage_bam_coverage_json_writes_governed_smoke_bundle(
     assert_eq!(payload.get("stage_id").and_then(serde_json::Value::as_str), Some("bam.coverage"));
     assert_eq!(
         payload.get("artifact_path").and_then(serde_json::Value::as_str),
-        Some("runs/bench/local-smoke/bam.coverage/coverage.tsv")
+        Some("artifacts/runs/bench/local-smoke/bam.coverage/coverage.tsv")
     );
 
     let artifact_path = repo_root.join(
@@ -780,10 +780,10 @@ fn bench_local_materialize_stage_bam_coverage_json_writes_governed_smoke_bundle(
     assert!(coverage_tsv.contains("low_pass\ttrue\ttrue"));
 
     let case_summary = repo_root.join(
-        "runs/bench/local-smoke/bam.coverage/human_like_target_window_coverage/samtools/coverage.summary.json",
+        "artifacts/runs/bench/local-smoke/bam.coverage/human_like_target_window_coverage/samtools/coverage.summary.json",
     );
     let stage_metrics = repo_root
-        .join("runs/bench/local-smoke/bam.coverage/human_like_target_window_coverage/samtools/stage.metrics.json");
+        .join("artifacts/runs/bench/local-smoke/bam.coverage/human_like_target_window_coverage/samtools/stage.metrics.json");
     assert!(
         case_summary.is_file(),
         "bam.coverage smoke bundle must expose the governed coverage summary json"
@@ -811,7 +811,7 @@ fn bench_local_materialize_stage_bam_insert_size_json_writes_governed_smoke_bund
     );
     assert_eq!(
         payload.get("artifact_path").and_then(serde_json::Value::as_str),
-        Some("runs/bench/local-smoke/bam.insert_size/insert_size.json")
+        Some("artifacts/runs/bench/local-smoke/bam.insert_size/insert_size.json")
     );
 
     let artifact_path = repo_root.join(
@@ -877,7 +877,7 @@ fn bench_local_materialize_stage_bam_gc_bias_json_writes_governed_smoke_bundle()
     assert_eq!(payload.get("stage_id").and_then(serde_json::Value::as_str), Some("bam.gc_bias"));
     assert_eq!(
         payload.get("artifact_path").and_then(serde_json::Value::as_str),
-        Some("runs/bench/local-smoke/bam.gc_bias/gc_bias.tsv")
+        Some("artifacts/runs/bench/local-smoke/bam.gc_bias/gc_bias.tsv")
     );
 
     let artifact_path = repo_root.join(
@@ -890,10 +890,10 @@ fn bench_local_materialize_stage_bam_gc_bias_json_writes_governed_smoke_bundle()
     assert!(gc_bias_tsv.contains("human_like_gc_window_ladder\t100\t0.750000\t1\t1"));
 
     let gc_bias_summary = repo_root.join(
-        "runs/bench/local-smoke/bam.gc_bias/human_like_gc_window_ladder/picard/gc_bias.summary.json",
+        "artifacts/runs/bench/local-smoke/bam.gc_bias/human_like_gc_window_ladder/picard/gc_bias.summary.json",
     );
     let stage_metrics = repo_root.join(
-        "runs/bench/local-smoke/bam.gc_bias/human_like_gc_window_ladder/picard/stage.metrics.json",
+        "artifacts/runs/bench/local-smoke/bam.gc_bias/human_like_gc_window_ladder/picard/stage.metrics.json",
     );
     assert!(
         gc_bias_summary.is_file(),
@@ -922,7 +922,7 @@ fn bench_local_materialize_stage_bam_endogenous_content_json_writes_governed_smo
     );
     assert_eq!(
         payload.get("artifact_path").and_then(serde_json::Value::as_str),
-        Some("runs/bench/local-smoke/bam.endogenous_content/endogenous_content.json")
+        Some("artifacts/runs/bench/local-smoke/bam.endogenous_content/endogenous_content.json")
     );
 
     let artifact_path = repo_root.join(
@@ -1006,7 +1006,7 @@ fn bench_local_materialize_stage_bam_bias_mitigation_json_writes_governed_smoke_
     );
     assert_eq!(
         payload.get("artifact_path").and_then(serde_json::Value::as_str),
-        Some("runs/bench/local-smoke/bam.bias_mitigation/bias_mitigation.json")
+        Some("artifacts/runs/bench/local-smoke/bam.bias_mitigation/bias_mitigation.json")
     );
 
     let artifact_path = repo_root.join(
@@ -1109,7 +1109,7 @@ fn bench_local_materialize_stage_bam_recalibration_json_writes_governed_smoke_bu
     );
     assert_eq!(
         payload.get("artifact_path").and_then(serde_json::Value::as_str),
-        Some("runs/bench/local-smoke/bam.recalibration/recalibration.json")
+        Some("artifacts/runs/bench/local-smoke/bam.recalibration/recalibration.json")
     );
 
     let artifact_path = repo_root.join(
@@ -1214,7 +1214,7 @@ fn bench_local_materialize_stage_bam_sex_json_writes_governed_smoke_bundle() {
     assert_eq!(payload.get("stage_id").and_then(serde_json::Value::as_str), Some("bam.sex"));
     assert_eq!(
         payload.get("artifact_path").and_then(serde_json::Value::as_str),
-        Some("runs/bench/local-smoke/bam.sex/sex.json")
+        Some("artifacts/runs/bench/local-smoke/bam.sex/sex.json")
     );
 
     let artifact_path = repo_root.join(
@@ -1280,7 +1280,7 @@ fn bench_local_materialize_stage_bam_overlap_correction_json_writes_governed_smo
     );
     assert_eq!(
         payload.get("artifact_path").and_then(serde_json::Value::as_str),
-        Some("runs/bench/local-smoke/bam.overlap_correction/overlap_correction.json")
+        Some("artifacts/runs/bench/local-smoke/bam.overlap_correction/overlap_correction.json")
     );
 
     let artifact_path = repo_root.join(
@@ -1355,7 +1355,7 @@ fn bench_local_materialize_stage_bam_authenticity_json_writes_governed_smoke_bun
     );
     assert_eq!(
         payload.get("artifact_path").and_then(serde_json::Value::as_str),
-        Some("runs/bench/local-smoke/bam.authenticity/authenticity.json")
+        Some("artifacts/runs/bench/local-smoke/bam.authenticity/authenticity.json")
     );
 
     let artifact_path = repo_root.join(
@@ -1742,7 +1742,7 @@ fn bench_local_materialize_stage_bam_kinship_json_writes_governed_smoke_bundle()
     assert_eq!(payload.get("stage_id").and_then(serde_json::Value::as_str), Some("bam.kinship"));
     assert_eq!(
         payload.get("artifact_path").and_then(serde_json::Value::as_str),
-        Some("runs/bench/local-smoke/bam.kinship/kinship.json")
+        Some("artifacts/runs/bench/local-smoke/bam.kinship/kinship.json")
     );
 
     let artifact_path = repo_root.join(
@@ -1807,7 +1807,7 @@ fn bench_local_materialize_stage_bam_damage_json_writes_governed_smoke_bundle() 
     assert_eq!(payload.get("stage_id").and_then(serde_json::Value::as_str), Some("bam.damage"));
     assert_eq!(
         payload.get("artifact_path").and_then(serde_json::Value::as_str),
-        Some("runs/bench/local-smoke/bam.damage/damage.json")
+        Some("artifacts/runs/bench/local-smoke/bam.damage/damage.json")
     );
 
     let artifact_path = repo_root.join(

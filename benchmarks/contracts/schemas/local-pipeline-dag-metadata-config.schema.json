@@ -1,0 +1,305 @@
+{
+  "$defs": {
+    "BenchmarkLocalPipelineAncientDnaPolicy": {
+      "additionalProperties": false,
+      "properties": {
+        "adapter_cleanup_tool": {
+          "type": "string"
+        },
+        "aligner_mode": {
+          "type": "string"
+        },
+        "auto_bwa_aln_p75_threshold_bp": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "caller_tool": {
+          "type": "string"
+        },
+        "duplicate_stage_id": {
+          "type": "string"
+        },
+        "duplicate_tool": {
+          "type": "string"
+        },
+        "merge_pairs_in_preprocess": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "aligner_mode",
+        "auto_bwa_aln_p75_threshold_bp",
+        "adapter_cleanup_tool",
+        "merge_pairs_in_preprocess",
+        "duplicate_stage_id",
+        "duplicate_tool",
+        "caller_tool"
+      ],
+      "type": "object"
+    },
+    "BenchmarkLocalPipelineDagDomain": {
+      "enum": [
+        "fastq",
+        "bam",
+        "vcf",
+        "cross"
+      ],
+      "type": "string"
+    },
+    "BenchmarkLocalPipelineExecutionContext": {
+      "additionalProperties": false,
+      "properties": {
+        "compute_surfaces": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "default_campaign_config": {
+          "default": null,
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "frontend_surfaces": {
+          "default": [],
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "site_profile_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "site_profile_id"
+      ],
+      "type": "object"
+    },
+    "BenchmarkLocalPipelineProjectSourceConfig": {
+      "additionalProperties": false,
+      "properties": {
+        "metadata_url": {
+          "type": "string"
+        },
+        "project_id": {
+          "type": "string"
+        },
+        "retries": {
+          "default": 3,
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        }
+      },
+      "required": [
+        "project_id",
+        "metadata_url"
+      ],
+      "type": "object"
+    },
+    "BenchmarkLocalPipelineReferenceAssets": {
+      "additionalProperties": false,
+      "properties": {
+        "assembly_report_filename": {
+          "type": "string"
+        },
+        "assembly_report_url": {
+          "type": "string"
+        },
+        "directory_name": {
+          "type": "string"
+        },
+        "genome_filename": {
+          "type": "string"
+        },
+        "genome_url": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "directory_name",
+        "genome_url",
+        "genome_filename",
+        "assembly_report_url",
+        "assembly_report_filename"
+      ],
+      "type": "object"
+    },
+    "BenchmarkLocalPipelineReferenceContext": {
+      "additionalProperties": false,
+      "properties": {
+        "build_id": {
+          "type": "string"
+        },
+        "reference_bundle_id": {
+          "type": "string"
+        },
+        "species_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "species_id",
+        "build_id",
+        "reference_bundle_id"
+      ],
+      "type": "object"
+    },
+    "BenchmarkLocalPipelineSnpEffAssets": {
+      "additionalProperties": false,
+      "properties": {
+        "core_filename": {
+          "type": "string"
+        },
+        "core_url": {
+          "type": "string"
+        },
+        "database_filename": {
+          "type": "string"
+        },
+        "database_url": {
+          "type": "string"
+        },
+        "genome_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "genome_id",
+        "database_url",
+        "database_filename",
+        "core_url",
+        "core_filename"
+      ],
+      "type": "object"
+    },
+    "BenchmarkLocalPipelineVariantAssets": {
+      "additionalProperties": false,
+      "properties": {
+        "annotated_vcf_filename": {
+          "type": "string"
+        },
+        "directory_name": {
+          "type": "string"
+        },
+        "refseq_vcf_filename": {
+          "type": "string"
+        },
+        "snpeff": {
+          "$ref": "#/$defs/BenchmarkLocalPipelineSnpEffAssets"
+        },
+        "source_vcf_filename": {
+          "type": "string"
+        },
+        "source_vcf_url": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "directory_name",
+        "source_vcf_url",
+        "source_vcf_filename",
+        "refseq_vcf_filename",
+        "annotated_vcf_filename",
+        "snpeff"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "ancient_dna_policy": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/BenchmarkLocalPipelineAncientDnaPolicy"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "default_corpus_id": {
+      "type": "string"
+    },
+    "domain": {
+      "$ref": "#/$defs/BenchmarkLocalPipelineDagDomain"
+    },
+    "execution_context": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/BenchmarkLocalPipelineExecutionContext"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "pipeline_id": {
+      "type": "string"
+    },
+    "project_sources": {
+      "default": [],
+      "items": {
+        "$ref": "#/$defs/BenchmarkLocalPipelineProjectSourceConfig"
+      },
+      "type": "array"
+    },
+    "reference_assets": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/BenchmarkLocalPipelineReferenceAssets"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "reference_context": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/BenchmarkLocalPipelineReferenceContext"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "schema_version": {
+      "const": "bijux.bench.local_pipeline_dag.v1",
+      "type": "string"
+    },
+    "summary": {
+      "type": "string"
+    },
+    "variant_assets": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/BenchmarkLocalPipelineVariantAssets"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    }
+  },
+  "required": [
+    "schema_version",
+    "pipeline_id",
+    "domain",
+    "summary",
+    "default_corpus_id"
+  ],
+  "title": "BenchmarkLocalPipelineDagMetadataConfig",
+  "type": "object"
+}
