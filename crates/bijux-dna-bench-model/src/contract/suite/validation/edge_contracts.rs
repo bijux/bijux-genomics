@@ -7,7 +7,7 @@ use crate::model::{
 };
 
 use super::DeclaredStageNodes;
-use crate::contract::suite::validate_edge_ports;
+use crate::contract::suite::{validate_edge_ports, BenchmarkSuiteCatalog};
 
 pub(super) fn validate_upstream_stage_references(
     suite: &BenchmarkSuiteSpec,
@@ -29,11 +29,12 @@ pub(super) fn validate_upstream_stage_references(
 pub(super) fn validate_explicit_edges(
     suite: &BenchmarkSuiteSpec,
     declared_graph_nodes: &std::collections::BTreeMap<String, BenchmarkGraphNode>,
+    catalog: &dyn BenchmarkSuiteCatalog,
 ) -> Result<(), BenchError> {
     let mut seen_edges = std::collections::BTreeSet::new();
     for edge in &suite.edges {
         validate_edge_identity(edge, declared_graph_nodes, &mut seen_edges)?;
-        validate_edge_ports(edge, declared_graph_nodes)?;
+        validate_edge_ports(edge, declared_graph_nodes, catalog)?;
     }
     Ok(())
 }

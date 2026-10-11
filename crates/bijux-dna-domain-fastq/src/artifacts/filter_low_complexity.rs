@@ -3,6 +3,30 @@ use serde::{Deserialize, Serialize};
 
 use crate::params::PairedMode;
 
+/// Schema identity for the local smoke observation envelope.
+pub const LOCAL_FILTER_LOW_COMPLEXITY_SMOKE_REPORT_SCHEMA_VERSION: &str =
+    "bijux.fastq.filter_low_complexity.local_smoke.report.v1";
+
+/// Local smoke observation; planned tool identity and actual report producer remain distinct.
+/// This envelope alone does not prove execution of the planned backend.
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, schemars::JsonSchema, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct LocalFilterLowComplexitySmokeReportV1 {
+    pub schema_version: String,
+    pub stage_id: String,
+    pub sample_id: String,
+    pub planned_tool_id: String,
+    pub report_tool_id: String,
+    pub entropy_threshold: f64,
+    pub polyx_threshold: Option<u32>,
+    pub input_reads: u64,
+    pub reads_removed_low_complexity: u64,
+    pub output_reads: u64,
+    pub filtered_fastq_gz: String,
+    pub case_report_json: String,
+    pub raw_backend_report: String,
+}
+
 pub const FILTER_LOW_COMPLEXITY_REPORT_SCHEMA_VERSION: &str =
     "bijux.fastq.filter_low_complexity.report.v2";
 
@@ -86,5 +110,46 @@ mod tests {
         assert_eq!(decoded.tool_id, "bbduk");
         assert_eq!(decoded.reads_removed_low_complexity, 8);
         assert_eq!(decoded.raw_backend_report_format.as_deref(), Some("bbduk_stats"));
+    }
+}
+
+#[cfg(test)]
+mod local_smoke_contract_tests {
+    use super::*;
+    use anyhow::Result;
+
+    #[test]
+    fn local_smoke_observation_preserves_wire_shape_and_producer_identity() -> Result<()> {
+        let original: serde_json::Value = serde_json::from_str(
+            r#"{
+    "schema_version": "bijux.fastq.filter_low_complexity.local_smoke.report.v1",
+    "stage_id": "fastq.filter_low_complexity",
+    "sample_id": "authored_contract_value",
+    "planned_tool_id": "planned_backend",
+    "report_tool_id": "local_emitter",
+    "entropy_threshold": 0.5,
+    "polyx_threshold": null,
+    "input_reads": 1,
+    "reads_removed_low_complexity": 1,
+    "output_reads": 1,
+    "filtered_fastq_gz": "authored_contract_value",
+    "case_report_json": "authored_contract_value",
+    "raw_backend_report": "authored_contract_value"
+}"#,
+        )?;
+        let report: LocalFilterLowComplexitySmokeReportV1 =
+            serde_json::from_value(original.clone())?;
+        assert_eq!(report.schema_version, LOCAL_FILTER_LOW_COMPLEXITY_SMOKE_REPORT_SCHEMA_VERSION);
+        assert_ne!(report.planned_tool_id, report.report_tool_id);
+        assert_eq!(serde_json::to_value(&report)?, original);
+        let mut unsupported = original;
+        unsupported["unrecognized"] = serde_json::json!(true);
+        assert!(
+            serde_json::from_value::<LocalFilterLowComplexitySmokeReportV1>(unsupported).is_err()
+        );
+        let schema =
+            serde_json::to_value(schemars::schema_for!(LocalFilterLowComplexitySmokeReportV1))?;
+        assert_eq!(schema["additionalProperties"], serde_json::json!(false));
+        Ok(())
     }
 }

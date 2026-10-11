@@ -95,6 +95,24 @@ pub(crate) fn render_full_benchmark_report(
     repo_root: &Path,
     markdown_output_path: PathBuf,
 ) -> Result<FullBenchmarkReport> {
+    render_full_benchmark_report_with_dependency(repo_root, markdown_output_path, None)
+}
+
+/// Uses the successful upstream observation from this readiness request.
+/// The caller must keep its repository inputs and referenced artifacts alive and unchanged.
+pub(crate) fn render_full_benchmark_report_from_collector(
+    repo_root: &Path,
+    markdown_output_path: PathBuf,
+    dependency: &FullBenchmarkResultCollectorReport,
+) -> Result<FullBenchmarkReport> {
+    render_full_benchmark_report_with_dependency(repo_root, markdown_output_path, Some(dependency))
+}
+
+fn render_full_benchmark_report_with_dependency(
+    repo_root: &Path,
+    markdown_output_path: PathBuf,
+    dependency: Option<&FullBenchmarkResultCollectorReport>,
+) -> Result<FullBenchmarkReport> {
     let _cwd_guard = CurrentDirGuard::change_to(repo_root);
     let markdown_output_path = repo_relative_path(repo_root, &markdown_output_path);
     let json_output_path = derive_json_output_path(&markdown_output_path);
@@ -103,10 +121,16 @@ pub(crate) fn render_full_benchmark_report(
         repo_root,
         PathBuf::from(DEFAULT_ALL_DOMAIN_EXPECTED_BENCHMARK_RESULTS_PATH),
     )?;
-    let collector_report = render_full_benchmark_result_collector(
-        repo_root,
-        PathBuf::from(DEFAULT_FULL_BENCHMARK_RESULT_COLLECTOR_PATH),
-    )?;
+    let acquired_dependency;
+    let collector_report = if let Some(report) = dependency {
+        report
+    } else {
+        acquired_dependency = render_full_benchmark_result_collector(
+            repo_root,
+            PathBuf::from(DEFAULT_FULL_BENCHMARK_RESULT_COLLECTOR_PATH),
+        )?;
+        &acquired_dependency
+    };
     let failure_classification_report = render_all_domain_failure_classification(
         repo_root,
         PathBuf::from(DEFAULT_ALL_DOMAIN_FAILURE_CLASSIFICATION_PATH),
@@ -134,9 +158,8 @@ pub(crate) fn render_full_benchmark_report(
     )?;
 
     let fake_run_runtime_by_result_id =
-        collect_fake_run_runtime_by_result_id(repo_root, &collector_report)?;
-    let real_smoke_by_binding =
-        collect_real_smoke_runtime_by_binding(repo_root, &collector_report)?;
+        collect_fake_run_runtime_by_result_id(repo_root, collector_report)?;
+    let real_smoke_by_binding = collect_real_smoke_runtime_by_binding(repo_root, collector_report)?;
     let missing_audit_by_result_id = collector_report
         .rows
         .iter()
@@ -292,7 +315,7 @@ pub(crate) fn render_full_benchmark_report(
     let runtime = build_full_benchmark_runtime_rows(&rows);
     let memory = build_full_benchmark_memory_rows(&rows);
     let failures =
-        build_full_benchmark_failures_section(&collector_report, &failure_classification_report)?;
+        build_full_benchmark_failures_section(collector_report, &failure_classification_report)?;
     let missing_results = build_full_benchmark_missing_result_rows(&rows)?;
     let unsupported_pairs = build_full_benchmark_unsupported_pair_rows(&rows);
 

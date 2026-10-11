@@ -106,32 +106,11 @@ pub(crate) fn materialize_reference_fasta_with_index(
     source_relative_path: &str,
     staging_root: &Path,
 ) -> Result<(String, String)> {
-    let source_fasta = repo_root.join(source_relative_path);
-    let output_root = repo_root.join(staging_root);
-    fs::create_dir_all(&output_root)
-        .with_context(|| format!("create {}", output_root.display()))?;
-    let file_name = source_fasta
-        .file_name()
-        .ok_or_else(|| anyhow!("reference FASTA has no file name: {}", source_fasta.display()))?;
-    let materialized_fasta = output_root.join(file_name);
-    let fasta_payload =
-        fs::read(&source_fasta).with_context(|| format!("read {}", source_fasta.display()))?;
-    bijux_dna_infra::atomic_write_bytes(&materialized_fasta, &fasta_payload).with_context(
-        || {
-            format!(
-                "materialize governed reference {} into {}",
-                source_fasta.display(),
-                materialized_fasta.display()
-            )
-        },
+    let (fasta, index) = bijux_dna_api::v1::api::bench::materialize_benchmark_reference_fasta(
+        &repo_root.join(source_relative_path),
+        &repo_root.join(staging_root),
     )?;
-    let fai_path = PathBuf::from(format!("{}.fai", materialized_fasta.display()));
-    let fai_payload = build_fasta_index_payload_from_bytes(&fasta_payload, &materialized_fasta)?;
-    bijux_dna_infra::atomic_write_bytes(&fai_path, fai_payload.as_bytes())?;
-    Ok((
-        path_relative_to_repo(repo_root, &materialized_fasta),
-        path_relative_to_repo(repo_root, &fai_path),
-    ))
+    Ok((path_relative_to_repo(repo_root, &fasta), path_relative_to_repo(repo_root, &index)))
 }
 
 fn resolve_manifest_relative_path(manifest_dir: &Path, path: &Path) -> PathBuf {
@@ -144,82 +123,4 @@ fn resolve_manifest_relative_path(manifest_dir: &Path, path: &Path) -> PathBuf {
 
 pub(crate) fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
     path.strip_prefix(repo_root).unwrap_or(path).to_string_lossy().replace('\\', "/")
-}
-
-fn build_fasta_index_payload(fasta_path: &Path) -> Result<String> {
-    let raw = fs::read(fasta_path).with_context(|| format!("read {}", fasta_path.display()))?;
-    build_fasta_index_payload_from_bytes(&raw, fasta_path)
-}
-
-fn build_fasta_index_payload_from_bytes(raw: &[u8], fasta_path: &Path) -> Result<String> {
-    let mut rows = Vec::new();
-    let mut offset = 0usize;
-    let mut current_name: Option<String> = None;
-    let mut current_length = 0usize;
-    let mut current_sequence_offset = 0usize;
-    let mut current_line_bases = 0usize;
-    let mut current_line_width = 0usize;
-
-    for chunk in raw.split_inclusive(|byte| *byte == b'\n') {
-        let line_width = chunk.len();
-        let line = if chunk.ends_with(b"\n") { &chunk[..chunk.len() - 1] } else { chunk };
-        if let Some(header) = line.strip_prefix(b">") {
-            if let Some(name) = current_name.take() {
-                rows.push((
-                    name,
-                    current_length,
-                    current_sequence_offset,
-                    current_line_bases,
-                    current_line_width,
-                ));
-            }
-            let header_text = std::str::from_utf8(header)
-                .with_context(|| format!("decode FASTA header in {}", fasta_path.display()))?;
-            let name = header_text
-                .split_whitespace()
-                .next()
-                .ok_or_else(|| anyhow!("empty FASTA header in {}", fasta_path.display()))?;
-            current_name = Some(name.to_string());
-            current_length = 0;
-            current_line_bases = 0;
-            current_line_width = 0;
-            current_sequence_offset = offset + line_width;
-        } else if !line.is_empty() {
-            if current_name.is_none() {
-                return Err(anyhow!(
-                    "FASTA sequence line appears before any header in {}",
-                    fasta_path.display()
-                ));
-            }
-            current_length += line.len();
-            if current_line_bases == 0 {
-                current_line_bases = line.len();
-                current_line_width = line_width;
-            }
-        }
-        offset += line_width;
-    }
-
-    if let Some(name) = current_name.take() {
-        rows.push((
-            name,
-            current_length,
-            current_sequence_offset,
-            current_line_bases,
-            current_line_width,
-        ));
-    }
-
-    if rows.is_empty() {
-        return Err(anyhow!("no FASTA records found in {}", fasta_path.display()));
-    }
-
-    let payload = rows
-        .into_iter()
-        .map(|(name, length, sequence_offset, line_bases, line_width)| {
-            format!("{name}\t{length}\t{sequence_offset}\t{line_bases}\t{line_width}")
-        })
-        .collect::<Vec<_>>()
-        .join("\n");
-    Ok(format!("{payload}\n"))
 }

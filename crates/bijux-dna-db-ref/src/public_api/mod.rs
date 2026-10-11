@@ -3,7 +3,8 @@ pub use crate::catalog::{
     MapCompatibility, MapLockEntry, PanelCatalogEntry, PanelLockEntry,
 };
 pub use crate::materialization::{
-    plan_panel_file_materialization, CatalogFileMaterializationArea, CatalogFileMaterializationPlan,
+    build_reference_fasta_index, plan_panel_file_materialization, CatalogFileMaterializationArea,
+    CatalogFileMaterializationPlan,
 };
 pub use crate::model::{
     BuildId, ContigAliasResolutionReport, ContigAliasResolutionRow, ContigMap,

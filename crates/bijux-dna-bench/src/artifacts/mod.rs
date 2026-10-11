@@ -2,6 +2,8 @@
 //! Benchmark source inspection, output admission, and deterministic persistence.
 
 pub mod admission;
+mod fastq_score_evidence;
+pub use fastq_score_evidence::load_fastq_tool_score_evidence;
 mod source_assets;
 pub mod writer;
 
@@ -19,3 +21,7 @@ pub use writer::{
     write_decisions_json, write_observations_jsonl, write_summary_json,
     EffectiveToolParametersPublication, WriteMode, EFFECTIVE_TOOL_PARAMETERS_FILE,
 };
+
+pub(crate) mod bam_score_evidence;
+
+pub(crate) mod vcf_score_evidence;

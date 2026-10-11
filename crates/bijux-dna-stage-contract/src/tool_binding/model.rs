@@ -25,7 +25,7 @@ pub enum BindingInputSourceV1 {
 
 /// Describes how the executable artifact is admitted without performing admission here.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
-#[serde(tag = "kind", rename_all = "snake_case")]
+#[serde(tag = "kind", rename_all = "snake_case", deny_unknown_fields)]
 pub enum ToolArtifactSourceV1 {
     /// A distributable image resolved through the governed container catalog.
     CatalogImage { catalog_tool_id: ToolId },
@@ -35,6 +35,7 @@ pub enum ToolArtifactSourceV1 {
 
 /// One named input projected into a tool command.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
 pub struct BindingInputV1 {
     pub name: String,
     pub artifact_contract_id: String,
@@ -45,6 +46,7 @@ pub struct BindingInputV1 {
 
 /// One scientific parameter available to command rendering.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
 pub struct BindingParameterV1 {
     pub name: String,
     pub required: bool,
@@ -52,23 +54,45 @@ pub struct BindingParameterV1 {
 
 /// Declares how an exact output companion is named from its primary output path.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
-#[serde(tag = "kind", rename_all = "snake_case")]
+#[serde(tag = "kind", rename_all = "snake_case", deny_unknown_fields)]
 pub enum OutputSidecarDiscoveryV1 {
     AppendSuffix { suffix: String },
     ReplaceExtension { extension: String },
 }
 
 /// Declares how a runtime owner discovers a projected output.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
-#[serde(tag = "kind", rename_all = "snake_case")]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, JsonSchema)]
+#[serde(tag = "kind", rename_all = "snake_case", deny_unknown_fields)]
 pub enum OutputDiscoveryV1 {
     ExactPath,
     ExactPathWithSidecars { sidecars: Vec<OutputSidecarDiscoveryV1> },
     Glob { pattern: String },
 }
 
+impl<'de> Deserialize<'de> for OutputDiscoveryV1 {
+    fn deserialize<D: serde::Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        // An empty struct variant closes the exact-path object during decoding;
+        // Serde's internally tagged unit variant otherwise ignores extra fields.
+        #[derive(Deserialize)]
+        #[serde(tag = "kind", rename_all = "snake_case", deny_unknown_fields)]
+        enum Declaration {
+            ExactPath {},
+            ExactPathWithSidecars { sidecars: Vec<OutputSidecarDiscoveryV1> },
+            Glob { pattern: String },
+        }
+        Ok(match Declaration::deserialize(deserializer)? {
+            Declaration::ExactPath {} => Self::ExactPath,
+            Declaration::ExactPathWithSidecars { sidecars } => {
+                Self::ExactPathWithSidecars { sidecars }
+            }
+            Declaration::Glob { pattern } => Self::Glob { pattern },
+        })
+    }
+}
+
 /// One canonical output and its discovery contract.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
 pub struct BindingOutputV1 {
     pub name: String,
     pub artifact_contract_id: String,
@@ -106,6 +130,7 @@ pub trait ToolBinding {
 
 /// Serializable registry record implementing the generic binding interface.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
 pub struct ToolBindingV1 {
     pub schema_version: String,
     pub binding_id: String,

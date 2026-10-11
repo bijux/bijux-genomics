@@ -113,3 +113,5 @@ CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-core --test cont
 CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-core --test schemas --no-default-features
 CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-core --test semantics --no-default-features
 ```
+
+Pure numeric conversion operations are `checked-f64-from-u64`, `checked-f64-from-usize`, and `rounded-f64-to-u64`, available through `prelude::numeric`. They share count-conversion behavior across request and evidence adapters; large integer-to-float conversions may round.

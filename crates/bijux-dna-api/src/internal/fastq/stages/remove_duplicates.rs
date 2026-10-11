@@ -1,3 +1,7 @@
+use bijux_dna_domain_fastq::{
+    LocalRemoveDuplicatesSmokeReportV1 as LocalRemoveDuplicatesSmokeReport,
+    LOCAL_REMOVE_DUPLICATES_SMOKE_REPORT_SCHEMA_VERSION,
+};
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 
@@ -35,12 +39,9 @@ use bijux_dna_planner_fastq::tool_adapters::fastq::remove_duplicates::{
 use bijux_dna_runner::backend::docker::execution_spec::build_tool_execution_spec;
 use bijux_dna_runner::step_runner::StageResultV1;
 use bijux_dna_stage_contract::StagePlanV1;
-use serde::Serialize;
 
 const STAGE_ID: &str = "fastq.remove_duplicates";
 const DEDUP_RATE_EPSILON: f64 = 1e-9;
-const LOCAL_REMOVE_DUPLICATES_SMOKE_REPORT_SCHEMA_VERSION: &str =
-    "bijux.fastq.remove_duplicates.local_smoke.report.v1";
 
 #[derive(Debug, Clone, PartialEq)]
 struct DuplicateReportCounts {
@@ -56,29 +57,6 @@ struct DuplicateReportCounts {
     duplicate_class_count: Option<u64>,
     duplicate_provenance_json: Option<String>,
     raw_backend_report_format: Option<String>,
-}
-
-#[derive(Debug, Clone, Serialize)]
-struct LocalRemoveDuplicatesSmokeReport {
-    schema_version: String,
-    stage_id: String,
-    sample_id: String,
-    planned_tool_id: String,
-    report_tool_id: String,
-    paired_mode: String,
-    dedup_mode: String,
-    keep_order: bool,
-    input_reads: u64,
-    duplicate_reads: u64,
-    unique_reads: u64,
-    output_reads: u64,
-    dedup_fastq_gz: String,
-    dedup_fastq_r2_gz: Option<String>,
-    pair_count_match: Option<bool>,
-    case_report_json: String,
-    duplicate_classes_tsv: String,
-    duplicate_provenance_json: String,
-    raw_backend_report: Option<String>,
 }
 
 fn resolve_remove_duplicates_tools(

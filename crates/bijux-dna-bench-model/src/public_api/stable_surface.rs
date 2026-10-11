@@ -2,10 +2,15 @@
 //! Stable crate-root re-exports.
 
 pub use crate::contract::{
+    admit_real_smoke_core_subset_report, build_benchmark_local_hpc_array_resource_envelope,
+    build_benchmark_local_hpc_dependency_simulation, build_benchmark_local_hpc_job_graph,
+    project_benchmark_local_hpc_tool_scopes, validate_all_domain_expected_result_rows,
     validate_all_domain_output_declaration_rows, validate_all_domain_output_declarations_report,
+    validate_all_domain_rendered_command_rows, validate_all_domain_stage_tool_table_rows,
     validate_stage_tool_assets_config, validate_stage_tool_assets_report,
     validate_stage_tool_containers_config, validate_stage_tool_containers_report,
     validate_stage_tool_resources_config, validate_stage_tool_resources_report,
+    AllDomainStageToolTableAdmissionContext, BenchmarkLocalHpcToolScope,
     ALL_DOMAIN_OUTPUT_DECLARATIONS_SCHEMA_V1, LOCAL_STAGE_TOOL_ASSETS_SCHEMA_V1,
     LOCAL_STAGE_TOOL_CONTAINERS_SCHEMA_V1, LOCAL_STAGE_TOOL_RESOURCES_SCHEMA_V1,
     STAGE_TOOL_ASSETS_REPORT_SCHEMA_V1, STAGE_TOOL_CONTAINERS_REPORT_SCHEMA_V1,
@@ -232,12 +237,6 @@ pub use crate::model::admission::{
 pub use crate::model::all_domain_failure_classification::{
     all_domain_failure_classification_schema, AllDomainFailureClassificationReport,
     AllDomainFailureClassificationRow,
-};
-pub use crate::model::all_domain_parser_collector::{
-    all_domain_parser_collector_schema, AllDomainParserCollectorReport,
-    AllDomainParserCollectorRow, AllDomainParserCollectorSourceKind,
-    ALL_DOMAIN_PARSER_COLLECTOR_FAKE_RUN_ROOT, ALL_DOMAIN_PARSER_COLLECTOR_FIXTURE_ROOT,
-    ALL_DOMAIN_PARSER_COLLECTOR_OUTPUT_PATH,
 };
 pub use crate::model::appraisal::{
     appraisal_report_schema, hardening_queue_report_schema, AppraisalFinding, AppraisalReport,
@@ -619,6 +618,12 @@ pub use crate::model::published_results_status::{
     benchmark_published_results_status_schema, PublishedResultsStageReport,
     PublishedResultsStatusReport, StageResultIssue, BENCHMARK_PUBLISHED_RESULTS_STATUS_SCHEMA_V1,
 };
+pub use crate::model::readiness::parser_collector::{
+    all_domain_parser_collector_schema, AllDomainParserCollectorReport,
+    AllDomainParserCollectorRow, AllDomainParserCollectorSourceKind,
+    ALL_DOMAIN_PARSER_COLLECTOR_FAKE_RUN_ROOT, ALL_DOMAIN_PARSER_COLLECTOR_FIXTURE_ROOT,
+    ALL_DOMAIN_PARSER_COLLECTOR_OUTPUT_PATH,
+};
 pub use crate::model::remediation_queue::{
     benchmark_remediation_queue_schema, BenchmarkRemediationIssue, BenchmarkRemediationIssueGroup,
     BenchmarkRemediationQueue, BenchmarkRemediationStageEntry,
@@ -691,28 +696,32 @@ pub use crate::model::{
     AdmittedFastqCorpusFile, AdmittedFastqCorpusSample, AdmittedIndexedReference,
     AdmittedReferenceBundle, AllDomainActiveStageToolMatrixReport,
     AllDomainActiveStageToolMatrixRow, AllDomainExpectedBenchmarkResultRow,
-    AllDomainExpectedBenchmarkResultsReport, AllDomainRetainedToolRow,
-    AllDomainRetainedToolsReport, BackendComparisonSpec, BamComparableMetricsReport,
-    BamComparableMetricsRow, BenchmarkBundleManifest, BenchmarkCorpusDossierHeadline,
-    BenchmarkCorpusDossierSampleResultRow, BenchmarkCorpusDossierSummary,
-    BenchmarkCorpusDossierToolSummary, BenchmarkCorpusManifest, BenchmarkDataIndex,
-    BenchmarkDataIndexFile, BenchmarkDataIndexRecord, BenchmarkDataIndexSummary,
-    BenchmarkEligibility, BenchmarkFastqLayout, BenchmarkTemporalProvenance,
-    ComparableMetricContractStatus, ComparableMetricDirection, CorpusAcquisitionFile,
-    CorpusAcquisitionLayout, CorpusAcquisitionPlan, CorpusAcquisitionSample,
+    AllDomainExpectedBenchmarkResultsReport, AllDomainRenderedCommandArgvRow,
+    AllDomainRenderedCommandArgvStep, AllDomainRenderedCommandRow, AllDomainRenderedCommandStep,
+    AllDomainRenderedCommandsReport, AllDomainRetainedToolRow, AllDomainRetainedToolsReport,
+    AllDomainStageToolTableReport, AllDomainStageToolTableRow, BackendComparisonSpec,
+    BamComparableMetricsReport, BamComparableMetricsRow, BenchmarkBundleManifest,
+    BenchmarkCorpusDossierHeadline, BenchmarkCorpusDossierSampleResultRow,
+    BenchmarkCorpusDossierSummary, BenchmarkCorpusDossierToolSummary, BenchmarkCorpusManifest,
+    BenchmarkDataIndex, BenchmarkDataIndexFile, BenchmarkDataIndexRecord,
+    BenchmarkDataIndexSummary, BenchmarkEligibility, BenchmarkFastqLayout,
+    BenchmarkTemporalProvenance, ComparableMetricContractStatus, ComparableMetricDirection,
+    CorpusAcquisitionFile, CorpusAcquisitionLayout, CorpusAcquisitionPlan, CorpusAcquisitionSample,
     CorpusCentricCorpusReport, CorpusCentricReport, CorpusCentricStageRow, CorpusDatasetSpec,
     CorpusDomain, CorpusEvaluationDesign, CorpusMaterializationDisposition, CorpusScale,
     CorpusSourcePolicy, DataIntegrityStatus, DriftScenarioSpec, FastqComparableMetricsReport,
     FastqComparableMetricsRow, FastqCorpusSourceSample, FastqCorpusSourceSpec,
     FastqProfileReadsExpectationsProvenance, FastqReadLengthExpectationSample,
     FastqReadLengthExpectations, FullBenchmarkComparableMetricRow, FullBenchmarkCorpusSectionRow,
-    FullBenchmarkFailureRow, FullBenchmarkFailuresSection, FullBenchmarkMemoryRow,
-    FullBenchmarkMissingResultRow, FullBenchmarkPipelineSection, FullBenchmarkPipelineSectionRow,
-    FullBenchmarkReport, FullBenchmarkReportRow, FullBenchmarkReportRowStatus,
-    FullBenchmarkResultCollectorReport, FullBenchmarkResultCollectorRow, FullBenchmarkResultStatus,
-    FullBenchmarkResultSurfaceKind, FullBenchmarkRuntimeRow, FullBenchmarkStageSectionRow,
-    FullBenchmarkToolSectionRow, FullBenchmarkUnsupportedPairRow, GovernedDataCatalog,
-    GovernedDataCatalogFile, GovernedDataCatalogSample, ReadinessComparisonContractStatus,
+    FullBenchmarkDashboardMetric, FullBenchmarkDashboardReport, FullBenchmarkFailureRow,
+    FullBenchmarkFailuresSection, FullBenchmarkMemoryRow, FullBenchmarkMissingResultRow,
+    FullBenchmarkPipelineSection, FullBenchmarkPipelineSectionRow, FullBenchmarkReport,
+    FullBenchmarkReportRow, FullBenchmarkReportRowStatus, FullBenchmarkResultCollectorReport,
+    FullBenchmarkResultCollectorRow, FullBenchmarkResultStatus, FullBenchmarkResultSurfaceKind,
+    FullBenchmarkRuntimeRow, FullBenchmarkStageSectionRow, FullBenchmarkToolSectionRow,
+    FullBenchmarkUnsupportedPairRow, GovernedDataCatalog, GovernedDataCatalogFile,
+    GovernedDataCatalogSample, ReadinessComparisonContractStatus, ReadinessStageToolBinding,
+    RealSmokeCoreSubsetExecutionKind, RealSmokeCoreSubsetReport, RealSmokeCoreSubsetRow,
     ScientificAcceptanceDirection, ScientificAcceptanceInsufficiencyBehavior,
     ScientificAcceptancePassRule, ScientificAcceptanceThresholdRow,
     ScientificAcceptanceThresholdsConfig, ScientificAcceptanceThresholdsReport,
@@ -722,10 +731,51 @@ pub use crate::model::{
     StageToolBenchmarkReadyReport, StageToolBenchmarkReadySurfaceStatus,
     StageToolBenchmarkReadySurfaceSummary, ToolCentricReport, ToolCentricStageRow,
     ToolCentricToolReport, TruthSetHook, TruthSetStatus, VcfComparableMetricsReport,
-    VcfComparableMetricsRow, BENCHMARK_CORPUS_DOSSIER_SUMMARY_SCHEMA_V1,
+    VcfComparableMetricsRow, ALL_DOMAIN_RENDERED_COMMANDS_SCHEMA_VERSION,
+    ALL_DOMAIN_STAGE_TOOL_TABLE_SCHEMA_VERSION, BENCHMARK_CORPUS_DOSSIER_SUMMARY_SCHEMA_V1,
+    FULL_BENCHMARK_DASHBOARD_SCHEMA_VERSION, REAL_SMOKE_CORE_SUBSET_SCHEMA_VERSION,
 };
 pub use crate::model::{BenchmarkObservation, BenchmarkSuiteSpec, BenchmarkSummary};
 pub use crate::policy::{
     gate_decision_schema, GateDecision, GatePolicy, GatePolicyOverrides, GateViolation,
 };
 pub use crate::stats::robust_estimators::robust_stats;
+
+pub use crate::contract::{
+    build_benchmark_local_all_domain_slurm_scripts_report,
+    validate_benchmark_local_all_domain_slurm_scripts_report,
+};
+pub use crate::model::{
+    BenchmarkLocalAllDomainSlurmScriptEntry, BenchmarkLocalAllDomainSlurmScriptsReport,
+    BENCHMARK_LOCAL_ALL_DOMAIN_SLURM_SCRIPTS_SCHEMA_V1,
+};
+
+pub use crate::contract::validate_stage_scoring_config;
+pub use crate::model::stage_scoring::{
+    StageScoringApplicability, StageScoringCompletion, StageScoringConfig, StageScoringCorrectness,
+    StageScoringCorrectnessSignal, StageScoringDecisionMode, StageScoringDirection,
+    StageScoringFailureClass, StageScoringFailureClassCatalogEntry, StageScoringFailureEffect,
+    StageScoringMemory, StageScoringMissingBehavior, StageScoringRow, StageScoringRuntime,
+    StageScoringScientificThreshold, StageScoringWeights, STAGE_SCORING_SCHEMA_VERSION,
+};
+
+pub use crate::model::fastq_scoring::{
+    FastqScoreEvidence, FastqScoreExpectedRow, FastqScoreMemoryRow, FastqScoreRuntimeRow,
+    FastqToolScoreRow, FastqToolScoreStatus, FastqToolScoresReport, FastqToolScoringInput,
+    FASTQ_TOOL_SCORES_SCHEMA_VERSION,
+};
+pub use crate::policy::fastq_scoring::{
+    build_fastq_tool_score_rows, build_fastq_tool_scores_report,
+};
+
+pub use crate::model::bam_scoring::{
+    BamScoreEvidence, BamScoreExpectedRow, BamScoreMemoryRow, BamScoreRuntimeRow, BamToolScoreRow,
+    BamToolScoreStatus, BamToolScoresReport, BamToolScoringInput, BAM_TOOL_SCORES_SCHEMA_VERSION,
+};
+pub use crate::policy::bam_scoring::{build_bam_tool_score_rows, build_bam_tool_scores_report};
+
+pub use crate::model::vcf_scoring::{
+    VcfScoreEvidence, VcfScoreExpectedRow, VcfScoreMemoryRow, VcfScoreRuntimeRow, VcfToolScoreRow,
+    VcfToolScoreStatus, VcfToolScoresReport, VcfToolScoringInput, VCF_TOOL_SCORES_SCHEMA_VERSION,
+};
+pub use crate::policy::vcf_scoring::{build_vcf_tool_score_rows, build_vcf_tool_scores_report};

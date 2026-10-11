@@ -4,9 +4,11 @@ use std::collections::BTreeSet;
 use std::path::{Component, Path};
 
 use crate::{
-    BenchError, BenchmarkLocalHpcArrayResources, BenchmarkLocalHpcStageBenchmarkArrayReport,
+    BenchError, BenchmarkLocalHpcStageBenchmarkArrayReport,
     BenchmarkLocalHpcStageBenchmarkArrayRow, BENCHMARK_LOCAL_HPC_STAGE_BENCHMARK_ARRAY_SCHEMA_V1,
 };
+
+use super::local_hpc_array::{parse_time, validate_resources};
 
 /// Validate array identity, execution resolution, paths, commands, and resource envelope.
 ///
@@ -111,37 +113,6 @@ fn validate_row(row: &BenchmarkLocalHpcStageBenchmarkArrayRow) -> Result<(), Ben
         require_path(output, "rows[].output_paths[]")?;
     }
     validate_resources(&row.resources)
-}
-
-fn validate_resources(resources: &BenchmarkLocalHpcArrayResources) -> Result<(), BenchError> {
-    if resources.cpus_per_task == 0
-        || resources.memory_mb == 0
-        || resources.scratch_gb == 0
-        || parse_time(&resources.time_limit)? == 0
-    {
-        return invalid("local HPC array resources must be positive");
-    }
-    Ok(())
-}
-
-fn parse_time(value: &str) -> Result<u64, BenchError> {
-    let parts = value.split(':').collect::<Vec<_>>();
-    if parts.len() != 3 {
-        return invalid("local HPC array time_limit must use HH:MM:SS");
-    }
-    let hours = parts[0].parse::<u64>().map_err(|_| {
-        BenchError::InvalidPolicy("local HPC array time_limit has invalid hours".to_string())
-    })?;
-    let minutes = parts[1].parse::<u64>().map_err(|_| {
-        BenchError::InvalidPolicy("local HPC array time_limit has invalid minutes".to_string())
-    })?;
-    let seconds = parts[2].parse::<u64>().map_err(|_| {
-        BenchError::InvalidPolicy("local HPC array time_limit has invalid seconds".to_string())
-    })?;
-    if minutes >= 60 || seconds >= 60 {
-        return invalid("local HPC array time_limit minute or second is out of range");
-    }
-    Ok(hours * 3600 + minutes * 60 + seconds)
 }
 
 fn require_text(value: &str, field: &str) -> Result<(), BenchError> {

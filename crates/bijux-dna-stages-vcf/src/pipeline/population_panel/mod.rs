@@ -913,8 +913,10 @@ mod pca_backend_tests {
                 ]
             );
         }
-        let error = pca_invocation("unsupported", Path::new("in.vcf"), Path::new("pca"), 2)
-            .expect_err("unsupported PCA tool must refuse during planning");
+        let Err(error) = pca_invocation("unsupported", Path::new("in.vcf"), Path::new("pca"), 2)
+        else {
+            panic!("unsupported PCA tool must refuse during planning");
+        };
         assert!(error.to_string().contains("unsupported toolchain `unsupported`"));
     }
 

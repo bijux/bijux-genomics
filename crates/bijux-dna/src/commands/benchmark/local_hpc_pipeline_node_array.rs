@@ -4,6 +4,7 @@ use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
 use bijux_dna_api::v1::api::bench::{
+    build_benchmark_local_hpc_array_resource_envelope,
     validate_benchmark_local_hpc_pipeline_node_array, BenchmarkLocalHpcPipelineNodeArrayDependency,
     BenchmarkLocalHpcPipelineNodeArrayExpectedOutput, BenchmarkLocalHpcPipelineNodeArrayReport,
     BenchmarkLocalHpcPipelineNodeArrayRow, BENCHMARK_LOCAL_HPC_PIPELINE_NODE_ARRAY_SCHEMA_V1,
@@ -13,7 +14,7 @@ use super::local_all_domain_job_execution::{
     render_shell_command, rendered_essential_pipeline_node_execution_argv,
 };
 use super::local_hpc_array_support::{
-    manifest_path_for_script, shell_quote, time_limit_to_seconds, LocalHpcArrayResources,
+    manifest_path_for_script, shell_quote, LocalHpcArrayResources,
 };
 use super::local_hpc_input_discovery::path_relative_to_repo;
 use super::local_hpc_scratch_layout::{collect_hpc_scratch_layout, LocalHpcScratchLayoutJob};
@@ -249,7 +250,8 @@ fn build_hpc_pipeline_node_array(
             )
         })?;
     let wrapper_log_root = script_parent.join("logs").join(file_stem);
-    let resource_envelope = compute_resource_envelope(&rows)?;
+    let resource_envelope =
+        build_benchmark_local_hpc_array_resource_envelope(rows.iter().map(|row| &row.resources))?;
     let dependency_count = rows.iter().map(|row| row.dependencies.len()).sum::<usize>();
     let report = LocalHpcPipelineNodeArrayReport {
         schema_version: BENCHMARK_LOCAL_HPC_PIPELINE_NODE_ARRAY_SCHEMA_V1.to_string(),
@@ -479,26 +481,6 @@ fn group_upstream_result_ids_by_dependency(
             .push(upstream_result_id.clone());
     }
     Ok(upstream_result_ids_by_dependency)
-}
-
-fn compute_resource_envelope(
-    rows: &[LocalHpcPipelineNodeArrayRow],
-) -> Result<LocalHpcArrayResources> {
-    let max_time_limit = rows
-        .iter()
-        .max_by_key(|row| {
-            time_limit_to_seconds("HPC pipeline node array", &row.resources.time_limit).unwrap_or(0)
-        })
-        .map(|row| row.resources.time_limit.clone())
-        .ok_or_else(|| {
-            anyhow!("HPC pipeline node array cannot compute an empty resource envelope")
-        })?;
-    Ok(LocalHpcArrayResources {
-        cpus_per_task: rows.iter().map(|row| row.resources.cpus_per_task).max().unwrap_or(1),
-        memory_mb: rows.iter().map(|row| row.resources.memory_mb).max().unwrap_or(1024),
-        time_limit: max_time_limit,
-        scratch_gb: rows.iter().map(|row| row.resources.scratch_gb).max().unwrap_or(1),
-    })
 }
 
 fn render_pipeline_node_array_script(

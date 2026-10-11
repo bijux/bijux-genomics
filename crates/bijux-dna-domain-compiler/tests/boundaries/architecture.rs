@@ -56,6 +56,7 @@ fn crate_tree_matches_domain_compiler_boundary() {
     );
 
     let expected_loading: BTreeSet<_> = [
+        "artifact_vocabulary.rs",
         "container_catalog.rs",
         "image_registries.rs",
         "index_catalogs.rs",

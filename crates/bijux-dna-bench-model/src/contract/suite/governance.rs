@@ -1,20 +1,20 @@
 //! Owner: bijux-dna-bench-model
 //! Stage and tool governance checks for benchmark suites.
 
+use super::BenchmarkSuiteCatalog;
 use crate::diagnostics::BenchError;
 use bijux_dna_core::{id_catalog, ids};
-use bijux_dna_domain_fastq::{
-    admitted_execution_tools_for_stage, contract_for_stage, execution_support_for_stage,
-    stage_tool_binding,
-};
 use bijux_dna_stage_contract::has_executor;
 
-pub(crate) fn ensure_supported_stage(stage_id: &str) -> Result<(), BenchError> {
+pub(crate) fn ensure_supported_stage(
+    stage_id: &str,
+    catalog: &dyn BenchmarkSuiteCatalog,
+) -> Result<(), BenchError> {
     if planner_owned_graph_stage(stage_id) {
         return Ok(());
     }
     if stage_id.starts_with(id_catalog::FASTQ_PREFIX) {
-        if contract_for_stage(stage_id).is_none() {
+        if !catalog.declares_stage(stage_id) {
             return Err(BenchError::InvalidPolicy(format!(
                 "suite stage {stage_id} is not declared in the FASTQ domain catalog"
             )));
@@ -22,13 +22,13 @@ pub(crate) fn ensure_supported_stage(stage_id: &str) -> Result<(), BenchError> {
         let stage_id = ids::parse_stage_id(stage_id).map_err(|err| {
             BenchError::InvalidPolicy(format!("suite stage {stage_id} is not a valid id: {err}"))
         })?;
-        let support = execution_support_for_stage(&stage_id).ok_or_else(|| {
+        let support = catalog.stage_is_plannable(&stage_id).ok_or_else(|| {
             BenchError::InvalidPolicy(format!(
                 "suite stage {} is missing FASTQ execution support",
                 stage_id.as_str()
             ))
         })?;
-        if !support.is_plannable() {
+        if !support {
             return Err(BenchError::InvalidPolicy(format!(
                 "suite stage {} is not plannable under FASTQ execution support",
                 stage_id.as_str()
@@ -44,7 +44,11 @@ pub(crate) fn ensure_supported_stage(stage_id: &str) -> Result<(), BenchError> {
     Ok(())
 }
 
-pub(crate) fn validate_stage_tools(stage_id: &str, tools: &[String]) -> Result<(), BenchError> {
+pub(crate) fn validate_stage_tools(
+    stage_id: &str,
+    tools: &[String],
+    catalog: &dyn BenchmarkSuiteCatalog,
+) -> Result<(), BenchError> {
     if planner_owned_graph_stage(stage_id) {
         if tools.is_empty() {
             return Ok(());
@@ -59,7 +63,7 @@ pub(crate) fn validate_stage_tools(stage_id: &str, tools: &[String]) -> Result<(
     let stage_id = ids::parse_stage_id(stage_id).map_err(|err| {
         BenchError::InvalidPolicy(format!("suite stage {stage_id} is not a valid id: {err}"))
     })?;
-    let admitted_tools = admitted_execution_tools_for_stage(&stage_id);
+    let admitted_tools = catalog.admitted_tools(&stage_id);
     for tool in tools {
         let tool_id = ids::parse_tool_id(tool).map_err(|err| {
             BenchError::InvalidPolicy(format!(
@@ -67,7 +71,7 @@ pub(crate) fn validate_stage_tools(stage_id: &str, tools: &[String]) -> Result<(
                 stage_id.as_str()
             ))
         })?;
-        if stage_tool_binding(&stage_id, &tool_id).is_none() {
+        if !catalog.declares_binding(&stage_id, &tool_id) {
             return Err(BenchError::InvalidPolicy(format!(
                 "suite stage {} tool {tool} is not declared in the FASTQ stage-tool matrix",
                 stage_id.as_str()

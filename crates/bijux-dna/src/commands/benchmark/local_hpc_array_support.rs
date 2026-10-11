@@ -1,22 +1,9 @@
 use std::path::{Path, PathBuf};
 
-use anyhow::{anyhow, Context, Result};
+use anyhow::{anyhow, Result};
 use bijux_dna_api::v1::api::bench::BenchmarkLocalHpcArrayResources;
 
 pub(crate) type LocalHpcArrayResources = BenchmarkLocalHpcArrayResources;
-
-pub(crate) fn time_limit_to_seconds(surface: &str, value: &str) -> Result<u64> {
-    let parts = value.split(':').collect::<Vec<_>>();
-    if parts.len() != 3 {
-        return Err(anyhow!("{surface} encountered malformed time limit `{value}`"));
-    }
-    let hours = parts[0].parse::<u64>().with_context(|| format!("parse hours from `{value}`"))?;
-    let minutes =
-        parts[1].parse::<u64>().with_context(|| format!("parse minutes from `{value}`"))?;
-    let seconds =
-        parts[2].parse::<u64>().with_context(|| format!("parse seconds from `{value}`"))?;
-    Ok(hours * 3600 + minutes * 60 + seconds)
-}
 
 pub(crate) fn manifest_path_for_script(surface: &str, script_path: &Path) -> Result<PathBuf> {
     let parent = script_path

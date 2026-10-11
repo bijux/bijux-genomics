@@ -17,6 +17,7 @@ mod selection;
 pub use selection::*;
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
 pub struct ToolConstraints {
     pub runtime: String,
     pub mem_gb: u32,

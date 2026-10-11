@@ -370,111 +370,116 @@ fn refresh_inventory_summary(
     inventory.summary.unreferenced_obsolete_count = candidate_obsolete + detached_obsolete;
 }
 
+type PublicationSchemaContract =
+    (&'static str, fn() -> serde_json::Value, fn(&std::path::Path) -> Result<()>);
+
+const PUBLICATION_SCHEMA_CONTRACTS: [PublicationSchemaContract; 16] = [
+    (
+        "containers/contracts/schemas/image-inventory-publication.v3.json",
+        bijux_dna_containers::evidence::image_inventory_publication_schema,
+        bijux_dna_containers::evidence::write_image_inventory_publication_schema,
+    ),
+    (
+        "containers/contracts/schemas/image-inventory-scan.v2.json",
+        bijux_dna_containers::evidence::image_inventory_scan_schema,
+        bijux_dna_containers::evidence::write_image_inventory_scan_schema,
+    ),
+    (
+        "containers/contracts/schemas/runtime-verification-publication.v2.json",
+        bijux_dna_containers::evidence::runtime_verification_publication_schema,
+        bijux_dna_containers::evidence::write_runtime_verification_publication_schema,
+    ),
+    (
+        "containers/contracts/schemas/security-probe-publication.v1.json",
+        bijux_dna_containers::evidence::security_probe_publication_schema,
+        bijux_dna_containers::evidence::write_security_probe_publication_schema,
+    ),
+    (
+        "containers/contracts/schemas/tool-image-identity-evidence.v3.json",
+        bijux_dna_containers::evidence::tool_contract::tool_image_identity_evidence_schema,
+        bijux_dna_containers::evidence::tool_contract::write_tool_image_identity_evidence_schema,
+    ),
+    (
+        "containers/contracts/schemas/image-storage-plan.v1.json",
+        bijux_dna_containers::evidence::image_storage_plan_schema,
+        bijux_dna_containers::evidence::write_image_storage_plan_schema,
+    ),
+    (
+        "containers/contracts/schemas/image-storage-report.v1.json",
+        bijux_dna_containers::evidence::image_storage_report_schema,
+        bijux_dna_containers::evidence::write_image_storage_report_schema,
+    ),
+    (
+        "containers/contracts/schemas/qualification-run-registry.v3.json",
+        || bijux_dna_containers::evidence::qualification_run_registry_schema().to_value(),
+        bijux_dna_containers::evidence::write_qualification_run_registry_schema,
+    ),
+    (
+        "containers/contracts/schemas/qualification-run-id-audit.v3.json",
+        || bijux_dna_containers::evidence::qualification_run_id_audit_schema().to_value(),
+        bijux_dna_containers::evidence::write_qualification_run_id_audit_schema,
+    ),
+    (
+        "containers/contracts/schemas/tool-contract.v3.json",
+        bijux_dna_containers::evidence::tool_contract::tool_contract_schema,
+        bijux_dna_containers::evidence::tool_contract::write_tool_contract_schema,
+    ),
+    (
+        "containers/contracts/schemas/build-evidence.v1.json",
+        bijux_dna_containers::api::container_build_evidence_schema,
+        bijux_dna_containers::api::write_container_build_evidence_schema,
+    ),
+    (
+        "containers/contracts/schemas/image-campaign-plan.v1.json",
+        bijux_dna_containers::api::image_campaign_plan_schema,
+        bijux_dna_containers::api::write_image_campaign_plan_schema,
+    ),
+    (
+        "containers/contracts/schemas/image-campaign-execution.v1.json",
+        bijux_dna_containers::api::image_campaign_execution_schema,
+        bijux_dna_containers::api::write_image_campaign_execution_schema,
+    ),
+    (
+        "containers/contracts/schemas/catalog.v1.json",
+        bijux_dna_containers::api::container_catalog_schema,
+        bijux_dna_containers::api::write_container_catalog_schema,
+    ),
+    (
+        "containers/contracts/schemas/catalog-lock.v1.json",
+        bijux_dna_containers::api::container_catalog_lock_schema,
+        bijux_dna_containers::api::write_container_catalog_lock_schema,
+    ),
+    (
+        "containers/contracts/schemas/image-activation-plan.v1.json",
+        bijux_dna_containers::api::image_activation_plan_schema,
+        bijux_dna_containers::api::write_image_activation_plan_schema,
+    ),
+];
+
 #[test]
 fn checked_in_publication_schemas_match_rust_types() -> Result<()> {
     let root = repository_root()?;
-    let inventory_path =
-        root.join("containers/contracts/schemas/image-inventory-publication.v3.json");
-    let scan_path = root.join("containers/contracts/schemas/image-inventory-scan.v2.json");
-    let runtime_path =
-        root.join("containers/contracts/schemas/runtime-verification-publication.v2.json");
-    let security_probe_path =
-        root.join("containers/contracts/schemas/security-probe-publication.v1.json");
-    let tool_identity_path =
-        root.join("containers/contracts/schemas/tool-image-identity-evidence.v3.json");
+    if std::env::var_os("BIJUX_UPDATE_GENERATED_SCHEMAS").is_some() {
+        for (relative, _, write) in PUBLICATION_SCHEMA_CONTRACTS {
+            write(&root.join(relative))?;
+        }
+    }
+    for (relative, schema, _) in PUBLICATION_SCHEMA_CONTRACTS {
+        assert_eq!(read_json(root.join(relative))?, schema(), "schema drift: {relative}");
+    }
     let storage_plan_path = root.join("containers/contracts/schemas/image-storage-plan.v1.json");
     let storage_report_path =
         root.join("containers/contracts/schemas/image-storage-report.v1.json");
-    let qualification_registry_path =
-        root.join("containers/contracts/schemas/qualification-run-registry.v3.json");
-    let qualification_audit_path =
-        root.join("containers/contracts/schemas/qualification-run-id-audit.v3.json");
-    let tool_contract_path = root.join("containers/contracts/schemas/tool-contract.v3.json");
-    let build_evidence_path = root.join("containers/contracts/schemas/build-evidence.v1.json");
-    let campaign_plan_path = root.join("containers/contracts/schemas/image-campaign-plan.v1.json");
-    let campaign_execution_path =
-        root.join("containers/contracts/schemas/image-campaign-execution.v1.json");
-    let catalog_path = root.join("containers/contracts/schemas/catalog.v1.json");
-    let catalog_lock_path = root.join("containers/contracts/schemas/catalog-lock.v1.json");
+    let runtime_path =
+        root.join("containers/contracts/schemas/runtime-verification-publication.v2.json");
+    let tool_identity_path =
+        root.join("containers/contracts/schemas/tool-image-identity-evidence.v3.json");
     let activation_path = root.join("containers/contracts/schemas/image-activation-plan.v1.json");
-    if std::env::var_os("BIJUX_UPDATE_GENERATED_SCHEMAS").is_some() {
-        bijux_dna_containers::evidence::write_image_inventory_publication_schema(&inventory_path)?;
-        bijux_dna_containers::evidence::write_image_inventory_scan_schema(&scan_path)?;
-        bijux_dna_containers::evidence::write_runtime_verification_publication_schema(
-            &runtime_path,
-        )?;
-        bijux_dna_containers::evidence::write_security_probe_publication_schema(
-            &security_probe_path,
-        )?;
-        bijux_dna_containers::evidence::tool_contract::write_tool_image_identity_evidence_schema(
-            &tool_identity_path,
-        )?;
-        bijux_dna_containers::evidence::write_image_storage_plan_schema(&storage_plan_path)?;
-        bijux_dna_containers::evidence::write_image_storage_report_schema(&storage_report_path)?;
-        bijux_dna_containers::evidence::write_qualification_run_registry_schema(
-            &qualification_registry_path,
-        )?;
-        bijux_dna_containers::evidence::write_qualification_run_id_audit_schema(
-            &qualification_audit_path,
-        )?;
-        bijux_dna_containers::evidence::tool_contract::write_tool_contract_schema(
-            &tool_contract_path,
-        )?;
-        bijux_dna_containers::api::write_container_build_evidence_schema(&build_evidence_path)?;
-        bijux_dna_containers::api::write_image_campaign_plan_schema(&campaign_plan_path)?;
-        bijux_dna_containers::api::write_image_campaign_execution_schema(&campaign_execution_path)?;
-        bijux_dna_containers::api::write_container_catalog_schema(&catalog_path)?;
-        bijux_dna_containers::api::write_container_catalog_lock_schema(&catalog_lock_path)?;
-        bijux_dna_containers::api::write_image_activation_plan_schema(&activation_path)?;
-    }
-    let inventory = read_json(inventory_path)?;
-    let scan = read_json(scan_path)?;
-    let runtime = read_json(&runtime_path)?;
-    let security_probe = read_json(security_probe_path)?;
-    let tool_identity = read_json(&tool_identity_path)?;
-    let storage_plan = read_json(&storage_plan_path)?;
-    let storage_report = read_json(&storage_report_path)?;
-    let qualification_registry = read_json(qualification_registry_path)?;
-    let qualification_audit = read_json(qualification_audit_path)?;
-    let tool_contract = read_json(tool_contract_path)?;
-    let build_evidence = read_json(build_evidence_path)?;
-    let campaign_plan = read_json(campaign_plan_path)?;
-    let campaign_execution = read_json(campaign_execution_path)?;
-    let catalog = read_json(catalog_path)?;
-    let catalog_lock = read_json(catalog_lock_path)?;
-    let activation = read_json(&activation_path)?;
-    assert_eq!(inventory, bijux_dna_containers::evidence::image_inventory_publication_schema());
-    assert_eq!(scan, bijux_dna_containers::evidence::image_inventory_scan_schema());
-    assert_eq!(runtime, bijux_dna_containers::evidence::runtime_verification_publication_schema());
-    assert_eq!(security_probe, bijux_dna_containers::evidence::security_probe_publication_schema());
-    assert_eq!(
-        tool_identity,
-        bijux_dna_containers::evidence::tool_contract::tool_image_identity_evidence_schema()
-    );
-    assert_eq!(storage_plan, bijux_dna_containers::evidence::image_storage_plan_schema());
-    assert_eq!(storage_report, bijux_dna_containers::evidence::image_storage_report_schema());
     assert!(bijux_dna_containers::api::image_storage_schemas_match(
         &storage_plan_path,
         &storage_report_path,
     )?);
-    assert_eq!(
-        qualification_registry,
-        bijux_dna_containers::evidence::qualification_run_registry_schema()
-    );
-    assert_eq!(
-        qualification_audit,
-        bijux_dna_containers::evidence::qualification_run_id_audit_schema()
-    );
-    assert_eq!(
-        tool_contract,
-        bijux_dna_containers::evidence::tool_contract::tool_contract_schema()
-    );
-    assert_eq!(build_evidence, bijux_dna_containers::api::container_build_evidence_schema());
-    assert_eq!(campaign_plan, bijux_dna_containers::api::image_campaign_plan_schema());
-    assert_eq!(campaign_execution, bijux_dna_containers::api::image_campaign_execution_schema());
-    assert_eq!(catalog, bijux_dna_containers::api::container_catalog_schema());
-    assert_eq!(catalog_lock, bijux_dna_containers::api::container_catalog_lock_schema());
-    assert_eq!(activation, bijux_dna_containers::api::image_activation_plan_schema());
+
     assert!(bijux_dna_containers::api::runtime_verification_schemas_match(
         &runtime_path,
         &tool_identity_path,

@@ -11,10 +11,6 @@ use bijux_dna_bench_model::{
     BENCHMARK_LOCAL_ALL_DOMAIN_STAGE_INVENTORY_SCHEMA_V1,
 };
 
-/// Default report location for aggregate local stage inventory.
-pub const DEFAULT_BENCHMARK_ALL_DOMAIN_STAGE_LIST_PATH: &str =
-    "artifacts/benchmark-smoke/readiness/all-domain-stage-list.json";
-
 /// Publish a report for the requested domain order after every inventory is admitted.
 ///
 /// # Errors

@@ -161,5 +161,12 @@ mod mod_contracts_stage_tool_closure_rs;
 mod mod_contracts_stage_tool_containers_rs;
 #[path = "contracts/stage_tool_resources.rs"]
 mod mod_contracts_stage_tool_resources_rs;
+#[cfg(feature = "canonical-fastq-catalog")]
 #[path = "contracts/suite_validation.rs"]
 mod mod_contracts_suite_validation_rs;
+
+#[path = "contracts/suite_catalog_port.rs"]
+mod suite_catalog_port;
+
+#[path = "contracts/suite_records.rs"]
+mod suite_records;

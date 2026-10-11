@@ -1,0 +1,5 @@
+{
+  "schema_version": "bijux.fixture_case.v1",
+  "format": "fasta-faidx",
+  "content": "Four FASTA byte-layout fixtures with FAI output captured from HTSlib through pinned bcftools 1.20 reference normalization: wrapped LF, wrapped CRLF, unterminated final line and distinct record widths. native_cases.json stores escaped byte-preserving text. These verify FAI layout and offsets, not biological reference claims."
+}

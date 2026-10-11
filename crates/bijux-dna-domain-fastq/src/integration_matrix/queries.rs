@@ -16,32 +16,33 @@ struct ToolPlannedStageRecord {
 
 #[must_use]
 pub fn stage_tool_bindings() -> Vec<StageToolBinding> {
-    static BINDINGS: OnceLock<Vec<StageToolBinding>> = OnceLock::new();
-    BINDINGS
-        .get_or_init(|| {
-            let mut bindings = domain_index_contract()
-                .stage_tool_integration
-                .iter()
-                .flat_map(|(stage_id, bindings)| {
-                    bindings.iter().map(move |(tool_id, integration_level)| StageToolBinding {
-                        stage_id: StageId::new(stage_id.clone()),
-                        tool_id: ToolId::new(tool_id.clone()),
-                        integration_level: *integration_level,
-                    })
-                })
-                .collect::<Vec<_>>();
+    cached_stage_tool_bindings().to_vec()
+}
 
-            let existing_keys = bindings
-                .iter()
-                .map(|binding| (binding.stage_id.to_string(), binding.tool_id.to_string()))
-                .collect::<BTreeSet<_>>();
-            bindings.extend(planned_stage_tool_bindings().into_iter().filter(|planned| {
-                !existing_keys
-                    .contains(&(planned.stage_id.to_string(), planned.tool_id.to_string()))
-            }));
-            bindings
-        })
-        .clone()
+fn cached_stage_tool_bindings() -> &'static [StageToolBinding] {
+    static BINDINGS: OnceLock<Vec<StageToolBinding>> = OnceLock::new();
+    BINDINGS.get_or_init(|| {
+        let mut bindings = domain_index_contract()
+            .stage_tool_integration
+            .iter()
+            .flat_map(|(stage_id, bindings)| {
+                bindings.iter().map(move |(tool_id, integration_level)| StageToolBinding {
+                    stage_id: StageId::new(stage_id.clone()),
+                    tool_id: ToolId::new(tool_id.clone()),
+                    integration_level: *integration_level,
+                })
+            })
+            .collect::<Vec<_>>();
+
+        let existing_keys = bindings
+            .iter()
+            .map(|binding| (binding.stage_id.to_string(), binding.tool_id.to_string()))
+            .collect::<BTreeSet<_>>();
+        bindings.extend(planned_stage_tool_bindings().into_iter().filter(|planned| {
+            !existing_keys.contains(&(planned.stage_id.to_string(), planned.tool_id.to_string()))
+        }));
+        bindings
+    })
 }
 
 fn planned_stage_tool_bindings() -> Vec<StageToolBinding> {
@@ -113,7 +114,11 @@ fn planned_stage_tool_bindings() -> Vec<StageToolBinding> {
 
 #[must_use]
 pub fn stage_tool_bindings_for_stage(stage_id: &StageId) -> Vec<StageToolBinding> {
-    stage_tool_bindings().into_iter().filter(|binding| binding.stage_id == *stage_id).collect()
+    cached_stage_tool_bindings()
+        .iter()
+        .filter(|binding| binding.stage_id == *stage_id)
+        .cloned()
+        .collect()
 }
 
 #[must_use]
@@ -135,11 +140,11 @@ fn tool_ids_for_stage_by_level(
     stage_id: &StageId,
     level: Option<ToolIntegrationLevel>,
 ) -> Vec<ToolId> {
-    let mut tools = stage_tool_bindings()
-        .into_iter()
+    let mut tools = cached_stage_tool_bindings()
+        .iter()
         .filter(|binding| binding.stage_id == *stage_id)
         .filter(|binding| level.is_none_or(|level| binding.integration_level == level))
-        .map(|binding| binding.tool_id)
+        .map(|binding| binding.tool_id.clone())
         .collect::<Vec<_>>();
     tools.sort();
     tools.dedup();
@@ -148,9 +153,10 @@ fn tool_ids_for_stage_by_level(
 
 #[must_use]
 pub fn stage_tool_binding(stage_id: &StageId, tool_id: &ToolId) -> Option<StageToolBinding> {
-    stage_tool_bindings()
-        .into_iter()
+    cached_stage_tool_bindings()
+        .iter()
         .find(|binding| binding.stage_id == *stage_id && binding.tool_id == *tool_id)
+        .cloned()
 }
 
 #[must_use]
@@ -190,6 +196,32 @@ pub fn reference_index_backends_for_tool(tool_id: &ToolId) -> Vec<ToolId> {
 #[must_use]
 pub fn is_reference_index_backend_compatible(tool_id: &ToolId, index_tool_id: &ToolId) -> bool {
     reference_index_backends_for_tool(tool_id).into_iter().any(|backend| backend == *index_tool_id)
+}
+
+/// Admit a reference index using the domain's declared consumer/backend compatibility.
+///
+/// # Errors
+/// Rejects unknown consumers and index backends outside their compatible class.
+pub fn validate_reference_index_backend(
+    stage_id: &StageId,
+    depletion_tool_id: &ToolId,
+    index_tool_id: &ToolId,
+) -> anyhow::Result<()> {
+    let compatible_backends = reference_index_backends_for_tool(depletion_tool_id);
+    if compatible_backends.is_empty() {
+        anyhow::bail!(
+            "unsupported reference-aware depletion backend for {stage_id}: {}",
+            depletion_tool_id.as_str()
+        );
+    }
+    if compatible_backends.contains(index_tool_id) {
+        return Ok(());
+    }
+    anyhow::bail!(
+        "{stage_id} requires one of [{}] as reference index backend, but upstream fastq.index_reference used {}",
+        compatible_backends.iter().map(ToolId::as_str).collect::<Vec<_>>().join(", "),
+        index_tool_id.as_str()
+    )
 }
 
 #[must_use]

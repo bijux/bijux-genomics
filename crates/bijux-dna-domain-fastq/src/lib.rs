@@ -99,7 +99,10 @@ pub use artifacts::{
 pub use artifacts::{
     ClassifyLayoutReportV1, FastqLayoutClassV1, CLASSIFY_LAYOUT_REPORT_SCHEMA_VERSION,
 };
-pub use artifacts::{ClusterOtusReportV1, CLUSTER_OTUS_REPORT_SCHEMA_VERSION};
+pub use artifacts::{
+    ClusterOtusReportV1, LocalClusterOtusSmokeReportV1, CLUSTER_OTUS_REPORT_SCHEMA_VERSION,
+    LOCAL_CLUSTER_OTUS_SMOKE_REPORT_SCHEMA_VERSION,
+};
 pub use artifacts::{
     ConcatenateLaneSummaryV1, ConcatenateLanesReportV1, CONCATENATE_LANES_REPORT_SCHEMA_VERSION,
 };
@@ -121,15 +124,23 @@ pub use artifacts::{
     DetectInstrumentArtifactsReportV1, DETECT_INSTRUMENT_ARTIFACTS_REPORT_SCHEMA_VERSION,
 };
 pub use artifacts::{
-    DuplicateClassEntryV1, RemoveDuplicatesProvenanceV1, RemoveDuplicatesReportV1,
+    DuplicateClassEntryV1, LocalRemoveDuplicatesSmokeReportV1, RemoveDuplicatesProvenanceV1,
+    RemoveDuplicatesReportV1, LOCAL_REMOVE_DUPLICATES_SMOKE_REPORT_SCHEMA_VERSION,
     REMOVE_DUPLICATES_PROVENANCE_SCHEMA_VERSION, REMOVE_DUPLICATES_REPORT_SCHEMA_VERSION,
 };
 pub use artifacts::{
     EstimateLibraryComplexityPrealignReportV1,
     ESTIMATE_LIBRARY_COMPLEXITY_PREALIGN_REPORT_SCHEMA_VERSION,
 };
-pub use artifacts::{ExtractUmisReportV1, EXTRACT_UMIS_REPORT_SCHEMA_VERSION};
-pub use artifacts::{FilterLowComplexityReportV1, FILTER_LOW_COMPLEXITY_REPORT_SCHEMA_VERSION};
+pub use artifacts::{
+    ExtractUmisReportV1, LocalExtractUmisSmokeReportV1, EXTRACT_UMIS_REPORT_SCHEMA_VERSION,
+    LOCAL_EXTRACT_UMIS_SMOKE_REPORT_SCHEMA_VERSION,
+};
+pub use artifacts::{
+    FilterLowComplexityReportV1, LocalFilterLowComplexitySmokeReportV1,
+    FILTER_LOW_COMPLEXITY_REPORT_SCHEMA_VERSION,
+    LOCAL_FILTER_LOW_COMPLEXITY_SMOKE_REPORT_SCHEMA_VERSION,
+};
 pub use artifacts::{FilterReadsReportV1, FILTER_READS_REPORT_SCHEMA_VERSION};
 pub use artifacts::{GovernedQcContributorV1, ReportQcReportV1, REPORT_QC_REPORT_SCHEMA_VERSION};
 pub use artifacts::{
@@ -139,19 +150,34 @@ pub use artifacts::{
 pub use artifacts::{
     IndexReferenceFileEntryV1, IndexReferenceReportV1, INDEX_REFERENCE_REPORT_SCHEMA_VERSION,
 };
-pub use artifacts::{InferAsvsReportV1, INFER_ASVS_REPORT_SCHEMA_VERSION};
+pub use artifacts::{
+    InferAsvsReportV1, LocalInferAsvsSmokeReportV1, INFER_ASVS_REPORT_SCHEMA_VERSION,
+    LOCAL_INFER_ASVS_SMOKE_REPORT_SCHEMA_VERSION,
+};
 pub use artifacts::{InterleaveReadsReportV1, INTERLEAVE_READS_REPORT_SCHEMA_VERSION};
+pub use artifacts::{
+    LocalMergePairsSmokeReportV1, MergePairsReportV1,
+    LOCAL_MERGE_PAIRS_SMOKE_REPORT_SCHEMA_VERSION, MERGE_PAIRS_REPORT_SCHEMA_VERSION,
+};
+pub use artifacts::{
+    LocalNormalizeAbundanceSmokeReportV1, NormalizeAbundanceReportV1,
+    LOCAL_NORMALIZE_ABUNDANCE_SMOKE_REPORT_SCHEMA_VERSION,
+    NORMALIZE_ABUNDANCE_REPORT_SCHEMA_VERSION,
+};
+pub use artifacts::{
+    LocalProfileOverrepresentedSequencesSmokeReportV1, OverrepresentedSequenceRowV1,
+    ProfileOverrepresentedReportV1, LOCAL_PROFILE_OVERREPRESENTED_SMOKE_REPORT_SCHEMA_VERSION,
+    PROFILE_OVERREPRESENTED_REPORT_SCHEMA_VERSION,
+};
+pub use artifacts::{
+    LocalRemoveChimerasSmokeReportV1, RemoveChimerasReportV1,
+    LOCAL_REMOVE_CHIMERAS_SMOKE_REPORT_SCHEMA_VERSION, REMOVE_CHIMERAS_REPORT_SCHEMA_VERSION,
+};
 pub use artifacts::{
     MaterializeQcManifestReportV1, QcManifestEntryV1, MATERIALIZE_QC_MANIFEST_REPORT_SCHEMA_VERSION,
 };
-pub use artifacts::{MergePairsReportV1, MERGE_PAIRS_REPORT_SCHEMA_VERSION};
-pub use artifacts::{NormalizeAbundanceReportV1, NORMALIZE_ABUNDANCE_REPORT_SCHEMA_VERSION};
 pub use artifacts::{NormalizePrimersReportV1, NORMALIZE_PRIMERS_REPORT_SCHEMA_VERSION};
 pub use artifacts::{NormalizeReadNamesReportV1, NORMALIZE_READ_NAMES_REPORT_SCHEMA_VERSION};
-pub use artifacts::{
-    OverrepresentedSequenceRowV1, ProfileOverrepresentedReportV1,
-    PROFILE_OVERREPRESENTED_REPORT_SCHEMA_VERSION,
-};
 pub use artifacts::{PrepareAdapterBankReportV1, PREPARE_ADAPTER_BANK_REPORT_SCHEMA_VERSION};
 pub use artifacts::{PreparePrimerBankReportV1, PREPARE_PRIMER_BANK_REPORT_SCHEMA_VERSION};
 pub use artifacts::{
@@ -161,7 +187,6 @@ pub use artifacts::{
     ProfileReadsHistogramBinV1, ProfileReadsMateSummaryV1, ProfileReadsReportV1,
     PROFILE_READS_REPORT_SCHEMA_VERSION,
 };
-pub use artifacts::{RemoveChimerasReportV1, REMOVE_CHIMERAS_REPORT_SCHEMA_VERSION};
 pub use artifacts::{RepairPairsReportV1, REPAIR_PAIRS_REPORT_SCHEMA_VERSION};
 pub use artifacts::{
     ScreenTaxonomyReportV1, TaxonomyScreenSummaryEntryV1, SCREEN_TAXONOMY_REPORT_SCHEMA_VERSION,
@@ -227,7 +252,8 @@ pub use integration_matrix::{
     is_reference_index_backend_compatible, planned_tool_ids_for_stage,
     reference_index_backends_for_tool, registered_tool_ids_for_stage,
     stage_sanity_metrics_for_stage, stage_tool_binding, stage_tool_bindings,
-    stage_tool_bindings_for_stage, BenchmarkScenario, StageToolBinding, ToolIntegrationLevel,
+    stage_tool_bindings_for_stage, validate_reference_index_backend, BenchmarkScenario,
+    StageToolBinding, ToolIntegrationLevel,
 };
 pub use invariants::{
     evaluate_invariants, fastq_invariant_specs, thresholds_from_env, validate_edna_table,

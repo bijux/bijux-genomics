@@ -47,3 +47,5 @@ The remaining source modules are crate-private implementation namespaces:
    execution-owning crates.
 
 `find_species_authority_at` and `find_reference_bundle_identity_at` query an explicitly selected repository root through the complete owner catalog schemas. Missing identities return `None`; missing/malformed catalogs and ambiguous matching identities return errors. `ReferenceBundleIdentity` is a metadata projection, not artifact-readiness evidence.
+
+`build_reference_fasta_index` derives the uncompressed FASTA byte-offset contract from explicit bytes without filesystem access. It rejects ambiguous record identities and layouts that cannot support linear indexed access.

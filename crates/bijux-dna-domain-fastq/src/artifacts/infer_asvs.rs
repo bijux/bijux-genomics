@@ -3,6 +3,31 @@ use serde::{Deserialize, Serialize};
 
 use crate::params::PairedMode;
 
+/// Schema identity for the local smoke observation envelope.
+pub const LOCAL_INFER_ASVS_SMOKE_REPORT_SCHEMA_VERSION: &str =
+    "bijux.fastq.infer_asvs.local_smoke.report.v1";
+
+/// Local smoke observation; planned tool identity and actual report producer remain distinct.
+/// This envelope alone does not prove execution of the planned backend.
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize, schemars::JsonSchema, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct LocalInferAsvsSmokeReportV1 {
+    pub schema_version: String,
+    pub stage_id: String,
+    pub sample_id: String,
+    pub planned_tool_id: String,
+    pub report_tool_id: String,
+    pub asv_count: u64,
+    pub sample_count: u64,
+    pub representative_sequence_count: u64,
+    pub asv_table_tsv: String,
+    pub representatives_fasta: String,
+    pub case_report_json: String,
+    pub taxonomy_ready_fasta: String,
+    pub taxonomy_ready_fastq: String,
+    pub raw_backend_report: String,
+}
+
 pub const INFER_ASVS_REPORT_SCHEMA_VERSION: &str = "bijux.fastq.infer_asvs.report.v2";
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
@@ -83,5 +108,43 @@ mod tests {
         assert_eq!(decoded.tool_id, "dada2");
         assert_eq!(decoded.asv_count, 18);
         assert_eq!(decoded.raw_backend_report_format.as_deref(), Some("dada2_run_summary_json"));
+    }
+}
+
+#[cfg(test)]
+mod local_smoke_contract_tests {
+    use super::*;
+    use anyhow::Result;
+
+    #[test]
+    fn local_smoke_observation_preserves_wire_shape_and_producer_identity() -> Result<()> {
+        let original: serde_json::Value = serde_json::from_str(
+            r#"{
+    "schema_version": "bijux.fastq.infer_asvs.local_smoke.report.v1",
+    "stage_id": "fastq.infer_asvs",
+    "sample_id": "authored_contract_value",
+    "planned_tool_id": "planned_backend",
+    "report_tool_id": "local_emitter",
+    "asv_count": 1,
+    "sample_count": 1,
+    "representative_sequence_count": 1,
+    "asv_table_tsv": "authored_contract_value",
+    "representatives_fasta": "authored_contract_value",
+    "case_report_json": "authored_contract_value",
+    "taxonomy_ready_fasta": "authored_contract_value",
+    "taxonomy_ready_fastq": "authored_contract_value",
+    "raw_backend_report": "authored_contract_value"
+}"#,
+        )?;
+        let report: LocalInferAsvsSmokeReportV1 = serde_json::from_value(original.clone())?;
+        assert_eq!(report.schema_version, LOCAL_INFER_ASVS_SMOKE_REPORT_SCHEMA_VERSION);
+        assert_ne!(report.planned_tool_id, report.report_tool_id);
+        assert_eq!(serde_json::to_value(&report)?, original);
+        let mut unsupported = original;
+        unsupported["unrecognized"] = serde_json::json!(true);
+        assert!(serde_json::from_value::<LocalInferAsvsSmokeReportV1>(unsupported).is_err());
+        let schema = serde_json::to_value(schemars::schema_for!(LocalInferAsvsSmokeReportV1))?;
+        assert_eq!(schema["additionalProperties"], serde_json::json!(false));
+        Ok(())
     }
 }

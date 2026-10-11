@@ -584,4 +584,25 @@ fn reference_index_compatibility_is_queryable_from_domain_api() {
         &bowtie2,
         &ToolId::from_static("star"),
     ));
+    for stage in ["fastq.deplete_host", "fastq.deplete_reference_contaminants"] {
+        let stage = StageId::new(stage);
+        assert!(bijux_dna_domain_fastq::validate_reference_index_backend(
+            &stage,
+            &bowtie2,
+            &ToolId::from_static("bowtie2_build"),
+        )
+        .is_ok());
+        assert!(bijux_dna_domain_fastq::validate_reference_index_backend(
+            &stage,
+            &bowtie2,
+            &ToolId::from_static("star"),
+        )
+        .is_err());
+        assert!(bijux_dna_domain_fastq::validate_reference_index_backend(
+            &stage,
+            &ToolId::from_static("unregistered"),
+            &ToolId::from_static("bowtie2_build"),
+        )
+        .is_err());
+    }
 }

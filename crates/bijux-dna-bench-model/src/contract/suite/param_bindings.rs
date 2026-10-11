@@ -1,11 +1,14 @@
 //! Owner: bijux-dna-bench-model
 //! Structured parameter binding validation for benchmark suites.
 
+use super::BenchmarkSuiteCatalog;
 use crate::diagnostics::BenchError;
 use crate::model::BenchmarkStageSpec;
-use bijux_dna_domain_fastq::stage_parameter_ids;
 
-pub(crate) fn validate_stage_param_bindings(stage: &BenchmarkStageSpec) -> Result<(), BenchError> {
+pub(crate) fn validate_stage_param_bindings(
+    stage: &BenchmarkStageSpec,
+    catalog: &dyn BenchmarkSuiteCatalog,
+) -> Result<(), BenchError> {
     if !stage.params.is_empty() && !stage.param_bindings.is_empty() {
         return Err(BenchError::InvalidPolicy(format!(
             "suite stage {} must use either params or param_bindings, not both",
@@ -84,7 +87,7 @@ pub(crate) fn validate_stage_param_bindings(stage: &BenchmarkStageSpec) -> Resul
             }
         }
         if binding.tool.is_none() {
-            validate_stage_param_binding_keys(&stage.stage, binding.values.keys())?;
+            validate_stage_param_binding_keys(&stage.stage, binding.values.keys(), catalog)?;
         }
     }
     Ok(())
@@ -93,8 +96,14 @@ pub(crate) fn validate_stage_param_bindings(stage: &BenchmarkStageSpec) -> Resul
 fn validate_stage_param_binding_keys<'a>(
     stage_id: &str,
     keys: impl IntoIterator<Item = &'a String>,
+    catalog: &dyn BenchmarkSuiteCatalog,
 ) -> Result<(), BenchError> {
-    let Some(parameter_ids) = stage_parameter_ids(stage_id) else {
+    let Some(parameter_ids) = catalog.parameter_ids(stage_id) else {
+        if catalog.declares_stage(stage_id) {
+            return Err(BenchError::InvalidPolicy(format!(
+                "suite stage {stage_id} is missing its governed parameter contract"
+            )));
+        }
         return Ok(());
     };
     for key in keys {

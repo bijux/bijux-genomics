@@ -197,3 +197,123 @@ fn local_hpc_dependency_simulation_rejects_scope_and_branch_drift() {
     branch.cases[0].jobs[1].status = "completed".to_string();
     assert!(validate_benchmark_local_hpc_dependency_simulation(&branch).is_err());
 }
+
+fn selected_job_graph_with_order(
+    reverse: bool,
+) -> anyhow::Result<bijux_dna_bench_model::BenchmarkLocalHpcJobGraph> {
+    use bijux_dna_bench_model::{
+        build_benchmark_local_hpc_job_graph, BenchmarkLocalAllDomainSlurmSubmitJob,
+        BenchmarkLocalSlurmSubmitResources,
+    };
+    let mut jobs: Vec<_> = scope()
+        .into_iter()
+        .map(|(id, dependencies, _)| {
+            let benchmark = id == BENCHMARK_JOB_ID;
+            BenchmarkLocalAllDomainSlurmSubmitJob {
+                job_id_local: id.to_string(),
+                domain: "vcf".to_string(),
+                stage_id: "vcf.qc".to_string(),
+                pipeline_id: (!benchmark).then(|| "pipeline".to_string()),
+                node_id: (!benchmark).then(|| id.to_string()),
+                tool_id: "bcftools".to_string(),
+                corpus_id: "corpus".to_string(),
+                asset_profile_id: "profile".to_string(),
+                result_id: benchmark.then(|| "vcf:result".to_string()),
+                script_path: "selected.sh".to_string(),
+                stdout: "selected.out".to_string(),
+                stderr: "selected.err".to_string(),
+                outputs: vec!["selected.json".to_string()],
+                dependencies: dependencies.into_iter().map(str::to_string).collect(),
+                resources: BenchmarkLocalSlurmSubmitResources {
+                    cpus_per_task: 1,
+                    memory_mb: 128,
+                    time_limit: "00:01:00".to_string(),
+                },
+            }
+        })
+        .collect();
+    if reverse {
+        jobs.reverse();
+    }
+    build_benchmark_local_hpc_job_graph("artifacts/selected-jobs.json", jobs)
+}
+
+#[test]
+fn local_hpc_dependency_simulation_builder_preserves_branch_isolation() -> anyhow::Result<()> {
+    use bijux_dna_bench_model::build_benchmark_local_hpc_dependency_simulation;
+    let graph = selected_job_graph_with_order(false)?;
+    let simulation =
+        build_benchmark_local_hpc_dependency_simulation(&graph, "artifacts/report.json")?;
+    assert_eq!(simulation.job_count, 7);
+    assert_eq!(simulation.case_count, 2);
+    assert_eq!(simulation.dependency_count, 2);
+    assert_eq!(simulation.manifest_path, graph.manifest_path);
+    assert!(simulation.all_cases_proven);
+    for case in &simulation.cases {
+        assert_eq!(
+            case.blocked_job_ids.as_slice(),
+            std::slice::from_ref(&case.blocked_descendant_job_id)
+        );
+        assert_eq!(case.jobs.iter().filter(|job| job.status == "failed").count(), 1);
+        assert_eq!(case.jobs.iter().filter(|job| job.status == "completed").count(), 5);
+        assert_eq!(case.simulated_makespan_seconds, 2);
+        assert!(case.continued_benchmark_job_ids.iter().any(|id| id == BENCHMARK_JOB_ID));
+        assert!(case.continued_unrelated_job_ids.contains(&case.continued_sibling_job_id));
+    }
+    validate_benchmark_local_hpc_dependency_simulation(&simulation)?;
+    assert_eq!(
+        serde_json::from_slice::<BenchmarkLocalHpcDependencySimulationReport>(
+            &serde_json::to_vec(&simulation)?
+        )?,
+        simulation
+    );
+    let reordered = selected_job_graph_with_order(true)?;
+    assert_eq!(
+        build_benchmark_local_hpc_dependency_simulation(&reordered, "artifacts/report.json")?,
+        simulation
+    );
+    Ok(())
+}
+
+#[test]
+fn local_hpc_dependency_simulation_builder_rejects_invalid_graph_or_output() -> anyhow::Result<()> {
+    use bijux_dna_bench_model::build_benchmark_local_hpc_dependency_simulation;
+    let graph = selected_job_graph_with_order(false)?;
+    assert!(build_benchmark_local_hpc_dependency_simulation(&graph, "../report.json").is_err());
+    let mut counters = graph.clone();
+    counters.job_count += 1;
+    assert!(build_benchmark_local_hpc_dependency_simulation(&counters, "artifacts/report.json")
+        .is_err());
+    let mut ordering = graph;
+    ordering.topological_order.reverse();
+    assert!(build_benchmark_local_hpc_dependency_simulation(&ordering, "artifacts/report.json")
+        .is_err());
+    Ok(())
+}
+
+#[test]
+fn local_hpc_dependency_simulation_builder_requires_governed_seed_jobs() -> anyhow::Result<()> {
+    use bijux_dna_bench_model::{
+        build_benchmark_local_hpc_dependency_simulation, validate_benchmark_local_hpc_job_graph,
+    };
+    let mut graph = selected_job_graph_with_order(false)?;
+    let rename = |name: &mut String| {
+        if name == BENCHMARK_LOCAL_HPC_RELATEDNESS_FAILURE_JOB_ID {
+            *name = "pipeline:different:vcf.ibd".to_string();
+        }
+    };
+    for node in &mut graph.nodes {
+        rename(&mut node.job_id_local);
+        for name in node.dependencies.iter_mut().chain(node.dependents.iter_mut()) {
+            rename(name);
+        }
+    }
+    for name in graph.topological_order.iter_mut().chain(graph.root_job_ids.iter_mut()) {
+        rename(name);
+    }
+    validate_benchmark_local_hpc_job_graph(&graph)?;
+    assert!(
+        build_benchmark_local_hpc_dependency_simulation(&graph, "artifacts/report.json").is_err()
+    );
+    Ok(())
+}

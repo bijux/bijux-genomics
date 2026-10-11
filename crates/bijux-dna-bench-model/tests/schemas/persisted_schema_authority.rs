@@ -23,10 +23,15 @@ fn checked_in_persisted_schemas_match_the_model_authority() -> Result<()> {
         let checked_in_path = root.join(schema.repository_path);
         let generated = serde_json::to_value(schema.render())?;
         if std::env::var_os("BIJUX_UPDATE_GENERATED_SCHEMAS").is_some() {
-            let mut bytes = serde_json::to_vec_pretty(&generated)?;
-            bytes.push(b'\n');
-            fs::write(&checked_in_path, bytes)
-                .with_context(|| format!("write {}", checked_in_path.display()))?;
+            let current = fs::read(&checked_in_path)
+                .ok()
+                .and_then(|bytes| serde_json::from_slice::<serde_json::Value>(&bytes).ok());
+            if current.as_ref() != Some(&generated) {
+                let mut bytes = serde_json::to_vec_pretty(&generated)?;
+                bytes.push(b'\n');
+                fs::write(&checked_in_path, bytes)
+                    .with_context(|| format!("write {}", checked_in_path.display()))?;
+            }
         }
         let checked_in: serde_json::Value = serde_json::from_slice(
             &fs::read(&checked_in_path)

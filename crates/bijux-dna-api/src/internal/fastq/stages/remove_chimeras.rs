@@ -1,3 +1,7 @@
+use bijux_dna_domain_fastq::{
+    LocalRemoveChimerasSmokeReportV1 as LocalRemoveChimerasSmokeReport,
+    LOCAL_REMOVE_CHIMERAS_SMOKE_REPORT_SCHEMA_VERSION,
+};
 use std::collections::{BTreeSet, HashMap};
 use std::io::{BufRead, BufReader};
 use std::path::{Path, PathBuf};
@@ -37,27 +41,6 @@ use crate::internal::handlers::fastq::jobs::{bench_jobs, execute_plans_with_jobs
 use crate::internal::handlers::fastq::{write_explain_md, write_explain_plan_json, BenchOutcome};
 
 const STAGE_ID: &str = "fastq.remove_chimeras";
-const LOCAL_REMOVE_CHIMERAS_SMOKE_REPORT_SCHEMA_VERSION: &str =
-    "bijux.fastq.remove_chimeras.local_smoke.report.v1";
-
-#[derive(Debug, Clone, serde::Serialize)]
-struct LocalRemoveChimerasSmokeReport {
-    schema_version: String,
-    stage_id: String,
-    sample_id: String,
-    planned_tool_id: String,
-    report_tool_id: String,
-    checked_sequence_count: u64,
-    chimera_count: u64,
-    non_chimera_count: u64,
-    filtered_representative_sequences: String,
-    non_chimeric_fasta: String,
-    chimeras_tsv: String,
-    case_report_json: String,
-    chimera_metrics_json: String,
-    chimeras_fasta: String,
-    raw_backend_report: String,
-}
 
 /// Benchmark FASTQ chimera-removal tools under governed contracts.
 ///

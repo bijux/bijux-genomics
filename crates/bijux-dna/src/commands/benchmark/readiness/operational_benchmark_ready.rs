@@ -29,10 +29,10 @@ use super::essential_pipelines_ready::{
     render_essential_pipelines_ready, DEFAULT_ESSENTIAL_PIPELINES_READY_PATH,
 };
 use super::full_benchmark_dashboard::{
-    render_full_benchmark_dashboard, DEFAULT_FULL_BENCHMARK_DASHBOARD_MARKDOWN_PATH,
+    render_full_benchmark_dashboard_from_report, DEFAULT_FULL_BENCHMARK_DASHBOARD_MARKDOWN_PATH,
 };
 use super::full_benchmark_report::{
-    render_full_benchmark_report, DEFAULT_FULL_BENCHMARK_REPORT_MARKDOWN_PATH,
+    render_full_benchmark_report_from_collector, DEFAULT_FULL_BENCHMARK_REPORT_MARKDOWN_PATH,
 };
 use super::full_benchmark_result_collector::{
     render_full_benchmark_result_collector, DEFAULT_FULL_BENCHMARK_RESULT_COLLECTOR_PATH,
@@ -49,7 +49,7 @@ use crate::commands::benchmark::local_all_domain_slurm_scripts::{
 };
 use crate::commands::benchmark::local_all_domain_slurm_shell_syntax::DEFAULT_ALL_DOMAIN_SLURM_BASH_N_REPORT_PATH;
 use crate::commands::benchmark::local_all_domain_slurm_submit_manifest::{
-    render_all_domain_slurm_submit_manifest, DEFAULT_ALL_DOMAIN_SLURM_SUBMIT_MANIFEST_PATH,
+    write_all_domain_slurm_submit_manifest, DEFAULT_ALL_DOMAIN_SLURM_SUBMIT_MANIFEST_PATH,
 };
 use crate::commands::benchmark::local_slurm_script_bodies::validate_slurm_script_bodies;
 use crate::commands::benchmark::local_slurm_shell_syntax::validate_slurm_shell_syntax;
@@ -467,10 +467,9 @@ pub(crate) fn render_operational_benchmark_ready(
         "all_domain_slurm_script_bodies",
         DEFAULT_ALL_DOMAIN_SLURM_SCRIPT_BODY_REPORT_PATH,
         || {
-            render_all_domain_slurm_scripts(
-                repo_root,
-                PathBuf::from(DEFAULT_ALL_DOMAIN_SLURM_DRY_RUN_ROOT),
-            )?;
+            slurm_scripts
+                .as_ref()
+                .context("all-domain SLURM scripts must render before body validation")?;
             validate_slurm_script_bodies(
                 repo_root,
                 PathBuf::from(DEFAULT_ALL_DOMAIN_SLURM_DRY_RUN_ROOT),
@@ -502,10 +501,9 @@ pub(crate) fn render_operational_benchmark_ready(
         "all_domain_slurm_shell_syntax",
         DEFAULT_ALL_DOMAIN_SLURM_BASH_N_REPORT_PATH,
         || {
-            render_all_domain_slurm_scripts(
-                repo_root,
-                PathBuf::from(DEFAULT_ALL_DOMAIN_SLURM_DRY_RUN_ROOT),
-            )?;
+            slurm_scripts
+                .as_ref()
+                .context("all-domain SLURM scripts must render before shell validation")?;
             validate_slurm_shell_syntax(
                 repo_root,
                 PathBuf::from(DEFAULT_ALL_DOMAIN_SLURM_DRY_RUN_ROOT),
@@ -537,8 +535,12 @@ pub(crate) fn render_operational_benchmark_ready(
         "all_domain_slurm_submit_manifest",
         DEFAULT_ALL_DOMAIN_SLURM_SUBMIT_MANIFEST_PATH,
         || {
-            render_all_domain_slurm_submit_manifest(
+            let scripts = slurm_scripts.as_ref().context(
+                "all-domain SLURM scripts must render before submit-manifest construction",
+            )?;
+            write_all_domain_slurm_submit_manifest(
                 repo_root,
+                scripts,
                 PathBuf::from(DEFAULT_ALL_DOMAIN_SLURM_DRY_RUN_ROOT),
                 PathBuf::from(DEFAULT_ALL_DOMAIN_SLURM_SUBMIT_MANIFEST_PATH),
             )
@@ -614,9 +616,13 @@ pub(crate) fn render_operational_benchmark_ready(
         "full_benchmark_report",
         DEFAULT_FULL_BENCHMARK_REPORT_MARKDOWN_PATH,
         || {
-            render_full_benchmark_report(
+            let dependency = result_collector.as_ref().context(
+                "result collector must succeed before full benchmark report construction",
+            )?;
+            render_full_benchmark_report_from_collector(
                 repo_root,
                 PathBuf::from(DEFAULT_FULL_BENCHMARK_REPORT_MARKDOWN_PATH),
+                dependency,
             )
         },
         |report| {
@@ -633,9 +639,13 @@ pub(crate) fn render_operational_benchmark_ready(
         "full_benchmark_dashboard",
         DEFAULT_FULL_BENCHMARK_DASHBOARD_MARKDOWN_PATH,
         || {
-            render_full_benchmark_dashboard(
+            let dependency = full_report
+                .as_ref()
+                .context("full benchmark report must succeed before dashboard construction")?;
+            render_full_benchmark_dashboard_from_report(
                 repo_root,
                 PathBuf::from(DEFAULT_FULL_BENCHMARK_DASHBOARD_MARKDOWN_PATH),
+                dependency,
             )
         },
         |report| {

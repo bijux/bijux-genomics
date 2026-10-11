@@ -76,6 +76,9 @@ fn commands_doc_is_managed_operation_inventory() {
         "validate-metric-id",
         "validate-derived-metric-id",
         "metrics-schema-for-stage",
+        "checked-f64-from-u64",
+        "checked-f64-from-usize",
+        "rounded-f64-to-u64",
     ];
 
     assert_eq!(

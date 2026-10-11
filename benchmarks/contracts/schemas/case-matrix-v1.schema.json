@@ -662,6 +662,7 @@
       ]
     },
     "BindingInputV1": {
+      "additionalProperties": false,
       "description": "One named input projected into a tool command.",
       "properties": {
         "artifact_contract_id": {
@@ -686,6 +687,7 @@
       "type": "object"
     },
     "BindingOutputV1": {
+      "additionalProperties": false,
       "description": "One canonical output and its discovery contract.",
       "properties": {
         "artifact_contract_id": {
@@ -706,6 +708,7 @@
       "type": "object"
     },
     "BindingParameterV1": {
+      "additionalProperties": false,
       "description": "One scientific parameter available to command rendering.",
       "properties": {
         "name": {
@@ -725,6 +728,7 @@
       "description": "Declares how a runtime owner discovers a projected output.",
       "oneOf": [
         {
+          "additionalProperties": false,
           "properties": {
             "kind": {
               "const": "exact_path",
@@ -737,6 +741,7 @@
           "type": "object"
         },
         {
+          "additionalProperties": false,
           "properties": {
             "kind": {
               "const": "exact_path_with_sidecars",
@@ -756,6 +761,7 @@
           "type": "object"
         },
         {
+          "additionalProperties": false,
           "properties": {
             "kind": {
               "const": "glob",
@@ -777,6 +783,7 @@
       "description": "Declares how an exact output companion is named from its primary output path.",
       "oneOf": [
         {
+          "additionalProperties": false,
           "properties": {
             "kind": {
               "const": "append_suffix",
@@ -793,6 +800,7 @@
           "type": "object"
         },
         {
+          "additionalProperties": false,
           "properties": {
             "extension": {
               "type": "string"
@@ -817,6 +825,7 @@
       "description": "Describes how the executable artifact is admitted without performing admission here.",
       "oneOf": [
         {
+          "additionalProperties": false,
           "description": "A distributable image resolved through the governed container catalog.",
           "properties": {
             "catalog_tool_id": {
@@ -834,6 +843,7 @@
           "type": "object"
         },
         {
+          "additionalProperties": false,
           "description": "An operator-supplied artifact that must be admitted by an execution owner.",
           "properties": {
             "artifact_kind": {
@@ -864,6 +874,7 @@
       ]
     },
     "ToolBindingV1": {
+      "additionalProperties": false,
       "description": "Serializable registry record implementing the generic binding interface.",
       "properties": {
         "artifact_source": {
@@ -951,6 +962,7 @@
       "type": "object"
     },
     "ToolConstraints": {
+      "additionalProperties": false,
       "properties": {
         "mem_gb": {
           "format": "uint32",

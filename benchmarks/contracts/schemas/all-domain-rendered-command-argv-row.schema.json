@@ -1,0 +1,82 @@
+{
+  "$defs": {
+    "AllDomainRenderedCommandArgvStep": {
+      "additionalProperties": false,
+      "properties": {
+        "argv": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "consumes_previous_stdout": {
+          "type": "boolean"
+        },
+        "step_id": {
+          "type": "string"
+        },
+        "step_kind": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "step_id",
+        "step_kind",
+        "consumes_previous_stdout",
+        "argv"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "asset_profile_id": {
+      "type": "string"
+    },
+    "benchmark_status": {
+      "type": "string"
+    },
+    "command_source": {
+      "type": "string"
+    },
+    "command_steps": {
+      "items": {
+        "$ref": "#/$defs/AllDomainRenderedCommandArgvStep"
+      },
+      "type": "array"
+    },
+    "corpus_id": {
+      "type": "string"
+    },
+    "domain": {
+      "type": "string"
+    },
+    "readiness_kind": {
+      "type": "string"
+    },
+    "result_id": {
+      "type": "string"
+    },
+    "stage_id": {
+      "type": "string"
+    },
+    "tool_id": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "result_id",
+    "domain",
+    "stage_id",
+    "tool_id",
+    "corpus_id",
+    "asset_profile_id",
+    "readiness_kind",
+    "benchmark_status",
+    "command_source",
+    "command_steps"
+  ],
+  "title": "AllDomainRenderedCommandArgvRow",
+  "type": "object"
+}
