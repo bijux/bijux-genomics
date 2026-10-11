@@ -5,7 +5,7 @@
     "domain": "vcf",
     "stage_id": "vcf.call"
   },
-  "protocol_sha256": "6b4eb347189319fb803e6ebcac894c43d99097b2f3910e9e34bc5300216a4562",
+  "protocol_sha256": "a01c08f5de9462e423073038a30c80a11523b6da3135ca007e774dd7da3b3ea4",
   "limitations": [
     "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
     "The protocol is reserved and has no selected publication."

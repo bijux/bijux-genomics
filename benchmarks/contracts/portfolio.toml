@@ -285,11 +285,25 @@ class = "production_real"
 sample_count = 0
 minimum_sample_count = 10
 data_types = ["bam", "fasta"]
-roles = ["bam_diversity", "ancient_damage_truth"]
-truth_strategy = "real_ancient_libraries_with_orthogonal_authentication"
-scientific_rationale = "Multiple libraries spanning damage, depth, duplication, contamination, fragment length, and library preparation are required for defensible BAM-stage comparisons."
-limitations = ["Only one ancient horse BAM is currently checksum-admitted for qualification."]
+roles = ["bam_diversity"]
+truth_strategy = "observational_alignment_diversity_with_separate_orthogonal_controls"
+scientific_rationale = "Multiple libraries spanning damage, depth, duplication, contamination, fragment length, and library preparation are required for defensible BAM-stage comparisons; independent damage controls are governed by a separate corpus authority."
+limitations = ["Only one ancient horse BAM is currently checksum-admitted for qualification, and this observational corpus cannot serve as its own damage truth."]
 source_specs = ["benchmarks/corpora/ancient-dna-bam-diversity.toml"]
+
+[[corpora]]
+id = "ancient-dna-damage-controls"
+status = "missing"
+evidence_scope = "comparative"
+class = "production_real"
+sample_count = 0
+minimum_sample_count = 10
+data_types = ["bam", "fasta", "orthogonal_assay", "sample_metadata"]
+roles = ["ancient_damage_truth"]
+truth_strategy = "independently_authenticated_positive_negative_and_blank_controls"
+scientific_rationale = "Damage-model accuracy requires controls whose expected state is established independently of every compared terminal-damage implementation."
+limitations = ["No checksum-admitted control panel with authenticated positives, modern negatives, blanks, and orthogonal assay evidence is currently available."]
+source_specs = []
 
 [[corpora]]
 id = "variant-truth-panel"

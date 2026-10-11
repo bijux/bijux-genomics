@@ -6,7 +6,11 @@ use std::io::ErrorKind;
 use std::path::{Path, PathBuf};
 
 use anyhow::{bail, Context, Result};
-use bijux_dna_bench_model::{validate_execution_spec, BenchmarkExecutionSpec};
+use bijux_dna_bench_model::{
+    validate_benchmark_slurm_submission_intent, validate_execution_spec, BenchmarkExecutionSpec,
+    BenchmarkSlurmArraySpec, BenchmarkSlurmDependencyCondition, BenchmarkSlurmSubmissionIntent,
+    BenchmarkSlurmSubmissionMaterial, BENCHMARK_SLURM_SUBMISSION_INTENT_SCHEMA_V1,
+};
 use serde::{Deserialize, Serialize};
 
 use super::{
@@ -14,30 +18,8 @@ use super::{
     SlurmDependencyCondition, SlurmJobHandle, SLURM_JOB_HANDLE_SCHEMA_V1,
 };
 
-const SUBMISSION_INTENT_SCHEMA_V1: &str = "bijux.runner.benchmark_submission_intent.v1";
 const SUBMISSION_FAILURE_SCHEMA_V1: &str = "bijux.runner.benchmark_submission_failure.v1";
 const MAX_EVIDENCE_BYTES: usize = 16 * 1024 * 1024;
-
-#[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
-#[serde(deny_unknown_fields)]
-struct BenchmarkSubmissionIntent {
-    schema_version: String,
-    run_id: String,
-    #[serde(default, skip_serializing_if = "Vec::is_empty")]
-    dependencies: Vec<String>,
-    #[serde(default, skip_serializing_if = "SlurmDependencyCondition::is_after_ok")]
-    dependency_condition: SlurmDependencyCondition,
-    #[serde(default, skip_serializing_if = "Option::is_none")]
-    array: Option<SlurmArraySpec>,
-    execution_spec_sha256: String,
-    stage_plan_manifest_sha256: String,
-    script_sha256: String,
-    script_path: PathBuf,
-    working_directory: PathBuf,
-    stdout_path: PathBuf,
-    stderr_path: PathBuf,
-    submitted_at_utc: String,
-}
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
@@ -64,10 +46,11 @@ pub fn submit_prepared_benchmark_job(
     let scheduler_root = scheduler_root(prepared)?;
     recheck_material(prepared, &scheduler_root)?;
     let intent_path = scheduler_root.join("submission-intent.json");
-    let intent = submission_intent(prepared);
+    let intent = submission_intent(prepared)?;
     let handle_path = scheduler_root.join("job-handle.json");
     if regular_file_exists(&handle_path, "benchmark Slurm handle")? {
-        let existing_intent: BenchmarkSubmissionIntent = read_json(&intent_path)?;
+        let existing_intent: BenchmarkSlurmSubmissionIntent = read_json(&intent_path)?;
+        validate_benchmark_slurm_submission_intent(&existing_intent)?;
         if existing_intent != intent {
             bail!("persisted benchmark submission intent conflicts with its Slurm handle");
         }
@@ -130,34 +113,36 @@ pub fn load_benchmark_slurm_job_handle(spec: &BenchmarkExecutionSpec) -> Result<
         bail!("persisted benchmark Slurm script is missing");
     }
     let intent_path = scheduler_root.join("submission-intent.json");
-    let intent: BenchmarkSubmissionIntent = read_json(&intent_path)?;
+    let intent: BenchmarkSlurmSubmissionIntent = read_json(&intent_path)?;
+    validate_benchmark_slurm_submission_intent(&intent)?;
+    let material = intent.material();
     let prepared = PreparedBenchmarkSlurmJob {
         request: super::SlurmSubmitRequest {
             run_id: format!(
                 "{}:{}:{}",
                 spec.identity.run.run_id, spec.identity.tool_id, spec.identity.attempt_id
             ),
-            dependencies: intent.dependencies.clone(),
-            dependency_condition: intent.dependency_condition,
-            array: intent.array.clone(),
+            dependencies: material.dependencies,
+            dependency_condition: runner_dependency_condition(material.dependency_condition),
+            array: material.array.as_ref().map(runner_array_spec),
             script_path,
             working_directory: PathBuf::from(&spec.source.repository_path),
             stdout_path: scheduler_root.join("stdout.log"),
             stderr_path: scheduler_root.join("stderr.log"),
-            submitted_at_utc: intent.submitted_at_utc.clone(),
+            submitted_at_utc: material.submitted_at_utc,
         },
         execution_spec_sha256: bijux_dna_infra::hash_file_sha256(
             &canonical_result_root.join("execution-spec.json"),
         )
         .context("hash persisted benchmark execution specification")?,
-        stage_plan_manifest_sha256: bijux_dna_infra::hash_file_sha256(
+        execution_unit_manifest_sha256: bijux_dna_infra::hash_file_sha256(
             &canonical_result_root.join("stage-plan-manifest.json"),
         )
         .context("hash persisted benchmark stage-plan manifest")?,
         script_sha256: bijux_dna_infra::hash_file_sha256(&scheduler_root.join("job.sbatch"))
             .context("hash persisted benchmark Slurm script")?,
     };
-    if submission_intent(&prepared) != intent {
+    if submission_intent(&prepared)? != intent {
         bail!("persisted benchmark submission intent conflicts with execution material");
     }
     recheck_material(&prepared, &scheduler_root)?;
@@ -190,7 +175,7 @@ fn recheck_material(prepared: &PreparedBenchmarkSlurmJob, scheduler_root: &Path)
         .join("execution-spec.json");
     let execution_spec_sha256 = bijux_dna_infra::hash_file_sha256(&execution_spec_path)
         .context("rehash prepared benchmark execution specification")?;
-    let stage_plan_manifest_sha256 = bijux_dna_infra::hash_file_sha256(
+    let execution_unit_manifest_sha256 = bijux_dna_infra::hash_file_sha256(
         &execution_spec_path
             .parent()
             .context("benchmark execution specification has no parent")?
@@ -199,38 +184,77 @@ fn recheck_material(prepared: &PreparedBenchmarkSlurmJob, scheduler_root: &Path)
     .context("rehash prepared benchmark stage-plan manifest")?;
     if script_sha256 != prepared.script_sha256
         || execution_spec_sha256 != prepared.execution_spec_sha256
-        || stage_plan_manifest_sha256 != prepared.stage_plan_manifest_sha256
+        || execution_unit_manifest_sha256 != prepared.execution_unit_manifest_sha256
     {
         bail!("prepared benchmark scheduler material changed before submission");
     }
     Ok(())
 }
 
-fn submission_intent(prepared: &PreparedBenchmarkSlurmJob) -> BenchmarkSubmissionIntent {
-    BenchmarkSubmissionIntent {
-        schema_version: SUBMISSION_INTENT_SCHEMA_V1.to_string(),
+fn submission_intent(
+    prepared: &PreparedBenchmarkSlurmJob,
+) -> Result<BenchmarkSlurmSubmissionIntent> {
+    let intent = BenchmarkSlurmSubmissionIntent::from_material(BenchmarkSlurmSubmissionMaterial {
+        schema_version: BENCHMARK_SLURM_SUBMISSION_INTENT_SCHEMA_V1.to_string(),
         run_id: prepared.request.run_id.clone(),
         dependencies: prepared.request.dependencies.clone(),
-        dependency_condition: prepared.request.dependency_condition,
-        array: prepared.request.array.clone(),
+        dependency_condition: model_dependency_condition(prepared.request.dependency_condition),
+        array: prepared.request.array.as_ref().map(model_array_spec),
         execution_spec_sha256: prepared.execution_spec_sha256.clone(),
-        stage_plan_manifest_sha256: prepared.stage_plan_manifest_sha256.clone(),
+        execution_unit_manifest_sha256: prepared.execution_unit_manifest_sha256.clone(),
         script_sha256: prepared.script_sha256.clone(),
         script_path: prepared.request.script_path.clone(),
         working_directory: prepared.request.working_directory.clone(),
         stdout_path: prepared.request.stdout_path.clone(),
         stderr_path: prepared.request.stderr_path.clone(),
         submitted_at_utc: prepared.request.submitted_at_utc.clone(),
+    });
+    validate_benchmark_slurm_submission_intent(&intent)?;
+    Ok(intent)
+}
+
+fn model_dependency_condition(
+    condition: SlurmDependencyCondition,
+) -> BenchmarkSlurmDependencyCondition {
+    match condition {
+        SlurmDependencyCondition::AfterOk => BenchmarkSlurmDependencyCondition::AfterOk,
+        SlurmDependencyCondition::AfterAny => BenchmarkSlurmDependencyCondition::AfterAny,
     }
 }
 
-fn create_intent(path: &Path, intent: &BenchmarkSubmissionIntent) -> Result<bool> {
+fn runner_dependency_condition(
+    condition: BenchmarkSlurmDependencyCondition,
+) -> SlurmDependencyCondition {
+    match condition {
+        BenchmarkSlurmDependencyCondition::AfterOk => SlurmDependencyCondition::AfterOk,
+        BenchmarkSlurmDependencyCondition::AfterAny => SlurmDependencyCondition::AfterAny,
+    }
+}
+
+fn model_array_spec(array: &SlurmArraySpec) -> BenchmarkSlurmArraySpec {
+    BenchmarkSlurmArraySpec {
+        first_task_id: array.first_task_id,
+        last_task_id: array.last_task_id,
+        maximum_parallel_tasks: array.maximum_parallel_tasks,
+    }
+}
+
+fn runner_array_spec(array: &BenchmarkSlurmArraySpec) -> SlurmArraySpec {
+    SlurmArraySpec {
+        first_task_id: array.first_task_id,
+        last_task_id: array.last_task_id,
+        maximum_parallel_tasks: array.maximum_parallel_tasks,
+    }
+}
+
+fn create_intent(path: &Path, intent: &BenchmarkSlurmSubmissionIntent) -> Result<bool> {
     match fs::symlink_metadata(path) {
         Ok(metadata) => {
             if metadata.file_type().is_symlink() || !metadata.is_file() {
                 bail!("benchmark submission intent is not a regular file");
             }
-            let existing: BenchmarkSubmissionIntent = read_json(path)?;
+            let existing: BenchmarkSlurmSubmissionIntent = read_json(path)?;
+            validate_benchmark_slurm_submission_intent(&existing)?;
             if existing != *intent {
                 bail!("benchmark submission intent conflicts with prepared material");
             }

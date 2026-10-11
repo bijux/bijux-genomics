@@ -1,0 +1,72 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "corpus_id": {
+      "type": "string"
+    },
+    "exit_code": {
+      "format": "int32",
+      "type": "integer"
+    },
+    "input_bam": {
+      "type": "string"
+    },
+    "likelihood_field": {
+      "type": "string"
+    },
+    "missing_likelihoods": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "reference": {
+      "type": "string"
+    },
+    "sample_count": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "sample_id": {
+      "type": "string"
+    },
+    "samples_with_likelihoods": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "schema_version": {
+      "const": "bijux.bench.local_vcf_call_gl_smoke.metrics.v1",
+      "type": "string"
+    },
+    "sites_with_likelihoods": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "stage_id": {
+      "type": "string"
+    },
+    "tool_id": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "stage_id",
+    "corpus_id",
+    "sample_id",
+    "input_bam",
+    "reference",
+    "likelihood_field",
+    "sites_with_likelihoods",
+    "samples_with_likelihoods",
+    "missing_likelihoods",
+    "sample_count",
+    "tool_id",
+    "exit_code"
+  ],
+  "title": "BenchmarkLocalVcfCallGlSmokeMetrics",
+  "type": "object"
+}

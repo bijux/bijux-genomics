@@ -33,11 +33,20 @@ pub struct BindingParameterV1 {
     pub required: bool,
 }
 
+/// Declares how an exact output companion is named from its primary output path.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(tag = "kind", rename_all = "snake_case")]
+pub enum OutputSidecarDiscoveryV1 {
+    AppendSuffix { suffix: String },
+    ReplaceExtension { extension: String },
+}
+
 /// Declares how a runtime owner discovers a projected output.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 #[serde(tag = "kind", rename_all = "snake_case")]
 pub enum OutputDiscoveryV1 {
     ExactPath,
+    ExactPathWithSidecars { sidecars: Vec<OutputSidecarDiscoveryV1> },
     Glob { pattern: String },
 }
 

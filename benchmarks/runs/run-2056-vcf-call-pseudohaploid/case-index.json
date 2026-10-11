@@ -5,7 +5,7 @@
     "domain": "vcf",
     "stage_id": "vcf.call_pseudohaploid"
   },
-  "protocol_sha256": "2728b101acd34768b60b0788fe06285b5a90b8a154fb08cd936fb6aa928ef04e",
+  "protocol_sha256": "00275a2c7a55ccb6d6d51af442c199668a31907a3489b331256c6c1f928088f0",
   "cases": [],
   "limitations": [
     "No immutable benchmark cases are indexed; this protocol has no executable publication evidence."

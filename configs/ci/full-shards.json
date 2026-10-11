@@ -1,5 +1,5 @@
 {
-  "schema_version": "bijux.ci.full_shards.v3",
+  "schema_version": "bijux.ci.full_shards.v4",
   "coverage": {
     "workspace": true,
     "all_targets": true,

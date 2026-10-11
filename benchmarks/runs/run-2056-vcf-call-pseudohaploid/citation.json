@@ -8,7 +8,7 @@
   },
   "protocol_title": "VCF call pseudohaploid benchmark protocol",
   "protocol_version": "1.0.0",
-  "protocol_sha256": "2728b101acd34768b60b0788fe06285b5a90b8a154fb08cd936fb6aa928ef04e",
+  "protocol_sha256": "00275a2c7a55ccb6d6d51af442c199668a31907a3489b331256c6c1f928088f0",
   "status": "protocol_only",
   "limitations": [
     "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",

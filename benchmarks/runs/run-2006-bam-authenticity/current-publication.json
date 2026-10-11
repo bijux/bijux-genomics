@@ -5,7 +5,7 @@
     "domain": "bam",
     "stage_id": "bam.authenticity"
   },
-  "protocol_sha256": "0e209f17cbe4152c5b80d51ad1b2b3af8adda3d6a3ac498771ff2537628489df",
+  "protocol_sha256": "6bedae00714495a93d4cd7ec90335ac258ea8e3a3e7c79961073a3fb83c81cf0",
   "limitations": [
     "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
     "The protocol is reserved and has no selected publication."

@@ -16,7 +16,7 @@ mod workspace_paths;
 
 pub use bam_corpus_authority::{
     admit_bam_benchmark_cohort, admit_bam_benchmark_corpus, admit_bam_genotyping_corpus,
-    admit_benchmark_reference, AdmittedBamGenotypingCorpus,
+    admit_benchmark_indexed_reference, admit_benchmark_reference, AdmittedBamGenotypingCorpus,
 };
 pub use case_data_authority::derive_benchmark_data_snapshots;
 pub use catalog_registry_authority::{
@@ -24,8 +24,9 @@ pub use catalog_registry_authority::{
     GovernedDataCatalogRegistryPublicationRequest,
 };
 pub use catalog_snapshot_authority::{
-    publish_governed_data_catalog_snapshots, GovernedDataCatalogSnapshotPublication,
-    GovernedDataCatalogSnapshotRequest,
+    admit_governed_derived_data_catalog, publish_governed_data_catalog_snapshots,
+    GovernedDataCatalogSnapshotPublication, GovernedDataCatalogSnapshotRequest,
+    GovernedDerivedDataCatalogAdmission, GovernedDerivedDataCatalogAdmissionRequest,
 };
 pub use corpus_authority::{admit_alignment_truth_set, admit_fastq_benchmark_corpus};
 pub use data_index_authority::{

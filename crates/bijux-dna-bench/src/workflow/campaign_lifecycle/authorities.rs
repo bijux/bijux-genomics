@@ -8,12 +8,12 @@ use anyhow::{bail, Context, Result};
 use bijux_dna_bench_model::contract::validate_defined_interface_campaign_alignment;
 use bijux_dna_bench_model::{
     BenchmarkAttemptIdentity, BenchmarkCampaignPlan, BenchmarkCaseMatrixV2, BenchmarkExecutionSpec,
-    BenchmarkLifecycleStatus, BenchmarkStageCampaignRegistry, BenchmarkStageInterfaceCatalog,
+    BenchmarkStageCampaignRegistry, BenchmarkStageInterfaceCatalog,
 };
 use bijux_dna_containers::api::{
     load_container_catalog, load_image_inventory_publication,
-    resolve_catalog_locked_apptainer_image, validate_container_inventory_catalog, ContainerCatalog,
-    ContainerImageInventoryPublication, CurrentApptainerImage,
+    resolve_catalog_locked_apptainer_artifact, validate_container_inventory_catalog,
+    ContainerCatalog, ContainerImageInventoryPublication, CurrentApptainerImage,
 };
 use bijux_dna_core::ids::{StageId, ToolId};
 use bijux_dna_stage_contract::{
@@ -60,11 +60,12 @@ impl BenchmarkExecutionAuthorities {
         study_root: &Path,
         tool_id: &str,
     ) -> Result<CurrentApptainerImage> {
-        resolve_catalog_locked_apptainer_image(
+        resolve_catalog_locked_apptainer_artifact(
             &self.image_inventory,
             &self.catalog_sha256,
             &self.catalog,
             &self.repository_commit,
+            &self.repository_path,
             study_root,
             tool_id,
         )
@@ -149,7 +150,7 @@ pub fn load_execution_authorities(
 ///
 /// # Errors
 /// Returns an error when the matrix differs from the plan, checked-in campaign/interface/tool
-/// authorities, or active planned case closure.
+/// authorities, or active lineage-tip case closure.
 pub fn load_case_execution_authorities(
     repository_root: &Path,
     inventory_path: &Path,
@@ -317,11 +318,10 @@ pub(super) fn validate_case_source_authorities(
             )
         })
         .collect::<BTreeSet<_>>();
-    let planned = plan
+    let declared = plan
         .cycle
         .attempts
         .iter()
-        .filter(|attempt| attempt.current_status() == Some(BenchmarkLifecycleStatus::Planned))
         .map(|attempt| {
             (
                 attempt.identity.case_id.as_deref().unwrap_or_default(),
@@ -332,7 +332,43 @@ pub(super) fn validate_case_source_authorities(
             )
         })
         .collect::<BTreeSet<_>>();
-    if planned != expected {
+    if !declared.is_subset(&expected) {
+        bail!("benchmark campaign attempt history contains a case outside its matrix");
+    }
+    let referenced = plan
+        .cycle
+        .attempts
+        .iter()
+        .filter_map(|attempt| {
+            attempt.supersedes_attempt_id.as_deref().map(|predecessor| {
+                (
+                    attempt.identity.case_id.as_deref().unwrap_or_default(),
+                    attempt.identity.tool_id.as_str(),
+                    predecessor,
+                )
+            })
+        })
+        .collect::<BTreeSet<_>>();
+    let mut active = BTreeSet::new();
+    for attempt in &plan.cycle.attempts {
+        if referenced.contains(&(
+            attempt.identity.case_id.as_deref().unwrap_or_default(),
+            attempt.identity.tool_id.as_str(),
+            attempt.identity.attempt_id.as_str(),
+        )) {
+            continue;
+        }
+        if !active.insert((
+            attempt.identity.case_id.as_deref().unwrap_or_default(),
+            attempt.identity.run.run_id.as_str(),
+            attempt.identity.run.domain.as_str(),
+            attempt.identity.run.stage_id.as_str(),
+            attempt.identity.tool_id.as_str(),
+        )) {
+            bail!("benchmark campaign has multiple lineage tips for one matrix case");
+        }
+    }
+    if active != expected {
         bail!("benchmark campaign active attempt closure differs from its case matrix");
     }
     Ok(())

@@ -13,6 +13,7 @@ use bijux_dna_bench_model::{
     BenchmarkTemporalProvenance, DataIntegrityStatus, GovernedDataCatalogDocument,
     GovernedDataCatalogRegistry, GovernedDataCatalogSnapshot, BENCHMARK_DATA_INDEX_SCHEMA_V2,
     GOVERNED_DATA_CATALOG_SCHEMA_V1, GOVERNED_DATA_CATALOG_SCHEMA_V2,
+    GOVERNED_DERIVED_DATA_CATALOG_SCHEMA_V1,
 };
 use chrono::{DateTime, FixedOffset};
 use serde_json::{Map, Value};
@@ -200,7 +201,11 @@ fn normalize_record(
     let catalog_sha256 = bijux_dna_infra::hash_bytes_sha256(&bytes);
     if !matches!(
         schema_version,
-        Some(GOVERNED_DATA_CATALOG_SCHEMA_V1 | GOVERNED_DATA_CATALOG_SCHEMA_V2)
+        Some(
+            GOVERNED_DATA_CATALOG_SCHEMA_V1
+                | GOVERNED_DATA_CATALOG_SCHEMA_V2
+                | GOVERNED_DERIVED_DATA_CATALOG_SCHEMA_V1,
+        )
     ) || !valid_identifier(id)
         || catalog_path.file_stem().and_then(|value| value.to_str()) != Some(id)
         || id != registry_id
@@ -218,17 +223,19 @@ fn normalize_record(
     }
     let document: GovernedDataCatalogDocument = serde_json::from_value(value.clone())
         .with_context(|| {
-            format!("parse governed v2 catalog document {}", catalog_path.display())
+            format!("parse native governed catalog document {}", catalog_path.display())
         })?;
     validate_governed_data_catalog_document(&document).with_context(|| {
-        format!("validate governed v2 catalog document {}", catalog_path.display())
+        format!("validate native governed catalog document {}", catalog_path.display())
     })?;
     let record = match &document {
         GovernedDataCatalogDocument::Preserved(catalog) => catalog
             .preserved_catalog
             .as_object()
             .context("preserved catalog payload is not an object")?,
-        GovernedDataCatalogDocument::Materialized(_) => record,
+        GovernedDataCatalogDocument::Materialized(_) | GovernedDataCatalogDocument::Derived(_) => {
+            record
+        }
     };
     let purpose = required_text(record, "purpose", id)?.to_string();
     let access_classification = required_text(record, "access_classification", id)?.to_string();

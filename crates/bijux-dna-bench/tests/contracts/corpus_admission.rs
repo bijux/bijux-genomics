@@ -4,7 +4,8 @@ use std::path::{Path, PathBuf};
 use anyhow::Result;
 use bijux_dna_bench::{
     admit_bam_benchmark_cohort, admit_bam_benchmark_corpus, admit_bam_genotyping_corpus,
-    admit_benchmark_reference, admit_fastq_benchmark_corpus, BenchmarkFastqLayout,
+    admit_benchmark_indexed_reference, admit_benchmark_reference, admit_fastq_benchmark_corpus,
+    BenchmarkFastqLayout,
 };
 use serde_json::{json, Value};
 use tempfile::TempDir;
@@ -78,6 +79,95 @@ fn admits_bam_from_source_addressed_catalog_snapshot() -> Result<()> {
             "source_catalog_schema_version": "bijux.data_catalog.v1",
             "preserved_at_utc": "2026-08-09T00:00:00Z",
             "preserved_catalog": preserved_catalog,
+        }),
+    )?;
+    let mut index: Value = serde_json::from_slice(&fs::read(&fixture.data_index)?)?;
+    index["records"][0]["catalog_sha256"] =
+        Value::String(bijux_dna_infra::hash_file_sha256(&catalog_path)?);
+    write_json(&fixture.data_index, &index)?;
+
+    let admitted =
+        admit_bam_benchmark_corpus(&fixture.study_root, &fixture.data_index, "horse-bam")?;
+    assert_eq!(admitted.sample_id, "ERR2112767");
+    assert_eq!(admitted.input_bytes, 14);
+    Ok(())
+}
+
+#[test]
+fn admits_bam_from_native_derived_catalog() -> Result<()> {
+    let fixture = bam_corpus_fixture()?;
+    let catalog_path = fixture.study_root.join("data/catalog/horse-bam.json");
+    let bam_index = fixture.bam.with_extension("bam.bai");
+    let bam_sha256 = bijux_dna_infra::hash_file_sha256(&fixture.bam)?;
+    let index_sha256 = bijux_dna_infra::hash_file_sha256(&bam_index)?;
+    write_json(
+        &catalog_path,
+        &json!({
+            "schema_version": "bijux.data_catalog.derived.v1",
+            "id": "horse-bam",
+            "purpose": "admit a derived real-data BAM benchmark input",
+            "source": "governed source catalogs",
+            "class": "production_real",
+            "access_classification": "public",
+            "redistribution_classification": "derived-results-only",
+            "access_terms_url": "https://example.org/terms",
+            "attribution": "cite the source study",
+            "projected_storage_bytes": 14,
+            "projected_cpu_hours": 1,
+            "projection_basis": "one bounded alignment",
+            "truth_roles": ["alignment_context"],
+            "truth_strategy": "observational_only",
+            "known_limitations": ["synthetic bytes exercise contract plumbing only"],
+            "sources": [{
+                "catalog_id": "horse-fastq",
+                "catalog_path": format!(
+                    "study://data/catalog/snapshots/{}/horse-fastq.json",
+                    "7".repeat(40)
+                ),
+                "catalog_sha256": "8".repeat(64)
+            }],
+            "admitted_at_utc": "2026-08-14T00:00:00Z",
+            "scientific_name": "Equus caballus",
+            "reference_assembly": "EquCab3.0",
+            "allowed_uses": ["comparative_benchmarking"],
+            "derivation": {
+                "pipeline_id": "horse-bam-materialization",
+                "pipeline_version": "1.0.0",
+                "source_commit": "9".repeat(40),
+                "parameter_sha256": "a".repeat(64),
+                "reference_id": "equcab3-reference",
+                "reference_catalog_sha256": "b".repeat(64),
+                "contig_dictionary_sha256": "c".repeat(64)
+            },
+            "samples": [{
+                "sample_id": "ERR2112767",
+                "source_accessions": ["ERR2112767"],
+                "library_context": "ancient single-end shotgun library",
+                "assay_context": "whole-genome sequencing",
+                "strata": {"era": "ancient"},
+                "control_roles": ["none"],
+                "truth_roles": ["alignment_context"],
+                "held_out_split": "evaluation",
+                "read_group_ids": ["ERR2112767"]
+            }],
+            "files": [
+                {
+                    "path": bam_index,
+                    "sha256": index_sha256,
+                    "size_bytes": 5,
+                    "kind": "bam-index",
+                    "sample_id": "ERR2112767",
+                    "source_sha256s": ["d".repeat(64)]
+                },
+                {
+                    "path": fixture.bam,
+                    "sha256": bam_sha256,
+                    "size_bytes": 9,
+                    "kind": "coordinate-sorted-deduplicated-bam",
+                    "sample_id": "ERR2112767",
+                    "source_sha256s": ["e".repeat(64)]
+                }
+            ]
         }),
     )?;
     let mut index: Value = serde_json::from_slice(&fs::read(&fixture.data_index)?)?;
@@ -200,6 +290,33 @@ fn admits_preserved_catalog_index_roles_for_genotyping_reference() -> Result<()>
     let admitted = admit_bam_genotyping_corpus(&fixture.study_root, &fixture.data_index)?;
     assert!(admitted.reference.path.ends_with("EquCab3.0.fna"));
     assert!(admitted.reference_index.path.ends_with("EquCab3.0.fna.fai"));
+    Ok(())
+}
+
+#[test]
+fn admits_indexed_reference_from_preserved_positional_roles() -> Result<()> {
+    let fixture = bam_genotyping_corpus_fixture()?;
+    let mut index: Value = serde_json::from_slice(&fs::read(&fixture.data_index)?)?;
+    let reference = index["records"]
+        .as_array_mut()
+        .expect("records array")
+        .iter_mut()
+        .find(|record| record["id"] == "equcab3-gcf-002863925.1")
+        .expect("reference record");
+    for file in reference["files"].as_array_mut().expect("reference files") {
+        let role = file["role"].as_str().expect("reference role");
+        file["role"] = Value::String(role.replacen("catalog.", "catalog.preserved_catalog.", 1));
+    }
+    write_json(&fixture.data_index, &index)?;
+
+    let admitted = admit_benchmark_indexed_reference(
+        &fixture.study_root,
+        &fixture.data_index,
+        "equcab3-gcf-002863925.1",
+    )?;
+    assert!(admitted.fasta.path.ends_with("EquCab3.0.fna"));
+    assert!(admitted.fasta_index.path.ends_with("EquCab3.0.fna.fai"));
+    assert_eq!(admitted.input_bytes, 16);
     Ok(())
 }
 

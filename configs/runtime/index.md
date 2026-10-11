@@ -48,7 +48,6 @@ Fields:
 - `configs/runtime/reference_bundles_lock.sha256`
 - `configs/runtime/references/index.md`
 - `configs/runtime/references/locks/index.md`
-- `configs/runtime/cargo_build.toml`
 - `configs/runtime/profiles/index.md`
 - `configs/runtime/execution_kernel.toml`
 

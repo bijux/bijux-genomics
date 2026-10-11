@@ -196,4 +196,65 @@ mod tests {
             .is_err_and(|error| error.to_string().contains("not defined")));
         Ok(())
     }
+
+    #[test]
+    fn selects_damage_run_with_every_supported_tool_including_external_artifact() -> Result<()> {
+        let root = repository_root()?;
+        let mut campaigns = super::load_stage_campaign_registry(
+            &root.join("benchmarks/contracts/stage-campaigns.toml"),
+        )?;
+        let mut interfaces = super::load_stage_interface_catalog_from_repo(
+            &root.join("benchmarks/contracts/stage-interfaces.toml"),
+            &root,
+        )?;
+
+        select_run_authorities(&mut campaigns, &mut interfaces, "run-2010")?;
+
+        let expected =
+            vec!["addeam", "damageprofiler", "mapdamage2", "ngsbriggs", "pmdtools", "pydamage"];
+        assert_eq!(campaigns.campaigns.len(), 1);
+        assert_eq!(campaigns.campaigns[0].tool_ids, expected);
+        assert_eq!(interfaces.interfaces.len(), 1);
+        assert_eq!(interfaces.interfaces[0].stage_id, "bam.damage");
+        assert_eq!(interfaces.interfaces[0].tool_ids, expected);
+
+        let bindings = bijux_dna_stage_contract::canonical_tool_bindings()?;
+        let binding_bytes = serde_json::to_vec(&bindings.bindings().cloned().collect::<Vec<_>>())?;
+        let matrix = crate::workflow::plan_benchmark_case_matrix(
+            &crate::workflow::BenchmarkCaseMatrixRequest {
+                repository_commit: &"a".repeat(40),
+                campaign_registry_sha256: &"b".repeat(64),
+                interface_catalog_sha256: &"c".repeat(64),
+                tool_binding_registry_sha256: &bijux_dna_infra::hash_bytes_sha256(&binding_bytes),
+                campaigns: &campaigns,
+                interfaces: &interfaces,
+                bindings: &bindings,
+                data_snapshots: &[
+                    crate::workflow::BenchmarkDataSnapshotV1 {
+                        catalog_id: "ena-prjeb22390-err2112767-ngsbriggs-input".to_string(),
+                        role: crate::workflow::BenchmarkDataSnapshotRoleV1::Corpus,
+                        catalog_sha256: "d".repeat(64),
+                        sample_ids: vec!["ERR2112767".to_string()],
+                    },
+                    crate::workflow::BenchmarkDataSnapshotV1 {
+                        catalog_id: "equcab3-gcf-002863925.1".to_string(),
+                        role: crate::workflow::BenchmarkDataSnapshotRoleV1::Reference,
+                        catalog_sha256: "e".repeat(64),
+                        sample_ids: Vec::new(),
+                    },
+                ],
+            },
+        )?;
+        assert_eq!(matrix.cases.len(), 6);
+        assert!(matrix.cases.iter().any(|case| {
+            case.tool_id == "ngsbriggs"
+                && case.binding.artifact_source
+                    == bijux_dna_stage_contract::ToolArtifactSourceV1::ExternalArtifact {
+                        artifact_kind: "operator_provided_binary_or_apptainer_sif".to_string(),
+                        version_probe: vec!["${executable}".to_string(), "--version".to_string()],
+                        checksum_required: true,
+                    }
+        }));
+        Ok(())
+    }
 }

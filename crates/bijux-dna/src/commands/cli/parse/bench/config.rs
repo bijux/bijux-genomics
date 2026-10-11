@@ -74,4 +74,6 @@ pub struct BenchNormalizeWorkspaceLayoutArgs {
     pub corpus_id: String,
     #[arg(long, default_value_t = false)]
     pub confirm: bool,
+    #[arg(long, value_name = "REPORT_JSON", conflicts_with = "confirm")]
+    pub rollback_report: Option<PathBuf>,
 }

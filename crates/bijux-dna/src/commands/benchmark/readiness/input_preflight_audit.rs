@@ -778,6 +778,7 @@ fn collect_vcf_input_preflight_rows(repo_root: &Path) -> Result<Vec<InputPreflig
     }));
 
     for (tool_id, filename) in [
+        ("shapeit", "shapeit.adapter.json"),
         ("shapeit5", "shapeit5.adapter.json"),
         ("eagle", "eagle.adapter.json"),
         ("beagle", "beagle.adapter.json"),

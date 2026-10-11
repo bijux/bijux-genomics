@@ -62,6 +62,7 @@ fn image() -> CurrentApptainerImage {
         size_bytes: 42,
         repository_commit: "a".repeat(40),
         catalog_sha256: "d".repeat(64),
+        external_artifact_admission_sha256: None,
     }
 }
 
@@ -492,6 +493,50 @@ fn build_at(
 }
 
 #[test]
+fn case_execution_result_root_matches_runtime_attempt_layout() -> anyhow::Result<()> {
+    let repository_root = super::support::repo_root()?;
+    let repository_commit = "a".repeat(40);
+    let matrix = case_matrix(&repository_root, &repository_commit, None)?;
+    let plan = plan_benchmark_case_attempts(
+        &matrix,
+        "human-short-read-length-comparison",
+        "attempt-001",
+        "2026-08-05T00:00:00Z",
+    )?;
+    let identity = plan
+        .cycle
+        .attempts
+        .iter()
+        .find(|attempt| attempt.identity.tool_id == "seqkit")
+        .context("run-2042 case plan omits seqkit")?
+        .identity
+        .clone();
+    let (registry, interfaces, catalog) = authorities()?;
+    let benchmark_root = PathBuf::from("/study/results/benchmarks");
+    let mut execution_material = material();
+    execution_material.benchmark_root.clone_from(&benchmark_root);
+    execution_material
+        .source_contract_sha256
+        .insert("campaign_registry".to_string(), plan.campaign_registry_sha256.clone());
+
+    let spec = build_execution_spec(
+        &registry,
+        &interfaces,
+        &catalog,
+        &plan,
+        &identity,
+        &image(),
+        execution_material,
+    )?;
+    assert!(identity.case_id.is_some());
+    assert_eq!(
+        PathBuf::from(spec.outputs.result_root),
+        bijux_dna_runtime::benchmark_attempt_directory(&benchmark_root, &identity)?
+    );
+    Ok(())
+}
+
+#[test]
 fn execution_spec_storage_is_restart_safe_and_refuses_conflicts() -> anyhow::Result<()> {
     let temporary = bijux_dna_testkit::tempdir_for("benchmark-execution-spec-storage");
     let plan = plan()?;
@@ -759,6 +804,21 @@ fn execution_builder_is_deterministic_for_identical_authorities() -> anyhow::Res
     let first = build(&catalog, &image())?;
     let second = build(&catalog, &image())?;
     assert_eq!(serde_json::to_vec(&first)?, serde_json::to_vec(&second)?);
+    Ok(())
+}
+
+#[test]
+fn execution_builder_persists_external_artifact_admission_identity() -> anyhow::Result<()> {
+    let (_, _, catalog) = authorities()?;
+    let mut selected = image();
+    selected.external_artifact_admission_sha256 = Some("e".repeat(64));
+
+    let spec = build(&catalog, &selected)?;
+
+    assert_eq!(
+        spec.source.contract_sha256.get("external_artifact_admission"),
+        Some(&"e".repeat(64))
+    );
     Ok(())
 }
 

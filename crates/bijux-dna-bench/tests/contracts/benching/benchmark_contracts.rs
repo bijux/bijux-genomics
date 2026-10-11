@@ -12,7 +12,7 @@ fn checked_in_benchmark_contracts_load_from_rust_authority() -> Result<()> {
         "the checked-in stage campaign registry must include the audited seed campaign set"
     );
     assert_eq!(interfaces.schema_version, bijux_dna_bench::BENCHMARK_STAGE_INTERFACES_SCHEMA_V1);
-    assert_eq!(interfaces.interfaces.len(), 12);
+    assert_eq!(interfaces.interfaces.len(), 13);
     Ok(())
 }
 
@@ -93,7 +93,7 @@ fn checked_in_stage_coverage_derives_from_catalog_and_admitted_reports() -> Resu
         bijux_dna_bench::derive_stage_coverage(&registry, &catalog, &reports, &current_commit)?;
 
     assert_eq!(coverage.summary.retained_stage_count, 71);
-    assert_eq!(coverage.summary.defined_stage_count, 12);
+    assert_eq!(coverage.summary.defined_stage_count, 13);
     assert_eq!(coverage.summary.failed_stage_count, 0);
     assert!(
         coverage.summary.admitted_stage_count
@@ -137,11 +137,26 @@ fn checked_in_stage_coverage_derives_from_catalog_and_admitted_reports() -> Resu
             && row.retained_tools == ["seqfu", "seqkit"]
             && row.execution_status == bijux_dna_bench::BenchmarkStageExecutionStatus::NotAdmitted
     }));
-    for (stage_id, tool_id) in [
-        ("bam.damage", "ngsbriggs"),
-        ("bam.kinship", "angsd"),
-        ("fastq.remove_duplicates", "fastuniq"),
-        ("vcf.imputation_metrics", "impute5"),
+    for (stage_id, tool_id, campaign_run_id, execution_status) in [
+        (
+            "bam.damage",
+            "ngsbriggs",
+            Some("run-2010"),
+            bijux_dna_bench::BenchmarkStageExecutionStatus::NotAdmitted,
+        ),
+        ("bam.kinship", "angsd", None, bijux_dna_bench::BenchmarkStageExecutionStatus::NotDefined),
+        (
+            "fastq.remove_duplicates",
+            "fastuniq",
+            None,
+            bijux_dna_bench::BenchmarkStageExecutionStatus::NotDefined,
+        ),
+        (
+            "vcf.imputation_metrics",
+            "impute5",
+            None,
+            bijux_dna_bench::BenchmarkStageExecutionStatus::NotDefined,
+        ),
     ] {
         let stage = coverage
             .stages
@@ -149,10 +164,8 @@ fn checked_in_stage_coverage_derives_from_catalog_and_admitted_reports() -> Resu
             .find(|row| row.stage_id == stage_id)
             .ok_or_else(|| anyhow::anyhow!("missing external-artifact benchmark stage"))?;
         assert!(stage.retained_tools.iter().any(|candidate| candidate == tool_id));
-        assert_eq!(
-            stage.execution_status,
-            bijux_dna_bench::BenchmarkStageExecutionStatus::NotDefined
-        );
+        assert_eq!(stage.campaign_run_id.as_deref(), campaign_run_id);
+        assert_eq!(stage.execution_status, execution_status);
     }
     Ok(())
 }
@@ -226,8 +239,8 @@ fn checked_in_run_registry_closes_the_permanent_namespace() -> Result<()> {
     )?;
 
     assert_eq!(registry.summary.run_count, 71);
-    assert_eq!(registry.summary.active_count, 12);
-    assert_eq!(registry.summary.reserved_count, 59);
+    assert_eq!(registry.summary.active_count, 13);
+    assert_eq!(registry.summary.reserved_count, 58);
     assert_eq!(registry.namespace.next_run_number, 2072);
     assert_eq!(registry.runs.first().map(|row| row.run_id.as_str()), Some("run-2001"));
     assert_eq!(registry.runs.last().map(|row| row.run_id.as_str()), Some("run-2071"));
@@ -270,13 +283,18 @@ fn checked_in_run_index_covers_every_protocol_without_hidden_publications() -> R
         bijux_dna_bench::BenchmarkRunIndexWriteMode::Check,
     )?;
     assert_eq!(index.summary.registered_run_count, 71);
-    assert_eq!(index.summary.citable_publication_count, 0);
-    assert_eq!(index.summary.unpublished_run_count, 71);
-    assert!(index.runs.iter().all(|run| {
-        run.selected_publication.is_none()
-            && !run.limitations.is_empty()
-            && run.citation_key == format!("bijux-benchmark-{}", run.run_id)
-    }));
+    assert_eq!(index.summary.citable_publication_count, 3);
+    assert_eq!(index.summary.unpublished_run_count, 68);
+    for run in &index.runs {
+        assert_eq!(run.citation_key, format!("bijux-benchmark-{}", run.run_id));
+        if ["run-2042", "run-2043", "run-2051"].contains(&run.run_id.as_str()) {
+            assert!(run.selected_publication.is_some());
+            assert!(run.limitations.is_empty());
+        } else {
+            assert!(run.selected_publication.is_none());
+            assert!(!run.limitations.is_empty());
+        }
+    }
     assert!(index.runs.iter().any(|run| {
         run.run_id == "run-2062"
             && run.stage_id == "vcf.imputation_metrics"
@@ -293,11 +311,42 @@ fn checked_in_publication_registry_has_no_drift() -> Result<()> {
         bijux_dna_bench::BenchmarkPublicationRegistryWriteMode::Check,
     )?;
     assert_eq!(registry.summary.current_product_count, 6);
+    assert_eq!(registry.summary.current_run_report_count, 3);
+    assert_eq!(registry.summary.missing_run_report_count, 68);
+    assert_eq!(registry.summary.stale_run_report_count, 0);
+    assert_eq!(registry.summary.failed_run_report_count, 0);
+    assert_eq!(registry.summary.superseded_run_report_count, 0);
+    assert_eq!(registry.run_reports.len(), 71);
     assert_eq!(registry.summary.active_stage_report_count, 0);
     assert_eq!(registry.summary.historical_stage_report_count, 11);
     assert_eq!(registry.summary.quarantined_surface_count, 0);
     assert_eq!(registry.summary.quarantined_file_count, 0);
     assert!(registry.quarantined_surfaces.is_empty());
+    Ok(())
+}
+
+#[test]
+fn derived_publication_registry_classifies_every_permanent_run() -> Result<()> {
+    let registry = bijux_dna_bench::derive_benchmark_publication_registry(&repository_root()?)?;
+    assert_eq!(registry.run_reports.len(), 71);
+    assert_eq!(registry.summary.current_run_report_count, 3);
+    assert_eq!(registry.summary.missing_run_report_count, 68);
+    assert_eq!(registry.summary.stale_run_report_count, 0);
+    assert_eq!(registry.summary.failed_run_report_count, 0);
+    assert_eq!(registry.summary.superseded_run_report_count, 0);
+    assert!(registry.run_reports.iter().all(|report| {
+        match report.disposition {
+            bijux_dna_bench::BenchmarkRunReportDisposition::Current => {
+                report.report.is_some() && report.publication_receipt.is_some()
+            }
+            bijux_dna_bench::BenchmarkRunReportDisposition::Missing => {
+                report.report.is_none()
+                    && report.publication_receipt.is_none()
+                    && !report.limitations.is_empty()
+            }
+            _ => false,
+        }
+    }));
     Ok(())
 }
 

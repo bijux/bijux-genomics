@@ -30,7 +30,10 @@ pub use stage_delivery::{
     StageArtifactContract, StageFailureMode, StageOutputGuarantee, DAMAGE_AWARE_GENOTYPE_LOGIC,
     OUTPUT_GUARANTEE,
 };
-pub use stage_io::{stage_io_contract, PortCardinality, StageIoContract, StagePortContract};
+pub use stage_io::{
+    stage_io_contract, PortCardinality, StageIoContract, StagePortContract, BAM_INDEX_DATA_TYPE,
+    VCF_INDEX_DATA_TYPE,
+};
 pub use stage_metrics::{stage_metrics_contract, StageMetricsContract};
 pub use workflow_surfaces::{
     stage_artifact_class_contract, vcf_calling_mode_contracts,

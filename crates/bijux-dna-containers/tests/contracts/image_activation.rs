@@ -16,6 +16,10 @@ fn activation_is_no_clobber_resumable_verified_and_reversible() -> Result<()> {
     let fixture = Fixture::new()?;
     let plan = fixture.create_plan()?;
     assert_eq!(plan.file_count, 2);
+    assert_eq!(
+        plan.publications.iter().map(|row| row.tool.as_str()).collect::<Vec<_>>(),
+        ["alpha", "beta"]
+    );
     assert!(fixture.create_plan().is_err());
 
     let applied = apply_image_activation_plan(
@@ -128,7 +132,7 @@ impl Fixture {
 }
 
 fn write_inventory(path: &Path, study: &Path, staging: &Path) -> Result<()> {
-    let tools = ["alpha", "beta"]
+    let mut tools = ["alpha", "beta"]
         .into_iter()
         .map(|tool| {
             let image = staging.join(format!("{tool}.sif"));
@@ -156,6 +160,17 @@ fn write_inventory(path: &Path, study: &Path, staging: &Path) -> Result<()> {
             })
         })
         .collect::<Result<Vec<_>>>()?;
+    tools.push(ContainerImageInventoryTool {
+        tool: "unrelated".to_string(),
+        version: "1.0.0".to_string(),
+        product_support: ContainerProductSupport::Supported,
+        artifact_delivery: ContainerArtifactDelivery::RedistributableImage,
+        redistribution_permitted: true,
+        apptainer_supported: true,
+        state: ContainerImageState::Missing,
+        selected_image_sha256: None,
+        candidates: Vec::new(),
+    });
     let publication = ContainerImageInventoryPublication {
         schema_version: CONTAINER_IMAGE_INVENTORY_PUBLICATION_SCHEMA_V3.to_string(),
         catalog_sha256: "b".repeat(64),
@@ -165,8 +180,8 @@ fn write_inventory(path: &Path, study: &Path, staging: &Path) -> Result<()> {
             raw_sha256: "c".repeat(64),
         },
         summary: ContainerImageInventorySummary {
-            tool_count: 2,
-            states: BTreeMap::from([("current".to_string(), 2)]),
+            tool_count: 3,
+            states: BTreeMap::from([("current".to_string(), 2), ("missing".to_string(), 1)]),
             historical_dependency_count: 0,
             unknown_image_count: 0,
             staged_image_count: 0,

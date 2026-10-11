@@ -117,7 +117,25 @@ attempt blocks only its own execution unit.
   specification.
 - Retry and supersession create new attempts and explicit lineage; they never rewrite history.
 - A publication selects admitted attempts without changing their evidence.
-- A citation is the stable paper-facing record for a run protocol and its selected publication.
+- Publication receipts derive their selected attempts from the source-locked plan's passing
+  lineage tips and retain the immutable plan, case matrix, and admitted attempt evidence; callers
+  cannot nominate unrelated attempts or omit supersession authority.
+- Evidence books may admit an explicit immutable receipt before the final tracked run pointer
+  exists; the receipt must match the permanent protocol, and the checked-in pointer is selected
+  only after book, replay, and citation evidence close without a circular dependency.
+- Replay accepts that receipt only together with the immutable candidate evidence book that admits
+  it; mixed candidate/indexed authority is rejected before semantic comparison. The benchmark
+  engine validates the source-locked case matrix, selects exactly one case for every admitted
+  attempt, publishes those case definitions immutably beside the replay receipt, and retains the
+  matrix as an input lock. Callers do not assemble or approximate the selected case closure.
+- A citation is the stable paper-facing record for a run protocol and its selected publication. It
+  is derived only after exact replay, from the admitted receipt, evidence book, source catalog,
+  report image identities, and case-matrix data snapshots; callers cannot nominate tool versions,
+  image digests, or data checksums.
+- Final selection parses every replayed case definition, binds it to the selected attempt, writes
+  the case index before the publication pointer, rejects replacement of any different selection,
+  and regenerates the complete run index and paper-facing protocol citation in one idempotent Rust
+  workflow.
 - Scheduler job IDs are provenance, not run identities.
 - Current reports require exact source, catalog, stage/interface, data/truth, artifact, campaign,
   and report hash closure. A stale report remains historical and is never overwritten into
@@ -144,6 +162,9 @@ The benchmark product root owns declarations and reviewed publications such as c
 source definitions, permanent run protocols, citations, case indexes, current-publication
 pointers, report indexes, and thin workers. The container product root owns recipes, catalogs,
 licenses, permanent run protocols, report indexes, and reviewed evidence-book publications.
+The benchmark report index contains one typed disposition for every permanent run; current rows
+carry admitted report and publication-receipt identities, while missing, stale, failed,
+superseded, and source-addressed historical evidence remain explicit.
 
 Neither root may contain a copied checkout, an embedded absolute-workspace mirror, raw attempt
 logs, SIF bytes, private external artifacts, or scheduler state. The exact direct-root shape and

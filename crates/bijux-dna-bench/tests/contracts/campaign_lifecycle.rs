@@ -270,6 +270,112 @@ fn campaign_retry_retains_terminal_history_and_initializes_linked_attempts() -> 
 }
 
 #[test]
+fn campaign_retry_preserves_passed_tips_and_retries_only_failed_work() -> anyhow::Result<()> {
+    let (registry, _, _) = load_checked_in_benchmark_planning_contracts()?;
+    let initial = plan_stage_campaign_attempts(
+        &registry,
+        "run-2042",
+        "selective-retry-campaign",
+        "attempt-001",
+        "2026-08-05T00:00:00Z",
+    )?;
+    let temporary = bijux_dna_testkit::tempdir_for("benchmark-campaign-selective-retry");
+    ensure_stage_campaign_attempts(temporary.path(), &initial)?;
+    let passed = &initial.cycle.attempts[0];
+    let failed = &initial.cycle.attempts[1];
+    let job = bijux_dna_bench::BenchmarkJobReference {
+        scheduler: "slurm".to_string(),
+        job_id: "3461201".to_string(),
+    };
+    bijux_dna_runtime::record_attempt_ready(
+        temporary.path(),
+        &passed.identity,
+        "2026-08-05T00:01:00Z",
+    )?;
+    bijux_dna_runtime::record_attempt_submission(
+        temporary.path(),
+        &passed.identity,
+        "2026-08-05T00:02:00Z",
+        vec![job.clone()],
+    )?;
+    bijux_dna_runtime::record_attempt_accounting(
+        temporary.path(),
+        &passed.identity,
+        "2026-08-05T00:03:00Z",
+        bijux_dna_bench::BenchmarkSchedulerAccounting {
+            scheduler: "slurm".to_string(),
+            job_id: job.job_id,
+            state: bijux_dna_bench::BenchmarkSchedulerTerminalState::Completed,
+            raw_state: "COMPLETED".to_string(),
+            exit_code: 0,
+            signal: 0,
+            elapsed_seconds: 60,
+            total_cpu_seconds: 40,
+            max_rss_bytes: Some(1024),
+            node_list: "n001".to_string(),
+            reason: None,
+        },
+    )?;
+    bijux_dna_runtime::record_attempt_acceptance(
+        temporary.path(),
+        &passed.identity,
+        "2026-08-05T00:04:00Z",
+        vec![bijux_dna_bench_model::BenchmarkEvidenceReference {
+            uri: "study://results/benchmarks/run-2042/passed-evidence.json".to_string(),
+            sha256: "c".repeat(64),
+            size_bytes: 42,
+        }],
+    )?;
+    bijux_dna_runtime::record_attempt_ready(
+        temporary.path(),
+        &failed.identity,
+        "2026-08-05T00:01:00Z",
+    )?;
+    bijux_dna_runtime::record_attempt_superseded(
+        temporary.path(),
+        &failed.identity,
+        "2026-08-05T00:02:00Z",
+        "execution contract requires corrected writable scratch",
+    )?;
+
+    let prior = initial
+        .cycle
+        .attempts
+        .iter()
+        .map(|attempt| load_attempt_lifecycle(temporary.path(), &attempt.identity))
+        .collect::<anyhow::Result<Vec<_>>>()?;
+    let retry = plan_stage_campaign_retry_attempts(
+        &registry,
+        &"a".repeat(40),
+        &"b".repeat(64),
+        prior,
+        "attempt-002",
+        "2026-08-05T00:05:00Z",
+    )?;
+
+    assert_eq!(retry.cycle.attempts.len(), 3);
+    assert_eq!(
+        retry
+            .cycle
+            .attempts
+            .iter()
+            .filter(|attempt| attempt.current_status() == Some(BenchmarkLifecycleStatus::Passed))
+            .count(),
+        1
+    );
+    let active = retry
+        .cycle
+        .attempts
+        .iter()
+        .filter(|attempt| attempt.current_status() == Some(BenchmarkLifecycleStatus::Planned))
+        .collect::<Vec<_>>();
+    assert_eq!(active.len(), 1);
+    assert_eq!(active[0].identity.tool_id, failed.identity.tool_id);
+    assert_eq!(active[0].supersedes_attempt_id.as_deref(), Some("attempt-001"));
+    Ok(())
+}
+
+#[test]
 fn campaign_retry_rejects_nonterminal_predecessors() -> anyhow::Result<()> {
     let (registry, _, _) = load_checked_in_benchmark_planning_contracts()?;
     let initial = plan_stage_campaign_attempts(

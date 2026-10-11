@@ -141,4 +141,10 @@ fn bench_local_vcf_imputation_metrics_smoke_reports_quality_contract() {
     assert_eq!(metrics.get("r2_available").and_then(serde_json::Value::as_bool), Some(true));
     assert_eq!(metrics.get("low_confidence_sites").and_then(serde_json::Value::as_u64), Some(1));
     assert_eq!(metrics.get("masked_truth_sites").and_then(serde_json::Value::as_u64), Some(1));
+    assert_eq!(metrics.get("finished_at"), payload.get("finished_at"));
+    assert_eq!(metrics.get("elapsed_seconds"), payload.get("elapsed_seconds"));
+    assert!(metrics
+        .get("finished_at")
+        .and_then(serde_json::Value::as_str)
+        .is_some_and(|value| { !value.is_empty() }));
 }

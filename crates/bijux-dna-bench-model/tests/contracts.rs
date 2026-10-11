@@ -97,8 +97,20 @@ mod mod_contracts_local_stage_completion_rs;
 mod mod_contracts_local_stage_fake_run_rs;
 #[path = "contracts/local_stage_inventory.rs"]
 mod mod_contracts_local_stage_inventory_rs;
+#[path = "contracts/local_vcf_call_gl_smoke.rs"]
+mod mod_contracts_local_vcf_call_gl_smoke_rs;
+#[path = "contracts/local_vcf_call_smoke.rs"]
+mod mod_contracts_local_vcf_call_smoke_rs;
+#[path = "contracts/local_vcf_ibd_smoke.rs"]
+mod mod_contracts_local_vcf_ibd_smoke_rs;
+#[path = "contracts/local_vcf_imputation_metrics_smoke.rs"]
+mod mod_contracts_local_vcf_imputation_metrics_smoke_rs;
 #[path = "contracts/local_vcf_smoke.rs"]
 mod mod_contracts_local_vcf_smoke_rs;
+#[path = "contracts/local_vcf_stage_catalog.rs"]
+mod mod_contracts_local_vcf_stage_catalog_rs;
+#[path = "contracts/local_vcf_stage_matrix.rs"]
+mod mod_contracts_local_vcf_stage_matrix_rs;
 #[path = "contracts/materialization.rs"]
 mod mod_contracts_materialization_rs;
 #[path = "contracts/normalized_result.rs"]
@@ -129,12 +141,16 @@ mod mod_contracts_run_index_rs;
 mod mod_contracts_scientific_acceptance_rs;
 #[path = "contracts/scope_views.rs"]
 mod mod_contracts_scope_views_rs;
+#[path = "contracts/slurm_submission.rs"]
+mod mod_contracts_slurm_submission_rs;
 #[path = "contracts/source_authority.rs"]
 mod mod_contracts_source_authority_rs;
 #[path = "contracts/stage_result.rs"]
 mod mod_contracts_stage_result_rs;
 #[path = "contracts/stage_tool_assets.rs"]
 mod mod_contracts_stage_tool_assets_rs;
+#[path = "contracts/stage_tool_benchmark_ready.rs"]
+mod mod_contracts_stage_tool_benchmark_ready_rs;
 #[path = "contracts/stage_tool_closure.rs"]
 mod mod_contracts_stage_tool_closure_rs;
 #[path = "contracts/stage_tool_containers.rs"]

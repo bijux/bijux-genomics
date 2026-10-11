@@ -11,6 +11,11 @@ fn vcf_index_bgzip_tabix_writes_queryable_assets() {
     assert_eq!(index, std::path::PathBuf::from(format!("{}.tbi", output.display())));
     assert!(index.exists(), "tabix index missing");
     noodles_tabix::fs::read(index).unwrap_or_else(|err| panic!("read tabix index: {err}"));
+    let expected = std::fs::read_to_string(input)
+        .unwrap_or_else(|err| panic!("read source VCF fixture: {err}"));
+    let observed = bijux_dna_stages_vcf::vcf_io::read_vcf_text(&output)
+        .unwrap_or_else(|err| panic!("read indexed BGZF VCF: {err}"));
+    assert_eq!(observed, expected);
 }
 
 #[test]

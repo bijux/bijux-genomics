@@ -515,14 +515,12 @@ fn stage_suffix(stage_id: &str) -> Result<String> {
 }
 
 #[cfg(test)]
-#[allow(clippy::expect_used)]
 mod tests {
     use super::*;
 
     #[test]
-    fn vcf_normalized_metrics_contract_tracks_domain_stage_metrics_contracts() {
-        let descriptors =
-            vcf_normalized_metrics_stage_descriptors().expect("descriptors must render");
+    fn vcf_normalized_metrics_contract_tracks_domain_stage_metrics_contracts() -> Result<()> {
+        let descriptors = vcf_normalized_metrics_stage_descriptors()?;
         let domain_contracts =
             VcfDomainStage::all().iter().copied().map(stage_metrics_contract).collect::<Vec<_>>();
 
@@ -543,10 +541,10 @@ mod tests {
             let descriptor = descriptors
                 .iter()
                 .find(|descriptor| descriptor.stage_id == stage_id)
-                .unwrap_or_else(|| panic!("missing descriptor for {stage_id}"));
+                .ok_or_else(|| anyhow!("missing descriptor for {stage_id}"))?;
             assert_eq!(descriptor.schema_version, contract.metrics_schema_id);
             assert!(descriptor.required_key_count > BASE_REQUIRED_KEYS.len());
-            for field in fields_for_stage(stage_id).expect("stage fields") {
+            for field in fields_for_stage(stage_id)? {
                 assert!(
                     contract.required_metrics.contains(&field.key),
                     "{stage_id} normalized field {} is absent from its domain metrics contract",
@@ -554,36 +552,36 @@ mod tests {
                 );
             }
         }
+        Ok(())
     }
 
     #[test]
-    fn vcf_normalized_metrics_schema_declares_every_stage_extension() {
-        let schema = render_vcf_normalized_metrics_schema().expect("schema must render");
+    fn vcf_normalized_metrics_schema_declares_every_stage_extension() -> Result<()> {
+        let schema = render_vcf_normalized_metrics_schema()?;
         let stages = schema
             .get("$defs")
             .and_then(|value| value.get("stages"))
             .and_then(serde_json::Value::as_object)
-            .expect("stage defs");
-        let descriptors =
-            vcf_normalized_metrics_stage_descriptors().expect("descriptors must render");
+            .ok_or_else(|| anyhow!("normalized schema is missing stage definitions"))?;
+        let descriptors = vcf_normalized_metrics_stage_descriptors()?;
 
         assert_eq!(stages.len(), descriptors.len());
         for descriptor in descriptors {
             let stage = stages
                 .get(&descriptor.stage_id)
-                .unwrap_or_else(|| panic!("missing shared schema stage {}", descriptor.stage_id));
-            let extension = stage
-                .get("x-bijux-extension-id")
-                .and_then(serde_json::Value::as_str)
-                .expect("extension id");
+                .ok_or_else(|| anyhow!("missing shared schema stage {}", descriptor.stage_id))?;
+            let extension =
+                stage.get("x-bijux-extension-id").and_then(serde_json::Value::as_str).ok_or_else(
+                    || anyhow!("stage {} is missing its extension id", descriptor.stage_id),
+                )?;
             assert_eq!(extension, descriptor.extension_id);
         }
+        Ok(())
     }
 
     #[test]
-    fn vcf_stage_specific_schema_carries_stage_identity_and_required_keys() {
-        let schema = render_vcf_normalized_metrics_stage_schema("vcf.qc")
-            .expect("stage-specific schema must render");
+    fn vcf_stage_specific_schema_carries_stage_identity_and_required_keys() -> Result<()> {
+        let schema = render_vcf_normalized_metrics_stage_schema("vcf.qc")?;
         assert_eq!(
             schema.get("$id").and_then(serde_json::Value::as_str),
             Some("bijux.schemas.bench.vcf-normalized-metrics.qc.v1")
@@ -592,7 +590,7 @@ mod tests {
             .get("allOf")
             .and_then(serde_json::Value::as_array)
             .and_then(|items| items.get(1))
-            .expect("stage extension");
+            .ok_or_else(|| anyhow!("VCF QC schema is missing its stage extension"))?;
         assert_eq!(
             extension
                 .get("properties")
@@ -601,9 +599,12 @@ mod tests {
                 .and_then(serde_json::Value::as_str),
             Some("vcf.qc")
         );
-        let required =
-            extension.get("required").and_then(serde_json::Value::as_array).expect("required keys");
+        let required = extension
+            .get("required")
+            .and_then(serde_json::Value::as_array)
+            .ok_or_else(|| anyhow!("VCF QC stage extension is missing required keys"))?;
         assert!(required.contains(&serde_json::json!("sample_missingness")));
         assert!(required.contains(&serde_json::json!("maf_summary")));
+        Ok(())
     }
 }

@@ -207,6 +207,13 @@ fn run_build_attempt(
     attempt: u32,
     log_path: &Path,
 ) -> Result<BuildAttemptOutput> {
+    let scratch = bijux_dna_infra::temp_dir("bijux-apptainer-build-")
+        .context("create isolated Apptainer build scratch directory")?;
+    let cache_root = scratch.path().join("cache");
+    let temporary_root = scratch.path().join("tmp");
+    std::fs::create_dir_all(&cache_root).context("create isolated Apptainer build cache")?;
+    std::fs::create_dir_all(&temporary_root)
+        .context("create isolated Apptainer build temporary directory")?;
     let mut log = OpenOptions::new()
         .create_new(true)
         .write(true)
@@ -218,12 +225,16 @@ fn run_build_attempt(
     writeln!(log, "executable={}", request.executable.display())?;
     writeln!(log, "image={}", request.image_path.display())?;
     writeln!(log, "definition={}", request.definition_path.display())?;
+    writeln!(log, "cache_root={}", cache_root.display())?;
+    writeln!(log, "temporary_root={}", temporary_root.display())?;
     let stdout =
         log.try_clone().with_context(|| format!("clone build log {}", log_path.display()))?;
     let status = Command::new(&request.executable)
         .args(["build", "--force"])
         .arg(&request.image_path)
         .arg(&request.definition_path)
+        .env("APPTAINER_CACHEDIR", &cache_root)
+        .env("APPTAINER_TMPDIR", &temporary_root)
         .stdout(Stdio::from(stdout))
         .stderr(Stdio::from(log))
         .status()

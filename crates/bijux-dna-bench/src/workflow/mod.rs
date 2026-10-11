@@ -8,22 +8,26 @@ mod attempt_migration;
 mod bam_alignment;
 mod bam_campaign;
 mod bam_coverage;
+mod bam_damage;
 mod bam_duplication_metrics;
 mod bam_endogenous_content;
 mod bam_genotyping;
 mod bam_mapping_summary;
 mod bam_observation;
 mod bam_picard_cohort;
+mod benchmark_config;
 mod benchmark_matrix;
 mod campaign_cases;
 mod campaign_engine;
 mod campaign_lifecycle;
 mod campaign_material;
+mod citation;
 mod container_report_portfolio;
 mod corpus_acquisition;
 mod corpus_materialization;
 mod cross_campaign;
 mod data_portfolio_audit;
+mod dossier_index;
 mod evaluation;
 mod evidence_book;
 mod fastq_campaign;
@@ -34,9 +38,12 @@ mod fastq_profile_reads;
 mod fastq_validate_reads;
 mod full_benchmark_report;
 mod hardening_campaign;
+mod local_corpus_skip;
 mod options;
 mod parameter_authority;
+mod publication_receipt;
 mod publication_registry;
+mod publication_selection;
 mod reference_materialization;
 mod replay;
 mod report_load;
@@ -58,6 +65,10 @@ mod summary_fairness;
 mod summary_scope;
 mod summary_statistics;
 mod vcf_campaign;
+mod vcf_stage_catalog;
+mod vcf_stage_matrix;
+mod workspace_convergence;
+mod workspace_layout;
 
 pub use alias_resolution::{
     choose_canonical_tool_id, legacy_benchmark_stage_alias_target, legacy_benchmark_stage_aliases,
@@ -86,6 +97,10 @@ pub use bam_coverage::{
     publish_bam_coverage_stage_report, render_bam_coverage_markdown, BamCoverageMaterial,
     BamCoverageStageReportPublication,
 };
+pub use bam_damage::{
+    prepare_bam_damage_material_from_evidence, publish_bam_damage_stage_report,
+    render_bam_damage_markdown, BamDamageStageReportPublication,
+};
 pub use bam_duplication_metrics::{
     prepare_bam_duplication_metrics_material, prepare_bam_duplication_metrics_material_from_corpus,
     publish_bam_duplication_metrics_stage_report, render_bam_duplication_metrics_markdown,
@@ -109,6 +124,16 @@ pub use bam_mapping_summary::{
 pub use bam_picard_cohort::{
     prepare_bam_picard_cohort_material, publish_bam_gc_bias_stage_report,
     publish_bam_insert_size_stage_report, BamPicardCohortMaterial,
+};
+pub use benchmark_config::{
+    benchmark_corpus_spec_path_from_config, benchmark_publication_contract_from_config,
+    benchmark_publication_contracts_from_config, benchmark_publication_corpus_id,
+    benchmark_publication_corpus_key, benchmark_publication_exclusions_from_config,
+    benchmark_runtime_corpus_dir_name, benchmark_stage_run_relative_root,
+    benchmark_workspace_config_value, expand_benchmark_config_env_placeholders,
+    normalize_benchmark_config, parse_benchmark_config, render_benchmark_config_section_json,
+    validate_benchmark_config_contract, BenchmarkConfigValidationRequest,
+    BenchmarkConfigValidationSummary,
 };
 pub use benchmark_matrix::{
     current_benchmark_matrix_timestamp, derive_benchmark_matrix, load_benchmark_matrix_report,
@@ -149,20 +174,28 @@ pub use campaign_lifecycle::{
     plan_benchmark_case_attempts, plan_benchmark_case_retry_attempts,
     plan_checked_in_benchmark_campaign, plan_stage_campaign_attempts,
     plan_stage_campaign_retry_attempts, prepare_checked_in_benchmark_campaign,
-    recover_stage_campaign_retry_lineage, status_checked_in_benchmark_campaign,
+    recover_stage_campaign_retry_lineage, retry_checked_in_benchmark_campaign,
+    status_checked_in_benchmark_campaign, supersede_checked_in_benchmark_campaign,
     verify_campaign_plan_source, verify_case_campaign_plan_source, BenchmarkCycleAdmission,
     BenchmarkCycleAdmissionRequest, BenchmarkCycleAdmissionState, BenchmarkCycleAdmissionUnit,
     BenchmarkCyclePlanRequest, BenchmarkCyclePreparation, BenchmarkCyclePreparationRequest,
-    BenchmarkCyclePreparationState, BenchmarkCyclePreparationUnit, BenchmarkCycleStatusRequest,
-    BenchmarkExecutionAuthorities, BenchmarkExecutionMaterial, BenchmarkStagePlanInputMaterial,
-    BenchmarkStagePlanOutputMaterial, BenchmarkStagePlanUnitMaterial,
+    BenchmarkCyclePreparationState, BenchmarkCyclePreparationUnit, BenchmarkCycleRetryRequest,
+    BenchmarkCycleStatusRequest, BenchmarkCycleSupersedeRequest, BenchmarkExecutionAuthorities,
+    BenchmarkExecutionMaterial, BenchmarkStagePlanInputMaterial, BenchmarkStagePlanOutputMaterial,
+    BenchmarkStagePlanUnitMaterial,
+};
+pub(crate) use campaign_lifecycle::{
+    verify_campaign_plan_source_authority, BenchmarkCampaignPlanSource,
 };
 pub use campaign_material::{
     admit_benchmark_campaign_evidence, prepare_benchmark_campaign_material,
     publish_benchmark_campaign_report,
-    publish_benchmark_campaign_report_with_presentation_authority, BenchmarkCampaignEvidence,
+    publish_benchmark_campaign_report_with_presentation_authority,
+    publish_case_benchmark_campaign_report,
+    publish_case_benchmark_campaign_report_with_presentation_authority, BenchmarkCampaignEvidence,
     BenchmarkCampaignMaterialRequest, BenchmarkCampaignReportPublication,
 };
+pub use citation::{issue_benchmark_citation_record, BenchmarkCitationRequest};
 pub use container_report_portfolio::{
     derive_container_report_portfolio_index, render_container_report_portfolio_index_json,
     render_container_report_portfolio_index_markdown,
@@ -182,6 +215,11 @@ pub use data_portfolio_audit::{
     derive_benchmark_data_portfolio_audit, publish_benchmark_data_portfolio_audit,
     render_benchmark_data_portfolio_audit_markdown, BenchmarkDataPortfolioAuditPublicationRequest,
     BenchmarkDataPortfolioAuditRequest,
+};
+pub use dossier_index::{
+    benchmark_dossier_path, build_benchmark_dossier_stage_entry, publish_benchmark_dossier_index,
+    render_benchmark_dossier_index_markdown, BenchmarkDossierIndexPublicationRequest,
+    BenchmarkDossierStagePublicationRequest,
 };
 pub use evaluation::{compare, gate};
 pub use evidence_book::{publish_checked_in_benchmark_evidence_book, BenchmarkEvidenceBookRequest};
@@ -227,10 +265,20 @@ pub use hardening_campaign::{
     derive_hardening_benchmark_campaign, load_hardening_benchmark_campaign_report,
     publish_hardening_benchmark_campaign_report,
 };
+pub use local_corpus_skip::{
+    derive_benchmark_local_corpus_skip_report, publish_benchmark_local_corpus_skip_report,
+    BenchmarkLocalCorpusSkipPublicationRequest,
+};
 pub use options::BenchRunOptions;
+pub use publication_receipt::{
+    issue_benchmark_publication_receipt, BenchmarkPublicationReceiptRequest,
+};
 pub use publication_registry::{
     derive_benchmark_publication_registry, publish_checked_in_benchmark_publication_registry,
     render_benchmark_publication_registry_markdown, BenchmarkPublicationRegistryWriteMode,
+};
+pub use publication_selection::{
+    select_checked_in_benchmark_publication, BenchmarkPublicationSelectionRequest,
 };
 pub use reference_materialization::{
     materialize_checked_in_reference_bundle, ReferenceBundleMaterializationRequest,
@@ -287,4 +335,21 @@ pub use summary::summarize;
 pub use vcf_campaign::{
     derive_vcf_benchmark_campaign, load_vcf_benchmark_campaign_report,
     publish_vcf_benchmark_campaign_report,
+};
+pub use vcf_stage_catalog::{
+    build_vcf_stage_catalog_rows, render_vcf_stage_catalog, DEFAULT_VCF_STAGE_CATALOG_PATH,
+};
+pub use vcf_stage_matrix::{
+    build_vcf_stage_matrix_rows, render_vcf_stage_matrix, validate_vcf_stage_matrix,
+    DEFAULT_VCF_STAGE_MATRIX_PATH,
+};
+pub use workspace_convergence::{
+    apply_benchmark_workspace_convergence, normalize_benchmark_workspace_layout_report,
+    plan_benchmark_workspace_convergence, rollback_benchmark_workspace_convergence,
+    rollback_benchmark_workspace_layout_report,
+};
+pub use workspace_layout::{
+    benchmark_workspace_layout_corpus_dir_name, benchmark_workspace_layout_report,
+    publish_benchmark_workspace_layout_status, render_benchmark_workspace_layout_markdown,
+    summarize_benchmark_workspace_root_pair,
 };

@@ -54,14 +54,21 @@ The `public_api` module itself is private. Stable exports are owned by
 - `validate_benchmark_local_stage_output_completion(report)` admits declared-output completeness evidence before publication.
 - `validate_benchmark_local_stage_inventory(inventory)` admits one domain-local stage inventory.
 - `validate_benchmark_local_all_domain_stage_inventory(report)` admits exact cross-domain inventory and count closure.
+- `validate_local_vcf_stage_catalog_config(config)` and `validate_local_vcf_stage_catalog_report(report)` admit the persisted VCF stage catalog and exact support-count closure.
+- `build_vcf_stage_catalog_rows()`, `render_vcf_stage_catalog(...)`, `build_vcf_stage_matrix_rows()`, `render_vcf_stage_matrix(...)`, and `validate_vcf_stage_matrix(...)` own local VCF declaration admission, persistence, catalog closure, and strict registry admission without importing execution-stage crates.
+- `validate_local_vcf_stage_matrix_config(config)`, `validate_local_vcf_stage_matrix_report(report)`, and `validate_vcf_stage_matrix_validation_report(report)` admit the persisted VCF matrix and its exact aggregate reports.
 - `validate_benchmark_local_corpus_skip_report(report)` admits corpus replacement lineage and complete stage dispositions.
+- `derive_benchmark_local_corpus_skip_report(compatibility, output_path)` derives every fixture replacement, asset-backed stage, and planner-only disposition from one admitted compatibility report.
+- `publish_benchmark_local_corpus_skip_report(request)` validates and atomically publishes that derived report while retaining repository-relative output identity.
 - `validate_benchmark_local_hpc_job_graph(graph)` admits exact job identity, dependency, root, ordering, and counter closure.
 - `validate_fastq_comparable_metrics_report(report)`, `validate_bam_comparable_metrics_report(report)`, and `validate_vcf_comparable_metrics_report(report)` admit domain-specific comparable-metric readiness reports before a thin renderer persists them.
 - `validate_stage_centric_report(report)`, `validate_tool_centric_report(report)`, and `validate_corpus_centric_report(report)` admit complementary persisted readiness views with complete nested and top-level aggregate closure.
+- `validate_stage_tool_benchmark_ready_report(report)` admits the stage/tool readiness envelope only when pair identities, surface evidence, counters, and gate state close exactly.
 - `validate_all_domain_active_stage_tool_matrix(report)`, `validate_all_domain_retained_tools(report)`, and `validate_stage_registry_extra_pairs(report)` admit the persisted stage/tool scope, retained product roster, and registry-drift views while retaining all supported licensed bindings.
 - `derive_container_report_portfolio_index(repository_root)` derives the current and historical container report portfolio while requiring the permanent run index to match its source authority.
 - `render_container_report_portfolio_index_json(index)` and `render_container_report_portfolio_index_markdown(index)` render the admitted portfolio deterministically.
 - `publish_benchmark_campaign_report_with_presentation_authority(source_repository_root, presentation_repository_root, study_root, benchmark_root, plan, output_root)` publishes a source-locked historical campaign and returns the exact presentation commit, catalog digest, and overlaid stage IDs in its receipt.
+- `publish_case_benchmark_campaign_report_with_presentation_authority(source_repository_root, presentation_repository_root, study_root, benchmark_root, plan, case_matrix, output_root)` preserves the exact verified case-matrix authority through generic dispatch and stage-owned publication.
 - `acquire_fastq_corpus(request)` resolves a reviewed corpus specification against exact ENA run metadata and atomically publishes a no-clobber acquisition plan.
 - `derive_fastq_corpus_acquisition_plan(spec_path, records, retrieved_at_utc)` deterministically derives the same validated plan from typed offline ENA records.
 - `materialize_fastq_corpus(request)` re-verifies or transfers checksum-pinned ENA files, validates every gzip FASTQ record, makes the admitted files read-only, and atomically publishes a no-clobber governed catalog.
@@ -91,6 +98,12 @@ The `public_api` module itself is private. Stable exports are owned by
 - `initialize_attempt_lifecycle(root, record)` delegates publication of one immutable planned attempt to runtime.
 - `append_attempt_lifecycle_transition(root, identity, transition)` delegates one no-clobber lifecycle event to runtime.
 - `load_attempt_lifecycle(root, identity)` delegates reconstruction and validation of the complete event chain to runtime.
+- `plan_benchmark_workspace_convergence(canonical_root, legacy_root)` uses content SHA-256 identity to distinguish byte-identical duplicates from conflicting content.
+- `apply_benchmark_workspace_convergence(plan)` moves exact duplicates into deterministic same-filesystem quarantine and verifies every resulting digest.
+- `rollback_benchmark_workspace_convergence(plan)` restores applied canonical and quarantine moves in reverse order after checksum validation.
+- `rollback_benchmark_workspace_layout_report(report)` uses an applied normalization report directly as the rollback receipt.
+- `benchmark_runtime_corpus_dir_name(workspace, corpus_id)` derives the runtime corpus directory identity from the admitted remote workspace root.
+- `benchmark_stage_run_relative_root(workspace, scope, corpus_dir_name, stage_id)` expands the admitted stage-run template for one supported storage scope.
 - `summarize(suite, observations, options)` builds a deterministic
   `BenchmarkSummary`.
 - `compare(summary_a, summary_b)` compares completed summaries.
@@ -175,6 +188,7 @@ including:
 - `BamComparableMetricsReport`
 - `VcfComparableMetricsReport`
 - `StageCentricReport`
+- `StageToolBenchmarkReadyReport`
 - `ToolCentricReport`
 - `CorpusCentricReport`
 - `ReadinessComparisonContractStatus`
@@ -184,6 +198,22 @@ including:
 - `BenchmarkLocalVcfSmokeGoalContract`
 - `BenchmarkLocalVcfSmokeGoalCheck`
 - `BenchmarkLocalVcfSmokeSuiteReport`
+- `BenchmarkLocalVcfCallGlSmokeMetrics`
+- `BenchmarkLocalVcfCallGlSmokeReport`
+- `BenchmarkLocalVcfCallSmokeMetrics`
+- `BenchmarkLocalVcfCallSmokeReport`
+- `BenchmarkLocalVcfIbdSmokeRow`
+- `BenchmarkLocalVcfIbdInsufficientOverlapProbe`
+- `BenchmarkLocalVcfIbdSmokeReport`
+- `BenchmarkImputationQualityFieldAvailability`
+- `BenchmarkLocalVcfImputationMetricsSmokeReport`
+- `LocalVcfStageCatalogConfig`
+- `VcfStageCatalogRow`
+- `LocalVcfStageCatalogReport`
+- `LocalVcfStageMatrixConfig`
+- `VcfStageMatrixRow`
+- `LocalVcfStageMatrixReport`
+- `ValidateVcfStageMatrixReport`
 - `GatePolicy`
 - `GatePolicyOverrides`
 - `GateDecision`

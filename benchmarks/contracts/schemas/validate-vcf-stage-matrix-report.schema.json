@@ -1,0 +1,99 @@
+{
+  "$defs": {
+    "VcfStageMatrixRow": {
+      "additionalProperties": false,
+      "properties": {
+        "adapter_id": {
+          "type": "string"
+        },
+        "asset_profile_id": {
+          "type": "string"
+        },
+        "corpus_id": {
+          "type": "string"
+        },
+        "expected_outputs": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "parser_id": {
+          "type": "string"
+        },
+        "stage_id": {
+          "type": "string"
+        },
+        "tool_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "stage_id",
+        "tool_id",
+        "corpus_id",
+        "asset_profile_id",
+        "adapter_id",
+        "parser_id",
+        "expected_outputs"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "domain": {
+      "type": "string"
+    },
+    "matrix_path": {
+      "type": "string"
+    },
+    "registry_tool_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "required_tool_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "row_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "rows": {
+      "items": {
+        "$ref": "#/$defs/VcfStageMatrixRow"
+      },
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "bijux.bench.validate_matrix.v1",
+      "type": "string"
+    },
+    "stage_count": {
+      "format": "uint",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "strict": {
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "schema_version",
+    "domain",
+    "matrix_path",
+    "strict",
+    "row_count",
+    "stage_count",
+    "required_tool_count",
+    "registry_tool_count",
+    "rows"
+  ],
+  "title": "ValidateVcfStageMatrixReport",
+  "type": "object"
+}

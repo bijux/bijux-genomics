@@ -73,8 +73,10 @@ pub fn admit_benchmark_execution_outputs(
     let completion_sha256 = hash_regular_file(&completion_path)?.sha256;
     let output_manifest_path = result_root.join(&completion.output_manifest);
     let manifest_bytes = read_regular_file(&output_manifest_path)?;
-    let outputs = validate_output_manifest(&result_root, spec, &manifest_bytes)?;
-    validate_owned_output_closure(&result_root, &spec.outputs.required_files)?;
+    let required_output_files =
+        expand_required_output_files(&result_root, &spec.outputs.required_files)?;
+    let outputs = validate_output_manifest(&result_root, &required_output_files, &manifest_bytes)?;
+    validate_owned_output_closure(&result_root, &required_output_files)?;
     let output_manifest_sha256 = bijux_dna_infra::hash_bytes_sha256(&manifest_bytes);
     let validation_files = VALIDATION_FILES
         .iter()
@@ -154,16 +156,16 @@ pub fn revalidate_benchmark_execution_outputs(
 
 fn validate_output_manifest(
     result_root: &Path,
-    spec: &BenchmarkExecutionSpec,
+    required_output_files: &[String],
     bytes: &[u8],
 ) -> Result<Vec<BenchmarkOutputFileEvidence>> {
     let text = std::str::from_utf8(bytes).context("benchmark output manifest is not UTF-8")?;
     let lines = text.lines().collect::<Vec<_>>();
-    if lines.len() != spec.outputs.required_files.len() {
+    if lines.len() != required_output_files.len() {
         bail!("benchmark output manifest does not close over required outputs");
     }
     let mut outputs = Vec::new();
-    for (line, expected_path) in lines.iter().zip(&spec.outputs.required_files) {
+    for (line, expected_path) in lines.iter().zip(required_output_files) {
         let (path, digest) =
             line.split_once('\t').context("benchmark output manifest row is malformed")?;
         if path != expected_path || !is_digest(digest) {
@@ -178,6 +180,62 @@ fn validate_output_manifest(
     Ok(outputs)
 }
 
+fn expand_required_output_files(result_root: &Path, required: &[String]) -> Result<Vec<String>> {
+    let mut expanded = Vec::new();
+    for relative in required {
+        let path = result_root.join(relative);
+        let metadata = fs::symlink_metadata(&path)
+            .with_context(|| format!("inspect benchmark required output {}", path.display()))?;
+        if metadata.file_type().is_symlink() {
+            bail!("benchmark required output is a symlink: {}", path.display());
+        }
+        if metadata.is_file() {
+            expanded.push(relative.clone());
+            continue;
+        }
+        if !metadata.is_dir() {
+            bail!("benchmark required output is neither a file nor directory: {}", path.display());
+        }
+        let mut directory_files = Vec::new();
+        for entry in walkdir::WalkDir::new(&path).min_depth(1).follow_links(false) {
+            let entry = entry.context("walk benchmark required directory output")?;
+            if entry.file_type().is_symlink() {
+                bail!(
+                    "benchmark required directory output contains a symlink: {}",
+                    entry.path().display()
+                );
+            }
+            if !entry.file_type().is_dir() && !entry.file_type().is_file() {
+                bail!(
+                    "benchmark required directory output contains a special file: {}",
+                    entry.path().display()
+                );
+            }
+            if entry.file_type().is_file() {
+                let relative = entry
+                    .path()
+                    .strip_prefix(result_root)
+                    .context("derive required directory output relative path")?
+                    .to_str()
+                    .context("required directory output path is not UTF-8")?;
+                if relative.contains('\n') || relative.contains('\t') {
+                    bail!("required directory output path cannot be represented in the manifest");
+                }
+                directory_files.push(relative.replace('\\', "/"));
+            }
+        }
+        directory_files.sort();
+        if directory_files.is_empty() {
+            bail!("benchmark required directory output is empty: {}", path.display());
+        }
+        expanded.extend(directory_files);
+    }
+    if expanded.iter().collect::<BTreeSet<_>>().len() != expanded.len() {
+        bail!("benchmark required output authorities overlap");
+    }
+    Ok(expanded)
+}
+
 fn validate_owned_output_closure(result_root: &Path, required: &[String]) -> Result<()> {
     let required = required.iter().cloned().collect::<BTreeSet<_>>();
     let roots = required
@@ -190,14 +248,21 @@ fn validate_owned_output_closure(result_root: &Path, required: &[String]) -> Res
         for entry in walkdir::WalkDir::new(result_root.join(root)).follow_links(false) {
             let entry = entry.context("walk benchmark output closure")?;
             if entry.file_type().is_symlink() {
-                bail!("benchmark output closure contains a symlink");
+                bail!("benchmark output closure contains a symlink: {}", entry.path().display());
+            }
+            if !entry.file_type().is_dir() && !entry.file_type().is_file() {
+                bail!(
+                    "benchmark output closure contains a special file: {}",
+                    entry.path().display()
+                );
             }
             if entry.file_type().is_file() {
                 let relative = entry
                     .path()
                     .strip_prefix(result_root)
                     .context("derive benchmark output relative path")?
-                    .to_string_lossy()
+                    .to_str()
+                    .context("benchmark output path is not UTF-8")?
                     .replace('\\', "/");
                 observed.insert(relative);
             }
@@ -450,6 +515,77 @@ mod tests {
         Ok(())
     }
 
+    #[test]
+    fn admission_expands_and_hashes_required_directory_artifacts() -> anyhow::Result<()> {
+        let mut fixture = fixture()?;
+        let directory = "repetitions/fastqc-validation-evidence";
+        std::fs::create_dir_all(fixture.result_root.join(directory).join("nested"))?;
+        std::fs::write(fixture.result_root.join(directory).join("sample_fastqc.html"), b"html")?;
+        std::fs::write(fixture.result_root.join(directory).join("sample_fastqc.zip"), b"zip")?;
+        std::fs::write(fixture.result_root.join(directory).join("nested/summary.txt"), b"summary")?;
+        fixture.spec.outputs.required_files.push(directory.to_string());
+        persist_completion(&fixture.result_root, &fixture.spec)?;
+
+        let admitted = admit_benchmark_execution_outputs(
+            &fixture.study_root,
+            &fixture.spec,
+            "2026-08-05T04:00:00Z",
+        )?;
+        assert_eq!(admitted.report.outputs.len(), 5);
+        assert!(admitted.report.outputs[2].path.ends_with("nested/summary.txt"));
+        assert!(admitted.report.outputs[3].path.ends_with("sample_fastqc.html"));
+        assert!(admitted.report.outputs[4].path.ends_with("sample_fastqc.zip"));
+
+        std::fs::write(fixture.result_root.join(directory).join("sample_fastqc.html"), b"mutated")?;
+        assert!(admit_benchmark_execution_outputs(
+            &fixture.study_root,
+            &fixture.spec,
+            "2026-08-05T04:00:00Z"
+        )
+        .is_err_and(|error| error.to_string().contains("changed after completion")));
+        Ok(())
+    }
+
+    #[test]
+    fn admission_rejects_empty_required_directory_artifacts() -> anyhow::Result<()> {
+        let mut fixture = fixture()?;
+        let directory = "repetitions/empty-evidence";
+        std::fs::create_dir(fixture.result_root.join(directory))?;
+        fixture.spec.outputs.required_files.push(directory.to_string());
+        persist_completion(&fixture.result_root, &fixture.spec)?;
+
+        assert!(admit_benchmark_execution_outputs(
+            &fixture.study_root,
+            &fixture.spec,
+            "2026-08-05T04:00:00Z"
+        )
+        .is_err_and(|error| error.to_string().contains("directory output is empty")));
+        Ok(())
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn admission_rejects_symlinks_within_required_directory_artifacts() -> anyhow::Result<()> {
+        let mut fixture = fixture()?;
+        let directory = "repetitions/symlinked-evidence";
+        std::fs::create_dir(fixture.result_root.join(directory))?;
+        std::fs::write(fixture.result_root.join(directory).join("evidence.txt"), b"evidence")?;
+        std::os::unix::fs::symlink(
+            fixture.result_root.join(directory).join("evidence.txt"),
+            fixture.result_root.join(directory).join("alias.txt"),
+        )?;
+        fixture.spec.outputs.required_files.push(directory.to_string());
+        persist_completion(&fixture.result_root, &fixture.spec)?;
+
+        assert!(admit_benchmark_execution_outputs(
+            &fixture.study_root,
+            &fixture.spec,
+            "2026-08-05T04:00:00Z"
+        )
+        .is_err_and(|error| error.to_string().contains("contains a symlink")));
+        Ok(())
+    }
+
     struct Fixture {
         _root: tempfile::TempDir,
         study_root: std::path::PathBuf,
@@ -477,24 +613,45 @@ mod tests {
             std::fs::write(result_root.join(relative), b"evidence\n")?;
         }
         let spec = specification(&result_root, required_files.clone());
+        persist_completion(&result_root, &spec)?;
+        Ok(Fixture { _root: root, study_root, result_root, spec })
+    }
+
+    fn persist_completion(
+        result_root: &std::path::Path,
+        spec: &BenchmarkExecutionSpec,
+    ) -> anyhow::Result<()> {
         let spec_path = result_root.join("execution-spec.json");
-        std::fs::write(&spec_path, serde_json::to_vec_pretty(&spec)?)?;
-        let spec_sha256 = bijux_dna_infra::hash_file_sha256(&spec_path)?;
+        std::fs::write(&spec_path, serde_json::to_vec_pretty(spec)?)?;
         let mut manifest = String::new();
-        for relative in &required_files {
-            let digest = bijux_dna_infra::hash_file_sha256(&result_root.join(relative))?;
-            manifest.push_str(&format!("{relative}\t{digest}\n"));
+        for relative in &spec.outputs.required_files {
+            let path = result_root.join(relative);
+            if path.is_file() {
+                let digest = bijux_dna_infra::hash_file_sha256(&path)?;
+                manifest.push_str(&format!("{relative}\t{digest}\n"));
+                continue;
+            }
+            let mut files = walkdir::WalkDir::new(&path)
+                .min_depth(1)
+                .into_iter()
+                .collect::<std::result::Result<Vec<_>, _>>()?;
+            files.sort_by(|left, right| left.path().cmp(right.path()));
+            for file in files.into_iter().filter(|entry| entry.file_type().is_file()) {
+                let relative = file.path().strip_prefix(result_root)?.to_string_lossy();
+                let digest = bijux_dna_infra::hash_file_sha256(file.path())?;
+                manifest.push_str(&format!("{relative}\t{digest}\n"));
+            }
         }
         std::fs::write(result_root.join("scheduler/output-sha256.tsv"), manifest)?;
         std::fs::write(
             result_root.join("scheduler/completed.json"),
             serde_json::to_vec_pretty(&serde_json::json!({
                 "schema_version": "bijux.runner.benchmark_completion.v1",
-                "execution_spec_sha256": spec_sha256,
+                "execution_spec_sha256": bijux_dna_infra::hash_file_sha256(&spec_path)?,
                 "output_manifest": "scheduler/output-sha256.tsv"
             }))?,
         )?;
-        Ok(Fixture { _root: root, study_root, result_root, spec })
+        Ok(())
     }
 
     fn specification(

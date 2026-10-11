@@ -41,6 +41,14 @@ enter through `bijux_dna_api::v1::api`.
   fail-closed validators used by thin CLI renderers.
 - The `bench` namespace exposes model-owned stage-, tool-, and corpus-centric readiness
   view contracts, schemas, and fail-closed aggregate validators.
+- The `bench` namespace exposes the model-owned stage/tool benchmark-readiness envelope,
+  generated schema, and fail-closed validator used by the thin CLI renderer.
+- The `bench` namespace exposes model-owned VCF stage-matrix declarations, render reports,
+  validation reports, generated schemas, and fail-closed validators.
+- The `bench` namespace exposes model-owned VCF stage-catalog declarations, render reports,
+  generated schemas, and fail-closed validators.
+- The `bench` namespace exposes benchmark-owned local VCF catalog/matrix derivation, rendering,
+  and strict validation workflows used by thin CLI adapters.
 - The `bench` namespace exposes model-owned all-domain stage/tool scope, retained-tool,
   and registry-drift report contracts with explicit licensed-binding retention.
 - The `bench` namespace exposes benchmark-owned stage/tool closure derivation and checked-in run
@@ -83,5 +91,8 @@ They may change when the v1 public contract remains stable.
 ## Stability Tiers
 
 - Stable: `pub mod v1`, `bijux_dna_api::v1::api`, and the contract types/operations documented above.
+- `BenchmarkStagePluginComposition` is the stable v1 application composition for exact
+  FASTQ/BAM/VCF plugin ownership; adding an implementation extends its canonical binding input
+  without changing the generic composition API.
 - Experimental: no experimental public namespace is exported today; any future one must be called out explicitly here before use.
 - Internal: `src/internal/`, `src/runtime/`, `src/support/`, `src/surface/`, and any item not re-exported through `v1::api`.

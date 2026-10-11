@@ -14,14 +14,14 @@ attribution = "Cite each original ancient-DNA study, every ENA run accession, EN
 projected_storage_bytes = 250000000000
 projected_cpu_hours = 3000
 projection_basis = "The projection reserves 250 GB and 3,000 CPU-hours for ten already selected ancient runs, GRCh38, independently parameterized alignments, authentication evidence, indexes, and validation."
-truth_roles = ["bam_diversity", "ancient_damage_truth"]
-truth_strategy = "real_ancient_libraries_with_orthogonal_authentication"
+truth_roles = ["bam_diversity"]
+truth_strategy = "observational_alignment_diversity_with_separate_orthogonal_controls"
 known_limitations = [
   "The selected archive runs are source reads; comparable BAMs and indexes remain derived artifacts that must be checksum-admitted.",
   "Archive metadata alone does not establish endogenous content, contamination, or terminal-damage truth.",
   "Orthogonal authentication observations and study-level ethical constraints must be bound before comparative use.",
 ]
-description = "The ten ancient human runs already selected across four ENA studies define a reproducible source cohort for diverse low-coverage ancient-DNA BAM materialization."
+description = "The ten ancient human runs already selected across four ENA studies define a reproducible observational cohort for diverse low-coverage ancient-DNA BAM materialization; a separate authority must provide orthogonal damage controls."
 data_types = ["bam", "fasta"]
 target_sample_count = 10
 

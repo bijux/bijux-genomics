@@ -19,6 +19,7 @@ mod data_catalog_registry;
 mod data_fitness;
 mod data_index;
 mod data_portfolio_audit;
+mod derived_catalog;
 mod domain_campaign;
 mod dossier_index;
 mod essential_pipeline_readiness;
@@ -52,7 +53,13 @@ mod local_stage_commands;
 mod local_stage_completion;
 mod local_stage_fake_run;
 mod local_stage_inventory;
+mod local_vcf_call_gl_smoke;
+mod local_vcf_call_smoke;
+mod local_vcf_ibd_smoke;
+mod local_vcf_imputation_metrics_smoke;
 mod local_vcf_smoke;
+mod local_vcf_stage_catalog;
+mod local_vcf_stage_matrix;
 mod materialization;
 mod output_declarations;
 mod planning;
@@ -72,9 +79,11 @@ mod run_index;
 mod schema_versions;
 mod scientific_acceptance;
 mod scope_views;
+mod slurm_submission;
 mod source_authority;
 mod stage_result;
 mod stage_tool_assets;
+mod stage_tool_benchmark_ready;
 mod stage_tool_closure;
 mod stage_tool_containers;
 mod stage_tool_resources;
@@ -102,13 +111,16 @@ pub use data_catalog_registry::validate_governed_data_catalog_registry;
 pub use data_fitness::{validate_data_fitness_portfolio_alignment, validate_data_fitness_rubric};
 pub use data_index::validate_benchmark_data_index;
 pub use data_portfolio_audit::validate_benchmark_data_portfolio_audit;
+pub use derived_catalog::validate_governed_derived_data_catalog;
 pub use domain_campaign::{
     validate_bam_benchmark_campaign_report, validate_fastq_benchmark_campaign_report,
     validate_hardening_benchmark_campaign_report, validate_vcf_benchmark_campaign_report,
 };
 pub use dossier_index::validate_benchmark_dossier_index;
 pub use essential_pipeline_readiness::validate_benchmark_essential_pipeline_readiness;
-pub use execution::{validate_execution_spec, validate_stage_plan_manifest};
+pub use execution::{
+    validate_execution_spec, validate_execution_unit_manifest, validate_stage_plan_manifest,
+};
 pub use expected_benchmark_results::validate_all_domain_expected_benchmark_results;
 pub use full_benchmark_report::{
     validate_full_benchmark_report, FullBenchmarkReportAdmissionContext,
@@ -175,7 +187,23 @@ pub use local_stage_fake_run::{
 pub use local_stage_inventory::{
     validate_benchmark_local_all_domain_stage_inventory, validate_benchmark_local_stage_inventory,
 };
+pub use local_vcf_call_gl_smoke::{
+    validate_benchmark_local_vcf_call_gl_smoke_metrics,
+    validate_benchmark_local_vcf_call_gl_smoke_report,
+};
+pub use local_vcf_call_smoke::{
+    validate_benchmark_local_vcf_call_smoke_metrics, validate_benchmark_local_vcf_call_smoke_report,
+};
+pub use local_vcf_ibd_smoke::validate_benchmark_local_vcf_ibd_smoke_report;
+pub use local_vcf_imputation_metrics_smoke::validate_benchmark_local_vcf_imputation_metrics_smoke_report;
 pub use local_vcf_smoke::validate_benchmark_local_vcf_smoke_suite;
+pub use local_vcf_stage_catalog::{
+    validate_local_vcf_stage_catalog_config, validate_local_vcf_stage_catalog_report,
+};
+pub use local_vcf_stage_matrix::{
+    validate_local_vcf_stage_matrix_config, validate_local_vcf_stage_matrix_report,
+    validate_vcf_stage_matrix_validation_report,
+};
 pub use materialization::{
     validate_corpus_acquisition_plan, validate_fastq_corpus_source_spec,
     validate_governed_data_catalog, validate_governed_data_catalog_document,
@@ -275,12 +303,13 @@ pub use schema_versions::{
     BENCHMARK_LOCAL_VCF_SMOKE_SUITE_SCHEMA_V1, BENCHMARK_PIPELINE_PARAMETERS_SCHEMA_V1,
     BENCHMARK_PORTFOLIO_SCHEMA_V1, BENCHMARK_PORTFOLIO_SCHEMA_V2,
     BENCHMARK_PROTOCOL_CITATION_SCHEMA_V1, BENCHMARK_PUBLICATION_RECEIPT_SCHEMA_V1,
-    BENCHMARK_PUBLICATION_REGISTRY_SCHEMA_V1, BENCHMARK_REPLAY_RECEIPT_SCHEMA_V1,
-    BENCHMARK_REPORT_ADMISSION_SCHEMA_V1, BENCHMARK_RUN_CASE_INDEX_SCHEMA_V1,
-    BENCHMARK_RUN_DEFINITION_SCHEMA_V1, BENCHMARK_RUN_INDEX_SCHEMA_V1,
-    BENCHMARK_RUN_PUBLICATION_POINTER_SCHEMA_V1, BENCHMARK_RUN_REGISTRY_SCHEMA_V1,
-    BENCHMARK_SCHEDULER_OBSERVATION_SCHEMA_V1, BENCHMARK_SCIENTIFIC_READINESS_SCHEMA_V1,
-    BENCHMARK_SCIENTIFIC_READINESS_SCHEMA_V2, BENCHMARK_STAGE_CAMPAIGNS_SCHEMA_V1,
+    BENCHMARK_PUBLICATION_REGISTRY_SCHEMA_V1, BENCHMARK_PUBLICATION_REGISTRY_SCHEMA_V2,
+    BENCHMARK_REPLAY_RECEIPT_SCHEMA_V1, BENCHMARK_REPORT_ADMISSION_SCHEMA_V1,
+    BENCHMARK_RUN_CASE_INDEX_SCHEMA_V1, BENCHMARK_RUN_DEFINITION_SCHEMA_V1,
+    BENCHMARK_RUN_INDEX_SCHEMA_V1, BENCHMARK_RUN_PUBLICATION_POINTER_SCHEMA_V1,
+    BENCHMARK_RUN_REGISTRY_SCHEMA_V1, BENCHMARK_SCHEDULER_OBSERVATION_SCHEMA_V1,
+    BENCHMARK_SCIENTIFIC_READINESS_SCHEMA_V1, BENCHMARK_SCIENTIFIC_READINESS_SCHEMA_V2,
+    BENCHMARK_SLURM_SUBMISSION_INTENT_SCHEMA_V1, BENCHMARK_STAGE_CAMPAIGNS_SCHEMA_V1,
     BENCHMARK_STAGE_COVERAGE_SCHEMA_V1, BENCHMARK_STAGE_INTERFACES_SCHEMA_V1,
     BENCHMARK_STAGE_PLAN_MANIFEST_SCHEMA_V1, BENCHMARK_STAGE_REPORT_SCHEMA_V1,
     BENCHMARK_STAGE_RESULT_SCHEMA_V2, BENCHMARK_STAGE_RESULT_VALIDATION_SCHEMA_V1,
@@ -292,13 +321,17 @@ pub use schema_versions::{
     FULL_BENCHMARK_REPORT_SCHEMA_V1, FULL_BENCHMARK_RESULT_COLLECTOR_SCHEMA_V1,
     GOVERNED_DATA_CATALOG_REGISTRY_PUBLICATION_SCHEMA_V1, GOVERNED_DATA_CATALOG_REGISTRY_SCHEMA_V1,
     GOVERNED_DATA_CATALOG_SCHEMA_V1, GOVERNED_DATA_CATALOG_SCHEMA_V2,
-    GOVERNED_DATA_CATALOG_SNAPSHOT_PUBLICATION_SCHEMA_V1, LOCAL_STAGE_TOOL_ASSETS_SCHEMA_V1,
-    LOCAL_STAGE_TOOL_CONTAINERS_SCHEMA_V1, LOCAL_STAGE_TOOL_RESOURCES_SCHEMA_V1,
-    OBSERVATION_SCHEMA_V1, SCIENTIFIC_ACCEPTANCE_THRESHOLDS_REPORT_SCHEMA_V1,
-    SCIENTIFIC_ACCEPTANCE_THRESHOLDS_SCHEMA_V1, STAGE_CENTRIC_REPORT_SCHEMA_V1,
-    STAGE_REGISTRY_EXTRA_PAIRS_SCHEMA_V1, STAGE_TOOL_ASSETS_REPORT_SCHEMA_V1,
+    GOVERNED_DATA_CATALOG_SNAPSHOT_PUBLICATION_SCHEMA_V1, GOVERNED_DERIVED_DATA_CATALOG_SCHEMA_V1,
+    LOCAL_STAGE_TOOL_ASSETS_SCHEMA_V1, LOCAL_STAGE_TOOL_CONTAINERS_SCHEMA_V1,
+    LOCAL_STAGE_TOOL_RESOURCES_SCHEMA_V1, LOCAL_VCF_STAGE_CATALOG_REPORT_SCHEMA_V1,
+    LOCAL_VCF_STAGE_CATALOG_SCHEMA_V1, LOCAL_VCF_STAGE_MATRIX_REPORT_SCHEMA_V1,
+    LOCAL_VCF_STAGE_MATRIX_SCHEMA_V1, OBSERVATION_SCHEMA_V1,
+    SCIENTIFIC_ACCEPTANCE_THRESHOLDS_REPORT_SCHEMA_V1, SCIENTIFIC_ACCEPTANCE_THRESHOLDS_SCHEMA_V1,
+    STAGE_CENTRIC_REPORT_SCHEMA_V1, STAGE_REGISTRY_EXTRA_PAIRS_SCHEMA_V1,
+    STAGE_TOOL_ASSETS_REPORT_SCHEMA_V1, STAGE_TOOL_BENCHMARK_READY_SCHEMA_V1,
     STAGE_TOOL_CONTAINERS_REPORT_SCHEMA_V1, STAGE_TOOL_RESOURCES_REPORT_SCHEMA_V1, SUITE_SCHEMA_V1,
     SUMMARY_SCHEMA_V1, TOOL_CENTRIC_REPORT_SCHEMA_V1, VCF_COMPARABLE_METRICS_SCHEMA_V1,
+    VCF_STAGE_MATRIX_VALIDATION_SCHEMA_V1,
 };
 pub use scientific_acceptance::{
     validate_scientific_acceptance_thresholds_config,
@@ -308,11 +341,13 @@ pub use scope_views::{
     validate_all_domain_active_stage_tool_matrix, validate_all_domain_retained_tools,
     validate_stage_registry_extra_pairs,
 };
+pub use slurm_submission::validate_benchmark_slurm_submission_intent;
 pub use source_authority::validate_benchmark_data_source_spec;
 pub use stage_result::{
     validate_benchmark_stage_result_manifest, validate_benchmark_stage_result_validation_report,
 };
 pub use stage_tool_assets::{validate_stage_tool_assets_config, validate_stage_tool_assets_report};
+pub use stage_tool_benchmark_ready::validate_stage_tool_benchmark_ready_report;
 pub use stage_tool_closure::validate_benchmark_stage_tool_closure;
 pub use stage_tool_containers::{
     validate_stage_tool_containers_config, validate_stage_tool_containers_report,

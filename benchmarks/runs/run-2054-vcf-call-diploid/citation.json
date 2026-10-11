@@ -8,7 +8,7 @@
   },
   "protocol_title": "VCF call diploid benchmark protocol",
   "protocol_version": "1.0.0",
-  "protocol_sha256": "8eb94ded6686b1bbd9e143335e35117a5b4f3c0a6bfe069c36bb3b1f86549ba7",
+  "protocol_sha256": "c6775ffc5cb9b25cf23d30f6f41218e9d5b59df33e0ecc6fd939eb99517295e2",
   "status": "protocol_only",
   "limitations": [
     "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",

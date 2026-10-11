@@ -94,22 +94,26 @@ fn bench_tree_matches_architecture_contract() {
             "bam_alignment/",
             "bam_campaign.rs",
             "bam_coverage/",
+            "bam_damage/",
             "bam_duplication_metrics/",
             "bam_endogenous_content/",
             "bam_genotyping/",
             "bam_mapping_summary/",
             "bam_observation/",
             "bam_picard_cohort/",
+            "benchmark_config.rs",
             "benchmark_matrix.rs",
             "campaign_cases.rs",
             "campaign_lifecycle/",
             "campaign_engine/",
             "campaign_material/",
+            "citation.rs",
             "corpus_acquisition.rs",
             "corpus_materialization/",
             "container_report_portfolio.rs",
             "cross_campaign.rs",
             "data_portfolio_audit.rs",
+            "dossier_index.rs",
             "evaluation.rs",
             "evidence_book.rs",
             "fastq_campaign.rs",
@@ -120,10 +124,13 @@ fn bench_tree_matches_architecture_contract() {
             "fastq_validate_reads/",
             "full_benchmark_report.rs",
             "hardening_campaign.rs",
+            "local_corpus_skip.rs",
             "mod.rs",
             "options.rs",
             "parameter_authority.rs",
+            "publication_receipt.rs",
             "publication_registry.rs",
+            "publication_selection.rs",
             "reference_materialization.rs",
             "replay.rs",
             "report_load.rs",
@@ -145,6 +152,10 @@ fn bench_tree_matches_architecture_contract() {
             "summary_scope.rs",
             "summary_statistics.rs",
             "vcf_campaign.rs",
+            "vcf_stage_catalog.rs",
+            "vcf_stage_matrix.rs",
+            "workspace_convergence.rs",
+            "workspace_layout.rs",
         ]),
         "workflow tree must stay partitioned by enduring benchmark concern"
     );
@@ -153,6 +164,17 @@ fn bench_tree_matches_architecture_contract() {
         dir_entries(&root.join("src/workflow/corpus_materialization")),
         entries(["catalog.rs", "fastq.rs", "mod.rs"]),
         "corpus materialization must separate transfer orchestration, FASTQ validation, and catalog projection"
+    );
+
+    assert_eq!(
+        dir_entries(&root.join("src/workflow/bam_damage")),
+        entries(["commands.rs", "mod.rs", "report/"]),
+        "BAM damage qualification must separate execution from reporting"
+    );
+    assert_eq!(
+        dir_entries(&root.join("src/workflow/bam_damage/report")),
+        entries(["mod.rs", "science.rs"]),
+        "BAM damage reporting must keep stage science separate"
     );
 
     assert_eq!(
@@ -290,6 +312,7 @@ fn bench_tree_matches_architecture_contract() {
     assert_eq!(
         dir_entries(&root.join("tests")),
         entries([
+            "benchmark_config.rs",
             "boundaries/",
             "boundaries.rs",
             "contracts/",
@@ -301,6 +324,7 @@ fn bench_tree_matches_architecture_contract() {
             "semantics/",
             "semantics.rs",
             "snapshots/",
+            "vcf_local_planning.rs",
             "workspace_paths.rs",
         ]),
         "test tree must stay organized by enduring intent"

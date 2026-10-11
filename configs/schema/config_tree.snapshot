@@ -71,14 +71,19 @@ configs/bench/local/vcf-stage-catalog.toml
 configs/bench/local/vcf-stage-matrix.toml
 configs/ci/budgets/fast.toml
 configs/ci/budgets/index.md
+configs/ci/build-authority.json
 configs/ci/compatibility/deprecations.toml
 configs/ci/compatibility/index.md
 configs/ci/compatibility/release_changes.toml
 configs/ci/crate-boundaries.toml
+configs/ci/dependency-graph.json
+configs/ci/fast-groups.json
+configs/ci/full-shards.json
 configs/ci/index.md
 configs/ci/lints/clippy_allowlist.toml
 configs/ci/lints/clippy_allowlist_baseline.toml
 configs/ci/lints/index.md
+configs/ci/no_wait_allowlist.toml
 configs/ci/params/index.md
 configs/ci/params/param_registry.toml
 configs/ci/params/param_registry_downstream.toml
@@ -143,7 +148,6 @@ configs/logging/index.md
 configs/logging/runtime.toml
 configs/runtime/asset_hydration.toml
 configs/runtime/asset_locks.toml
-configs/runtime/cargo_build.toml
 configs/runtime/coverage_regimes.toml
 configs/runtime/execution_kernel.toml
 configs/runtime/genetic_map_bank.toml

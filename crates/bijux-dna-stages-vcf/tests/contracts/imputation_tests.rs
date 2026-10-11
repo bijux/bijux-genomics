@@ -575,8 +575,8 @@ fn beagle_impute_fills_masked_truth_site_from_donor_support() {
         .unwrap_or_else(|| panic!("missing imputed VCF record"));
     let fields = first_record.split('\t').collect::<Vec<_>>();
     assert_eq!(fields[8], "GT:DS:GP");
-    assert_eq!(fields[9], "0/1:1:0.2,0.6,0.2");
-    assert_eq!(fields[10], "0/1:1:0.05,0.9,0.05");
+    assert_eq!(fields[9], "0/1:1.000:0.20,0.60,0.20");
+    assert_eq!(fields[10], "0/1:1.000:0.05,0.90,0.05");
 
     let qc_raw = std::fs::read_to_string(&out.imputation_qc_json)
         .unwrap_or_else(|err| panic!("read imputation qc: {err}"));

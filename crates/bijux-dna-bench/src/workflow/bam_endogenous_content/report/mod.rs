@@ -13,6 +13,7 @@ use super::super::bam_observation::{
     publish_bam_observation_stage_report, render_bam_observation_markdown,
     BamObservationReportPolicy, BamObservationStageReportPublication,
 };
+use crate::workflow::BenchmarkCampaignPlanSource;
 
 pub type BamEndogenousContentStageReportPublication = BamObservationStageReportPublication;
 
@@ -44,6 +45,7 @@ pub fn publish_bam_endogenous_content_stage_report(
         study_root,
         benchmark_root,
         plan,
+        BenchmarkCampaignPlanSource::Legacy,
         output_root,
     )
 }
@@ -54,6 +56,7 @@ pub(crate) fn publish_bam_endogenous_content_stage_report_with_presentation_auth
     study_root: &Path,
     benchmark_root: &Path,
     plan: &BenchmarkCampaignPlan,
+    source_authority: BenchmarkCampaignPlanSource<'_>,
     output_root: &Path,
 ) -> Result<BamEndogenousContentStageReportPublication> {
     publish_bam_observation_stage_report(
@@ -62,6 +65,7 @@ pub(crate) fn publish_bam_endogenous_content_stage_report_with_presentation_auth
         study_root,
         benchmark_root,
         plan,
+        source_authority,
         output_root,
         &POLICY,
     )

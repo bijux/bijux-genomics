@@ -34,14 +34,15 @@ pub(crate) use self::entrypoint::{
 };
 #[cfg(test)]
 use self::models::StageRunRootCandidate;
+#[cfg(test)]
+use self::publication_io::classify_run_root_source;
 use self::publication_io::{
-    absolutize, classify_run_root_source, configured_stage_run_roots, csv_report_value,
-    json_string_array, load_json_value, localize_results_path, observed_tools_from_report,
-    publication_artifact_file_name, publication_method_file_name, publication_stage_docs_root,
-    relative_to_docs_root, relative_to_repo_root, select_stage_run_root, sorted_json_string_array,
-    sorted_strings, summary_corpus_id, unique_existing_run_roots, value_string,
-    workspace_local_cache_mirror_root, workspace_local_results_root, workspace_remote_corpus_root,
-    workspace_remote_results_root,
+    absolutize, configured_stage_run_roots, csv_report_value, json_string_array, load_json_value,
+    localize_results_path, observed_tools_from_report, publication_artifact_file_name,
+    publication_method_file_name, publication_stage_docs_root, relative_to_docs_root,
+    relative_to_repo_root, select_stage_run_root, sorted_json_string_array, sorted_strings,
+    summary_corpus_id, unique_existing_run_roots, value_string, workspace_local_cache_mirror_root,
+    workspace_local_results_root, workspace_remote_corpus_root, workspace_remote_results_root,
 };
 use self::remediation::write_corpus_fastq_remediation_queue;
 #[cfg(test)]

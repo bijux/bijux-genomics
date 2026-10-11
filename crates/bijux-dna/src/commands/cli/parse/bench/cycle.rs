@@ -10,16 +10,26 @@ pub enum BenchCycleCommand {
     Advance(BenchCycleAdvanceArgs),
     /// Publish a reviewer-facing book from current admitted publication receipts.
     Book(BenchCycleBookArgs),
+    /// Issue a paper-facing citation from admitted publication and replay evidence.
+    Cite(BenchCycleCiteArgs),
     /// Observe scheduler-active attempts once and collect accounting-ready transitions.
     Collect(BenchCycleCollectArgs),
     /// Plan every declared tool attempt for one permanent benchmark run.
     Plan(BenchCyclePlanArgs),
     /// Publish one source-locked campaign report from admitted attempt evidence.
     Publish(BenchCyclePublishArgs),
+    /// Issue one immutable publication receipt from a passing campaign closure.
+    Receipt(BenchCycleReceiptArgs),
     /// Compare regenerated semantic artifacts with a selected publication.
     Replay(BenchCycleReplayArgs),
+    /// Retry only non-passing terminal tips from case-scoped attempt lineage.
+    Retry(BenchCycleRetryArgs),
+    /// Select one fully admitted publication and regenerate paper-facing run surfaces.
+    Select(BenchCycleSelectArgs),
     /// Read the persisted lifecycle state for every attempt in one campaign.
     Status(BenchCycleStatusArgs),
+    /// Terminalize non-active attempts from an ancestor case campaign.
+    Supersede(BenchCycleSupersedeArgs),
 }
 
 #[derive(Debug, Args)]
@@ -62,10 +72,17 @@ pub struct BenchCycleReplayArgs {
     pub replay_id: String,
     #[arg(long)]
     pub replayed_at_utc: String,
+    /// Candidate publication receipt used before final tracked selection.
+    #[arg(long, requires = "evidence_book_uri")]
+    pub publication_receipt_uri: Option<String>,
+    /// Candidate evidence book that admits the explicit publication receipt.
+    #[arg(long, requires = "publication_receipt_uri")]
+    pub evidence_book_uri: Option<String>,
     #[arg(long)]
     pub run_definition_uri: String,
-    #[arg(long, required = true)]
-    pub case_definition_uri: Vec<String>,
+    /// Canonical case matrix from which selected case definitions are materialized.
+    #[arg(long)]
+    pub case_matrix_uri: String,
     #[arg(long, required = true)]
     pub immutable_input_uri: Vec<String>,
     #[arg(long)]
@@ -83,6 +100,46 @@ pub struct BenchCycleReplayArgs {
 }
 
 #[derive(Debug, Args)]
+pub struct BenchCycleCiteArgs {
+    #[arg(long, default_value = ".")]
+    pub repository_root: PathBuf,
+    #[arg(long)]
+    pub study_root: PathBuf,
+    #[arg(long)]
+    pub publication_receipt_uri: String,
+    #[arg(long)]
+    pub evidence_book_uri: String,
+    #[arg(long)]
+    pub replay_receipt_uri: String,
+    #[arg(long)]
+    pub case_matrix_uri: String,
+    #[arg(long, required = true)]
+    pub limitation: Vec<String>,
+    #[arg(long)]
+    pub access_statement: String,
+    #[arg(long)]
+    pub output: PathBuf,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchCycleSelectArgs {
+    #[arg(long, default_value = ".")]
+    pub repository_root: PathBuf,
+    #[arg(long)]
+    pub study_root: PathBuf,
+    #[arg(long)]
+    pub run_id: String,
+    #[arg(long)]
+    pub publication_receipt_uri: String,
+    #[arg(long)]
+    pub evidence_book_uri: String,
+    #[arg(long)]
+    pub citation_record_uri: String,
+    #[arg(long)]
+    pub replay_receipt_uri: String,
+}
+
+#[derive(Debug, Args)]
 pub struct BenchCycleBookArgs {
     #[arg(long, default_value = ".")]
     pub repository_root: PathBuf,
@@ -92,6 +149,9 @@ pub struct BenchCycleBookArgs {
     pub book_id: String,
     #[arg(long)]
     pub generated_at_utc: String,
+    /// Immutable candidate publication receipts to include before final pointer selection.
+    #[arg(long)]
+    pub publication_receipt_uri: Vec<String>,
     #[arg(long, required = true)]
     pub limitation: Vec<String>,
     #[arg(long)]
@@ -161,6 +221,42 @@ pub struct BenchCyclePlanArgs {
 }
 
 #[derive(Debug, Args)]
+pub struct BenchCycleRetryArgs {
+    #[arg(long, default_value = ".")]
+    pub repository_root: PathBuf,
+    #[arg(long)]
+    pub benchmark_root: PathBuf,
+    #[arg(long)]
+    pub case_matrix: PathBuf,
+    #[arg(long)]
+    pub prior_plan: PathBuf,
+    #[arg(long)]
+    pub prior_case_matrix: PathBuf,
+    #[arg(long)]
+    pub attempt_id: String,
+    #[arg(long)]
+    pub observed_at_utc: String,
+    #[arg(long)]
+    pub output: PathBuf,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchCycleSupersedeArgs {
+    #[arg(long, default_value = ".")]
+    pub repository_root: PathBuf,
+    #[arg(long)]
+    pub benchmark_root: PathBuf,
+    #[arg(long)]
+    pub prior_plan: PathBuf,
+    #[arg(long)]
+    pub prior_case_matrix: PathBuf,
+    #[arg(long)]
+    pub superseded_at_utc: String,
+    #[arg(long)]
+    pub reason: String,
+}
+
+#[derive(Debug, Args)]
 pub struct BenchCyclePublishArgs {
     #[arg(long, default_value = ".")]
     pub repository_root: PathBuf,
@@ -176,4 +272,30 @@ pub struct BenchCyclePublishArgs {
     pub case_matrix: Option<PathBuf>,
     #[arg(long)]
     pub output_root: PathBuf,
+}
+
+#[derive(Debug, Args)]
+pub struct BenchCycleReceiptArgs {
+    #[arg(long, default_value = ".")]
+    pub repository_root: PathBuf,
+    #[arg(long)]
+    pub study_root: PathBuf,
+    #[arg(long)]
+    pub benchmark_root: PathBuf,
+    #[arg(long)]
+    pub plan_uri: String,
+    #[arg(long)]
+    pub case_matrix_uri: String,
+    #[arg(long)]
+    pub report_uri: String,
+    #[arg(long)]
+    pub decision_uri: String,
+    #[arg(long)]
+    pub publication_id: String,
+    #[arg(long)]
+    pub published_at_utc: String,
+    #[arg(long, required = true)]
+    pub limitation: Vec<String>,
+    #[arg(long)]
+    pub output: PathBuf,
 }

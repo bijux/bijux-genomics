@@ -355,6 +355,9 @@ fn parse_data_catalog(bytes: &[u8], path: &Path) -> Result<DataCatalog> {
         GovernedDataCatalogDocument::Materialized(_) => {
             bail!("native governed data catalog omitted its sample or file closure")
         }
+        GovernedDataCatalogDocument::Derived(_) => {
+            bail!("derived data catalog cannot authorize a raw FASTQ corpus")
+        }
     }
 }
 

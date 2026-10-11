@@ -6,8 +6,54 @@
     "stage_id": "fastq.validate_reads"
   },
   "protocol_sha256": "8c7ebd7825e6299a8c30f3c595c88f1ce87c919ebf47904f839ebe8aa3382023",
-  "cases": [],
+  "cases": [
+    {
+      "case_id": "run-2051--fastq_scan--human-short-read-diversity",
+      "tool_id": "fastq_scan",
+      "definition": {
+        "uri": "study://results/benchmarks/replays/f108c4576f7b7a596cf0af779878895dfaf74302/run-2051/case-definition-run-2051--fastq_scan--human-short-read-diversity.json",
+        "sha256": "1782d30c230c0d4c5368f1a25850dda67ff649cc8c3b964b30e241b0ed15c682",
+        "size_bytes": 12247
+      }
+    },
+    {
+      "case_id": "run-2051--fastqc--human-short-read-diversity",
+      "tool_id": "fastqc",
+      "definition": {
+        "uri": "study://results/benchmarks/replays/f108c4576f7b7a596cf0af779878895dfaf74302/run-2051/case-definition-run-2051--fastqc--human-short-read-diversity.json",
+        "sha256": "499156c2bac9719de714777bdc6a58aa2305c9ec8a98c9bc51175d3a7cb101aa",
+        "size_bytes": 12302
+      }
+    },
+    {
+      "case_id": "run-2051--fastqvalidator--human-short-read-diversity",
+      "tool_id": "fastqvalidator",
+      "definition": {
+        "uri": "study://results/benchmarks/replays/f108c4576f7b7a596cf0af779878895dfaf74302/run-2051/case-definition-run-2051--fastqvalidator--human-short-read-diversity.json",
+        "sha256": "59f3a41a7206f13f899f86e1b0cde6f1da9b3802662646de1f6c4c487e149f81",
+        "size_bytes": 13266
+      }
+    },
+    {
+      "case_id": "run-2051--fqtools--human-short-read-diversity",
+      "tool_id": "fqtools",
+      "definition": {
+        "uri": "study://results/benchmarks/replays/f108c4576f7b7a596cf0af779878895dfaf74302/run-2051/case-definition-run-2051--fqtools--human-short-read-diversity.json",
+        "sha256": "91bb0283f62917f0e95c7a619434d9680e5eb0afda1d41d19f2f7019eea0eceb",
+        "size_bytes": 13209
+      }
+    },
+    {
+      "case_id": "run-2051--seqtk--human-short-read-diversity",
+      "tool_id": "seqtk",
+      "definition": {
+        "uri": "study://results/benchmarks/replays/f108c4576f7b7a596cf0af779878895dfaf74302/run-2051/case-definition-run-2051--seqtk--human-short-read-diversity.json",
+        "sha256": "de449b327e6dc32fc3b15557d29c8bded8554745711e0cef22f66d683e675d22",
+        "size_bytes": 13183
+      }
+    }
+  ],
   "limitations": [
-    "No immutable benchmark cases are indexed; this protocol has no executable publication evidence."
+    "The publication covers one governed human short-read diversity cohort."
   ]
 }

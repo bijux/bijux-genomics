@@ -182,8 +182,13 @@ fn assert_v1_tree(root: &std::path::Path) {
     );
     assert_dir_entries(
         &root.join("src/v1/bench"),
-        &["exports.rs", "mod.rs", "stage_plugins.rs"],
+        &["exports.rs", "exports/", "mod.rs", "stage_plugins.rs"],
         "api v1 benchmark tree must stay isolated in its own namespace",
+    );
+    assert_dir_entries(
+        &root.join("src/v1/bench/exports"),
+        &["vcf_smoke_contracts.rs"],
+        "api v1 benchmark exports must stay grouped by stable contract family",
     );
     assert_dir_entries(
         &root.join("src/v1/env"),

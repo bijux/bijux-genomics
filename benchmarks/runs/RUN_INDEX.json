@@ -2,16 +2,16 @@
   "schema_version": "bijux.benchmark.run_index.v1",
   "source_registry": {
     "uri": "repo://benchmarks/contracts/run-registry.json",
-    "sha256": "e0b94149fd8efeae28a44859161d1cec3a74821d02d15605ba47be8900a08a67",
-    "size_bytes": 91140
+    "sha256": "e098eddc58a8e8c8c5e04da604abd9eec4929751fd8297713945ed7d7e43853b",
+    "size_bytes": 91287
   },
   "summary": {
     "registered_run_count": 71,
-    "active_protocol_count": 12,
-    "reserved_protocol_count": 59,
+    "active_protocol_count": 13,
+    "reserved_protocol_count": 58,
     "retired_protocol_count": 0,
-    "citable_publication_count": 0,
-    "unpublished_run_count": 71
+    "citable_publication_count": 3,
+    "unpublished_run_count": 68
   },
   "runs": [
     {
@@ -133,7 +133,7 @@
       "stage_id": "bam.authenticity",
       "owner": "bijux-dna-bench",
       "protocol_state": "reserved",
-      "protocol_sha256": "0e209f17cbe4152c5b80d51ad1b2b3af8adda3d6a3ac498771ff2537628489df",
+      "protocol_sha256": "6bedae00714495a93d4cd7ec90335ac258ea8e3a3e7c79961073a3fb83c81cf0",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2006",
       "tool_ids": [
         "authenticct",
@@ -228,8 +228,8 @@
       "slug": "bam-damage",
       "stage_id": "bam.damage",
       "owner": "bijux-dna-bench",
-      "protocol_state": "reserved",
-      "protocol_sha256": "eca6943f570905aacc7c06f79df23e7e9fcd1d6406eb99ab057f850c56048d57",
+      "protocol_state": "active",
+      "protocol_sha256": "a1e7fb5dbfcb500646f6c137fb2a6197d3c295822bcedd82a794d04a939d837e",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2010",
       "tool_ids": [
         "addeam",
@@ -245,8 +245,7 @@
       ],
       "acceptance_policy_id": "bam-ancient-authentication-acceptance-v1",
       "limitations": [
-        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-        "The protocol is reserved and has no selected publication."
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
       ]
     },
     {
@@ -995,9 +994,65 @@
         "short_read_diversity"
       ],
       "acceptance_policy_id": "fastq-observational-qc-acceptance-v1",
-      "limitations": [
-        "No current admitted publication is selected; this protocol is not citable as executed evidence."
-      ]
+      "selected_publication": {
+        "publication_id": "run-2042-production-74b7042739d9",
+        "selected_attempts": [
+          {
+            "campaign_id": "production-run-2042-e410adee18a3819606db911c2cb48c1414972178",
+            "run": {
+              "run_id": "run-2042",
+              "domain": "fastq",
+              "stage_id": "fastq.profile_read_lengths"
+            },
+            "case_id": "run-2042--seqfu--human-short-read-diversity",
+            "attempt_id": "attempt-003",
+            "tool_id": "seqfu"
+          },
+          {
+            "campaign_id": "production-run-2042-e410adee18a3819606db911c2cb48c1414972178",
+            "run": {
+              "run_id": "run-2042",
+              "domain": "fastq",
+              "stage_id": "fastq.profile_read_lengths"
+            },
+            "case_id": "run-2042--seqkit--human-short-read-diversity",
+            "attempt_id": "attempt-002",
+            "tool_id": "seqkit"
+          }
+        ],
+        "repository_commit": "74b7042739d93b2b1b504790d92d556f34be0d64",
+        "report": {
+          "uri": "study://results/benchmarks/publications/74b7042739d93b2b1b504790d92d556f34be0d64/run-2042/run-2042-fastq-profile-read-lengths.json",
+          "sha256": "725b0f32d9dc164931b237c8a822a0dab332f54d718785c70a9471ac8e0e0186",
+          "size_bytes": 48686
+        },
+        "evidence_book": {
+          "uri": "study://results/benchmarks/evidence-books/45c49ae3e9afb3445986fc31b41383b32418403b/candidate-publications.json",
+          "sha256": "5525e3caab74b61a15205c69df50c6a140cf582097f37fe435297bd3cc1dc2f4",
+          "size_bytes": 3258
+        },
+        "publication_receipt": {
+          "uri": "study://results/benchmarks/publications/74b7042739d93b2b1b504790d92d556f34be0d64/run-2042/publication-receipt.json",
+          "sha256": "3a765e9bed552750783a1cd26af140478be7d53f00d673ca5b484aee33c1a7da",
+          "size_bytes": 3365
+        },
+        "citation_record": {
+          "uri": "study://results/benchmarks/publications/74b7042739d93b2b1b504790d92d556f34be0d64/run-2042/citation-record.json",
+          "sha256": "03b938ad3e9e48fb6badd6c9ef3be3c76ace6e3a0bee241f66b292a4fd25affd",
+          "size_bytes": 2961
+        },
+        "replay_receipt": {
+          "uri": "study://results/benchmarks/replays/f108c4576f7b7a596cf0af779878895dfaf74302/run-2042/semantic-identity.json",
+          "sha256": "a78b929e2df7bbea34b1d3bda13f36b450a61614cc49ab6b5e5a061600fd08d1",
+          "size_bytes": 3656
+        },
+        "limitations": [
+          "The publication covers one governed human short-read diversity cohort.",
+          "This citation covers the admitted stage-specific portfolio and does not imply completion of the 71-run benchmark portfolio."
+        ],
+        "access_statement": "Source corpus access and redistribution remain governed by the immutable data portfolio records and original provider terms."
+      },
+      "limitations": []
     },
     {
       "run_id": "run-2043",
@@ -1018,9 +1073,76 @@
         "short_read_diversity"
       ],
       "acceptance_policy_id": "fastq-observational-qc-acceptance-v1",
-      "limitations": [
-        "No current admitted publication is selected; this protocol is not citable as executed evidence."
-      ]
+      "selected_publication": {
+        "publication_id": "run-2043-production-74b7042739d9",
+        "selected_attempts": [
+          {
+            "campaign_id": "production-run-2043-e410adee18a3819606db911c2cb48c1414972178",
+            "run": {
+              "run_id": "run-2043",
+              "domain": "fastq",
+              "stage_id": "fastq.profile_reads"
+            },
+            "case_id": "run-2043--seqfu--human-short-read-diversity",
+            "attempt_id": "attempt-002",
+            "tool_id": "seqfu"
+          },
+          {
+            "campaign_id": "production-run-2043-e410adee18a3819606db911c2cb48c1414972178",
+            "run": {
+              "run_id": "run-2043",
+              "domain": "fastq",
+              "stage_id": "fastq.profile_reads"
+            },
+            "case_id": "run-2043--seqkit--human-short-read-diversity",
+            "attempt_id": "attempt-002",
+            "tool_id": "seqkit"
+          },
+          {
+            "campaign_id": "production-run-2043-e410adee18a3819606db911c2cb48c1414972178",
+            "run": {
+              "run_id": "run-2043",
+              "domain": "fastq",
+              "stage_id": "fastq.profile_reads"
+            },
+            "case_id": "run-2043--seqkit_stats--human-short-read-diversity",
+            "attempt_id": "attempt-002",
+            "tool_id": "seqkit_stats"
+          }
+        ],
+        "repository_commit": "74b7042739d93b2b1b504790d92d556f34be0d64",
+        "report": {
+          "uri": "study://results/benchmarks/publications/74b7042739d93b2b1b504790d92d556f34be0d64/run-2043/run-2043-fastq-profile-reads.json",
+          "sha256": "199529097d0dafd7ddb8b2abf71f5f1dc406ddf784686dfea309fc2e475bbe75",
+          "size_bytes": 38902
+        },
+        "evidence_book": {
+          "uri": "study://results/benchmarks/evidence-books/45c49ae3e9afb3445986fc31b41383b32418403b/candidate-publications.json",
+          "sha256": "5525e3caab74b61a15205c69df50c6a140cf582097f37fe435297bd3cc1dc2f4",
+          "size_bytes": 3258
+        },
+        "publication_receipt": {
+          "uri": "study://results/benchmarks/publications/74b7042739d93b2b1b504790d92d556f34be0d64/run-2043/publication-receipt.json",
+          "sha256": "a83d3672081d1fb5c3c0348d04673e44641ce3185e93278ac95ff13a23e84aba",
+          "size_bytes": 4080
+        },
+        "citation_record": {
+          "uri": "study://results/benchmarks/publications/74b7042739d93b2b1b504790d92d556f34be0d64/run-2043/citation-record.json",
+          "sha256": "27660957f0f08dc6a5611b49bf6e504089b024e655fe740162430aa379bd6def",
+          "size_bytes": 3451
+        },
+        "replay_receipt": {
+          "uri": "study://results/benchmarks/replays/f108c4576f7b7a596cf0af779878895dfaf74302/run-2043/semantic-identity.json",
+          "sha256": "f7a5581b78cb40559fae603596c9edaad2e759dc8c8138d9bf681765c3f4af40",
+          "size_bytes": 4263
+        },
+        "limitations": [
+          "The publication covers one governed human short-read diversity cohort.",
+          "This citation covers the admitted stage-specific portfolio and does not imply completion of the 71-run benchmark portfolio."
+        ],
+        "access_statement": "Source corpus access and redistribution remain governed by the immutable data portfolio records and original provider terms."
+      },
+      "limitations": []
     },
     {
       "run_id": "run-2044",
@@ -1221,9 +1343,98 @@
         "short_read_diversity"
       ],
       "acceptance_policy_id": "fastq-observational-qc-acceptance-v1",
-      "limitations": [
-        "No current admitted publication is selected; this protocol is not citable as executed evidence."
-      ]
+      "selected_publication": {
+        "publication_id": "run-2051-production-74b7042739d9",
+        "selected_attempts": [
+          {
+            "campaign_id": "production-run-2051-e410adee18a3819606db911c2cb48c1414972178",
+            "run": {
+              "run_id": "run-2051",
+              "domain": "fastq",
+              "stage_id": "fastq.validate_reads"
+            },
+            "case_id": "run-2051--fastq_scan--human-short-read-diversity",
+            "attempt_id": "attempt-002",
+            "tool_id": "fastq_scan"
+          },
+          {
+            "campaign_id": "production-run-2051-e410adee18a3819606db911c2cb48c1414972178",
+            "run": {
+              "run_id": "run-2051",
+              "domain": "fastq",
+              "stage_id": "fastq.validate_reads"
+            },
+            "case_id": "run-2051--fastqc--human-short-read-diversity",
+            "attempt_id": "attempt-003",
+            "tool_id": "fastqc"
+          },
+          {
+            "campaign_id": "production-run-2051-e410adee18a3819606db911c2cb48c1414972178",
+            "run": {
+              "run_id": "run-2051",
+              "domain": "fastq",
+              "stage_id": "fastq.validate_reads"
+            },
+            "case_id": "run-2051--fastqvalidator--human-short-read-diversity",
+            "attempt_id": "attempt-003",
+            "tool_id": "fastqvalidator"
+          },
+          {
+            "campaign_id": "production-run-2051-e410adee18a3819606db911c2cb48c1414972178",
+            "run": {
+              "run_id": "run-2051",
+              "domain": "fastq",
+              "stage_id": "fastq.validate_reads"
+            },
+            "case_id": "run-2051--fqtools--human-short-read-diversity",
+            "attempt_id": "attempt-003",
+            "tool_id": "fqtools"
+          },
+          {
+            "campaign_id": "production-run-2051-e410adee18a3819606db911c2cb48c1414972178",
+            "run": {
+              "run_id": "run-2051",
+              "domain": "fastq",
+              "stage_id": "fastq.validate_reads"
+            },
+            "case_id": "run-2051--seqtk--human-short-read-diversity",
+            "attempt_id": "attempt-003",
+            "tool_id": "seqtk"
+          }
+        ],
+        "repository_commit": "74b7042739d93b2b1b504790d92d556f34be0d64",
+        "report": {
+          "uri": "study://results/benchmarks/publications/74b7042739d93b2b1b504790d92d556f34be0d64/run-2051/run-2051-fastq-validate-reads.json",
+          "sha256": "bea171be40ace8d69919bbc534de9b1fb70132631b4f11962521df42a9b203d4",
+          "size_bytes": 62399
+        },
+        "evidence_book": {
+          "uri": "study://results/benchmarks/evidence-books/45c49ae3e9afb3445986fc31b41383b32418403b/candidate-publications.json",
+          "sha256": "5525e3caab74b61a15205c69df50c6a140cf582097f37fe435297bd3cc1dc2f4",
+          "size_bytes": 3258
+        },
+        "publication_receipt": {
+          "uri": "study://results/benchmarks/publications/74b7042739d93b2b1b504790d92d556f34be0d64/run-2051/publication-receipt.json",
+          "sha256": "8559c615ac2d709c8a9c4c7bb5e709cf20cd660e81da41ccc14ca943bb88a621",
+          "size_bytes": 5657
+        },
+        "citation_record": {
+          "uri": "study://results/benchmarks/publications/74b7042739d93b2b1b504790d92d556f34be0d64/run-2051/citation-record.json",
+          "sha256": "a552eb9a6d8e5c281696135813b26d7a138c349fb9fbf509e8c0b159f5c801ae",
+          "size_bytes": 4490
+        },
+        "replay_receipt": {
+          "uri": "study://results/benchmarks/replays/f108c4576f7b7a596cf0af779878895dfaf74302/run-2051/semantic-identity.json",
+          "sha256": "c9b18e3864221b32c946a3ae2582d36559da4b21e4354bf70bdd2415eaab07b5",
+          "size_bytes": 5586
+        },
+        "limitations": [
+          "The publication covers one governed human short-read diversity cohort.",
+          "This citation covers the admitted stage-specific portfolio and does not imply completion of the 71-run benchmark portfolio."
+        ],
+        "access_statement": "Source corpus access and redistribution remain governed by the immutable data portfolio records and original provider terms."
+      },
+      "limitations": []
     },
     {
       "run_id": "run-2052",
@@ -1257,7 +1468,7 @@
       "stage_id": "vcf.call",
       "owner": "bijux-dna-bench",
       "protocol_state": "reserved",
-      "protocol_sha256": "6b4eb347189319fb803e6ebcac894c43d99097b2f3910e9e34bc5300216a4562",
+      "protocol_sha256": "a01c08f5de9462e423073038a30c80a11523b6da3135ca007e774dd7da3b3ea4",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2053",
       "tool_ids": [
         "bcftools"
@@ -1280,7 +1491,7 @@
       "stage_id": "vcf.call_diploid",
       "owner": "bijux-dna-bench",
       "protocol_state": "reserved",
-      "protocol_sha256": "8eb94ded6686b1bbd9e143335e35117a5b4f3c0a6bfe069c36bb3b1f86549ba7",
+      "protocol_sha256": "c6775ffc5cb9b25cf23d30f6f41218e9d5b59df33e0ecc6fd939eb99517295e2",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2054",
       "tool_ids": [
         "bcftools"
@@ -1303,7 +1514,7 @@
       "stage_id": "vcf.call_gl",
       "owner": "bijux-dna-bench",
       "protocol_state": "reserved",
-      "protocol_sha256": "dbb378bc2d805fa0bc10022a599fd642daa917a9352b01c9f2a22798f03f427e",
+      "protocol_sha256": "780a558b581948a9a2ddbe3472f317006c1ae4aed442d6a5fb2fde5491505b95",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2055",
       "tool_ids": [
         "angsd",
@@ -1327,7 +1538,7 @@
       "stage_id": "vcf.call_pseudohaploid",
       "owner": "bijux-dna-bench",
       "protocol_state": "reserved",
-      "protocol_sha256": "2728b101acd34768b60b0788fe06285b5a90b8a154fb08cd936fb6aa928ef04e",
+      "protocol_sha256": "00275a2c7a55ccb6d6d51af442c199668a31907a3489b331256c6c1f928088f0",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2056",
       "tool_ids": [
         "angsd",

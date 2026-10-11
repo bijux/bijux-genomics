@@ -304,6 +304,9 @@ pub fn validate_governed_data_catalog_document(
         GovernedDataCatalogDocument::Materialized(catalog) => {
             validate_governed_data_catalog(catalog)
         }
+        GovernedDataCatalogDocument::Derived(catalog) => {
+            super::validate_governed_derived_data_catalog(catalog)
+        }
         GovernedDataCatalogDocument::Preserved(catalog) => {
             validate_governed_preserved_data_catalog(catalog)
         }

@@ -276,10 +276,10 @@ Visible aliases are part of the operator surface:
 - `bijux-dna bench validate-matrix`
   `validate-matrix --domain vcf --strict` checks
   `configs/bench/local/vcf-stage-matrix.toml` against the governed VCF stage catalog, the
-  production-regression VCF benchmark corpus contract, the VCF required-tool and registry files,
-  and the owned adapter, parser, and expected-output contracts. It fails closed when any VCF
-  catalog stage is missing, any row drifts from the owned contract set, or any row references a
-  tool that is not declared in the VCF benchmark tool inventories.
+  VCF required-tool and registry files, and the model-owned row invariants. It fails closed when
+  any VCF catalog stage is missing, a default tool or asset profile differs from its catalog row,
+  any row drifts from the admitted declaration, or any row references a tool that is not declared
+  in the VCF benchmark tool inventories.
 - `bijux-dna bench validate-schemas`
   `validate-schemas --schema-root benchmarks/schemas --domain fastq,bam,vcf` checks the tracked
   benchmark-owned FASTQ, BAM, and VCF normalized-metrics schema files and writes
@@ -1604,18 +1604,19 @@ Visible aliases are part of the operator surface:
   the unified `total_stage_count` so FASTQ, BAM, and VCF coverage cannot silently drift together.
   Domain-local and aggregate records are published only after benchmark-model admission.
 - `bijux-dna bench local render-vcf-stage-catalog`
-  `render-vcf-stage-catalog` writes `configs/bench/local/vcf-stage-catalog.toml`, deriving the
-  governed VCF stage catalog from the domain downstream order, stage-spec metadata, and VCF IO
-  contracts. Each row keeps `stage_id`, `stage_name`, `support_status`, `default_tool_id`,
+  `render-vcf-stage-catalog` admits and normalizes the checked
+  `configs/bench/local/vcf-stage-catalog.toml` declaration. Each row keeps `stage_id`,
+  `stage_name`, `support_status`, `default_tool_id`,
   `metrics_schema_id`, `input_types`, `output_types`, `required_assets`, `benchmark_category`,
-  and `local_smoke_mode` explicit so the local VCF benchmark surface cannot drift from code.
+  and `local_smoke_mode` explicit. Cross-crate contract tests independently require the declaration
+  to cover the domain downstream order and stage-spec catalog exactly.
 - `bijux-dna bench local render-vcf-stage-matrix`
-  `render-vcf-stage-matrix` writes `configs/bench/local/vcf-stage-matrix.toml`, deriving the
-  governed VCF benchmark matrix from the checked-in VCF stage catalog, the production-regression
-  VCF corpus contract, and the owned VCF adapter, parser, and expected-output contracts. Each row
-  keeps `stage_id`, `tool_id`, `corpus_id`, `asset_profile_id`, `adapter_id`, `parser_id`, and
-  `expected_outputs` explicit so every catalog stage stays benchmark-addressable through a real
-  local contract row.
+  `render-vcf-stage-matrix` admits and normalizes the checked
+  `configs/bench/local/vcf-stage-matrix.toml` declaration after enforcing exact stage closure with
+  the VCF catalog. Each row keeps `stage_id`, `tool_id`, `corpus_id`, `asset_profile_id`,
+  `adapter_id`, `parser_id`, and `expected_outputs` explicit so every catalog stage stays
+  benchmark-addressable through a real local contract row. CLI integration tests independently
+  exercise the admitted declarations alongside the VCF domain and execution-stage contracts.
 - `bijux-dna bench local render-vcf-smoke-root`
   `render-vcf-smoke-root` writes `runs/bench/local-smoke/vcf/SMOKE_ROOT.json`, deriving the governed
   local VCF smoke root from the owned VCF stage catalog, benchmark matrix, and current `HEAD`

@@ -16,10 +16,10 @@ use self::evidence::load_attempt_evidence;
 use super::super::bam_observation::render_bam_observation_markdown;
 use super::super::{
     load_stage_campaign_registry, load_stage_interface_catalog_for_publication,
-    verify_campaign_plan_source,
+    verify_campaign_plan_source_authority, BenchmarkCampaignPlanSource,
 };
 use crate::workflow::stage_report::{
-    build_stage_report, canonical_directory, is_active_plan_origin, publish_stage_report,
+    build_stage_report, canonical_directory, is_selected_plan_attempt, publish_stage_report,
     require_complete_plan, BenchmarkStageReportPublication,
 };
 
@@ -43,6 +43,7 @@ pub fn publish_bam_genotyping_stage_report(
         study_root,
         benchmark_root,
         plan,
+        BenchmarkCampaignPlanSource::Legacy,
         output_root,
     )
 }
@@ -53,6 +54,7 @@ pub(crate) fn publish_bam_genotyping_stage_report_with_presentation_authority(
     study_root: &Path,
     benchmark_root: &Path,
     plan: &BenchmarkCampaignPlan,
+    source_authority: BenchmarkCampaignPlanSource<'_>,
     output_root: &Path,
 ) -> Result<BamGenotypingStageReportPublication> {
     let repository_root = canonical_directory(repository_root, "benchmark repository")?;
@@ -64,7 +66,12 @@ pub(crate) fn publish_bam_genotyping_stage_report_with_presentation_authority(
     let registry_path = repository_root.join("benchmarks/contracts/stage-campaigns.toml");
     let interface_path = repository_root.join("benchmarks/contracts/stage-interfaces.toml");
     let registry_sha256 = bijux_dna_infra::hash_file_sha256(&registry_path)?;
-    verify_campaign_plan_source(plan, &plan.repository_commit, &registry_sha256)?;
+    verify_campaign_plan_source_authority(
+        plan,
+        source_authority,
+        &plan.repository_commit,
+        &registry_sha256,
+    )?;
     let repository_commit = bijux_dna_containers::api::repository_head_commit(&repository_root)?;
     if repository_commit != plan.repository_commit {
         bail!("benchmark report source worktree differs from campaign plan");
@@ -88,11 +95,11 @@ pub(crate) fn publish_bam_genotyping_stage_report_with_presentation_authority(
         .find(|interface| interface.stage_id == super::STAGE_ID)
         .context("benchmark stage interface omits BAM genotyping")?;
 
-    let planned = plan
+    let selected = plan
         .cycle
         .attempts
         .iter()
-        .filter(|attempt| is_active_plan_origin(attempt))
+        .filter(|attempt| is_selected_plan_attempt(attempt))
         .find(|attempt| attempt.identity.tool_id == "bcftools")
         .context("campaign plan omits bcftools attempt")?;
     let evidence = load_attempt_evidence(
@@ -102,7 +109,7 @@ pub(crate) fn publish_bam_genotyping_stage_report_with_presentation_authority(
         campaign,
         interface,
         plan,
-        &planned.identity,
+        &selected.identity,
     )?;
     let report = build_stage_report(
         &repository_root,

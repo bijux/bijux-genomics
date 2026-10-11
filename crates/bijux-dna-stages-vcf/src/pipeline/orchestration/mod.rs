@@ -221,21 +221,7 @@ fn apply_failure_cleanup_policy(out_dir: &Path) {
 }
 
 fn read_vcf_text_runtime(path: &Path) -> Result<String> {
-    if path.extension().and_then(|x| x.to_str()).is_some_and(|x| x == "gz" || x == "bcf") {
-        let output = crate::engine::execution::run_command_output(
-            "bcftools",
-            ["view", &path.display().to_string()],
-            None,
-        )?;
-        if output.exit_code == 0 {
-            return Ok(output.stdout);
-        }
-        if let Ok(raw) = std::fs::read(path) {
-            return Ok(String::from_utf8_lossy(&raw).to_string());
-        }
-        bail!("bcftools view failed while reading {}: {}", path.display(), output.stderr);
-    }
-    Ok(std::fs::read_to_string(path)?)
+    crate::vcf_io::read_vcf_text(path)
 }
 
 fn write_bgzip_index_best_effort(

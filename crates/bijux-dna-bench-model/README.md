@@ -15,7 +15,7 @@ This crate owns:
 - Benchmark observation, suite, summary, decision, graph, and policy types.
 - Checksum-pinned corpus acquisition plans and admitted scientific data catalogs.
 - Permanent benchmark run identities and append-only attempt lifecycle types.
-- Schema ids and validation entrypoints for benchmark model contracts.
+- Schema ids, pure renderers, and the canonical checked-in persisted-schema registry.
 - Canonical normalized-result records and execution-metrics envelope schemas.
 - Deterministic comparison reports for benchmark summaries.
 - Gate policy configuration, overrides, violations, and decision outcomes.
@@ -80,3 +80,7 @@ CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-bench-model --te
 CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-bench-model --test schemas --no-default-features
 CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-bench-model --test semantics --no-default-features
 ```
+
+Set `BIJUX_UPDATE_GENERATED_SCHEMAS=1` only when intentionally regenerating
+checked-in schemas from the Rust model registry; the ordinary schema test is a
+read-only drift gate.

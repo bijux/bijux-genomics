@@ -2,6 +2,16 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "additionalProperties": false,
   "properties": {
+    "authenticity_certified": {
+      "enum": [
+        false,
+        null
+      ],
+      "type": [
+        "boolean",
+        "null"
+      ]
+    },
     "complete": {
       "type": "boolean"
     },
@@ -9,6 +19,7 @@
       "enum": [
         "bijux.benchmark.bam.align.bundle.v1",
         "bijux.benchmark.bam.coverage.bundle.v1",
+        "bijux.benchmark.bam.damage.bundle.v1",
         "bijux.benchmark.bam.duplication_metrics.bundle.v1",
         "bijux.benchmark.bam.endogenous_content.bundle.v1",
         "bijux.benchmark.bam.genotyping.bundle.v1",
@@ -26,6 +37,7 @@
       "enum": [
         "benchmark.bam.align.compare",
         "benchmark.bam.coverage.compare",
+        "benchmark.bam.damage.consume",
         "benchmark.bam.duplication_metrics.compare",
         "benchmark.bam.endogenous_content.consume",
         "benchmark.bam.genotyping.consume",

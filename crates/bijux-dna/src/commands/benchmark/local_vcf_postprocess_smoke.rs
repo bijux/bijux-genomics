@@ -468,6 +468,7 @@ fn build_stage_result_manifest(
 fn write_governed_postprocess_input_vcf(path: &Path) -> Result<()> {
     let payload = concat!(
         "##fileformat=VCFv4.2\n",
+        "##contig=<ID=chr1,length=1000000>\n",
         "#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\ts2\ts1\n",
         "chr1\t100\t.\ta\tg,t\t60\t.\tMQ=50\tGT\t0/1\t1/2\n",
         "chr1\t101\t.\tAA\tA\t60\t.\tMQ=45\tGT\t0/1\t0/0\n",
@@ -538,6 +539,7 @@ mod tests {
         let input = dir.path().join("postprocess_input.vcf");
         write_governed_postprocess_input_vcf(&input).expect("write input fixture");
         let raw = std::fs::read_to_string(&input).expect("read input fixture");
+        assert!(raw.contains("##contig=<ID=chr1,length=1000000>"));
         assert!(raw.contains("g,t"));
         assert!(raw.contains("\tAA\tA\t"));
         assert!(raw.contains("\ts2\ts1"));

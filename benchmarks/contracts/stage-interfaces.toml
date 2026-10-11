@@ -101,6 +101,73 @@ performance_columns = [
 ]
 
 [[interfaces]]
+stage_id = "bam.damage"
+accepted_input_contracts = [
+  "bijux.bam.artifact.coordinate_sorted_indexed.v1",
+  "bijux.reference.artifact.fasta.v1",
+]
+output_contract = "bijux.benchmark.bam.damage.bundle.v1"
+normalized_result_contract = "benchmarks/contracts/schemas/bam-damage-result.schema.json"
+parameter_schema_version = "bijux.bam.params.damage.v1"
+default_provider = "bijux_dna_domain_bam::stage_specs::stage_spec(BamStage::Damage)"
+parameter_config = "benchmarks/contracts/config-pipeline-parameters.yml"
+operator_override_keys = []
+input_derived_parameters = ["reference"]
+immutable_parameters = [
+  "schema_version",
+  "udg_model",
+  "pmd_threshold_5p",
+  "pmd_threshold_3p",
+  "trim_5p",
+  "trim_3p",
+  "damage_tool_profile",
+  "evidence_only",
+]
+effective_parameters_artifact = "effective-parameters.json"
+tool_ids = ["addeam", "damageprofiler", "mapdamage2", "ngsbriggs", "pmdtools", "pydamage"]
+provenance_sources = [
+  "domain/bam/stages/damage.yaml",
+  "crates/bijux-dna-domain-bam/src/stage_specs/stage_specs_downstream.rs",
+  "crates/bijux-dna-planner-bam/src/tool_adapters/stages_adna.rs",
+  "crates/bijux-dna-stage-contract/src/tool_binding/catalog.rs",
+  "benchmarks/execution/bam_damage.awk",
+]
+
+[interfaces.adapters]
+addeam = "bijux_dna_planner_bam::tool_adapters::stages_adna::damage::plan"
+damageprofiler = "bijux_dna_planner_bam::tool_adapters::stages_adna::damage::plan"
+mapdamage2 = "bijux_dna_planner_bam::tool_adapters::stages_adna::damage::plan"
+ngsbriggs = "parse_ngsbriggs_json"
+pmdtools = "bijux_dna_planner_bam::tool_adapters::stages_adna::damage::plan"
+pydamage = "bijux_dna_planner_bam::tool_adapters::stages_adna::damage::plan"
+
+[interfaces.downstream_probe]
+consumer_stage_id = "benchmark.bam.damage.consume"
+input_contract = "bijux.benchmark.bam.damage.bundle.v1"
+source = "benchmarks/execution/bam_damage.awk"
+assertions = [
+  "every retained tool preserves a nonempty native output closure on one tool-independent evidence surface",
+  "tool-specific damage estimates are not coerced into a false common accuracy metric",
+  "the common consumer receives tool-independent identity, artifact, completion, and non-authenticity invariants",
+]
+
+[interfaces.report_presentation]
+report_file_stem = "run-2010-bam-damage"
+generated_source = "bijux-dna-bench::workflow::stage_report"
+title_class = "qualification"
+separate_accuracy_claim = true
+include_comparison_closure = true
+determinism = "detailed_evidence"
+comparison = "tool_means"
+performance_columns = [
+  { metric = "wall_seconds", heading = "Wall mean (range), s", format = "seconds3", include_range = true },
+  { metric = "cpu_seconds", heading = "CPU mean, s", format = "seconds3" },
+  { metric = "peak_rss_kib", heading = "Peak RSS mean, MiB", format = "mebibytes1" },
+  { metric = "input_bytes", heading = "Input bytes", format = "number0" },
+  { metric = "output_bytes", heading = "Output mean, bytes", format = "number1" },
+]
+
+[[interfaces]]
 stage_id = "bam.duplication_metrics"
 accepted_input_contracts = ["bijux.bam.artifact.coordinate_sorted_indexed.v1"]
 output_contract = "bijux.benchmark.bam.duplication_metrics.bundle.v1"

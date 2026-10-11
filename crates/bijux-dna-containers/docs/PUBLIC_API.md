@@ -26,7 +26,8 @@
   preparation; `load_container_evidence_chain` cross-publication admission; offline contract smoke
   execution with bounded immutable streams; deterministic runtime-verification report rendering;
   exact-commit catalog and Apptainer recipe identity;
-  `resolve_current_apptainer_image` selection with on-disk size and digest verification;
+  delivery-aware Apptainer selection with on-disk size and digest verification through either the
+  current distributable inventory or an exact external-artifact admission;
   no-clobber canonical image activation; reversible historical, obsolete, and interrupted image
   quarantine; no-copy external binary/SIF admission, access blockers, checksum/version replay, and
   stage command binding for licensing-restricted tools; focused catalog/image-inventory closure

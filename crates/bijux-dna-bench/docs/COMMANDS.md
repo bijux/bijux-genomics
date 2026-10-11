@@ -72,9 +72,10 @@ These operations are exported through the crate root and `public_api`.
 | `recover-stage-campaign-retry-lineage` | `recover_stage_campaign_retry_lineage(root, registry, run_id, campaign_id, tip_attempt_id)` | Recover one explicit complete terminal lineage per declared tool, tolerating only untouched planned siblings and rejecting detached execution evidence. |
 | `plan-stage-campaign-retry-attempts` | `plan_stage_campaign_retry_attempts(registry, repository_commit, campaign_registry_sha256, prior_attempts, attempt_id, observed_at_utc)` | Derive linked retry origins from a complete terminal campaign lineage. |
 | `verify-campaign-plan-source` | `verify_campaign_plan_source(plan, repository_commit, campaign_registry_sha256)` | Reject a campaign plan unless its source commit and declaration digest match the executing checkout exactly. |
+| `verify-case-campaign-plan-source` | `verify_case_campaign_plan_source(plan, case_matrix)` | Reject a case-scoped campaign plan unless its exact matrix, source commit, and declaration digest agree. |
 | `benchmark-execution-spec-schema` | `benchmark_execution_spec_schema()` | Derive the governed JSON Schema for immutable executable benchmark specifications. |
 | `validate-benchmark-execution-spec` | `validate_execution_spec(spec)` | Reject incomplete source locks, mutable result roots, in-place retries, undeclared acceptance outputs, and inconsistent runtime policy. |
-| `build-benchmark-execution-spec` | `build_execution_spec(registry, interfaces, catalog, plan, identity, image, material)` | Derive one executable attempt from aligned campaign, interface, catalog, source, image, and domain-material authorities. |
+| `build-benchmark-execution-spec` | `build_execution_spec(registry, interfaces, catalog, plan, identity, image, material)` | Derive one executable attempt from aligned campaign, interface, catalog, source, image, and domain-material authorities, persisting an external-artifact admission digest when that delivery path is selected. |
 | `build-benchmark-stage-plans` | `build_benchmark_stage_plans(spec, binding, catalog_tool, units)` | Derive the complete immutable repetition-by-unit plan matrix from canonical binding, container, path, parameter, and resource authorities. |
 | `load-benchmark-execution-authorities` | `load_execution_authorities(repository_root, inventory_path, repository_commit, plan)` | Load and hash exact campaign, interface, catalog, and image-inventory authorities, rejecting source or closure drift. |
 | `ensure-benchmark-execution-spec` | `ensure_execution_spec(benchmark_root, spec)` | Crash-safely persist one immutable executable specification beside its wholly planned attempt lifecycle. |
@@ -84,6 +85,8 @@ These operations are exported through the crate root and `public_api`.
 | `plan-benchmark-cases` | `plan_benchmark_cases(request)` | Select one permanent run, close its governed data and tool authorities, and immutably publish its generic case matrix. |
 | `admit-benchmark-cases` | `admit_benchmark_cases(request)` | Validate normalized observations against their exact case matrix and publish an immutable admitted set. |
 | `aggregate-benchmark-cases` | `aggregate_benchmark_cases(request)` | Validate admitted observations and immutably publish deterministic case aggregations. |
+| `issue-benchmark-citation-record` | `issue_benchmark_citation_record(request)` | Derive an immutable paper citation from an admitted receipt, evidence book, exact replay, source catalog, report images, and case-matrix data snapshots. |
+| `select-checked-in-benchmark-publication` | `select_checked_in_benchmark_publication(request)` | Verify receipt, book, citation, replay, and case definitions before crash-safe case-index and current-publication selection and complete run-index regeneration. |
 | `benchmark-attempt-directory` | `benchmark_attempt_directory(root, identity)` | Derive the permanent `run-<id>-<domain>-<stage>/<tool>/attempts/<campaign>/<attempt>` storage path from validated identity. |
 | `initialize-attempt-lifecycle` | `initialize_attempt_lifecycle(root, record)` | Delegate atomic publication of an immutable planned attempt record to `bijux-dna-runtime`. |
 | `append-attempt-lifecycle-transition` | `append_attempt_lifecycle_transition(root, identity, transition)` | Delegate validation and no-clobber publication of one sequence-addressed transition to `bijux-dna-runtime`. |
@@ -92,6 +95,10 @@ These operations are exported through the crate root and `public_api`.
 | `apply-attempt-migration` | `apply_attempt_migration(study_root, plan_path, ledger_path, updated_at_utc)` | Move planned attempts by same-filesystem rename while maintaining an interruption-safe ledger. |
 | `verify-attempt-migration` | `verify_attempt_migration(study_root, plan_path, ledger_path)` | Recompute every current source or target file size and SHA-256 against the exact plan. |
 | `rollback-attempt-migration` | `rollback_attempt_migration(study_root, plan_path, ledger_path, updated_at_utc)` | Verify and restore every applied attempt to its exact historical source path. |
+| `plan-workspace-convergence` | `plan_benchmark_workspace_convergence(canonical_root, legacy_root)` | Hash both roots, move unique legacy entries toward the canonical root, quarantine only byte-identical duplicates, and retain all differing entries for manual review. |
+| `apply-workspace-convergence` | `apply_benchmark_workspace_convergence(plan)` | Apply each planned move by verified same-filesystem rename without deleting legacy bytes. |
+| `rollback-workspace-convergence` | `rollback_benchmark_workspace_convergence(plan)` | Re-hash and restore every applied canonical or quarantine move to its exact legacy source. |
+| `rollback-workspace-layout-report` | `rollback_benchmark_workspace_layout_report(report)` | Treat an applied normalization report as the complete checksum-backed rollback receipt. |
 | `summarize` | `summarize(suite, observations, options)` | Build deterministic benchmark summaries from observations. |
 | `compare` | `compare(summary_a, summary_b)` | Compare two completed benchmark summaries. |
 | `gate` | `gate(policy, summary)` | Evaluate benchmark rows against a gate policy. |

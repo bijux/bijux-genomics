@@ -18,6 +18,11 @@ fn plugin_stage_plan(
     output_id: &str,
     output_path: std::path::PathBuf,
 ) -> StagePlanV1 {
+    let out_dir = output_path
+        .parent()
+        .filter(|parent| !parent.as_os_str().is_empty())
+        .unwrap_or_else(|| std::path::Path::new("."))
+        .to_path_buf();
     StagePlanV1 {
         stage_id: StageId::new(stage_id),
         stage_instance_id: None,
@@ -40,7 +45,7 @@ fn plugin_stage_plan(
                 ArtifactRole::Variant,
             )],
         },
-        out_dir: std::path::PathBuf::from("artifacts/vcf-plugin"),
+        out_dir,
         params: serde_json::json!({"minimum_quality": 30}),
         effective_params: serde_json::json!({"minimum_quality": 30}),
         operating_mode: bijux_dna_core::contract::StageOperatingMode::default(),
@@ -63,12 +68,13 @@ fn vcf_stage_plugin_handles_every_domain_stage_without_tool_dispatch() {
 
 #[test]
 fn vcf_stage_plugin_materializes_declared_invocation() -> anyhow::Result<()> {
+    let sandbox = bijux_dna_testkit::tempdir_for("vcf-stage-plugin-materialization");
     let plugin = VcfStagePlugin;
     let plan = plugin_stage_plan(
         "vcf.filter",
         "bcftools",
         "filtered_vcf",
-        "filtered.vcf.gz".into(),
+        sandbox.path().join("filtered.vcf.gz"),
     );
     let invocation = plugin.materialize(&plan)?;
     assert_eq!(invocation.command, plan.command.template);
@@ -79,12 +85,13 @@ fn vcf_stage_plugin_materializes_declared_invocation() -> anyhow::Result<()> {
 
 #[test]
 fn vcf_stage_plugin_rejects_invalid_stage_and_command_authority() {
+    let sandbox = bijux_dna_testkit::tempdir_for("vcf-stage-plugin-invalid-authority");
     let plugin = VcfStagePlugin;
     let mut unsupported = plugin_stage_plan(
         "vcf.filter",
         "bcftools",
         "filtered_vcf",
-        "filtered.vcf.gz".into(),
+        sandbox.path().join("unsupported-filtered.vcf.gz"),
     );
     unsupported.stage_id = StageId::new("vcf.unknown");
     assert!(plugin
@@ -95,7 +102,7 @@ fn vcf_stage_plugin_rejects_invalid_stage_and_command_authority() {
         "vcf.filter",
         "bcftools",
         "filtered_vcf",
-        "filtered.vcf.gz".into(),
+        sandbox.path().join("blank-filtered.vcf.gz"),
     );
     blank.command.template.push(" ".to_string());
     assert!(plugin

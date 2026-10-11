@@ -53,6 +53,10 @@ fn checked_fastq_source_schema_matches_model() -> anyhow::Result<()> {
             "governed-data-catalog.schema.json",
             serde_json::to_value(bijux_dna_bench_model::governed_data_catalog_schema())?,
         ),
+        (
+            "governed-derived-data-catalog.schema.json",
+            serde_json::to_value(bijux_dna_bench_model::governed_derived_data_catalog_schema())?,
+        ),
     ] {
         let path = repository_root.join("benchmarks/contracts/schemas").join(file_name);
         if std::env::var_os("BIJUX_UPDATE_GENERATED_SCHEMAS").is_some() {

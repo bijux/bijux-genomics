@@ -3,10 +3,11 @@ use std::path::{Path, PathBuf};
 
 use anyhow::Result;
 use bijux_dna_bench::{
-    build_benchmark_data_index, publish_benchmark_data_index,
+    admit_governed_derived_data_catalog, build_benchmark_data_index, publish_benchmark_data_index,
     publish_governed_data_catalog_registry, publish_governed_data_catalog_snapshots,
     BenchmarkDataIndexPublicationRequest, BenchmarkDataIndexRequest, BenchmarkEligibility,
     GovernedDataCatalogRegistryPublicationRequest, GovernedDataCatalogSnapshotRequest,
+    GovernedDerivedDataCatalogAdmissionRequest,
 };
 use serde_json::{json, Value};
 use tempfile::TempDir;
@@ -104,6 +105,277 @@ fn preserves_heterogeneous_catalogs_and_composes_complete_registry() -> Result<(
 }
 
 #[test]
+fn publishes_native_derived_catalog_with_verified_source_and_file_closure() -> Result<()> {
+    let fixture = data_index_fixture()?;
+    let source_commit = "4".repeat(40);
+    let derived_path = fixture.data_root.join("catalog/ancient-horse-derived-bam.json");
+    write_derived_catalog(&fixture, &derived_path, None)?;
+
+    let publication =
+        publish_governed_data_catalog_snapshots(&GovernedDataCatalogSnapshotRequest {
+            data_root: fixture.data_root.clone(),
+            source_commit: source_commit.clone(),
+            preserved_at_utc: "2026-08-14T00:00:00Z".to_string(),
+            previous_registry_path: Some(fixture.catalog_registry_path.clone()),
+        })?;
+    let replay = publish_governed_data_catalog_snapshots(&GovernedDataCatalogSnapshotRequest {
+        data_root: fixture.data_root.clone(),
+        source_commit: source_commit.clone(),
+        preserved_at_utc: "2026-08-14T00:00:00Z".to_string(),
+        previous_registry_path: Some(fixture.catalog_registry_path.clone()),
+    })?;
+
+    assert_eq!(publication, replay);
+    assert_eq!(publication.preserved_snapshot_count, 1);
+    assert_eq!(publication.retained_snapshot_count, 1);
+    let record = publication
+        .registry
+        .records
+        .iter()
+        .find(|record| record.id == "ancient-horse-derived-bam")
+        .expect("derived registry record");
+    assert_eq!(record.snapshots.len(), 1);
+    assert_eq!(record.snapshots[0].catalog_schema_version, "bijux.data_catalog.derived.v1");
+    let snapshot_path = fixture
+        .data_root
+        .join("catalog/snapshots")
+        .join(source_commit)
+        .join("ancient-horse-derived-bam.json");
+    let snapshot: Value = serde_json::from_slice(&fs::read(snapshot_path)?)?;
+    assert_eq!(snapshot["schema_version"], "bijux.data_catalog.derived.v1");
+    assert!(snapshot.get("preserved_catalog").is_none());
+    Ok(())
+}
+
+#[test]
+fn appends_changed_derived_snapshot_and_retains_unchanged_history() -> Result<()> {
+    let fixture = data_index_fixture()?;
+    let derived_path = fixture.data_root.join("catalog/ancient-horse-derived-bam.json");
+    write_derived_catalog(&fixture, &derived_path, None)?;
+    let first = publish_governed_data_catalog_snapshots(&GovernedDataCatalogSnapshotRequest {
+        data_root: fixture.data_root.clone(),
+        source_commit: "4".repeat(40),
+        preserved_at_utc: "2026-08-14T00:00:00Z".to_string(),
+        previous_registry_path: Some(fixture.catalog_registry_path.clone()),
+    })?;
+    let first_record = first
+        .registry
+        .records
+        .iter()
+        .find(|record| record.id == "ancient-horse-derived-bam")
+        .expect("first derived registry record");
+    let first_snapshot = first_record.snapshots[0].clone();
+    let first_snapshot_path = fixture
+        .data_root
+        .join(first_snapshot.catalog_path.strip_prefix("study://data/").expect("snapshot URI"));
+    let first_bytes = fs::read(&first_snapshot_path)?;
+
+    mutate_catalog(&derived_path, |catalog| {
+        catalog["allowed_uses"] = json!(["comparative_benchmarking", "scientific_validation"]);
+    })?;
+    let second = publish_governed_data_catalog_snapshots(&GovernedDataCatalogSnapshotRequest {
+        data_root: fixture.data_root.clone(),
+        source_commit: "6".repeat(40),
+        preserved_at_utc: "2026-08-15T00:00:00Z".to_string(),
+        previous_registry_path: Some(first.candidate_registry_path.clone()),
+    })?;
+    assert_eq!(second.preserved_snapshot_count, 1);
+    assert_eq!(second.retained_snapshot_count, 1);
+    let second_record = second
+        .registry
+        .records
+        .iter()
+        .find(|record| record.id == "ancient-horse-derived-bam")
+        .expect("second derived registry record");
+    assert_eq!(second_record.snapshots.len(), 2);
+    assert_eq!(second_record.snapshots[0], first_snapshot);
+    assert_ne!(second_record.current_catalog_sha256, first_record.current_catalog_sha256);
+    assert_eq!(fs::read(&first_snapshot_path)?, first_bytes);
+
+    let third = publish_governed_data_catalog_snapshots(&GovernedDataCatalogSnapshotRequest {
+        data_root: fixture.data_root.clone(),
+        source_commit: "7".repeat(40),
+        preserved_at_utc: "2026-08-16T00:00:00Z".to_string(),
+        previous_registry_path: Some(second.candidate_registry_path.clone()),
+    })?;
+    assert_eq!(third.preserved_snapshot_count, 0);
+    assert_eq!(third.retained_snapshot_count, 2);
+    let third_record = third
+        .registry
+        .records
+        .iter()
+        .find(|record| record.id == "ancient-horse-derived-bam")
+        .expect("third derived registry record");
+    assert_eq!(third_record, second_record);
+    assert_eq!(fs::read(first_snapshot_path)?, first_bytes);
+    Ok(())
+}
+
+#[test]
+fn admits_derived_flat_authority_only_after_preserving_its_predecessor() -> Result<()> {
+    let fixture = data_index_fixture()?;
+    let candidate = fixture.data_root.join("evidence/candidates/ancient-horse-bam.json");
+    fs::create_dir_all(candidate.parent().expect("candidate parent"))?;
+    write_derived_catalog(&fixture, &candidate, None)?;
+    mutate_catalog(&candidate, |catalog| {
+        catalog["id"] = "ancient-horse-bam".into();
+    })?;
+    let flat_path = fixture.data_root.join("catalog/ancient-horse-bam.json");
+    let predecessor_sha256 = bijux_dna_infra::hash_file_sha256(&flat_path)?;
+    let request = GovernedDerivedDataCatalogAdmissionRequest {
+        data_root: fixture.data_root.clone(),
+        candidate_path: candidate,
+        previous_registry_path: fixture.catalog_registry_path.clone(),
+        expected_previous_catalog_sha256: Some(predecessor_sha256.clone()),
+    };
+
+    let admission = admit_governed_derived_data_catalog(&request)?;
+    let replay = admit_governed_derived_data_catalog(&request)?;
+
+    assert_eq!(admission, replay);
+    assert_eq!(admission.replaced_catalog_sha256.as_deref(), Some(predecessor_sha256.as_str()));
+    assert_eq!(admission.catalog_sha256, bijux_dna_infra::hash_file_sha256(&flat_path)?);
+    let admitted: Value = serde_json::from_slice(&fs::read(&flat_path)?)?;
+    assert_eq!(admitted["schema_version"], "bijux.data_catalog.derived.v1");
+
+    let publication =
+        publish_governed_data_catalog_snapshots(&GovernedDataCatalogSnapshotRequest {
+            data_root: fixture.data_root.clone(),
+            source_commit: "8".repeat(40),
+            preserved_at_utc: "2026-08-17T00:00:00Z".to_string(),
+            previous_registry_path: Some(fixture.catalog_registry_path.clone()),
+        })?;
+    let record = publication
+        .registry
+        .records
+        .iter()
+        .find(|record| record.id == "ancient-horse-bam")
+        .expect("replaced catalog registry record");
+    assert_eq!(record.snapshots.len(), 2);
+    assert_eq!(record.snapshots[0].catalog_schema_version, "bijux.data_catalog.v2");
+    assert_eq!(record.snapshots[1].catalog_schema_version, "bijux.data_catalog.derived.v1");
+    Ok(())
+}
+
+#[test]
+fn rejects_derived_replacement_when_registry_does_not_preserve_observed_bytes() -> Result<()> {
+    let fixture = data_index_fixture()?;
+    let candidate = fixture.data_root.join("evidence/candidates/ancient-horse-bam.json");
+    fs::create_dir_all(candidate.parent().expect("candidate parent"))?;
+    write_derived_catalog(&fixture, &candidate, None)?;
+    mutate_catalog(&candidate, |catalog| {
+        catalog["id"] = "ancient-horse-bam".into();
+    })?;
+    let flat_path = fixture.data_root.join("catalog/ancient-horse-bam.json");
+    mutate_catalog(&flat_path, |catalog| {
+        catalog["purpose"] = "drifted unpreserved authority".into();
+    })?;
+    let unpreserved_sha256 = bijux_dna_infra::hash_file_sha256(&flat_path)?;
+
+    let error = admit_governed_derived_data_catalog(&GovernedDerivedDataCatalogAdmissionRequest {
+        data_root: fixture.data_root.clone(),
+        candidate_path: candidate,
+        previous_registry_path: fixture.catalog_registry_path.clone(),
+        expected_previous_catalog_sha256: Some(unpreserved_sha256),
+    })
+    .expect_err("unpreserved predecessor must be rejected");
+
+    assert!(format!("{error:#}").contains("does not preserve the expected flat catalog bytes"));
+    Ok(())
+}
+
+#[test]
+fn accepts_semantically_preserved_derived_predecessor_after_json_reserialization() -> Result<()> {
+    let fixture = data_index_fixture()?;
+    let initial_candidate =
+        fixture.data_root.join("evidence/candidates/ancient-horse-derived-initial.json");
+    fs::create_dir_all(initial_candidate.parent().expect("candidate parent"))?;
+    write_derived_catalog(&fixture, &initial_candidate, None)?;
+    mutate_catalog(&initial_candidate, |catalog| {
+        catalog["id"] = "ancient-horse-bam".into();
+    })?;
+    let flat_path = fixture.data_root.join("catalog/ancient-horse-bam.json");
+    let predecessor_sha256 = bijux_dna_infra::hash_file_sha256(&flat_path)?;
+    admit_governed_derived_data_catalog(&GovernedDerivedDataCatalogAdmissionRequest {
+        data_root: fixture.data_root.clone(),
+        candidate_path: initial_candidate,
+        previous_registry_path: fixture.catalog_registry_path.clone(),
+        expected_previous_catalog_sha256: Some(predecessor_sha256),
+    })?;
+    let publication =
+        publish_governed_data_catalog_snapshots(&GovernedDataCatalogSnapshotRequest {
+            data_root: fixture.data_root.clone(),
+            source_commit: "8".repeat(40),
+            preserved_at_utc: "2026-08-17T00:00:00Z".to_string(),
+            previous_registry_path: Some(fixture.catalog_registry_path.clone()),
+        })?;
+
+    let flat_value: Value = serde_json::from_slice(&fs::read(&flat_path)?)?;
+    fs::write(&flat_path, serde_json::to_vec(&flat_value)?)?;
+    let reserialized_sha256 = bijux_dna_infra::hash_file_sha256(&flat_path)?;
+    let successor_candidate =
+        fixture.data_root.join("evidence/candidates/ancient-horse-derived-successor.json");
+    write_derived_catalog(&fixture, &successor_candidate, None)?;
+    mutate_catalog(&successor_candidate, |catalog| {
+        catalog["id"] = "ancient-horse-bam".into();
+        catalog["purpose"] = "successor with an indexed alignment closure".into();
+    })?;
+
+    let admission =
+        admit_governed_derived_data_catalog(&GovernedDerivedDataCatalogAdmissionRequest {
+            data_root: fixture.data_root.clone(),
+            candidate_path: successor_candidate,
+            previous_registry_path: publication.candidate_registry_path,
+            expected_previous_catalog_sha256: Some(reserialized_sha256.clone()),
+        })?;
+
+    assert_eq!(admission.replaced_catalog_sha256.as_deref(), Some(reserialized_sha256.as_str()));
+    Ok(())
+}
+
+#[test]
+fn rejects_idempotent_derived_replay_with_fabricated_predecessor() -> Result<()> {
+    let fixture = data_index_fixture()?;
+    let candidate = fixture.data_root.join("evidence/candidates/ancient-horse-derived-bam.json");
+    fs::create_dir_all(candidate.parent().expect("candidate parent"))?;
+    write_derived_catalog(&fixture, &candidate, None)?;
+    let initial = GovernedDerivedDataCatalogAdmissionRequest {
+        data_root: fixture.data_root.clone(),
+        candidate_path: candidate.clone(),
+        previous_registry_path: fixture.catalog_registry_path.clone(),
+        expected_previous_catalog_sha256: None,
+    };
+    admit_governed_derived_data_catalog(&initial)?;
+
+    let fabricated_predecessor = "a".repeat(64);
+    let error = admit_governed_derived_data_catalog(&GovernedDerivedDataCatalogAdmissionRequest {
+        expected_previous_catalog_sha256: Some(fabricated_predecessor.clone()),
+        ..initial
+    })
+    .expect_err("idempotent replay must not invent predecessor lineage");
+
+    assert_eq!(format!("{error:#}"), "prior registry does not preserve the flat catalog identity");
+    Ok(())
+}
+
+#[test]
+fn rejects_derived_catalog_with_drifted_source_snapshot() -> Result<()> {
+    let fixture = data_index_fixture()?;
+    let derived_path = fixture.data_root.join("catalog/ancient-horse-derived-bam.json");
+    write_derived_catalog(&fixture, &derived_path, Some("f".repeat(64)))?;
+    let request = GovernedDataCatalogSnapshotRequest {
+        data_root: fixture.data_root.clone(),
+        source_commit: "5".repeat(40),
+        preserved_at_utc: "2026-08-14T00:00:00Z".to_string(),
+        previous_registry_path: Some(fixture.catalog_registry_path.clone()),
+    };
+
+    assert!(publish_governed_data_catalog_snapshots(&request)
+        .is_err_and(|error| format!("{error:#}").contains("source catalog digest drifted")));
+    Ok(())
+}
+
+#[test]
 fn registry_publication_rejects_snapshot_drift_and_invalid_commit_before_io() -> Result<()> {
     let fixture = data_index_fixture()?;
     let source_commit = "2".repeat(40);
@@ -168,6 +440,89 @@ fn derives_verified_path_stable_index_and_report() -> Result<()> {
     assert!(publish_benchmark_data_index(&duplicate)
         .is_err_and(|error| format!("{error:#}").contains("refusing to replace")));
     assert_eq!(fs::read(index_path)?, published);
+    Ok(())
+}
+
+#[test]
+fn derives_verified_index_from_native_derived_catalog() -> Result<()> {
+    let fixture = data_index_fixture()?;
+    let file_sha256 = bijux_dna_infra::hash_file_sha256(&fixture.governed_file)?;
+    let file_size = fs::metadata(&fixture.governed_file)?.len();
+    write_json(
+        &fixture.catalog_path,
+        &json!({
+            "schema_version": "bijux.data_catalog.derived.v1",
+            "id": "ancient-horse-bam",
+            "purpose": "real ancient horse alignment derived from governed reads",
+            "source": "governed source catalogs",
+            "class": "production_real",
+            "access_classification": "public",
+            "redistribution_classification": "derived-results-only",
+            "access_terms_url": "https://example.org/terms",
+            "attribution": "cite the source study",
+            "projected_storage_bytes": file_size,
+            "projected_cpu_hours": 1,
+            "projection_basis": "one bounded alignment",
+            "truth_roles": ["alignment_context"],
+            "truth_strategy": "observational_only",
+            "known_limitations": ["one sample does not represent a population"],
+            "sources": [{
+                "catalog_id": "ancient-horse-fastq",
+                "catalog_path": format!(
+                    "study://data/catalog/snapshots/{}/ancient-horse-fastq.json",
+                    "7".repeat(40)
+                ),
+                "catalog_sha256": "8".repeat(64)
+            }],
+            "admitted_at_utc": "2026-08-07T00:00:00Z",
+            "scientific_name": "Equus caballus",
+            "reference_assembly": "EquCab3.0",
+            "allowed_uses": ["comparative_benchmarking"],
+            "derivation": {
+                "pipeline_id": "horse-bam-materialization",
+                "pipeline_version": "1.0.0",
+                "source_commit": "9".repeat(40),
+                "parameter_sha256": "a".repeat(64),
+                "reference_id": "equcab3-reference",
+                "reference_catalog_sha256": "b".repeat(64),
+                "contig_dictionary_sha256": "c".repeat(64)
+            },
+            "samples": [{
+                "sample_id": "ERR2112767",
+                "source_accessions": ["ERR2112767"],
+                "library_context": "ancient single-end shotgun library",
+                "assay_context": "whole-genome sequencing",
+                "strata": {"era": "ancient"},
+                "control_roles": ["none"],
+                "truth_roles": ["alignment_context"],
+                "held_out_split": "evaluation",
+                "read_group_ids": ["ERR2112767"]
+            }],
+            "files": [{
+                "path": fixture.governed_file,
+                "sha256": file_sha256,
+                "size_bytes": file_size,
+                "kind": "coordinate-sorted-deduplicated-bam",
+                "sample_id": "ERR2112767",
+                "source_sha256s": ["d".repeat(64)]
+            }]
+        }),
+    )?;
+    let mut registry: Value = serde_json::from_slice(&fs::read(&fixture.catalog_registry_path)?)?;
+    let catalog_sha256 = bijux_dna_infra::hash_file_sha256(&fixture.catalog_path)?;
+    registry["records"][0]["current_catalog_sha256"] = catalog_sha256.clone().into();
+    registry["records"][0]["snapshots"][0]["catalog_sha256"] = catalog_sha256.into();
+    registry["records"][0]["snapshots"][0]["catalog_schema_version"] =
+        "bijux.data_catalog.derived.v1".into();
+    write_json(&fixture.catalog_registry_path, &registry)?;
+
+    let index = build_benchmark_data_index(&request(&fixture))?;
+    assert_eq!(index.records.len(), 1);
+    assert_eq!(index.records[0].benchmark_eligibility, BenchmarkEligibility::Eligible);
+    assert_eq!(index.records[0].integrity_status, bijux_dna_bench::DataIntegrityStatus::Verified);
+    assert_eq!(index.records[0].files.len(), 1);
+    assert_eq!(index.records[0].files[0].role, "coordinate-sorted-deduplicated-bam");
+    assert_eq!(index.records[0].source_identities, ["source:governed source catalogs"]);
     Ok(())
 }
 
@@ -361,6 +716,77 @@ fn request(fixture: &DataIndexFixture) -> BenchmarkDataIndexRequest {
         data_root: fixture.data_root.clone(),
         created_at_utc: "2026-08-06T00:00:00Z".to_string(),
     }
+}
+
+fn write_derived_catalog(
+    fixture: &DataIndexFixture,
+    path: &Path,
+    source_sha256: Option<String>,
+) -> Result<()> {
+    let file_sha256 = bijux_dna_infra::hash_file_sha256(&fixture.governed_file)?;
+    let file_size = fs::metadata(&fixture.governed_file)?.len();
+    let source_sha256 =
+        source_sha256.unwrap_or(bijux_dna_infra::hash_file_sha256(&fixture.catalog_path)?);
+    write_json(
+        path,
+        &json!({
+            "schema_version": "bijux.data_catalog.derived.v1",
+            "id": "ancient-horse-derived-bam",
+            "purpose": "real ancient horse alignment derived from governed reads",
+            "source": "governed source catalogs",
+            "class": "production_real",
+            "access_classification": "public",
+            "redistribution_classification": "derived-results-only",
+            "access_terms_url": "https://example.org/terms",
+            "attribution": "cite the source study",
+            "projected_storage_bytes": file_size,
+            "projected_cpu_hours": 1,
+            "projection_basis": "one bounded alignment",
+            "truth_roles": ["alignment_context"],
+            "truth_strategy": "observational_only",
+            "known_limitations": ["one sample does not represent a population"],
+            "sources": [{
+                "catalog_id": "ancient-horse-bam",
+                "catalog_path": format!(
+                    "study://data/catalog/snapshots/{}/ancient-horse-bam.json",
+                    "1".repeat(40)
+                ),
+                "catalog_sha256": source_sha256
+            }],
+            "admitted_at_utc": "2026-08-14T00:00:00Z",
+            "scientific_name": "Equus caballus",
+            "reference_assembly": "EquCab3.0",
+            "allowed_uses": ["comparative_benchmarking"],
+            "derivation": {
+                "pipeline_id": "horse-bam-materialization",
+                "pipeline_version": "1.0.0",
+                "source_commit": "9".repeat(40),
+                "parameter_sha256": "a".repeat(64),
+                "reference_id": "equcab3-reference",
+                "reference_catalog_sha256": "b".repeat(64),
+                "contig_dictionary_sha256": "c".repeat(64)
+            },
+            "samples": [{
+                "sample_id": "ERR2112767",
+                "source_accessions": ["ERR2112767"],
+                "library_context": "ancient single-end shotgun library",
+                "assay_context": "whole-genome sequencing",
+                "strata": {"era": "ancient"},
+                "control_roles": ["none"],
+                "truth_roles": ["alignment_context"],
+                "held_out_split": "evaluation",
+                "read_group_ids": ["ERR2112767"]
+            }],
+            "files": [{
+                "path": fixture.governed_file,
+                "sha256": file_sha256.clone(),
+                "size_bytes": file_size,
+                "kind": "coordinate-sorted-deduplicated-bam",
+                "sample_id": "ERR2112767",
+                "source_sha256s": [file_sha256]
+            }]
+        }),
+    )
 }
 
 fn mutate_registered_catalog(

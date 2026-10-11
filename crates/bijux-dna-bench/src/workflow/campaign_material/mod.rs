@@ -9,11 +9,13 @@ use std::path::Path;
 use anyhow::{bail, Result};
 use bijux_dna_bench_model::{
     AdmittedAlignmentTruthSet, AdmittedBamCohort, AdmittedBamCorpus, AdmittedFastqCorpus,
-    AdmittedReferenceBundle, BenchmarkAttemptIdentity, BenchmarkCorpusSnapshotV1,
+    AdmittedIndexedReference, AdmittedReferenceBundle, BenchmarkAttemptIdentity,
+    BenchmarkCorpusSnapshotV1,
 };
 
 use super::{
     prepare_bam_alignment_material, prepare_bam_coverage_material_from_corpus,
+    prepare_bam_damage_material_from_evidence,
     prepare_bam_duplication_metrics_material_from_corpus,
     prepare_bam_endogenous_content_material_from_corpus,
     prepare_bam_genotyping_material_from_corpus, prepare_bam_mapping_summary_material_from_corpus,
@@ -25,13 +27,15 @@ use super::{
 };
 use crate::repo::{
     admit_alignment_truth_set, admit_bam_benchmark_cohort, admit_bam_benchmark_corpus,
-    admit_bam_genotyping_corpus, admit_benchmark_reference, admit_fastq_benchmark_corpus,
-    AdmittedBamGenotypingCorpus,
+    admit_bam_genotyping_corpus, admit_benchmark_indexed_reference, admit_benchmark_reference,
+    admit_fastq_benchmark_corpus, AdmittedBamGenotypingCorpus,
 };
 
 pub use report::{
     publish_benchmark_campaign_report,
     publish_benchmark_campaign_report_with_presentation_authority,
+    publish_case_benchmark_campaign_report,
+    publish_case_benchmark_campaign_report_with_presentation_authority,
     BenchmarkCampaignReportPublication,
 };
 
@@ -42,7 +46,7 @@ const FASTQ_EXPECTED_FILE_COUNT: usize = 30;
 
 const EXECUTABLE_CAMPAIGN_RUN_IDS: &[&str] = &[
     "run-2001", "run-2002", "run-2003", "run-2004", "run-2005", "run-2011", "run-2013", "run-2015",
-    "run-2030", "run-2042", "run-2043", "run-2051",
+    "run-2010", "run-2030", "run-2042", "run-2043", "run-2051",
 ];
 
 /// Admitted evidence closure required to prepare one governed campaign.
@@ -53,6 +57,10 @@ pub enum BenchmarkCampaignEvidence {
         truth: AdmittedAlignmentTruthSet,
     },
     BamGenotyping(Box<AdmittedBamGenotypingCorpus>),
+    BamDamage {
+        corpus: AdmittedBamCorpus,
+        reference: AdmittedIndexedReference,
+    },
     BamPicardCohort {
         cohort: AdmittedBamCohort,
         reference: Option<AdmittedReferenceBundle>,
@@ -69,6 +77,7 @@ impl BenchmarkCampaignEvidence {
         match self {
             Self::BamAlignment { corpus, .. } => fastq_corpus_snapshot(corpus),
             Self::BamGenotyping(corpus) => bam_corpus_snapshot(&corpus.bam),
+            Self::BamDamage { corpus, .. } => bam_corpus_snapshot(corpus),
             Self::BamPicardCohort { cohort, .. } => BenchmarkCorpusSnapshotV1 {
                 corpus_id: cohort.corpus_id.clone(),
                 snapshot_sha256: cohort.catalog_sha256.clone(),
@@ -153,6 +162,18 @@ pub fn admit_benchmark_campaign_evidence(
             reference: admit_benchmark_reference(study_root, data_index, "grch38-reference")?,
             truth: admit_alignment_truth_set(study_root, data_index, "alignment-truth-panel", 10)?,
         }),
+        "run-2010" => Ok(BenchmarkCampaignEvidence::BamDamage {
+            corpus: admit_bam_benchmark_corpus(
+                study_root,
+                data_index,
+                "ena-prjeb22390-err2112767-ngsbriggs-input",
+            )?,
+            reference: admit_benchmark_indexed_reference(
+                study_root,
+                data_index,
+                "equcab3-gcf-002863925.1",
+            )?,
+        }),
         "run-2002" | "run-2003" | "run-2004" | "run-2011" => {
             Ok(BenchmarkCampaignEvidence::BamObservation(admit_bam_benchmark_corpus(
                 study_root,
@@ -232,6 +253,21 @@ pub fn prepare_benchmark_campaign_material(
                 request.account,
                 request.partition,
                 corpus,
+            )?
+            .execution)
+        }
+        BenchmarkCampaignEvidence::BamDamage { corpus, reference } => {
+            Ok(prepare_bam_damage_material_from_evidence(
+                request.repository_root,
+                request.benchmark_root,
+                request.identity,
+                request.source_contract_sha256,
+                request.operator,
+                request.prepared_at_utc,
+                request.account,
+                request.partition,
+                corpus,
+                reference,
             )?
             .execution)
         }

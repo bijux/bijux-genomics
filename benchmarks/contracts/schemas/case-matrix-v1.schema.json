@@ -688,6 +688,25 @@
         {
           "properties": {
             "kind": {
+              "const": "exact_path_with_sidecars",
+              "type": "string"
+            },
+            "sidecars": {
+              "items": {
+                "$ref": "#/$defs/OutputSidecarDiscoveryV1"
+              },
+              "type": "array"
+            }
+          },
+          "required": [
+            "kind",
+            "sidecars"
+          ],
+          "type": "object"
+        },
+        {
+          "properties": {
+            "kind": {
               "const": "glob",
               "type": "string"
             },
@@ -698,6 +717,43 @@
           "required": [
             "kind",
             "pattern"
+          ],
+          "type": "object"
+        }
+      ]
+    },
+    "OutputSidecarDiscoveryV1": {
+      "description": "Declares how an exact output companion is named from its primary output path.",
+      "oneOf": [
+        {
+          "properties": {
+            "kind": {
+              "const": "append_suffix",
+              "type": "string"
+            },
+            "suffix": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "kind",
+            "suffix"
+          ],
+          "type": "object"
+        },
+        {
+          "properties": {
+            "extension": {
+              "type": "string"
+            },
+            "kind": {
+              "const": "replace_extension",
+              "type": "string"
+            }
+          },
+          "required": [
+            "kind",
+            "extension"
           ],
           "type": "object"
         }

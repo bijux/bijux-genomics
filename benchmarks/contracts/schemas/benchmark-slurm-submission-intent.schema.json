@@ -1,0 +1,110 @@
+{
+  "$defs": {
+    "BenchmarkSlurmArraySpec": {
+      "additionalProperties": false,
+      "properties": {
+        "first_task_id": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "last_task_id": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "maximum_parallel_tasks": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": [
+            "integer",
+            "null"
+          ]
+        }
+      },
+      "required": [
+        "first_task_id",
+        "last_task_id"
+      ],
+      "type": "object"
+    },
+    "BenchmarkSlurmDependencyCondition": {
+      "enum": [
+        "after_ok",
+        "after_any"
+      ],
+      "type": "string"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "array": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/BenchmarkSlurmArraySpec"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "dependencies": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "dependency_condition": {
+      "$ref": "#/$defs/BenchmarkSlurmDependencyCondition"
+    },
+    "execution_spec_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "type": "string"
+    },
+    "run_id": {
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "bijux.runner.benchmark_submission_intent.v1",
+      "type": "string"
+    },
+    "script_path": {
+      "type": "string"
+    },
+    "script_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "type": "string"
+    },
+    "stage_plan_manifest_sha256": {
+      "pattern": "^[0-9a-f]{64}$",
+      "type": "string"
+    },
+    "stderr_path": {
+      "type": "string"
+    },
+    "stdout_path": {
+      "type": "string"
+    },
+    "submitted_at_utc": {
+      "type": "string"
+    },
+    "working_directory": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "run_id",
+    "execution_spec_sha256",
+    "stage_plan_manifest_sha256",
+    "script_sha256",
+    "script_path",
+    "working_directory",
+    "stdout_path",
+    "stderr_path",
+    "submitted_at_utc"
+  ],
+  "title": "BenchmarkSlurmSubmissionIntent",
+  "type": "object"
+}
