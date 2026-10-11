@@ -16,13 +16,13 @@ mod stage_result;
 mod test_support;
 
 #[cfg(test)]
-#[path = "../tests/contracts/admission.rs"]
+#[path = "tests/admission.rs"]
 mod admission_tests;
 #[cfg(test)]
-#[path = "../tests/contracts/publication.rs"]
+#[path = "tests/publication.rs"]
 mod publication_tests;
 
 pub mod readiness;
 #[cfg(test)]
-#[path = "../tests/contracts/readiness.rs"]
+#[path = "tests/readiness.rs"]
 mod readiness_tests;

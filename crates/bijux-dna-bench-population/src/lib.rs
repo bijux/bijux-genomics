@@ -12,32 +12,32 @@ pub mod roh;
 
 #[cfg(test)]
 #[allow(clippy::expect_used)]
-#[path = "../tests/contracts/pca.rs"]
+#[path = "tests/pca.rs"]
 mod pca_contracts;
 
 #[cfg(test)]
 #[allow(clippy::expect_used)]
-#[path = "../tests/contracts/admixture.rs"]
+#[path = "tests/admixture.rs"]
 mod admixture_contracts;
 
 #[cfg(test)]
 #[allow(clippy::expect_used)]
-#[path = "../tests/contracts/population_structure.rs"]
+#[path = "tests/population_structure.rs"]
 mod population_structure_contracts;
 
 #[cfg(test)]
 #[allow(clippy::expect_used)]
-#[path = "../tests/contracts/roh.rs"]
+#[path = "tests/roh.rs"]
 mod roh_contracts;
 
 #[cfg(test)]
 #[allow(clippy::expect_used)]
-#[path = "../tests/contracts/ibd.rs"]
+#[path = "tests/ibd.rs"]
 mod ibd_contracts;
 
 #[cfg(test)]
 #[allow(clippy::expect_used)]
-#[path = "../tests/contracts/demography.rs"]
+#[path = "tests/demography.rs"]
 mod demography_contracts;
 
 #[cfg(test)]
@@ -47,21 +47,21 @@ mod test_support;
 
 #[cfg(test)]
 #[allow(clippy::expect_used)]
-#[path = "../tests/contracts/publication.rs"]
+#[path = "tests/publication.rs"]
 mod publication_contracts;
 
 #[cfg(test)]
 #[allow(clippy::expect_used)]
-#[path = "../tests/contracts/inputs.rs"]
+#[path = "tests/inputs.rs"]
 mod input_contracts;
 
 pub mod readiness;
 #[cfg(test)]
 #[allow(clippy::expect_used)]
-#[path = "../tests/contracts/readiness.rs"]
+#[path = "tests/readiness.rs"]
 mod readiness_contracts;
 
 #[cfg(test)]
 #[allow(clippy::expect_used)]
-#[path = "../tests/contracts/pca_readiness.rs"]
+#[path = "tests/pca_readiness.rs"]
 mod pca_readiness_contracts;

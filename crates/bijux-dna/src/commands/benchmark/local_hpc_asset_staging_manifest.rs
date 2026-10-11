@@ -23,7 +23,6 @@ pub(crate) const DEFAULT_HPC_ASSET_STAGING_MANIFEST_PATH: &str =
 const DEFAULT_HPC_RENDERED_COMMANDS_PATH: &str =
     "artifacts/benchmark-smoke/readiness/hpc/rendered-commands-all-domains.sh";
 
-pub(crate) use bijux_dna_api::v1::api::bench::BenchmarkLocalHpcAssetStagingInput as LocalHpcAssetStagingInput;
 pub(crate) type LocalHpcAssetStagingManifest = BenchmarkLocalHpcAssetStagingManifest;
 
 use super::readiness::benchmark_command_rows::DEFAULT_STAGE_TOOL_COMMAND_ROOT;

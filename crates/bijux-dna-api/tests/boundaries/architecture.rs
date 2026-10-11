@@ -192,7 +192,7 @@ fn assert_v1_tree(root: &std::path::Path) {
     );
     assert_dir_entries(
         &root.join("src/v1/env"),
-        &["mod.rs", "runtime.rs"],
+        &["delivery.rs", "mod.rs", "runtime.rs"],
         "api v1 environment tree must stay isolated in its own namespace",
     );
     assert_dir_entries(

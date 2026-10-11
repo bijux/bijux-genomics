@@ -11,3 +11,12 @@ pub mod panel_metadata;
 mod paths;
 #[cfg(feature = "variants")]
 pub mod vcf;
+
+#[cfg(feature = "source-contract")]
+pub mod source;
+
+#[cfg(feature = "normalized")]
+pub mod normalized;
+
+#[cfg(feature = "run-contract")]
+pub mod run;

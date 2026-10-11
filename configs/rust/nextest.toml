@@ -40,6 +40,13 @@ test-group = '@global'
 # Start the measured long independent workflows before ordinary cases.
 priority = 100
 
+# These micro workflows bind child commands to fresh per-test repository roots.
+# The SLURM file contract already uses that same sandbox boundary.
+[[profile.full.overrides]]
+filter = '(package(bijux-dna) and binary(/^(?:bench_local_bam_micro_smoke_subset|bench_local_edna_micro_pipeline(?:_file)?)$/)) or (package(bijux-dna) and binary(=bench_local_slurm) and test(=slurm::all_domain::scripts_file::bench_local_render_all_domain_slurm_scripts_writes_governed_root))'
+test-group = '@global'
+priority = 90
+
 # Other CLI generators retain serialization until their output isolation is qualified.
 [[profile.full.overrides]]
 filter = 'package(bijux-dna) and binary(/^(?:bench_|benchmark_readiness$|config_|dev_crates_|fixtures_|plan_validate_)/)'

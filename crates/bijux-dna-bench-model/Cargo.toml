@@ -6,6 +6,8 @@ edition = "2021"
 license.workspace = true
 rust-version.workspace = true
 [dependencies]
+bijux-dna-bench-stage.workspace = true
+bijux-dna-bench-corpus = { workspace = true, default-features = false, features = ["source-contract", "run-contract"] }
 anyhow = { workspace = true }
 chrono.workspace = true
 fastrand = "2"

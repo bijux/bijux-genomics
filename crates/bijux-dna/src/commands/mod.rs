@@ -24,7 +24,6 @@ pub(crate) use benchmark::fastq_bench as bench;
 pub(crate) use benchmark::paths as benchmark_paths;
 pub(crate) use benchmark::publication as benchmark_publication;
 pub(crate) use benchmark::repo_checks as benchmark_repo_checks;
-pub(crate) use benchmark::stage_catalog as benchmark_stage_catalog;
 pub(crate) use benchmark::suite as bench_suite;
 pub(crate) use benchmark::taxonomy_database as benchmark_taxonomy_database;
 pub(crate) use benchmark::workspace as benchmark_workspace;

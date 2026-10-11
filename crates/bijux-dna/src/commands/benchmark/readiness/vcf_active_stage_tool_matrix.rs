@@ -68,6 +68,6 @@ pub(crate) fn collect_vcf_active_stage_tool_matrix_rows_from_expected(
         inputs, repo_root, &active, &expected,
     )
 }
-fn active_keys(repo_root: &Path) -> Result<Vec<VcfStageReadinessBindingKey>> {
+pub(super) fn active_keys(repo_root: &Path) -> Result<Vec<VcfStageReadinessBindingKey>> {
     Ok(super::all_domain_active_stage_tool_matrix::collect_all_domain_active_stage_tool_matrix_rows(repo_root)?.into_iter().filter(|row|row.domain=="vcf").map(|row|VcfStageReadinessBindingKey {stage_id:row.stage_id,tool_id:row.tool_id,corpus_id:row.corpus_id,asset_profile_id:row.asset_profile_id}).collect())
 }

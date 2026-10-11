@@ -14,7 +14,7 @@ pub const BENCHMARK_DATA_PORTFOLIO_AUDIT_SCHEMA_V2: &str =
 pub const BENCHMARK_DATA_FITNESS_SCHEMA_V1: &str = "bijux.benchmark.data_fitness.v1";
 pub const CORPUS_ACQUISITION_SCHEMA_V1: &str = "bijux.benchmark.corpus_acquisition.v1";
 pub const CORPUS_ACQUISITION_SCHEMA_V2: &str = "bijux.benchmark.corpus_acquisition.v2";
-pub const FASTQ_CORPUS_SOURCE_SCHEMA_V1: &str = "bijux.benchmark.fastq_corpus_source.v1";
+pub use bijux_dna_bench_corpus::source::FASTQ_CORPUS_SOURCE_SCHEMA_V1;
 pub const FASTQ_COMPARABLE_METRICS_SCHEMA_V1: &str =
     "bijux.bench.readiness.fastq_comparable_metrics.v1";
 pub const BAM_COMPARABLE_METRICS_SCHEMA_V1: &str =
@@ -141,10 +141,9 @@ pub const BENCHMARK_STAGE_RESULT_SCHEMA_V2: &str = "bijux.bench.stage_result.v2"
 pub const BENCHMARK_STAGE_RESULT_VALIDATION_SCHEMA_V1: &str =
     "bijux.bench.stage_result_validation.v1";
 pub const BENCHMARK_LOCAL_RUNTIME_METRICS_SCHEMA_V1: &str = "bijux.bench.local_runtime_metrics.v1";
-pub const BENCHMARK_LOCAL_STAGE_INVENTORY_SCHEMA_V1: &str = "bijux.bench.local_stage_inventory.v1";
-pub const BENCHMARK_LOCAL_STAGE_COMMANDS_SCHEMA_V3: &str = "bijux.bench.local_stage_commands.v3";
-pub const BENCHMARK_LOCAL_ALL_DOMAIN_STAGE_INVENTORY_SCHEMA_V1: &str =
-    "bijux.bench.local_all_domain_stage_inventory.v1";
+pub use bijux_dna_bench_stage::BENCHMARK_LOCAL_ALL_DOMAIN_STAGE_INVENTORY_SCHEMA_V1;
+pub use bijux_dna_bench_stage::BENCHMARK_LOCAL_STAGE_COMMANDS_SCHEMA_V3;
+pub use bijux_dna_bench_stage::BENCHMARK_LOCAL_STAGE_INVENTORY_SCHEMA_V1;
 pub const BENCHMARK_LOCAL_HPC_JOB_GRAPH_SCHEMA_V1: &str = "bijux.bench.local_hpc_job_graph.v1";
 pub const BENCHMARK_LOCAL_HPC_ASSET_STAGING_SCHEMA_V1: &str =
     "bijux.bench.local_hpc_asset_staging_manifest.v1";
@@ -183,7 +182,7 @@ pub const BENCHMARK_LOCAL_ALL_DOMAIN_SLURM_SUBMIT_MANIFEST_SCHEMA_V1: &str =
     "bijux.bench.local_all_domain_slurm_submit_manifest.v1";
 pub const BENCHMARK_LOCAL_CORPUS_SKIP_REPORT_SCHEMA_V1: &str =
     "bijux.bench.local_corpus_skip_report.v1";
-pub const BENCHMARK_LOCAL_CORPUS_RUN_SCHEMA_V1: &str = "bijux.fastq.corpus_benchmark_run.v1";
+pub use bijux_dna_bench_corpus::run::BENCHMARK_LOCAL_CORPUS_RUN_SCHEMA_V1;
 pub const BENCHMARK_LOCAL_CORPUS_STAGE_COMPATIBILITY_SCHEMA_V1: &str =
     "bijux.bench.local_corpus_stage_compatibility_validation.v1";
 pub const BENCHMARK_LOCAL_ESSENTIAL_PIPELINE_FAKE_RUNS_SCHEMA_V1: &str =

@@ -9,3 +9,5 @@ Public CLI tests exercise command parsing, request composition, readiness consum
 and stable returned artifact paths. Default and all-feature configurations require
 separate native inventories. Local tool-backed results support only the tools
 actually executed; projected QC reports do not prove external-tool substitution.
+
+Private owner assertions live under `src/`: capability-local `tests.rs` modules and the crate-level `tests/` group. Existing `#[cfg(test)]` declarations compile each case exactly once in the owner library. Shared fixture support remains under `tests/support/`; no extra integration binary or production test API is required. Command integration tests stay with the CLI.

@@ -111,6 +111,43 @@ pub(crate) fn remove_owned_tree(path: &Path) -> Result<()> {
     }
 }
 
+/// Restore directory access before opening each directory. Unix unlink does not
+/// require write permission on regular files, so do not inspect or chmod them.
+#[cfg(unix)]
+fn make_owned_tree_removable(path: &Path) -> Result<()> {
+    use std::os::unix::fs::PermissionsExt;
+
+    let mut directories = vec![path.to_path_buf()];
+    while let Some(directory) = directories.pop() {
+        let metadata = directory.symlink_metadata().with_context(|| {
+            format!("read full shard ephemeral metadata {}", directory.display())
+        })?;
+        if !metadata.is_dir() || metadata.file_type().is_symlink() {
+            continue;
+        }
+        let mut permissions = metadata.permissions();
+        if permissions.mode() & 0o700 != 0o700 {
+            permissions.set_mode(permissions.mode() | 0o700);
+            std::fs::set_permissions(&directory, permissions).with_context(|| {
+                format!("restore owner access to full shard ephemera {}", directory.display())
+            })?;
+        }
+        for entry in std::fs::read_dir(&directory)
+            .with_context(|| format!("list owned artifact directory {}", directory.display()))?
+        {
+            let entry = entry.with_context(|| {
+                format!("read owned artifact directory entry {}", directory.display())
+            })?;
+            if entry.file_type()?.is_dir() {
+                directories.push(entry.path());
+            }
+        }
+    }
+    Ok(())
+}
+
+// Windows removal also needs readonly regular-file attributes cleared.
+#[cfg(not(unix))]
 fn make_owned_tree_removable(path: &Path) -> Result<()> {
     for entry in walkdir::WalkDir::new(path).follow_links(false) {
         let entry = entry.with_context(|| {
@@ -184,6 +221,47 @@ mod tests {
         assert!(error.contains("first-link") && error.contains("last-link"));
         assert!(!good.exists());
         assert_eq!(std::fs::read(external.join("evidence"))?, b"preserved");
+        Ok(())
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn read_only_files_are_removed_without_rewriting_their_permissions() -> Result<()> {
+        use std::os::unix::fs::PermissionsExt;
+        let root = tempfile::tempdir()?;
+        let directory = root.path().join("owned");
+        std::fs::create_dir(&directory)?;
+        let file = directory.join("readonly");
+        std::fs::write(&file, b"owned output")?;
+        std::fs::set_permissions(&file, std::fs::Permissions::from_mode(0o400))?;
+        std::fs::set_permissions(&directory, std::fs::Permissions::from_mode(0o500))?;
+        make_owned_tree_removable(&directory)?;
+        assert_eq!(std::fs::metadata(&file)?.permissions().mode() & 0o777, 0o400);
+        assert_eq!(std::fs::metadata(&directory)?.permissions().mode() & 0o700, 0o700);
+        remove_owned_tree(&directory)?;
+        assert!(!directory.exists());
+        Ok(())
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn nested_read_only_directories_and_external_links_preserve_retained_targets() -> Result<()> {
+        use std::os::unix::fs::{symlink, PermissionsExt};
+        let root = tempfile::tempdir()?;
+        let retained = root.path().join("retained");
+        std::fs::write(&retained, b"retained evidence")?;
+        std::fs::set_permissions(&retained, std::fs::Permissions::from_mode(0o400))?;
+        let owned = root.path().join("owned");
+        let nested = owned.join("nested");
+        std::fs::create_dir_all(&nested)?;
+        std::fs::write(nested.join("output"), b"disposable")?;
+        symlink(&retained, nested.join("external"))?;
+        std::fs::set_permissions(&nested, std::fs::Permissions::from_mode(0o000))?;
+        std::fs::set_permissions(&owned, std::fs::Permissions::from_mode(0o500))?;
+        remove_owned_tree(&owned)?;
+        assert!(!owned.exists());
+        assert_eq!(std::fs::read(&retained)?, b"retained evidence");
+        assert_eq!(std::fs::metadata(&retained)?.permissions().mode() & 0o777, 0o400);
         Ok(())
     }
 }

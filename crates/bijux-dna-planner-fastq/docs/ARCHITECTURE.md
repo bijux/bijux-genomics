@@ -29,6 +29,7 @@ src/tool_adapters/stages/
     profile_overrepresented_sequences.rs
     profile_read_lengths.rs
     validate_reads.rs
+    validate_reads/admission.rs  typed command projection admission
   qc/
     deplete_rrna.rs             rRNA depletion planning
     profile_reads.rs            read profiling planning
@@ -66,3 +67,8 @@ Relative output paths stay relative; absolute paths must use the same subtree
 under the supplied repository root. Parent traversal and sample/tool path injection
 are refused during planning. This is lexical admission; materialization owners
 remain responsible for current filesystem links and concurrent path replacement.
+
+Validation command admission binds the complete argv to the resolved tool/version,
+effective parameters and input/output contract. It reconstructs the canonical
+projection without executing the shell. Plan consistency does not establish
+backend execution or scientific interchangeability.

@@ -1,0 +1,24 @@
+[package]
+name = "bijux-dna-bench-bam-proofs"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+
+[features]
+bam_downstream = ["bijux-dna-bench-bam-evidence/bam_downstream"]
+
+[dependencies]
+anyhow.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+bijux-dna-bench-bam-evidence.workspace = true
+bijux-dna-domain-bam.workspace = true
+bijux-dna-core.workspace = true
+bijux-dna-infra.workspace = true
+
+[dev-dependencies]
+tempfile.workspace = true
+
+[lints]
+workspace = true

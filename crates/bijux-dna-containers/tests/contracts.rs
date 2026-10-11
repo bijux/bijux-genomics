@@ -49,3 +49,6 @@ mod mod_contracts_security_probe_rs;
 mod mod_contracts_security_toolchain_rs;
 #[path = "contracts/tool_contract.rs"]
 mod mod_contracts_tool_contract_rs;
+
+#[path = "contracts/delivery/catalog.rs"]
+mod delivery_catalog;

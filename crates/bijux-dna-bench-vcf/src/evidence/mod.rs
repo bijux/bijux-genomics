@@ -14,3 +14,13 @@ pub mod registry;
 pub mod inputs;
 
 pub mod results;
+
+pub mod metrics;
+
+pub mod adapters;
+
+pub mod smoke;
+
+pub mod completion;
+
+pub mod readiness;

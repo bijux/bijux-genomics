@@ -10,5 +10,5 @@ mod execution;
 pub mod inputs;
 
 #[cfg(test)]
-#[path = "../tests/contracts/output.rs"]
+#[path = "tests/output.rs"]
 mod output_tests;

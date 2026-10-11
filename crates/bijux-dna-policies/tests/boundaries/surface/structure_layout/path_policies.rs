@@ -86,7 +86,7 @@ fn policy__boundaries__path_policies__src_bin_requires_bin_targets() {
 }
 
 #[test]
-fn policy__boundaries__path_policies__src_does_not_contain_test_paths() {
+fn policy__boundaries__path_policies__src_test_paths_are_explicitly_test_only() {
     let root = workspace_root();
     let mut offenders = Vec::new();
 
@@ -103,16 +103,64 @@ fn policy__boundaries__path_policies__src_does_not_contain_test_paths() {
         if rel == "crates/bijux-dna-testkit/src/temp/test_paths.rs" {
             continue;
         }
-        if name.contains("test") {
+        if name.contains("test") && !is_explicit_private_test_path(path) {
             offenders.push(path.display().to_string());
         }
     }
 
     bijux_dna_policies::policy_assert!(
         offenders.is_empty(),
-        "src paths must not include *test* names:\n{}",
+        "src test paths must contain only explicitly test-gated Rust modules:\n{}",
         offenders.join("\n")
     );
+}
+
+fn is_explicit_private_test_source(path: &Path) -> bool {
+    if path.extension().and_then(|extension| extension.to_str()) != Some("rs") {
+        return false;
+    }
+    let Ok(source) = std::fs::read_to_string(path) else { return false };
+    bijux_dna_testkit::workspace_support::strip_rust_test_modules(&source).trim().is_empty()
+        && !bijux_dna_testkit::workspace_support::select_rust_test_modules(&source)
+            .trim()
+            .is_empty()
+}
+
+fn is_explicit_private_test_path(path: &Path) -> bool {
+    if path.is_file() {
+        return is_explicit_private_test_source(path);
+    }
+    let mut sources = 0usize;
+    for entry in WalkDir::new(path).into_iter().skip(1) {
+        let Ok(entry) = entry else { return false };
+        if entry.file_type().is_dir() {
+            continue;
+        }
+        if !entry.file_type().is_file() || !is_explicit_private_test_source(entry.path()) {
+            return false;
+        }
+        sources += 1;
+    }
+    sources > 0
+}
+
+#[test]
+fn policy__boundaries__path_policies__private_test_paths_reject_production_and_empty_groups() {
+    let root = bijux_dna_testkit::temp::tempdir_for("private-test-path-policy");
+    let tests = root.path().join("tests");
+    std::fs::create_dir(&tests).expect("create private test group");
+    assert!(!is_explicit_private_test_path(&tests));
+    let file = tests.join("fixture.rs");
+    std::fs::write(&file, "#![cfg(test)]\nfn fixture() {}\n").expect("write test-only source");
+    assert!(is_explicit_private_test_path(&file));
+    assert!(is_explicit_private_test_path(&tests));
+    let production = tests.join("production.rs");
+    std::fs::write(&production, "pub fn production() {}\n").expect("write production source");
+    assert!(!is_explicit_private_test_path(&production));
+    assert!(!is_explicit_private_test_path(&tests));
+    std::fs::write(&production, "const MARKER: &str = \"#![cfg(test)]\";\n")
+        .expect("write literal cfg marker");
+    assert!(!is_explicit_private_test_path(&production));
 }
 
 fn run_artifact_literal_offenders(targets: &[PathBuf]) -> anyhow::Result<Vec<PathBuf>> {

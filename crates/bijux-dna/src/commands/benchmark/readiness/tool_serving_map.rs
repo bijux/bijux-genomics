@@ -1,62 +1,24 @@
-use std::collections::{BTreeMap, BTreeSet};
-use std::fs;
+use crate::commands::cli::{parse, render};
+use anyhow::{Context, Result};
+use bijux_dna_bench_bindings::serving as owner;
 use std::path::{Path, PathBuf};
-
-use anyhow::{anyhow, Context, Result};
-use bijux_dna_core::ids::StageId;
-use bijux_dna_domain_bam::{
-    bam_scientific_report_contract_for_stage, bam_stage_completeness, BamStage,
-};
-use bijux_dna_domain_fastq::{
-    benchmark_readiness_for_stage_tool, stage_tool_bindings_for_stage,
-    stage_tool_capability_contract, BenchmarkReadinessLevel, RuntimeNormalizationLevel,
-};
-use bijux_dna_planner_bam::stage_api::{
-    allowed_tools_for_stage as allowed_bam_tools_for_stage, assess_bam_tool_definition,
-    load_bam_domain_tool_definition,
-};
-use serde::Serialize;
-
-use super::active_scope::include_fastq_active_benchmark_pair;
-use super::catalog::load_benchmark_integrated_container_tool_ids;
-use crate::commands::benchmark::local_corpus_stage_compatibility::{
-    load_corpus_stage_compatibility_declarations, DEFAULT_CORPUS_STAGE_COMPATIBILITY_PATH,
-};
-use crate::commands::benchmark::local_stage_inventory::{
-    load_local_stage_inventory, BenchLocalDomain,
-};
-use crate::commands::cli::parse;
-use crate::commands::cli::render;
-
 pub(crate) const DEFAULT_FASTQ_TOOL_SERVING_MAP_PATH: &str =
     "artifacts/benchmark-smoke/readiness/fastq/fastq-tool-serving-map.tsv";
 pub(crate) const DEFAULT_BAM_TOOL_SERVING_MAP_PATH: &str =
     "artifacts/benchmark-smoke/readiness/bam/bam-tool-serving-map.tsv";
-const FASTQ_TOOL_SERVING_MAP_SCHEMA_VERSION: &str =
-    "bijux.bench.readiness.fastq_tool_serving_map.v1";
-const BAM_TOOL_SERVING_MAP_SCHEMA_VERSION: &str = "bijux.bench.readiness.bam_tool_serving_map.v1";
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub(crate) struct ToolServingMapRow {
-    pub(crate) tool_id: String,
-    pub(crate) stage_id: String,
-    pub(crate) support_status: String,
-    pub(crate) adapter_status: String,
-    pub(crate) parser_status: String,
-    pub(crate) corpus_status: String,
-}
-
-#[derive(Debug, Clone, Serialize)]
-pub(crate) struct ToolServingMapReport {
-    pub(crate) schema_version: &'static str,
-    pub(crate) domain: &'static str,
-    pub(crate) output_path: String,
-    pub(crate) stage_count: usize,
-    pub(crate) tool_count: usize,
-    pub(crate) row_count: usize,
-    pub(crate) rows: Vec<ToolServingMapRow>,
-}
-
+use super::binding_evidence::ServingAdapter;
+#[cfg(test)]
+use super::catalog::load_benchmark_integrated_container_tool_ids;
+#[cfg(test)]
+use crate::commands::benchmark::local_stage_inventory::{
+    load_local_stage_inventory, BenchLocalDomain,
+};
+use bijux_dna_bench_bindings::observations::Domain;
+pub(crate) use owner::{ToolServingMapReport, ToolServingMapRow};
+#[cfg(test)]
+use owner::{BAM_TOOL_SERVING_MAP_SCHEMA_VERSION, FASTQ_TOOL_SERVING_MAP_SCHEMA_VERSION};
+use std::collections::BTreeMap;
 pub(crate) fn run_render_fastq_tool_serving_map(
     args: &parse::BenchReadinessRenderFastqToolServingMapArgs,
 ) -> Result<()> {
@@ -72,7 +34,21 @@ pub(crate) fn run_render_fastq_tool_serving_map(
     }
     Ok(())
 }
-
+pub(crate) fn render_fastq_tool_serving_map(
+    repo_root: &Path,
+    output_path: PathBuf,
+) -> Result<ToolServingMapReport> {
+    owner::render_fastq_tool_serving_map(
+        &ServingAdapter::default().context(repo_root),
+        &output_path,
+    )
+}
+pub(crate) fn collect_fastq_tool_serving_map_rows(
+    repo_root: &Path,
+) -> Result<(usize, usize, Vec<ToolServingMapRow>)> {
+    let observed = owner::collect(&ServingAdapter::default().context(repo_root), Domain::Fastq)?;
+    Ok((observed.stage_count, observed.tool_count, observed.rows))
+}
 pub(crate) fn run_render_bam_tool_serving_map(
     args: &parse::BenchReadinessRenderBamToolServingMapArgs,
 ) -> Result<()> {
@@ -88,362 +64,20 @@ pub(crate) fn run_render_bam_tool_serving_map(
     }
     Ok(())
 }
-
-pub(crate) fn render_fastq_tool_serving_map(
-    repo_root: &Path,
-    output_path: PathBuf,
-) -> Result<ToolServingMapReport> {
-    let output_path = repo_relative_path(repo_root, &output_path);
-    let (stage_count, tool_count, rows) = collect_fastq_tool_serving_map_rows(repo_root)?;
-
-    if let Some(parent) = output_path.parent() {
-        fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
-    }
-    fs::write(&output_path, render_tool_serving_map_tsv(&rows))
-        .with_context(|| format!("write {}", output_path.display()))?;
-
-    Ok(ToolServingMapReport {
-        schema_version: FASTQ_TOOL_SERVING_MAP_SCHEMA_VERSION,
-        domain: "fastq",
-        output_path: path_relative_to_repo(repo_root, &output_path),
-        stage_count,
-        tool_count,
-        row_count: rows.len(),
-        rows,
-    })
-}
-
-pub(crate) fn collect_fastq_tool_serving_map_rows(
-    repo_root: &Path,
-) -> Result<(usize, usize, Vec<ToolServingMapRow>)> {
-    let corpus_status_by_stage = load_corpus_status_by_stage(repo_root)?;
-    let integrated_container_tool_ids = load_benchmark_integrated_container_tool_ids(repo_root)?;
-    let inventory = load_local_stage_inventory(repo_root, BenchLocalDomain::Fastq)?;
-    let mut rows = Vec::new();
-    let mut tool_ids = BTreeSet::new();
-    for inventory_stage in &inventory.stages {
-        let stage_id = StageId::new(inventory_stage.stage_id.clone());
-        let corpus_status =
-            corpus_status_by_stage.get(inventory_stage.stage_id.as_str()).ok_or_else(|| {
-                anyhow!(
-                    "FASTQ local corpus compatibility report is missing stage `{}`",
-                    inventory_stage.stage_id
-                )
-            })?;
-        for binding in stage_tool_bindings_for_stage(&stage_id) {
-            if !integrated_container_tool_ids.contains(binding.tool_id.as_str()) {
-                continue;
-            }
-            let runtime_normalization =
-                runtime_normalization_for_stage_tool(&binding.stage_id, &binding.tool_id);
-            let capability = stage_tool_capability_contract(
-                &binding.stage_id,
-                &binding.tool_id,
-                runtime_normalization,
-            )
-            .ok_or_else(|| {
-                anyhow!(
-                    "missing FASTQ capability contract for `{}` / `{}`",
-                    binding.stage_id.as_str(),
-                    binding.tool_id.as_str()
-                )
-            })?;
-            let readiness = benchmark_readiness_for_stage_tool(
-                &binding.stage_id,
-                &binding.tool_id,
-                runtime_normalization,
-            )
-            .ok_or_else(|| {
-                anyhow!(
-                    "missing FASTQ benchmark readiness for `{}` / `{}`",
-                    binding.stage_id.as_str(),
-                    binding.tool_id.as_str()
-                )
-            })?;
-            if !include_fastq_active_benchmark_pair(
-                binding.stage_id.as_str(),
-                binding.tool_id.as_str(),
-            ) {
-                continue;
-            }
-            tool_ids.insert(binding.tool_id.as_str().to_string());
-            rows.push(ToolServingMapRow {
-                tool_id: binding.tool_id.as_str().to_string(),
-                stage_id: binding.stage_id.as_str().to_string(),
-                support_status: benchmark_readiness_label(readiness).to_string(),
-                adapter_status: adapter_status_label(&capability).to_string(),
-                parser_status: parser_status_label(&capability).to_string(),
-                corpus_status: corpus_status.clone(),
-            });
-        }
-    }
-    rows.sort_by(|left, right| {
-        left.tool_id.cmp(&right.tool_id).then_with(|| left.stage_id.cmp(&right.stage_id))
-    });
-    ensure_fastq_amplicon_fixture_coverage(&rows)?;
-
-    Ok((inventory.stage_count, tool_ids.len(), rows))
-}
-
-fn ensure_fastq_amplicon_fixture_coverage(rows: &[ToolServingMapRow]) -> Result<()> {
-    let expected_rows = [
-        (
-            "cutadapt",
-            "fastq.normalize_primers",
-            "governed_benchmark_cohort",
-            "runnable",
-            "benchmark_normalized",
-        ),
-        (
-            "vsearch",
-            "fastq.remove_chimeras",
-            "governed_benchmark_cohort",
-            "runnable",
-            "benchmark_normalized",
-        ),
-        ("dada2", "fastq.infer_asvs", "governed_execution", "runnable", "parse_normalized"),
-        (
-            "vsearch",
-            "fastq.cluster_otus",
-            "governed_benchmark_cohort",
-            "runnable",
-            "benchmark_normalized",
-        ),
-        (
-            "seqkit",
-            "fastq.normalize_abundance",
-            "governed_benchmark_cohort",
-            "runnable",
-            "benchmark_normalized",
-        ),
-    ];
-
-    for (tool_id, stage_id, support_status, adapter_status, parser_status) in expected_rows {
-        let row =
-            rows.iter().find(|row| row.tool_id == tool_id && row.stage_id == stage_id).ok_or_else(
-                || anyhow!("FASTQ amplicon serving map is missing `{stage_id}` / `{tool_id}`"),
-            )?;
-        if row.support_status != support_status
-            || row.adapter_status != adapter_status
-            || row.parser_status != parser_status
-            || row.corpus_status != "fixture:corpus-03-amplicon-mini"
-        {
-            return Err(anyhow!(
-                "FASTQ amplicon serving row `{stage_id}` / `{tool_id}` must keep its governed corpus-03 readiness contract"
-            ));
-        }
-    }
-
-    Ok(())
-}
-
 pub(crate) fn render_bam_tool_serving_map(
     repo_root: &Path,
     output_path: PathBuf,
 ) -> Result<ToolServingMapReport> {
-    let output_path = repo_relative_path(repo_root, &output_path);
-    let (stage_count, tool_count, rows) = collect_bam_tool_serving_map_rows(repo_root)?;
-
-    if let Some(parent) = output_path.parent() {
-        fs::create_dir_all(parent).with_context(|| format!("create {}", parent.display()))?;
-    }
-    fs::write(&output_path, render_tool_serving_map_tsv(&rows))
-        .with_context(|| format!("write {}", output_path.display()))?;
-
-    Ok(ToolServingMapReport {
-        schema_version: BAM_TOOL_SERVING_MAP_SCHEMA_VERSION,
-        domain: "bam",
-        output_path: path_relative_to_repo(repo_root, &output_path),
-        stage_count,
-        tool_count,
-        row_count: rows.len(),
-        rows,
-    })
+    owner::render_bam_tool_serving_map(&ServingAdapter::default().context(repo_root), &output_path)
 }
-
 pub(crate) fn collect_bam_tool_serving_map_rows(
     repo_root: &Path,
 ) -> Result<(usize, usize, Vec<ToolServingMapRow>)> {
-    let corpus_status_by_stage = load_corpus_status_by_stage(repo_root)?;
-    let integrated_container_tool_ids = load_benchmark_integrated_container_tool_ids(repo_root)?;
-    let inventory = load_local_stage_inventory(repo_root, BenchLocalDomain::Bam)?;
-    let mut rows = Vec::new();
-    let mut definitions = BTreeMap::new();
-    let mut tool_ids = BTreeSet::new();
-    for inventory_stage in &inventory.stages {
-        let stage = BamStage::try_from(inventory_stage.stage_id.as_str())
-            .with_context(|| format!("resolve BAM stage `{}`", inventory_stage.stage_id))?;
-        let stage_id = StageId::new(inventory_stage.stage_id.clone());
-        let corpus_status =
-            corpus_status_by_stage.get(inventory_stage.stage_id.as_str()).ok_or_else(|| {
-                anyhow!(
-                    "BAM local corpus compatibility report is missing stage `{}`",
-                    inventory_stage.stage_id
-                )
-            })?;
-        let parser_status = bam_parser_status_label(stage);
-        for tool_id in allowed_bam_tools_for_stage(stage) {
-            if !integrated_container_tool_ids.contains(tool_id.as_str()) {
-                continue;
-            }
-            tool_ids.insert(tool_id.as_str().to_string());
-            let definition = definitions
-                .entry(tool_id.clone())
-                .or_insert_with(|| load_bam_domain_tool_definition(repo_root, &tool_id))
-                .as_ref()
-                .ok();
-            let readiness = assess_bam_tool_definition(definition, &stage_id);
-            rows.push(ToolServingMapRow {
-                tool_id: tool_id.as_str().to_string(),
-                stage_id: stage_id.as_str().to_string(),
-                support_status: readiness.support.as_str().to_string(),
-                adapter_status: readiness.adapter.as_str().to_string(),
-                parser_status: parser_status.to_string(),
-                corpus_status: corpus_status.clone(),
-            });
-        }
-    }
-    rows.sort_by(|left, right| {
-        left.tool_id.cmp(&right.tool_id).then_with(|| left.stage_id.cmp(&right.stage_id))
-    });
-
-    Ok((inventory.stage_count, tool_ids.len(), rows))
+    let observed = owner::collect(&ServingAdapter::default().context(repo_root), Domain::Bam)?;
+    Ok((observed.stage_count, observed.tool_count, observed.rows))
 }
-
-fn runtime_normalization_for_stage_tool(
-    stage_id: &StageId,
-    tool_id: &bijux_dna_core::ids::ToolId,
-) -> RuntimeNormalizationLevel {
-    match bijux_dna_stages_fastq::runtime_interpretation_for_stage_tool(stage_id, tool_id)
-        .unwrap_or(bijux_dna_stages_fastq::RuntimeInterpretationLevel::GenericEnvelope)
-    {
-        bijux_dna_stages_fastq::RuntimeInterpretationLevel::GenericEnvelope => {
-            RuntimeNormalizationLevel::GenericEnvelope
-        }
-        bijux_dna_stages_fastq::RuntimeInterpretationLevel::ObserverSpecialized => {
-            RuntimeNormalizationLevel::ObserverSpecialized
-        }
-    }
-}
-
-fn benchmark_readiness_label(readiness: BenchmarkReadinessLevel) -> &'static str {
-    match readiness {
-        BenchmarkReadinessLevel::PlannedContract => "planned_contract",
-        BenchmarkReadinessLevel::GovernedExecution => "governed_execution",
-        BenchmarkReadinessLevel::GovernedBenchmarkCohort => "governed_benchmark_cohort",
-        BenchmarkReadinessLevel::ObserverSpecializedBenchmark => "observer_specialized_benchmark",
-    }
-}
-
-fn adapter_status_label(
-    capability: &bijux_dna_domain_fastq::StageToolCapabilityContract,
-) -> &'static str {
-    if capability.runnable {
-        "runnable"
-    } else if capability.plannable {
-        "plannable"
-    } else if capability.declared {
-        "declared_only"
-    } else {
-        "missing"
-    }
-}
-
-fn parser_status_label(
-    capability: &bijux_dna_domain_fastq::StageToolCapabilityContract,
-) -> &'static str {
-    if capability.comparable {
-        "comparable"
-    } else if capability.benchmark_normalized {
-        "benchmark_normalized"
-    } else if capability.parse_normalized {
-        "parse_normalized"
-    } else {
-        "not_normalized"
-    }
-}
-
 pub(crate) fn load_corpus_status_by_stage(repo_root: &Path) -> Result<BTreeMap<String, String>> {
-    let matrix_path = repo_root.join(DEFAULT_CORPUS_STAGE_COMPATIBILITY_PATH);
-    load_corpus_stage_compatibility_declarations(&matrix_path)?
-        .iter()
-        .map(|entry| {
-            let corpus_status = match entry.compatibility_kind.as_str() {
-                "fixture" => {
-                    let fixture_id = entry.fixture_id.as_deref().ok_or_else(|| {
-                        anyhow!(
-                            "stage `{}` is marked fixture-backed without a fixture_id",
-                            entry.stage_id
-                        )
-                    })?;
-                    Ok(format!("fixture:{fixture_id}"))
-                }
-                "asset_backed" => {
-                    let benchmark_scope_id =
-                        entry.benchmark_scope_id.as_deref().ok_or_else(|| {
-                            anyhow!(
-                                "stage `{}` is marked asset-backed without a benchmark_scope_id",
-                                entry.stage_id
-                            )
-                        })?;
-                    Ok(format!("asset:{benchmark_scope_id}"))
-                }
-                "planner_only" => Ok("planner_only".to_string()),
-                other => Err(anyhow!(
-                    "stage `{}` declares unsupported corpus compatibility kind `{other}`",
-                    entry.stage_id
-                )),
-            }?;
-            Ok((entry.stage_id.clone(), corpus_status))
-        })
-        .collect::<Result<BTreeMap<_, _>>>()
-}
-
-fn bam_parser_status_label(stage: BamStage) -> &'static str {
-    let completeness = bam_stage_completeness(stage);
-    if completeness.has_parser_fixtures {
-        "parser_fixture_validated"
-    } else if bam_scientific_report_contract_for_stage(stage.as_str()).is_some() {
-        "scientific_report_contract"
-    } else if completeness.has_artifact_contract {
-        "artifact_contract_only"
-    } else {
-        "missing"
-    }
-}
-
-fn render_tool_serving_map_tsv(rows: &[ToolServingMapRow]) -> String {
-    let mut rendered = String::from(
-        "tool_id\tstage_id\tsupport_status\tadapter_status\tparser_status\tcorpus_status\n",
-    );
-    for row in rows {
-        rendered.push_str(&format!(
-            "{}\t{}\t{}\t{}\t{}\t{}\n",
-            sanitize_tsv(&row.tool_id),
-            sanitize_tsv(&row.stage_id),
-            sanitize_tsv(&row.support_status),
-            sanitize_tsv(&row.adapter_status),
-            sanitize_tsv(&row.parser_status),
-            sanitize_tsv(&row.corpus_status),
-        ));
-    }
-    rendered
-}
-
-fn sanitize_tsv(value: &str) -> String {
-    value.replace(['\t', '\n', '\r'], " ")
-}
-
-fn repo_relative_path(repo_root: &Path, candidate: &Path) -> PathBuf {
-    if candidate.is_absolute() {
-        candidate.to_path_buf()
-    } else {
-        repo_root.join(candidate)
-    }
-}
-
-fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
-    path.strip_prefix(repo_root).unwrap_or(path).to_string_lossy().replace('\\', "/")
+    owner::load_corpus_status_by_stage(&ServingAdapter::default().context(repo_root))
 }
 
 #[cfg(test)]

@@ -11,15 +11,23 @@ name = "bijux-dna"
 path = "src/bin/bijux-dna.rs"
 
 [dependencies]
+bijux-dna-bench-stage = { workspace = true, features = ["execution"] }
+bijux-dna-bench-campaign.workspace = true
+bijux-dna-bench-parser-proofs = { workspace = true, features = ["fastq", "bam"] }
 bijux-dna-bench-artifacts.workspace = true
+bijux-dna-bench-fastq.workspace = true
+bijux-dna-bench-hpc.workspace = true
 bijux-dna-bench-vcf.workspace = true
+bijux-dna-bench-bam-evidence.workspace = true
+bijux-dna-bench-bam-proofs.workspace = true
+bijux-dna-bench-bindings.workspace = true
 bijux-dna-bench-vcf-evidence.workspace = true
 bijux-dna-bench-population.workspace = true
 bijux-dna-bench-haplotypes.workspace = true
 bijux-dna-bench-genotypes.workspace = true
 bijux-dna-bench-variants.workspace = true
 bijux-dna-bench-workflows = { workspace = true, features = ["genomics"] }
-bijux-dna-bench-corpus = { workspace = true, features = ["alignment", "variants", "panel-metadata"] }
+bijux-dna-bench-corpus = { workspace = true, features = ["run-contract", "alignment", "variants", "panel-metadata"] }
 bijux-dna-api.workspace = true
 bijux-dna-core.workspace = true
 bijux-dna-domain-bam.workspace = true
@@ -52,7 +60,7 @@ schemars.workspace = true
 zip.workspace = true
 
 [features]
-bam_downstream = ["bijux-dna-api/bam_downstream"]
+bam_downstream = ["bijux-dna-api/bam_downstream", "bijux-dna-bench-bam-evidence/bam_downstream", "bijux-dna-bench-bam-proofs/bam_downstream"]
 bench = ["bijux-dna-api/bench"]
 docker-runner = ["bijux-dna-api/docker-runner"]
 report-html = ["bijux-dna-api/report-html"]

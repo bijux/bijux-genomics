@@ -4,7 +4,7 @@ use super::{
 };
 use crate::{
     adapters::observations::VcfAdapterObservations,
-    fixtures::inputs::load_governed_vcf_fixture_inputs, inputs::VcfAdapterInputs,
+    fixtures::inputs::load_governed_vcf_fixture_inputs,
 };
 use anyhow::{anyhow, Result};
 use std::path::Path;
@@ -38,11 +38,10 @@ fn probe_roles(
 }
 
 pub(super) fn collect_vcf_adapter_missing_input_test_rows(
-    inputs: &VcfAdapterInputs,
-    repo_root: &Path,
+    observations: &VcfAdapterObservations<'_>,
 ) -> Result<Vec<VcfAdapterMissingInputTestRow>> {
+    let repo_root = observations.repo_root();
     let temp_root = repo_root.join("artifacts/bench-readiness/vcf-missing-input-tests");
-    let observations = VcfAdapterObservations::new(inputs, repo_root);
     let bcftools_report =
         observations.publish_bcftools(&temp_root.join("bcftools.adapter.json"))?;
     let plink2_report =

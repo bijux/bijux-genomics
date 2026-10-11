@@ -9,7 +9,7 @@ fn command_scripts_keep_repository_identity_outside_the_repository() -> Result<(
     let sandbox = tempfile::tempdir()?;
     let repo = sandbox.path().join("repository with spaces");
     std::fs::create_dir_all(&repo)?;
-    let output = sandbox.path().join("external/scripts/commands.sh");
+    let output = sandbox.path().join("external").join("scripts").join("commands.sh");
     std::fs::create_dir_all(output.parent().ok_or_else(|| anyhow::anyhow!("script parent"))?)?;
     let observed = sandbox.path().join("observed-root.txt");
     let mut script = match super::paths::script_repository_root(&repo, &output)? {

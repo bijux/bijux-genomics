@@ -277,6 +277,15 @@ fn render_fastq_stage_tool_argv(
     tool_id: &str,
     base_plan: &StagePlanV1,
 ) -> Result<Vec<String>> {
+    Ok(plan_fastq_stage_tool_command(repo_root, stage_id, tool_id, base_plan)?.command.template)
+}
+
+fn plan_fastq_stage_tool_command(
+    repo_root: &Path,
+    stage_id: &str,
+    tool_id: &str,
+    base_plan: &StagePlanV1,
+) -> Result<StagePlanV1> {
     let stage_id_value = StageId::new(stage_id.to_string());
     let tool_id_value = ToolId::new(tool_id.to_string());
     let tool = bijux_dna_planner_fastq::stage_api::load_fastq_domain_tool_execution_spec(
@@ -334,7 +343,7 @@ fn render_fastq_stage_tool_argv(
             )
         }
         .with_context(|| format!("plan FASTQ benchmark command row `{stage_id}` / `{tool_id}`"))?;
-        return Ok(plan.command.template);
+        return Ok(plan);
     }
     let params = project_fastq_benchmark_params_for_tool(
         stage_id,
@@ -402,7 +411,7 @@ fn render_fastq_stage_tool_argv(
         )
     }
     .with_context(|| format!("plan FASTQ benchmark command row `{stage_id}` / `{tool_id}`"))?;
-    Ok(plan.command.template)
+    Ok(plan)
 }
 
 fn render_bam_stage_tool_argv(
@@ -635,3 +644,6 @@ fn ensure_unique_rows(rows: &[BenchmarkCommandRow]) -> Result<()> {
     }
     Ok(())
 }
+
+mod validation_command;
+pub(crate) use validation_command::validate_benchmark_validation_command;

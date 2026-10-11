@@ -6,9 +6,8 @@ use std::path::{Path, PathBuf};
 
 use anyhow::{bail, Context, Result};
 use bijux_dna_bench_model::{
-    validate_corpus_acquisition_plan, validate_fastq_corpus_source_spec,
-    BenchmarkDataSourceCollection, BenchmarkDataSourceSpec, CorpusAcquisitionFile,
-    CorpusAcquisitionLayout, CorpusAcquisitionPlan, CorpusAcquisitionSample,
+    validate_corpus_acquisition_plan, BenchmarkDataSourceCollection, BenchmarkDataSourceSpec,
+    CorpusAcquisitionFile, CorpusAcquisitionLayout, CorpusAcquisitionPlan, CorpusAcquisitionSample,
     FastqCorpusSourceSample, FastqCorpusSourceSpec, CORPUS_ACQUISITION_SCHEMA_V2,
 };
 use bijux_dna_db_ena::{
@@ -16,7 +15,6 @@ use bijux_dna_db_ena::{
     EnaResultKind, EnaSourcePreference,
 };
 use chrono::{DateTime, FixedOffset};
-const MAX_CORPUS_SPEC_BYTES: usize = 4 * 1024 * 1024;
 const MAX_ENA_OFFLINE_FIXTURE_BYTES: usize = 64 * 1024 * 1024;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -152,15 +150,7 @@ pub fn derive_fastq_corpus_acquisition_plan(
 ///
 /// # Errors
 /// Returns an error when the declaration is unreadable, malformed, or violates source policy.
-pub fn load_fastq_corpus_source_spec(path: &Path) -> Result<FastqCorpusSourceSpec> {
-    let bytes = bijux_dna_infra::read_to_end_bounded(path, MAX_CORPUS_SPEC_BYTES)
-        .with_context(|| format!("read corpus specification {}", path.display()))?;
-    let spec: FastqCorpusSourceSpec =
-        toml::from_str(std::str::from_utf8(&bytes).context("corpus specification is not UTF-8")?)
-            .with_context(|| format!("parse corpus specification {}", path.display()))?;
-    validate_fastq_corpus_source_spec(&spec).context("validate FASTQ corpus source")?;
-    Ok(spec)
-}
+pub use bijux_dna_bench_corpus::normalized::load_fastq_corpus_source_spec;
 
 fn derive_plan(
     spec_path: &Path,

@@ -128,7 +128,6 @@ pub(crate) mod schema_paths;
 pub(crate) mod schema_validation;
 #[cfg(test)]
 pub(crate) mod scratch_repository;
-pub(crate) mod stage_catalog;
 pub(crate) mod suite;
 pub(crate) mod taxonomy_database;
 pub(crate) mod vcf_benchmark_bindings;

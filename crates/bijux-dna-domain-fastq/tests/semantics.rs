@@ -15,3 +15,6 @@ mod mod_semantics_retention_truth_table_rs;
 mod mod_semantics_stage_params_rs;
 #[path = "semantics/tool_models.rs"]
 mod mod_semantics_tool_models_rs;
+
+#[path = "semantics/validation_evidence.rs"]
+mod validation_evidence;

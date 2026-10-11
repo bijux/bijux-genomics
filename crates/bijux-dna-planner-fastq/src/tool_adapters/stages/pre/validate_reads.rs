@@ -955,3 +955,6 @@ mod tests {
         Ok(())
     }
 }
+
+mod admission;
+pub use admission::validate_command_projection;

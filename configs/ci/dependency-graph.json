@@ -558,6 +558,86 @@
       "gates": [
         "crate-tests:bijux-dna-bench-vcf-evidence"
       ]
+    },
+    {
+      "id": "crate:bijux-dna-bench-fastq",
+      "kind": "crate",
+      "paths": [
+        "crates/bijux-dna-bench-fastq/"
+      ],
+      "gates": [
+        "crate-tests:bijux-dna-bench-fastq"
+      ]
+    },
+    {
+      "id": "crate:bijux-dna-bench-hpc",
+      "kind": "crate",
+      "paths": [
+        "crates/bijux-dna-bench-hpc/"
+      ],
+      "gates": [
+        "crate-tests:bijux-dna-bench-hpc"
+      ]
+    },
+    {
+      "id": "crate:bijux-dna-bench-bam-evidence",
+      "kind": "crate",
+      "paths": [
+        "crates/bijux-dna-bench-bam-evidence/"
+      ],
+      "gates": [
+        "crate-tests:bijux-dna-bench-bam-evidence"
+      ]
+    },
+    {
+      "id": "crate:bijux-dna-bench-bindings",
+      "kind": "crate",
+      "paths": [
+        "crates/bijux-dna-bench-bindings/"
+      ],
+      "gates": [
+        "crate-tests:bijux-dna-bench-bindings"
+      ]
+    },
+    {
+      "id": "crate:bijux-dna-bench-bam-proofs",
+      "kind": "crate",
+      "paths": [
+        "crates/bijux-dna-bench-bam-proofs/"
+      ],
+      "gates": [
+        "crate-tests:bijux-dna-bench-bam-proofs"
+      ]
+    },
+    {
+      "id": "crate:bijux-dna-bench-campaign",
+      "kind": "crate",
+      "paths": [
+        "crates/bijux-dna-bench-campaign/"
+      ],
+      "gates": [
+        "crate-tests:bijux-dna-bench-campaign"
+      ]
+    },
+    {
+      "id": "crate:bijux-dna-bench-parser-proofs",
+      "kind": "crate",
+      "paths": [
+        "crates/bijux-dna-bench-parser-proofs/"
+      ],
+      "gates": [
+        "crate-tests:bijux-dna-bench-parser-proofs"
+      ]
+    },
+    {
+      "id": "crate:bijux-dna-bench-stage",
+      "kind": "crate",
+      "paths": [
+        "crates/bijux-dna-bench-stage/"
+      ],
+      "gates": [
+        "crate-tests:bijux-dna-bench-stage"
+      ]
     }
   ],
   "edges": [
@@ -1924,6 +2004,186 @@
     {
       "consumer": "crate:bijux-dna-bench-vcf",
       "dependency": "crate:bijux-dna-core",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna",
+      "dependency": "crate:bijux-dna-bench-fastq",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench-fastq",
+      "dependency": "crate:bijux-dna-domain-fastq",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench-fastq",
+      "dependency": "crate:bijux-dna-infra",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench-fastq",
+      "dependency": "crate:bijux-dna-stage-contract",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna",
+      "dependency": "crate:bijux-dna-bench-hpc",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench-hpc",
+      "dependency": "crate:bijux-dna-bench-model",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench-hpc",
+      "dependency": "crate:bijux-dna-core",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench-hpc",
+      "dependency": "crate:bijux-dna-infra",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna",
+      "dependency": "crate:bijux-dna-bench-bam-evidence",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench-bam-evidence",
+      "dependency": "crate:bijux-dna-infra",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench-bam-evidence",
+      "dependency": "crate:bijux-dna-core",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna",
+      "dependency": "crate:bijux-dna-bench-bindings",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench-bindings",
+      "dependency": "crate:bijux-dna-core",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench-bindings",
+      "dependency": "crate:bijux-dna-infra",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench-bam-evidence",
+      "dependency": "crate:bijux-dna-bench-bindings",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench-corpus",
+      "dependency": "crate:bijux-dna-core",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna",
+      "dependency": "crate:bijux-dna-bench-bam-proofs",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench-bam-proofs",
+      "dependency": "crate:bijux-dna-bench-bam-evidence",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench-bam-proofs",
+      "dependency": "crate:bijux-dna-core",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench-bam-proofs",
+      "dependency": "crate:bijux-dna-domain-bam",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench-bam-proofs",
+      "dependency": "crate:bijux-dna-infra",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench-fastq",
+      "dependency": "crate:bijux-dna-core",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench",
+      "dependency": "crate:bijux-dna-bench-corpus",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench-model",
+      "dependency": "crate:bijux-dna-bench-corpus",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna",
+      "dependency": "crate:bijux-dna-bench-campaign",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench-campaign",
+      "dependency": "crate:bijux-dna-bench-corpus",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna",
+      "dependency": "crate:bijux-dna-bench-parser-proofs",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench-parser-proofs",
+      "dependency": "crate:bijux-dna-bench-bam-proofs",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench-parser-proofs",
+      "dependency": "crate:bijux-dna-bench-fastq",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench-parser-proofs",
+      "dependency": "crate:bijux-dna-infra",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna",
+      "dependency": "crate:bijux-dna-bench-stage",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench",
+      "dependency": "crate:bijux-dna-bench-stage",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench-model",
+      "dependency": "crate:bijux-dna-bench-stage",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench-stage",
+      "dependency": "crate:bijux-dna-core",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench-stage",
+      "dependency": "crate:bijux-dna-infra",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench-stage",
+      "dependency": "crate:bijux-dna-stage-contract",
       "kind": "normal"
     }
   ]

@@ -13,8 +13,21 @@ pub fn render_vcf_adapter_missing_input_audit(
     repo_root: &Path,
     output_path: &Path,
 ) -> Result<VcfAdapterMissingInputTestsReport> {
+    let observations =
+        crate::adapters::observations::VcfAdapterObservations::new(inputs, repo_root);
+    render_vcf_adapter_missing_input_audit_with_observations(&observations, output_path)
+}
+/// Publish required-role admission evidence using request-scoped adapter observations.
+///
+/// # Errors
+/// Returns unavailable adapters, invalid role coverage, failed probes or publication errors.
+pub fn render_vcf_adapter_missing_input_audit_with_observations(
+    observations: &crate::adapters::observations::VcfAdapterObservations<'_>,
+    output_path: &Path,
+) -> Result<VcfAdapterMissingInputTestsReport> {
+    let repo_root = observations.repo_root();
     let output_path = repo_relative_path(repo_root, output_path);
-    let rows = super::acquisition::collect_vcf_adapter_missing_input_test_rows(inputs, repo_root)?;
+    let rows = super::acquisition::collect_vcf_adapter_missing_input_test_rows(observations)?;
     ensure_required_role_coverage(&rows)?;
     let passed_row_count = rows.iter().filter(|row| row.passed).count();
     let failed_row_count = rows.len().saturating_sub(passed_row_count);
