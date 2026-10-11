@@ -37,7 +37,7 @@ Guarantee that dry-run paths prove planning and manifest shape without executing
 ## Validation command
 - `CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna --test contracts dry_run --no-default-features`
 - The governed dry-run test anchor lives in
-  [../../crates/bijux-dna/tests/contracts/dry_run.rs](../../crates/bijux-dna/tests/contracts/dry_run.rs).
+  [../../crates/bijux-dna/tests/contracts/dry_run.rs](https://github.com/bijux/bijux-genomics/blob/main/crates/bijux-dna/tests/contracts/dry_run.rs).
 - Declared run and artifact output paths live in [../30-operations/RUN_ARTIFACTS.md](../30-operations/RUN_ARTIFACTS.md).
 
 ## Failure modes

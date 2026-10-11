@@ -13,9 +13,9 @@ admissible scientific evidence. Production publication requires a checksum-close
 fit corpus or truth set admitted under the governed STUDY root.
 
 The machine-readable authorities are
-[`benchmarks/contracts/portfolio.toml`](../../benchmarks/contracts/portfolio.toml),
-[`benchmarks/contracts/data-fitness.toml`](../../benchmarks/contracts/data-fitness.toml), and the source
-definitions in [`benchmarks/corpora/`](../../benchmarks/corpora/). This document defines how those
+[`benchmarks/contracts/portfolio.toml`](https://github.com/bijux/bijux-genomics/blob/main/benchmarks/contracts/portfolio.toml),
+[`benchmarks/contracts/data-fitness.toml`](https://github.com/bijux/bijux-genomics/blob/main/benchmarks/contracts/data-fitness.toml), and the source
+definitions in [`benchmarks/corpora/`](https://github.com/bijux/bijux-genomics/tree/main/benchmarks/corpora). This document defines how those
 authorities must be interpreted by the Rust product owners.
 
 ## Ownership
@@ -91,7 +91,7 @@ remain an explicit portfolio-audit blocker.
 ## Scientific Fitness
 
 The bound profile in
-[`benchmarks/contracts/data-fitness.toml`](../../benchmarks/contracts/data-fitness.toml) is evaluated
+[`benchmarks/contracts/data-fitness.toml`](https://github.com/bijux/bijux-genomics/blob/main/benchmarks/contracts/data-fitness.toml) is evaluated
 before a case can support publication. Its minimum real samples, cases per tool, distinct studies,
 input scale, representative strata, layouts, controls, truth requirement, bias assessments, and
 required limitations are conjunctive requirements.

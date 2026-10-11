@@ -21,7 +21,7 @@ The FASTQ domain is only reviewable when each supported backend can be traced to
 - Use Zenodo DOI records for archived software releases when the tool has no dedicated paper and the release DOI is the most stable citation.
 - Use PubMed or PMC mirrors as access copies, not as the canonical locator, when a DOI-bearing paper page is available.
 - Keep generated closure state in
-  [science/generated/current/evidence/README.md](../../../science/generated/current/evidence/README.md);
+  [science/generated/current/evidence/README.md](https://github.com/bijux/bijux-genomics/blob/main/science/generated/current/evidence/README.md);
   this file remains the human-readable reference guide.
 
 ## Quality Control and Profiling
@@ -93,10 +93,10 @@ The FASTQ domain is only reviewable when each supported backend can be traced to
 ## Evidence Gaps
 - Software-only tools remain valid runtime backends only when their stage contracts are otherwise governed and their software citation is explicit.
 - Missing local paper/archive payloads are tracked in
-  [science/generated/current/evidence/fastq_missing_closure_prerequisites.tsv](../../../science/generated/current/evidence/fastq_missing_closure_prerequisites.tsv),
-  [science/generated/current/evidence/fastq_paper_archive_matrix.tsv](../../../science/generated/current/evidence/fastq_paper_archive_matrix.tsv),
-  and [science/generated/current/evidence/fastq_download_backlog.tsv](../../../science/generated/current/evidence/fastq_download_backlog.tsv),
+  [science/generated/current/evidence/fastq_missing_closure_prerequisites.tsv](https://github.com/bijux/bijux-genomics/blob/main/science/generated/current/evidence/fastq_missing_closure_prerequisites.tsv),
+  [science/generated/current/evidence/fastq_paper_archive_matrix.tsv](https://github.com/bijux/bijux-genomics/blob/main/science/generated/current/evidence/fastq_paper_archive_matrix.tsv),
+  and [science/generated/current/evidence/fastq_download_backlog.tsv](https://github.com/bijux/bijux-genomics/blob/main/science/generated/current/evidence/fastq_download_backlog.tsv),
   plus `/Users/bijan/bijux/NEEDED.md`.
 - Unsupported tools must not be listed here as admitted backends unless they are present in
-  [domain/fastq/execution_support.yaml](../../../domain/fastq/execution_support.yaml)
+  [domain/fastq/execution_support.yaml](https://github.com/bijux/bijux-genomics/blob/main/domain/fastq/execution_support.yaml)
   and the corresponding stage manifest.

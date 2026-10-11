@@ -12,11 +12,11 @@ Define abundance normalization semantics for eDNA and pollen FASTQ analyses.
 
 ## Contracts
 - The abundance-normalization stage contract lives in
-  [domain/fastq/stages/normalize_abundance.yaml](../../../domain/fastq/stages/normalize_abundance.yaml).
+  [domain/fastq/stages/normalize_abundance.yaml](https://github.com/bijux/bijux-genomics/blob/main/domain/fastq/stages/normalize_abundance.yaml).
 - Metric names and normalization observability fields live in
-  [domain/fastq/metrics.yaml](../../../domain/fastq/metrics.yaml).
+  [domain/fastq/metrics.yaml](https://github.com/bijux/bijux-genomics/blob/main/domain/fastq/metrics.yaml).
 - The pinned default backend and method policy live in
-  [domain/fastq/docs/DEFAULT_SETTINGS.md](../../../domain/fastq/docs/DEFAULT_SETTINGS.md).
+  [domain/fastq/docs/DEFAULT_SETTINGS.md](https://github.com/bijux/bijux-genomics/blob/main/domain/fastq/docs/DEFAULT_SETTINGS.md).
 
 ## Examples
 - Relative-abundance normalization for community composition summaries.

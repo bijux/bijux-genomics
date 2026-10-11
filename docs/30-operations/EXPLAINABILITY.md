@@ -28,7 +28,7 @@ Ensures scientific transparency.
 - Planner records coverage evidence and selected VCF calling regime (`gl`, `pseudohaploid`, or `diploid`).
 - Planner records applied threshold profile (for example `modern_wgs_shotgun`) and observed mean depth statistics.
 - Use `cargo run -q -p bijux-dna-dev -- tooling run simulate-coverage-regime <mean_depth_x> --profile <regime_profile>` to debug regime selection deterministically; the command inventory is published in
-  [crates/bijux-dna-dev/docs/COMMANDS.md](../../crates/bijux-dna-dev/docs/COMMANDS.md).
+  [crates/bijux-dna-dev/docs/COMMANDS.md](https://github.com/bijux/bijux-genomics/blob/main/crates/bijux-dna-dev/docs/COMMANDS.md).
 
 ## Failure modes
 - Missing reasons or hashes fails explainability checks.

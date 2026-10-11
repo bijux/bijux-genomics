@@ -29,8 +29,8 @@ Keeps citation guidance visible while preserving per-domain ledgers and machine-
 - Covers supported calling/filtering plus planned downstream phasing, imputation, structure, IBD, ROH, and demography surfaces.
 
 ## Upstream Evidence Maps
-- Paper authority map: [TOOL_PAPER_MAP.tsv](../../science/docs/upstream/papers/TOOL_PAPER_MAP.tsv).
-- Repository evidence manifest: [MANIFEST.tsv](../../science/docs/upstream/github-repos/MANIFEST.tsv).
+- Paper authority map: [TOOL_PAPER_MAP.tsv](https://github.com/bijux/bijux-genomics/blob/main/science/docs/upstream/papers/TOOL_PAPER_MAP.tsv).
+- Repository evidence manifest: [MANIFEST.tsv](https://github.com/bijux/bijux-genomics/blob/main/science/docs/upstream/github-repos/MANIFEST.tsv).
 
 ## Stage-level citation guidance
 Each stage should cite method families plus tool-specific papers. Domain YAML remains the canonical source for citation metadata.

@@ -14,7 +14,7 @@ Short playbooks reduce triage time and keep enforcement consistent.
 - Policy IDs and owners are defined in [POLICY_INDEX.md](POLICY_INDEX.md).
 - Coverage expectations are defined in [POLICY_MATRIX.md](POLICY_MATRIX.md).
 - Diagnostics and test locations are owned by
-  [crates/bijux-dna-policies/docs/ENFORCEMENT.md](../../crates/bijux-dna-policies/docs/ENFORCEMENT.md).
+  [crates/bijux-dna-policies/docs/ENFORCEMENT.md](https://github.com/bijux/bijux-genomics/blob/main/crates/bijux-dna-policies/docs/ENFORCEMENT.md).
 
 ## Examples
 ## Top 10 Failures

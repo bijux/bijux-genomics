@@ -14,8 +14,8 @@ Applies to panel/map acquisition, cache layout, and runtime reuse for VCF downst
 - Asset materialization and lock checksums must match enabled panel/map configuration.
 
 VCF panel/map assets are acquired once according to
-[configs/vcf/panels/panels.toml](../../configs/vcf/panels/panels.toml), locked through
-[configs/vcf/panels/locks/panel_locks.toml](../../configs/vcf/panels/locks/panel_locks.toml), and reused by
+[configs/vcf/panels/panels.toml](https://github.com/bijux/bijux-genomics/blob/main/configs/vcf/panels/panels.toml), locked through
+[configs/vcf/panels/locks/panel_locks.toml](https://github.com/bijux/bijux-genomics/blob/main/configs/vcf/panels/locks/panel_locks.toml), and reused by
 pipelines.
 
 Rules:
@@ -32,7 +32,7 @@ Rules:
   materialization policy places them under `derived/` and records the admission source and
   observed digest.
 - Enabled panel/map in
-  [configs/runtime/profiles/vcf_downstream_local.toml](../../configs/runtime/profiles/vcf_downstream_local.toml)
+  [configs/runtime/profiles/vcf_downstream_local.toml](https://github.com/bijux/bijux-genomics/blob/main/configs/runtime/profiles/vcf_downstream_local.toml)
   must:
   - exist in catalog + lock entries,
   - be materialized under cache root,

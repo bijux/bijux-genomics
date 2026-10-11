@@ -11,9 +11,9 @@ Provides a top-down map of contracts and boundaries.
 
 ## Contracts
 - Boundaries enforced by
-  [../../crates/bijux-dna-policies/tests/boundaries/deps/core/dependency_boundaries.rs](../../crates/bijux-dna-policies/tests/boundaries/deps/core/dependency_boundaries.rs).
+  [../../crates/bijux-dna-policies/tests/boundaries/deps/core/dependency_boundaries.rs](https://github.com/bijux/bijux-genomics/blob/main/crates/bijux-dna-policies/tests/boundaries/deps/core/dependency_boundaries.rs).
 - Contracts enforced by
-  [../../crates/bijux-dna-policies/tests/contracts/data/contract_handshake.rs](../../crates/bijux-dna-policies/tests/contracts/data/contract_handshake.rs).
+  [../../crates/bijux-dna-policies/tests/contracts/data/contract_handshake.rs](https://github.com/bijux/bijux-genomics/blob/main/crates/bijux-dna-policies/tests/contracts/data/contract_handshake.rs).
 
 ## Examples
 See [BOUNDARY_DIAGRAM.md](BOUNDARY_DIAGRAM.md) and

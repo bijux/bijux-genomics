@@ -12,9 +12,9 @@ Define chimera detection semantics for ecological FASTQ analysis.
 
 ## Contracts
 - Chimera-stage inputs, outputs, invariants, and mode assumptions live in
-  [domain/fastq/stages/remove_chimeras.yaml](../../../domain/fastq/stages/remove_chimeras.yaml).
+  [domain/fastq/stages/remove_chimeras.yaml](https://github.com/bijux/bijux-genomics/blob/main/domain/fastq/stages/remove_chimeras.yaml).
 - The pinned default backend and baseline invocation policy live in
-  [domain/fastq/docs/DEFAULT_SETTINGS.md](../../../domain/fastq/docs/DEFAULT_SETTINGS.md).
+  [domain/fastq/docs/DEFAULT_SETTINGS.md](https://github.com/bijux/bijux-genomics/blob/main/domain/fastq/docs/DEFAULT_SETTINGS.md).
 - Reference-backed database and provenance expectations live in
   [REFERENCE_GOVERNANCE.md](REFERENCE_GOVERNANCE.md).
 

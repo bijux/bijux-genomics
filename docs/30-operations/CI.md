@@ -42,8 +42,8 @@ Define the canonical CI gate contract and shared artifact invocation for the rep
   counts and conservative duration bounds, and the full-workspace, LUNARC integration, and
   nightly/release lanes that the fast profile intentionally does not execute.
 - Test/coverage runner defaults are pinned in
-  [configs/rust/nextest.toml](../../configs/rust/nextest.toml) and
-  [configs/coverage/runner.toml](../../configs/coverage/runner.toml).
+  [configs/rust/nextest.toml](https://github.com/bijux/bijux-genomics/blob/main/configs/rust/nextest.toml) and
+  [configs/coverage/runner.toml](https://github.com/bijux/bijux-genomics/blob/main/configs/coverage/runner.toml).
 
 ## Full Workspace Shards
 

@@ -14,7 +14,7 @@ The VCF domain spans supported calling and downstream analysis families at diffe
 - Every VCF tool in `domain/vcf/tools/*.yaml` must appear here exactly once.
 - `Applies to` must mirror the tool manifest `stage_ids`.
 - Conservative release-review blocker status for VCF tools now lives in
-  [../../../science/docs/upstream/vcf/VCF_DOWNSTREAM_CLOSURE_LEDGER.tsv](../../../science/docs/upstream/vcf/VCF_DOWNSTREAM_CLOSURE_LEDGER.tsv).
+  [../../../science/docs/upstream/vcf/VCF_DOWNSTREAM_CLOSURE_LEDGER.tsv](https://github.com/bijux/bijux-genomics/blob/main/science/docs/upstream/vcf/VCF_DOWNSTREAM_CLOSURE_LEDGER.tsv).
 - Incomplete citations must retain an honest `planned` status rather than fake-closed claims.
 
 ## Supported Calling and Filtering

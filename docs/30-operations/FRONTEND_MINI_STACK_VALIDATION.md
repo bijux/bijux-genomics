@@ -11,7 +11,7 @@ This document does not define heavy-corpus performance or production-scale accep
 
 ## Contracts
 The mini validator must enforce all checks listed below against the runnable example surface in
-[examples/index.yaml](../../examples/index.yaml).
+[examples/index.yaml](https://github.com/bijux/bijux-genomics/blob/main/examples/index.yaml).
 
 ## Runner
 - Script: `cargo run -q -p bijux-dna-dev -- tooling run validate-frontend-mini-domain-stacks`

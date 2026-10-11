@@ -11,7 +11,7 @@ Makes enforcement transparent and searchable.
 
 ## Contracts
 Policies are enforced by tests under
-[crates/bijux-dna-policies/tests/](../../crates/bijux-dna-policies/tests/) and categorized in
+[crates/bijux-dna-policies/tests/](https://github.com/bijux/bijux-genomics/tree/main/crates/bijux-dna-policies/tests) and categorized in
 [POLICY_MATRIX.md](POLICY_MATRIX.md).
 
 ## Examples

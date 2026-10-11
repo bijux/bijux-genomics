@@ -12,7 +12,7 @@ Decision logic relies on stable metric semantics across planners, stages, and re
 
 ## Contracts
 - Metric IDs and governed metric inventory live in
-  [domain/fastq/metrics.yaml](../../../domain/fastq/metrics.yaml).
+  [domain/fastq/metrics.yaml](https://github.com/bijux/bijux-genomics/blob/main/domain/fastq/metrics.yaml).
 - Cross-stage scientific interpretation lives in [SCIENTIFIC_SPEC.md](SCIENTIFIC_SPEC.md).
 - Artifact and reporting expectations for stage metrics live in
   [OPERATIONAL_CONTRACT.md](OPERATIONAL_CONTRACT.md).

@@ -12,7 +12,7 @@ Refusals prevent accidental scope creep and keep policies enforceable.
 
 ## Contracts
 - [../10-architecture/BOUNDARY_MAP.md](../10-architecture/BOUNDARY_MAP.md)
-- [../../domain/fastq/route_policies.toml](../../domain/fastq/route_policies.toml)
+- [../../domain/fastq/route_policies.toml](https://github.com/bijux/bijux-genomics/blob/main/domain/fastq/route_policies.toml)
 
 ## Examples
 - Stages never build command lines.
@@ -24,5 +24,5 @@ Refusals prevent accidental scope creep and keep policies enforceable.
 - `fastq.infer_asvs`
   - route_scope: `shotgun_standard`, `shotgun_adna`, `host_associated_metagenome`
   - status: refused for governed shotgun-family routes
-  - authority: [../../domain/fastq/route_policies.toml](../../domain/fastq/route_policies.toml)
+  - authority: [../../domain/fastq/route_policies.toml](https://github.com/bijux/bijux-genomics/blob/main/domain/fastq/route_policies.toml)
   - context: [../20-science/fastq/STAGE_CATALOG.md](../20-science/fastq/STAGE_CATALOG.md)

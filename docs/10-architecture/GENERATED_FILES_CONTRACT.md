@@ -21,9 +21,9 @@ Separate authored source from generated or managed output.
 - Generated files may be committed, but they must stay reproducible from their governed inputs.
 
 ## Allowed inputs
-- Domain source files under [../../domain/](../../domain/).
-- Shared-standard managed inputs under [../../.bijux/shared/](../../.bijux/shared/) and
-  [../../.github/standards/](../../.github/standards/).
+- Domain source files under [../../domain/](https://github.com/bijux/bijux-genomics/tree/main/domain).
+- Shared-standard managed inputs under [../../.bijux/shared/](https://github.com/bijux/bijux-genomics/tree/main/.bijux/shared) and
+  [../../.github/standards/](https://github.com/bijux/bijux-genomics/tree/main/.github/standards).
 - Generator source code and checked-in config templates.
 
 ## Forbidden dependencies
@@ -39,7 +39,7 @@ Separate authored source from generated or managed output.
 - Generated config inventory and ownership guidance live in
   [../50-reference/CONFIGS_GUIDE.md](../50-reference/CONFIGS_GUIDE.md).
 - The governed policy anchor lives in
-  [../../crates/bijux-dna-policies/tests/contracts/tooling/governance_quality/generated_configs_policy.rs](../../crates/bijux-dna-policies/tests/contracts/tooling/governance_quality/generated_configs_policy.rs).
+  [../../crates/bijux-dna-policies/tests/contracts/tooling/governance_quality/generated_configs_policy.rs](https://github.com/bijux/bijux-genomics/blob/main/crates/bijux-dna-policies/tests/contracts/tooling/governance_quality/generated_configs_policy.rs).
 
 ## Failure modes
 - Missing generated headers make manual edits indistinguishable from governed output.

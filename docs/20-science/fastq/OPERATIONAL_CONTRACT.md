@@ -11,9 +11,9 @@ Makes expected outputs explicit for validation.
 
 ## Contracts
 - Governed artifact IDs live in
-  [domain/fastq/artifacts.yaml](../../../domain/fastq/artifacts.yaml).
+  [domain/fastq/artifacts.yaml](https://github.com/bijux/bijux-genomics/blob/main/domain/fastq/artifacts.yaml).
 - Governed metric IDs live in
-  [domain/fastq/metrics.yaml](../../../domain/fastq/metrics.yaml).
+  [domain/fastq/metrics.yaml](https://github.com/bijux/bijux-genomics/blob/main/domain/fastq/metrics.yaml).
 - Stage-by-stage inputs and outputs are summarized in
   [STAGE_CATALOG.md](STAGE_CATALOG.md).
 

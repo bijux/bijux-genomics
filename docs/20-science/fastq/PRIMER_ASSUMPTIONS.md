@@ -12,11 +12,11 @@ Define assumptions for primer normalization in ecology-first FASTQ workflows.
 
 ## Contracts
 - Primer-bank preparation and provenance live in
-  [domain/fastq/stages/prepare_primer_bank.yaml](../../../domain/fastq/stages/prepare_primer_bank.yaml).
+  [domain/fastq/stages/prepare_primer_bank.yaml](https://github.com/bijux/bijux-genomics/blob/main/domain/fastq/stages/prepare_primer_bank.yaml).
 - Primer-normalization inputs, outputs, and pairing invariants live in
-  [domain/fastq/stages/normalize_primers.yaml](../../../domain/fastq/stages/normalize_primers.yaml).
+  [domain/fastq/stages/normalize_primers.yaml](https://github.com/bijux/bijux-genomics/blob/main/domain/fastq/stages/normalize_primers.yaml).
 - Pinned mismatch, overlap, and orientation defaults live in
-  [domain/fastq/docs/DEFAULT_SETTINGS.md](../../../domain/fastq/docs/DEFAULT_SETTINGS.md).
+  [domain/fastq/docs/DEFAULT_SETTINGS.md](https://github.com/bijux/bijux-genomics/blob/main/domain/fastq/docs/DEFAULT_SETTINGS.md).
 
 ## Examples
 - ITS pollen runs trim primer tails before chimera detection.

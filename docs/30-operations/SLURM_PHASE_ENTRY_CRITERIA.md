@@ -15,7 +15,7 @@ Specifies required green checks and evidence artifacts before starting Slurm wor
 
 [HPC_FRONTEND_RUNBOOK.md](HPC_FRONTEND_RUNBOOK.md),
 [TRACEABILITY_PROOF_FRONTEND.md](TRACEABILITY_PROOF_FRONTEND.md), and
-[../../containers/docs/FRONTEND_BUILD_AUTHORITY.md](../../containers/docs/FRONTEND_BUILD_AUTHORITY.md)
+[../../containers/docs/FRONTEND_BUILD_AUTHORITY.md](https://github.com/bijux/bijux-genomics/blob/main/containers/docs/FRONTEND_BUILD_AUTHORITY.md)
 define the frontend proof surfaces that must be closed before Slurm admission.
 
 ## Required Green State
@@ -32,14 +32,14 @@ All items below must be true before enabling Slurm execution phase:
    - telemetry sanity
    - traceability proof fields present.
 4. Lock and promotion state is current:
-   - [containers/versions/LOCK.md](../../containers/versions/LOCK.md) refreshed
+   - [containers/versions/LOCK.md](https://github.com/bijux/bijux-genomics/blob/main/containers/versions/LOCK.md) refreshed
    - production tools promoted only through lifecycle scripts.
 
 ## Evidence Artifacts
 - `artifacts/containers/hpc/frontend-smoke/summary.json`
 - `artifacts/hpc/frontend-mini-e2e/<run-id>/summary.json`
-- [containers/docs/APPTAINER_FRONTEND_SECURITY_SUMMARY.md](../../containers/docs/APPTAINER_FRONTEND_SECURITY_SUMMARY.md)
-- [containers/docs/APPTAINER_FRONTEND_REPRODUCIBILITY_REPORT.md](../../containers/docs/APPTAINER_FRONTEND_REPRODUCIBILITY_REPORT.md)
+- [containers/docs/APPTAINER_FRONTEND_SECURITY_SUMMARY.md](https://github.com/bijux/bijux-genomics/blob/main/containers/docs/APPTAINER_FRONTEND_SECURITY_SUMMARY.md)
+- [containers/docs/APPTAINER_FRONTEND_REPRODUCIBILITY_REPORT.md](https://github.com/bijux/bijux-genomics/blob/main/containers/docs/APPTAINER_FRONTEND_REPRODUCIBILITY_REPORT.md)
 
 ## Notes
 This document defines only the gate to start Slurm phase.

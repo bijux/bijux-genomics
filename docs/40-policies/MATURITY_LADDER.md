@@ -14,7 +14,7 @@ Clarifies the minimum enforcement bar for new or experimental crates.
 - Stability and compatibility expectations are defined in
   [POLICY_STABILITY.md](POLICY_STABILITY.md).
 - Workspace enforcement ownership lives in
-  [crates/bijux-dna-policies/README.md](../../crates/bijux-dna-policies/README.md).
+  [crates/bijux-dna-policies/README.md](https://github.com/bijux/bijux-genomics/blob/main/crates/bijux-dna-policies/README.md).
 
 ## Examples
 ## Required

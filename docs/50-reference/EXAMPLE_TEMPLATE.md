@@ -5,7 +5,7 @@ Define the required structure for runnable example READMEs.
 
 ## Scope
 Applies only to example READMEs in directories that ship an
-[example.toml](../../examples/_template/example.toml).
+[example.toml](https://github.com/bijux/bijux-genomics/blob/main/examples/_template/example.toml).
 
 ## Non-goals
 - Replacing per-example scientific interpretation details.
@@ -14,8 +14,8 @@ Applies only to example READMEs in directories that ship an
 ## Contracts
 - Every example README must include Step 1 through Step 4 sections in order.
 - Output and interpretation sections are mandatory.
-- Runnable example governance is defined in [examples/POLICY.md](../../examples/POLICY.md).
-- Recipe-only benchmark docs listed in [examples/RECIPE_ONLY.txt](../../examples/RECIPE_ONLY.txt)
+- Runnable example governance is defined in [examples/POLICY.md](https://github.com/bijux/bijux-genomics/blob/main/examples/POLICY.md).
+- Recipe-only benchmark docs listed in [examples/RECIPE_ONLY.txt](https://github.com/bijux/bijux-genomics/blob/main/examples/RECIPE_ONLY.txt)
   are intentionally out of scope.
 - Output expectations are governed by [EXAMPLE_RUNNER_CONTRACT.md](EXAMPLE_RUNNER_CONTRACT.md).
 

@@ -12,13 +12,13 @@ Describe OTU clustering versus ASV inference contracts for FASTQ ecology workflo
 
 ## Contracts
 - OTU-stage artifacts, parameters, and clustering assumptions live in
-  [domain/fastq/stages/cluster_otus.yaml](../../../domain/fastq/stages/cluster_otus.yaml).
+  [domain/fastq/stages/cluster_otus.yaml](https://github.com/bijux/bijux-genomics/blob/main/domain/fastq/stages/cluster_otus.yaml).
 - ASV-stage artifacts, parameters, and denoising assumptions live in
-  [domain/fastq/stages/infer_asvs.yaml](../../../domain/fastq/stages/infer_asvs.yaml).
+  [domain/fastq/stages/infer_asvs.yaml](https://github.com/bijux/bijux-genomics/blob/main/domain/fastq/stages/infer_asvs.yaml).
 - The pinned default backends for both stages live in
-  [domain/fastq/docs/DEFAULT_SETTINGS.md](../../../domain/fastq/docs/DEFAULT_SETTINGS.md).
+  [domain/fastq/docs/DEFAULT_SETTINGS.md](https://github.com/bijux/bijux-genomics/blob/main/domain/fastq/docs/DEFAULT_SETTINGS.md).
 - Route-level comparability and amplicon-only admission boundaries live in
-  [domain/fastq/route_policies.toml](../../../domain/fastq/route_policies.toml).
+  [domain/fastq/route_policies.toml](https://github.com/bijux/bijux-genomics/blob/main/domain/fastq/route_policies.toml).
 
 ## Examples
 - OTU at 97% identity for broad comparability.

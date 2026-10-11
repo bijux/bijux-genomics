@@ -26,14 +26,14 @@ Gate for promoting VCF downstream runs from frontend-only validation to compute-
 - `cargo run -q -p bijux-dna-dev -- checks run check-frontend-telemetry-sanity`
 
 ## Stage Acceptance Criteria Source
-- [configs/vcf/downstream_acceptance.toml](../../configs/vcf/downstream_acceptance.toml)
+- [configs/vcf/downstream_acceptance.toml](https://github.com/bijux/bijux-genomics/blob/main/configs/vcf/downstream_acceptance.toml)
 
 ## Production Badge Rule
 A run is production-badge eligible only when all are true:
 - panel/map locks are resolved and validated
 - `decision.imputation_accept` is accepted
 - stage acceptance criteria in
-  [configs/vcf/downstream_acceptance.toml](../../configs/vcf/downstream_acceptance.toml) are met
+  [configs/vcf/downstream_acceptance.toml](https://github.com/bijux/bijux-genomics/blob/main/configs/vcf/downstream_acceptance.toml) are met
 
 ## Fail-Fast Refusals
 - unknown phasing/impute knobs

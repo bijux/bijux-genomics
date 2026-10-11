@@ -10,7 +10,7 @@ Makes expected outputs explicit for validation.
 - Scientific interpretation (see [METHODOLOGICAL_INTENT.md](METHODOLOGICAL_INTENT.md)).
 
 ## Contracts
-- The governed BAM artifact inventory lives in [../../../domain/bam/artifacts.yaml](../../../domain/bam/artifacts.yaml).
+- The governed BAM artifact inventory lives in [../../../domain/bam/artifacts.yaml](https://github.com/bijux/bijux-genomics/blob/main/domain/bam/artifacts.yaml).
 - Stage-level required outputs and defaults live in [STAGE_CATALOG.md](STAGE_CATALOG.md).
 - Scientific meaning stays separated in [METHODOLOGICAL_INTENT.md](METHODOLOGICAL_INTENT.md).
 

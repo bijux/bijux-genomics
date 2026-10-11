@@ -11,7 +11,7 @@ Planning, science review, and runtime promotion all depend on a stable statement
 - Hiding planned stages just because they are not yet runtime-promoted.
 
 ## Contracts
-- Every [domain/bam/stages/](../../../domain/bam/stages/) entry must appear exactly once here.
+- Every [domain/bam/stages/](https://github.com/bijux/bijux-genomics/tree/main/domain/bam/stages) entry must appear exactly once here.
 - `Status` must mirror the stage manifest so taxonomy does not drift from the governed surface.
 - `Phase` explains where the stage sits in the review workflow; `Class` explains what kind of
   boundary it represents alongside [STAGE_CATALOG.md](STAGE_CATALOG.md) and

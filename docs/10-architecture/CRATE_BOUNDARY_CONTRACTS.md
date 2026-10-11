@@ -49,4 +49,4 @@ Every crate root `BOUNDARY.md` must declare:
 ## Enforcement
 - Dependency edges are enforced by [BOUNDARY_MAP.md](BOUNDARY_MAP.md).
 - Required crate `BOUNDARY.md` fields are enforced by
-  [../../crates/bijux-dna-policies/tests/contracts/tooling/docs/boundary_docs_policy.rs](../../crates/bijux-dna-policies/tests/contracts/tooling/docs/boundary_docs_policy.rs).
+  [../../crates/bijux-dna-policies/tests/contracts/tooling/docs/boundary_docs_policy.rs](https://github.com/bijux/bijux-genomics/blob/main/crates/bijux-dna-policies/tests/contracts/tooling/docs/boundary_docs_policy.rs).

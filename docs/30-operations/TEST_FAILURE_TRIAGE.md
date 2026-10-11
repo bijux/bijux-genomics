@@ -35,15 +35,15 @@ Makes repeated failure classes easy to route to the right subsystem owner.
    - `cp artifacts/test-logs/<timestamp>.log artifacts/test-logs/latest.log`
 3. Run:
    - `make test-triage`
-   - The governed wrapper lives in [makes/cargo.mk](../../makes/cargo.mk) and the command
+   - The governed wrapper lives in [makes/cargo.mk](https://github.com/bijux/bijux-genomics/blob/main/makes/cargo.mk) and the command
      inventory is published in
-     [crates/bijux-dna-dev/docs/COMMANDS.md](../../crates/bijux-dna-dev/docs/COMMANDS.md).
+     [crates/bijux-dna-dev/docs/COMMANDS.md](https://github.com/bijux/bijux-genomics/blob/main/crates/bijux-dna-dev/docs/COMMANDS.md).
 
 ## Notes
 
 - `make test-triage` is heuristic and intended for fast diagnosis.
 - Final source of truth remains the `cargo nextest` surface configured in
-  [configs/rust/nextest.toml](../../configs/rust/nextest.toml) and individual failing test logs.
+  [configs/rust/nextest.toml](https://github.com/bijux/bijux-genomics/blob/main/configs/rust/nextest.toml) and individual failing test logs.
 
 ## Examples
 - `snapshot` failures from `.snap.new` drift.

@@ -15,17 +15,17 @@ Define the repository architecture rule for SSOT ownership and consumption bound
 Domain is the authored SSOT; configs are generated; code consumes generated configs; makes call CLI only.
 
 Domain-owned canonical vocabularies are part of SSOT:
-- [../../domain/fastq/artifacts.yaml](../../domain/fastq/artifacts.yaml) and
-  [../../domain/bam/artifacts.yaml](../../domain/bam/artifacts.yaml) define allowed artifact IDs.
-- [../../domain/fastq/metrics.yaml](../../domain/fastq/metrics.yaml) and
-  [../../domain/bam/metrics.yaml](../../domain/bam/metrics.yaml) define allowed metric IDs.
+- [../../domain/fastq/artifacts.yaml](https://github.com/bijux/bijux-genomics/blob/main/domain/fastq/artifacts.yaml) and
+  [../../domain/bam/artifacts.yaml](https://github.com/bijux/bijux-genomics/blob/main/domain/bam/artifacts.yaml) define allowed artifact IDs.
+- [../../domain/fastq/metrics.yaml](https://github.com/bijux/bijux-genomics/blob/main/domain/fastq/metrics.yaml) and
+  [../../domain/bam/metrics.yaml](https://github.com/bijux/bijux-genomics/blob/main/domain/bam/metrics.yaml) define allowed metric IDs.
 - `bijux-dna domain validate` must fail when stages/tools use IDs outside those vocabularies.
 
 ## Examples
 The generated config set is fixed and compiler-owned:
-- [../../configs/ci/registry/tool_registry.toml](../../configs/ci/registry/tool_registry.toml)
-- [../../configs/ci/stages/stages.toml](../../configs/ci/stages/stages.toml)
-- [../../configs/ci/tools/images.toml](../../configs/ci/tools/images.toml)
+- [../../configs/ci/registry/tool_registry.toml](https://github.com/bijux/bijux-genomics/blob/main/configs/ci/registry/tool_registry.toml)
+- [../../configs/ci/stages/stages.toml](https://github.com/bijux/bijux-genomics/blob/main/configs/ci/stages/stages.toml)
+- [../../configs/ci/tools/images.toml](https://github.com/bijux/bijux-genomics/blob/main/configs/ci/tools/images.toml)
 
 Crate authority ownership is defined in:
 - [TARGET_ARCHITECTURE.md](TARGET_ARCHITECTURE.md)

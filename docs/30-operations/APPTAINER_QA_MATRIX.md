@@ -15,10 +15,10 @@ The canonical catalog selects redistributable Apptainer images, runtime commands
 ## Authority Surfaces
 - [docs/30-operations/CONTAINERS.md](CONTAINERS.md)
 - [docs/30-operations/HPC_FRONTEND_RUNBOOK.md](HPC_FRONTEND_RUNBOOK.md)
-- [containers/docs/FRONTEND_BUILD_AUTHORITY.md](../../containers/docs/FRONTEND_BUILD_AUTHORITY.md)
-- [containers/docs/SMOKE_CONTRACT.md](../../containers/docs/SMOKE_CONTRACT.md)
-- [containers/docs/NETWORK_USAGE.md](../../containers/docs/NETWORK_USAGE.md)
-- [containers/reports/qualification.md](../../containers/reports/qualification.md)
+- [containers/docs/FRONTEND_BUILD_AUTHORITY.md](https://github.com/bijux/bijux-genomics/blob/main/containers/docs/FRONTEND_BUILD_AUTHORITY.md)
+- [containers/docs/SMOKE_CONTRACT.md](https://github.com/bijux/bijux-genomics/blob/main/containers/docs/SMOKE_CONTRACT.md)
+- [containers/docs/NETWORK_USAGE.md](https://github.com/bijux/bijux-genomics/blob/main/containers/docs/NETWORK_USAGE.md)
+- [containers/reports/qualification.md](https://github.com/bijux/bijux-genomics/blob/main/containers/reports/qualification.md)
 
 ## Contracts
 - Tool row exists iff the canonical catalog supports a redistributable image and enables its Apptainer distribution.
