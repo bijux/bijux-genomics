@@ -5,7 +5,7 @@
     "domain": "fastq",
     "stage_id": "fastq.estimate_library_complexity_prealign"
   },
-  "protocol_sha256": "ee02926496986a2ae8c50741ec1c1cc57f78b121b1be44d01778b22d9fe6a73f",
+  "protocol_sha256": "2ea40ec8e16064726219b72007b34558b5c7fa156ac29721ccebce3521caf840",
   "cases": [],
   "limitations": [
     "No immutable benchmark cases are indexed; this protocol has no executable publication evidence."

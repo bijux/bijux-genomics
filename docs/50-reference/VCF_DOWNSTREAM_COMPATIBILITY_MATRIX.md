@@ -21,4 +21,5 @@ Generated from `configs/vcf/panels/panels.toml` and `configs/ci/registry/tool_re
 | Homo sapiens | GRCh38 | hsapiens_grch38_1kg_3202_chr22 | eagle | vcf.phasing |
 | Homo sapiens | GRCh38 | hsapiens_grch38_1kg_3202_chr22 | glimpse | vcf.imputation_metrics, vcf.impute |
 | Homo sapiens | GRCh38 | hsapiens_grch38_1kg_3202_chr22 | impute5 | vcf.imputation_metrics, vcf.impute |
+| Homo sapiens | GRCh38 | hsapiens_grch38_1kg_3202_chr22 | shapeit | vcf.phasing |
 | Homo sapiens | GRCh38 | hsapiens_grch38_1kg_3202_chr22 | shapeit5 | vcf.phasing |

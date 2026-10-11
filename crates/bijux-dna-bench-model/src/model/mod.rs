@@ -67,6 +67,7 @@ pub mod observation;
 pub mod output_declarations;
 pub mod persisted_schema;
 pub mod planning;
+pub mod progress_ledger;
 pub mod protocol;
 pub mod publication;
 pub mod publication_findings;
@@ -143,12 +144,15 @@ pub use campaign_engine::{
     benchmark_admitted_case_observation_v2_schema, benchmark_case_aggregation_schema,
     benchmark_case_aggregation_set_schema, benchmark_case_aggregation_v2_schema,
     benchmark_case_matrix_schema, benchmark_case_matrix_v1_schema,
-    BenchmarkAdmittedCaseObservationSetV1, BenchmarkAdmittedCaseObservationV1,
-    BenchmarkAdmittedCaseObservationV2, BenchmarkCaseAggregationSetV1, BenchmarkCaseAggregationV1,
-    BenchmarkCaseAggregationV2, BenchmarkCaseDefinitionV1, BenchmarkCaseExecutionEvidenceV1,
-    BenchmarkCaseMatrixV1, BenchmarkCaseMatrixV2, BenchmarkCaseMeasurementPlanV1,
-    BenchmarkCaseRepetitionObservationV1, BenchmarkCaseSciencePlanV1, BenchmarkCorpusSnapshotV1,
-    BenchmarkDataSnapshotRoleV1, BenchmarkDataSnapshotV1,
+    benchmark_stage_normalization_schema, BenchmarkAdmittedCaseObservationSetV1,
+    BenchmarkAdmittedCaseObservationV1, BenchmarkAdmittedCaseObservationV2,
+    BenchmarkCaseAggregationSetV1, BenchmarkCaseAggregationV1, BenchmarkCaseAggregationV2,
+    BenchmarkCaseDefinitionV1, BenchmarkCaseExecutionEvidenceV1, BenchmarkCaseMatrixV1,
+    BenchmarkCaseMatrixV2, BenchmarkCaseMeasurementPlanV1, BenchmarkCaseRepetitionObservationV1,
+    BenchmarkCaseSciencePlanV1, BenchmarkCorpusSnapshotV1, BenchmarkDataArtifactSnapshotV1,
+    BenchmarkDataSnapshotRoleV1, BenchmarkDataSnapshotV1, BenchmarkStageNormalizationCheckV1,
+    BenchmarkStageNormalizationUnitV1, BenchmarkStageNormalizationV1,
+    BENCHMARK_STAGE_NORMALIZATION_ARTIFACT,
 };
 #[allow(unused_imports)]
 pub use comparable_metrics::{
@@ -519,8 +523,8 @@ pub use materialization::{
     corpus_acquisition_plan_schema, corpus_materialization_publication_schema,
     fastq_corpus_source_spec_schema, governed_data_catalog_schema, CorpusAcquisitionFile,
     CorpusAcquisitionLayout, CorpusAcquisitionPlan, CorpusAcquisitionSample,
-    CorpusMaterializationDisposition, CorpusMaterializationPublication, CorpusSourcePolicy,
-    FastqCorpusSourceSample, FastqCorpusSourceSpec, GovernedDataCatalog,
+    CorpusEvaluationDesign, CorpusMaterializationDisposition, CorpusMaterializationPublication,
+    CorpusSourcePolicy, FastqCorpusSourceSample, FastqCorpusSourceSpec, GovernedDataCatalog,
     GovernedDataCatalogDocument, GovernedDataCatalogFile, GovernedDataCatalogSample,
     GovernedPreservedDataCatalog,
 };
@@ -533,13 +537,13 @@ pub use output_declarations::{
 #[allow(unused_imports)]
 pub use planning::{
     benchmark_run_registry_schema, benchmark_stage_coverage_schema,
-    benchmark_stage_universe_schema, BenchmarkCachePolicy, BenchmarkComparisonMetricTolerance,
-    BenchmarkCorpusClass, BenchmarkCorpusContract, BenchmarkCorpusStatus, BenchmarkDisposition,
-    BenchmarkEvidenceScope, BenchmarkEvidenceTier, BenchmarkExecutionRuntime,
-    BenchmarkExecutionScheduler, BenchmarkMeasurementContract, BenchmarkPortfolio,
-    BenchmarkProfileAssignment, BenchmarkRunNamespacePolicy, BenchmarkRunRegistry,
-    BenchmarkRunRegistryRow, BenchmarkRunRegistryState, BenchmarkRunRegistrySummary,
-    BenchmarkScientificProfile, BenchmarkScientificReadinessCorpus,
+    benchmark_stage_universe_schema, BenchmarkCachePolicy, BenchmarkCampaignMaterialDriver,
+    BenchmarkComparisonMetricTolerance, BenchmarkCorpusClass, BenchmarkCorpusContract,
+    BenchmarkCorpusStatus, BenchmarkDisposition, BenchmarkEvidenceScope, BenchmarkEvidenceTier,
+    BenchmarkExecutionRuntime, BenchmarkExecutionScheduler, BenchmarkMeasurementContract,
+    BenchmarkPortfolio, BenchmarkProfileAssignment, BenchmarkRunNamespacePolicy,
+    BenchmarkRunRegistry, BenchmarkRunRegistryRow, BenchmarkRunRegistryState,
+    BenchmarkRunRegistrySummary, BenchmarkScientificProfile, BenchmarkScientificReadinessCorpus,
     BenchmarkScientificReadinessDomain, BenchmarkScientificReadinessReport,
     BenchmarkScientificReadinessStage, BenchmarkScientificReadinessStatus,
     BenchmarkScientificReadinessSummary, BenchmarkStageCampaignRegistry,
@@ -547,6 +551,15 @@ pub use planning::{
     BenchmarkStageCoverageSummary, BenchmarkStageDefinitionStatus, BenchmarkStageExecutionStatus,
     BenchmarkStageInterfaceStatus, BenchmarkStageUniverse, BenchmarkStageUniverseRow,
     BenchmarkStageUniverseSummary,
+};
+#[allow(unused_imports)]
+pub use progress_ledger::{
+    benchmark_progress_ledger_schema, BenchmarkProgressAttempt, BenchmarkProgressAttemptStatus,
+    BenchmarkProgressCheck, BenchmarkProgressCheckStatus, BenchmarkProgressCommit,
+    BenchmarkProgressExecutionUnit, BenchmarkProgressExecutionUnitStatus,
+    BenchmarkProgressExternalWait, BenchmarkProgressFrontier, BenchmarkProgressLedger,
+    BenchmarkProgressLedgerSource, BenchmarkProgressOwner, BenchmarkProgressTask,
+    BenchmarkProgressTaskStatus,
 };
 #[allow(unused_imports)]
 pub use protocol::{

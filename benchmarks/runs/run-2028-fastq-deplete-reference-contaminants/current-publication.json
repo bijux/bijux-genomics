@@ -5,9 +5,8 @@
     "domain": "fastq",
     "stage_id": "fastq.deplete_reference_contaminants"
   },
-  "protocol_sha256": "6e78c7d2a99b793e16c25edc55dbd32afb85f087b3def08ca11ee2d77b897015",
+  "protocol_sha256": "9bf172bef8901d8fd7d89e6a2d9265d235e7c5216b8bdbaa7fa10bb4e35a6b48",
   "limitations": [
-    "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-    "The protocol is reserved and has no selected publication."
+    "No current admitted publication is selected; this protocol is not citable as executed evidence."
   ]
 }

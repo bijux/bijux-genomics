@@ -111,7 +111,7 @@ fn bench_local_vcf_admixture_smoke_reports_complete_cohort_contract() {
 
     let execution_mode =
         payload.get("execution_mode").and_then(serde_json::Value::as_str).expect("execution_mode");
-    assert!(matches!(execution_mode, "real_tool" | "fallback_proxy"));
+    assert!(matches!(execution_mode, "real_tool" | "tool_backed_proxy" | "fallback_proxy"));
     assert!(payload.get("tool_ok").and_then(serde_json::Value::as_bool).is_some());
 
     let cluster_headers = payload
@@ -154,4 +154,59 @@ fn bench_local_vcf_admixture_smoke_reports_complete_cohort_contract() {
         Some("bijux.bench.local_vcf_admixture_smoke.v1")
     );
     assert_eq!(persisted.get("sample_count").and_then(serde_json::Value::as_u64), Some(4));
+}
+
+#[test]
+fn bench_local_vcf_admixture_smoke_accepts_every_governed_backend() {
+    for tool_id in ["plink", "plink2"] {
+        let payload = run_cli_json(&[
+            "bench",
+            "local",
+            "run-vcf-admixture-smoke",
+            "--tool-id",
+            tool_id,
+            "--json",
+        ]);
+
+        assert_eq!(payload.get("tool_id").and_then(serde_json::Value::as_str), Some(tool_id));
+        let expected_command =
+            format!("bijux-dna bench local run-vcf-admixture-smoke --tool-id {tool_id}");
+        assert_eq!(
+            payload.get("command").and_then(serde_json::Value::as_str),
+            Some(expected_command.as_str())
+        );
+        assert!(matches!(
+            payload.get("execution_mode").and_then(serde_json::Value::as_str),
+            Some("tool_backed_proxy" | "fallback_proxy")
+        ));
+
+        let manifest_path = support::repo_root()
+            .expect("repo root")
+            .join(format!("runs/bench/local-smoke/vcf.admixture/{tool_id}/stage-result.json"));
+        let manifest: serde_json::Value = serde_json::from_slice(
+            &std::fs::read(&manifest_path).expect("read tool-addressed stage result"),
+        )
+        .expect("parse tool-addressed stage result");
+        let output_ids = manifest
+            .get("outputs")
+            .and_then(serde_json::Value::as_array)
+            .expect("stage-result outputs")
+            .iter()
+            .filter_map(|row| row.get("artifact_id").and_then(serde_json::Value::as_str))
+            .collect::<std::collections::BTreeSet<_>>();
+        let expected_log_id = format!("{tool_id}_log");
+        assert!(output_ids.contains(expected_log_id.as_str()));
+        if tool_id == "plink" {
+            for artifact_id in [
+                "bed_matrix",
+                "bim_index",
+                "fam_samples",
+                "allele_frequency_frq",
+                "sample_missingness_imiss",
+                "variant_missingness_lmiss",
+            ] {
+                assert!(output_ids.contains(artifact_id));
+            }
+        }
+    }
 }

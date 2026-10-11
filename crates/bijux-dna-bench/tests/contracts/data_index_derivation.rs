@@ -51,6 +51,105 @@ fn publishes_and_revalidates_source_addressed_registry() -> Result<()> {
 }
 
 #[test]
+fn registry_revalidates_current_contract_without_reinterpreting_history() -> Result<()> {
+    let fixture = data_index_fixture()?;
+    let historical_commit = "0".repeat(40);
+    let historical_path = fixture
+        .data_root
+        .join("catalog/snapshots")
+        .join(&historical_commit)
+        .join("ancient-horse-bam.json");
+    fs::create_dir_all(historical_path.parent().expect("historical snapshot parent"))?;
+    write_json(
+        &historical_path,
+        &json!({
+            "schema_version": "bijux.data_catalog.v2",
+            "id": "ancient-horse-bam",
+            "purpose": "immutable catalog accepted before evaluation-design fields existed"
+        }),
+    )?;
+    let historical_sha256 = bijux_dna_infra::hash_file_sha256(&historical_path)?;
+    let mut registry: Value = serde_json::from_slice(&fs::read(&fixture.catalog_registry_path)?)?;
+    registry["records"][0]["snapshots"].as_array_mut().expect("registry snapshots").insert(
+        0,
+        json!({
+            "catalog_path": format!(
+                "study://data/catalog/snapshots/{historical_commit}/ancient-horse-bam.json"
+            ),
+            "catalog_sha256": historical_sha256,
+            "catalog_schema_version": "bijux.data_catalog.v2",
+            "source_commit": historical_commit,
+            "created_at_utc": "2026-08-05T00:00:00Z"
+        }),
+    );
+    write_json(&fixture.catalog_registry_path, &registry)?;
+    let source_commit = "2".repeat(40);
+    let candidate = fixture
+        .data_root
+        .join("evidence/catalog-registries")
+        .join(&source_commit)
+        .join("registry.json");
+    fs::create_dir_all(candidate.parent().expect("candidate parent"))?;
+    fs::copy(&fixture.catalog_registry_path, &candidate)?;
+
+    let publication =
+        publish_governed_data_catalog_registry(&GovernedDataCatalogRegistryPublicationRequest {
+            data_root: fixture.data_root.clone(),
+            source_commit,
+        })?;
+    assert_eq!(publication.registry.records[0].snapshots.len(), 2);
+
+    let fixture = data_index_fixture()?;
+    let historical_commit = "0".repeat(40);
+    let historical_path = fixture
+        .data_root
+        .join("catalog/snapshots")
+        .join(&historical_commit)
+        .join("ancient-horse-bam.json");
+    fs::create_dir_all(historical_path.parent().expect("historical snapshot parent"))?;
+    write_json(
+        &historical_path,
+        &json!({
+            "schema_version": "bijux.data_catalog.v2",
+            "id": "ancient-horse-bam",
+            "purpose": "invalid as a current catalog without its complete native contract"
+        }),
+    )?;
+    let historical_sha256 = bijux_dna_infra::hash_file_sha256(&historical_path)?;
+    let mut registry: Value = serde_json::from_slice(&fs::read(&fixture.catalog_registry_path)?)?;
+    registry["records"][0]["current_catalog_sha256"] = historical_sha256.clone().into();
+    registry["records"][0]["snapshots"].as_array_mut().expect("registry snapshots").insert(
+        0,
+        json!({
+            "catalog_path": format!(
+                "study://data/catalog/snapshots/{historical_commit}/ancient-horse-bam.json"
+            ),
+            "catalog_sha256": historical_sha256,
+            "catalog_schema_version": "bijux.data_catalog.v2",
+            "source_commit": historical_commit,
+            "created_at_utc": "2026-08-05T00:00:00Z"
+        }),
+    );
+    let source_commit = "2".repeat(40);
+    let candidate = fixture
+        .data_root
+        .join("evidence/catalog-registries")
+        .join(&source_commit)
+        .join("registry.json");
+    fs::create_dir_all(candidate.parent().expect("candidate parent"))?;
+    write_json(&candidate, &registry)?;
+
+    assert!(publish_governed_data_catalog_registry(
+        &GovernedDataCatalogRegistryPublicationRequest {
+            data_root: fixture.data_root,
+            source_commit,
+        }
+    )
+    .is_err_and(|error| format!("{error:#}").contains("parse native catalog snapshot")));
+    Ok(())
+}
+
+#[test]
 fn preserves_heterogeneous_catalogs_and_composes_complete_registry() -> Result<()> {
     let fixture = data_index_fixture()?;
     let source_commit = "3".repeat(40);

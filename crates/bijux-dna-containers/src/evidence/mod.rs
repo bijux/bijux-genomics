@@ -51,9 +51,10 @@ pub use image_storage::{
 };
 pub use inventory::{
     derive_image_inventory_evidence, derive_image_inventory_publication,
-    render_image_inventory_markdown, DerivedImageInventory, ImageInventoryDerivationRequest,
-    ImageInventoryEvidenceRootIdentity, ImageInventoryEvidenceRoots, ImageInventoryScan,
-    ImageInventoryScannedImage, ImageInventorySourceFile,
+    image_inventory_request_from_activation_plan, render_image_inventory_markdown,
+    DerivedImageInventory, ImageInventoryDerivationRequest, ImageInventoryEvidenceRootIdentity,
+    ImageInventoryEvidenceRoots, ImageInventoryScan, ImageInventoryScannedImage,
+    ImageInventorySourceFile,
 };
 pub use load::{
     load_image_inventory_publication, load_image_inventory_scan,
@@ -140,7 +141,6 @@ pub use selection::{
     resolve_catalog_locked_apptainer_artifact, resolve_catalog_locked_apptainer_image,
     CurrentApptainerImage,
 };
-pub(crate) use tool_contract::repository_commit_is_ancestor;
 pub use tool_contract::{
     apptainer_recipe_identity_at_commit, container_build_evidence_matches_recipe,
     container_catalog_lock_schema, container_catalog_schema, container_version_lock_schema,
@@ -148,18 +148,18 @@ pub use tool_contract::{
     derive_container_registry_projection_report, derive_container_version_lock,
     derive_container_version_map, load_container_catalog, load_container_catalog_lock,
     load_container_version_lock, render_container_catalog_lock, render_container_version_index,
-    render_container_version_lock, render_container_version_map, repository_head_commit,
-    validate_container_catalog, validate_container_catalog_lock, validate_container_version_lock,
-    validate_container_version_lock_model, write_container_catalog_lock_schema,
-    write_container_catalog_schema, write_container_version_lock_schema,
-    write_container_version_map_schema, ApptainerRecipeIdentity, ContainerArtifactDelivery,
-    ContainerCatalog, ContainerCatalogLock, ContainerCatalogLockTool, ContainerCatalogTool,
-    ContainerCatalogValidation, ContainerProductSupport, ContainerRegistryProjectionReport,
-    ContainerRegistryProjectionSource, ContainerVersionLock, ContainerVersionLockItem,
-    ContainerVersionMap, ContainerVersionMapItem, CONTAINER_CATALOG_LOCK_PATH,
-    CONTAINER_CATALOG_LOCK_SCHEMA_V1, CONTAINER_CATALOG_PATH, CONTAINER_CATALOG_SCHEMA_V1,
-    CONTAINER_REGISTRY_PROJECTION_SCHEMA_V1, CONTAINER_VERSION_CATALOG_PATH,
-    CONTAINER_VERSION_INDEX_PATH, CONTAINER_VERSION_LOCK_COMMAND,
+    render_container_version_lock, render_container_version_map, repository_commit_is_ancestor,
+    repository_head_commit, validate_container_catalog, validate_container_catalog_lock,
+    validate_container_version_lock, validate_container_version_lock_model,
+    write_container_catalog_lock_schema, write_container_catalog_schema,
+    write_container_version_lock_schema, write_container_version_map_schema,
+    ApptainerRecipeIdentity, ContainerArtifactDelivery, ContainerCatalog, ContainerCatalogLock,
+    ContainerCatalogLockTool, ContainerCatalogTool, ContainerCatalogValidation,
+    ContainerProductSupport, ContainerRegistryProjectionReport, ContainerRegistryProjectionSource,
+    ContainerVersionLock, ContainerVersionLockItem, ContainerVersionMap, ContainerVersionMapItem,
+    CONTAINER_CATALOG_LOCK_PATH, CONTAINER_CATALOG_LOCK_SCHEMA_V1, CONTAINER_CATALOG_PATH,
+    CONTAINER_CATALOG_SCHEMA_V1, CONTAINER_REGISTRY_PROJECTION_SCHEMA_V1,
+    CONTAINER_VERSION_CATALOG_PATH, CONTAINER_VERSION_INDEX_PATH, CONTAINER_VERSION_LOCK_COMMAND,
     CONTAINER_VERSION_LOCK_GENERATOR_PATH, CONTAINER_VERSION_LOCK_PATH,
     CONTAINER_VERSION_LOCK_SCHEMA_V4, CONTAINER_VERSION_MAP_SCHEMA_V2,
 };

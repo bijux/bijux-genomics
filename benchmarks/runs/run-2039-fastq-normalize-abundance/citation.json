@@ -8,10 +8,9 @@
   },
   "protocol_title": "FASTQ normalize abundance benchmark protocol",
   "protocol_version": "1.0.0",
-  "protocol_sha256": "45c4394304bddf66afe01f1986b8b6d63db28329fedb7322db029bb5c84ca122",
+  "protocol_sha256": "6fa029292f08661f94cdb7d3f8afb90638646037671150132b03398c032d77ee",
   "status": "protocol_only",
   "limitations": [
-    "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-    "The protocol is reserved and has no selected publication."
+    "No current admitted publication is selected; this protocol is not citable as executed evidence."
   ]
 }

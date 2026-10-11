@@ -8,10 +8,9 @@
   },
   "protocol_title": "VCF population structure benchmark protocol",
   "protocol_version": "1.0.0",
-  "protocol_sha256": "9a3534c3124b249454c0cafd42f4d8376b74bde9ee5ff1449ebee0a0e415ba50",
+  "protocol_sha256": "69f5e8e7a7ca76f6a5e2c29a0221227b5d0d5bc6bfb9812a5fdc11015d21bb6e",
   "status": "protocol_only",
   "limitations": [
-    "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-    "The protocol is reserved and has no selected publication."
+    "No current admitted publication is selected; this protocol is not citable as executed evidence."
   ]
 }

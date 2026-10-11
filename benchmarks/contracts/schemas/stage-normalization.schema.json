@@ -1,0 +1,155 @@
+{
+  "$defs": {
+    "BenchmarkAttemptIdentity": {
+      "additionalProperties": false,
+      "properties": {
+        "attempt_id": {
+          "type": "string"
+        },
+        "campaign_id": {
+          "type": "string"
+        },
+        "case_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "run": {
+          "$ref": "#/$defs/BenchmarkRunIdentity"
+        },
+        "tool_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "campaign_id",
+        "run",
+        "attempt_id",
+        "tool_id"
+      ],
+      "type": "object"
+    },
+    "BenchmarkRunIdentity": {
+      "additionalProperties": false,
+      "properties": {
+        "domain": {
+          "type": "string"
+        },
+        "run_id": {
+          "type": "string"
+        },
+        "stage_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "run_id",
+        "domain",
+        "stage_id"
+      ],
+      "type": "object"
+    },
+    "BenchmarkStageNormalizationCheckV1": {
+      "additionalProperties": false,
+      "properties": {
+        "assertion": {
+          "type": "string"
+        },
+        "detail": {
+          "type": "string"
+        },
+        "passed": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "assertion",
+        "passed",
+        "detail"
+      ],
+      "type": "object"
+    },
+    "BenchmarkStageNormalizationUnitV1": {
+      "additionalProperties": false,
+      "properties": {
+        "binding_id": {
+          "type": "string"
+        },
+        "checks": {
+          "items": {
+            "$ref": "#/$defs/BenchmarkStageNormalizationCheckV1"
+          },
+          "type": "array"
+        },
+        "normalized_output": true,
+        "normalized_output_sha256": {
+          "type": "string"
+        },
+        "passed": {
+          "type": "boolean"
+        },
+        "probe_id": {
+          "type": "string"
+        },
+        "producer_stage_id": {
+          "type": "string"
+        },
+        "stage_instance_id": {
+          "type": "string"
+        },
+        "tool_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "stage_instance_id",
+        "normalized_output",
+        "normalized_output_sha256",
+        "probe_id",
+        "binding_id",
+        "producer_stage_id",
+        "tool_id",
+        "passed",
+        "checks"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "identity": {
+      "$ref": "#/$defs/BenchmarkAttemptIdentity"
+    },
+    "normalized_at_utc": {
+      "type": "string"
+    },
+    "passed": {
+      "type": "boolean"
+    },
+    "schema_version": {
+      "const": "bijux.benchmark.stage_normalization.v1",
+      "type": "string"
+    },
+    "stage_plan_manifest_sha256": {
+      "type": "string"
+    },
+    "units": {
+      "items": {
+        "$ref": "#/$defs/BenchmarkStageNormalizationUnitV1"
+      },
+      "type": "array"
+    }
+  },
+  "required": [
+    "schema_version",
+    "identity",
+    "normalized_at_utc",
+    "stage_plan_manifest_sha256",
+    "units",
+    "passed"
+  ],
+  "title": "BenchmarkStageNormalizationV1",
+  "type": "object"
+}

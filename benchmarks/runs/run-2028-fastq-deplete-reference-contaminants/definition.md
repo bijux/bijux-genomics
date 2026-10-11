@@ -5,7 +5,7 @@
 - Run: `run-2028`
 - Stage: `fastq.deplete_reference_contaminants`
 - Protocol version: `1.0.0`
-- State: `reserved`
+- State: `active`
 - Citation key: `bijux-benchmark-run-2028`
 
 Compare the runnable fastq.deplete_reference_contaminants tools using target_removal_and_non_target_retention_against_orthogonal_truth; downstream substitution: feed every depleted output into taxonomy, QC, and alignment consumers.

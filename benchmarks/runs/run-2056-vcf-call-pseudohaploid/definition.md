@@ -5,7 +5,7 @@
 - Run: `run-2056`
 - Stage: `vcf.call_pseudohaploid`
 - Protocol version: `1.0.0`
-- State: `reserved`
+- State: `active`
 - Citation key: `bijux-benchmark-run-2056`
 
 Compare the runnable vcf.call_pseudohaploid tools using precision_recall_genotype_concordance_and_damage_stratification; downstream substitution: run QC, filtering, phasing, imputation, and population summaries on every callset.

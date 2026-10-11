@@ -5,9 +5,19 @@
     "domain": "bam",
     "stage_id": "bam.genotyping"
   },
-  "protocol_sha256": "04a15ee8d9e52e043518df99b0f42f0825d361b1a894e6cd985756471442192d",
-  "cases": [],
+  "protocol_sha256": "6b6980a9ef4a542ed7cdbb8055066eb7e63603804ebe9117fbb71b8c49e18b06",
+  "cases": [
+    {
+      "case_id": "run-2001--bcftools--ena-prjeb22390-err2112767-bam",
+      "tool_id": "bcftools",
+      "definition": {
+        "uri": "study://benchmarks/publications/e6874f0d833c7a7f95b40d7dae8b42a80bf5d6cd/run-2001/case-definition-run-2001--bcftools--ena-prjeb22390-err2112767-bam.json",
+        "sha256": "238c1255cac2128631594062d44b4156dc887102a58e6216d3bb49b4d6b788c0",
+        "size_bytes": 9776
+      }
+    }
+  ],
   "limitations": [
-    "No immutable benchmark cases are indexed; this protocol has no executable publication evidence."
+    "Claims are limited to the checksum-admitted corpus, declared scientific profile, and exact selected attempt closure."
   ]
 }

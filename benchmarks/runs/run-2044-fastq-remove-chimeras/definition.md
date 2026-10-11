@@ -5,7 +5,7 @@
 - Run: `run-2044`
 - Stage: `fastq.remove_chimeras`
 - Protocol version: `1.0.0`
-- State: `reserved`
+- State: `active`
 - Citation key: `bijux-benchmark-run-2044`
 
 Compare the runnable fastq.remove_chimeras tools using community_membership_precision_recall_and_abundance_error; downstream substitution: feed every stage output into the next amplicon stage and common report generator.

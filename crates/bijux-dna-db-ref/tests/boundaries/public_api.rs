@@ -31,6 +31,7 @@ fn public_api_doc_mentions_curated_surface() {
         "normalize_contig_name",
         "enforce_declared_build_and_contigs",
         "validate_imputation_tool_compatibility",
+        "plan_panel_file_materialization",
         "RuntimeRefService",
         "ref_service",
     ] {

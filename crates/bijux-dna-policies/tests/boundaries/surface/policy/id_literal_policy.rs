@@ -47,7 +47,9 @@ fn is_allowed_path(path: &Path) -> bool {
     if path_str.ends_with("/crates/bijux-dna-stage-contract/src/executor_registry.rs") {
         return true;
     }
-    if path_str.ends_with("/crates/bijux-dna-stage-contract/src/tool_binding/catalog.rs") {
+    if path_str.ends_with("/crates/bijux-dna-stage-contract/src/tool_binding/catalog.rs")
+        || path_str.contains("/crates/bijux-dna-stage-contract/src/tool_binding/catalog/")
+    {
         return true;
     }
     if path_str.ends_with("/crates/bijux-dna-core/src/metrics/registry.rs") {

@@ -5,7 +5,7 @@
     "domain": "fastq",
     "stage_id": "fastq.deplete_rrna"
   },
-  "protocol_sha256": "bdd14bd0b563d656368f2986cb1638470a8b1b085d1c456daa1fa28d6bc2b6c4",
+  "protocol_sha256": "32241516047c63fc4da90ae1e6eadc3331b9b392623c62a587e72038965bdd2f",
   "cases": [],
   "limitations": [
     "No immutable benchmark cases are indexed; this protocol has no executable publication evidence."

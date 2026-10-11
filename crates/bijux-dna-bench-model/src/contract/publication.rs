@@ -218,7 +218,7 @@ fn validate_citation_assets(record: &BenchmarkCitationRecord) -> Result<(), Benc
     let mut previous = None;
     for asset in &record.assets {
         validate_component(&asset.role, "asset role")?;
-        validate_component(&asset.asset_id, "asset_id")?;
+        validate_catalog_asset_id(&asset.asset_id)?;
         validate_digest(&asset.sha256)?;
         let identity = (asset.role.as_str(), asset.asset_id.as_str());
         if previous.is_some_and(|value| value >= identity) || !assets.insert(identity) {
@@ -227,6 +227,18 @@ fn validate_citation_assets(record: &BenchmarkCitationRecord) -> Result<(), Benc
             ));
         }
         previous = Some(identity);
+    }
+    Ok(())
+}
+
+fn validate_catalog_asset_id(value: &str) -> Result<(), BenchError> {
+    let mut bytes = value.bytes();
+    if !bytes.next().is_some_and(|byte| byte.is_ascii_lowercase() || byte.is_ascii_digit())
+        || !bytes.all(|byte| {
+            byte.is_ascii_lowercase() || byte.is_ascii_digit() || matches!(byte, b'.' | b'_' | b'-')
+        })
+    {
+        return Err(invalid("benchmark citation asset_id is not a governed catalog identity"));
     }
     Ok(())
 }

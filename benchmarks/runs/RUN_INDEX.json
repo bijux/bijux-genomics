@@ -2,16 +2,16 @@
   "schema_version": "bijux.benchmark.run_index.v1",
   "source_registry": {
     "uri": "repo://benchmarks/contracts/run-registry.json",
-    "sha256": "e098eddc58a8e8c8c5e04da604abd9eec4929751fd8297713945ed7d7e43853b",
-    "size_bytes": 91287
+    "sha256": "5b5da255d0e7d23a5df095d9dd68ea4f400a1b7e0e3daf0ff945305d8bf60aa9",
+    "size_bytes": 98447
   },
   "summary": {
     "registered_run_count": 71,
-    "active_protocol_count": 13,
-    "reserved_protocol_count": 58,
+    "active_protocol_count": 71,
+    "reserved_protocol_count": 0,
     "retired_protocol_count": 0,
-    "citable_publication_count": 3,
-    "unpublished_run_count": 68
+    "citable_publication_count": 8,
+    "unpublished_run_count": 63
   },
   "runs": [
     {
@@ -22,7 +22,7 @@
       "stage_id": "bam.genotyping",
       "owner": "bijux-dna-bench",
       "protocol_state": "active",
-      "protocol_sha256": "04a15ee8d9e52e043518df99b0f42f0825d361b1a894e6cd985756471442192d",
+      "protocol_sha256": "6b6980a9ef4a542ed7cdbb8055066eb7e63603804ebe9117fbb71b8c49e18b06",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2001",
       "tool_ids": [
         "bcftools"
@@ -33,9 +33,54 @@
         "variant_truth"
       ],
       "acceptance_policy_id": "bam-biological-inference-acceptance-v1",
-      "limitations": [
-        "No current admitted publication is selected; this protocol is not citable as executed evidence."
-      ]
+      "selected_publication": {
+        "publication_id": "run-2001-production-e6874f0d833c",
+        "selected_attempts": [
+          {
+            "campaign_id": "production-run-2001-e6874f0d8",
+            "run": {
+              "run_id": "run-2001",
+              "domain": "bam",
+              "stage_id": "bam.genotyping"
+            },
+            "case_id": "run-2001--bcftools--ena-prjeb22390-err2112767-bam",
+            "attempt_id": "attempt-0001",
+            "tool_id": "bcftools"
+          }
+        ],
+        "repository_commit": "e6874f0d833c7a7f95b40d7dae8b42a80bf5d6cd",
+        "report": {
+          "uri": "study://benchmarks/publications/e6874f0d833c7a7f95b40d7dae8b42a80bf5d6cd/run-2001/run-2001-bam-genotyping.json",
+          "sha256": "b6dd411a4292ddb567026c87a1129dcc2f2d2cc07f0a92b3fcfc0fd1f1ff19d8",
+          "size_bytes": 8571
+        },
+        "evidence_book": {
+          "uri": "study://benchmarks/publications/e6874f0d833c7a7f95b40d7dae8b42a80bf5d6cd/evidence-book.json",
+          "sha256": "f6be1bb941af6b44dbcaeba60432bfaf85741116c9b5e20a8a66f57e9458b664",
+          "size_bytes": 5758
+        },
+        "publication_receipt": {
+          "uri": "study://benchmarks/publications/e6874f0d833c7a7f95b40d7dae8b42a80bf5d6cd/run-2001/publication-receipt.json",
+          "sha256": "9a3404d28646f888a16080428e273b500ad7fe5788e92e422ed7c85d2d6f48e5",
+          "size_bytes": 2564
+        },
+        "citation_record": {
+          "uri": "study://benchmarks/publications/e6874f0d833c7a7f95b40d7dae8b42a80bf5d6cd/run-2001/citation-record.json",
+          "sha256": "44d347428eb91e7461c73160b810abe1ba58eeb41faa8a36573516ecef4c3812",
+          "size_bytes": 3014
+        },
+        "replay_receipt": {
+          "uri": "study://benchmarks/publications/e6874f0d833c7a7f95b40d7dae8b42a80bf5d6cd/run-2001/replay-receipt.json",
+          "sha256": "d3ffcefa954fa71de619479545799eb8c97c22adb2dc048eb6eaa15ca8ef18c0",
+          "size_bytes": 3267
+        },
+        "limitations": [
+          "Claims are limited to the checksum-admitted corpus, declared scientific profile, and exact selected attempt closure.",
+          "The citation is limited to the exact admitted cases, data authorities, artifacts, measurements, scientific verdicts, and downstream evidence selected by this source-locked publication."
+        ],
+        "access_statement": "Public data remain governed by their cited source terms; restricted artifacts are identified by admission evidence and are not redistributed."
+      },
+      "limitations": []
     },
     {
       "run_id": "run-2002",
@@ -56,9 +101,76 @@
         "bam_diversity"
       ],
       "acceptance_policy_id": "bam-observational-qc-acceptance-v1",
-      "limitations": [
-        "No current admitted publication is selected; this protocol is not citable as executed evidence."
-      ]
+      "selected_publication": {
+        "publication_id": "run-2002-production-e6874f0d833c",
+        "selected_attempts": [
+          {
+            "campaign_id": "production-run-2002-e6874f0d8",
+            "run": {
+              "run_id": "run-2002",
+              "domain": "bam",
+              "stage_id": "bam.coverage"
+            },
+            "case_id": "run-2002--bedtools--ena-prjeb22390-err2112767-bam",
+            "attempt_id": "attempt-0001",
+            "tool_id": "bedtools"
+          },
+          {
+            "campaign_id": "production-run-2002-e6874f0d8",
+            "run": {
+              "run_id": "run-2002",
+              "domain": "bam",
+              "stage_id": "bam.coverage"
+            },
+            "case_id": "run-2002--mosdepth--ena-prjeb22390-err2112767-bam",
+            "attempt_id": "attempt-0001",
+            "tool_id": "mosdepth"
+          },
+          {
+            "campaign_id": "production-run-2002-e6874f0d8",
+            "run": {
+              "run_id": "run-2002",
+              "domain": "bam",
+              "stage_id": "bam.coverage"
+            },
+            "case_id": "run-2002--samtools--ena-prjeb22390-err2112767-bam",
+            "attempt_id": "attempt-0001",
+            "tool_id": "samtools"
+          }
+        ],
+        "repository_commit": "e6874f0d833c7a7f95b40d7dae8b42a80bf5d6cd",
+        "report": {
+          "uri": "study://benchmarks/publications/e6874f0d833c7a7f95b40d7dae8b42a80bf5d6cd/run-2002/run-2002-bam-coverage.json",
+          "sha256": "dcbec16b0a5a4cbc0fb31adb5570c78459893a1be1e6d0fde1b3d8ae7ea390e6",
+          "size_bytes": 15520
+        },
+        "evidence_book": {
+          "uri": "study://benchmarks/publications/e6874f0d833c7a7f95b40d7dae8b42a80bf5d6cd/evidence-book.json",
+          "sha256": "f6be1bb941af6b44dbcaeba60432bfaf85741116c9b5e20a8a66f57e9458b664",
+          "size_bytes": 5758
+        },
+        "publication_receipt": {
+          "uri": "study://benchmarks/publications/e6874f0d833c7a7f95b40d7dae8b42a80bf5d6cd/run-2002/publication-receipt.json",
+          "sha256": "93abca853f8c7e173e5e9308df272437ee75df0ad8146ee5aeefae3f8b97aaaa",
+          "size_bytes": 4034
+        },
+        "citation_record": {
+          "uri": "study://benchmarks/publications/e6874f0d833c7a7f95b40d7dae8b42a80bf5d6cd/run-2002/citation-record.json",
+          "sha256": "9e71ac80e83efeab5fa25440a427a5edd9be582301540eee910ab810d747ce0f",
+          "size_bytes": 3583
+        },
+        "replay_receipt": {
+          "uri": "study://benchmarks/publications/e6874f0d833c7a7f95b40d7dae8b42a80bf5d6cd/run-2002/replay-receipt.json",
+          "sha256": "f31cb5ff4673aa9718cb73f158a7ccbec72d658f969ed364e882aafcf2a07069",
+          "size_bytes": 4474
+        },
+        "limitations": [
+          "Claims are limited to the checksum-admitted corpus, declared scientific profile, and exact selected attempt closure.",
+          "The citation is limited to the exact admitted cases, data authorities, artifacts, measurements, scientific verdicts, and downstream evidence selected by this source-locked publication."
+        ],
+        "access_statement": "Public data remain governed by their cited source terms; restricted artifacts are identified by admission evidence and are not redistributed."
+      },
+      "limitations": []
     },
     {
       "run_id": "run-2003",
@@ -77,9 +189,54 @@
         "bam_diversity"
       ],
       "acceptance_policy_id": "bam-observational-qc-acceptance-v1",
-      "limitations": [
-        "No current admitted publication is selected; this protocol is not citable as executed evidence."
-      ]
+      "selected_publication": {
+        "publication_id": "run-2003-production-e6874f0d833c",
+        "selected_attempts": [
+          {
+            "campaign_id": "production-run-2003-e6874f0d8",
+            "run": {
+              "run_id": "run-2003",
+              "domain": "bam",
+              "stage_id": "bam.endogenous_content"
+            },
+            "case_id": "run-2003--samtools--ena-prjeb22390-err2112767-bam",
+            "attempt_id": "attempt-0001",
+            "tool_id": "samtools"
+          }
+        ],
+        "repository_commit": "e6874f0d833c7a7f95b40d7dae8b42a80bf5d6cd",
+        "report": {
+          "uri": "study://benchmarks/publications/e6874f0d833c7a7f95b40d7dae8b42a80bf5d6cd/run-2003/run-2003-bam-endogenous-content.json",
+          "sha256": "864fc7941c96b081bdf36b63837163a1356b1114d106edc038111af262c11a76",
+          "size_bytes": 6249
+        },
+        "evidence_book": {
+          "uri": "study://benchmarks/publications/e6874f0d833c7a7f95b40d7dae8b42a80bf5d6cd/evidence-book.json",
+          "sha256": "f6be1bb941af6b44dbcaeba60432bfaf85741116c9b5e20a8a66f57e9458b664",
+          "size_bytes": 5758
+        },
+        "publication_receipt": {
+          "uri": "study://benchmarks/publications/e6874f0d833c7a7f95b40d7dae8b42a80bf5d6cd/run-2003/publication-receipt.json",
+          "sha256": "1f5c5f284ac972e7e5217126488cd3377bb6bc1bb8a49ed9b692121cf483d988",
+          "size_bytes": 2604
+        },
+        "citation_record": {
+          "uri": "study://benchmarks/publications/e6874f0d833c7a7f95b40d7dae8b42a80bf5d6cd/run-2003/citation-record.json",
+          "sha256": "ae3e69126388f82ae47f3f98e233ac0a22279138f50f68563abfbd4c571e8459",
+          "size_bytes": 2666
+        },
+        "replay_receipt": {
+          "uri": "study://benchmarks/publications/e6874f0d833c7a7f95b40d7dae8b42a80bf5d6cd/run-2003/replay-receipt.json",
+          "sha256": "f9a615a8291d0b1d5e7024945a79a87e57da1230d9ceb0955f82be475ca6261e",
+          "size_bytes": 3299
+        },
+        "limitations": [
+          "Claims are limited to the checksum-admitted corpus, declared scientific profile, and exact selected attempt closure.",
+          "The citation is limited to the exact admitted cases, data authorities, artifacts, measurements, scientific verdicts, and downstream evidence selected by this source-locked publication."
+        ],
+        "access_statement": "Public data remain governed by their cited source terms; restricted artifacts are identified by admission evidence and are not redistributed."
+      },
+      "limitations": []
     },
     {
       "run_id": "run-2004",
@@ -99,9 +256,65 @@
         "bam_diversity"
       ],
       "acceptance_policy_id": "bam-observational-qc-acceptance-v1",
-      "limitations": [
-        "No current admitted publication is selected; this protocol is not citable as executed evidence."
-      ]
+      "selected_publication": {
+        "publication_id": "run-2004-production-e6874f0d833c",
+        "selected_attempts": [
+          {
+            "campaign_id": "production-run-2004-e6874f0d8",
+            "run": {
+              "run_id": "run-2004",
+              "domain": "bam",
+              "stage_id": "bam.mapping_summary"
+            },
+            "case_id": "run-2004--picard--ena-prjeb22390-err2112767-bam",
+            "attempt_id": "attempt-0001",
+            "tool_id": "picard"
+          },
+          {
+            "campaign_id": "production-run-2004-e6874f0d8",
+            "run": {
+              "run_id": "run-2004",
+              "domain": "bam",
+              "stage_id": "bam.mapping_summary"
+            },
+            "case_id": "run-2004--samtools--ena-prjeb22390-err2112767-bam",
+            "attempt_id": "attempt-0001",
+            "tool_id": "samtools"
+          }
+        ],
+        "repository_commit": "e6874f0d833c7a7f95b40d7dae8b42a80bf5d6cd",
+        "report": {
+          "uri": "study://benchmarks/publications/e6874f0d833c7a7f95b40d7dae8b42a80bf5d6cd/run-2004/run-2004-bam-mapping-summary.json",
+          "sha256": "320428b1ff9c4cfab9debcfa86384d668c9af32254b8deb6bbf0973447b44435",
+          "size_bytes": 11458
+        },
+        "evidence_book": {
+          "uri": "study://benchmarks/publications/e6874f0d833c7a7f95b40d7dae8b42a80bf5d6cd/evidence-book.json",
+          "sha256": "f6be1bb941af6b44dbcaeba60432bfaf85741116c9b5e20a8a66f57e9458b664",
+          "size_bytes": 5758
+        },
+        "publication_receipt": {
+          "uri": "study://benchmarks/publications/e6874f0d833c7a7f95b40d7dae8b42a80bf5d6cd/run-2004/publication-receipt.json",
+          "sha256": "07a81979b3d36fa2431b9003246ea9cde829c463e6faa556f53a7fe28164a341",
+          "size_bytes": 3333
+        },
+        "citation_record": {
+          "uri": "study://benchmarks/publications/e6874f0d833c7a7f95b40d7dae8b42a80bf5d6cd/run-2004/citation-record.json",
+          "sha256": "afb468a1bbaba9b879e4dfea3c0fc703f06808b0856972c2b73abf2bd43f820c",
+          "size_bytes": 2965
+        },
+        "replay_receipt": {
+          "uri": "study://benchmarks/publications/e6874f0d833c7a7f95b40d7dae8b42a80bf5d6cd/run-2004/replay-receipt.json",
+          "sha256": "92abac49da7e8e8f813e8fff0f1f44ac37fd03a44f6803a3bbe8c07e8cab4025",
+          "size_bytes": 3897
+        },
+        "limitations": [
+          "Claims are limited to the checksum-admitted corpus, declared scientific profile, and exact selected attempt closure.",
+          "The citation is limited to the exact admitted cases, data authorities, artifacts, measurements, scientific verdicts, and downstream evidence selected by this source-locked publication."
+        ],
+        "access_statement": "Public data remain governed by their cited source terms; restricted artifacts are identified by admission evidence and are not redistributed."
+      },
+      "limitations": []
     },
     {
       "run_id": "run-2005",
@@ -132,8 +345,8 @@
       "slug": "bam-authenticity",
       "stage_id": "bam.authenticity",
       "owner": "bijux-dna-bench",
-      "protocol_state": "reserved",
-      "protocol_sha256": "6bedae00714495a93d4cd7ec90335ac258ea8e3a3e7c79961073a3fb83c81cf0",
+      "protocol_state": "active",
+      "protocol_sha256": "dbb465cd7e6e9c11a9254a5b5603ca2229d87110db67ce0ffab2048bd3bbe8b3",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2006",
       "tool_ids": [
         "authenticct",
@@ -146,8 +359,7 @@
       ],
       "acceptance_policy_id": "bam-ancient-authentication-acceptance-v1",
       "limitations": [
-        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-        "The protocol is reserved and has no selected publication."
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
       ]
     },
     {
@@ -157,8 +369,8 @@
       "slug": "bam-bias-mitigation",
       "stage_id": "bam.bias_mitigation",
       "owner": "bijux-dna-bench",
-      "protocol_state": "reserved",
-      "protocol_sha256": "2acb689e492c2bb5cbaf078b19903751552a65958f619f712715703a5fe89033",
+      "protocol_state": "active",
+      "protocol_sha256": "98df80d238885888d1e081d76526e5ee95e2a4add84c8fba0ea0bbc9d243151c",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2007",
       "tool_ids": [
         "mapdamage2"
@@ -169,8 +381,7 @@
       ],
       "acceptance_policy_id": "bam-transformation-acceptance-v1",
       "limitations": [
-        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-        "The protocol is reserved and has no selected publication."
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
       ]
     },
     {
@@ -180,8 +391,8 @@
       "slug": "bam-complexity",
       "stage_id": "bam.complexity",
       "owner": "bijux-dna-bench",
-      "protocol_state": "reserved",
-      "protocol_sha256": "603acb76c52d18b3a875741a2c1aa86d8879df63fcbc8c548bc68b71be0c9d4f",
+      "protocol_state": "active",
+      "protocol_sha256": "4242c5a70833b4647a60cfae056185f052533961e9789746bc39e91fc2248e43",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2008",
       "tool_ids": [
         "preseq"
@@ -191,8 +402,7 @@
       ],
       "acceptance_policy_id": "bam-observational-qc-acceptance-v1",
       "limitations": [
-        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-        "The protocol is reserved and has no selected publication."
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
       ]
     },
     {
@@ -202,8 +412,8 @@
       "slug": "bam-contamination",
       "stage_id": "bam.contamination",
       "owner": "bijux-dna-bench",
-      "protocol_state": "reserved",
-      "protocol_sha256": "3be6fdaf945f2f212b8c4e676b3d5e8fe91bc095886e01aa6e8c57119564968c",
+      "protocol_state": "active",
+      "protocol_sha256": "e20b00c30dc4035d7cd368f71d24f1c8c325f915fd666393b277b059dad17e4f",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2009",
       "tool_ids": [
         "contammix",
@@ -217,8 +427,7 @@
       ],
       "acceptance_policy_id": "bam-biological-inference-acceptance-v1",
       "limitations": [
-        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-        "The protocol is reserved and has no selected publication."
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
       ]
     },
     {
@@ -277,8 +486,8 @@
       "slug": "bam-filter",
       "stage_id": "bam.filter",
       "owner": "bijux-dna-bench",
-      "protocol_state": "reserved",
-      "protocol_sha256": "406569e74fbd08d00196ce06796da88d367b26fcc673f65a3c82d2f3fb8fcf33",
+      "protocol_state": "active",
+      "protocol_sha256": "7d40a552666bfcf75b19e9cfedec990ddce57994f28b25f5006efce0195c1180",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2012",
       "tool_ids": [
         "bamtools",
@@ -291,8 +500,7 @@
       ],
       "acceptance_policy_id": "bam-transformation-acceptance-v1",
       "limitations": [
-        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-        "The protocol is reserved and has no selected publication."
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
       ]
     },
     {
@@ -323,8 +531,8 @@
       "slug": "bam-haplogroups",
       "stage_id": "bam.haplogroups",
       "owner": "bijux-dna-bench",
-      "protocol_state": "reserved",
-      "protocol_sha256": "f0d0d8272fd72372b8d1feba0672a7e6e2922ea2422c498294a477e8ae009295",
+      "protocol_state": "active",
+      "protocol_sha256": "7c5f6255913ae0f1b849192e1d680d6542f83725a6e5c80caa282fbcfa7d3b64",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2014",
       "tool_ids": [
         "yleaf"
@@ -336,8 +544,7 @@
       ],
       "acceptance_policy_id": "bam-biological-inference-acceptance-v1",
       "limitations": [
-        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-        "The protocol is reserved and has no selected publication."
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
       ]
     },
     {
@@ -368,8 +575,8 @@
       "slug": "bam-kinship",
       "stage_id": "bam.kinship",
       "owner": "bijux-dna-bench",
-      "protocol_state": "reserved",
-      "protocol_sha256": "26de956e8cd4eff30f9b0859f0d47ba32d81832309d983fbdf9aa6c287ef6873",
+      "protocol_state": "active",
+      "protocol_sha256": "764998d97515d0a38c7e92aa85f05f8c7cfeb7856b4d4d3b9d05a075697e40ad",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2016",
       "tool_ids": [
         "angsd",
@@ -382,8 +589,7 @@
       ],
       "acceptance_policy_id": "bam-biological-inference-acceptance-v1",
       "limitations": [
-        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-        "The protocol is reserved and has no selected publication."
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
       ]
     },
     {
@@ -393,8 +599,8 @@
       "slug": "bam-length-filter",
       "stage_id": "bam.length_filter",
       "owner": "bijux-dna-bench",
-      "protocol_state": "reserved",
-      "protocol_sha256": "fa4985cf3496606faf7a096bac8662f3a97a6b3e4ac905c3b1ff430cf9c35df5",
+      "protocol_state": "active",
+      "protocol_sha256": "6d5cbb815a2aeac86f2431a5912908e65ea584dbf488cc0a8ad77726d1dc2fa1",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2017",
       "tool_ids": [
         "picard",
@@ -406,8 +612,7 @@
       ],
       "acceptance_policy_id": "bam-transformation-acceptance-v1",
       "limitations": [
-        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-        "The protocol is reserved and has no selected publication."
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
       ]
     },
     {
@@ -417,8 +622,8 @@
       "slug": "bam-mapq-filter",
       "stage_id": "bam.mapq_filter",
       "owner": "bijux-dna-bench",
-      "protocol_state": "reserved",
-      "protocol_sha256": "a4f7fa95a8a9e5612c544dab880331069b888bbf087e40491a98fc2715a5aeae",
+      "protocol_state": "active",
+      "protocol_sha256": "c8d306e5240ad108050d96c45ec2fd5333c46b3f56d11ca33d1419e69c10bd5b",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2018",
       "tool_ids": [
         "bamtools",
@@ -430,8 +635,7 @@
       ],
       "acceptance_policy_id": "bam-transformation-acceptance-v1",
       "limitations": [
-        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-        "The protocol is reserved and has no selected publication."
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
       ]
     },
     {
@@ -441,8 +645,8 @@
       "slug": "bam-markdup",
       "stage_id": "bam.markdup",
       "owner": "bijux-dna-bench",
-      "protocol_state": "reserved",
-      "protocol_sha256": "bb33ade8b5ea282a6d879cc521b55598f35e237e44b63e2503dc8a2b98b9d331",
+      "protocol_state": "active",
+      "protocol_sha256": "57541c200a52f48f1d3b4800f170f109d82d5e6069a65744f1f20c95973171ae",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2019",
       "tool_ids": [
         "picard",
@@ -454,8 +658,7 @@
       ],
       "acceptance_policy_id": "bam-transformation-acceptance-v1",
       "limitations": [
-        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-        "The protocol is reserved and has no selected publication."
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
       ]
     },
     {
@@ -465,8 +668,8 @@
       "slug": "bam-overlap-correction",
       "stage_id": "bam.overlap_correction",
       "owner": "bijux-dna-bench",
-      "protocol_state": "reserved",
-      "protocol_sha256": "799e2dd86d76e4f1b40d9b327dcd7da82b1596ad0d691d444e10a31c44462ed6",
+      "protocol_state": "active",
+      "protocol_sha256": "5929ff1f3dc9da00456144cf07ad204d695cc295ed762e66b3fe48b0c57124b0",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2020",
       "tool_ids": [
         "bamutil"
@@ -477,8 +680,7 @@
       ],
       "acceptance_policy_id": "bam-transformation-acceptance-v1",
       "limitations": [
-        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-        "The protocol is reserved and has no selected publication."
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
       ]
     },
     {
@@ -488,8 +690,8 @@
       "slug": "bam-qc-pre",
       "stage_id": "bam.qc_pre",
       "owner": "bijux-dna-bench",
-      "protocol_state": "reserved",
-      "protocol_sha256": "9887bca59201688645dfb5cd9af93810f803880df6690dc611b1c6c913b1162a",
+      "protocol_state": "active",
+      "protocol_sha256": "75e98a40809a31059e74d825f6d778b296c17fb319c3a810d59d4a342793ffe8",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2021",
       "tool_ids": [
         "multiqc",
@@ -500,8 +702,7 @@
       ],
       "acceptance_policy_id": "bam-observational-qc-acceptance-v1",
       "limitations": [
-        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-        "The protocol is reserved and has no selected publication."
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
       ]
     },
     {
@@ -511,8 +712,8 @@
       "slug": "bam-recalibration",
       "stage_id": "bam.recalibration",
       "owner": "bijux-dna-bench",
-      "protocol_state": "reserved",
-      "protocol_sha256": "3eaf587f62722222e069e623cf0d19dc01af55318591cab7831deb2ecdf7eab2",
+      "protocol_state": "active",
+      "protocol_sha256": "f3789d9f8732f8d907a8fb3021ba2f0343e28905f5fcdd7c0458e96544357572",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2022",
       "tool_ids": [
         "gatk"
@@ -523,8 +724,7 @@
       ],
       "acceptance_policy_id": "bam-transformation-acceptance-v1",
       "limitations": [
-        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-        "The protocol is reserved and has no selected publication."
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
       ]
     },
     {
@@ -534,8 +734,8 @@
       "slug": "bam-sex",
       "stage_id": "bam.sex",
       "owner": "bijux-dna-bench",
-      "protocol_state": "reserved",
-      "protocol_sha256": "8916fe6775eb86dbfca1eaa0fef8356650502ffdac370a082e9ca86d08119371",
+      "protocol_state": "active",
+      "protocol_sha256": "5733c1a0c5d51465ee7dccbf313c9db11430c0899f214a19fc14bf7cbd04ac7f",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2023",
       "tool_ids": [
         "angsd",
@@ -549,8 +749,7 @@
       ],
       "acceptance_policy_id": "bam-biological-inference-acceptance-v1",
       "limitations": [
-        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-        "The protocol is reserved and has no selected publication."
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
       ]
     },
     {
@@ -560,8 +759,8 @@
       "slug": "bam-validate",
       "stage_id": "bam.validate",
       "owner": "bijux-dna-bench",
-      "protocol_state": "reserved",
-      "protocol_sha256": "ed9227d4b83a50fd5aaad7cd9b31703c5438ae92537d8c94f1ace39f27856307",
+      "protocol_state": "active",
+      "protocol_sha256": "8f3144c077965f2d47623ca9e6aa4931b1db51d334a85ad5df019a23238bb22b",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2024",
       "tool_ids": [
         "bamtools",
@@ -573,8 +772,7 @@
       ],
       "acceptance_policy_id": "bam-observational-qc-acceptance-v1",
       "limitations": [
-        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-        "The protocol is reserved and has no selected publication."
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
       ]
     },
     {
@@ -584,8 +782,8 @@
       "slug": "fastq-cluster-otus",
       "stage_id": "fastq.cluster_otus",
       "owner": "bijux-dna-bench",
-      "protocol_state": "reserved",
-      "protocol_sha256": "89990090aa664a645ae92ac47291574686cd8f32b28b72e172f64a76825c4605",
+      "protocol_state": "active",
+      "protocol_sha256": "ec7e4a3153d289282549835bf134608f847e8aa33786b272b72b9a3c6a496136",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2025",
       "tool_ids": [
         "vsearch"
@@ -595,8 +793,7 @@
       ],
       "acceptance_policy_id": "fastq-amplicon-acceptance-v1",
       "limitations": [
-        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-        "The protocol is reserved and has no selected publication."
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
       ]
     },
     {
@@ -606,8 +803,8 @@
       "slug": "fastq-correct-errors",
       "stage_id": "fastq.correct_errors",
       "owner": "bijux-dna-bench",
-      "protocol_state": "reserved",
-      "protocol_sha256": "08149f31f19963e798a7f70f0c6807c650da84f235612c3437012871e5601045",
+      "protocol_state": "active",
+      "protocol_sha256": "3ae5157f263c08820b082e87fd26e6bfdeab1ee61f30f6a730084b6e85df6494",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2026",
       "tool_ids": [
         "bayeshammer",
@@ -621,8 +818,7 @@
       ],
       "acceptance_policy_id": "fastq-read-transformation-acceptance-v1",
       "limitations": [
-        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-        "The protocol is reserved and has no selected publication."
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
       ]
     },
     {
@@ -632,8 +828,8 @@
       "slug": "fastq-deplete-host",
       "stage_id": "fastq.deplete_host",
       "owner": "bijux-dna-bench",
-      "protocol_state": "reserved",
-      "protocol_sha256": "410d490164a3030f2f645d6bab9c09be70410c54609bb824a2bff8121424a925",
+      "protocol_state": "active",
+      "protocol_sha256": "00c1de433fffdb80f815ca9249221c04ecfa5b338ced6e61a949f09d6a5c3e16",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2027",
       "tool_ids": [
         "bowtie2"
@@ -644,8 +840,7 @@
       ],
       "acceptance_policy_id": "fastq-depletion-acceptance-v1",
       "limitations": [
-        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-        "The protocol is reserved and has no selected publication."
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
       ]
     },
     {
@@ -655,8 +850,8 @@
       "slug": "fastq-deplete-reference-contaminants",
       "stage_id": "fastq.deplete_reference_contaminants",
       "owner": "bijux-dna-bench",
-      "protocol_state": "reserved",
-      "protocol_sha256": "6e78c7d2a99b793e16c25edc55dbd32afb85f087b3def08ca11ee2d77b897015",
+      "protocol_state": "active",
+      "protocol_sha256": "9bf172bef8901d8fd7d89e6a2d9265d235e7c5216b8bdbaa7fa10bb4e35a6b48",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2028",
       "tool_ids": [
         "bowtie2"
@@ -667,8 +862,7 @@
       ],
       "acceptance_policy_id": "fastq-depletion-acceptance-v1",
       "limitations": [
-        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-        "The protocol is reserved and has no selected publication."
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
       ]
     },
     {
@@ -678,8 +872,8 @@
       "slug": "fastq-deplete-rrna",
       "stage_id": "fastq.deplete_rrna",
       "owner": "bijux-dna-bench",
-      "protocol_state": "reserved",
-      "protocol_sha256": "bdd14bd0b563d656368f2986cb1638470a8b1b085d1c456daa1fa28d6bc2b6c4",
+      "protocol_state": "active",
+      "protocol_sha256": "32241516047c63fc4da90ae1e6eadc3331b9b392623c62a587e72038965bdd2f",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2029",
       "tool_ids": [
         "sortmerna"
@@ -690,8 +884,7 @@
       ],
       "acceptance_policy_id": "fastq-depletion-acceptance-v1",
       "limitations": [
-        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-        "The protocol is reserved and has no selected publication."
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
       ]
     },
     {
@@ -711,9 +904,55 @@
         "short_read_diversity"
       ],
       "acceptance_policy_id": "fastq-observational-qc-acceptance-v1",
-      "limitations": [
-        "No current admitted publication is selected; this protocol is not citable as executed evidence."
-      ]
+      "selected_publication": {
+        "publication_id": "run-2030-production-e6874f0d833c",
+        "selected_attempts": [
+          {
+            "campaign_id": "production-run-2030-e6874f0d8",
+            "run": {
+              "run_id": "run-2030",
+              "domain": "fastq",
+              "stage_id": "fastq.detect_adapters"
+            },
+            "case_id": "run-2030--fastqc--human-short-read-diversity",
+            "attempt_id": "attempt-0001",
+            "tool_id": "fastqc"
+          }
+        ],
+        "repository_commit": "e6874f0d833c7a7f95b40d7dae8b42a80bf5d6cd",
+        "report": {
+          "uri": "study://results/benchmarks/publications/e6874f0d833c7a7f95b40d7dae8b42a80bf5d6cd/run-2030/run-2030-fastq-detect-adapters.json",
+          "sha256": "1495b2cd98b94f26e8bbb5269b2a74df9349ddad6cd53090c92e30c16bbf8031",
+          "size_bytes": 15054
+        },
+        "evidence_book": {
+          "uri": "study://results/benchmarks/evidence-books/e6874f0d833c7a7f95b40d7dae8b42a80bf5d6cd/candidate-publications.json",
+          "sha256": "3d6313b6b43db4ac06ff8e5ae05268b4f7e5a29b253a08f1ede7bd5412b8d599",
+          "size_bytes": 3777
+        },
+        "publication_receipt": {
+          "uri": "study://results/benchmarks/publications/e6874f0d833c7a7f95b40d7dae8b42a80bf5d6cd/run-2030/publication-receipt.json",
+          "sha256": "6137a6135b2292604978f739e25bbae230dd6a50ba22bca2fc526365ff21b1f8",
+          "size_bytes": 2613
+        },
+        "citation_record": {
+          "uri": "study://results/benchmarks/publications/e6874f0d833c7a7f95b40d7dae8b42a80bf5d6cd/run-2030/citation-record.json",
+          "sha256": "7a4913960c0f76996812b0c9f21afb6f01450c1a02dd627f26bdc08dd55d2159",
+          "size_bytes": 2570
+        },
+        "replay_receipt": {
+          "uri": "study://results/benchmarks/replays/e6874f0d833c7a7f95b40d7dae8b42a80bf5d6cd/run-2030/semantic-identity.json",
+          "sha256": "7b38f201eff0bab5bee8166f92cd28f22d84eb3ee5c418092c1f8b983c5c7527",
+          "size_bytes": 3339
+        },
+        "limitations": [
+          "Licensed external-tool comparisons remain blocked until lawful artifacts are admitted and executed.",
+          "The publication qualifies FastQC on one governed human short-read diversity cohort and does not establish a cross-tool ranking.",
+          "This citation covers one admitted stage-specific FASTQ portfolio and does not imply completion of the 71-run benchmark portfolio."
+        ],
+        "access_statement": "Source corpus access and redistribution remain governed by the immutable data portfolio records and original provider terms."
+      },
+      "limitations": []
     },
     {
       "run_id": "run-2031",
@@ -722,8 +961,8 @@
       "slug": "fastq-detect-duplicates-premerge",
       "stage_id": "fastq.detect_duplicates_premerge",
       "owner": "bijux-dna-bench",
-      "protocol_state": "reserved",
-      "protocol_sha256": "e835707d6e023e7557cc0f1d668f791e46a3bd3e9f9487ffffb12887fc547597",
+      "protocol_state": "active",
+      "protocol_sha256": "a649ed1d599903739f59f864d63513c79f6d9c039a75880f1300f39cf9b1c81e",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2031",
       "tool_ids": [
         "bijux_dna"
@@ -733,8 +972,7 @@
       ],
       "acceptance_policy_id": "fastq-observational-qc-acceptance-v1",
       "limitations": [
-        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-        "The protocol is reserved and has no selected publication."
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
       ]
     },
     {
@@ -744,8 +982,8 @@
       "slug": "fastq-estimate-library-complexity-prealign",
       "stage_id": "fastq.estimate_library_complexity_prealign",
       "owner": "bijux-dna-bench",
-      "protocol_state": "reserved",
-      "protocol_sha256": "ee02926496986a2ae8c50741ec1c1cc57f78b121b1be44d01778b22d9fe6a73f",
+      "protocol_state": "active",
+      "protocol_sha256": "2ea40ec8e16064726219b72007b34558b5c7fa156ac29721ccebce3521caf840",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2032",
       "tool_ids": [
         "bijux_dna"
@@ -755,8 +993,7 @@
       ],
       "acceptance_policy_id": "fastq-observational-qc-acceptance-v1",
       "limitations": [
-        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-        "The protocol is reserved and has no selected publication."
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
       ]
     },
     {
@@ -766,8 +1003,8 @@
       "slug": "fastq-extract-umis",
       "stage_id": "fastq.extract_umis",
       "owner": "bijux-dna-bench",
-      "protocol_state": "reserved",
-      "protocol_sha256": "d27a63078413838b85928ab8d0f5d16b12294f64f1ff94a01c58cc7658d58c2d",
+      "protocol_state": "active",
+      "protocol_sha256": "e07912f293d618c9f592ce04f39b53c9ed3c169adf1ceeca7de64f98b223ee07",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2033",
       "tool_ids": [
         "umi_tools"
@@ -778,8 +1015,7 @@
       ],
       "acceptance_policy_id": "fastq-read-transformation-acceptance-v1",
       "limitations": [
-        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-        "The protocol is reserved and has no selected publication."
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
       ]
     },
     {
@@ -789,8 +1025,8 @@
       "slug": "fastq-filter-low-complexity",
       "stage_id": "fastq.filter_low_complexity",
       "owner": "bijux-dna-bench",
-      "protocol_state": "reserved",
-      "protocol_sha256": "6d9efe602e574a79ab44f9a106ed58c3fd3a1d2c472c3d87b0308a3ff55c4c68",
+      "protocol_state": "active",
+      "protocol_sha256": "afe778ac9022fa732685828afbbdf0b159678fe3095835e64d43b9662ed148ab",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2034",
       "tool_ids": [
         "bbduk",
@@ -803,8 +1039,7 @@
       ],
       "acceptance_policy_id": "fastq-read-transformation-acceptance-v1",
       "limitations": [
-        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-        "The protocol is reserved and has no selected publication."
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
       ]
     },
     {
@@ -814,8 +1049,8 @@
       "slug": "fastq-filter-reads",
       "stage_id": "fastq.filter_reads",
       "owner": "bijux-dna-bench",
-      "protocol_state": "reserved",
-      "protocol_sha256": "60951e0697144788b3c68dbfa632b87114030d1c075b161500571ed05f554e32",
+      "protocol_state": "active",
+      "protocol_sha256": "ab326d239121f7e9bf2d9fa33ab9f3b36536ed28dade68289eec330bdc8e518a",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2035",
       "tool_ids": [
         "bbduk",
@@ -829,8 +1064,7 @@
       ],
       "acceptance_policy_id": "fastq-read-transformation-acceptance-v1",
       "limitations": [
-        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-        "The protocol is reserved and has no selected publication."
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
       ]
     },
     {
@@ -840,8 +1074,8 @@
       "slug": "fastq-index-reference",
       "stage_id": "fastq.index_reference",
       "owner": "bijux-dna-bench",
-      "protocol_state": "reserved",
-      "protocol_sha256": "dd4012dae167fa33c9bb9ff137de36949acf4fd5dd09fa6bf739ee054380539a",
+      "protocol_state": "active",
+      "protocol_sha256": "d801f903e217cf7b1134224c63a546d3837472ba74feb3f5998dbb2d07b94476",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2036",
       "tool_ids": [
         "bowtie2_build",
@@ -852,8 +1086,7 @@
       ],
       "acceptance_policy_id": "reference-index-build-acceptance-v1",
       "limitations": [
-        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-        "The protocol is reserved and has no selected publication."
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
       ]
     },
     {
@@ -863,8 +1096,8 @@
       "slug": "fastq-infer-asvs",
       "stage_id": "fastq.infer_asvs",
       "owner": "bijux-dna-bench",
-      "protocol_state": "reserved",
-      "protocol_sha256": "a293b6289faa2428801c3deda52dc68ae710bd6fdda2038ecb1040b3d3601f98",
+      "protocol_state": "active",
+      "protocol_sha256": "f3b00633b7f6e84021cddbd400be80ea6bd4133e3e60e49345084a638962578b",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2037",
       "tool_ids": [
         "dada2"
@@ -874,8 +1107,7 @@
       ],
       "acceptance_policy_id": "fastq-amplicon-acceptance-v1",
       "limitations": [
-        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-        "The protocol is reserved and has no selected publication."
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
       ]
     },
     {
@@ -885,8 +1117,8 @@
       "slug": "fastq-merge-pairs",
       "stage_id": "fastq.merge_pairs",
       "owner": "bijux-dna-bench",
-      "protocol_state": "reserved",
-      "protocol_sha256": "d141fc4c7e120539841977ebddf272e49c93372732fff0da681d37106c7c67c0",
+      "protocol_state": "active",
+      "protocol_sha256": "54f75421fbf721cca84f13ce571419effae03fd08734d7319f786e1fe6ce5b75",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2038",
       "tool_ids": [
         "adapterremoval",
@@ -903,8 +1135,7 @@
       ],
       "acceptance_policy_id": "fastq-read-transformation-acceptance-v1",
       "limitations": [
-        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-        "The protocol is reserved and has no selected publication."
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
       ]
     },
     {
@@ -914,8 +1145,8 @@
       "slug": "fastq-normalize-abundance",
       "stage_id": "fastq.normalize_abundance",
       "owner": "bijux-dna-bench",
-      "protocol_state": "reserved",
-      "protocol_sha256": "45c4394304bddf66afe01f1986b8b6d63db28329fedb7322db029bb5c84ca122",
+      "protocol_state": "active",
+      "protocol_sha256": "6fa029292f08661f94cdb7d3f8afb90638646037671150132b03398c032d77ee",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2039",
       "tool_ids": [
         "seqkit"
@@ -925,8 +1156,7 @@
       ],
       "acceptance_policy_id": "fastq-amplicon-acceptance-v1",
       "limitations": [
-        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-        "The protocol is reserved and has no selected publication."
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
       ]
     },
     {
@@ -936,8 +1166,8 @@
       "slug": "fastq-normalize-primers",
       "stage_id": "fastq.normalize_primers",
       "owner": "bijux-dna-bench",
-      "protocol_state": "reserved",
-      "protocol_sha256": "a7ce88d16435dc6525d53447c5ae1bef5342f0171d7188b72ca21e5421fc4a75",
+      "protocol_state": "active",
+      "protocol_sha256": "cd5242c2c567b13cc69864ca61880a638d43da3961bcdcaaa879fd206f1a12dd",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2040",
       "tool_ids": [
         "cutadapt"
@@ -948,8 +1178,7 @@
       ],
       "acceptance_policy_id": "fastq-read-transformation-acceptance-v1",
       "limitations": [
-        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-        "The protocol is reserved and has no selected publication."
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
       ]
     },
     {
@@ -959,8 +1188,8 @@
       "slug": "fastq-profile-overrepresented-sequences",
       "stage_id": "fastq.profile_overrepresented_sequences",
       "owner": "bijux-dna-bench",
-      "protocol_state": "reserved",
-      "protocol_sha256": "49f40518dc0b445178e4f11da02b7525e2fe24150b5273631ebba48fb32e1b9a",
+      "protocol_state": "active",
+      "protocol_sha256": "c21dbbbfa1a11a5f4999a3a17111eba42e9a25c2e2f47c9d09aae5b05bf9591e",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2041",
       "tool_ids": [
         "fastq_scan",
@@ -972,8 +1201,7 @@
       ],
       "acceptance_policy_id": "fastq-observational-qc-acceptance-v1",
       "limitations": [
-        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-        "The protocol is reserved and has no selected publication."
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
       ]
     },
     {
@@ -995,60 +1223,61 @@
       ],
       "acceptance_policy_id": "fastq-observational-qc-acceptance-v1",
       "selected_publication": {
-        "publication_id": "run-2042-production-74b7042739d9",
+        "publication_id": "run-2042-production-e6874f0d833c",
         "selected_attempts": [
           {
-            "campaign_id": "production-run-2042-e410adee18a3819606db911c2cb48c1414972178",
+            "campaign_id": "production-run-2042-e6874f0d8",
             "run": {
               "run_id": "run-2042",
               "domain": "fastq",
               "stage_id": "fastq.profile_read_lengths"
             },
             "case_id": "run-2042--seqfu--human-short-read-diversity",
-            "attempt_id": "attempt-003",
+            "attempt_id": "attempt-0001",
             "tool_id": "seqfu"
           },
           {
-            "campaign_id": "production-run-2042-e410adee18a3819606db911c2cb48c1414972178",
+            "campaign_id": "production-run-2042-e6874f0d8",
             "run": {
               "run_id": "run-2042",
               "domain": "fastq",
               "stage_id": "fastq.profile_read_lengths"
             },
             "case_id": "run-2042--seqkit--human-short-read-diversity",
-            "attempt_id": "attempt-002",
+            "attempt_id": "attempt-0001",
             "tool_id": "seqkit"
           }
         ],
-        "repository_commit": "74b7042739d93b2b1b504790d92d556f34be0d64",
+        "repository_commit": "e6874f0d833c7a7f95b40d7dae8b42a80bf5d6cd",
         "report": {
-          "uri": "study://results/benchmarks/publications/74b7042739d93b2b1b504790d92d556f34be0d64/run-2042/run-2042-fastq-profile-read-lengths.json",
-          "sha256": "725b0f32d9dc164931b237c8a822a0dab332f54d718785c70a9471ac8e0e0186",
-          "size_bytes": 48686
+          "uri": "study://results/benchmarks/publications/e6874f0d833c7a7f95b40d7dae8b42a80bf5d6cd/run-2042/run-2042-fastq-profile-read-lengths.json",
+          "sha256": "f6ba07ff3d716c58dfbd1cfb66b34a64bc08b0f43e31227b0aa78396707dd38a",
+          "size_bytes": 48676
         },
         "evidence_book": {
-          "uri": "study://results/benchmarks/evidence-books/45c49ae3e9afb3445986fc31b41383b32418403b/candidate-publications.json",
-          "sha256": "5525e3caab74b61a15205c69df50c6a140cf582097f37fe435297bd3cc1dc2f4",
-          "size_bytes": 3258
+          "uri": "study://results/benchmarks/evidence-books/e6874f0d833c7a7f95b40d7dae8b42a80bf5d6cd/candidate-publications.json",
+          "sha256": "3d6313b6b43db4ac06ff8e5ae05268b4f7e5a29b253a08f1ede7bd5412b8d599",
+          "size_bytes": 3777
         },
         "publication_receipt": {
-          "uri": "study://results/benchmarks/publications/74b7042739d93b2b1b504790d92d556f34be0d64/run-2042/publication-receipt.json",
-          "sha256": "3a765e9bed552750783a1cd26af140478be7d53f00d673ca5b484aee33c1a7da",
-          "size_bytes": 3365
+          "uri": "study://results/benchmarks/publications/e6874f0d833c7a7f95b40d7dae8b42a80bf5d6cd/run-2042/publication-receipt.json",
+          "sha256": "6fceb7621e8939f7d7280442052d3cb156480f006106c6850f8c45428da344fc",
+          "size_bytes": 3400
         },
         "citation_record": {
-          "uri": "study://results/benchmarks/publications/74b7042739d93b2b1b504790d92d556f34be0d64/run-2042/citation-record.json",
-          "sha256": "03b938ad3e9e48fb6badd6c9ef3be3c76ace6e3a0bee241f66b292a4fd25affd",
-          "size_bytes": 2961
+          "uri": "study://results/benchmarks/publications/e6874f0d833c7a7f95b40d7dae8b42a80bf5d6cd/run-2042/citation-record.json",
+          "sha256": "8f42650cf4bf3d87f2e6eabcacb6f64df8075e9e73fd634afc3bc68dffe0b75a",
+          "size_bytes": 3087
         },
         "replay_receipt": {
-          "uri": "study://results/benchmarks/replays/f108c4576f7b7a596cf0af779878895dfaf74302/run-2042/semantic-identity.json",
-          "sha256": "a78b929e2df7bbea34b1d3bda13f36b450a61614cc49ab6b5e5a061600fd08d1",
-          "size_bytes": 3656
+          "uri": "study://results/benchmarks/replays/e6874f0d833c7a7f95b40d7dae8b42a80bf5d6cd/run-2042/semantic-identity.json",
+          "sha256": "8b82ad5785f1f3ef379c27ab03bba626503170dffc32525dbaad0caf6d0ee60f",
+          "size_bytes": 3968
         },
         "limitations": [
-          "The publication covers one governed human short-read diversity cohort.",
-          "This citation covers the admitted stage-specific portfolio and does not imply completion of the 71-run benchmark portfolio."
+          "Licensed external-tool comparisons remain blocked until lawful artifacts are admitted and executed.",
+          "The publication compares SeqFu and SeqKit on one governed human short-read diversity cohort and does not generalize beyond the admitted corpus.",
+          "This citation covers one admitted stage-specific FASTQ portfolio and does not imply completion of the 71-run benchmark portfolio."
         ],
         "access_statement": "Source corpus access and redistribution remain governed by the immutable data portfolio records and original provider terms."
       },
@@ -1074,71 +1303,72 @@
       ],
       "acceptance_policy_id": "fastq-observational-qc-acceptance-v1",
       "selected_publication": {
-        "publication_id": "run-2043-production-74b7042739d9",
+        "publication_id": "run-2043-production-331014ca9f9c",
         "selected_attempts": [
           {
-            "campaign_id": "production-run-2043-e410adee18a3819606db911c2cb48c1414972178",
+            "campaign_id": "production-run-2043-331014ca9",
             "run": {
               "run_id": "run-2043",
               "domain": "fastq",
               "stage_id": "fastq.profile_reads"
             },
             "case_id": "run-2043--seqfu--human-short-read-diversity",
-            "attempt_id": "attempt-002",
+            "attempt_id": "attempt-0002",
             "tool_id": "seqfu"
           },
           {
-            "campaign_id": "production-run-2043-e410adee18a3819606db911c2cb48c1414972178",
+            "campaign_id": "production-run-2043-331014ca9",
             "run": {
               "run_id": "run-2043",
               "domain": "fastq",
               "stage_id": "fastq.profile_reads"
             },
             "case_id": "run-2043--seqkit--human-short-read-diversity",
-            "attempt_id": "attempt-002",
+            "attempt_id": "attempt-0002",
             "tool_id": "seqkit"
           },
           {
-            "campaign_id": "production-run-2043-e410adee18a3819606db911c2cb48c1414972178",
+            "campaign_id": "production-run-2043-331014ca9",
             "run": {
               "run_id": "run-2043",
               "domain": "fastq",
               "stage_id": "fastq.profile_reads"
             },
             "case_id": "run-2043--seqkit_stats--human-short-read-diversity",
-            "attempt_id": "attempt-002",
+            "attempt_id": "attempt-0002",
             "tool_id": "seqkit_stats"
           }
         ],
-        "repository_commit": "74b7042739d93b2b1b504790d92d556f34be0d64",
+        "repository_commit": "331014ca9f9c46e948eadb1cd4a79b8c4fc3f2ec",
         "report": {
-          "uri": "study://results/benchmarks/publications/74b7042739d93b2b1b504790d92d556f34be0d64/run-2043/run-2043-fastq-profile-reads.json",
-          "sha256": "199529097d0dafd7ddb8b2abf71f5f1dc406ddf784686dfea309fc2e475bbe75",
-          "size_bytes": 38902
+          "uri": "study://results/benchmarks/publications/331014ca9f9c46e948eadb1cd4a79b8c4fc3f2ec/run-2043/run-2043-fastq-profile-reads.json",
+          "sha256": "ee976896a7025d1c50df3a4a8c22e1a7f5272eb08654cec685a42d9fecda0779",
+          "size_bytes": 38900
         },
         "evidence_book": {
-          "uri": "study://results/benchmarks/evidence-books/45c49ae3e9afb3445986fc31b41383b32418403b/candidate-publications.json",
-          "sha256": "5525e3caab74b61a15205c69df50c6a140cf582097f37fe435297bd3cc1dc2f4",
-          "size_bytes": 3258
+          "uri": "study://results/benchmarks/evidence-books/6461e4e08b2e118f7e2efb9fe154500f2a6526ec/candidate-publications.json",
+          "sha256": "7007544c3bfb93569096fb8ebb6c35975ebd777afd491623002863bb4c798283",
+          "size_bytes": 3777
         },
         "publication_receipt": {
-          "uri": "study://results/benchmarks/publications/74b7042739d93b2b1b504790d92d556f34be0d64/run-2043/publication-receipt.json",
-          "sha256": "a83d3672081d1fb5c3c0348d04673e44641ce3185e93278ac95ff13a23e84aba",
-          "size_bytes": 4080
+          "uri": "study://results/benchmarks/publications/331014ca9f9c46e948eadb1cd4a79b8c4fc3f2ec/run-2043/publication-receipt.json",
+          "sha256": "cb768612c96df8f03f710020ae0e1b3ef08e3fede9db8d8074b8bf715aa0020c",
+          "size_bytes": 4032
         },
         "citation_record": {
-          "uri": "study://results/benchmarks/publications/74b7042739d93b2b1b504790d92d556f34be0d64/run-2043/citation-record.json",
-          "sha256": "27660957f0f08dc6a5611b49bf6e504089b024e655fe740162430aa379bd6def",
-          "size_bytes": 3451
+          "uri": "study://results/benchmarks/publications/331014ca9f9c46e948eadb1cd4a79b8c4fc3f2ec/run-2043/citation-record.json",
+          "sha256": "f00e5924b9ecc12ae3a0b34a99649738e2744a65aa451056b80b35b77c133294",
+          "size_bytes": 3474
         },
         "replay_receipt": {
-          "uri": "study://results/benchmarks/replays/f108c4576f7b7a596cf0af779878895dfaf74302/run-2043/semantic-identity.json",
-          "sha256": "f7a5581b78cb40559fae603596c9edaad2e759dc8c8138d9bf681765c3f4af40",
-          "size_bytes": 4263
+          "uri": "study://results/benchmarks/replays/6461e4e08b2e118f7e2efb9fe154500f2a6526ec/run-2043/semantic-identity.json",
+          "sha256": "73db861ab733fa693203010eef2ddfe39720ee4878904828479f519805c67259",
+          "size_bytes": 4179
         },
         "limitations": [
+          "Licensed external-tool comparisons remain blocked until lawful artifacts are admitted and executed.",
           "The publication covers one governed human short-read diversity cohort.",
-          "This citation covers the admitted stage-specific portfolio and does not imply completion of the 71-run benchmark portfolio."
+          "This citation covers one admitted stage-specific FASTQ portfolio and does not imply completion of the 71-run benchmark portfolio."
         ],
         "access_statement": "Source corpus access and redistribution remain governed by the immutable data portfolio records and original provider terms."
       },
@@ -1151,8 +1381,8 @@
       "slug": "fastq-remove-chimeras",
       "stage_id": "fastq.remove_chimeras",
       "owner": "bijux-dna-bench",
-      "protocol_state": "reserved",
-      "protocol_sha256": "efe8ac839c4763b676ca030c82b4b93ec8ff1f89828af4f94b19b8c601ffe03e",
+      "protocol_state": "active",
+      "protocol_sha256": "2f521e50be6df45e80b9a778c4bb26be06dedac039a55662bb425e4fbf489a75",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2044",
       "tool_ids": [
         "vsearch"
@@ -1162,8 +1392,7 @@
       ],
       "acceptance_policy_id": "fastq-amplicon-acceptance-v1",
       "limitations": [
-        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-        "The protocol is reserved and has no selected publication."
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
       ]
     },
     {
@@ -1173,8 +1402,8 @@
       "slug": "fastq-remove-duplicates",
       "stage_id": "fastq.remove_duplicates",
       "owner": "bijux-dna-bench",
-      "protocol_state": "reserved",
-      "protocol_sha256": "707799960105831b0a1f5efaf3c08f9cd828bfee22d3d576e8cdbbd4ebc64cde",
+      "protocol_state": "active",
+      "protocol_sha256": "7c30a4939ec67ce5bd18ab0cd832cc233f60a03023d6b231544dc5035fe499c4",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2045",
       "tool_ids": [
         "clumpify",
@@ -1186,8 +1415,7 @@
       ],
       "acceptance_policy_id": "fastq-read-transformation-acceptance-v1",
       "limitations": [
-        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-        "The protocol is reserved and has no selected publication."
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
       ]
     },
     {
@@ -1197,8 +1425,8 @@
       "slug": "fastq-report-qc",
       "stage_id": "fastq.report_qc",
       "owner": "bijux-dna-bench",
-      "protocol_state": "reserved",
-      "protocol_sha256": "10b6846e7f0b1fb4d27fb66b15ed7bd953af0ebe9f8f831f1403940bdfebe58d",
+      "protocol_state": "active",
+      "protocol_sha256": "e9c3611882705be9d0bee60b9c5db946720cab9ebe5d4af9809b5c89b1f96720",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2046",
       "tool_ids": [
         "multiqc"
@@ -1208,8 +1436,7 @@
       ],
       "acceptance_policy_id": "fastq-observational-qc-acceptance-v1",
       "limitations": [
-        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-        "The protocol is reserved and has no selected publication."
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
       ]
     },
     {
@@ -1219,8 +1446,8 @@
       "slug": "fastq-screen-taxonomy",
       "stage_id": "fastq.screen_taxonomy",
       "owner": "bijux-dna-bench",
-      "protocol_state": "reserved",
-      "protocol_sha256": "0e976f6b69fbef89b0f2244a94a805ced2b4068daee9accb5387b3a151151d15",
+      "protocol_state": "active",
+      "protocol_sha256": "b9e48fc4ea2375f96ac47601f0e0132cf827837f3d8a5d829183cf2ba32bae50",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2047",
       "tool_ids": [
         "centrifuge",
@@ -1233,8 +1460,7 @@
       ],
       "acceptance_policy_id": "fastq-taxonomy-acceptance-v1",
       "limitations": [
-        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-        "The protocol is reserved and has no selected publication."
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
       ]
     },
     {
@@ -1244,8 +1470,8 @@
       "slug": "fastq-trim-polyg-tails",
       "stage_id": "fastq.trim_polyg_tails",
       "owner": "bijux-dna-bench",
-      "protocol_state": "reserved",
-      "protocol_sha256": "0da0b6ab81d22ec301320808c86a6578441c752e1dea0ffc319d7b2b75402d21",
+      "protocol_state": "active",
+      "protocol_sha256": "d813b63af1dc65b37c637243f686b16e2ca8d0971d715d62817da1e5fb45f041",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2048",
       "tool_ids": [
         "bbduk",
@@ -1257,8 +1483,7 @@
       ],
       "acceptance_policy_id": "fastq-read-transformation-acceptance-v1",
       "limitations": [
-        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-        "The protocol is reserved and has no selected publication."
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
       ]
     },
     {
@@ -1268,8 +1493,8 @@
       "slug": "fastq-trim-reads",
       "stage_id": "fastq.trim_reads",
       "owner": "bijux-dna-bench",
-      "protocol_state": "reserved",
-      "protocol_sha256": "5c1447ed13d8a506afca87e855c1b111901572ef7a40a0650e690e557fa83726",
+      "protocol_state": "active",
+      "protocol_sha256": "2847c18e24b7cac8c02c7d92ccaf61c2da279ca7ce48c36d3fc9e4967c7d94b8",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2049",
       "tool_ids": [
         "adapterremoval",
@@ -1293,8 +1518,7 @@
       ],
       "acceptance_policy_id": "fastq-read-transformation-acceptance-v1",
       "limitations": [
-        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-        "The protocol is reserved and has no selected publication."
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
       ]
     },
     {
@@ -1304,8 +1528,8 @@
       "slug": "fastq-trim-terminal-damage",
       "stage_id": "fastq.trim_terminal_damage",
       "owner": "bijux-dna-bench",
-      "protocol_state": "reserved",
-      "protocol_sha256": "e4d026046fc0c44c47784bc57476614d5c50834b6191aced9a33e1b005103f43",
+      "protocol_state": "active",
+      "protocol_sha256": "1011070d73ced87c46917b77c9946133f0d8f1f528b05dfb3111e172e85bf7d3",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2050",
       "tool_ids": [
         "adapterremoval",
@@ -1318,8 +1542,7 @@
       ],
       "acceptance_policy_id": "fastq-read-transformation-acceptance-v1",
       "limitations": [
-        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-        "The protocol is reserved and has no selected publication."
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
       ]
     },
     {
@@ -1344,93 +1567,94 @@
       ],
       "acceptance_policy_id": "fastq-observational-qc-acceptance-v1",
       "selected_publication": {
-        "publication_id": "run-2051-production-74b7042739d9",
+        "publication_id": "run-2051-production-331014ca9f9c",
         "selected_attempts": [
           {
-            "campaign_id": "production-run-2051-e410adee18a3819606db911c2cb48c1414972178",
+            "campaign_id": "production-run-2051-331014ca9",
             "run": {
               "run_id": "run-2051",
               "domain": "fastq",
               "stage_id": "fastq.validate_reads"
             },
             "case_id": "run-2051--fastq_scan--human-short-read-diversity",
-            "attempt_id": "attempt-002",
+            "attempt_id": "attempt-0002",
             "tool_id": "fastq_scan"
           },
           {
-            "campaign_id": "production-run-2051-e410adee18a3819606db911c2cb48c1414972178",
+            "campaign_id": "production-run-2051-331014ca9",
             "run": {
               "run_id": "run-2051",
               "domain": "fastq",
               "stage_id": "fastq.validate_reads"
             },
             "case_id": "run-2051--fastqc--human-short-read-diversity",
-            "attempt_id": "attempt-003",
+            "attempt_id": "attempt-0002",
             "tool_id": "fastqc"
           },
           {
-            "campaign_id": "production-run-2051-e410adee18a3819606db911c2cb48c1414972178",
+            "campaign_id": "production-run-2051-331014ca9",
             "run": {
               "run_id": "run-2051",
               "domain": "fastq",
               "stage_id": "fastq.validate_reads"
             },
             "case_id": "run-2051--fastqvalidator--human-short-read-diversity",
-            "attempt_id": "attempt-003",
+            "attempt_id": "attempt-0002",
             "tool_id": "fastqvalidator"
           },
           {
-            "campaign_id": "production-run-2051-e410adee18a3819606db911c2cb48c1414972178",
+            "campaign_id": "production-run-2051-331014ca9",
             "run": {
               "run_id": "run-2051",
               "domain": "fastq",
               "stage_id": "fastq.validate_reads"
             },
             "case_id": "run-2051--fqtools--human-short-read-diversity",
-            "attempt_id": "attempt-003",
+            "attempt_id": "attempt-0002",
             "tool_id": "fqtools"
           },
           {
-            "campaign_id": "production-run-2051-e410adee18a3819606db911c2cb48c1414972178",
+            "campaign_id": "production-run-2051-331014ca9",
             "run": {
               "run_id": "run-2051",
               "domain": "fastq",
               "stage_id": "fastq.validate_reads"
             },
             "case_id": "run-2051--seqtk--human-short-read-diversity",
-            "attempt_id": "attempt-003",
+            "attempt_id": "attempt-0002",
             "tool_id": "seqtk"
           }
         ],
-        "repository_commit": "74b7042739d93b2b1b504790d92d556f34be0d64",
+        "repository_commit": "331014ca9f9c46e948eadb1cd4a79b8c4fc3f2ec",
         "report": {
-          "uri": "study://results/benchmarks/publications/74b7042739d93b2b1b504790d92d556f34be0d64/run-2051/run-2051-fastq-validate-reads.json",
-          "sha256": "bea171be40ace8d69919bbc534de9b1fb70132631b4f11962521df42a9b203d4",
-          "size_bytes": 62399
+          "uri": "study://results/benchmarks/publications/331014ca9f9c46e948eadb1cd4a79b8c4fc3f2ec/run-2051/run-2051-fastq-validate-reads.json",
+          "sha256": "b72eeeebfc709b841eda589fdcd9584d406c14f5f1f19593d2cd79ad242992a4",
+          "size_bytes": 62331
         },
         "evidence_book": {
-          "uri": "study://results/benchmarks/evidence-books/45c49ae3e9afb3445986fc31b41383b32418403b/candidate-publications.json",
-          "sha256": "5525e3caab74b61a15205c69df50c6a140cf582097f37fe435297bd3cc1dc2f4",
-          "size_bytes": 3258
+          "uri": "study://results/benchmarks/evidence-books/6461e4e08b2e118f7e2efb9fe154500f2a6526ec/candidate-publications.json",
+          "sha256": "7007544c3bfb93569096fb8ebb6c35975ebd777afd491623002863bb4c798283",
+          "size_bytes": 3777
         },
         "publication_receipt": {
-          "uri": "study://results/benchmarks/publications/74b7042739d93b2b1b504790d92d556f34be0d64/run-2051/publication-receipt.json",
-          "sha256": "8559c615ac2d709c8a9c4c7bb5e709cf20cd660e81da41ccc14ca943bb88a621",
-          "size_bytes": 5657
+          "uri": "study://results/benchmarks/publications/331014ca9f9c46e948eadb1cd4a79b8c4fc3f2ec/run-2051/publication-receipt.json",
+          "sha256": "7cda5bb1b57722adde97dc1c8ff180b57baff4cdebe0c40f4ae6d651ee4b254f",
+          "size_bytes": 5555
         },
         "citation_record": {
-          "uri": "study://results/benchmarks/publications/74b7042739d93b2b1b504790d92d556f34be0d64/run-2051/citation-record.json",
-          "sha256": "a552eb9a6d8e5c281696135813b26d7a138c349fb9fbf509e8c0b159f5c801ae",
-          "size_bytes": 4490
+          "uri": "study://results/benchmarks/publications/331014ca9f9c46e948eadb1cd4a79b8c4fc3f2ec/run-2051/citation-record.json",
+          "sha256": "bb8da9676fc308505479e123b1767d8b99614ac1e17ab54f7ad64fc20ba6a2f6",
+          "size_bytes": 4453
         },
         "replay_receipt": {
-          "uri": "study://results/benchmarks/replays/f108c4576f7b7a596cf0af779878895dfaf74302/run-2051/semantic-identity.json",
-          "sha256": "c9b18e3864221b32c946a3ae2582d36559da4b21e4354bf70bdd2415eaab07b5",
-          "size_bytes": 5586
+          "uri": "study://results/benchmarks/replays/6461e4e08b2e118f7e2efb9fe154500f2a6526ec/run-2051/semantic-identity.json",
+          "sha256": "e2774f41a45023a66de38192d99b329213335b58e1480d8e98cb7ea9b1568038",
+          "size_bytes": 5422
         },
         "limitations": [
+          "Licensed external-tool comparisons remain blocked until lawful artifacts are admitted and executed.",
           "The publication covers one governed human short-read diversity cohort.",
-          "This citation covers the admitted stage-specific portfolio and does not imply completion of the 71-run benchmark portfolio."
+          "This citation covers one admitted stage-specific FASTQ portfolio and does not imply completion of the 71-run benchmark portfolio."
         ],
         "access_statement": "Source corpus access and redistribution remain governed by the immutable data portfolio records and original provider terms."
       },
@@ -1443,8 +1667,8 @@
       "slug": "vcf-admixture",
       "stage_id": "vcf.admixture",
       "owner": "bijux-dna-bench",
-      "protocol_state": "reserved",
-      "protocol_sha256": "e307c02bf6ed7a45f6f67ba16a26505612fb0f1171c77c988f7a301888ff6c90",
+      "protocol_state": "active",
+      "protocol_sha256": "22e8811cbd9f05318d159d59a03a03aeb3b6bfcb051b5f9825808d515401c949",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2052",
       "tool_ids": [
         "plink",
@@ -1456,8 +1680,7 @@
       ],
       "acceptance_policy_id": "vcf-population-inference-acceptance-v1",
       "limitations": [
-        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-        "The protocol is reserved and has no selected publication."
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
       ]
     },
     {
@@ -1467,8 +1690,8 @@
       "slug": "vcf-call",
       "stage_id": "vcf.call",
       "owner": "bijux-dna-bench",
-      "protocol_state": "reserved",
-      "protocol_sha256": "a01c08f5de9462e423073038a30c80a11523b6da3135ca007e774dd7da3b3ea4",
+      "protocol_state": "active",
+      "protocol_sha256": "062a76134d18f474b0df4f99f3ed4ef76bd4500cca40dc1857e138216371f670",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2053",
       "tool_ids": [
         "bcftools"
@@ -1479,8 +1702,7 @@
       ],
       "acceptance_policy_id": "vcf-calling-acceptance-v1",
       "limitations": [
-        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-        "The protocol is reserved and has no selected publication."
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
       ]
     },
     {
@@ -1490,8 +1712,8 @@
       "slug": "vcf-call-diploid",
       "stage_id": "vcf.call_diploid",
       "owner": "bijux-dna-bench",
-      "protocol_state": "reserved",
-      "protocol_sha256": "c6775ffc5cb9b25cf23d30f6f41218e9d5b59df33e0ecc6fd939eb99517295e2",
+      "protocol_state": "active",
+      "protocol_sha256": "4e01563731ba8a30f3984ea384b393ec3999ee62b62cb887f97af9ff9fa94eb8",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2054",
       "tool_ids": [
         "bcftools"
@@ -1502,8 +1724,7 @@
       ],
       "acceptance_policy_id": "vcf-calling-acceptance-v1",
       "limitations": [
-        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-        "The protocol is reserved and has no selected publication."
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
       ]
     },
     {
@@ -1513,8 +1734,8 @@
       "slug": "vcf-call-gl",
       "stage_id": "vcf.call_gl",
       "owner": "bijux-dna-bench",
-      "protocol_state": "reserved",
-      "protocol_sha256": "780a558b581948a9a2ddbe3472f317006c1ae4aed442d6a5fb2fde5491505b95",
+      "protocol_state": "active",
+      "protocol_sha256": "ae31a0d96fcd67026a842d420fb71d41f789538bee6b4356d31f1c5414e5ee86",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2055",
       "tool_ids": [
         "angsd",
@@ -1526,8 +1747,7 @@
       ],
       "acceptance_policy_id": "vcf-calling-acceptance-v1",
       "limitations": [
-        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-        "The protocol is reserved and has no selected publication."
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
       ]
     },
     {
@@ -1537,8 +1757,8 @@
       "slug": "vcf-call-pseudohaploid",
       "stage_id": "vcf.call_pseudohaploid",
       "owner": "bijux-dna-bench",
-      "protocol_state": "reserved",
-      "protocol_sha256": "00275a2c7a55ccb6d6d51af442c199668a31907a3489b331256c6c1f928088f0",
+      "protocol_state": "active",
+      "protocol_sha256": "2cb75be6ddc7b237e4a4be648bb804e350827942cb577d27090ff0c83f89f57d",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2056",
       "tool_ids": [
         "angsd",
@@ -1550,8 +1770,7 @@
       ],
       "acceptance_policy_id": "vcf-calling-acceptance-v1",
       "limitations": [
-        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-        "The protocol is reserved and has no selected publication."
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
       ]
     },
     {
@@ -1561,8 +1780,8 @@
       "slug": "vcf-damage-filter",
       "stage_id": "vcf.damage_filter",
       "owner": "bijux-dna-bench",
-      "protocol_state": "reserved",
-      "protocol_sha256": "4b11e4324d49f343c60c5eaeea1c3ea697c065c494d5297dc1f637c64c3b7dc7",
+      "protocol_state": "active",
+      "protocol_sha256": "3da61abf255458798f2680f120e28a8b0e79e60df4bf6969fa9d4394f3806e8c",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2057",
       "tool_ids": [
         "bcftools"
@@ -1573,8 +1792,7 @@
       ],
       "acceptance_policy_id": "vcf-transformation-acceptance-v1",
       "limitations": [
-        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-        "The protocol is reserved and has no selected publication."
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
       ]
     },
     {
@@ -1584,8 +1802,8 @@
       "slug": "vcf-demography",
       "stage_id": "vcf.demography",
       "owner": "bijux-dna-bench",
-      "protocol_state": "reserved",
-      "protocol_sha256": "b82b4d7f7c1a8164ec20f7e4a8607e202eed0d3dd96ad5a9be170bf01cc3dc1e",
+      "protocol_state": "active",
+      "protocol_sha256": "c1a0e0faa21ad6cf0fe8c48fcae33e2835454e1f048417d0583ae4f77834628d",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2058",
       "tool_ids": [
         "ibdne"
@@ -1596,8 +1814,7 @@
       ],
       "acceptance_policy_id": "vcf-population-inference-acceptance-v1",
       "limitations": [
-        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-        "The protocol is reserved and has no selected publication."
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
       ]
     },
     {
@@ -1607,8 +1824,8 @@
       "slug": "vcf-filter",
       "stage_id": "vcf.filter",
       "owner": "bijux-dna-bench",
-      "protocol_state": "reserved",
-      "protocol_sha256": "50667a4179fbc8e32ac026f5ab0207235a3146bfdedda535a418de724aef80e6",
+      "protocol_state": "active",
+      "protocol_sha256": "a8334d50e15e3e6ce2e552616fc36cf7355eaa9aa15d8757b1e755c448f1da18",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2059",
       "tool_ids": [
         "bcftools"
@@ -1619,8 +1836,7 @@
       ],
       "acceptance_policy_id": "vcf-transformation-acceptance-v1",
       "limitations": [
-        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-        "The protocol is reserved and has no selected publication."
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
       ]
     },
     {
@@ -1630,8 +1846,8 @@
       "slug": "vcf-gl-propagation",
       "stage_id": "vcf.gl_propagation",
       "owner": "bijux-dna-bench",
-      "protocol_state": "reserved",
-      "protocol_sha256": "8c0ea185bd91debf9def81eefedffc100a75b88fc9c00316e53089879810b990",
+      "protocol_state": "active",
+      "protocol_sha256": "e51598bf440bad6496b9435ccad5de0238d585a361511ab3cda0494b961d1746",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2060",
       "tool_ids": [
         "bcftools"
@@ -1642,8 +1858,7 @@
       ],
       "acceptance_policy_id": "vcf-transformation-acceptance-v1",
       "limitations": [
-        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-        "The protocol is reserved and has no selected publication."
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
       ]
     },
     {
@@ -1653,8 +1868,8 @@
       "slug": "vcf-ibd",
       "stage_id": "vcf.ibd",
       "owner": "bijux-dna-bench",
-      "protocol_state": "reserved",
-      "protocol_sha256": "6bd6208c8febc80e5551e25315526650a0859b3f81ccb725afa9b4f927979e9f",
+      "protocol_state": "active",
+      "protocol_sha256": "39e674214eba3872fc16393ab569cd9a2c6ab7d2abf20bcc79670d8a25d0f2f4",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2061",
       "tool_ids": [
         "germline",
@@ -1667,8 +1882,7 @@
       ],
       "acceptance_policy_id": "vcf-population-inference-acceptance-v1",
       "limitations": [
-        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-        "The protocol is reserved and has no selected publication."
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
       ]
     },
     {
@@ -1678,8 +1892,8 @@
       "slug": "vcf-imputation-metrics",
       "stage_id": "vcf.imputation_metrics",
       "owner": "bijux-dna-bench",
-      "protocol_state": "reserved",
-      "protocol_sha256": "f31fd2dbd4cf879922fa6dda43765131755bf0ba7acd5f1a1e123d490ae4e83c",
+      "protocol_state": "active",
+      "protocol_sha256": "89d7c1b2ff53bec25eb2c455ea8faa395b04ca7539dc0fdd1a9295e1ddcf8c4d",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2062",
       "tool_ids": [
         "beagle",
@@ -1693,8 +1907,7 @@
       ],
       "acceptance_policy_id": "vcf-phasing-imputation-acceptance-v1",
       "limitations": [
-        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-        "The protocol is reserved and has no selected publication."
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
       ]
     },
     {
@@ -1704,8 +1917,8 @@
       "slug": "vcf-impute",
       "stage_id": "vcf.impute",
       "owner": "bijux-dna-bench",
-      "protocol_state": "reserved",
-      "protocol_sha256": "681d1b4e432099bb0ae5da266115b978e610fbe0f76357d3f1fac327cf2adce4",
+      "protocol_state": "active",
+      "protocol_sha256": "3ff1e94e8be3ecc2cd52f161c024d92fe1b4fac096fe364cebabe66801a9ee29",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2063",
       "tool_ids": [
         "beagle",
@@ -1719,8 +1932,7 @@
       ],
       "acceptance_policy_id": "vcf-phasing-imputation-acceptance-v1",
       "limitations": [
-        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-        "The protocol is reserved and has no selected publication."
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
       ]
     },
     {
@@ -1730,8 +1942,8 @@
       "slug": "vcf-pca",
       "stage_id": "vcf.pca",
       "owner": "bijux-dna-bench",
-      "protocol_state": "reserved",
-      "protocol_sha256": "0a615ff830e0b9f0774f781f738ce098859ef82d398861dfc057bea9cffc741c",
+      "protocol_state": "active",
+      "protocol_sha256": "9560780ef45fba8857aee8a05bb96e3c2fdbd37c4c17c942d96900e250320e41",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2064",
       "tool_ids": [
         "eigensoft",
@@ -1743,8 +1955,7 @@
       ],
       "acceptance_policy_id": "vcf-population-inference-acceptance-v1",
       "limitations": [
-        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-        "The protocol is reserved and has no selected publication."
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
       ]
     },
     {
@@ -1754,8 +1965,8 @@
       "slug": "vcf-phasing",
       "stage_id": "vcf.phasing",
       "owner": "bijux-dna-bench",
-      "protocol_state": "reserved",
-      "protocol_sha256": "0f702a1caca43264fe3d922a0a991678ed60d8fb14560e274b2c8f3e72de88af",
+      "protocol_state": "active",
+      "protocol_sha256": "602716183691e861c39a23069c7fdce0b7009a857daa09c35d651cf2c1ba03b7",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2065",
       "tool_ids": [
         "beagle",
@@ -1769,8 +1980,7 @@
       ],
       "acceptance_policy_id": "vcf-phasing-imputation-acceptance-v1",
       "limitations": [
-        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-        "The protocol is reserved and has no selected publication."
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
       ]
     },
     {
@@ -1780,8 +1990,8 @@
       "slug": "vcf-population-structure",
       "stage_id": "vcf.population_structure",
       "owner": "bijux-dna-bench",
-      "protocol_state": "reserved",
-      "protocol_sha256": "9a3534c3124b249454c0cafd42f4d8376b74bde9ee5ff1449ebee0a0e415ba50",
+      "protocol_state": "active",
+      "protocol_sha256": "69f5e8e7a7ca76f6a5e2c29a0221227b5d0d5bc6bfb9812a5fdc11015d21bb6e",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2066",
       "tool_ids": [
         "eigensoft",
@@ -1794,8 +2004,7 @@
       ],
       "acceptance_policy_id": "vcf-population-inference-acceptance-v1",
       "limitations": [
-        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-        "The protocol is reserved and has no selected publication."
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
       ]
     },
     {
@@ -1805,8 +2014,8 @@
       "slug": "vcf-postprocess",
       "stage_id": "vcf.postprocess",
       "owner": "bijux-dna-bench",
-      "protocol_state": "reserved",
-      "protocol_sha256": "920e55e34eca8f851abf5f4e049755df518312f7d981f400a73cca4c0743d272",
+      "protocol_state": "active",
+      "protocol_sha256": "1cbd4c7eea9729d5a8d3d6bcddbeb709197b24beeb619bdac1f5b7862f027b56",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2067",
       "tool_ids": [
         "bcftools"
@@ -1817,8 +2026,7 @@
       ],
       "acceptance_policy_id": "vcf-transformation-acceptance-v1",
       "limitations": [
-        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-        "The protocol is reserved and has no selected publication."
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
       ]
     },
     {
@@ -1828,8 +2036,8 @@
       "slug": "vcf-prepare-reference-panel",
       "stage_id": "vcf.prepare_reference_panel",
       "owner": "bijux-dna-bench",
-      "protocol_state": "reserved",
-      "protocol_sha256": "a7c400841c44fe74882125cbfde569aab56d1df6dedc677ecfec04995523d990",
+      "protocol_state": "active",
+      "protocol_sha256": "838e93e03f1bf1d838802f5251f9e3da7e847e7ef56cbf3e4d2e99d8ca691cfb",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2068",
       "tool_ids": [
         "bcftools"
@@ -1840,8 +2048,7 @@
       ],
       "acceptance_policy_id": "vcf-transformation-acceptance-v1",
       "limitations": [
-        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-        "The protocol is reserved and has no selected publication."
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
       ]
     },
     {
@@ -1851,8 +2058,8 @@
       "slug": "vcf-qc",
       "stage_id": "vcf.qc",
       "owner": "bijux-dna-bench",
-      "protocol_state": "reserved",
-      "protocol_sha256": "03d50b9123ecbedaca70d5f16ea9b4e9234696fddf14f4867f07ff4a210a2fba",
+      "protocol_state": "active",
+      "protocol_sha256": "fb939162638d3dd0956464259aaf473b8f2d262e8ff89979386af70a4274671c",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2069",
       "tool_ids": [
         "bcftools",
@@ -1865,8 +2072,7 @@
       ],
       "acceptance_policy_id": "vcf-transformation-acceptance-v1",
       "limitations": [
-        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-        "The protocol is reserved and has no selected publication."
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
       ]
     },
     {
@@ -1876,8 +2082,8 @@
       "slug": "vcf-roh",
       "stage_id": "vcf.roh",
       "owner": "bijux-dna-bench",
-      "protocol_state": "reserved",
-      "protocol_sha256": "33d8cf8477f3b2675257df40c76c730956d20173c7f01bf1b8a0239690f70b89",
+      "protocol_state": "active",
+      "protocol_sha256": "f89daaa75bc208ea8024802c59c83ede7b120fc11fe9af7f0cd3ed11d1093c65",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2070",
       "tool_ids": [
         "plink2"
@@ -1888,8 +2094,7 @@
       ],
       "acceptance_policy_id": "vcf-population-inference-acceptance-v1",
       "limitations": [
-        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-        "The protocol is reserved and has no selected publication."
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
       ]
     },
     {
@@ -1899,8 +2104,8 @@
       "slug": "vcf-stats",
       "stage_id": "vcf.stats",
       "owner": "bijux-dna-bench",
-      "protocol_state": "reserved",
-      "protocol_sha256": "0bb8df907d17d0e2c701e2036eedad46080790192e414e730c23aaf23b63d985",
+      "protocol_state": "active",
+      "protocol_sha256": "546fbd22f8c75dd024dc3bb20b066d384cb79f0e668bab0e6ac0bba137482f72",
       "registry_uri": "repo://benchmarks/contracts/run-registry.json#run-2071",
       "tool_ids": [
         "bcftools"
@@ -1911,8 +2116,7 @@
       ],
       "acceptance_policy_id": "vcf-transformation-acceptance-v1",
       "limitations": [
-        "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-        "The protocol is reserved and has no selected publication."
+        "No current admitted publication is selected; this protocol is not citable as executed evidence."
       ]
     }
   ]

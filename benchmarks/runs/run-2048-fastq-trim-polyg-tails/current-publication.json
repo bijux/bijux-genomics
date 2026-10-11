@@ -5,9 +5,8 @@
     "domain": "fastq",
     "stage_id": "fastq.trim_polyg_tails"
   },
-  "protocol_sha256": "0da0b6ab81d22ec301320808c86a6578441c752e1dea0ffc319d7b2b75402d21",
+  "protocol_sha256": "d813b63af1dc65b37c637243f686b16e2ca8d0971d715d62817da1e5fb45f041",
   "limitations": [
-    "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-    "The protocol is reserved and has no selected publication."
+    "No current admitted publication is selected; this protocol is not citable as executed evidence."
   ]
 }

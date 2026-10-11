@@ -11,16 +11,26 @@
   "owner": "bijux-dna-bench",
   "profile_id": "bam-ancient-authentication",
   "tool_exclusion_policy": "Include tools bound to this stage as retained packages or governed external artifacts; exclude every other catalog tool.",
-  "state": "reserved",
-  "state_reason": "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
+  "state": "active",
   "tool_ids": [
     "authenticct",
     "damageprofiler",
     "pmdtools"
   ],
-  "accepted_input_contracts": [],
+  "accepted_input_contracts": [
+    "bijux.bam.artifact.coordinate_sorted_indexed.v1",
+    "bijux.sam.artifact.unsorted.v1"
+  ],
+  "output_contract": "bijux.benchmark.bam.authenticity.bundle.v1",
+  "normalized_result_contract": "benchmarks/schemas/bam-normalized-metrics.v1.json",
   "measurement_policy_id": "benchmark-measurement-v1",
-  "contracts": [],
+  "contracts": [
+    {
+      "contract_id": "normalized-result-contract",
+      "repository_path": "benchmarks/schemas/bam-normalized-metrics.v1.json",
+      "sha256": "243321a0e639e2a981babc257a1a346a758c21d06fc6e6852bf48c90c4457d8c"
+    }
+  ],
   "corpus_roles": [
     {
       "role": "ancient_damage_truth",

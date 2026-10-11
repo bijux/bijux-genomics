@@ -5,7 +5,7 @@
 - Run: `run-2062`
 - Stage: `vcf.imputation_metrics`
 - Protocol version: `1.0.0`
-- State: `reserved`
+- State: `active`
 - Citation key: `bijux-benchmark-run-2062`
 
 Compare the runnable vcf.imputation_metrics tools using masked_concordance_switch_error_calibration_and_rare_variant_recovery; downstream substitution: run QC, association-neutral population summaries, and re-masking checks on every output.

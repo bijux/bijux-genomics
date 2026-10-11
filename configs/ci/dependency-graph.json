@@ -753,11 +753,6 @@
     },
     {
       "consumer": "crate:bijux-dna-bench",
-      "dependency": "crate:bijux-dna-domain-vcf",
-      "kind": "normal"
-    },
-    {
-      "consumer": "crate:bijux-dna-bench",
       "dependency": "crate:bijux-dna-infra",
       "kind": "normal"
     },
@@ -779,11 +774,6 @@
     {
       "consumer": "crate:bijux-dna-bench",
       "dependency": "crate:bijux-dna-stage-contract",
-      "kind": "normal"
-    },
-    {
-      "consumer": "crate:bijux-dna-bench",
-      "dependency": "crate:bijux-dna-stages-vcf",
       "kind": "normal"
     },
     {

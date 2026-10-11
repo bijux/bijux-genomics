@@ -7,7 +7,7 @@ default_version: "3.2.0"
 install_kind: "container"
 container:
   image: "bijuxdna/preseq"
-license: "GPL-3.0"
+license: "GPL-3.0-or-later"
 citation: "paper:https://www.nature.com/articles/nmeth.2375"
 outputs:
   - name: "complexity_report"

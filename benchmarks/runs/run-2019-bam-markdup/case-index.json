@@ -5,7 +5,7 @@
     "domain": "bam",
     "stage_id": "bam.markdup"
   },
-  "protocol_sha256": "bb33ade8b5ea282a6d879cc521b55598f35e237e44b63e2503dc8a2b98b9d331",
+  "protocol_sha256": "57541c200a52f48f1d3b4800f170f109d82d5e6069a65744f1f20c95973171ae",
   "cases": [],
   "limitations": [
     "No immutable benchmark cases are indexed; this protocol has no executable publication evidence."

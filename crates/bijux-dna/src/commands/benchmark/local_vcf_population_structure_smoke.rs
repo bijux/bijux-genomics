@@ -17,7 +17,7 @@ use super::local_stage_result_manifest::{
 };
 use super::local_vcf_admixture_smoke::run_local_vcf_admixture_smoke;
 use super::local_vcf_pca_smoke::run_local_vcf_pca_smoke;
-use super::local_vcf_stage_matrix::build_vcf_stage_matrix_rows;
+use super::vcf_benchmark_bindings::collect_vcf_benchmark_binding_rows;
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
@@ -28,7 +28,6 @@ const LOCAL_VCF_POPULATION_STRUCTURE_SMOKE_SCHEMA_VERSION: &str =
 const LOCAL_VCF_POPULATION_STRUCTURE_SMOKE_COMMAND: &str =
     "bijux-dna bench local run-vcf-population-structure-smoke";
 const GOVERNED_VCF_POPULATION_STRUCTURE_STAGE_ID: &str = "vcf.population_structure";
-const GOVERNED_VCF_POPULATION_STRUCTURE_TOOL_ID: &str = "plink2";
 const GOVERNED_VCF_POPULATION_STRUCTURE_CORPUS_ID: &str = "vcf_production_regression";
 const GOVERNED_VCF_POPULATION_STRUCTURE_ASSET_PROFILE_ID: &str = "vcf_cohort";
 const GOVERNED_VCF_POPULATION_STRUCTURE_INPUT_FIXTURE_ID: &str = "vcf_mini_multisample_cohort";
@@ -44,6 +43,9 @@ const DEFAULT_STAGE_RESULT_NAME: &str = "stage-result.json";
 struct GovernedVcfPopulationStructureSmokeContract {
     stage_id: String,
     tool_id: String,
+    pca_tool_id: String,
+    admixture_tool_id: String,
+    normalization_pca_tool_id: String,
     corpus_id: String,
     input_fixture_id: String,
 }
@@ -110,6 +112,10 @@ pub(crate) struct LocalVcfPopulationStructureSmokeReport {
     pub(crate) finished_at: String,
     pub(crate) elapsed_seconds: f64,
     pub(crate) exit_code: i32,
+    pub(crate) selected_pca_tool_id: String,
+    pub(crate) selected_pca_tool_ok: bool,
+    pub(crate) selected_admixture_tool_id: String,
+    pub(crate) selected_admixture_tool_ok: bool,
     pub(crate) consumed_pca: ConsumedPcaReport,
     pub(crate) consumed_admixture: ConsumedAdmixtureReport,
     pub(crate) sample_groups: Vec<LocalVcfPopulationStructureSampleGroup>,
@@ -155,9 +161,8 @@ pub(crate) fn run_local_vcf_population_structure_smoke(
     tool_id: &str,
 ) -> Result<LocalVcfPopulationStructureSmokeReport> {
     let contract = resolve_governed_vcf_population_structure_smoke_contract(tool_id)?;
-    let pca_report = run_local_vcf_pca_smoke(repo_root, GOVERNED_VCF_POPULATION_STRUCTURE_TOOL_ID)?;
-    let admixture_report =
-        run_local_vcf_admixture_smoke(repo_root, GOVERNED_VCF_POPULATION_STRUCTURE_TOOL_ID)?;
+    let pca_report = run_local_vcf_pca_smoke(repo_root, &contract.normalization_pca_tool_id)?;
+    let admixture_report = run_local_vcf_admixture_smoke(repo_root, &contract.admixture_tool_id)?;
 
     let upstream_input_vcf = repo_root.join(&pca_report.input_vcf_path);
     let upstream_population_labels_manifest =
@@ -205,12 +210,12 @@ pub(crate) fn run_local_vcf_population_structure_smoke(
         &upstream_input_vcf,
         &stage_root,
         &PopulationStructureStageParams {
-            toolchain: contract.tool_id.clone(),
-            smartpca: true,
+            toolchain: contract.pca_tool_id.clone(),
+            smartpca: contract.pca_tool_id == "eigensoft",
             run_admixture: true,
             sample_metadata_manifest: Some(upstream_population_labels_manifest.clone()),
             admixture_params: Some(AdmixtureStageParams {
-                toolchain: contract.tool_id.clone(),
+                toolchain: contract.admixture_tool_id.clone(),
                 k_values: vec![2, 3, 4],
                 sample_metadata_manifest: Some(upstream_population_labels_manifest.clone()),
             }),
@@ -223,14 +228,21 @@ pub(crate) fn run_local_vcf_population_structure_smoke(
 
     let source_population_structure_path =
         output_root.join(DEFAULT_OUTPUT_SOURCE_STAGE_REPORT_NAME);
-    fs::copy(&stage_outputs.population_structure_json, &source_population_structure_path)
-        .with_context(|| {
-            format!(
-                "copy {} to {}",
-                stage_outputs.population_structure_json.display(),
-                source_population_structure_path.display()
-            )
-        })?;
+    let mut source_population_structure_json = read_json(&stage_outputs.population_structure_json)?;
+    rebase_population_structure_paths(
+        &mut source_population_structure_json,
+        repo_root,
+        &published_stage_root,
+        &upstream_population_labels_manifest,
+    )?;
+    bijux_dna_infra::atomic_write_json(
+        &stage_outputs.population_structure_json,
+        &source_population_structure_json,
+    )?;
+    bijux_dna_infra::atomic_write_json(
+        &source_population_structure_path,
+        &source_population_structure_json,
+    )?;
     let source_pruned_variants_path = output_root.join(DEFAULT_OUTPUT_SOURCE_PRUNED_VARIANTS_NAME);
     fs::copy(&stage_outputs.pruned_variants_tsv, &source_pruned_variants_path).with_context(
         || {
@@ -273,7 +285,35 @@ pub(crate) fn run_local_vcf_population_structure_smoke(
 
     let consumed_pca_json = read_json(&source_pca_report_path)?;
     let consumed_admixture_json = read_json(&source_admixture_report_path)?;
-    let source_population_structure_json = read_json(&source_population_structure_path)?;
+    let selected_pca_tool_id = required_string_at(
+        &source_population_structure_json,
+        "/pca/tool_id",
+        "population-structure selected PCA tool",
+    )?;
+    let selected_pca_tool_ok = required_bool_at(
+        &source_population_structure_json,
+        "/pca/tool_ok",
+        "population-structure selected PCA execution",
+    )?;
+    let selected_admixture_tool_id = required_string_at(
+        &source_population_structure_json,
+        "/admixture/tool_id",
+        "population-structure selected admixture tool",
+    )?;
+    let selected_admixture_tool_ok = required_bool_at(
+        &source_population_structure_json,
+        "/admixture/tool_ok",
+        "population-structure selected admixture execution",
+    )?;
+    if selected_pca_tool_id != contract.pca_tool_id
+        || selected_admixture_tool_id != contract.admixture_tool_id
+    {
+        bail!(
+            "population-structure component identity drift: expected PCA `{}` and admixture `{}`, observed PCA `{selected_pca_tool_id}` and admixture `{selected_admixture_tool_id}`",
+            contract.pca_tool_id,
+            contract.admixture_tool_id
+        );
+    }
     let ld_prune_out_path = stage_root.join("ld_prune_out.tsv");
     bijux_dna_infra::atomic_write_bytes(&ld_prune_out_path, b"")?;
 
@@ -336,13 +376,17 @@ pub(crate) fn run_local_vcf_population_structure_smoke(
         finished_at: finished_at.clone(),
         elapsed_seconds,
         exit_code: 0,
+        selected_pca_tool_id,
+        selected_pca_tool_ok,
+        selected_admixture_tool_id,
+        selected_admixture_tool_ok,
         consumed_pca,
         consumed_admixture,
         sample_groups,
         distance_summary,
         status,
     };
-    let outputs = vec![
+    let mut outputs = vec![
         BenchStageResultOutputV1 {
             artifact_id: "population_structure_json".to_string(),
             declared_path: DEFAULT_OUTPUT_REPORT_NAME.to_string(),
@@ -469,6 +513,40 @@ pub(crate) fn run_local_vcf_population_structure_smoke(
             exists: true,
         },
     ];
+    if contract.tool_id == "plink" {
+        let population_mds = stage_outputs.population_mds.as_ref().ok_or_else(|| {
+            anyhow!("governed PLINK population-structure smoke did not expose its MDS output")
+        })?;
+        let tool_log = stage_outputs.tool_log.as_ref().ok_or_else(|| {
+            anyhow!("governed PLINK population-structure smoke did not expose its tool log")
+        })?;
+        ensure_file_exists(population_mds, "PLINK population-structure MDS output")?;
+        ensure_file_exists(tool_log, "PLINK population-structure log")?;
+        outputs.extend([
+            BenchStageResultOutputV1 {
+                artifact_id: "population_mds".to_string(),
+                declared_path: "artifacts/stage/population_structure_mds.mds".to_string(),
+                realized_path: path_relative_to_repo(
+                    repo_root,
+                    &published_stage_root.join("population_structure_mds.mds"),
+                ),
+                role: "table_output".to_string(),
+                optional: false,
+                exists: true,
+            },
+            BenchStageResultOutputV1 {
+                artifact_id: "plink_log".to_string(),
+                declared_path: "artifacts/stage/population_structure_mds.log".to_string(),
+                realized_path: path_relative_to_repo(
+                    repo_root,
+                    &published_stage_root.join("population_structure_mds.log"),
+                ),
+                role: "log_output".to_string(),
+                optional: false,
+                exists: true,
+            },
+        ]);
+    }
     let stage_result_manifest = BenchStageResultManifestV1 {
         schema_version: BENCH_STAGE_RESULT_SCHEMA_VERSION.to_string(),
         stage_id: contract.stage_id.clone(),
@@ -505,28 +583,54 @@ pub(crate) fn run_local_vcf_population_structure_smoke(
     Ok(report)
 }
 
+fn rebase_population_structure_paths(
+    payload: &mut serde_json::Value,
+    repo_root: &Path,
+    published_stage_root: &Path,
+    population_labels_manifest: &Path,
+) -> Result<()> {
+    for (pointer, published_path) in [
+        ("/sample_labels/manifest", population_labels_manifest.to_path_buf()),
+        ("/pca/eigenvec_tsv", published_stage_root.join("eigenvec.tsv")),
+        ("/pca/eigenval_tsv", published_stage_root.join("eigenval.tsv")),
+        ("/pca/manifest_json", published_stage_root.join("pca_manifest.json")),
+        ("/admixture/q_matrix_tsv", published_stage_root.join("admixture_q_matrix.tsv")),
+        ("/admixture/k_selection_json", published_stage_root.join("admixture_k_selection.json")),
+        ("/outputs/pruned_variants_tsv", published_stage_root.join("pruned_variants.tsv")),
+        (
+            "/outputs/population_structure_json",
+            published_stage_root.join("population_structure.json"),
+        ),
+        ("/outputs/population_mds", published_stage_root.join("population_structure_mds.mds")),
+        ("/outputs/tool_log", published_stage_root.join("population_structure_mds.log")),
+    ] {
+        let Some(slot) = payload.pointer_mut(pointer) else {
+            continue;
+        };
+        if slot.is_null() {
+            continue;
+        }
+        if !slot.is_string() {
+            bail!("population-structure source path `{pointer}` must be a string or null");
+        }
+        *slot = serde_json::Value::String(path_relative_to_repo(repo_root, &published_path));
+    }
+    Ok(())
+}
+
 fn resolve_governed_vcf_population_structure_smoke_contract(
     tool_id: &str,
 ) -> Result<GovernedVcfPopulationStructureSmokeContract> {
-    let matrix_row = build_vcf_stage_matrix_rows()?
+    let matrix_row = collect_vcf_benchmark_binding_rows()?
         .into_iter()
-        .find(|row| row.stage_id == GOVERNED_VCF_POPULATION_STRUCTURE_STAGE_ID)
+        .find(|row| {
+            row.stage_id == GOVERNED_VCF_POPULATION_STRUCTURE_STAGE_ID && row.tool_id == tool_id
+        })
         .ok_or_else(|| {
-            anyhow!("VCF stage matrix is missing `{GOVERNED_VCF_POPULATION_STRUCTURE_STAGE_ID}`")
+            anyhow!(
+                "VCF population-structure smoke has no governed binding for `{GOVERNED_VCF_POPULATION_STRUCTURE_STAGE_ID}` / `{tool_id}`"
+            )
         })?;
-    if tool_id != matrix_row.tool_id {
-        bail!(
-            "VCF population-structure smoke only retains tool `{}` for `{}`; requested `{tool_id}`",
-            matrix_row.tool_id,
-            matrix_row.stage_id
-        );
-    }
-    if matrix_row.tool_id != GOVERNED_VCF_POPULATION_STRUCTURE_TOOL_ID {
-        bail!(
-            "VCF population-structure smoke requires tool `{GOVERNED_VCF_POPULATION_STRUCTURE_TOOL_ID}`, found `{}`",
-            matrix_row.tool_id
-        );
-    }
     if matrix_row.corpus_id != GOVERNED_VCF_POPULATION_STRUCTURE_CORPUS_ID {
         bail!(
             "VCF population-structure smoke requires corpus `{GOVERNED_VCF_POPULATION_STRUCTURE_CORPUS_ID}`, found `{}`",
@@ -546,9 +650,18 @@ fn resolve_governed_vcf_population_structure_smoke_contract(
             matrix_row.expected_outputs
         );
     }
+    let (pca_tool_id, admixture_tool_id, normalization_pca_tool_id) = match tool_id {
+        "eigensoft" => ("eigensoft", "plink2", "eigensoft"),
+        "plink" => ("plink", "plink", "plink2"),
+        "plink2" => ("plink2", "plink2", "plink2"),
+        other => bail!("unsupported population-structure tool binding `{other}`"),
+    };
     Ok(GovernedVcfPopulationStructureSmokeContract {
         stage_id: matrix_row.stage_id,
         tool_id: matrix_row.tool_id,
+        pca_tool_id: pca_tool_id.to_string(),
+        admixture_tool_id: admixture_tool_id.to_string(),
+        normalization_pca_tool_id: normalization_pca_tool_id.to_string(),
         corpus_id: matrix_row.corpus_id,
         input_fixture_id: GOVERNED_VCF_POPULATION_STRUCTURE_INPUT_FIXTURE_ID.to_string(),
     })
@@ -835,6 +948,21 @@ fn read_json(path: &Path) -> Result<serde_json::Value> {
     serde_json::from_str(&raw).with_context(|| format!("parse {}", path.display()))
 }
 
+fn required_string_at(payload: &serde_json::Value, pointer: &str, label: &str) -> Result<String> {
+    payload
+        .pointer(pointer)
+        .and_then(serde_json::Value::as_str)
+        .map(ToString::to_string)
+        .ok_or_else(|| anyhow!("{label} is missing at `{pointer}`"))
+}
+
+fn required_bool_at(payload: &serde_json::Value, pointer: &str, label: &str) -> Result<bool> {
+    payload
+        .pointer(pointer)
+        .and_then(serde_json::Value::as_bool)
+        .ok_or_else(|| anyhow!("{label} is missing at `{pointer}`"))
+}
+
 fn timestamp_marker() -> String {
     let seconds = SystemTime::now()
         .duration_since(UNIX_EPOCH)
@@ -846,8 +974,9 @@ fn timestamp_marker() -> String {
 #[cfg(test)]
 mod tests {
     use super::{
-        build_distance_summary, ensure_file_exists, run_local_vcf_population_structure_smoke,
-        LocalVcfPopulationStructureSampleGroup,
+        build_distance_summary, ensure_file_exists,
+        resolve_governed_vcf_population_structure_smoke_contract,
+        run_local_vcf_population_structure_smoke, LocalVcfPopulationStructureSampleGroup,
     };
     use crate::commands::benchmark::repo_locking::{acquire_cwd_lock, RepoProcessLock};
 
@@ -902,6 +1031,22 @@ mod tests {
         assert_eq!(summary.within_population_pair_count, 1);
         assert_eq!(summary.cross_population_pair_count, 2);
         assert!(summary.max_pc_distance >= summary.min_pc_distance);
+    }
+
+    #[test]
+    fn governed_population_structure_bindings_select_exact_component_tools() {
+        for (tool_id, pca_tool_id, admixture_tool_id, normalization_pca_tool_id) in [
+            ("eigensoft", "eigensoft", "plink2", "eigensoft"),
+            ("plink", "plink", "plink", "plink2"),
+            ("plink2", "plink2", "plink2", "plink2"),
+        ] {
+            let contract = resolve_governed_vcf_population_structure_smoke_contract(tool_id)
+                .unwrap_or_else(|error| panic!("resolve {tool_id}: {error}"));
+            assert_eq!(contract.tool_id, tool_id);
+            assert_eq!(contract.pca_tool_id, pca_tool_id);
+            assert_eq!(contract.admixture_tool_id, admixture_tool_id);
+            assert_eq!(contract.normalization_pca_tool_id, normalization_pca_tool_id);
+        }
     }
 
     #[test]

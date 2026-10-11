@@ -83,13 +83,13 @@ tools = ["fastqc"]
 stage_id = "fastq.profile_reads"
 scenario_id = "profile_reads_fairness"
 sample_scope = "full"
-tools = ["seqkit_stats"]
+tools = ["seqfu", "seqkit", "seqkit_stats"]
 
 [[publication.corpus_01.contracts]]
 stage_id = "fastq.profile_read_lengths"
 scenario_id = "read_length_fairness"
 sample_scope = "full"
-tools = ["seqkit_stats"]
+tools = ["seqfu", "seqkit"]
 
 [[publication.corpus_01.contracts]]
 stage_id = "fastq.profile_overrepresented_sequences"
@@ -140,7 +140,7 @@ tools = ["bbduk", "fastp", "prinseq", "seqkit"]
 stage_id = "fastq.filter_low_complexity"
 scenario_id = "low_complexity_fairness"
 sample_scope = "full"
-tools = ["bbduk", "prinseq"]
+tools = ["bbduk", "fastp", "prinseq"]
 
 [[publication.corpus_01.contracts]]
 stage_id = "fastq.deplete_rrna"
@@ -158,7 +158,7 @@ tools = ["adapterremoval", "bbmerge", "flash2", "leehom", "pear", "seqprep", "vs
 stage_id = "fastq.remove_duplicates"
 scenario_id = "dedup_fairness"
 sample_scope = "paired"
-tools = ["clumpify"]
+tools = ["clumpify", "fastuniq"]
 
 [[publication.corpus_01.contracts]]
 stage_id = "fastq.deplete_host"

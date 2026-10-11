@@ -80,11 +80,11 @@ pub(crate) fn stage_params(
             "prepared_outputs": ["panel_manifest", "overlap_report", "chunks_plan"],
         }),
         VcfDomainStage::Phasing => match tool {
-            "shapeit5" => {
+            "shapeit" | "shapeit5" => {
                 let boundary = phase_impute_boundary(stage).expect("phasing boundary contract");
                 serde_json::json!({
                     "schema_version":"bijux.vcf.phasing.params.v1",
-                    "tool":"shapeit5",
+                    "tool":tool,
                     "panel_id": panel.map(|value| value.panel_id.as_str()),
                     "panel_identity_required": true,
                     "panel_build_required": panel.map(|value| value.reference_build.as_str()),

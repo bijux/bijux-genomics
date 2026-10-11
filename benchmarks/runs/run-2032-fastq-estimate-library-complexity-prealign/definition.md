@@ -5,7 +5,7 @@
 - Run: `run-2032`
 - Stage: `fastq.estimate_library_complexity_prealign`
 - Protocol version: `1.0.0`
-- State: `reserved`
+- State: `active`
 - Citation key: `bijux-benchmark-run-2032`
 
 Compare the runnable fastq.estimate_library_complexity_prealign tools using cross_tool_consistency_with_independent_read_statistics; downstream substitution: consume every tool report through the governed QC aggregation stage.

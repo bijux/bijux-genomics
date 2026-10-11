@@ -5,7 +5,7 @@
     "domain": "vcf",
     "stage_id": "vcf.call_gl"
   },
-  "protocol_sha256": "780a558b581948a9a2ddbe3472f317006c1ae4aed442d6a5fb2fde5491505b95",
+  "protocol_sha256": "ae31a0d96fcd67026a842d420fb71d41f789538bee6b4356d31f1c5414e5ee86",
   "cases": [],
   "limitations": [
     "No immutable benchmark cases are indexed; this protocol has no executable publication evidence."

@@ -620,7 +620,7 @@
                     "has_gl_or_gp": has_gl_or_gp,
                     "has_phased_gt": has_phased_gt,
                     "map_present": map.is_some(),
-                    "panel_supports_minimac_m3vcf": panel.compatibility.supports_minimac_m3vcf
+                    "minimac_reference_format": panel.compatibility.minimac_reference_format
                 }
             },
             "semantics": "vcf.impute heavy engine stage",
@@ -664,7 +664,7 @@
             "backend_flow": match effective_backend {
                 ImputeBackend::Glimpse => vec!["chunk","ligate","sample"],
                 ImputeBackend::Impute5 => vec!["chunked_impute"],
-                ImputeBackend::Minimac4 => vec!["phased_input","m3vcf_impute"],
+                ImputeBackend::Minimac4 => vec!["phased_input","msav_impute"],
                 ImputeBackend::Beagle => vec!["target_reference_joint_impute"],
             },
         }),

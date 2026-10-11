@@ -12,7 +12,11 @@ requirements. Runnable closure includes retained packages and licensed tools
 available through governed external-artifact admission. `stage-campaigns.toml`
 contains only executable campaigns whose complete tool closure, inputs,
 parameters, resource measurements, quality metrics, interpretation, and
-limitations have been reviewed.
+limitations have been reviewed. Each campaign declares a typed `material_driver` owned by
+`bijux-dna-bench-model`; validation binds that driver to the exact stage before planning, and
+`bijux-dna-bench` dispatches admitted evidence through it without branching on permanent run IDs.
+Historical v1 case records that predate this field remain readable and replayable, but the stricter
+executable-registry validator rejects an omitted driver on every new planning surface.
 
 `data-fitness.toml` is the machine-evaluable corpus fitness policy for every
 scientific profile in `portfolio.toml`. It sets minimum real-sample, case,

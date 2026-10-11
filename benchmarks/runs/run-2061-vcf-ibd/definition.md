@@ -5,7 +5,7 @@
 - Run: `run-2061`
 - Stage: `vcf.ibd`
 - Protocol version: `1.0.0`
-- State: `reserved`
+- State: `active`
 - Citation key: `bijux-benchmark-run-2061`
 
 Compare the runnable vcf.ibd tools using known_relationship_recovery_metadata_concordance_and_parameter_sensitivity; downstream substitution: render every tool result through the same cohort interpretation and publication surface.

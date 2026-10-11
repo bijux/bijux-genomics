@@ -2222,7 +2222,34 @@ fn input(name: &str, artifact_contract_id: &str) -> BindingInputV1 {
     BindingInputV1 {
         name: name.to_string(),
         artifact_contract_id: artifact_contract_id.to_string(),
+        source: input_source(name),
         required: true,
+    }
+}
+
+fn input_source(name: &str) -> super::BindingInputSourceV1 {
+    use super::BindingInputSourceV1::{Corpus, Database, Reference, UpstreamResult};
+
+    match name {
+        "bam" | "sam" | "reads" | "reads_r1" | "reads_r2" | "cohort_vcf" | "imputed_vcf"
+        | "phased_vcf" | "sample_metadata" => Corpus,
+        "reference"
+        | "reference_fasta"
+        | "reference_index"
+        | "reference_panel"
+        | "reference_panel_vcf"
+        | "reference_panel_msav"
+        | "genetic_map"
+        | "known_sites"
+        | "candidate_regions"
+        | "candidate_alleles"
+        | "primer_reference"
+        | "adapter_reference" => Reference,
+        "taxonomy_database" | "rrna_database" => Database,
+        "qc_inputs" | "abundance_table" | "representative_sequences" | "ibd_segments" => {
+            UpstreamResult
+        }
+        _ => panic!("canonical binding input lacks a governed source role: {name}"),
     }
 }
 

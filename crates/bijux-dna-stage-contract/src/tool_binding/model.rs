@@ -8,6 +8,21 @@ use serde::{Deserialize, Serialize};
 /// Stable schema identity for declarative tool bindings.
 pub const TOOL_BINDING_SCHEMA_V1: &str = "bijux.tool_binding.v1";
 
+/// Declares which governed authority supplies a binding input for standalone execution.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
+#[serde(rename_all = "snake_case")]
+pub enum BindingInputSourceV1 {
+    /// A binding serialized before source authorities were persisted.
+    ///
+    /// This value exists only so frozen evidence remains readable. New planning must refuse it.
+    #[default]
+    LegacyUnspecified,
+    Corpus,
+    Reference,
+    Database,
+    UpstreamResult,
+}
+
 /// Describes how the executable artifact is admitted without performing admission here.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 #[serde(tag = "kind", rename_all = "snake_case")]
@@ -23,6 +38,8 @@ pub enum ToolArtifactSourceV1 {
 pub struct BindingInputV1 {
     pub name: String,
     pub artifact_contract_id: String,
+    #[serde(default)]
+    pub source: BindingInputSourceV1,
     pub required: bool,
 }
 

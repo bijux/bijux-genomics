@@ -67,11 +67,11 @@ fn bench_readiness_vcf_imputation_family_adapter_writes_governed_json_file() {
                     == Some("vcf.imputation_metrics")
         })
         .expect("minimac4 imputation row");
-    let panel_m3vcf = minimac_row
-        .get("panel_m3vcf_path")
+    let panel_msav = minimac_row
+        .get("panel_msav_path")
         .and_then(serde_json::Value::as_str)
-        .expect("minimac4 panel_m3vcf_path");
-    assert!(repo_root.join(panel_m3vcf).is_file(), "materialized m3vcf panel must exist");
+        .expect("minimac4 panel_msav_path");
+    assert!(repo_root.join(panel_msav).is_file(), "materialized MSAV panel must exist");
 
     let beagle_impute = rows
         .iter()

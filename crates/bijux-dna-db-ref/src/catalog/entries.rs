@@ -3,6 +3,15 @@ use serde::{Deserialize, Serialize};
 use super::{CatalogCompatibility, MapCompatibility};
 
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
+pub struct CatalogFileDerivation {
+    pub source_file_name: String,
+    pub tool_id: String,
+    pub tool_version: String,
+    pub tool_artifact_sha256: String,
+    pub argv: Vec<String>,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
 pub struct PanelCatalogEntry {
     pub id: String,
     pub species_id: String,
@@ -55,4 +64,6 @@ pub struct CatalogFileEntry {
     pub source_authority_url: String,
     #[serde(default)]
     pub required: bool,
+    #[serde(default)]
+    pub derivation: Option<CatalogFileDerivation>,
 }

@@ -242,8 +242,8 @@ fn inventory_source_tree_matches_ownership_contract() {
     );
     assert_eq!(
         dir_entries(&root.join("src/evidence/inventory")),
-        btree_set(&["derivation.rs", "mod.rs", "report.rs", "source.rs"]),
-        "inventory must separate execution-site inputs, admission decisions, and reporting"
+        btree_set(&["activation.rs", "derivation.rs", "mod.rs", "report.rs", "source.rs"]),
+        "inventory must separate activation provenance, execution-site inputs, admission decisions, and reporting"
     );
 }
 

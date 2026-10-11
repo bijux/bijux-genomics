@@ -1,7 +1,6 @@
 # Architecture
 
-`bijux-dna-api` is a boundary crate. It presents the stable v1 API while keeping
-runtime wiring, support helpers, and domain-specific adapters private.
+`bijux-dna-api` presents the stable v1 boundary while keeping wiring and adapters private.
 
 ## Root Layout
 
@@ -9,8 +8,7 @@ runtime wiring, support helpers, and domain-specific adapters private.
 - `README.md` is the only root documentation file.
 - `docs/` contains the 10 authoritative crate docs.
 - `src/` contains the library implementation.
-- `tests/` contains boundary, schema, contract, guardrail, and workspace-path
-  integration tests.
+- `tests/` contains boundary, schema, contract, guardrail, and workspace-path integration tests.
 
 ## Source Layout
 
@@ -20,16 +18,14 @@ runtime wiring, support helpers, and domain-specific adapters private.
   exports, and operator failure contracts.
 - `src/v1/report/` owns report request contracts, analysis exports, and HTML
   bundle rendering.
-- `src/v1/qualification/` composes admitted container, runtime, benchmark, and policy evidence
-  behind the stable qualification contract. Release-qualified composition accepts an explicit
-  immutable publication and records a content-addressed source identity instead of depending on a
-  repository-relative or site-specific path.
+- `src/v1/qualification/` composes admitted container, runtime, benchmark, and policy evidence behind
+  the stable qualification contract. Release-qualified composition accepts an explicit immutable
+  publication and records a content-addressed source identity instead of a site-specific path.
 - `src/v1/bam/stage_planning/` isolates BAM stage argument planning from the
   public BAM namespace.
-- `src/v1/bench/` exposes the narrow benchmark namespace, groups persisted VCF
-  smoke contracts under `exports/`, and composes the concrete FASTQ, BAM, and
-  VCF stage plugins without moving plugin semantics into the API boundary.
-  `src/v1/env/`, `src/v1/fastq/`, and
+- `src/v1/bench/` exposes the narrow benchmark namespace, groups persisted VCF smoke contracts under
+  `exports/`, and composes concrete stage plugins without moving their semantics into the API.
+- `src/v1/env/`, `src/v1/fastq/`, and
   `src/v1/pipelines/` expose the other narrow v1 helper namespaces.
 - `src/surface/` owns stable request/response contracts and explainability
   contracts used by the public API.

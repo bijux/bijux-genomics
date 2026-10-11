@@ -71,6 +71,25 @@ impl BenchmarkExecutionAuthorities {
         )
     }
 
+    /// Return the immutable catalog executable selected for one planned tool.
+    ///
+    /// # Errors
+    /// Returns an error when the tool is absent or its executable identity is empty.
+    pub fn executable(&self, tool_id: &str) -> Result<&str> {
+        let executable = self
+            .catalog
+            .tools
+            .iter()
+            .find(|tool| tool.id == tool_id)
+            .context("execution attempt has no canonical catalog tool")?
+            .expected_bin
+            .as_str();
+        if executable.trim().is_empty() {
+            bail!("execution attempt catalog executable is empty");
+        }
+        Ok(executable)
+    }
+
     /// Build one execution specification without exposing mutable loaded authorities.
     ///
     /// # Errors

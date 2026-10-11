@@ -127,7 +127,7 @@ pub(crate) fn stage_command(
             return Ok(CommandSpecV1 { template });
         }
     }
-    if matches!(tool, "shapeit5" | "eagle" | "beagle") {
+    if matches!(tool, "shapeit" | "shapeit5" | "eagle" | "beagle") {
         if let Some(template) = phasing_stage_command(stage, tool, inputs, outputs)? {
             return Ok(CommandSpecV1 { template });
         }
@@ -465,6 +465,9 @@ fn phasing_stage_command(
     let log_path = format!("{output_prefix}.log");
 
     let command = match tool {
+        "shapeit" => format!(
+            "shapeit --input '{input_vcf}' --reference '{panel_vcf}' --map '{genetic_map}' --region 1:1-1000000 --thread 8 --seed 42 --output '{phased_vcf}' > '{log_path}' 2>&1 && bcftools index -t '{phased_vcf}'"
+        ),
         "shapeit5" => format!(
             "shapeit5 phase_common --input '{input_vcf}' --reference '{panel_vcf}' --map '{genetic_map}' --region 1:1-1000000 --thread 8 --seed 42 --output '{phased_vcf}' > '{log_path}' 2>&1 && bcftools index -t '{phased_vcf}'"
         ),
@@ -518,9 +521,9 @@ fn imputation_stage_command(
             "impute5 --g '{input_vcf}' --h '{panel_vcf}' --m '{genetic_map}' --r '{region}' --o '{imputed_vcf}' --threads 8 --seed 42 > '{log_path}' 2>&1 && bcftools index -t '{imputed_vcf}'"
         ),
         "minimac4" => {
-            let panel_m3vcf = input_path(inputs, "reference_panel_m3vcf")?.display().to_string();
+            let panel_msav = input_path(inputs, "reference_panel_msav")?.display().to_string();
             format!(
-                "minimac4 --refHaps '{panel_m3vcf}' --haps '{input_vcf}' --prefix '{output_prefix}' --cpus 8 > '{log_path}' 2>&1 && mv '{output_prefix}.dose.vcf.gz' '{imputed_vcf}' && bcftools index -t '{imputed_vcf}'"
+                "minimac4 --threads 8 --map '{genetic_map}' --output '{imputed_vcf}' '{panel_msav}' '{input_vcf}' > '{log_path}' 2>&1 && bcftools index -t '{imputed_vcf}'"
             )
         }
         _ => return Ok(None),

@@ -17,6 +17,9 @@ const USAGE: &str = concat!(
     "--candidate <path> --data-root <path> --preserved-at-utc <timestamp> ",
     "--previous-registry <path> --source-commit <sha> ",
     "[--expected-previous-sha256 <sha256>]\n",
+    "  cargo run -p bijux-dna-dev -- tooling run benchmark-data-catalog-snapshots -- build-bam-diversity ",
+    "--admitted-at-utc <timestamp> --candidate <path> --data-root <path> ",
+    "--plan <path> --result-root <path> --source-spec <path>\n",
 );
 
 pub(in super::super) fn tooling_benchmark_data_catalog_snapshots(
@@ -30,8 +33,43 @@ pub(in super::super) fn tooling_benchmark_data_catalog_snapshots(
     match operation.as_str() {
         "publish" => publish_snapshots(workspace, &options),
         "admit-derived" => admit_derived(workspace, &options),
+        "build-bam-diversity" => build_bam_diversity(workspace, &options),
         _ => Ok(OpsCommandOutcome::failure(USAGE)),
     }
+}
+
+fn build_bam_diversity(
+    workspace: &Workspace,
+    options: &BTreeMap<String, String>,
+) -> Result<OpsCommandOutcome> {
+    let actual = options.keys().map(String::as_str).collect::<Vec<_>>();
+    let expected = [
+        "--admitted-at-utc",
+        "--candidate",
+        "--data-root",
+        "--plan",
+        "--result-root",
+        "--source-spec",
+    ];
+    if actual != expected {
+        bail!("BAM diversity catalog options differ from the operation contract");
+    }
+    let catalog = bijux_dna_bench::build_ancient_dna_bam_diversity_catalog(
+        &bijux_dna_bench::BamDiversityCatalogRequest {
+            data_root: resolve_path(workspace, required(options, "--data-root")?),
+            source_spec_path: resolve_path(workspace, required(options, "--source-spec")?),
+            plan_path: resolve_path(workspace, required(options, "--plan")?),
+            result_root: resolve_path(workspace, required(options, "--result-root")?),
+            candidate_path: resolve_path(workspace, required(options, "--candidate")?),
+            admitted_at_utc: required(options, "--admitted-at-utc")?.to_string(),
+        },
+    )?;
+    Ok(OpsCommandOutcome::success(format!(
+        "built checksum-closed derived catalog candidate for {} with {} samples and {} files\n",
+        catalog.id,
+        catalog.samples.len(),
+        catalog.files.len(),
+    )))
 }
 
 fn publish_snapshots(

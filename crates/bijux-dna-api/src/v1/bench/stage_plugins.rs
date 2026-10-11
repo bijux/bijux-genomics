@@ -2,7 +2,9 @@
 //! Thin application composition for the complete benchmark stage-plugin set.
 
 use anyhow::Result;
-use bijux_dna_bench::BenchmarkStagePluginRegistry;
+use bijux_dna_bench::{
+    BenchmarkCycleAdmission, BenchmarkCycleAdmissionRequest, BenchmarkStagePluginRegistry,
+};
 use bijux_dna_stage_contract::{canonical_tool_bindings, ToolBindingRegistry};
 use bijux_dna_stages_bam::BamStagePlugin;
 use bijux_dna_stages_fastq::FastqStagePlugin;
@@ -50,6 +52,21 @@ impl Default for BenchmarkStagePluginComposition {
 /// ownership.
 pub fn validate_benchmark_stage_plugin_composition() -> Result<()> {
     BenchmarkStagePluginComposition::new().validate_for_bindings(&canonical_tool_bindings()?)
+}
+
+/// Admit one campaign with the complete production stage-plugin composition injected.
+///
+/// # Errors
+/// Returns an error when top-level campaign authority is invalid. Case-local normalization and
+/// admission failures remain represented in the returned cycle admission.
+pub fn admit_checked_in_benchmark_campaign_with_stage_plugins(
+    request: &BenchmarkCycleAdmissionRequest,
+) -> Result<BenchmarkCycleAdmission> {
+    let composition = BenchmarkStagePluginComposition::new();
+    bijux_dna_bench::admit_checked_in_benchmark_campaign_with_plugins(
+        request,
+        &composition.registry(),
+    )
 }
 
 #[cfg(test)]

@@ -855,8 +855,8 @@ mod tests {
         assert_eq!(report.evidence_scope, "fixture_harness_only");
         assert_eq!(report.product_stage_count, 71);
         assert_eq!(report.product_pair_count, 159);
-        assert_eq!(report.active_protocol_count, 12);
-        assert_eq!(report.reserved_protocol_count, 59);
+        assert_eq!(report.active_protocol_count, 13);
+        assert_eq!(report.reserved_protocol_count, 58);
         assert_eq!(report.fixture_covered_pair_count, 120);
         assert_eq!(report.fixture_excluded_pair_count, 39);
         assert_eq!(report.ready_pair_count, report.expected_pair_count);

@@ -125,6 +125,7 @@ pub fn prepare_bam_alignment_material(
         determinism: BenchmarkExecutionDeterminism::Deterministic,
         acceptance: acceptance(),
         stage_plan_units: Some(stage_plan_units),
+        downstream_probe_mode: crate::workflow::BenchmarkDownstreamProbeMode::RunnerProduced,
     };
     Ok(BamAlignmentMaterial {
         execution,

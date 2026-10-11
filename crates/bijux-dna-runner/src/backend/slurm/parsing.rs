@@ -87,19 +87,50 @@ pub(super) fn parse_accounting(
             array_tasks: Vec::new(),
         });
     }
+    let array_tasks = tasks
+        .into_values()
+        .map(|(task, max_rss)| {
+            let mut task = task.context("sacct array task has steps but no allocation row")?;
+            task.max_rss_bytes = max_rss;
+            Ok(task)
+        })
+        .collect::<Result<Vec<_>>>()?;
+    if matched.is_none() && array.is_some() && !array_tasks.is_empty() {
+        matched = Some(summarize_array_accounting(job_id, &array_tasks));
+    }
     if let Some(accounting) = matched.as_mut() {
-        accounting.max_rss_bytes = max_rss_bytes;
-        accounting.array_tasks = tasks
-            .into_values()
-            .map(|(task, max_rss)| {
-                let mut task = task.context("sacct array task has steps but no allocation row")?;
-                task.max_rss_bytes = max_rss;
-                Ok(task)
-            })
-            .collect::<Result<Vec<_>>>()?;
+        accounting.max_rss_bytes = max_rss_bytes
+            .or_else(|| array_tasks.iter().filter_map(|task| task.max_rss_bytes).max());
+        accounting.array_tasks = array_tasks;
         validate_terminal_array_accounting(accounting, array)?;
     }
     Ok(matched)
+}
+
+fn summarize_array_accounting(job_id: &str, tasks: &[SlurmArrayTaskAccounting]) -> SlurmAccounting {
+    let nonpassing = tasks.iter().find(|task| task.state != SlurmJobState::Completed);
+    let state = nonpassing.map_or(SlurmJobState::Completed, |task| task.state);
+    let (exit_code, signal) = nonpassing.map_or((0, 0), |task| (task.exit_code, task.signal));
+    let mut nodes = tasks
+        .iter()
+        .map(|task| task.node_list.as_str())
+        .filter(|node| !node.is_empty())
+        .collect::<Vec<_>>();
+    nodes.sort_unstable();
+    nodes.dedup();
+    SlurmAccounting {
+        job_id: job_id.to_string(),
+        state,
+        raw_state: "ARRAY_TASKS".to_string(),
+        exit_code,
+        signal,
+        elapsed_seconds: tasks.iter().map(|task| task.elapsed_seconds).max().unwrap_or_default(),
+        total_cpu_seconds: tasks.iter().map(|task| task.total_cpu_seconds).sum(),
+        max_rss_bytes: None,
+        node_list: nodes.join(","),
+        reason: nonpassing.and_then(|task| task.reason.clone()),
+        array_tasks: Vec::new(),
+    }
 }
 
 fn parse_array_row_identity(row_job_id: &str, parent_job_id: &str) -> Result<Option<(u32, bool)>> {

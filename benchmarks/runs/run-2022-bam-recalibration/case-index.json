@@ -5,7 +5,7 @@
     "domain": "bam",
     "stage_id": "bam.recalibration"
   },
-  "protocol_sha256": "3eaf587f62722222e069e623cf0d19dc01af55318591cab7831deb2ecdf7eab2",
+  "protocol_sha256": "f3789d9f8732f8d907a8fb3021ba2f0343e28905f5fcdd7c0458e96544357572",
   "cases": [],
   "limitations": [
     "No immutable benchmark cases are indexed; this protocol has no executable publication evidence."

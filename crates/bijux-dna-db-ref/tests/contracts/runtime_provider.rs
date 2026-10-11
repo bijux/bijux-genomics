@@ -5,7 +5,7 @@ use bijux_dna_db_ref::public_api::{
     resolve_reference_bundle, resolve_reference_bundle_contract, resolve_reference_source_lock,
     resolve_sex_chromosome_rule, resolve_sex_par_organellar_assets, resolve_species_authority,
     resolve_species_context, validate_imputation_tool_compatibility, CatalogCompatibility,
-    PanelCatalogEntry,
+    CatalogFileMaterializationArea, PanelCatalogEntry,
 };
 use bijux_dna_domain_vcf::taxonomy::CoverageRegime;
 
@@ -29,6 +29,31 @@ fn species_context_and_bundle_resolve() {
     assert_eq!(bank.source_accession, "GCF_000001405.40");
     assert_eq!(bank.fasta_md5, "c30471567037b2b2389d43c908c653e1");
     assert!(!bank.required_indexes.is_empty());
+}
+
+#[test]
+fn panel_file_materialization_separates_sources_from_derived_artifacts() {
+    let panel = resolve_panel("Homo sapiens", "GRCh38", Some("hsapiens_grch38_1kg_3202_chr22"))
+        .unwrap_or_else(|err| panic!("resolve panel: {err}"));
+
+    let source = panel
+        .files
+        .iter()
+        .find(|file| file.name == "panel_vcf")
+        .unwrap_or_else(|| panic!("panel_vcf catalog row"));
+    let source_plan = bijux_dna_db_ref::plan_panel_file_materialization(source)
+        .unwrap_or_else(|err| panic!("source materialization plan: {err}"));
+    assert_eq!(source_plan.area, CatalogFileMaterializationArea::Raw);
+
+    let derived = panel
+        .files
+        .iter()
+        .find(|file| file.name == "panel_msav")
+        .unwrap_or_else(|| panic!("panel_msav catalog row"));
+    let derived_plan = bijux_dna_db_ref::plan_panel_file_materialization(derived)
+        .unwrap_or_else(|err| panic!("derived materialization plan: {err}"));
+    assert_eq!(derived_plan.area, CatalogFileMaterializationArea::Derived);
+    assert_eq!(derived_plan.relative_path, "panel.msav");
 }
 
 #[test]
@@ -65,16 +90,13 @@ fn panel_and_map_resolution_work() {
 }
 
 #[test]
-fn minimac_requires_declared_panel_support() {
+fn minimac_accepts_declared_msav_panel_support() {
     let panel = resolve_panel("Homo sapiens", "GRCh38", Some("hsapiens_grch38_1kg_3202_chr22"))
         .unwrap_or_else(|err| panic!("resolve panel: {err}"));
     let map = resolve_map("Homo sapiens", "GRCh38", Some("hsapiens_grch38_glimpse_chr22"))
         .unwrap_or_else(|err| panic!("resolve map: {err}"));
-    let err = match validate_imputation_tool_compatibility("minimac4", &panel, &map) {
-        Ok(()) => panic!("panel without minimac4 support must refuse minimac4"),
-        Err(err) => err,
-    };
-    assert!(err.to_string().contains("minimac4"));
+    validate_imputation_tool_compatibility("minimac4", &panel, &map)
+        .unwrap_or_else(|err| panic!("minimac4 compatibility: {err}"));
 }
 
 #[test]
@@ -93,7 +115,7 @@ fn invalid_lock_ref_is_rejected() {
             tool_tags: vec!["glimpse".to_string()],
             requires_phased: true,
             supports_gl_input: true,
-            supports_minimac_m3vcf: false,
+            minimac_reference_format: String::new(),
             glimpse_reference_format: "bcf+sites".to_string(),
         },
     };

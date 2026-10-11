@@ -138,7 +138,11 @@ pub fn repository_commit_is_ancestor_of_head(repository_root: &Path, commit: &st
     repository_commit_is_ancestor(repository_root, commit, &head)
 }
 
-pub(crate) fn repository_commit_is_ancestor(
+/// Return whether one full commit identity is an ancestor of another commit.
+///
+/// # Errors
+/// Returns an error when either commit is malformed or Git cannot inspect repository ancestry.
+pub fn repository_commit_is_ancestor(
     repository_root: &Path,
     ancestor_commit: &str,
     descendant_commit: &str,

@@ -5,7 +5,7 @@
 - Run: `run-2021`
 - Stage: `bam.qc_pre`
 - Protocol version: `1.0.0`
-- State: `reserved`
+- State: `active`
 - Citation key: `bijux-benchmark-run-2021`
 
 Compare the runnable bam.qc_pre tools using cross_tool_consistency_with_independent_bam_statistics; downstream substitution: consume every report through the common QC and publication surface.

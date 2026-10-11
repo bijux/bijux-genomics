@@ -8,10 +8,9 @@
   },
   "protocol_title": "FASTQ trim reads benchmark protocol",
   "protocol_version": "1.0.0",
-  "protocol_sha256": "5c1447ed13d8a506afca87e855c1b111901572ef7a40a0650e690e557fa83726",
+  "protocol_sha256": "2847c18e24b7cac8c02c7d92ccaf61c2da279ca7ce48c36d3fc9e4967c7d94b8",
   "status": "protocol_only",
   "limitations": [
-    "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-    "The protocol is reserved and has no selected publication."
+    "No current admitted publication is selected; this protocol is not citable as executed evidence."
   ]
 }

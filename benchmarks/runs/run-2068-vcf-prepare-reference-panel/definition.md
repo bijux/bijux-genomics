@@ -5,7 +5,7 @@
 - Run: `run-2068`
 - Stage: `vcf.prepare_reference_panel`
 - Protocol version: `1.0.0`
-- State: `reserved`
+- State: `active`
 - Citation key: `bijux-benchmark-run-2068`
 
 Compare the runnable vcf.prepare_reference_panel tools using truth_preservation_error_removal_and_record_normalization; downstream substitution: run stats, phasing, imputation, and population consumers on every transformed VCF.

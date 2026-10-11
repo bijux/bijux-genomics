@@ -1,0 +1,391 @@
+{
+  "$defs": {
+    "BenchmarkProgressAttempt": {
+      "additionalProperties": false,
+      "properties": {
+        "attempt_id": {
+          "type": "string"
+        },
+        "evidence_root": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "failure_class": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "run_id": {
+          "type": "string"
+        },
+        "slurm_job_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "source_commit": {
+          "pattern": "^[0-9a-f]{40}$",
+          "type": "string"
+        },
+        "status": {
+          "$ref": "#/$defs/BenchmarkProgressAttemptStatus"
+        }
+      },
+      "required": [
+        "attempt_id",
+        "run_id",
+        "source_commit",
+        "status"
+      ],
+      "type": "object"
+    },
+    "BenchmarkProgressAttemptStatus": {
+      "enum": [
+        "prepared",
+        "submitted",
+        "pending",
+        "running",
+        "collectible",
+        "passed",
+        "failed",
+        "superseded",
+        "blocked_external"
+      ],
+      "type": "string"
+    },
+    "BenchmarkProgressCheck": {
+      "additionalProperties": false,
+      "properties": {
+        "duration_seconds": {
+          "format": "double",
+          "type": [
+            "number",
+            "null"
+          ]
+        },
+        "id": {
+          "type": "string"
+        },
+        "log": {
+          "type": "string"
+        },
+        "status": {
+          "$ref": "#/$defs/BenchmarkProgressCheckStatus"
+        }
+      },
+      "required": [
+        "id",
+        "status",
+        "log"
+      ],
+      "type": "object"
+    },
+    "BenchmarkProgressCheckStatus": {
+      "enum": [
+        "passed",
+        "failed",
+        "running",
+        "not_run"
+      ],
+      "type": "string"
+    },
+    "BenchmarkProgressCommit": {
+      "additionalProperties": false,
+      "properties": {
+        "checks": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "intent": {
+          "type": "string"
+        },
+        "sha": {
+          "pattern": "^[0-9a-f]{40}$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "sha",
+        "intent",
+        "checks"
+      ],
+      "type": "object"
+    },
+    "BenchmarkProgressExecutionUnit": {
+      "additionalProperties": false,
+      "properties": {
+        "attempt_ids": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "owner": {
+          "$ref": "#/$defs/BenchmarkProgressOwner"
+        },
+        "prerequisites": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "run_id": {
+          "type": "string"
+        },
+        "status": {
+          "$ref": "#/$defs/BenchmarkProgressExecutionUnitStatus"
+        },
+        "unit_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "unit_id",
+        "owner",
+        "run_id",
+        "status",
+        "prerequisites"
+      ],
+      "type": "object"
+    },
+    "BenchmarkProgressExecutionUnitStatus": {
+      "enum": [
+        "planned",
+        "ready",
+        "submitted",
+        "running",
+        "collectible",
+        "passed",
+        "failed",
+        "superseded",
+        "blocked_external"
+      ],
+      "type": "string"
+    },
+    "BenchmarkProgressExternalWait": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "independent_work_continues": {
+          "const": true,
+          "type": "boolean"
+        },
+        "next_observation_command": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "reason": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "reason",
+        "independent_work_continues"
+      ],
+      "type": "object"
+    },
+    "BenchmarkProgressFrontier": {
+      "additionalProperties": false,
+      "properties": {
+        "collectible_unit_ids": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "ready_task_ids": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "ready_unit_ids": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "submitted_unit_ids": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "ready_task_ids",
+        "ready_unit_ids",
+        "submitted_unit_ids",
+        "collectible_unit_ids"
+      ],
+      "type": "object"
+    },
+    "BenchmarkProgressLedgerSource": {
+      "additionalProperties": false,
+      "properties": {
+        "benchmark_registry_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "catalog_sha256": {
+          "pattern": "^[0-9a-f]{64}$",
+          "type": "string"
+        },
+        "local_clean": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "local_head": {
+          "pattern": "^[0-9a-f]{40}$",
+          "type": "string"
+        },
+        "remote_clean": {
+          "type": [
+            "boolean",
+            "null"
+          ]
+        },
+        "remote_head": {
+          "pattern": "^[0-9a-f]{40}$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "local_head",
+        "remote_head",
+        "catalog_sha256",
+        "benchmark_registry_sha256"
+      ],
+      "type": "object"
+    },
+    "BenchmarkProgressOwner": {
+      "enum": [
+        "containers",
+        "benchmarks",
+        "data",
+        "ci",
+        "publication"
+      ],
+      "type": "string"
+    },
+    "BenchmarkProgressTask": {
+      "additionalProperties": false,
+      "properties": {
+        "evidence": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "next_action": {
+          "type": "string"
+        },
+        "status": {
+          "$ref": "#/$defs/BenchmarkProgressTaskStatus"
+        },
+        "task_id": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "task_id",
+        "status",
+        "next_action"
+      ],
+      "type": "object"
+    },
+    "BenchmarkProgressTaskStatus": {
+      "enum": [
+        "open",
+        "ready",
+        "in_progress",
+        "waiting_external",
+        "blocked_external",
+        "verified",
+        "superseded"
+      ],
+      "type": "string"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "attempts": {
+      "items": {
+        "$ref": "#/$defs/BenchmarkProgressAttempt"
+      },
+      "type": "array"
+    },
+    "checks": {
+      "items": {
+        "$ref": "#/$defs/BenchmarkProgressCheck"
+      },
+      "type": "array"
+    },
+    "commits": {
+      "items": {
+        "$ref": "#/$defs/BenchmarkProgressCommit"
+      },
+      "type": "array"
+    },
+    "cycle_id": {
+      "minLength": 12,
+      "type": "string"
+    },
+    "execution_units": {
+      "items": {
+        "$ref": "#/$defs/BenchmarkProgressExecutionUnit"
+      },
+      "type": "array"
+    },
+    "external_waits": {
+      "items": {
+        "$ref": "#/$defs/BenchmarkProgressExternalWait"
+      },
+      "type": "array"
+    },
+    "frontier": {
+      "$ref": "#/$defs/BenchmarkProgressFrontier"
+    },
+    "schema_version": {
+      "const": "bijux.finalization_v3.progress_ledger.v1",
+      "type": "string"
+    },
+    "source": {
+      "$ref": "#/$defs/BenchmarkProgressLedgerSource"
+    },
+    "tasks": {
+      "items": {
+        "$ref": "#/$defs/BenchmarkProgressTask"
+      },
+      "type": "array"
+    }
+  },
+  "required": [
+    "schema_version",
+    "cycle_id",
+    "source",
+    "frontier",
+    "tasks",
+    "execution_units",
+    "attempts",
+    "commits",
+    "checks",
+    "external_waits"
+  ],
+  "title": "BenchmarkProgressLedger",
+  "type": "object"
+}

@@ -2,27 +2,28 @@ use std::collections::BTreeMap;
 
 use bijux_dna_bench_model::contract::{
     validate_benchmark_local_hpc_job_graph, validate_benchmark_portfolio,
-    validate_benchmark_publication_registry, validate_portfolio_campaign_alignment,
-    validate_scientific_readiness, validate_stage_campaign_registry, validate_stage_coverage,
-    validate_stage_universe, BENCHMARK_PORTFOLIO_SCHEMA_V2, BENCHMARK_STAGE_CAMPAIGNS_SCHEMA_V1,
+    validate_benchmark_publication_registry, validate_executable_stage_campaign_registry,
+    validate_portfolio_campaign_alignment, validate_scientific_readiness,
+    validate_stage_campaign_registry, validate_stage_coverage, validate_stage_universe,
+    BENCHMARK_PORTFOLIO_SCHEMA_V2, BENCHMARK_STAGE_CAMPAIGNS_SCHEMA_V1,
 };
 use bijux_dna_bench_model::{
-    BenchmarkCachePolicy, BenchmarkComparisonMetricTolerance, BenchmarkCorpusClass,
-    BenchmarkCorpusContract, BenchmarkCorpusStatus, BenchmarkCurrentPublication,
-    BenchmarkDisposition, BenchmarkEvidenceScope, BenchmarkEvidenceTier, BenchmarkExecutionRuntime,
-    BenchmarkExecutionScheduler, BenchmarkLocalHpcJobGraph, BenchmarkLocalHpcJobGraphNode,
-    BenchmarkMeasurementContract, BenchmarkPortfolio, BenchmarkProfileAssignment,
-    BenchmarkPublicationRegistry, BenchmarkPublicationRegistrySummary,
-    BenchmarkQuarantinedPublicationSurface, BenchmarkRunReportDisposition,
-    BenchmarkRunReportIndexEntry, BenchmarkScientificProfile, BenchmarkScientificReadinessCorpus,
-    BenchmarkScientificReadinessDomain, BenchmarkScientificReadinessReport,
-    BenchmarkScientificReadinessStage, BenchmarkScientificReadinessStatus,
-    BenchmarkScientificReadinessSummary, BenchmarkStageCampaignRegistry,
-    BenchmarkStageCampaignSpec, BenchmarkStageCoverage, BenchmarkStageCoverageRow,
-    BenchmarkStageCoverageSummary, BenchmarkStageDefinitionStatus, BenchmarkStageExecutionStatus,
-    BenchmarkStageInterfaceStatus, BenchmarkStagePublication, BenchmarkStagePublicationDisposition,
-    BenchmarkStageUniverse, BenchmarkStageUniverseRow, BenchmarkStageUniverseSummary,
-    BENCHMARK_LOCAL_HPC_JOB_GRAPH_SCHEMA_V1,
+    BenchmarkCachePolicy, BenchmarkCampaignMaterialDriver, BenchmarkComparisonMetricTolerance,
+    BenchmarkCorpusClass, BenchmarkCorpusContract, BenchmarkCorpusStatus,
+    BenchmarkCurrentPublication, BenchmarkDisposition, BenchmarkEvidenceScope,
+    BenchmarkEvidenceTier, BenchmarkExecutionRuntime, BenchmarkExecutionScheduler,
+    BenchmarkLocalHpcJobGraph, BenchmarkLocalHpcJobGraphNode, BenchmarkMeasurementContract,
+    BenchmarkPortfolio, BenchmarkProfileAssignment, BenchmarkPublicationRegistry,
+    BenchmarkPublicationRegistrySummary, BenchmarkQuarantinedPublicationSurface,
+    BenchmarkRunReportDisposition, BenchmarkRunReportIndexEntry, BenchmarkScientificProfile,
+    BenchmarkScientificReadinessCorpus, BenchmarkScientificReadinessDomain,
+    BenchmarkScientificReadinessReport, BenchmarkScientificReadinessStage,
+    BenchmarkScientificReadinessStatus, BenchmarkScientificReadinessSummary,
+    BenchmarkStageCampaignRegistry, BenchmarkStageCampaignSpec, BenchmarkStageCoverage,
+    BenchmarkStageCoverageRow, BenchmarkStageCoverageSummary, BenchmarkStageDefinitionStatus,
+    BenchmarkStageExecutionStatus, BenchmarkStageInterfaceStatus, BenchmarkStagePublication,
+    BenchmarkStagePublicationDisposition, BenchmarkStageUniverse, BenchmarkStageUniverseRow,
+    BenchmarkStageUniverseSummary, BENCHMARK_LOCAL_HPC_JOB_GRAPH_SCHEMA_V1,
 };
 
 const TEST_SHA256: &str = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
@@ -98,6 +99,7 @@ fn stage_campaign_registry() -> BenchmarkStageCampaignRegistry {
             slug: "fastq-profile-read-lengths".to_string(),
             domain: "fastq".to_string(),
             stage_id: "fastq.profile_read_lengths".to_string(),
+            material_driver: Some(BenchmarkCampaignMaterialDriver::FastqProfileReadLengths),
             evidence_tier: BenchmarkEvidenceTier::Comparative,
             profile_id: "fastq-observational-qc".to_string(),
             corpus_ids: vec!["human-short-read-diversity".to_string()],
@@ -210,6 +212,7 @@ fn benchmark_planning_contracts_accept_aligned_registry_and_portfolio() -> anyho
     let portfolio = benchmark_portfolio();
 
     validate_stage_campaign_registry(&registry)?;
+    validate_executable_stage_campaign_registry(&registry)?;
     validate_benchmark_portfolio(&portfolio)?;
     validate_portfolio_campaign_alignment(&registry, &portfolio)?;
     Ok(())
@@ -233,6 +236,35 @@ fn benchmark_stage_campaign_registry_rejects_slug_drift() {
 
     let error = validate_stage_campaign_registry(&registry).err().map(|error| error.to_string());
     assert!(error.as_deref().is_some_and(|message| message.contains("must derive from stage")));
+}
+
+#[test]
+fn benchmark_stage_campaign_registry_rejects_material_driver_drift() {
+    let mut registry = stage_campaign_registry();
+    registry.campaigns[0].material_driver = Some(BenchmarkCampaignMaterialDriver::BamCoverage);
+
+    let error = validate_stage_campaign_registry(&registry).err().map(|error| error.to_string());
+    assert!(error.as_deref().is_some_and(|message| message.contains("material driver")));
+}
+
+#[test]
+fn canonical_campaign_records_without_material_drivers_use_generic_bindings() -> anyhow::Result<()>
+{
+    let mut value = serde_json::to_value(stage_campaign_registry())?;
+    let campaign = value["campaigns"][0]
+        .as_object_mut()
+        .ok_or_else(|| anyhow::anyhow!("test campaign is not an object"))?;
+    campaign.remove("material_driver");
+
+    let historical: BenchmarkStageCampaignRegistry = serde_json::from_value(value)?;
+    assert!(historical.campaigns[0].material_driver.is_none());
+    validate_stage_campaign_registry(&historical)?;
+    validate_executable_stage_campaign_registry(&historical)?;
+
+    let mut drifted = historical;
+    drifted.campaigns[0].tool_ids = vec!["seqfu".to_string()];
+    assert!(validate_executable_stage_campaign_registry(&drifted).is_err());
+    Ok(())
 }
 
 #[test]

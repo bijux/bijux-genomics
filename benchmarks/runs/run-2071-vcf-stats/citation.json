@@ -8,10 +8,9 @@
   },
   "protocol_title": "VCF stats benchmark protocol",
   "protocol_version": "1.0.0",
-  "protocol_sha256": "0bb8df907d17d0e2c701e2036eedad46080790192e414e730c23aaf23b63d985",
+  "protocol_sha256": "546fbd22f8c75dd024dc3bb20b066d384cb79f0e668bab0e6ac0bba137482f72",
   "status": "protocol_only",
   "limitations": [
-    "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-    "The protocol is reserved and has no selected publication."
+    "No current admitted publication is selected; this protocol is not citable as executed evidence."
   ]
 }

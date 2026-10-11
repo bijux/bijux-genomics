@@ -5,7 +5,7 @@
 - Run: `run-2018`
 - Stage: `bam.mapq_filter`
 - Protocol version: `1.0.0`
-- State: `reserved`
+- State: `active`
 - Citation key: `bijux-benchmark-run-2018`
 
 Compare the runnable bam.mapq_filter tools using expected_record_retention_and_truth_preservation; downstream substitution: run validation, QC, and variant calling on every transformed BAM.

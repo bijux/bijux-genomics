@@ -7,11 +7,12 @@ use super::{
 };
 
 const FREEZE_USAGE: &str = "Usage: bijux-dna-dev containers run repository-freeze -- --governance <path> --commit <sha> [--scope <contracts|sources|complete>] [--path <repository-relative-path>]... [--namespace <name>]";
-const ARCHIVE_USAGE: &str = "Usage:\n  bijux-dna-dev containers run repository-archive -- archive --governance <path> --snapshot <path> --commit <sha>\n  bijux-dna-dev containers run repository-archive -- verify --governance <path> --snapshot <path> --commit <sha> --receipt <path>\n  bijux-dna-dev containers run repository-archive -- retire --governance <path> --snapshot <path> --commit <sha> --receipt <path>\n  bijux-dna-dev containers run repository-archive -- restore --governance <path> --snapshot <path> --commit <sha> --receipt <path>";
+const ARCHIVE_USAGE: &str = "Usage:\n  bijux-dna-dev containers run repository-archive -- archive --governance <path> --snapshot <path> --commit <sha>\n  bijux-dna-dev containers run repository-archive -- archive-retire --governance <path> --snapshot <path> --commit <sha>\n  bijux-dna-dev containers run repository-archive -- verify --governance <path> --snapshot <path> --commit <sha> --receipt <path>\n  bijux-dna-dev containers run repository-archive -- retire --governance <path> --snapshot <path> --commit <sha> --receipt <path>\n  bijux-dna-dev containers run repository-archive -- restore --governance <path> --snapshot <path> --commit <sha> --receipt <path>";
 
 #[derive(Clone, Copy)]
 enum ArchiveOperation {
     Archive,
+    ArchiveRetire,
     Verify,
     Retire,
     Restore,
@@ -84,6 +85,7 @@ pub(super) fn repository_archive(
     let (operation, options) = args.split_first().ok_or_else(|| anyhow::anyhow!(ARCHIVE_USAGE))?;
     let operation = match operation.as_str() {
         "archive" => ArchiveOperation::Archive,
+        "archive-retire" => ArchiveOperation::ArchiveRetire,
         "verify" => ArchiveOperation::Verify,
         "retire" => ArchiveOperation::Retire,
         "restore" => ArchiveOperation::Restore,
@@ -106,7 +108,7 @@ pub(super) fn repository_archive(
         }
         index += 2;
     }
-    if matches!(operation, ArchiveOperation::Archive) {
+    if matches!(operation, ArchiveOperation::Archive | ArchiveOperation::ArchiveRetire) {
         ensure_no_receipt(receipt.as_deref())?;
     }
     let governance_path = path_from_arg(
@@ -125,6 +127,11 @@ pub(super) fn repository_archive(
     match operation {
         ArchiveOperation::Archive => {
             let archived = bijux_dna_containers::api::archive_frozen_repository(&request)?;
+            success_line(serde_json::to_string_pretty(&archived)?)
+        }
+        ArchiveOperation::ArchiveRetire => {
+            let archived =
+                bijux_dna_containers::api::archive_and_retire_frozen_repository(&request)?;
             success_line(serde_json::to_string_pretty(&archived)?)
         }
         ArchiveOperation::Verify | ArchiveOperation::Retire | ArchiveOperation::Restore => {
@@ -156,7 +163,9 @@ pub(super) fn repository_archive(
                     )?;
                     success_line(restored.display().to_string())
                 }
-                ArchiveOperation::Archive => unreachable!("archive handled before receipt loading"),
+                ArchiveOperation::Archive | ArchiveOperation::ArchiveRetire => {
+                    unreachable!("archive operations handled before receipt loading")
+                }
             }
         }
     }
@@ -184,7 +193,7 @@ mod tests {
     fn archive_help_exposes_every_reversible_operation() -> Result<()> {
         let workspace = Workspace { root: PathBuf::from("/workspace") };
         let output = repository_archive(&workspace, &["--help".into()])?;
-        for operation in ["archive", "verify", "retire", "restore"] {
+        for operation in ["archive", "archive-retire", "verify", "retire", "restore"] {
             assert!(output.stdout.contains(operation));
         }
         Ok(())
@@ -193,20 +202,22 @@ mod tests {
     #[test]
     fn archive_rejects_a_receipt_before_touching_site_state() {
         let workspace = Workspace { root: PathBuf::from("/workspace") };
-        let result = repository_archive(
-            &workspace,
-            &[
-                "archive".into(),
-                "--governance".into(),
-                "missing-governance.json".into(),
-                "--snapshot".into(),
-                "missing-snapshot".into(),
-                "--commit".into(),
-                "0".repeat(40),
-                "--receipt".into(),
-                "forbidden.json".into(),
-            ],
-        );
-        assert!(result.is_err_and(|error| error.to_string().contains("invalid for archive")));
+        for operation in ["archive", "archive-retire"] {
+            let result = repository_archive(
+                &workspace,
+                &[
+                    operation.into(),
+                    "--governance".into(),
+                    "missing-governance.json".into(),
+                    "--snapshot".into(),
+                    "missing-snapshot".into(),
+                    "--commit".into(),
+                    "0".repeat(40),
+                    "--receipt".into(),
+                    "forbidden.json".into(),
+                ],
+            );
+            assert!(result.is_err_and(|error| error.to_string().contains("invalid for archive")));
+        }
     }
 }

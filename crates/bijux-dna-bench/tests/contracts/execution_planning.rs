@@ -10,10 +10,10 @@ use bijux_dna_bench::{
     load_stage_plan_manifest, plan_benchmark_case_attempts, plan_benchmark_case_matrix,
     plan_stage_campaign_attempts, BenchmarkAcceptanceExpectedValue, BenchmarkAcceptanceMetric,
     BenchmarkAcceptanceOperator, BenchmarkCaseMatrixRequest, BenchmarkCaseMatrixV2,
-    BenchmarkDataSnapshotRoleV1, BenchmarkDataSnapshotV1, BenchmarkExecutionAcceptance,
-    BenchmarkExecutionDeterminism, BenchmarkExecutionInput, BenchmarkExecutionInputKind,
-    BenchmarkExecutionMaterial, BenchmarkExecutionParameterEvidence, BenchmarkExecutionSpec,
-    BenchmarkStagePlanInputMaterial, BenchmarkStagePlanOutputMaterial,
+    BenchmarkDataSnapshotRoleV1, BenchmarkDataSnapshotV1, BenchmarkDownstreamProbeMode,
+    BenchmarkExecutionAcceptance, BenchmarkExecutionDeterminism, BenchmarkExecutionInput,
+    BenchmarkExecutionInputKind, BenchmarkExecutionMaterial, BenchmarkExecutionParameterEvidence,
+    BenchmarkExecutionSpec, BenchmarkStagePlanInputMaterial, BenchmarkStagePlanOutputMaterial,
     BenchmarkStagePlanUnitMaterial,
 };
 use bijux_dna_containers::api::{
@@ -122,6 +122,7 @@ fn material() -> BenchmarkExecutionMaterial {
             operator_overrides: BTreeMap::new(),
             immutable_parameters: ["threads".to_owned()].into_iter().collect(),
         }]),
+        downstream_probe_mode: BenchmarkDownstreamProbeMode::RunnerProduced,
     }
 }
 
@@ -199,6 +200,12 @@ fn case_matrix(
             } else {
                 Vec::new()
             },
+            files: vec![bijux_dna_bench::BenchmarkDataArtifactSnapshotV1 {
+                path: format!("study://data/fixtures/{id}.bin"),
+                sha256: "7".repeat(64),
+                size_bytes: 1,
+                role: "fixture-artifact".to_string(),
+            }],
         })
     })
     .collect::<Vec<_>>();
@@ -423,6 +430,10 @@ fn execution_authorities_recheck_selected_sif_bytes() -> anyhow::Result<()> {
         .outputs
         .required_files
         .contains(&"repetitions/measured-repetition-3--sample-a/resource.tsv".to_owned()));
+    assert!(spec
+        .outputs
+        .required_files
+        .contains(&"repetitions/repetition-3.resource.tsv".to_owned()));
     let units = [BenchmarkStagePlanUnitMaterial {
         execution_unit_id: "sample-a".to_owned(),
         inputs: vec![BenchmarkStagePlanInputMaterial {
@@ -727,6 +738,7 @@ fn stage_plan_binding(spec: &BenchmarkExecutionSpec) -> ToolBindingV1 {
         inputs: vec![BindingInputV1 {
             name: "reads_r1".to_owned(),
             artifact_contract_id: "bijux.fastq.artifact.paired_end.v1".to_owned(),
+            source: bijux_dna_stage_contract::BindingInputSourceV1::Corpus,
             required: true,
         }],
         parameters: vec![bijux_dna_stage_contract::BindingParameterV1 {

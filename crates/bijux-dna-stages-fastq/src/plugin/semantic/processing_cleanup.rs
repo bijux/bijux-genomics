@@ -4,7 +4,8 @@ use bijux_dna_stage_contract::{ArtifactRef, StagePlanV1};
 
 use crate::metrics::f64_from_u64;
 use crate::observer::{
-    parse_correct_errors_report, parse_deduplicate_report, parse_remove_chimeras_report,
+    parse_correct_errors_report, parse_deduplicate_report, parse_detect_duplicates_premerge_report,
+    parse_estimate_library_complexity_prealign_report, parse_remove_chimeras_report,
     parse_remove_duplicates_provenance, parse_remove_duplicates_report,
 };
 
@@ -13,11 +14,62 @@ pub(super) fn observed_cleanup_metrics(
     artifacts: &[ArtifactRef],
 ) -> Option<serde_json::Value> {
     match plan.stage_id.as_str() {
+        "fastq.detect_duplicates_premerge" => detect_duplicates_premerge_metrics(artifacts),
+        "fastq.estimate_library_complexity_prealign" => {
+            estimate_library_complexity_prealign_metrics(artifacts)
+        }
         "fastq.remove_duplicates" => remove_duplicates_metrics(artifacts),
         "fastq.remove_chimeras" => remove_chimeras_metrics(artifacts),
         "fastq.correct_errors" => correct_errors_metrics(artifacts),
         _ => None,
     }
+}
+
+fn detect_duplicates_premerge_metrics(artifacts: &[ArtifactRef]) -> Option<serde_json::Value> {
+    let report =
+        parse_detect_duplicates_premerge_report(&report_raw(artifacts, "duplicate_signal_report")?)
+            .ok()?;
+    Some(serde_json::json!({
+        "paired_mode": report.paired_mode,
+        "duplicate_detection_policy": report.duplicate_detection_policy,
+        "measurement_scope": report.measurement_scope,
+        "modifies_reads": report.modifies_reads,
+        "advisory_only": report.advisory_only,
+        "reads_in": report.reads_in,
+        "duplicate_count": report.duplicate_signal_reads,
+        "duplicate_fraction": report.duplicate_signal_fraction,
+        "inspected_pair_count": report.compared_read_pairs,
+        "duplicate_signal_reads": report.duplicate_signal_reads,
+        "duplicate_signal_fraction": report.duplicate_signal_fraction,
+        "compared_read_pairs": report.compared_read_pairs,
+    }))
+}
+
+fn estimate_library_complexity_prealign_metrics(
+    artifacts: &[ArtifactRef],
+) -> Option<serde_json::Value> {
+    let report = parse_estimate_library_complexity_prealign_report(&report_raw(
+        artifacts,
+        "library_complexity_report",
+    )?)
+    .ok()?;
+    Some(serde_json::json!({
+        "paired_mode": report.paired_mode,
+        "complexity_policy": report.complexity_policy,
+        "estimate_method": report.estimate_method,
+        "modifies_reads": report.modifies_reads,
+        "advisory_only": report.advisory_only,
+        "reads_in": report.reads_in,
+        "estimated_complexity": if report.insufficient_data_reason.is_some() {
+            serde_json::Value::Null
+        } else {
+            serde_json::json!(report.estimated_unique_fraction)
+        },
+        "estimated_unique_fraction": report.estimated_unique_fraction,
+        "estimated_duplicate_fraction": report.estimated_duplicate_fraction,
+        "insufficient_data_reason": report.insufficient_data_reason,
+        "kmer_size": report.kmer_size,
+    }))
 }
 
 fn report_raw(artifacts: &[ArtifactRef], name: &str) -> Option<String> {

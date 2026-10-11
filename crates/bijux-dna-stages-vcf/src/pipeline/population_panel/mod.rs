@@ -55,7 +55,98 @@ fn run_tool(bin: &str, args: &[&str], workdir: Option<&Path>) -> bool {
     crate::engine::execution::command_succeeds(bin, args.iter().copied(), workdir)
 }
 
-fn parse_plink2_eigenvec(path: &Path, components: usize) -> Option<String> {
+#[derive(Debug, Clone, PartialEq, Eq)]
+struct PopulationProxyInvocation {
+    program: &'static str,
+    args: Vec<String>,
+}
+
+fn pca_invocation(
+    tool: &str,
+    input_vcf: &Path,
+    output_prefix: &Path,
+    components: usize,
+) -> Result<PopulationProxyInvocation> {
+    let input = input_vcf.to_string_lossy().to_string();
+    let output = output_prefix.to_string_lossy().to_string();
+    let program = match tool {
+        "plink" => "plink",
+        "plink2" => "plink2",
+        other => bail!("vcf.pca refusal: unsupported toolchain `{other}`"),
+    };
+    Ok(PopulationProxyInvocation {
+        program,
+        args: vec![
+            "--vcf".to_string(),
+            input,
+            "--double-id".to_string(),
+            "--allow-extra-chr".to_string(),
+            "--pca".to_string(),
+            components.to_string(),
+            "--out".to_string(),
+            output,
+        ],
+    })
+}
+
+fn plink_mds_invocation(input_vcf: &Path, output_prefix: &Path) -> PopulationProxyInvocation {
+    PopulationProxyInvocation {
+        program: "plink",
+        args: vec![
+            "--vcf".to_string(),
+            input_vcf.to_string_lossy().to_string(),
+            "--double-id".to_string(),
+            "--allow-extra-chr".to_string(),
+            "--cluster".to_string(),
+            "--mds-plot".to_string(),
+            "2".to_string(),
+            "--out".to_string(),
+            output_prefix.to_string_lossy().to_string(),
+        ],
+    }
+}
+
+fn population_proxy_invocation(
+    tool: &str,
+    input_vcf: &Path,
+    output_prefix: &Path,
+) -> Result<PopulationProxyInvocation> {
+    let input = input_vcf.to_string_lossy().to_string();
+    let output = output_prefix.to_string_lossy().to_string();
+    match tool {
+        "plink" => Ok(PopulationProxyInvocation {
+            program: "plink",
+            args: vec![
+                "--vcf".to_string(),
+                input,
+                "--double-id".to_string(),
+                "--allow-extra-chr".to_string(),
+                "--missing".to_string(),
+                "--freq".to_string(),
+                "--make-bed".to_string(),
+                "--out".to_string(),
+                output,
+            ],
+        }),
+        "plink2" => Ok(PopulationProxyInvocation {
+            program: "plink2",
+            args: vec![
+                "--vcf".to_string(),
+                input,
+                "--double-id".to_string(),
+                "--allow-extra-chr".to_string(),
+                "--bad-freqs".to_string(),
+                "--pca".to_string(),
+                "2".to_string(),
+                "--out".to_string(),
+                output,
+            ],
+        }),
+        other => bail!("vcf.admixture refusal: unsupported toolchain `{other}`"),
+    }
+}
+
+fn parse_plink_eigenvec(path: &Path, components: usize) -> Option<String> {
     let raw = std::fs::read_to_string(path).ok()?;
     let mut out = String::from("sample");
     for i in 1..=components {
@@ -64,7 +155,7 @@ fn parse_plink2_eigenvec(path: &Path, components: usize) -> Option<String> {
     out.push('\n');
     for line in raw.lines() {
         let cols = line.split_whitespace().collect::<Vec<_>>();
-        if cols.len() < components + 3 {
+        if cols.first().is_some_and(|value| value.starts_with('#')) || cols.len() < components + 2 {
             continue;
         }
         let sample = cols[1];
@@ -199,25 +290,15 @@ pub fn run_pca_stage(
             } else {
                 false
             };
-            ("smartpca", smartpca_ok)
+            (toolchain.as_str(), smartpca_ok)
         }
-        _ => (
-            "plink2",
-            run_tool(
-                "plink2",
-                &[
-                    "--vcf",
-                    input_s.as_str(),
-                    "--double-id",
-                    "--allow-extra-chr",
-                    "--pca",
-                    &params.components.to_string(),
-                    "--out",
-                    plink_prefix_s.as_str(),
-                ],
-                None,
-            ),
-        ),
+        "plink" | "plink2" => {
+            let invocation =
+                pca_invocation(&toolchain, input_vcf, &plink_prefix, params.components)?;
+            let args = invocation.args.iter().map(String::as_str).collect::<Vec<_>>();
+            (toolchain.as_str(), run_tool(invocation.program, &args, None))
+        }
+        other => bail!("vcf.pca refusal: unsupported toolchain `{other}`"),
     };
     let plink_eigenvec = out_dir.join("plink_pca.eigenvec");
     let plink_eigenval = out_dir.join("plink_pca.eigenval");
@@ -236,7 +317,7 @@ pub fn run_pca_stage(
                 }
             }
             _ if plink_eigenvec.exists() => {
-                if let Some(parsed) = parse_plink2_eigenvec(&plink_eigenvec, params.components) {
+                if let Some(parsed) = parse_plink_eigenvec(&plink_eigenvec, params.components) {
                     execution_mode = "real_tool";
                     parsed
                 } else {
@@ -388,8 +469,14 @@ pub fn run_population_structure_stage(
     let plink_prefix = out_dir.join("population_structure_plink");
     let plink_prefix_s = plink_prefix.to_string_lossy().to_string();
     let input_s = input_vcf.to_string_lossy().to_string();
-    let plink_prune_ok = try_run_tool(
-        "plink2",
+    let requested_tool = params.toolchain.to_ascii_lowercase();
+    let prune_tool = match requested_tool.as_str() {
+        "plink" => "plink",
+        "plink2" | "eigensoft" | "smartpca" => "plink2",
+        other => bail!("vcf.population_structure refusal: unsupported toolchain `{other}`"),
+    };
+    let prune_ok = try_run_tool(
+        prune_tool,
         &[
             "--vcf",
             input_s.as_str(),
@@ -403,6 +490,18 @@ pub fn run_population_structure_stage(
             plink_prefix_s.as_str(),
         ],
     );
+    let (population_mds, tool_log, mds_ok) = if requested_tool == "plink" {
+        let mds_prefix = out_dir.join("population_structure_mds");
+        let invocation = plink_mds_invocation(input_vcf, &mds_prefix);
+        let args = invocation.args.iter().map(String::as_str).collect::<Vec<_>>();
+        let command_ok = try_run_tool(invocation.program, &args);
+        let mds_path = out_dir.join("population_structure_mds.mds");
+        let log_path = out_dir.join("population_structure_mds.log");
+        let output_ok = command_ok && mds_path.is_file() && log_path.is_file();
+        (Some(mds_path), Some(log_path), Some(output_ok))
+    } else {
+        (None, None, None)
+    };
     let pca = run_pca_stage(
         input_vcf,
         out_dir,
@@ -488,13 +587,31 @@ pub fn run_population_structure_stage(
                 "admixture_enabled": params.run_admixture
             },
             "tool_attempts": {
-                "plink2_prune": plink_prune_ok,
-                "smartpca": params.smartpca
+                "prune": {
+                    "tool": prune_tool,
+                    "ok": prune_ok
+                },
+                "pca": {
+                    "tool": pca_manifest.get("toolchain").and_then(serde_json::Value::as_str),
+                    "ok": pca_manifest.get("tool_attempts")
+                        .and_then(|row| row.get("pca"))
+                        .and_then(|row| row.get("ok"))
+                        .and_then(serde_json::Value::as_bool)
+                },
+                "admixture": {
+                    "tool": admixture_manifest.get("toolchain").and_then(serde_json::Value::as_str),
+                    "ok": admixture_manifest.get("tool_ok").and_then(serde_json::Value::as_bool)
+                },
+                "mds": {
+                    "tool": mds_ok.map(|_| "plink"),
+                    "ok": mds_ok
+                }
             },
             "pca": {
                 "eigenvec_tsv": pca.eigenvec_tsv,
                 "eigenval_tsv": pca.eigenval_tsv,
                 "manifest_json": pca.pca_manifest_json,
+                "tool_id": pca_manifest.get("toolchain").and_then(serde_json::Value::as_str),
                 "execution_mode": pca_manifest.get("execution_mode").and_then(serde_json::Value::as_str),
                 "tool_ok": pca_manifest.get("tool_attempts")
                     .and_then(|row| row.get("pca"))
@@ -505,6 +622,12 @@ pub fn run_population_structure_stage(
             "admixture": {
                 "q_matrix_tsv": admixture.q_matrix_tsv,
                 "k_selection_json": admixture.k_selection_json,
+                "tool_id": admixture_manifest
+                    .get("toolchain")
+                    .and_then(serde_json::Value::as_str),
+                "tool_ok": admixture_manifest
+                    .get("tool_ok")
+                    .and_then(serde_json::Value::as_bool),
                 "status": admixture_manifest
                     .get("status")
                     .and_then(serde_json::Value::as_str),
@@ -520,22 +643,30 @@ pub fn run_population_structure_stage(
             },
             "outputs": {
                 "pruned_variants_tsv": pruned_variants_tsv,
-                "population_structure_json": population_structure_json
+                "population_structure_json": population_structure_json,
+                "population_mds": population_mds,
+                "tool_log": tool_log
             }
         }),
     )?;
     atomic_write_bytes(
         &logs_txt,
         format!(
-            "toolchain={}\nsmartpca={}\nld_pruning_policy={ld_policy}\nplink2_prune_attempted={}\nadmixture_enabled={}\n",
+            "toolchain={}\nsmartpca={}\nld_pruning_policy={ld_policy}\nprune_tool={prune_tool}\nprune_tool_success={prune_ok}\nmds_tool_success={}\nadmixture_enabled={}\n",
             params.toolchain,
             params.smartpca,
-            plink_prune_ok,
+            mds_ok.map_or_else(|| "not_applicable".to_string(), |ok| ok.to_string()),
             true
         )
         .as_bytes(),
     )?;
-    Ok(PopulationStructureStageOutputs { pruned_variants_tsv, population_structure_json, logs_txt })
+    Ok(PopulationStructureStageOutputs {
+        pruned_variants_tsv,
+        population_structure_json,
+        population_mds,
+        tool_log,
+        logs_txt,
+    })
 }
 
 /// # Errors
@@ -573,47 +704,42 @@ pub fn run_admixture_stage(
         .min()
         .ok_or_else(|| anyhow!("vcf.admixture refusal: unable to select K"))?;
     let tool = params.toolchain.to_ascii_lowercase();
+    let allele_frequency_policy =
+        if tool == "plink2" { "allow_small_cohort_estimates" } else { "tool_default" };
     if tool == "admixture" && !license_metadata_for_tool_exists("admixture") {
         bail!("vcf.admixture refusal: ADMIXTURE container/license metadata is not available");
     }
-    let input_s = input_vcf.to_string_lossy().to_string();
     let prefix = out_dir.join("admixture_plink");
     let prefix_s = prefix.to_string_lossy().to_string();
-    let tool_ok = if tool == "admixture" {
-        let make_bed_ok = run_tool(
-            "plink2",
-            &[
-                "--vcf",
-                input_s.as_str(),
-                "--double-id",
-                "--allow-extra-chr",
-                "--make-bed",
-                "--out",
-                prefix_s.as_str(),
-            ],
-            None,
-        );
-        if !make_bed_ok {
-            false
-        } else {
-            let bed = format!("{prefix_s}.bed");
-            run_tool("admixture", &[bed.as_str(), &selected_k.to_string()], Some(out_dir))
+    let tool_ok = match tool.as_str() {
+        "admixture" => {
+            let input_s = input_vcf.to_string_lossy().to_string();
+            let make_bed_ok = run_tool(
+                "plink2",
+                &[
+                    "--vcf",
+                    input_s.as_str(),
+                    "--double-id",
+                    "--allow-extra-chr",
+                    "--make-bed",
+                    "--out",
+                    prefix_s.as_str(),
+                ],
+                None,
+            );
+            if !make_bed_ok {
+                false
+            } else {
+                let bed = format!("{prefix_s}.bed");
+                run_tool("admixture", &[bed.as_str(), &selected_k.to_string()], Some(out_dir))
+            }
         }
-    } else {
-        run_tool(
-            "plink2",
-            &[
-                "--vcf",
-                input_s.as_str(),
-                "--double-id",
-                "--allow-extra-chr",
-                "--pca",
-                "2",
-                "--out",
-                prefix_s.as_str(),
-            ],
-            None,
-        )
+        "plink" | "plink2" => {
+            let invocation = population_proxy_invocation(&tool, input_vcf, &prefix)?;
+            let args = invocation.args.iter().map(String::as_str).collect::<Vec<_>>();
+            run_tool(invocation.program, &args, None)
+        }
+        other => bail!("vcf.admixture refusal: unsupported toolchain `{other}`"),
     };
     let q_matrix_tsv = out_dir.join("admixture_q_matrix.tsv");
     let k_selection_json = out_dir.join("admixture_k_selection.json");
@@ -651,7 +777,8 @@ pub fn run_admixture_stage(
         None
     };
     let status = if insufficient_data_reason.is_some() { "insufficient_data" } else { "complete" };
-    let mut execution_mode = "fallback_proxy";
+    let mut execution_mode =
+        if tool != "admixture" && tool_ok { "tool_backed_proxy" } else { "fallback_proxy" };
     let mut q_tsv = String::new();
     if tool == "admixture" && tool_ok {
         let q_path = out_dir.join(format!("admixture_plink.{}.Q", selected_k));
@@ -726,8 +853,9 @@ pub fn run_admixture_stage(
         &k_selection_json,
         &serde_json::json!({
             "schema_version": "bijux.vcf.admixture.v1",
-            "toolchain": if tool == "admixture" { "admixture" } else { "plink2_proxy" },
+            "toolchain": tool,
             "execution_mode": execution_mode,
+            "allele_frequency_policy": allele_frequency_policy,
             "k_values": params.k_values,
             "selected_k": selected_k,
             "status": status,
@@ -752,9 +880,142 @@ pub fn run_admixture_stage(
     atomic_write_bytes(
         &logs_txt,
         format!(
-            "toolchain={tool}\nexecution_mode={execution_mode}\ntool_success={tool_ok}\nselected_k={selected_k}\nstatus={status}\n"
+            "toolchain={tool}\nexecution_mode={execution_mode}\nallele_frequency_policy={allele_frequency_policy}\ntool_success={tool_ok}\nselected_k={selected_k}\nstatus={status}\n"
         )
         .as_bytes(),
     )?;
     Ok(AdmixtureStageOutputs { q_matrix_tsv, k_selection_json, logs_txt })
+}
+
+#[cfg(test)]
+mod pca_backend_tests {
+    use std::path::Path;
+
+    use super::{parse_plink_eigenvec, pca_invocation, plink_mds_invocation};
+
+    #[test]
+    fn plink_family_pca_invocations_preserve_requested_executable_identity() {
+        for (tool, expected_program) in [("plink", "plink"), ("plink2", "plink2")] {
+            let invocation = pca_invocation(tool, Path::new("cohort.vcf"), Path::new("pca"), 2)
+                .unwrap_or_else(|error| panic!("{tool} PCA invocation: {error}"));
+            assert_eq!(invocation.program, expected_program);
+            assert_eq!(
+                invocation.args,
+                [
+                    "--vcf",
+                    "cohort.vcf",
+                    "--double-id",
+                    "--allow-extra-chr",
+                    "--pca",
+                    "2",
+                    "--out",
+                    "pca",
+                ]
+            );
+        }
+        let error = pca_invocation("unsupported", Path::new("in.vcf"), Path::new("pca"), 2)
+            .expect_err("unsupported PCA tool must refuse during planning");
+        assert!(error.to_string().contains("unsupported toolchain `unsupported`"));
+    }
+
+    #[test]
+    fn plink_eigenvectors_accept_fid_iid_and_requested_components() {
+        let dir = tempfile::tempdir().unwrap_or_else(|error| panic!("tempdir: {error}"));
+        let eigenvec = dir.path().join("pca.eigenvec");
+        std::fs::write(&eigenvec, "#FID IID PC1 PC2\nS1 S1 0.25 -0.50\nS2 S2 -0.25 0.50\n")
+            .unwrap_or_else(|error| panic!("write eigenvector fixture: {error}"));
+
+        assert_eq!(
+            parse_plink_eigenvec(&eigenvec, 2).as_deref(),
+            Some("sample\tPC1\tPC2\nS1\t0.25\t-0.50\nS2\t-0.25\t0.50\n")
+        );
+    }
+
+    #[test]
+    fn plink_population_structure_invocation_emits_declared_mds_contract() {
+        let invocation =
+            plink_mds_invocation(Path::new("cohort.vcf"), Path::new("population_structure"));
+        assert_eq!(invocation.program, "plink");
+        assert_eq!(
+            invocation.args,
+            [
+                "--vcf",
+                "cohort.vcf",
+                "--double-id",
+                "--allow-extra-chr",
+                "--cluster",
+                "--mds-plot",
+                "2",
+                "--out",
+                "population_structure",
+            ]
+        );
+    }
+}
+
+#[cfg(test)]
+mod admixture_backend_tests {
+    use std::path::Path;
+
+    use super::population_proxy_invocation;
+
+    #[test]
+    fn plink_admixture_proxy_uses_plink_and_emits_declared_contract_outputs() {
+        let invocation =
+            population_proxy_invocation("plink", Path::new("cohort.vcf"), Path::new("admixture"))
+                .unwrap_or_else(|error| panic!("PLINK invocation: {error}"));
+
+        assert_eq!(invocation.program, "plink");
+        assert_eq!(
+            invocation.args,
+            [
+                "--vcf",
+                "cohort.vcf",
+                "--double-id",
+                "--allow-extra-chr",
+                "--missing",
+                "--freq",
+                "--make-bed",
+                "--out",
+                "admixture",
+            ]
+        );
+    }
+
+    #[test]
+    fn plink2_admixture_proxy_acknowledges_small_contract_fixture_frequencies() {
+        let invocation =
+            population_proxy_invocation("plink2", Path::new("cohort.vcf"), Path::new("admixture"))
+                .unwrap_or_else(|error| panic!("PLINK2 invocation: {error}"));
+
+        assert_eq!(invocation.program, "plink2");
+        assert_eq!(
+            invocation.args,
+            [
+                "--vcf",
+                "cohort.vcf",
+                "--double-id",
+                "--allow-extra-chr",
+                "--bad-freqs",
+                "--pca",
+                "2",
+                "--out",
+                "admixture",
+            ]
+        );
+    }
+
+    #[test]
+    fn admixture_proxy_refuses_unknown_toolchains_before_execution() {
+        let error = match population_proxy_invocation(
+            "unknown",
+            Path::new("cohort.vcf"),
+            Path::new("admixture"),
+        ) {
+            Ok(invocation) => panic!("unknown toolchain planned as {invocation:?}"),
+            Err(error) => error,
+        };
+
+        assert!(error.to_string().contains("unsupported toolchain `unknown`"));
+    }
 }

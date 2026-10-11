@@ -31,9 +31,9 @@ mod toy_support;
 mod verification;
 
 use self::artifact_support::{
-    artifact_env, artifact_env_with_common_test_env, artifact_root_path, compiler_wrapper_env,
-    ensure_artifact_root_inside_artifacts, materialize_controlled_file, path_from_arg,
-    resolve_workspace_path, run_make_target, sha256_hex_bytes,
+    admit_controlled_file, artifact_env, artifact_env_with_common_test_env, artifact_root_path,
+    compiler_wrapper_env, ensure_artifact_root_inside_artifacts, materialize_controlled_file,
+    path_from_arg, resolve_workspace_path, run_make_target, sha256_hex_bytes,
 };
 use self::data_support::{
     assert_no_excess_float_precision, check_schema_doc, collect_warning_strings_json,

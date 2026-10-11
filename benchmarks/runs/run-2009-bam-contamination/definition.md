@@ -5,7 +5,7 @@
 - Run: `run-2009`
 - Stage: `bam.contamination`
 - Protocol version: `1.0.0`
-- State: `reserved`
+- State: `active`
 - Citation key: `bijux-benchmark-run-2009`
 
 Compare the runnable bam.contamination tools using inference_specific_truth_and_sensitivity_analysis; downstream substitution: consume every result through the governed cohort aggregation and publication stages.

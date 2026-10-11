@@ -5,7 +5,7 @@
     "domain": "vcf",
     "stage_id": "vcf.damage_filter"
   },
-  "protocol_sha256": "4b11e4324d49f343c60c5eaeea1c3ea697c065c494d5297dc1f637c64c3b7dc7",
+  "protocol_sha256": "3da61abf255458798f2680f120e28a8b0e79e60df4bf6969fa9d4394f3806e8c",
   "cases": [],
   "limitations": [
     "No immutable benchmark cases are indexed; this protocol has no executable publication evidence."

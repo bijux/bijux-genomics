@@ -5,7 +5,7 @@
 - Run: `run-2037`
 - Stage: `fastq.infer_asvs`
 - Protocol version: `1.0.0`
-- State: `reserved`
+- State: `active`
 - Citation key: `bijux-benchmark-run-2037`
 
 Compare the runnable fastq.infer_asvs tools using community_membership_precision_recall_and_abundance_error; downstream substitution: feed every stage output into the next amplicon stage and common report generator.

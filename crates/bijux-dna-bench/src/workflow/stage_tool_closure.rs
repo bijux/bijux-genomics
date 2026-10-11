@@ -16,7 +16,7 @@ use bijux_dna_bench_model::{
 use bijux_dna_containers::api::{load_container_catalog, validate_container_catalog};
 use serde::Deserialize;
 
-use super::load_benchmark_portfolio;
+use super::suite_load::load_benchmark_portfolio_from_repo;
 
 const CLOSURE_JSON: &str = "benchmarks/reports/STAGE_TOOL_CLOSURE.json";
 const CLOSURE_MARKDOWN: &str = "benchmarks/reports/STAGE_TOOL_CLOSURE.md";
@@ -47,7 +47,7 @@ pub fn derive_benchmark_stage_tool_closure(
     }
     let catalog = load_container_catalog(repository_root)?;
     let portfolio_path = repository_root.join("benchmarks/contracts/portfolio.toml");
-    let portfolio = load_benchmark_portfolio(&portfolio_path)?;
+    let portfolio = load_benchmark_portfolio_from_repo(&portfolio_path, repository_root)?;
 
     let mut sources = Vec::new();
     let catalog_path = repository_root.join("containers/contracts/catalog.toml");

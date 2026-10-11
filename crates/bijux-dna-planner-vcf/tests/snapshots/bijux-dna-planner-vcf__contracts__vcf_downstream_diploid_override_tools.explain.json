@@ -253,6 +253,7 @@
   "phasing_imputation_boundary_contracts": [
     {
       "accepted_tools": [
+        "shapeit",
         "shapeit5",
         "eagle",
         "beagle"
@@ -622,6 +623,7 @@
         "allow_gl_only_input": false,
         "boundary_contract": {
           "accepted_tools": [
+            "shapeit",
             "shapeit5",
             "eagle",
             "beagle"

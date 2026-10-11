@@ -7,6 +7,24 @@
       ],
       "type": "string"
     },
+    "BenchmarkCampaignMaterialDriver": {
+      "enum": [
+        "bam_alignment",
+        "bam_coverage",
+        "bam_damage",
+        "bam_duplication_metrics",
+        "bam_endogenous_content",
+        "bam_gc_bias",
+        "bam_genotyping",
+        "bam_insert_size",
+        "bam_mapping_summary",
+        "fastq_detect_adapters",
+        "fastq_profile_read_lengths",
+        "fastq_profile_reads",
+        "fastq_validate_reads"
+      ],
+      "type": "string"
+    },
     "BenchmarkCaseDefinitionV1": {
       "additionalProperties": false,
       "properties": {
@@ -373,6 +391,16 @@
           },
           "type": "array"
         },
+        "material_driver": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/BenchmarkCampaignMaterialDriver"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
         "measured_repetitions": {
           "format": "uint32",
           "minimum": 0,
@@ -614,6 +642,25 @@
       ],
       "type": "object"
     },
+    "BindingInputSourceV1": {
+      "description": "Declares which governed authority supplies a binding input for standalone execution.",
+      "oneOf": [
+        {
+          "enum": [
+            "corpus",
+            "reference",
+            "database",
+            "upstream_result"
+          ],
+          "type": "string"
+        },
+        {
+          "const": "legacy_unspecified",
+          "description": "A binding serialized before source authorities were persisted.\n\nThis value exists only so frozen evidence remains readable. New planning must refuse it.",
+          "type": "string"
+        }
+      ]
+    },
     "BindingInputV1": {
       "description": "One named input projected into a tool command.",
       "properties": {
@@ -625,6 +672,10 @@
         },
         "required": {
           "type": "boolean"
+        },
+        "source": {
+          "$ref": "#/$defs/BindingInputSourceV1",
+          "default": "legacy_unspecified"
         }
       },
       "required": [

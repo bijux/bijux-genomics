@@ -150,6 +150,7 @@ pub fn prepare_bam_duplication_metrics_material_from_corpus(
         determinism: BenchmarkExecutionDeterminism::Deterministic,
         acceptance: acceptance(),
         stage_plan_units: Some(stage_plan_units(&identity.tool_id)?),
+        downstream_probe_mode: crate::workflow::BenchmarkDownstreamProbeMode::RunnerProduced,
     };
     Ok(BamDuplicationMetricsMaterial { execution, admitted_corpus: corpus.clone() })
 }

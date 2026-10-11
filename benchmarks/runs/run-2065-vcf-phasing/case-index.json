@@ -5,7 +5,7 @@
     "domain": "vcf",
     "stage_id": "vcf.phasing"
   },
-  "protocol_sha256": "0f702a1caca43264fe3d922a0a991678ed60d8fb14560e274b2c8f3e72de88af",
+  "protocol_sha256": "602716183691e861c39a23069c7fdce0b7009a857daa09c35d651cf2c1ba03b7",
   "cases": [],
   "limitations": [
     "No immutable benchmark cases are indexed; this protocol has no executable publication evidence."

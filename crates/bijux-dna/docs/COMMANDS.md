@@ -1490,11 +1490,11 @@ Visible aliases are part of the operator surface:
   `artifacts/benchmark-smoke/readiness/adapters/imputation-family.vcf.json` with one governed row per retained
   VCF imputation binding across `beagle`, `glimpse`, `impute5`, and `minimac4` for both
   `vcf.imputation_metrics` and `vcf.impute`. Each row keeps the target cohort VCF, owned reference panel
-  VCF and `panel.m3vcf.gz` when required, genetic map or region literal when required, the
+  VCF and `panel.msav` when required, genetic map or region literal when required, the
   imputed VCF and index outputs, quality and warning outputs, orchestration and imputation
   manifests, log output, concrete argv, parser output ids, and a real missing-input probe result.
-  The report stays honest about benchmark status by keeping `beagle` as the only benchmark-ready
-  imputation backend while the other retained rows remain explicit and `not_benchmark_ready`.
+  The report derives benchmark status from the governed stage/tool matrix and keeps every
+  non-matrix row explicit as `not_benchmark_ready`.
 - `bijux-dna bench readiness render-vcf-plink-adapter`
   `render-vcf-plink-adapter` writes `artifacts/benchmark-smoke/readiness/adapters/plink.vcf.json` with one
   governed row per admitted VCF `plink` registry binding. Each row keeps the concrete cohort
@@ -1711,13 +1711,15 @@ Visible aliases are part of the operator surface:
   `excluded_samples`, and `excluded_variants`) so reviewer evidence comes from the repo command
   instead of an implied parser contract.
 - `bijux-dna bench local run-vcf-admixture-smoke`
-  `run-vcf-admixture-smoke` writes `runs/bench/local-smoke/vcf.admixture/plink2/admixture.tsv` and
-  `runs/bench/local-smoke/vcf.admixture/plink2/admixture.json` from the governed `vcf.admixture`
-  matrix row. The command materializes the owned `vcf-mini` multisample cohort plus population
-  metadata contracts, runs the retained admixture stage, keeps the source Q-matrix and stage
-  manifest visible, and records exact smoke evidence (`sample_id`, `K`, `cluster_1`, `cluster_2`,
-  `status`, `execution_mode`, and any `insufficient_data_reason`) so ancestry proportions remain
-  reviewer-visible whether the local run used a real tool path or the governed fallback proxy.
+  `run-vcf-admixture-smoke` selects `plink` or `plink2` with `--tool-id` and writes tool-addressed
+  `admixture.tsv` and `admixture.json` artifacts
+  under `runs/bench/local-smoke/vcf.admixture/<tool-id>/` from the matching governed
+  `vcf.admixture` binding. The command materializes the owned `vcf-mini` multisample cohort plus
+  population metadata contracts, runs the exact retained PLINK-family backend, keeps the source
+  Q-matrix and stage manifest visible, and records exact smoke evidence (`sample_id`, `K`,
+  `cluster_1`, `cluster_2`, `status`, `execution_mode`, and any `insufficient_data_reason`) so
+  ancestry proportions remain reviewer-visible whether the local run used a real tool path or the
+  governed fallback proxy.
 - `bijux-dna bench local run-vcf-population-structure-smoke`
   `run-vcf-population-structure-smoke` writes
   `runs/bench/local-smoke/vcf.population_structure/plink2/population_structure.json` from the

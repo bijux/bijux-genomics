@@ -8,11 +8,49 @@ use schemars::{json_schema, JsonSchema, Schema, SchemaGenerator};
 use serde::{Deserialize, Serialize};
 
 use super::{
-    BenchmarkCachePolicy, BenchmarkComparisonMetricTolerance, BenchmarkEvidenceTier,
-    BenchmarkMetricDistribution, BenchmarkReportImage, BenchmarkReportInputLock,
-    BenchmarkReportSlurmJob, BenchmarkScientificValue, BenchmarkStageCampaignSpec,
-    BenchmarkStageInterfaceSpec,
+    BenchmarkAttemptIdentity, BenchmarkCachePolicy, BenchmarkComparisonMetricTolerance,
+    BenchmarkEvidenceTier, BenchmarkMetricDistribution, BenchmarkReportImage,
+    BenchmarkReportInputLock, BenchmarkReportSlurmJob, BenchmarkScientificValue,
+    BenchmarkStageCampaignSpec, BenchmarkStageInterfaceSpec,
 };
+
+use crate::contract::BENCHMARK_STAGE_NORMALIZATION_SCHEMA_V1;
+
+pub const BENCHMARK_STAGE_NORMALIZATION_ARTIFACT: &str = "admission/stage-normalization.json";
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct BenchmarkStageNormalizationUnitV1 {
+    pub stage_instance_id: String,
+    pub normalized_output: serde_json::Value,
+    pub normalized_output_sha256: String,
+    pub probe_id: String,
+    pub binding_id: String,
+    pub producer_stage_id: String,
+    pub tool_id: String,
+    pub passed: bool,
+    pub checks: Vec<BenchmarkStageNormalizationCheckV1>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
+pub struct BenchmarkStageNormalizationCheckV1 {
+    pub assertion: String,
+    pub passed: bool,
+    pub detail: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq)]
+#[serde(deny_unknown_fields)]
+pub struct BenchmarkStageNormalizationV1 {
+    #[schemars(schema_with = "stage_normalization_schema_version")]
+    pub schema_version: String,
+    pub identity: BenchmarkAttemptIdentity,
+    pub normalized_at_utc: String,
+    pub stage_plan_manifest_sha256: String,
+    pub units: Vec<BenchmarkStageNormalizationUnitV1>,
+    pub passed: bool,
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
@@ -34,11 +72,22 @@ pub enum BenchmarkDataSnapshotRoleV1 {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
+pub struct BenchmarkDataArtifactSnapshotV1 {
+    pub path: String,
+    pub sha256: String,
+    pub size_bytes: u64,
+    pub role: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
 pub struct BenchmarkDataSnapshotV1 {
     pub catalog_id: String,
     pub role: BenchmarkDataSnapshotRoleV1,
     pub catalog_sha256: String,
     pub sample_ids: Vec<String>,
+    #[serde(default)]
+    pub files: Vec<BenchmarkDataArtifactSnapshotV1>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
@@ -228,6 +277,11 @@ pub fn benchmark_case_matrix_v1_schema() -> Schema {
 }
 
 #[must_use]
+pub fn benchmark_stage_normalization_schema() -> Schema {
+    schemars::schema_for!(BenchmarkStageNormalizationV1)
+}
+
+#[must_use]
 pub fn benchmark_admitted_case_observation_schema() -> Schema {
     schemars::schema_for!(BenchmarkAdmittedCaseObservationV1)
 }
@@ -268,6 +322,13 @@ fn case_matrix_v2_schema_version(_: &mut SchemaGenerator) -> Schema {
     json_schema!({
         "type": "string",
         "const": crate::contract::BENCHMARK_CASE_MATRIX_SCHEMA_V2,
+    })
+}
+
+fn stage_normalization_schema_version(_: &mut SchemaGenerator) -> Schema {
+    json_schema!({
+        "type": "string",
+        "const": BENCHMARK_STAGE_NORMALIZATION_SCHEMA_V1,
     })
 }
 

@@ -4,8 +4,9 @@ use std::io::Write as _;
 use anyhow::Context as _;
 use bijux_dna_bench::{
     materialize_fastq_corpus, BenchmarkCorpusClass, CorpusAcquisitionFile, CorpusAcquisitionLayout,
-    CorpusAcquisitionPlan, CorpusAcquisitionSample, CorpusMaterializationDisposition,
-    CorpusMaterializationRequest, CorpusSourcePolicy, CORPUS_ACQUISITION_SCHEMA_V2,
+    CorpusAcquisitionPlan, CorpusAcquisitionSample, CorpusEvaluationDesign,
+    CorpusMaterializationDisposition, CorpusMaterializationRequest, CorpusSourcePolicy,
+    CORPUS_ACQUISITION_SCHEMA_V2,
 };
 use flate2::write::GzEncoder;
 use flate2::Compression;
@@ -275,6 +276,15 @@ fn acquisition_plan(fastq: &[u8]) -> anyhow::Result<CorpusAcquisitionPlan> {
             truth_roles: vec!["archive_context".to_string()],
             truth_strategy: "observational_only".to_string(),
             known_limitations: vec!["not population representative".to_string()],
+        },
+        evaluation: CorpusEvaluationDesign {
+            sample_context: "One public short-read library.".to_string(),
+            assay_context: "Illumina whole-genome sequencing.".to_string(),
+            strata: vec!["era".to_string(), "layout".to_string()],
+            controls: vec!["contract_validation".to_string()],
+            held_out_split: "No scientific split; materialization contract use only.".to_string(),
+            lineage: "Acquisition plan to admitted catalog.".to_string(),
+            allowed_uses: vec!["contract_validation".to_string()],
         },
         source_spec: "benchmarks/corpora/human-short-read-diversity.toml".to_string(),
         source_spec_sha256: "a".repeat(64),

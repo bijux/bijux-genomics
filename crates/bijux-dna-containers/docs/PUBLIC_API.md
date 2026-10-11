@@ -28,7 +28,8 @@
   exact-commit catalog and Apptainer recipe identity;
   delivery-aware Apptainer selection with on-disk size and digest verification through either the
   current distributable inventory or an exact external-artifact admission;
-  no-clobber canonical image activation; reversible historical, obsolete, and interrupted image
+  no-clobber canonical image activation and activation-derived current inventory requests;
+  reversible historical, obsolete, and interrupted image
   quarantine; no-copy external binary/SIF admission, access blockers, checksum/version replay, and
   stage command binding for licensing-restricted tools; focused catalog/image-inventory closure
   validation for execution planning; runtime inspection; deterministic image-inventory report
@@ -40,9 +41,10 @@
   cache helpers, local command probes, shell capture, smoke helpers, and reference registration.
 - `runtime_spec`: pure compatibility checks between a platform and selected runtime.
 - `site_policy`: typed site governance, hostname admission, commit-addressed repository freezing
-  under governed roots, checksum-bound Git-bundle archival, self-contained bundle proof without a
-  duplicate working tree, explicit retirement and rollback, and effect-free admission of existing
-  clean, self-contained, read-only snapshots.
+  under governed roots, checksum-bound Git-bundle archival from either an existing snapshot or an
+  exact clean active source, self-contained bundle proof without a duplicate working tree, explicit
+  retirement and rollback, and effect-free admission of existing clean, self-contained, read-only
+  snapshots.
 - `public_api::api`: facade re-export for consumers that prefer one stable import path.
 
 Catalog-wide runtime and security probe orchestration is intentionally owned by

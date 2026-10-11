@@ -5,7 +5,7 @@
 - Run: `run-2041`
 - Stage: `fastq.profile_overrepresented_sequences`
 - Protocol version: `1.0.0`
-- State: `reserved`
+- State: `active`
 - Citation key: `bijux-benchmark-run-2041`
 
 Compare the runnable fastq.profile_overrepresented_sequences tools using cross_tool_consistency_with_independent_read_statistics; downstream substitution: consume every tool report through the governed QC aggregation stage.

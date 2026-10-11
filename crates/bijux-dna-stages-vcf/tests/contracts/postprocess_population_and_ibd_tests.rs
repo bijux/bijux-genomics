@@ -408,6 +408,11 @@ fn admixture_stage_emits_q_matrix_and_selection_artifacts() {
         manifest.get("schema_version").and_then(serde_json::Value::as_str),
         Some("bijux.vcf.admixture.v1")
     );
+    assert_eq!(manifest.get("toolchain").and_then(serde_json::Value::as_str), Some("plink2"));
+    assert_eq!(
+        manifest.get("allele_frequency_policy").and_then(serde_json::Value::as_str),
+        Some("allow_small_cohort_estimates")
+    );
     assert_eq!(manifest.get("status").and_then(serde_json::Value::as_str), Some("complete"));
     assert_eq!(manifest.get("insufficient_data_reason").and_then(serde_json::Value::as_str), None);
     assert_eq!(manifest.get("sample_count").and_then(serde_json::Value::as_u64), Some(2));
@@ -434,6 +439,49 @@ fn admixture_stage_emits_q_matrix_and_selection_artifacts() {
             .map(|rows| rows.len()),
         Some(2)
     );
+}
+
+#[test]
+fn admixture_stage_preserves_requested_plink_backend_identity() {
+    let dir = tempfile::tempdir().unwrap_or_else(|err| panic!("tempdir: {err}"));
+    let input = dir.path().join("admixture_plink_input.vcf");
+    std::fs::write(
+        &input,
+        "##fileformat=VCFv4.2\n#CHROM\tPOS\tID\tREF\tALT\tQUAL\tFILTER\tINFO\tFORMAT\tsample1\tsample2\n1\t100\t.\tA\tG\t60\tPASS\t.\tGT\t0/1\t1/1\n",
+    )
+    .unwrap_or_else(|err| panic!("write vcf input: {err}"));
+    let metadata = dir.path().join("population_labels.json");
+    std::fs::write(
+        &metadata,
+        r#"{"samples":[{"sample":"sample1","population":"POP_A"},{"sample":"sample2","population":"POP_B"}]}"#,
+    )
+    .unwrap_or_else(|err| panic!("write metadata: {err}"));
+
+    let out = run_admixture_stage(
+        &input,
+        dir.path(),
+        &AdmixtureStageParams {
+            toolchain: "plink".to_string(),
+            sample_metadata_manifest: Some(metadata),
+            ..AdmixtureStageParams::default()
+        },
+    )
+    .unwrap_or_else(|err| panic!("run PLINK admixture stage: {err}"));
+    let manifest: serde_json::Value = serde_json::from_slice(
+        &std::fs::read(&out.k_selection_json)
+            .unwrap_or_else(|err| panic!("read admixture manifest: {err}")),
+    )
+    .unwrap_or_else(|err| panic!("parse admixture manifest: {err}"));
+
+    assert_eq!(manifest.get("toolchain").and_then(serde_json::Value::as_str), Some("plink"));
+    assert_eq!(
+        manifest.get("allele_frequency_policy").and_then(serde_json::Value::as_str),
+        Some("tool_default")
+    );
+    assert!(matches!(
+        manifest.get("execution_mode").and_then(serde_json::Value::as_str),
+        Some("tool_backed_proxy" | "fallback_proxy")
+    ));
 }
 
 #[test]

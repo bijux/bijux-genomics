@@ -5,7 +5,7 @@
 - Run: `run-2023`
 - Stage: `bam.sex`
 - Protocol version: `1.0.0`
-- State: `reserved`
+- State: `active`
 - Citation key: `bijux-benchmark-run-2023`
 
 Compare the runnable bam.sex tools using inference_specific_truth_and_sensitivity_analysis; downstream substitution: consume every result through the governed cohort aggregation and publication stages.

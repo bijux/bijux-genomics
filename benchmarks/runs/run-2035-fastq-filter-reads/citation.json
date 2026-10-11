@@ -8,10 +8,9 @@
   },
   "protocol_title": "FASTQ filter reads benchmark protocol",
   "protocol_version": "1.0.0",
-  "protocol_sha256": "60951e0697144788b3c68dbfa632b87114030d1c075b161500571ed05f554e32",
+  "protocol_sha256": "ab326d239121f7e9bf2d9fa33ab9f3b36536ed28dade68289eec330bdc8e518a",
   "status": "protocol_only",
   "limitations": [
-    "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-    "The protocol is reserved and has no selected publication."
+    "No current admitted publication is selected; this protocol is not citable as executed evidence."
   ]
 }

@@ -55,6 +55,7 @@ pub struct ExternalArtifactAdmissionRequest<'a> {
     pub repository_commit: &'a str,
     pub tool_id: &'a str,
     pub recorded_at_utc: &'a str,
+    pub availability: ExternalArtifactAdmissionStatus,
     pub artifact: Option<ExternalArtifactInput<'a>>,
     pub blocker_reason: Option<&'a str>,
 }
@@ -104,35 +105,33 @@ pub fn admit_external_artifact(
         bail!("external artifact tool {} exposes a distributable image", request.tool_id);
     }
 
-    let (availability, lawful_access_basis, artifact, version_probe, blocker_reason) =
-        match (&request.artifact, request.blocker_reason) {
-            (Some(input), None) => {
+    let (lawful_access_basis, artifact, version_probe, blocker_reason) =
+        match (request.availability, &request.artifact, request.blocker_reason) {
+            (ExternalArtifactAdmissionStatus::Admitted, Some(input), None) => {
                 let admitted =
                     inspect_artifact(&repository_root, &distributable_image_root, &tool, input)?;
                 (
-                    ExternalArtifactAdmissionStatus::Admitted,
                     Some(input.lawful_access_basis.trim().to_string()),
                     Some(admitted.0),
                     Some(admitted.1),
                     None,
                 )
             }
-            (None, Some(reason)) if !reason.trim().is_empty() => (
-                ExternalArtifactAdmissionStatus::BlockedExternalAccess,
+            (
+                ExternalArtifactAdmissionStatus::BlockedExternalAccess
+                | ExternalArtifactAdmissionStatus::Unavailable,
                 None,
-                None,
-                None,
-                Some(reason.trim().to_string()),
+                Some(reason),
+            ) if !reason.trim().is_empty() => (None, None, None, Some(reason.trim().to_string())),
+            _ => bail!(
+                "external artifact admission inputs do not match requested availability {:?}",
+                request.availability
             ),
-            (Some(_), Some(_)) => {
-                bail!("external artifact admission cannot be both admitted and blocked")
-            }
-            (None, _) => bail!("external artifact admission requires an artifact or blocker"),
         };
 
     let admission = ExternalArtifactAdmission {
         schema_version: EXTERNAL_ARTIFACT_ADMISSION_SCHEMA_V2.to_string(),
-        availability,
+        availability: request.availability,
         recorded_at_utc: request.recorded_at_utc.to_string(),
         repository_commit: request.repository_commit.to_string(),
         catalog: EvidenceSourceIdentity {
@@ -314,12 +313,22 @@ pub fn bind_external_artifact_command(
         distributable_image_root,
         admission_path,
     )?;
-    if admission.availability == ExternalArtifactAdmissionStatus::BlockedExternalAccess {
-        bail!(
-            "external artifact access blocked for {}: {}",
-            admission.tool_id,
-            admission.blocker_reason.as_deref().unwrap_or("unspecified")
-        );
+    match admission.availability {
+        ExternalArtifactAdmissionStatus::Admitted => {}
+        ExternalArtifactAdmissionStatus::BlockedExternalAccess => {
+            bail!(
+                "external artifact access blocked for {}: {}",
+                admission.tool_id,
+                admission.blocker_reason.as_deref().unwrap_or("unspecified")
+            );
+        }
+        ExternalArtifactAdmissionStatus::Unavailable => {
+            bail!(
+                "external artifact unavailable for {}: {}",
+                admission.tool_id,
+                admission.blocker_reason.as_deref().unwrap_or("unspecified")
+            );
+        }
     }
     if !admission.stage_ids.iter().any(|allowed| allowed == stage_id) {
         bail!("tool {} is not bound to stage {stage_id}", admission.tool_id);

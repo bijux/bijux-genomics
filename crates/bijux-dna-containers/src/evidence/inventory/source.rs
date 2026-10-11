@@ -306,6 +306,7 @@ pub(super) fn scan_staged_images(
 
 pub(super) fn load_build_evidence(
     request: &ImageInventoryDerivationRequest,
+    scanned_digests: &BTreeSet<&str>,
 ) -> Result<LoadedBuildEvidence> {
     let mut by_digest = BTreeMap::<String, Vec<IndexedBuildEvidence>>::new();
     let mut identities = Vec::new();
@@ -323,6 +324,15 @@ pub(super) fn load_build_evidence(
             })?;
             validate_sha256(&identity.definition.sha256, "build-evidence definition")?;
             validate_sha256(&identity.image.sha256, "build-evidence image")?;
+            if let Some(image_path) = identity.image.path.as_deref() {
+                validate_build_image_governance(image_path, request)?;
+            }
+            // Campaign roots retain superseded builds after a later activation selects a
+            // different artifact. Only evidence for an explicitly scanned image participates in
+            // this inventory; the remaining typed documents stay immutable campaign history.
+            if !scanned_digests.contains(identity.image.sha256.as_str()) {
+                continue;
+            }
             if request.evidence_roots.len() > 1 && identity.image.path.is_none() {
                 bail!(
                     "composite image inventory requires path-bound build evidence in {}",
@@ -384,6 +394,57 @@ fn validate_build_image_root(
     roots: &ImageInventoryEvidenceRoots,
     request: &ImageInventoryDerivationRequest,
 ) -> Result<()> {
+    let path = resolve_build_image_path(value, request)?;
+    validate_build_image_governance(value, request)?;
+    let image_root = roots.image_root.canonicalize().with_context(|| {
+        format!("canonicalize paired image root {}", roots.image_root.display())
+    })?;
+    let study_root = request
+        .study_root
+        .canonicalize()
+        .with_context(|| format!("canonicalize study root {}", request.study_root.display()))?;
+    if !path
+        .try_exists()
+        .with_context(|| format!("inspect build-evidence image authority {}", path.display()))?
+    {
+        return Ok(());
+    }
+    let image = path
+        .canonicalize()
+        .with_context(|| format!("canonicalize build-evidence image {}", path.display()))?;
+    if image.starts_with(&image_root) {
+        return Ok(());
+    }
+    if !image.starts_with(&study_root) {
+        bail!("build-evidence image is outside the governed study root");
+    }
+    let file_name = image.file_name().context("build-evidence image has no filename")?;
+    let paired_image = image_root.join(file_name);
+    let paired_image = paired_image.canonicalize().with_context(|| {
+        format!(
+            "build-evidence image is outside its paired image root and no activated image exists at {}",
+            paired_image.display()
+        )
+    })?;
+    if !paired_image.starts_with(&image_root) || !paired_image.is_file() {
+        bail!("activated build-evidence image is outside its paired image root");
+    }
+    let metadata = fs::metadata(&paired_image)
+        .with_context(|| format!("inspect activated image {}", paired_image.display()))?;
+    if metadata.len() != expected_size_bytes
+        || bijux_dna_infra::hash_file_sha256(&paired_image)
+            .with_context(|| format!("hash activated image {}", paired_image.display()))?
+            != expected_sha256
+    {
+        bail!("activated image does not match build-evidence identity");
+    }
+    Ok(())
+}
+
+fn resolve_build_image_path(
+    value: &str,
+    request: &ImageInventoryDerivationRequest,
+) -> Result<PathBuf> {
     let path = if let Some(relative) = value.strip_prefix("study://") {
         request.study_root.join(relative)
     } else if let Some(relative) = value.strip_prefix("repository://") {
@@ -395,9 +456,14 @@ fn validate_build_image_root(
         }
         path
     };
-    let image_root = roots.image_root.canonicalize().with_context(|| {
-        format!("canonicalize paired image root {}", roots.image_root.display())
-    })?;
+    Ok(path)
+}
+
+fn validate_build_image_governance(
+    value: &str,
+    request: &ImageInventoryDerivationRequest,
+) -> Result<()> {
+    let path = resolve_build_image_path(value, request)?;
     let study_root = request
         .study_root
         .canonicalize()
@@ -439,31 +505,8 @@ fn validate_build_image_root(
     let image = path
         .canonicalize()
         .with_context(|| format!("canonicalize build-evidence image {}", path.display()))?;
-    if image.starts_with(&image_root) {
-        return Ok(());
-    }
     if !image.starts_with(&study_root) {
         bail!("build-evidence image is outside the governed study root");
-    }
-    let file_name = image.file_name().context("build-evidence image has no filename")?;
-    let paired_image = image_root.join(file_name);
-    let paired_image = paired_image.canonicalize().with_context(|| {
-        format!(
-            "build-evidence image is outside its paired image root and no activated image exists at {}",
-            paired_image.display()
-        )
-    })?;
-    if !paired_image.starts_with(&image_root) || !paired_image.is_file() {
-        bail!("activated build-evidence image is outside its paired image root");
-    }
-    let metadata = fs::metadata(&paired_image)
-        .with_context(|| format!("inspect activated image {}", paired_image.display()))?;
-    if metadata.len() != expected_size_bytes
-        || bijux_dna_infra::hash_file_sha256(&paired_image)
-            .with_context(|| format!("hash activated image {}", paired_image.display()))?
-            != expected_sha256
-    {
-        bail!("activated image does not match build-evidence identity");
     }
     Ok(())
 }

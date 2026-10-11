@@ -5,7 +5,7 @@
 - Run: `run-2027`
 - Stage: `fastq.deplete_host`
 - Protocol version: `1.0.0`
-- State: `reserved`
+- State: `active`
 - Citation key: `bijux-benchmark-run-2027`
 
 Compare the runnable fastq.deplete_host tools using target_removal_and_non_target_retention_against_orthogonal_truth; downstream substitution: feed every depleted output into taxonomy, QC, and alignment consumers.

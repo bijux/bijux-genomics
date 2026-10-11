@@ -10,6 +10,7 @@ use bijux_dna_bench_model::{
     BenchmarkLifecycleStatus,
 };
 
+use super::binding_case_material::prepare_binding_case_material;
 use super::{
     ensure_execution_spec, ensure_stage_campaign_attempts, ensure_stage_plan_manifest,
     load_case_execution_authorities, load_checked_in_benchmark_campaign_plan,
@@ -68,9 +69,26 @@ pub fn prepare_checked_in_benchmark_campaign(
         load_execution_authorities(&repository_root, &inventory, &plan.repository_commit, &plan)?
     };
     let run_id = campaign_run_id(&plan)?;
-    let evidence =
-        admit_benchmark_campaign_evidence(&repository_root, &study_root, &data_index, run_id)?;
-    if let Some(matrix) = &case_matrix {
+    let material_driver = if let Some(matrix) = &case_matrix {
+        let driver = matrix
+            .cases
+            .first()
+            .context("benchmark case matrix has no cases")?
+            .campaign
+            .material_driver;
+        if matrix.cases.iter().any(|case| case.campaign.material_driver != driver) {
+            bail!("benchmark case matrix mixes material-driver authorities");
+        }
+        driver
+    } else {
+        None
+    };
+    let evidence = if case_matrix.is_none() || material_driver.is_some() {
+        Some(admit_benchmark_campaign_evidence(&repository_root, &study_root, &data_index, run_id)?)
+    } else {
+        None
+    };
+    if let (Some(matrix), Some(evidence)) = (&case_matrix, &evidence) {
         let admitted_corpus = evidence.primary_corpus_snapshot();
         if matrix.cases.iter().any(|case| case.corpus != admitted_corpus) {
             bail!("benchmark case corpus differs from admitted campaign execution evidence");
@@ -94,19 +112,35 @@ pub fn prepare_checked_in_benchmark_campaign(
         let result = match prior_status {
             Some(BenchmarkLifecycleStatus::Planned) => (|| -> Result<BenchmarkExecutionSpec> {
                 let image = authorities.resolve_current_image(&study_root, &identity.tool_id)?;
-                let material = prepare_benchmark_campaign_material(
-                    &BenchmarkCampaignMaterialRequest {
-                        repository_root: &repository_root,
-                        benchmark_root: &benchmark_root,
+                let material = if let Some(evidence) = &evidence {
+                    prepare_benchmark_campaign_material(
+                        &BenchmarkCampaignMaterialRequest {
+                            repository_root: &repository_root,
+                            benchmark_root: &benchmark_root,
+                            identity,
+                            source_contract_sha256: authorities.source_contract_sha256(),
+                            operator: &request.operator,
+                            prepared_at_utc: &request.prepared_at_utc,
+                            account: &request.account,
+                            partition: &request.partition,
+                        },
+                        evidence,
+                    )?
+                } else {
+                    prepare_binding_case_material(
+                        &repository_root,
+                        &study_root,
+                        &benchmark_root,
                         identity,
-                        source_contract_sha256: authorities.source_contract_sha256(),
-                        operator: &request.operator,
-                        prepared_at_utc: &request.prepared_at_utc,
-                        account: &request.account,
-                        partition: &request.partition,
-                    },
-                    &evidence,
-                )?;
+                        authorities.source_contract_sha256(),
+                        &request.operator,
+                        &request.prepared_at_utc,
+                        &request.account,
+                        &request.partition,
+                        authorities.executable(&identity.tool_id)?,
+                        case_matrix.as_ref().context("generic benchmark case has no matrix")?,
+                    )?
+                };
                 let stage_plan_units = material
                     .stage_plan_units
                     .clone()
@@ -126,16 +160,15 @@ pub fn prepare_checked_in_benchmark_campaign(
                 let spec = load_execution_spec(&benchmark_root, identity)?;
                 load_stage_plan_manifest(&benchmark_root, identity)?;
                 let image = authorities.resolve_current_image(&study_root, &identity.tool_id)?;
-                let indexed_input = spec
-                    .inputs
-                    .iter()
-                    .find(|input| input.id == "corpus_data_index")
-                    .context("prepared benchmark specification omits its data index")?;
+                let indexed_input =
+                    spec.inputs.iter().find(|input| input.id == "corpus_data_index");
                 if spec.source.repository_path != repository_root.display().to_string()
                     || &spec.source.contract_sha256 != authorities.source_contract_sha256()
                     || spec.image.path != image.path.display().to_string()
                     || spec.image.sha256 != image.sha256
-                    || indexed_input.path != data_index.display().to_string()
+                    || indexed_input
+                        .is_some_and(|input| input.path != data_index.display().to_string())
+                    || (evidence.is_some() && indexed_input.is_none())
                     || spec.operator != request.operator.as_str()
                     || spec.resources.account != request.account.as_str()
                     || spec.resources.partition != request.partition.as_str()

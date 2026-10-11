@@ -1,6 +1,6 @@
 {
   "domain": "vcf",
-  "graph_hash": "7c3a231dc2eb4868db198c47644296baa4aa2dfa2e9d7f585b646c3c77d4fb6a",
+  "graph_hash": "4885cc959b16659cac045c6fb0e32af4029ff3f92841ac1097315524d7717e3a",
   "ordered_steps": [
     {
       "advisory": false,
@@ -260,7 +260,7 @@
           "role": "variant"
         }
       ],
-      "cache_key": "49a501cf4fd5cbaaf9d22c2c322ca3e46b40bbbb1f6074a19e6d9a532658b746",
+      "cache_key": "dbb03015529a8a5b6ec8a9ffff40025c50330e0b372e75578a506c2752133e46",
       "dependencies": [
         "vcf.filter"
       ],
@@ -268,6 +268,7 @@
         "allow_gl_only_input": false,
         "boundary_contract": {
           "accepted_tools": [
+            "shapeit",
             "shapeit5",
             "eagle",
             "beagle"
@@ -961,7 +962,7 @@
           "role": "variant"
         }
       ],
-      "cache_key": "afaff03c3acb59a91107bf6e9c212e05baf3d762c55b1d61a0abff5837e12791",
+      "cache_key": "08d329e45830d251485e48031c9a46cbcf3b5619f3dd3d480e86c5bdb2c9f8a3",
       "dependencies": [
         "vcf.phasing"
       ],
@@ -1617,11 +1618,10 @@
         "imputation_acceptance_mode": "qc_gated",
         "map_coordinate_system": "bp",
         "map_id": "hsapiens_grch38_glimpse_chr22",
-        "ne": 20000,
+        "min_rsq": 0.3,
         "panel_build_required": "GRCh38",
         "panel_id": "1000g_phase3",
         "panel_identity_required": true,
-        "r2_threshold": 0.3,
         "reference_provenance": {
           "build_id": "GRCh38",
           "bundle_id": "hsapiens_grch38_primary",
@@ -1630,16 +1630,18 @@
           "source_lock_sha256": "d6ca9ad4f57f08bd6ad8f58f9876ac925ccf612f1537a38995dc87c2ffe0db9a",
           "species_id": "Homo sapiens"
         },
+        "rounds": 5,
         "schema_version": "bijux.vcf.impute.params.v1",
-        "tool": "impute5"
+        "states": 200,
+        "tool": "minimac4"
       },
       "environment": {
         "command": [
           "sh",
           "-lc",
-          "impute5 --g 'out/phased_vcf.vcf.gz' --h 'benchmarks/tests/fixtures/corpora/vcf-mini/variants/vcf_mini_reference_panel.vcf' --m 'artifacts/reference_assets/Homo sapiens/GRCh38/vcf-assets/maps/hsapiens_grch38_glimpse_chr22/chr22.b38.gmap.gz' --r '1:1-1000000' --o 'out/imputed_vcf.vcf.gz' --threads 8 --seed 42 > 'out/imputed_vcf.log' 2>&1 && bcftools index -t 'out/imputed_vcf.vcf.gz'"
+          "minimac4 --threads 8 --map 'artifacts/reference_assets/Homo sapiens/GRCh38/vcf-assets/maps/hsapiens_grch38_glimpse_chr22/chr22.b38.gmap.gz' --output 'out/imputed_vcf.vcf.gz' 'artifacts/reference_assets/Homo sapiens/GRCh38/vcf-assets/panels/hsapiens_grch38_1kg_3202_chr22/panel.msav' 'out/phased_vcf.vcf.gz' > 'out/imputed_vcf.log' 2>&1 && bcftools index -t 'out/imputed_vcf.vcf.gz'"
         ],
-        "image": "external-artifact://impute5",
+        "image": "quay.io/biocontainers/minimac4:4.1.6--h7d875b9_4",
         "out_dir": "out/vcf_impute",
         "resources": {
           "mem_gb": 16,
@@ -2185,7 +2187,7 @@
     }
   ],
   "pipeline_id": "vcf-to-vcf__downstream_diploid_sctx_0a9734ff9d35__v2",
-  "plan_fingerprint": "44b7bddfb48fbddca56de30657258bddae1dd6ed0353aee220bb0611a7085bb4",
+  "plan_fingerprint": "a4c3d1fb2375a07ac17503a749885e11d53a89b4571dc6514c1b907f5f964b53",
   "planner_version": "bijux-dna-planner-vcf.v2",
   "policy": "PreferAccuracy",
   "profile_id": "vcf-downstream",

@@ -27,6 +27,10 @@ Rules:
   - `raw/` immutable downloads
   - `normalized/` indexed/tool-ready outputs
   - `derived/` chunk indices and converted artifacts
+- Catalog files with a derivation contract are never treated as downloads. Admit existing
+  checksum-verified bytes with `acquire-panels --admission-root <dir>`; the Rust reference
+  materialization policy places them under `derived/` and records the admission source and
+  observed digest.
 - Enabled panel/map in
   [configs/runtime/profiles/vcf_downstream_local.toml](../../configs/runtime/profiles/vcf_downstream_local.toml)
   must:

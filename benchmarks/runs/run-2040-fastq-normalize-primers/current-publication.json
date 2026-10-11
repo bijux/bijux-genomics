@@ -5,9 +5,8 @@
     "domain": "fastq",
     "stage_id": "fastq.normalize_primers"
   },
-  "protocol_sha256": "a7ce88d16435dc6525d53447c5ae1bef5342f0171d7188b72ca21e5421fc4a75",
+  "protocol_sha256": "cd5242c2c567b13cc69864ca61880a638d43da3961bcdcaaa879fd206f1a12dd",
   "limitations": [
-    "Permanent identity reserved; a closed stage interface and executable campaign are not yet defined.",
-    "The protocol is reserved and has no selected publication."
+    "No current admitted publication is selected; this protocol is not citable as executed evidence."
   ]
 }

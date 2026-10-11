@@ -5,7 +5,7 @@
 - Run: `run-2047`
 - Stage: `fastq.screen_taxonomy`
 - Protocol version: `1.0.0`
-- State: `reserved`
+- State: `active`
 - Citation key: `bijux-benchmark-run-2047`
 
 Compare the runnable fastq.screen_taxonomy tools using taxon_precision_recall_abundance_error_and_negative_control_specificity; downstream substitution: consume every classifier result through the same lineage and reporting stages.

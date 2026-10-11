@@ -112,6 +112,12 @@ pub(super) fn validate_tool_files(
                 dom
             );
         }
+        validate_license_authority(
+            &path,
+            &tool.tool_id,
+            &tool.license,
+            &container_contract.license,
+        )?;
         let has_declared_stage_claims = tool.declared_stage_ids().next().is_some();
         if dom != "vcf"
             && (!has_declared_stage_claims
@@ -225,6 +231,24 @@ pub(super) fn validate_tool_files(
     Ok(())
 }
 
+fn validate_license_authority(
+    path: &Path,
+    tool_id: &str,
+    domain_license: &str,
+    catalog_license: &str,
+) -> Result<()> {
+    if !domain_license.is_empty() && domain_license != catalog_license {
+        bail!(
+            "{} tool {} license {} differs from container catalog authority {}",
+            path.display(),
+            tool_id,
+            domain_license,
+            catalog_license
+        );
+    }
+    Ok(())
+}
+
 fn tool_path_domain(domain_dir: &Path, path: &str) -> Option<String> {
     Path::new(path)
         .strip_prefix(domain_dir)
@@ -239,6 +263,27 @@ fn tool_path_domain(domain_dir: &Path, path: &str) -> Option<String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn domain_license_must_match_container_catalog_authority() {
+        assert!(validate_license_authority(
+            Path::new("domain/fastq/tools/alientrimmer.yaml"),
+            "alientrimmer",
+            "AGPL-3.0-only",
+            "AGPL-3.0-only",
+        )
+        .is_ok());
+
+        let Err(error) = validate_license_authority(
+            Path::new("domain/fastq/tools/alientrimmer.yaml"),
+            "alientrimmer",
+            "GPL-3.0",
+            "AGPL-3.0-only",
+        ) else {
+            panic!("domain/catalog license drift must fail");
+        };
+        assert!(error.to_string().contains("differs from container catalog authority"));
+    }
 
     #[test]
     fn supported_domain_tool_cannot_promote_retired_catalog_tool() {

@@ -478,8 +478,8 @@ pub fn run_prepare_reference_panel_stage(
     atomic_write_bytes(&site_list, site_rows.as_bytes())?;
     let chunk_regions = local_derived.join("chunk_regions.tsv");
     atomic_write_bytes(&chunk_regions, b"chunk_id\tregion\nchunk_000\t1:1-1000000\n")?;
-    if panel.compatibility.supports_minimac_m3vcf {
-        let minimac_ready = local_derived.join("minimac.m3vcf.ready");
+    if panel.compatibility.minimac_reference_format == "msav" {
+        let minimac_ready = local_derived.join("minimac.msav.ready");
         atomic_write_bytes(&minimac_ready, b"true\n")?;
     }
 

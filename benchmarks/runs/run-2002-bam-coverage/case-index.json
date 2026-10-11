@@ -6,8 +6,36 @@
     "stage_id": "bam.coverage"
   },
   "protocol_sha256": "20491b48583657368803973d3773ad4cdb15201db356d75170538b480e7f390b",
-  "cases": [],
+  "cases": [
+    {
+      "case_id": "run-2002--bedtools--ena-prjeb22390-err2112767-bam",
+      "tool_id": "bedtools",
+      "definition": {
+        "uri": "study://benchmarks/publications/e6874f0d833c7a7f95b40d7dae8b42a80bf5d6cd/run-2002/case-definition-run-2002--bedtools--ena-prjeb22390-err2112767-bam.json",
+        "sha256": "794ee7a70364b371b5a6f8418a263edca31e7192ed58c6837feca2923ecdef7d",
+        "size_bytes": 9755
+      }
+    },
+    {
+      "case_id": "run-2002--mosdepth--ena-prjeb22390-err2112767-bam",
+      "tool_id": "mosdepth",
+      "definition": {
+        "uri": "study://benchmarks/publications/e6874f0d833c7a7f95b40d7dae8b42a80bf5d6cd/run-2002/case-definition-run-2002--mosdepth--ena-prjeb22390-err2112767-bam.json",
+        "sha256": "d26924c39cfede0253e06d27dda16db7e6d343cfda1f029396f5be4b4e456697",
+        "size_bytes": 10140
+      }
+    },
+    {
+      "case_id": "run-2002--samtools--ena-prjeb22390-err2112767-bam",
+      "tool_id": "samtools",
+      "definition": {
+        "uri": "study://benchmarks/publications/e6874f0d833c7a7f95b40d7dae8b42a80bf5d6cd/run-2002/case-definition-run-2002--samtools--ena-prjeb22390-err2112767-bam.json",
+        "sha256": "d4ea033910fda28332e1368237503c98d115e051a725a7b4c574f08e1c9c7ea7",
+        "size_bytes": 10176
+      }
+    }
+  ],
   "limitations": [
-    "No immutable benchmark cases are indexed; this protocol has no executable publication evidence."
+    "Claims are limited to the checksum-admitted corpus, declared scientific profile, and exact selected attempt closure."
   ]
 }

@@ -1,6 +1,6 @@
 {
   "schema_version": "bijux.benchmark.pipeline_parameters.v1",
-  "profile": "generic-fastq",
+  "profile": "governed-benchmark-portfolio",
   "stages": {
     "bam.align": {
       "parameter_schema_version": "bijux.bam.params.align.v1",
@@ -9,9 +9,24 @@
         "threads": 8
       }
     },
-    "bam.genotyping": {
-      "parameter_schema_version": "bijux.bam.params.genotyping.v1",
-      "defaults_provider": "bijux_dna_domain_bam::stage_specs::stage_spec(BamStage::Genotyping)",
+    "bam.authenticity": {
+      "parameter_schema_version": "bijux.bam.params.authenticity.v1",
+      "defaults_provider": "configs/ci/params/param_registry.toml#bam.authenticity",
+      "overrides": {}
+    },
+    "bam.bias_mitigation": {
+      "parameter_schema_version": "bijux.bam.params.bias_mitigation.v1",
+      "defaults_provider": "configs/ci/params/param_registry.toml#bam.bias_mitigation",
+      "overrides": {}
+    },
+    "bam.complexity": {
+      "parameter_schema_version": "bijux.bam.params.complexity.v1",
+      "defaults_provider": "configs/ci/params/param_registry.toml#bam.complexity",
+      "overrides": {}
+    },
+    "bam.contamination": {
+      "parameter_schema_version": "bijux.bam.params.contamination.v1",
+      "defaults_provider": "configs/ci/params/param_registry.toml#bam.contamination",
       "overrides": {}
     },
     "bam.coverage": {
@@ -24,14 +39,19 @@
       "defaults_provider": "bijux_dna_domain_bam::stage_specs::stage_spec(BamStage::Damage)",
       "overrides": {}
     },
+    "bam.duplication_metrics": {
+      "parameter_schema_version": "bijux.bam.params.duplication_metrics.v1",
+      "defaults_provider": "bijux_dna_domain_bam::stage_specs::stage_spec(BamStage::DuplicationMetrics)",
+      "overrides": {}
+    },
     "bam.endogenous_content": {
       "parameter_schema_version": "bijux.bam.params.endogenous_content.v1",
       "defaults_provider": "bijux_dna_domain_bam::stage_specs::stage_spec(BamStage::EndogenousContent)",
       "overrides": {}
     },
-    "bam.duplication_metrics": {
-      "parameter_schema_version": "bijux.bam.params.duplication_metrics.v1",
-      "defaults_provider": "bijux_dna_domain_bam::stage_specs::stage_spec(BamStage::DuplicationMetrics)",
+    "bam.filter": {
+      "parameter_schema_version": "bijux.bam.params.filter.v1",
+      "defaults_provider": "configs/ci/params/param_registry.toml#bam.filter",
       "overrides": {}
     },
     "bam.gc_bias": {
@@ -39,9 +59,29 @@
       "defaults_provider": "bijux_dna_domain_bam::stage_specs::stage_spec(BamStage::GcBias)",
       "overrides": {}
     },
+    "bam.genotyping": {
+      "parameter_schema_version": "bijux.bam.params.genotyping.v1",
+      "defaults_provider": "bijux_dna_domain_bam::stage_specs::stage_spec(BamStage::Genotyping)",
+      "overrides": {}
+    },
+    "bam.haplogroups": {
+      "parameter_schema_version": "bijux.bam.params.haplogroups.v1",
+      "defaults_provider": "configs/ci/params/param_registry.toml#bam.haplogroups",
+      "overrides": {}
+    },
     "bam.insert_size": {
       "parameter_schema_version": "bijux.bam.params.insert_size.v1",
       "defaults_provider": "bijux_dna_domain_bam::stage_specs::stage_spec(BamStage::InsertSize)",
+      "overrides": {}
+    },
+    "bam.kinship": {
+      "parameter_schema_version": "bijux.bam.params.kinship.v1",
+      "defaults_provider": "configs/ci/params/param_registry.toml#bam.kinship",
+      "overrides": {}
+    },
+    "bam.length_filter": {
+      "parameter_schema_version": "bijux.bam.params.length_filter.v1",
+      "defaults_provider": "configs/ci/params/param_registry.toml#bam.length_filter",
       "overrides": {}
     },
     "bam.mapping_summary": {
@@ -49,20 +89,65 @@
       "defaults_provider": "bijux_dna_domain_bam::stage_specs::stage_spec(BamStage::MappingSummary)",
       "overrides": {}
     },
-    "fastq.profile_reads": {
-      "parameter_schema_version": "bijux.fastq.params.stats.v1",
-      "defaults_provider": "bijux_dna_domain_fastq::params::defaults::stats_defaults",
-      "overrides": {
-        "threads": 4
-      }
+    "bam.mapq_filter": {
+      "parameter_schema_version": "bijux.bam.params.mapq_filter.v1",
+      "defaults_provider": "configs/ci/params/param_registry.toml#bam.mapq_filter",
+      "overrides": {}
     },
-    "fastq.profile_read_lengths": {
-      "parameter_schema_version": "bijux.fastq.params.read_length_profile.v1",
-      "defaults_provider": "bijux_dna_domain_fastq::params::defaults::read_length_profile_defaults",
-      "overrides": {
-        "threads": 4,
-        "histogram_bins": 100
-      }
+    "bam.markdup": {
+      "parameter_schema_version": "bijux.bam.params.markdup.v1",
+      "defaults_provider": "configs/ci/params/param_registry.toml#bam.markdup",
+      "overrides": {}
+    },
+    "bam.overlap_correction": {
+      "parameter_schema_version": "bijux.bam.params.overlap_correction.v1",
+      "defaults_provider": "configs/ci/params/param_registry.toml#bam.overlap_correction",
+      "overrides": {}
+    },
+    "bam.qc_pre": {
+      "parameter_schema_version": "bijux.bam.params.qc_pre.v1",
+      "defaults_provider": "configs/ci/params/param_registry.toml#bam.qc_pre",
+      "overrides": {}
+    },
+    "bam.recalibration": {
+      "parameter_schema_version": "bijux.bam.params.recalibration.v1",
+      "defaults_provider": "configs/ci/params/param_registry.toml#bam.recalibration",
+      "overrides": {}
+    },
+    "bam.sex": {
+      "parameter_schema_version": "bijux.bam.params.sex.v1",
+      "defaults_provider": "configs/ci/params/param_registry.toml#bam.sex",
+      "overrides": {}
+    },
+    "bam.validate": {
+      "parameter_schema_version": "bijux.bam.params.validate.v1",
+      "defaults_provider": "configs/ci/params/param_registry.toml#bam.validate",
+      "overrides": {}
+    },
+    "fastq.cluster_otus": {
+      "parameter_schema_version": "bijux.fastq.params.v1",
+      "defaults_provider": "configs/ci/params/param_registry.toml#fastq.cluster_otus",
+      "overrides": {}
+    },
+    "fastq.correct_errors": {
+      "parameter_schema_version": "bijux.fastq.params.correct.v1",
+      "defaults_provider": "configs/ci/params/param_registry.toml#fastq.correct_errors",
+      "overrides": {}
+    },
+    "fastq.deplete_host": {
+      "parameter_schema_version": "bijux.fastq.params.deplete_host.v1",
+      "defaults_provider": "configs/ci/params/param_registry.toml#fastq.deplete_host",
+      "overrides": {}
+    },
+    "fastq.deplete_reference_contaminants": {
+      "parameter_schema_version": "bijux.fastq.params.deplete_reference_contaminants.v1",
+      "defaults_provider": "configs/ci/params/param_registry.toml#fastq.deplete_reference_contaminants",
+      "overrides": {}
+    },
+    "fastq.deplete_rrna": {
+      "parameter_schema_version": "bijux.fastq.params.deplete_rrna.v1",
+      "defaults_provider": "configs/ci/params/param_registry.toml#fastq.deplete_rrna",
+      "overrides": {}
     },
     "fastq.detect_adapters": {
       "parameter_schema_version": "bijux.fastq.params.detect_adapters.v1",
@@ -71,6 +156,111 @@
         "threads": 4
       }
     },
+    "fastq.detect_duplicates_premerge": {
+      "parameter_schema_version": "none",
+      "defaults_provider": "configs/ci/params/param_registry.toml#fastq.detect_duplicates_premerge",
+      "overrides": {}
+    },
+    "fastq.estimate_library_complexity_prealign": {
+      "parameter_schema_version": "bijux.fastq.params.estimate_library_complexity_prealign.v1",
+      "defaults_provider": "configs/ci/params/param_registry.toml#fastq.estimate_library_complexity_prealign",
+      "overrides": {}
+    },
+    "fastq.extract_umis": {
+      "parameter_schema_version": "bijux.fastq.params.umi.v1",
+      "defaults_provider": "configs/ci/params/param_registry.toml#fastq.extract_umis",
+      "overrides": {}
+    },
+    "fastq.filter_low_complexity": {
+      "parameter_schema_version": "bijux.fastq.params.filter_low_complexity.v1",
+      "defaults_provider": "configs/ci/params/param_registry.toml#fastq.filter_low_complexity",
+      "overrides": {}
+    },
+    "fastq.filter_reads": {
+      "parameter_schema_version": "bijux.fastq.params.filter_reads.v1",
+      "defaults_provider": "configs/ci/params/param_registry.toml#fastq.filter_reads",
+      "overrides": {}
+    },
+    "fastq.index_reference": {
+      "parameter_schema_version": "bijux.fastq.params.index_reference.v1",
+      "defaults_provider": "configs/ci/params/param_registry.toml#fastq.index_reference",
+      "overrides": {}
+    },
+    "fastq.infer_asvs": {
+      "parameter_schema_version": "bijux.fastq.params.v1",
+      "defaults_provider": "configs/ci/params/param_registry.toml#fastq.infer_asvs",
+      "overrides": {}
+    },
+    "fastq.merge_pairs": {
+      "parameter_schema_version": "bijux.fastq.params.merge_pairs.v1",
+      "defaults_provider": "configs/ci/params/param_registry.toml#fastq.merge_pairs",
+      "overrides": {}
+    },
+    "fastq.normalize_abundance": {
+      "parameter_schema_version": "bijux.fastq.params.v1",
+      "defaults_provider": "configs/ci/params/param_registry.toml#fastq.normalize_abundance",
+      "overrides": {}
+    },
+    "fastq.normalize_primers": {
+      "parameter_schema_version": "bijux.fastq.params.v1",
+      "defaults_provider": "configs/ci/params/param_registry.toml#fastq.normalize_primers",
+      "overrides": {}
+    },
+    "fastq.profile_overrepresented_sequences": {
+      "parameter_schema_version": "bijux.fastq.params.overrepresented_profile.v1",
+      "defaults_provider": "configs/ci/params/param_registry.toml#fastq.profile_overrepresented_sequences",
+      "overrides": {}
+    },
+    "fastq.profile_read_lengths": {
+      "parameter_schema_version": "bijux.fastq.params.read_length_profile.v1",
+      "defaults_provider": "bijux_dna_domain_fastq::params::defaults::read_length_profile_defaults",
+      "overrides": {
+        "histogram_bins": 100,
+        "threads": 4
+      }
+    },
+    "fastq.profile_reads": {
+      "parameter_schema_version": "bijux.fastq.params.stats.v1",
+      "defaults_provider": "bijux_dna_domain_fastq::params::defaults::stats_defaults",
+      "overrides": {
+        "threads": 4
+      }
+    },
+    "fastq.remove_chimeras": {
+      "parameter_schema_version": "bijux.fastq.params.v1",
+      "defaults_provider": "configs/ci/params/param_registry.toml#fastq.remove_chimeras",
+      "overrides": {}
+    },
+    "fastq.remove_duplicates": {
+      "parameter_schema_version": "bijux.fastq.params.remove_duplicates.v1",
+      "defaults_provider": "configs/ci/params/param_registry.toml#fastq.remove_duplicates",
+      "overrides": {}
+    },
+    "fastq.report_qc": {
+      "parameter_schema_version": "bijux.fastq.params.report_qc.v1",
+      "defaults_provider": "configs/ci/params/param_registry.toml#fastq.report_qc",
+      "overrides": {}
+    },
+    "fastq.screen_taxonomy": {
+      "parameter_schema_version": "bijux.fastq.params.screen_taxonomy.v1",
+      "defaults_provider": "configs/ci/params/param_registry.toml#fastq.screen_taxonomy",
+      "overrides": {}
+    },
+    "fastq.trim_polyg_tails": {
+      "parameter_schema_version": "bijux.fastq.params.trim_polyg_tails.v1",
+      "defaults_provider": "configs/ci/params/param_registry.toml#fastq.trim_polyg_tails",
+      "overrides": {}
+    },
+    "fastq.trim_reads": {
+      "parameter_schema_version": "bijux.fastq.params.trim_reads.v1",
+      "defaults_provider": "configs/ci/params/param_registry.toml#fastq.trim_reads",
+      "overrides": {}
+    },
+    "fastq.trim_terminal_damage": {
+      "parameter_schema_version": "bijux.fastq.params.trim_terminal_damage.v1",
+      "defaults_provider": "configs/ci/params/param_registry.toml#fastq.trim_terminal_damage",
+      "overrides": {}
+    },
     "fastq.validate_reads": {
       "parameter_schema_version": "bijux.fastq.params.validate_reads.v1",
       "defaults_provider": "bijux_dna_domain_fastq::params::defaults::validate_defaults",
@@ -78,6 +268,106 @@
         "threads": 4,
         "validation_mode": "strict"
       }
+    },
+    "vcf.admixture": {
+      "parameter_schema_version": "bijux.vcf.params.v1",
+      "defaults_provider": "configs/ci/params/param_registry_downstream.toml#vcf.admixture",
+      "overrides": {}
+    },
+    "vcf.call": {
+      "parameter_schema_version": "bijux.vcf.params.v1",
+      "defaults_provider": "configs/ci/params/param_registry_downstream.toml#vcf.call",
+      "overrides": {}
+    },
+    "vcf.call_diploid": {
+      "parameter_schema_version": "bijux.vcf.params.v1",
+      "defaults_provider": "configs/ci/params/param_registry_downstream.toml#vcf.call_diploid",
+      "overrides": {}
+    },
+    "vcf.call_gl": {
+      "parameter_schema_version": "bijux.vcf.params.v1",
+      "defaults_provider": "configs/ci/params/param_registry_downstream.toml#vcf.call_gl",
+      "overrides": {}
+    },
+    "vcf.call_pseudohaploid": {
+      "parameter_schema_version": "bijux.vcf.params.v1",
+      "defaults_provider": "configs/ci/params/param_registry_downstream.toml#vcf.call_pseudohaploid",
+      "overrides": {}
+    },
+    "vcf.damage_filter": {
+      "parameter_schema_version": "bijux.vcf.params.v1",
+      "defaults_provider": "configs/ci/params/param_registry_downstream.toml#vcf.damage_filter",
+      "overrides": {}
+    },
+    "vcf.demography": {
+      "parameter_schema_version": "bijux.vcf.params.v1",
+      "defaults_provider": "configs/ci/params/param_registry_downstream.toml#vcf.demography",
+      "overrides": {}
+    },
+    "vcf.filter": {
+      "parameter_schema_version": "bijux.vcf.params.v1",
+      "defaults_provider": "configs/ci/params/param_registry_downstream.toml#vcf.filter",
+      "overrides": {}
+    },
+    "vcf.gl_propagation": {
+      "parameter_schema_version": "bijux.vcf.params.v1",
+      "defaults_provider": "configs/ci/params/param_registry_downstream.toml#vcf.gl_propagation",
+      "overrides": {}
+    },
+    "vcf.ibd": {
+      "parameter_schema_version": "bijux.vcf.params.v1",
+      "defaults_provider": "configs/ci/params/param_registry_downstream.toml#vcf.ibd",
+      "overrides": {}
+    },
+    "vcf.imputation_metrics": {
+      "parameter_schema_version": "bijux.vcf.params.v1",
+      "defaults_provider": "configs/ci/params/param_registry_downstream.toml#vcf.imputation_metrics",
+      "overrides": {}
+    },
+    "vcf.impute": {
+      "parameter_schema_version": "bijux.vcf.params.v1",
+      "defaults_provider": "configs/ci/params/param_registry_downstream.toml#vcf.impute",
+      "overrides": {}
+    },
+    "vcf.pca": {
+      "parameter_schema_version": "bijux.vcf.params.v1",
+      "defaults_provider": "configs/ci/params/param_registry_downstream.toml#vcf.pca",
+      "overrides": {}
+    },
+    "vcf.phasing": {
+      "parameter_schema_version": "bijux.vcf.params.v1",
+      "defaults_provider": "configs/ci/params/param_registry_downstream.toml#vcf.phasing",
+      "overrides": {}
+    },
+    "vcf.population_structure": {
+      "parameter_schema_version": "bijux.vcf.params.v1",
+      "defaults_provider": "configs/ci/params/param_registry_downstream.toml#vcf.population_structure",
+      "overrides": {}
+    },
+    "vcf.postprocess": {
+      "parameter_schema_version": "bijux.vcf.params.v1",
+      "defaults_provider": "configs/ci/params/param_registry_downstream.toml#vcf.postprocess",
+      "overrides": {}
+    },
+    "vcf.prepare_reference_panel": {
+      "parameter_schema_version": "bijux.vcf.params.v1",
+      "defaults_provider": "configs/ci/params/param_registry_downstream.toml#vcf.prepare_reference_panel",
+      "overrides": {}
+    },
+    "vcf.qc": {
+      "parameter_schema_version": "bijux.vcf.params.v1",
+      "defaults_provider": "configs/ci/params/param_registry_downstream.toml#vcf.qc",
+      "overrides": {}
+    },
+    "vcf.roh": {
+      "parameter_schema_version": "bijux.vcf.params.v1",
+      "defaults_provider": "configs/ci/params/param_registry_downstream.toml#vcf.roh",
+      "overrides": {}
+    },
+    "vcf.stats": {
+      "parameter_schema_version": "bijux.vcf.params.v1",
+      "defaults_provider": "configs/ci/params/param_registry_downstream.toml#vcf.stats",
+      "overrides": {}
     }
   }
 }

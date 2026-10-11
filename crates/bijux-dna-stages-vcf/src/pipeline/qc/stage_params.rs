@@ -40,6 +40,7 @@ pub struct PrepareReferencePanelOutputs {
 #[serde(rename_all = "snake_case")]
 pub enum PhasingBackend {
     Auto,
+    Shapeit,
     Shapeit5,
     Beagle,
     Eagle,
@@ -50,6 +51,7 @@ impl PhasingBackend {
     pub fn as_str(self) -> &'static str {
         match self {
             Self::Auto => "auto",
+            Self::Shapeit => "shapeit",
             Self::Shapeit5 => "shapeit5",
             Self::Beagle => "beagle",
             Self::Eagle => "eagle",
@@ -62,6 +64,7 @@ pub struct PhasingStageParams {
     pub species_id: String,
     pub build_id: String,
     pub backend: PhasingBackend,
+    pub panel_id: Option<String>,
     pub map_id: Option<String>,
     pub threads: usize,
     pub seed: u64,
@@ -115,6 +118,18 @@ pub enum ImputeBackend {
 }
 
 impl ImputeBackend {
+    /// Resolves a product-supported imputation tool identifier to its exact stage backend.
+    #[must_use]
+    pub fn from_tool_id(tool_id: &str) -> Option<Self> {
+        match tool_id {
+            "beagle" => Some(Self::Beagle),
+            "glimpse" => Some(Self::Glimpse),
+            "impute5" => Some(Self::Impute5),
+            "minimac4" => Some(Self::Minimac4),
+            _ => None,
+        }
+    }
+
     #[must_use]
     pub fn as_str(self) -> &'static str {
         match self {
@@ -281,6 +296,8 @@ impl Default for PopulationStructureStageParams {
 pub struct PopulationStructureStageOutputs {
     pub pruned_variants_tsv: PathBuf,
     pub population_structure_json: PathBuf,
+    pub population_mds: Option<PathBuf>,
+    pub tool_log: Option<PathBuf>,
     pub logs_txt: PathBuf,
 }
 
@@ -406,4 +423,22 @@ pub struct DemographyStageOutputs {
     pub demography_json: PathBuf,
     pub demography_metrics_json: PathBuf,
     pub logs_txt: PathBuf,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::ImputeBackend;
+
+    #[test]
+    fn tool_ids_resolve_to_exact_imputation_backends() {
+        for (tool_id, expected) in [
+            ("beagle", ImputeBackend::Beagle),
+            ("glimpse", ImputeBackend::Glimpse),
+            ("impute5", ImputeBackend::Impute5),
+            ("minimac4", ImputeBackend::Minimac4),
+        ] {
+            assert_eq!(ImputeBackend::from_tool_id(tool_id), Some(expected));
+        }
+        assert_eq!(ImputeBackend::from_tool_id("unknown"), None);
+    }
 }

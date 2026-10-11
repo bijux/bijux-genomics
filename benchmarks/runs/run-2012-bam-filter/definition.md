@@ -5,7 +5,7 @@
 - Run: `run-2012`
 - Stage: `bam.filter`
 - Protocol version: `1.0.0`
-- State: `reserved`
+- State: `active`
 - Citation key: `bijux-benchmark-run-2012`
 
 Compare the runnable bam.filter tools using expected_record_retention_and_truth_preservation; downstream substitution: run validation, QC, and variant calling on every transformed BAM.

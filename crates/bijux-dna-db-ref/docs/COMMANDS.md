@@ -29,6 +29,7 @@ read-only library entrypoints.
 | `resolve-map` | `resolve_map` | Resolve a map catalog entry and validate its lock metadata. |
 | `resolve-map-lock` | `resolve_map_lock` | Resolve and validate a map lock entry. |
 | `validate-imputation-tool-compatibility` | `validate_imputation_tool_compatibility` | Validate panel/map compatibility for an imputation tool. |
+| `plan-panel-file-materialization` | `plan_panel_file_materialization` | Validate a panel file delivery contract and choose its immutable raw or derived cache area. |
 | `ref-service` | `ref_service` | Access the default runtime-backed `RefService`. |
 
 ## Local Verification Commands

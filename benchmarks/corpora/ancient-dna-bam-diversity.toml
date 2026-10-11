@@ -22,6 +22,13 @@ known_limitations = [
   "Orthogonal authentication observations and study-level ethical constraints must be bound before comparative use.",
 ]
 description = "The ten ancient human runs already selected across four ENA studies define a reproducible observational cohort for diverse low-coverage ancient-DNA BAM materialization; a separate authority must provide orthogonal damage controls."
+sample_context = "Ten public ancient-human libraries spanning four studies, layouts, and archive-size bands."
+assay_context = "Ancient-human short-read sequencing aligned under one declared GRCh38 protocol."
+strata = ["archive_size_band", "layout", "library_preparation", "study"]
+controls = ["damage_control_corpus", "shared_alignment_protocol"]
+held_out_split = "Freeze study-stratified development and evaluation samples before deriving common-protocol BAMs."
+lineage = "ENA runs to checksum-bound FASTQ catalogs to parameter-bound GRCh38 alignments and BAM observations."
+allowed_uses = ["interoperability", "observational_consistency", "performance", "robustness"]
 data_types = ["bam", "fasta"]
 target_sample_count = 10
 
@@ -33,6 +40,18 @@ source_url = "https://www.ebi.ac.uk/ena/browser/view/PRJEB8448"
 access_terms_url = "https://www.ebi.ac.uk/ena/browser/about/policies"
 data_types = ["bam"]
 planned_sample_count = 10
+selected_accessions = [
+  "ERR15108349",
+  "ERR15886307",
+  "ERR15886310",
+  "ERR4210492",
+  "ERR4210542",
+  "ERR769585",
+  "ERR769590",
+  "ERR769591",
+  "ERR769594",
+  "ERR769610",
+]
 selection_scope = "ERR769610, ERR769594, ERR769585, ERR769590, ERR769591, ERR4210542, ERR4210492, ERR15108349, ERR15886307, and ERR15886310, materialized under one declared alignment protocol."
 truth_basis = "Study publications and archive metadata establish ancient provenance; independent mapDamage, endogenous-content, contamination, and library-context evidence must be admitted separately."
 known_limitations = ["Cross-study library preparation and capture differences require stratified analysis and prevent naive pooling."]

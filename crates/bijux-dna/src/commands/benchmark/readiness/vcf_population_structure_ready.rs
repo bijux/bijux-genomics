@@ -517,6 +517,8 @@ fn population_structure_smoke_matches_governed_contract(
         && !report.source_admixture_report_path.trim().is_empty()
         && !report.stage_result_manifest_path.trim().is_empty()
         && report.status == REQUIRED_STATUS
+        && report.selected_pca_tool_id == GOVERNED_STAGE_CONTRACT_SMOKE_TOOL_ID
+        && report.selected_admixture_tool_id == GOVERNED_STAGE_CONTRACT_SMOKE_TOOL_ID
         && report.consumed_pca.report_path == report.source_pca_report_path
         && report.consumed_pca.sample_count == REQUIRED_SAMPLE_COUNT
         && !report.consumed_pca.execution_mode.trim().is_empty()

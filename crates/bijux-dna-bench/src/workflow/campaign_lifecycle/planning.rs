@@ -3,7 +3,7 @@
 
 use anyhow::{bail, Context, Result};
 use bijux_dna_bench_model::contract::{
-    validate_campaign_plan, validate_cycle_status_v2, validate_stage_campaign_registry,
+    validate_campaign_plan, validate_cycle_status_v2, validate_executable_stage_campaign_registry,
 };
 use bijux_dna_bench_model::{
     BenchmarkAttemptIdentity, BenchmarkAttemptRecordV2, BenchmarkCampaignPlan,
@@ -229,7 +229,8 @@ pub fn plan_stage_campaign_attempts(
     attempt_id: &str,
     observed_at_utc: &str,
 ) -> Result<BenchmarkCampaignPlan> {
-    validate_stage_campaign_registry(registry).context("validate benchmark campaign registry")?;
+    validate_executable_stage_campaign_registry(registry)
+        .context("validate benchmark campaign registry")?;
     let campaign = registry
         .campaigns
         .iter()

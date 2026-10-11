@@ -42,6 +42,17 @@ fn activation_is_no_clobber_resumable_verified_and_reversible() -> Result<()> {
     assert_eq!(rolled_back.state, ImageActivationPlanState::RolledBack);
     assert!(!fixture.active.join("alpha.sif").exists());
     assert!(fixture.staging.join("alpha.sif").exists());
+
+    let restored = apply_image_activation_plan(
+        &fixture.plan,
+        &fixture.staging,
+        &fixture.active,
+        "2026-08-05T10:02:00Z",
+    )?;
+    assert_eq!(restored.state, ImageActivationPlanState::Applied);
+    assert_eq!(restored.completed_at_utc.as_deref(), Some("2026-08-05T10:02:00Z"));
+    assert!(restored.rolled_back_at_utc.is_none());
+    verify_image_activation_plan(&fixture.plan, &fixture.staging, &fixture.active)?;
     Ok(())
 }
 
@@ -65,6 +76,35 @@ fn activation_rejects_conflicts_and_source_drift() -> Result<()> {
         load_image_activation_plan(&fixture.plan)?.state,
         ImageActivationPlanState::Applying
     );
+    Ok(())
+}
+
+#[test]
+fn partially_applied_activation_can_roll_back_before_restoring_prior_authority() -> Result<()> {
+    let fixture = Fixture::new()?;
+    fixture.create_plan()?;
+    std::fs::write(fixture.staging.join("beta.sif"), b"drifted")?;
+
+    assert!(apply_image_activation_plan(
+        &fixture.plan,
+        &fixture.staging,
+        &fixture.active,
+        "2026-08-05T10:00:00Z",
+    )
+    .is_err());
+    assert!(fixture.active.join("alpha.sif").is_file());
+    assert!(!fixture.active.join("beta.sif").exists());
+
+    std::fs::write(fixture.staging.join("beta.sif"), b"beta")?;
+    let rolled_back = rollback_image_activation_plan(
+        &fixture.plan,
+        &fixture.staging,
+        &fixture.active,
+        "2026-08-05T10:01:00Z",
+    )?;
+    assert_eq!(rolled_back.state, ImageActivationPlanState::RolledBack);
+    assert!(!fixture.active.join("alpha.sif").exists());
+    assert!(!fixture.active.join("beta.sif").exists());
     Ok(())
 }
 

@@ -54,6 +54,18 @@ pub struct CorpusSourcePolicy {
 
 #[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
 #[serde(deny_unknown_fields)]
+pub struct CorpusEvaluationDesign {
+    pub sample_context: String,
+    pub assay_context: String,
+    pub strata: Vec<String>,
+    pub controls: Vec<String>,
+    pub held_out_split: String,
+    pub lineage: String,
+    pub allowed_uses: Vec<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema, PartialEq, Eq)]
+#[serde(deny_unknown_fields)]
 pub struct FastqCorpusSourceSample {
     pub accession: String,
     pub study_accession: String,
@@ -72,6 +84,8 @@ pub struct FastqCorpusSourceSpec {
     pub portfolio_id: String,
     #[serde(flatten)]
     pub policy: CorpusSourcePolicy,
+    #[serde(flatten)]
+    pub evaluation: CorpusEvaluationDesign,
     pub species: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub species_id: Option<String>,
@@ -139,6 +153,8 @@ pub struct CorpusAcquisitionPlan {
     pub description: String,
     #[serde(flatten)]
     pub policy: CorpusSourcePolicy,
+    #[serde(flatten)]
+    pub evaluation: CorpusEvaluationDesign,
     pub source_spec: String,
     pub source_spec_sha256: String,
     pub sample_count: u64,
@@ -208,6 +224,8 @@ pub struct GovernedDataCatalog {
     pub source: String,
     #[serde(flatten)]
     pub policy: CorpusSourcePolicy,
+    #[serde(flatten)]
+    pub evaluation: CorpusEvaluationDesign,
     pub source_record: String,
     pub source_record_sha256: String,
     pub retrieved_at_utc: String,

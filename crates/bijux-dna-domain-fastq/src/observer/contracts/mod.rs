@@ -42,6 +42,14 @@ mod tests {
             ToolId::from_static("lighter")
         )));
         assert!(bindings.contains(&(
+            StageId::from_static("fastq.detect_duplicates_premerge"),
+            ToolId::from_static("bijux_dna")
+        )));
+        assert!(bindings.contains(&(
+            StageId::from_static("fastq.estimate_library_complexity_prealign"),
+            ToolId::from_static("bijux_dna")
+        )));
+        assert!(bindings.contains(&(
             StageId::from_static("fastq.normalize_primers"),
             ToolId::from_static(id_catalog::TOOL_CUTADAPT)
         )));
@@ -75,6 +83,20 @@ mod tests {
                 &ToolId::from_static(id_catalog::TOOL_FASTQC),
             ),
             Some("report_json")
+        );
+        assert_eq!(
+            observer_semantic_surface_for_stage_tool(
+                &StageId::from_static("fastq.detect_duplicates_premerge"),
+                &ToolId::from_static("bijux_dna"),
+            ),
+            Some("duplicate_signal_report")
+        );
+        assert_eq!(
+            observer_semantic_surface_for_stage_tool(
+                &StageId::from_static("fastq.estimate_library_complexity_prealign"),
+                &ToolId::from_static("bijux_dna"),
+            ),
+            Some("library_complexity_report")
         );
         assert_eq!(
             observer_semantic_surface_for_stage_tool(

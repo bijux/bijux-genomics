@@ -5,7 +5,7 @@
 - Run: `run-2008`
 - Stage: `bam.complexity`
 - Protocol version: `1.0.0`
-- State: `reserved`
+- State: `active`
 - Citation key: `bijux-benchmark-run-2008`
 
 Compare the runnable bam.complexity tools using cross_tool_consistency_with_independent_bam_statistics; downstream substitution: consume every report through the common QC and publication surface.

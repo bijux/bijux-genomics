@@ -124,7 +124,7 @@ pub(crate) fn handle_meta_commands(
                         match command {
                             cli::BenchCycleCommand::Admit(args) => {
                                 let admission =
-                            bijux_dna_api::v1::api::bench::admit_checked_in_benchmark_campaign(
+                            bijux_dna_api::v1::api::bench::admit_checked_in_benchmark_campaign_with_stage_plugins(
                                 &bijux_dna_api::v1::api::bench::BenchmarkCycleAdmissionRequest {
                                     repository_root: args.repository_root.clone(),
                                     study_root: args.study_root.clone(),
@@ -155,7 +155,7 @@ pub(crate) fn handle_meta_commands(
                                     &args.advanced_at_utc,
                                 )?;
                                 let admission =
-                            bijux_dna_api::v1::api::bench::admit_checked_in_benchmark_campaign(
+                            bijux_dna_api::v1::api::bench::admit_checked_in_benchmark_campaign_with_stage_plugins(
                                 &bijux_dna_api::v1::api::bench::BenchmarkCycleAdmissionRequest {
                                     repository_root: args.repository_root.clone(),
                                     study_root: args.study_root.clone(),

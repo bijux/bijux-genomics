@@ -38,6 +38,7 @@ pub fn persisted_benchmark_schemas() -> &'static [PersistedBenchmarkSchema] {
             benchmark_admitted_case_observation_v2_schema, benchmark_case_aggregation_schema,
             benchmark_case_aggregation_set_schema, benchmark_case_aggregation_v2_schema,
             benchmark_case_matrix_schema, benchmark_case_matrix_v1_schema,
+            benchmark_stage_normalization_schema,
         },
         execution::{
             benchmark_effective_parameters_schema, benchmark_execution_spec_schema,
@@ -60,6 +61,7 @@ pub fn persisted_benchmark_schemas() -> &'static [PersistedBenchmarkSchema] {
             benchmark_run_registry_schema, benchmark_scientific_readiness_schema,
             benchmark_stage_coverage_schema,
         },
+        progress_ledger::benchmark_progress_ledger_schema,
         protocol::{benchmark_case_definition_schema, benchmark_run_definition_schema},
         publication::{
             benchmark_citation_record_schema, benchmark_evidence_book_schema,
@@ -137,6 +139,10 @@ pub fn persisted_benchmark_schemas() -> &'static [PersistedBenchmarkSchema] {
             benchmark_case_matrix_schema,
         ),
         PersistedBenchmarkSchema::new(
+            "benchmarks/contracts/schemas/stage-normalization.schema.json",
+            benchmark_stage_normalization_schema,
+        ),
+        PersistedBenchmarkSchema::new(
             "benchmarks/contracts/schemas/admitted-case-observation.schema.json",
             benchmark_admitted_case_observation_schema,
         ),
@@ -207,6 +213,10 @@ pub fn persisted_benchmark_schemas() -> &'static [PersistedBenchmarkSchema] {
         PersistedBenchmarkSchema::new(
             "benchmarks/contracts/schemas/cycle-admission.schema.json",
             benchmark_cycle_admission_schema,
+        ),
+        PersistedBenchmarkSchema::new(
+            "benchmarks/contracts/schemas/progress-ledger.schema.json",
+            benchmark_progress_ledger_schema,
         ),
         PersistedBenchmarkSchema::new(
             "benchmarks/contracts/schemas/execution-spec.schema.json",

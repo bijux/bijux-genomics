@@ -5,7 +5,7 @@
 - Run: `run-2055`
 - Stage: `vcf.call_gl`
 - Protocol version: `1.0.0`
-- State: `reserved`
+- State: `active`
 - Citation key: `bijux-benchmark-run-2055`
 
 Compare the runnable vcf.call_gl tools using precision_recall_genotype_concordance_and_damage_stratification; downstream substitution: run QC, filtering, phasing, imputation, and population summaries on every callset.

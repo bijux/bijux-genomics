@@ -107,6 +107,25 @@ fn bench_local_vcf_population_structure_smoke_writes_governed_files() {
         source_stage.get("sample_ids").and_then(serde_json::Value::as_array).map(Vec::len),
         Some(4)
     );
+    assert!(
+        !source_stage_raw.contains("-staging-"),
+        "published source-stage evidence must not retain a transient staging path"
+    );
+    for pointer in [
+        "/pca/eigenvec_tsv",
+        "/pca/eigenval_tsv",
+        "/pca/manifest_json",
+        "/admixture/q_matrix_tsv",
+        "/admixture/k_selection_json",
+        "/outputs/pruned_variants_tsv",
+        "/outputs/population_structure_json",
+    ] {
+        let path = source_stage
+            .pointer(pointer)
+            .and_then(serde_json::Value::as_str)
+            .unwrap_or_else(|| panic!("missing published path at {pointer}"));
+        assert!(repo_root.join(path).is_file(), "published path at {pointer} must resolve: {path}");
+    }
 
     let source_pca_raw = std::fs::read_to_string(&source_pca_report_path).expect("read source pca");
     let source_pca: serde_json::Value = serde_json::from_str(&source_pca_raw).expect("parse pca");

@@ -15,7 +15,7 @@ pub use bijux_dna_bench_model::{
     BenchmarkCaseAggregationSetV1, BenchmarkCaseAggregationV2, BenchmarkCaseDefinitionV1,
     BenchmarkCaseExecutionEvidenceV1, BenchmarkCaseMatrixV2, BenchmarkCaseMeasurementPlanV1,
     BenchmarkCaseRepetitionObservationV1, BenchmarkCaseSciencePlanV1, BenchmarkCorpusSnapshotV1,
-    BenchmarkDataSnapshotRoleV1, BenchmarkDataSnapshotV1,
+    BenchmarkDataArtifactSnapshotV1, BenchmarkDataSnapshotRoleV1, BenchmarkDataSnapshotV1,
     BENCHMARK_ADMITTED_CASE_OBSERVATION_SCHEMA_V2,
     BENCHMARK_ADMITTED_CASE_OBSERVATION_SET_SCHEMA_V1, BENCHMARK_CASE_AGGREGATION_SCHEMA_V2,
     BENCHMARK_CASE_AGGREGATION_SET_SCHEMA_V1, BENCHMARK_CASE_MATRIX_SCHEMA_V2,
@@ -32,4 +32,5 @@ pub use planning::{
     plan_benchmark_case_matrix, validate_benchmark_case_matrix, BenchmarkCaseMatrixRequest,
 };
 pub use plugins::{BenchmarkStageNormalization, BenchmarkStagePluginRegistry};
+pub(crate) use reporting::aggregate_admitted_benchmark_case_evidence;
 pub use reporting::build_benchmark_stage_report_from_case_aggregations;

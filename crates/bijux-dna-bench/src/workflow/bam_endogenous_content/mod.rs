@@ -164,6 +164,7 @@ pub fn prepare_bam_endogenous_content_material_from_corpus(
                 ),
             ],
         )]),
+        downstream_probe_mode: crate::workflow::BenchmarkDownstreamProbeMode::RunnerProduced,
     };
     Ok(BamEndogenousContentMaterial { execution, admitted_corpus: corpus.clone() })
 }

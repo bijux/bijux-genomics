@@ -27,6 +27,23 @@ use bijux_dna_runner::api::{
 use crate::scheduler_executable::write_executable;
 
 #[test]
+fn sample_selection_consumes_pipefail_upstream() -> Result<()> {
+    let producer = "awk 'BEGIN { for (i = 1; i <= 100000; i++) print i }'";
+    let truncating = Command::new("bash")
+        .args(["-o", "pipefail", "-c", &format!("{producer} | head -n 10 >/dev/null")])
+        .status()
+        .context("run truncating sample selector reproduction")?;
+    let consuming = Command::new("bash")
+        .args(["-o", "pipefail", "-c", &format!("{producer} | sed -n '1,10p' >/dev/null")])
+        .status()
+        .context("run full-input-consuming sample selector")?;
+
+    ensure!(!truncating.success(), "head must reproduce the pipefail SIGPIPE failure");
+    ensure!(consuming.success(), "sample selector must consume its complete upstream input");
+    Ok(())
+}
+
+#[test]
 fn preparation_archives_exact_contracts_and_renders_frozen_execution() -> Result<()> {
     let fixture = fixture()?;
 

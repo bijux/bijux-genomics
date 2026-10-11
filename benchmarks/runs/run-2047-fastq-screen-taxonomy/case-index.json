@@ -5,7 +5,7 @@
     "domain": "fastq",
     "stage_id": "fastq.screen_taxonomy"
   },
-  "protocol_sha256": "0e976f6b69fbef89b0f2244a94a805ced2b4068daee9accb5387b3a151151d15",
+  "protocol_sha256": "b9e48fc4ea2375f96ac47601f0e0132cf827837f3d8a5d829183cf2ba32bae50",
   "cases": [],
   "limitations": [
     "No immutable benchmark cases are indexed; this protocol has no executable publication evidence."
