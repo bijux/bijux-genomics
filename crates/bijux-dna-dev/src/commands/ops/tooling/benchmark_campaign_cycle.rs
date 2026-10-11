@@ -458,15 +458,17 @@ fn admit_campaign(
             bail!("benchmark admission requires collecting or passed attempts");
         }
         let spec = bijux_dna_bench::load_execution_spec(&benchmark_root, identity)?;
-        let publication = bijux_dna_bench::admit_benchmark_execution_outputs(
-            &study_root,
-            &spec,
-            admitted_at_utc,
-        )?;
+        let publication = if lifecycle.current_status()
+            == Some(bijux_dna_bench::BenchmarkLifecycleStatus::Passed)
+        {
+            bijux_dna_bench::revalidate_benchmark_execution_outputs(&study_root, &spec)?
+        } else {
+            bijux_dna_bench::admit_benchmark_execution_outputs(&study_root, &spec, admitted_at_utc)?
+        };
         bijux_dna_runtime::record_attempt_acceptance(
             &benchmark_root,
             identity,
-            admitted_at_utc,
+            &publication.report.admitted_at_utc,
             vec![publication.evidence.clone()],
         )?;
         admitted.push(format!("{}\t{}", identity.tool_id, publication.evidence.uri));

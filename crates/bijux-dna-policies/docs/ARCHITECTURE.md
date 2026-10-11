@@ -22,6 +22,8 @@ importing repository audit orchestration.
   admission, and policy decisions without performing publication I/O.
 - `src/security_evidence/` owns typed scanner evidence, pure observation derivation, and
   deterministic security decisions.
+- `src/tool_eligibility/` owns pure role-based tool admission decisions over caller-supplied
+  candidates; registry loading and environment adaptation remain with composition surfaces.
 - `src/guardrails/` owns baseline configuration, crate presets, source inventory setup, and runner wiring.
 - `src/checks/` partitions reusable rule families by build authority, dependency graph,
   non-waiting execution, directory layout, module files, public surface, failure policy, and stage
@@ -52,9 +54,11 @@ importing repository audit orchestration.
 4. CI callers provide the build authority, dependency graph, and changed paths; policy code
    validates toolchain, lock, cache-metric, target-isolation, and graph integrity and computes a
    fail-closed reverse-dependent gate plan without executing it.
-5. Repository-audit callers use `check` and `GuardrailConfig`; guardrails collect Rust sources and
+5. Tool-selection callers provide ordered candidate identities, eligibility tiers, and explicit
+   admission options; policy code returns the stable eligible order or a fail-closed verdict.
+6. Repository-audit callers use `check` and `GuardrailConfig`; guardrails collect Rust sources and
    evaluate deterministic source and layout rules.
-6. Assertion macros and `policy_diagnostics` render failures with consistent repair guidance.
+7. Assertion macros and `policy_diagnostics` render failures with consistent repair guidance.
 
 ## Naming
 Policy test names use `policy__<suite>__<file>__<rule>` when they enforce workspace governance. Crate-local lock tests may use concise names when they only protect this crate's own tree or manifest.

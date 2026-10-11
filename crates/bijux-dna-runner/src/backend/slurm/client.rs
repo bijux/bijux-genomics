@@ -9,10 +9,21 @@ use anyhow::{bail, Context, Result};
 
 use super::parsing::{parse_accounting, parse_job_id, parse_queue_state};
 use super::{
-    SlurmBatchSubmission, SlurmClientPaths, SlurmEvidenceSource, SlurmJobHandle,
-    SlurmJobObservation, SlurmJobState, SlurmSubmissionFailure, SlurmSubmitRequest,
+    SlurmBatchSubmission, SlurmCancelReport, SlurmCancelRequest, SlurmClientPaths,
+    SlurmEvidenceSource, SlurmJobHandle, SlurmJobObservation, SlurmJobState,
+    SlurmSubmissionFailure, SlurmSubmitRequest, SLURM_CANCELLATION_SCHEMA_V1,
     SLURM_JOB_HANDLE_SCHEMA_V1,
 };
+
+#[derive(Debug, serde::Deserialize)]
+struct CancellationManifest {
+    jobs: Vec<CancellationManifestJob>,
+}
+
+#[derive(Debug, serde::Deserialize)]
+struct CancellationManifestJob {
+    scheduler_job_id: Option<String>,
+}
 
 /// Submit one batch script and return immediately after `sbatch` returns its job identity.
 ///
@@ -168,6 +179,58 @@ pub fn cancel_slurm_job(paths: &SlurmClientPaths, handle: &SlurmJobHandle) -> Re
     validate_handle(handle)?;
     execute(&paths.scancel, std::slice::from_ref(&handle.job_id))?;
     Ok(())
+}
+
+/// Request cancellation for every explicit or manifest-selected job and return immediately.
+///
+/// The selection is normalized and validated before `scancel` is invoked once. Mock requests
+/// exercise the same selection contract without contacting the scheduler.
+///
+/// # Errors
+/// Returns an error when no jobs are selected, a job identity is malformed, a manifest cannot be
+/// read, or `scancel` fails.
+pub fn cancel_slurm_jobs(
+    paths: &SlurmClientPaths,
+    request: &SlurmCancelRequest,
+) -> Result<SlurmCancelReport> {
+    let requested_job_ids = cancellation_job_ids(request)?;
+    if !request.mock {
+        execute(&paths.scancel, &requested_job_ids)?;
+    }
+    Ok(SlurmCancelReport {
+        schema_version: SLURM_CANCELLATION_SCHEMA_V1.to_string(),
+        mode: if request.mock { "mock" } else { "real" }.to_string(),
+        requested_job_ids: requested_job_ids.clone(),
+        cancelled_job_ids: requested_job_ids,
+    })
+}
+
+fn cancellation_job_ids(request: &SlurmCancelRequest) -> Result<Vec<String>> {
+    let mut job_ids = request
+        .job_ids
+        .iter()
+        .map(|job_id| job_id.trim().to_string())
+        .filter(|job_id| !job_id.is_empty())
+        .collect::<Vec<_>>();
+    if let Some(path) = &request.manifest_path {
+        let raw = std::fs::read_to_string(path)
+            .with_context(|| format!("read cancellation manifest {}", path.display()))?;
+        let manifest: CancellationManifest = serde_json::from_str(&raw)
+            .with_context(|| format!("parse cancellation manifest {}", path.display()))?;
+        job_ids.extend(manifest.jobs.into_iter().filter_map(|job| job.scheduler_job_id));
+    }
+    job_ids.sort();
+    job_ids.dedup();
+    if job_ids.is_empty() {
+        bail!("Slurm cancellation requires explicit job ids or a manifest containing jobs");
+    }
+    if job_ids
+        .iter()
+        .any(|job_id| job_id.is_empty() || !job_id.bytes().all(|byte| byte.is_ascii_digit()))
+    {
+        bail!("Slurm cancellation contains a malformed scheduler job identity");
+    }
+    Ok(job_ids)
 }
 
 fn execute_queue(executable: &Path, arguments: &[String]) -> Result<String> {

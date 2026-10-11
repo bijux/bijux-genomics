@@ -1,0 +1,178 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "BenchmarkStageToolClosureReport",
+  "type": "object",
+  "properties": {
+    "rows": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/BenchmarkStageToolClosureRow"
+      }
+    },
+    "schema_version": {
+      "type": "string",
+      "const": "bijux.benchmark.stage_tool_closure.v1"
+    },
+    "sources": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/BenchmarkStageToolClosureSource"
+      }
+    },
+    "summary": {
+      "$ref": "#/$defs/BenchmarkStageToolClosureSummary"
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "sources",
+    "summary",
+    "rows"
+  ],
+  "$defs": {
+    "BenchmarkStageToolClosureDisposition": {
+      "type": "string",
+      "enum": [
+        "aligned",
+        "missing_domain_binding"
+      ]
+    },
+    "BenchmarkStageToolClosureRow": {
+      "type": "object",
+      "properties": {
+        "artifact_delivery": {
+          "type": "string"
+        },
+        "benchmark_run_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "closure": {
+          "$ref": "#/$defs/BenchmarkStageToolClosureDisposition"
+        },
+        "domain": {
+          "type": "string"
+        },
+        "domain_declared": {
+          "type": "boolean"
+        },
+        "product_support": {
+          "type": "string"
+        },
+        "protocol_disposition": {
+          "$ref": "#/$defs/BenchmarkStageToolProtocolDisposition"
+        },
+        "redistribution_permitted": {
+          "type": "boolean"
+        },
+        "stage_id": {
+          "type": "string"
+        },
+        "tool_id": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "domain",
+        "stage_id",
+        "tool_id",
+        "product_support",
+        "artifact_delivery",
+        "redistribution_permitted",
+        "domain_declared",
+        "protocol_disposition",
+        "closure"
+      ]
+    },
+    "BenchmarkStageToolClosureSource": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string"
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "path",
+        "sha256"
+      ]
+    },
+    "BenchmarkStageToolClosureSummary": {
+      "type": "object",
+      "properties": {
+        "aligned_pair_count": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0
+        },
+        "benchmark_pair_count": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0
+        },
+        "catalog_pair_count": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0
+        },
+        "domain_pair_count": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0
+        },
+        "drift_pair_count": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0
+        },
+        "external_artifact_pair_count": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0
+        },
+        "qualification_only_pair_count": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0
+        },
+        "stage_count": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0
+        },
+        "supported_tool_count": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "supported_tool_count",
+        "stage_count",
+        "catalog_pair_count",
+        "domain_pair_count",
+        "aligned_pair_count",
+        "drift_pair_count",
+        "benchmark_pair_count",
+        "qualification_only_pair_count",
+        "external_artifact_pair_count"
+      ]
+    },
+    "BenchmarkStageToolProtocolDisposition": {
+      "type": "string",
+      "enum": [
+        "benchmark_required",
+        "qualification_only"
+      ]
+    }
+  }
+}

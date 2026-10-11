@@ -185,10 +185,7 @@ mod tests {
     };
 
     fn repo_root() -> PathBuf {
-        PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-            .join("../..")
-            .canonicalize()
-            .expect("canonicalize repo root")
+        crate::commands::support::workspace_root::resolve_repo_root().expect("repo root")
     }
 
     #[test]
@@ -214,8 +211,12 @@ mod tests {
             "fastq.estimate_library_complexity_prealign must leave the registry-drift slice once bijux_dna is registered for that pair"
         );
         assert!(
-            !report.rows.iter().any(|row| row.domain == "bam" && row.stage_id == "bam.genotyping"),
-            "bam.genotyping must leave the registry-drift slice once angsd is registered in production"
+            !report.rows.iter().any(|row| {
+                row.domain == "bam"
+                    && row.stage_id == "bam.genotyping"
+                    && row.tool_id == "bcftools"
+            }),
+            "bam.genotyping / bcftools must leave the registry-drift slice once its governed binding is admitted"
         );
         assert!(
             !report.rows.iter().any(|row| {

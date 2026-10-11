@@ -16,7 +16,8 @@
 - `runner_driver/` owns the concrete `Runner` implementation used by higher layers, with artifact collection split into a dedicated companion file.
 - `backend/` owns backend kind contracts and backend-facing facade exports.
 - `backend/slurm/` owns bounded non-waiting scheduler submission, one-shot queue
-  observation, terminal accounting collection, cancellation, and fail-closed parsing.
+  observation, terminal accounting collection, cancellation, fail-closed parsing, and immutable
+  benchmark-source admission before scheduler material is persisted.
 - `backend/slurm/qualification/` owns immutable container qualification preparation,
   intent-first submission, disconnect-safe recovery, one-shot observation, terminal scheduler
   evidence, process execution, and cancellation. Container contract admission remains in
@@ -26,7 +27,9 @@
 - `backend/facade.rs` keeps backend re-exports out of the backend root module.
 - `step_runner/` owns step orchestration plus support modules for contracts, runtime policy, dispatch, container argument assembly, backend-specific execution, effects, records, inputs, observer calls, identity, and artifacts.
 - `step_runner/internal_contracts.rs` keeps orchestration coverage out of the orchestrator file.
-- `command_runner.rs` owns low-level command invocation helpers and delegates invocation identity, command-line rendering, and output contracts to companion modules.
+- `command_runner.rs` owns low-level command invocation helpers and delegates site execution-binding
+  verification, invocation identity, command-line rendering, and output contracts to companion
+  modules.
 - `repo_root/` owns repository-root lookup used by runtime resolution, with env override lookup split from repository detection.
 
 ## Backend Flow

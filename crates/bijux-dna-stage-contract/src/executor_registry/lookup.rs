@@ -28,7 +28,7 @@ mod tests {
     use bijux_dna_core::id_catalog;
 
     use crate::executor_registry::catalog::{
-        FASTQ_AMPLICON_EXECUTOR, FASTQ_PREPROCESS_EXECUTOR, FASTQ_QC_EXECUTOR,
+        FASTQ_AMPLICON_EXECUTOR, FASTQ_PREPROCESS_EXECUTOR, FASTQ_QC_EXECUTOR, VCF_EXECUTOR,
     };
     use crate::executor_registry::ReadinessBadge;
 
@@ -69,5 +69,10 @@ mod tests {
     fn stage_executor_registry_tracks_supported_vcf_population_executors() {
         assert!(has_executor(id_catalog::VCF_ADMIXTURE));
         assert!(has_executor(id_catalog::VCF_ROH));
+        assert_eq!(entry(id_catalog::VCF_IBD).map(|value| value.executor), Some(VCF_EXECUTOR));
+        assert_eq!(
+            entry(id_catalog::VCF_DEMOGRAPHY).map(|value| value.executor),
+            Some(VCF_EXECUTOR)
+        );
     }
 }

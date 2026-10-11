@@ -4,6 +4,7 @@
 //! Must not perform IO.
 #![allow(dead_code)]
 
+mod active_scope;
 mod appraisal;
 mod benchmark_matrix;
 mod compatibility;
@@ -31,7 +32,9 @@ mod run_index;
 mod schema_versions;
 mod source_authority;
 mod stage_result;
+mod stage_tool_closure;
 mod suite;
+pub use active_scope::validate_active_scope_fast_validation_report;
 pub use appraisal::{validate_appraisal_report, validate_hardening_queue_report};
 pub use benchmark_matrix::validate_benchmark_matrix_report;
 pub use compatibility::{
@@ -125,9 +128,9 @@ pub use schema_versions::{
     BENCHMARK_SCIENTIFIC_READINESS_SCHEMA_V2, BENCHMARK_STAGE_CAMPAIGNS_SCHEMA_V1,
     BENCHMARK_STAGE_COVERAGE_SCHEMA_V1, BENCHMARK_STAGE_INTERFACES_SCHEMA_V1,
     BENCHMARK_STAGE_REPORT_SCHEMA_V1, BENCHMARK_STAGE_RESULT_SCHEMA_V2,
-    BENCHMARK_STAGE_UNIVERSE_SCHEMA_V1, BUNDLE_SCHEMA_V1, CORPUS_ACQUISITION_SCHEMA_V1,
-    CORPUS_ACQUISITION_SCHEMA_V2, CORPUS_SCHEMA_V1, DECISION_SCHEMA_V1,
-    FASTQ_CORPUS_SOURCE_SCHEMA_V1, FASTQ_PROFILE_READS_EXPECTATIONS_SCHEMA_V1,
+    BENCHMARK_STAGE_UNIVERSE_SCHEMA_V1, BENCHMARK_SUITE_RUN_MANIFEST_SCHEMA_V2, BUNDLE_SCHEMA_V1,
+    CORPUS_ACQUISITION_SCHEMA_V1, CORPUS_ACQUISITION_SCHEMA_V2, CORPUS_SCHEMA_V1,
+    DECISION_SCHEMA_V1, FASTQ_CORPUS_SOURCE_SCHEMA_V1, FASTQ_PROFILE_READS_EXPECTATIONS_SCHEMA_V1,
     FASTQ_READ_LENGTH_EXPECTATIONS_SCHEMA_V1, FASTQ_READ_LENGTH_EXPECTATIONS_SCHEMA_V2,
     GOVERNED_DATA_CATALOG_REGISTRY_PUBLICATION_SCHEMA_V1, GOVERNED_DATA_CATALOG_REGISTRY_SCHEMA_V1,
     GOVERNED_DATA_CATALOG_SCHEMA_V1, GOVERNED_DATA_CATALOG_SCHEMA_V2,
@@ -136,4 +139,5 @@ pub use schema_versions::{
 };
 pub use source_authority::validate_benchmark_data_source_spec;
 pub use stage_result::validate_benchmark_stage_result_manifest;
+pub use stage_tool_closure::validate_benchmark_stage_tool_closure;
 pub use suite::validate_suite;

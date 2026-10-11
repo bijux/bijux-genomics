@@ -816,7 +816,7 @@ fn adapter_missing_input_probes() -> Vec<AdapterMissingInputProbe> {
         probes.extend([
             bam_ready_probe(
                 "bam.genotyping",
-                "angsd",
+                "bcftools",
                 "bam",
                 "bam",
                 "bam is missing",
@@ -824,7 +824,7 @@ fn adapter_missing_input_probes() -> Vec<AdapterMissingInputProbe> {
             ),
             bam_ready_probe(
                 "bam.genotyping",
-                "angsd",
+                "bcftools",
                 "reference_fasta",
                 "reference",
                 "reference FASTA is missing",
@@ -832,7 +832,7 @@ fn adapter_missing_input_probes() -> Vec<AdapterMissingInputProbe> {
             ),
             bam_ready_probe(
                 "bam.genotyping",
-                "angsd",
+                "bcftools",
                 "sites_vcf",
                 "reference",
                 "sites VCF is missing",
@@ -840,7 +840,7 @@ fn adapter_missing_input_probes() -> Vec<AdapterMissingInputProbe> {
             ),
             bam_ready_probe(
                 "bam.genotyping",
-                "angsd",
+                "bcftools",
                 "regions",
                 "reference",
                 "regions list is missing",

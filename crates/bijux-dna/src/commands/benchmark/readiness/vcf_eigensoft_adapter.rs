@@ -675,10 +675,7 @@ mod tests {
     use super::{render_vcf_eigensoft_adapter, DEFAULT_VCF_EIGENSOFT_ADAPTER_PATH};
 
     fn repo_root() -> PathBuf {
-        PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-            .join("../..")
-            .canonicalize()
-            .expect("canonicalize repo root")
+        crate::commands::support::workspace_root::resolve_repo_root().expect("repo root")
     }
 
     #[test]

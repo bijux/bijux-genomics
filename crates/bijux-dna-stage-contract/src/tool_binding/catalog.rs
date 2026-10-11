@@ -8,9 +8,11 @@ use super::{
 };
 
 const BAM: &str = "bijux.bam.artifact.coordinate_sorted_indexed.v1";
+const DIRECTORY: &str = "bijux.auxiliary.artifact.directory.v1";
 const FILE: &str = "bijux.auxiliary.artifact.file.v1";
 const FASTA: &str = "bijux.reference.artifact.fasta.v1";
 const FASTQ_PAIRED: &str = "bijux.fastq.artifact.paired_end.v1";
+const FASTQ_SINGLE: &str = "bijux.fastq.artifact.single_end.v1";
 const JSON: &str = "bijux.auxiliary.artifact.json.v1";
 const SAM: &str = "bijux.sam.artifact.unsorted.v1";
 const TABLE: &str = "bijux.auxiliary.artifact.table.v1";
@@ -52,26 +54,758 @@ pub fn canonical_external_artifact_tool_bindings() -> Result<ToolBindingRegistry
 pub fn canonical_retained_tool_bindings() -> Result<ToolBindingRegistry> {
     let mut registry = ToolBindingRegistry::default();
     for binding in [
+        adapterremoval_merge_pairs(),
+        bbduk_filter_low_complexity(),
+        bbmerge_merge_pairs(),
         bcftools_genotyping(),
         bedtools_coverage(),
+        bowtie2_build_index_reference(),
         bowtie2_align(),
         bwa_align(),
+        centrifuge_screen_taxonomy(),
+        dada2_infer_asvs(),
+        fastp_filter_low_complexity(),
+        fastqc_detect_adapters(),
+        fastqvalidator_validate_reads(),
+        flash2_merge_pairs(),
+        fqtools_validate_reads(),
+        kaiju_screen_taxonomy(),
+        kraken2_screen_taxonomy(),
+        krakenuniq_screen_taxonomy(),
         mosdepth_coverage(),
         picard_gc_bias(),
         picard_insert_size(),
         picard_duplication_metrics(),
         picard_mapping_summary(),
+        prinseq_filter_low_complexity(),
         rcorrector_correct_errors(),
         rxy_sex(),
         samtools_coverage(),
         samtools_duplication_metrics(),
         samtools_endogenous_content(),
         samtools_mapping_summary(),
+        seqfu_profile_read_lengths(),
+        seqfu_profile_reads(),
+        seqkit_filter_reads(),
+        seqkit_profile_read_lengths(),
+        seqkit_profile_reads(),
+        seqkit_stats_profile_reads(),
+        seqtk_validate_reads(),
+        star_index_reference(),
         umi_tools_extract_umis(),
+        vsearch_cluster_otus(),
     ] {
         registry.insert(binding)?;
     }
     Ok(registry)
+}
+
+fn adapterremoval_merge_pairs() -> ToolBindingV1 {
+    retained_binding(
+        "fastq.merge_pairs",
+        "adapterremoval",
+        &["paired_end_reads", "deterministic_overlap_collapse", "emitted_unmerged_pairs"],
+        &[input("reads_r1", FASTQ_PAIRED), input("reads_r2", FASTQ_PAIRED)],
+        &["threads", "merge_overlap", "min_len"],
+        &[
+            output("merged_reads", FASTQ_SINGLE),
+            output("unmerged_reads_r1", FASTQ_SINGLE),
+            output("unmerged_reads_r2", FASTQ_SINGLE),
+            output("adapterremoval_settings", FILE),
+        ],
+        &[
+            "${executable}",
+            "--threads",
+            "${parameter:threads}",
+            "--file1",
+            "${input:reads_r1}",
+            "--file2",
+            "${input:reads_r2}",
+            "--collapse-deterministic",
+            "--gzip",
+            "--output1",
+            "${output:unmerged_reads_r1}",
+            "--output2",
+            "${output:unmerged_reads_r2}",
+            "--outputcollapsed",
+            "${output:merged_reads}",
+            "--outputcollapsedtruncated",
+            "/dev/null",
+            "--settings",
+            "${output:adapterremoval_settings}",
+            "--singleton",
+            "/dev/null",
+            "--discarded",
+            "/dev/null",
+            "--minalignmentlength",
+            "${parameter:merge_overlap}",
+            "--minlength",
+            "${parameter:min_len}",
+        ],
+        "bijux.benchmark.fastq.merge_pairs.bundle.v1",
+        "bijux_dna_planner_fastq::tool_adapters::fastq::merge_pairs",
+        "benchmark.fastq.merge_pairs.consume",
+        resources(4, 8, 4),
+        &[
+            "qualification_requires_paired_reads_from_the_same_library",
+            "qualification_emits_unmerged_pairs_instead_of_discarding_them",
+            "collapsed_truncated_singletons_and_discarded_reads_are_intentionally_not_admitted_outputs",
+        ],
+    )
+}
+
+fn bbmerge_merge_pairs() -> ToolBindingV1 {
+    retained_binding(
+        "fastq.merge_pairs",
+        "bbmerge",
+        &["paired_end_reads", "overlap_merge", "emitted_unmerged_pairs"],
+        &[input("reads_r1", FASTQ_PAIRED), input("reads_r2", FASTQ_PAIRED)],
+        &["threads", "merge_overlap", "min_len"],
+        &[
+            output("merged_reads", FASTQ_SINGLE),
+            output("unmerged_reads_r1", FASTQ_SINGLE),
+            output("unmerged_reads_r2", FASTQ_SINGLE),
+        ],
+        &[
+            "${executable}",
+            "in1=${input:reads_r1}",
+            "in2=${input:reads_r2}",
+            "out=${output:merged_reads}",
+            "outu1=${output:unmerged_reads_r1}",
+            "outu2=${output:unmerged_reads_r2}",
+            "threads=${parameter:threads}",
+            "minoverlap=${parameter:merge_overlap}",
+            "mininsert=${parameter:min_len}",
+        ],
+        "bijux.benchmark.fastq.merge_pairs.bundle.v1",
+        "bijux_dna_planner_fastq::tool_adapters::fastq::merge_pairs",
+        "benchmark.fastq.merge_pairs.consume",
+        resources(4, 8, 4),
+        &[
+            "qualification_requires_paired_reads_from_the_same_library",
+            "qualification_emits_unmerged_pairs_instead_of_discarding_them",
+            "executor_captured_streams_preserve_native_bbmerge_diagnostics",
+        ],
+    )
+}
+
+fn flash2_merge_pairs() -> ToolBindingV1 {
+    retained_binding(
+        "fastq.merge_pairs",
+        "flash2",
+        &["paired_end_reads", "overlap_merge", "native_result_directory"],
+        &[input("reads_r1", FASTQ_PAIRED), input("reads_r2", FASTQ_PAIRED)],
+        &["threads", "merge_overlap"],
+        &[output("flash2_result_directory", DIRECTORY)],
+        &[
+            "${executable}",
+            "-o",
+            "flash2",
+            "-d",
+            "${output:flash2_result_directory}",
+            "-t",
+            "${parameter:threads}",
+            "-m",
+            "${parameter:merge_overlap}",
+            "${input:reads_r1}",
+            "${input:reads_r2}",
+        ],
+        "bijux.benchmark.fastq.merge_pairs.bundle.v1",
+        "bijux_dna_planner_fastq::tool_adapters::fastq::merge_pairs",
+        "benchmark.fastq.merge_pairs.consume",
+        resources(4, 8, 4),
+        &[
+            "qualification_requires_paired_reads_from_the_same_library",
+            "the_native_directory_contains_extended_fragments_and_both_uncombined_read_files",
+            "executor_captured_streams_preserve_native_flash2_diagnostics",
+        ],
+    )
+}
+
+fn vsearch_cluster_otus() -> ToolBindingV1 {
+    retained_binding(
+        "fastq.cluster_otus",
+        "vsearch",
+        &[
+            "single_end_or_merged_amplicon_reads",
+            "identity_threshold_clustering",
+            "native_uc_and_otu_tables",
+        ],
+        &[input("reads", FASTQ_SINGLE)],
+        &["identity_threshold", "threads"],
+        &[
+            output("otu_representatives", FASTA),
+            output("otu_clusters", TABLE),
+            output("otu_table", TABLE),
+        ],
+        &[
+            "${executable}",
+            "--cluster_fast",
+            "${input:reads}",
+            "--id",
+            "${parameter:identity_threshold}",
+            "--sizein",
+            "--sizeout",
+            "--relabel",
+            "OTU_",
+            "--threads",
+            "${parameter:threads}",
+            "--centroids",
+            "${output:otu_representatives}",
+            "--uc",
+            "${output:otu_clusters}",
+            "--otutabout",
+            "${output:otu_table}",
+        ],
+        "bijux.benchmark.fastq.cluster_otus.bundle.v1",
+        "bijux_dna_planner_fastq::tool_adapters::fastq::cluster_otus",
+        "benchmark.fastq.cluster_otus.consume",
+        resources(4, 8, 4),
+        &[
+            "qualification_binding_requires_single_end_or_premerged_amplicon_reads",
+            "qualification_identity_threshold_is_0.97",
+            "taxonomy_ready_derivatives_and_governed_reports_are_normalizer_outputs_not_native_vsearch_outputs",
+            "comparative_case_admission_requires_the_closed_cluster_otus_stage_interface",
+        ],
+    )
+}
+
+fn dada2_infer_asvs() -> ToolBindingV1 {
+    retained_binding(
+        "fastq.infer_asvs",
+        "dada2",
+        &[
+            "paired_end_amplicon_reads",
+            "asv_inference",
+            "native_asv_result_directory",
+        ],
+        &[input("reads_r1", FASTQ_PAIRED), input("reads_r2", FASTQ_PAIRED)],
+        &["sample_id", "threads"],
+        &[output("asv_result_directory", DIRECTORY)],
+        &[
+            "${executable}",
+            "infer-asvs",
+            "--input",
+            "${input:reads_r1}",
+            "--input-r2",
+            "${input:reads_r2}",
+            "--output-dir",
+            "${output:asv_result_directory}",
+            "--sample-id",
+            "${parameter:sample_id}",
+            "--threads",
+            "${parameter:threads}",
+        ],
+        "bijux.benchmark.fastq.infer_asvs.bundle.v1",
+        "bijux_dna_planner_fastq::tool_adapters::fastq::infer_asvs",
+        "benchmark.fastq.infer_asvs.consume",
+        resources(4, 16, 8),
+        &[
+            "the_native_directory_must_contain_asv_table_sequences_taxonomy_ready_sequences_and_report",
+            "the_governed_wrapper_applies_maxee_2_truncq_2_phix_removal_and_consensus_chimera_removal",
+            "qualification_binding_uses_the_governed_paired_end_amplicon_profile",
+            "comparative_case_admission_requires_the_closed_infer_asvs_stage_interface",
+        ],
+    )
+}
+
+fn bowtie2_build_index_reference() -> ToolBindingV1 {
+    retained_binding(
+        "fastq.index_reference",
+        "bowtie2_build",
+        &["reference_fasta", "fm_index_build", "multi_file_index_directory"],
+        &[input("reference_fasta", FASTA)],
+        &["threads"],
+        &[output("reference_index", DIRECTORY)],
+        &[
+            "sh",
+            "-lc",
+            "set -eu\nmkdir -p '${output:reference_index}'\n'${executable}' --threads '${parameter:threads}' '${input:reference_fasta}' '${output:reference_index}/reference'",
+        ],
+        "bijux.benchmark.fastq.index_reference.bundle.v1",
+        "bijux_dna_planner_fastq::tool_adapters::fastq::index_reference",
+        "benchmark.fastq.index_reference.consume",
+        resources(4, 16, 16),
+        &[
+            "the_governed_output_is_a_directory_containing_the_complete_bowtie2_prefix_family",
+            "the_downstream_probe_must_project_the_reference_prefix_inside_the_governed_directory",
+            "index_formats_are_tool_specific_and_require_a_compatible_alignment_consumer",
+            "comparative_case_admission_requires_the_closed_index_reference_stage_interface",
+        ],
+    )
+}
+
+fn star_index_reference() -> ToolBindingV1 {
+    retained_binding(
+        "fastq.index_reference",
+        "star",
+        &["reference_fasta", "splice_aware_index_build", "multi_file_index_directory"],
+        &[input("reference_fasta", FASTA)],
+        &["threads"],
+        &[output("reference_index", DIRECTORY)],
+        &[
+            "sh",
+            "-lc",
+            "set -eu\nmkdir -p '${output:reference_index}'\n'${executable}' --runMode genomeGenerate --runThreadN '${parameter:threads}' --genomeDir '${output:reference_index}' --genomeFastaFiles '${input:reference_fasta}'",
+        ],
+        "bijux.benchmark.fastq.index_reference.bundle.v1",
+        "bijux_dna_planner_fastq::tool_adapters::fastq::index_reference",
+        "benchmark.fastq.index_reference.consume",
+        resources(4, 16, 16),
+        &[
+            "the_governed_output_is_the_complete_star_genome_directory",
+            "index_formats_are_tool_specific_and_require_a_compatible_alignment_consumer",
+            "comparative_case_admission_requires_the_closed_index_reference_stage_interface",
+        ],
+    )
+}
+
+fn bbduk_filter_low_complexity() -> ToolBindingV1 {
+    retained_binding(
+        "fastq.filter_low_complexity",
+        "bbduk",
+        &["single_end_reads", "entropy_filter", "native_filter_statistics"],
+        &[input("reads_r1", FASTQ_SINGLE)],
+        &["threads"],
+        &[output("filtered_reads_r1", FASTQ_SINGLE), output("native_filter_statistics", TABLE)],
+        &[
+            "${executable}",
+            "in=${input:reads_r1}",
+            "out=${output:filtered_reads_r1}",
+            "stats=${output:native_filter_statistics}",
+            "entropy=0.5",
+            "threads=${parameter:threads}",
+            "overwrite=t",
+        ],
+        "bijux.benchmark.fastq.filter_low_complexity.bundle.v1",
+        "bijux_dna_planner_fastq::tool_adapters::fastq::filter_low_complexity",
+        "benchmark.fastq.filter_low_complexity.compare",
+        resources(4, 8, 4),
+        &[
+            "qualification_binding_uses_the_governed_single_end_profile",
+            "qualification_entropy_threshold_is_the_canonical_fraction_0.5",
+            "comparative_case_admission_requires_the_closed_filter_low_complexity_stage_interface",
+            "paired_end_execution_requires_the_stage_planner_pair_synchronization_wrapper",
+        ],
+    )
+}
+
+fn fastp_filter_low_complexity() -> ToolBindingV1 {
+    retained_binding(
+        "fastq.filter_low_complexity",
+        "fastp",
+        &["single_end_reads", "low_complexity_filter", "native_json_report"],
+        &[input("reads_r1", FASTQ_SINGLE)],
+        &["threads"],
+        &[
+            output("filtered_reads_r1", FASTQ_SINGLE),
+            output("native_filter_report", JSON),
+        ],
+        &[
+            "${executable}",
+            "--in1",
+            "${input:reads_r1}",
+            "--out1",
+            "${output:filtered_reads_r1}",
+            "--thread",
+            "${parameter:threads}",
+            "--disable_adapter_trimming",
+            "--disable_quality_filtering",
+            "--low_complexity_filter",
+            "--complexity_threshold",
+            "50",
+            "--json",
+            "${output:native_filter_report}",
+            "--html",
+            "/dev/null",
+        ],
+        "bijux.benchmark.fastq.filter_low_complexity.bundle.v1",
+        "bijux_dna_planner_fastq::tool_adapters::fastq::filter_low_complexity",
+        "benchmark.fastq.filter_low_complexity.compare",
+        resources(4, 8, 4),
+        &[
+            "qualification_binding_uses_the_governed_single_end_profile",
+            "qualification_complexity_threshold_50_is_the_fastp_numeric_projection_of_policy_fraction_0.5",
+            "fastp_adjacent_base_change_complexity_is_not_shannon_entropy",
+            "adapter_and_quality_filtering_are_disabled_to_isolate_low_complexity_filtering",
+            "comparative_case_admission_requires_the_closed_filter_low_complexity_stage_interface",
+            "paired_end_execution_requires_the_stage_planner_pair_synchronization_wrapper",
+        ],
+    )
+}
+
+fn prinseq_filter_low_complexity() -> ToolBindingV1 {
+    retained_binding(
+        "fastq.filter_low_complexity",
+        "prinseq",
+        &["single_end_reads", "entropy_filter", "filtered_fastq_output"],
+        &[input("reads_r1", FASTQ_SINGLE)],
+        &["threads"],
+        &[output("filtered_reads_r1", FASTQ_SINGLE)],
+        &[
+            "${executable}",
+            "-threads",
+            "${parameter:threads}",
+            "-fastq",
+            "${input:reads_r1}",
+            "-out_good",
+            "${output:filtered_reads_r1}",
+            "-out_bad",
+            "/dev/null",
+            "-lc_entropy",
+            "50",
+        ],
+        "bijux.benchmark.fastq.filter_low_complexity.bundle.v1",
+        "bijux_dna_planner_fastq::tool_adapters::fastq::filter_low_complexity",
+        "benchmark.fastq.filter_low_complexity.compare",
+        resources(4, 8, 4),
+        &[
+            "qualification_binding_uses_the_governed_single_end_profile",
+            "qualification_entropy_threshold_50_is_the_prinseq_integer_percent_projection_of_policy_fraction_0.5",
+            "comparative_case_admission_requires_the_closed_filter_low_complexity_stage_interface",
+            "paired_end_execution_requires_the_stage_planner_pair_synchronization_wrapper",
+        ],
+    )
+}
+
+fn seqkit_filter_reads() -> ToolBindingV1 {
+    retained_binding(
+        "fastq.filter_reads",
+        "seqkit",
+        &["single_end_reads", "minimum_length_filter", "streaming_fastq_transform"],
+        &[input("reads_r1", FASTQ_SINGLE)],
+        &["threads"],
+        &[output("filtered_reads_r1", FASTQ_SINGLE)],
+        &[
+            "${executable}",
+            "seq",
+            "-j",
+            "${parameter:threads}",
+            "-m",
+            "1",
+            "-o",
+            "${output:filtered_reads_r1}",
+            "${input:reads_r1}",
+        ],
+        "bijux.benchmark.fastq.filter_reads.bundle.v1",
+        "bijux_dna_planner_fastq::tool_adapters::fastq::filter_reads",
+        "benchmark.fastq.filter_reads.compare",
+        resources(4, 8, 4),
+        &[
+            "qualification_binding_uses_the_governed_single_end_profile",
+            "comparative_case_admission_requires_the_closed_filter_reads_stage_interface",
+            "paired_end_execution_requires_the_stage_planner_pair_synchronization_wrapper",
+        ],
+    )
+}
+
+fn fastqc_detect_adapters() -> ToolBindingV1 {
+    retained_binding(
+        "fastq.detect_adapters",
+        "fastqc",
+        &["single_end_reads", "adapter_content_evidence", "full_input_qc"],
+        &[input("reads_r1", FASTQ_PAIRED)],
+        &["threads"],
+        &[output("adapter_evidence_dir", DIRECTORY)],
+        &[
+            "/bin/sh",
+            "-c",
+            "mkdir -p '${output:adapter_evidence_dir}' && '${executable}' --outdir '${output:adapter_evidence_dir}' --threads '${parameter:threads}' '${input:reads_r1}'",
+        ],
+        "bijux.benchmark.fastq.detect_adapters.bundle.v1",
+        "bijux_dna_planner_fastq::tool_adapters::fastq::detect_adapters",
+        "benchmark.fastq.detect_adapters.compare",
+        resources(4, 8, 4),
+        &[
+            "qualification_binding_uses_the_governed_single_end_profile",
+            "native_fastqc_directory_is_preserved_as_raw_attempt_evidence",
+            "adapter_report_json_is_emitted_by_the_shared_result_normalizer",
+        ],
+    )
+}
+
+fn fastqvalidator_validate_reads() -> ToolBindingV1 {
+    validate_reads_binding(
+        "fastqvalidator",
+        "'${executable}' --file '${input:reads_r1}'",
+        &["single_end_reads", "structural_fastq_validation"],
+    )
+}
+
+fn fqtools_validate_reads() -> ToolBindingV1 {
+    validate_reads_binding(
+        "fqtools",
+        "'${executable}' validate '${input:reads_r1}'",
+        &["single_end_reads", "fqtools_fastq_validation"],
+    )
+}
+
+fn seqtk_validate_reads() -> ToolBindingV1 {
+    validate_reads_binding(
+        "seqtk",
+        "'${executable}' seq '${input:reads_r1}'",
+        &["single_end_reads", "seqtk_fastq_parsing"],
+    )
+}
+
+fn validate_reads_binding(
+    tool_id: &str,
+    backend_command: &str,
+    backend_capabilities: &[&str],
+) -> ToolBindingV1 {
+    let command = format!(
+        "set +e; {backend_command} > \"$TMPDIR/bijux-{tool_id}-validation.log\" 2>&1; status=$?; if [ \"$status\" -eq 0 ]; then strict_pass=true; else strict_pass=false; fi; printf '{{\"schema_version\":\"bijux.fastq.validate.report.v1\",\"stage_id\":\"fastq.validate_reads\",\"tool_id\":\"{tool_id}\",\"validated_inputs\":1,\"strict_pass\":%s,\"exit_code\":%s}}\\n' \"$strict_pass\" \"$status\" > '${{output:validation_report}}'; printf '{{\"schema_version\":\"bijux.fastq.validate.lineage.v1\",\"stage_id\":\"fastq.validate_reads\",\"tool_id\":\"{tool_id}\",\"input_r1\":\"reads_r1\",\"validation_report\":\"validation_report\",\"paired_mode\":\"single_end\",\"validated_stream_ids\":[\"reads_r1\"]}}\\n' > '${{output:validated_reads_manifest}}'; exit \"$status\""
+    );
+    let mut capabilities = vec!["report_only_validation"];
+    capabilities.extend_from_slice(backend_capabilities);
+    retained_binding(
+        "fastq.validate_reads",
+        tool_id,
+        &capabilities,
+        &[input("reads_r1", FASTQ_PAIRED)],
+        &[],
+        &[output("validation_report", JSON), output("validated_reads_manifest", JSON)],
+        &["/bin/sh", "-c", &command],
+        "bijux.benchmark.fastq.validate_reads.bundle.v1",
+        "bijux_dna_planner_fastq::tool_adapters::stages::pre::validate_reads",
+        "benchmark.fastq.validate_reads.compare",
+        resources(4, 8, 4),
+        &[
+            "qualification_binding_uses_the_governed_single_end_profile",
+            "paired_end_execution_requires_the_stage_planner_pair_synchronization_wrapper",
+            "native_validation_log_remains_attempt_evidence_only",
+        ],
+    )
+}
+
+fn seqfu_profile_read_lengths() -> ToolBindingV1 {
+    retained_binding(
+        "fastq.profile_read_lengths",
+        "seqfu",
+        &["single_end_reads", "per_record_length_observations", "report_only_profile"],
+        &[input("reads_r1", FASTQ_PAIRED)],
+        &[],
+        &[output("length_distribution_tsv", TABLE)],
+        &[
+            "/bin/sh",
+            "-c",
+            "'${executable}' tab '${input:reads_r1}' | awk -F '\\t' '{print $1 \"\\t\" length($3)}' > '${output:length_distribution_tsv}'",
+        ],
+        "bijux.benchmark.fastq.profile_read_lengths.bundle.v1",
+        "bijux_dna_planner_fastq::tool_adapters::stages::pre::profile_read_lengths",
+        "benchmark.fastq.profile_read_lengths.compare",
+        resources(2, 4, 4),
+        &[
+            "qualification_binding_uses_the_governed_single_end_profile",
+            "histogram_bins_are_applied_by_the_shared_result_normalizer",
+            "native_tsv_contains_record_identity_and_exact_sequence_length",
+        ],
+    )
+}
+
+fn seqfu_profile_reads() -> ToolBindingV1 {
+    retained_binding(
+        "fastq.profile_reads",
+        "seqfu",
+        &["single_end_reads", "read_statistics", "gc_statistics"],
+        &[input("reads_r1", FASTQ_PAIRED)],
+        &["threads"],
+        &[output("qc_tsv", TABLE)],
+        &[
+            "/bin/sh",
+            "-c",
+            "'${executable}' stats --threads '${parameter:threads}' --gc '${input:reads_r1}' > '${output:qc_tsv}'",
+        ],
+        "bijux.benchmark.fastq.profile_reads.bundle.v1",
+        "bijux_dna_planner_fastq::tool_adapters::stages::qc::profile_reads",
+        "benchmark.fastq.profile_reads.compare",
+        resources(2, 4, 4),
+        &[
+            "qualification_binding_uses_the_governed_single_end_profile",
+            "qc_json_and_histograms_are_emitted_by_the_shared_result_normalizer",
+        ],
+    )
+}
+
+fn seqkit_profile_read_lengths() -> ToolBindingV1 {
+    retained_binding(
+        "fastq.profile_read_lengths",
+        "seqkit",
+        &["single_end_reads", "per_record_length_observations", "report_only_profile"],
+        &[input("reads_r1", FASTQ_PAIRED)],
+        &["threads"],
+        &[output("length_distribution_tsv", TABLE)],
+        &[
+            "/bin/sh",
+            "-c",
+            "'${executable}' fx2tab --name --only-id --length --threads '${parameter:threads}' '${input:reads_r1}' | awk -F '\\t' 'NF < 2 { exit 2 } { print $1 \"\\t\" $NF }' > '${output:length_distribution_tsv}'",
+        ],
+        "bijux.benchmark.fastq.profile_read_lengths.bundle.v1",
+        "bijux_dna_planner_fastq::tool_adapters::stages::pre::profile_read_lengths",
+        "benchmark.fastq.profile_read_lengths.compare",
+        resources(2, 4, 4),
+        &[
+            "qualification_uses_the_governed_single_end_profile_when_selected_for_this_stage",
+            "histogram_bins_are_applied_by_the_shared_result_normalizer",
+            "native_tsv_contains_record_identity_and_exact_sequence_length",
+        ],
+    )
+}
+
+fn seqkit_profile_reads() -> ToolBindingV1 {
+    retained_binding(
+        "fastq.profile_reads",
+        "seqkit",
+        &["single_end_reads", "read_statistics", "tabular_statistics"],
+        &[input("reads_r1", FASTQ_PAIRED)],
+        &["threads"],
+        &[output("qc_tsv", TABLE)],
+        &[
+            "/bin/sh",
+            "-c",
+            "'${executable}' stats -a -T -j '${parameter:threads}' '${input:reads_r1}' > '${output:qc_tsv}'",
+        ],
+        "bijux.benchmark.fastq.profile_reads.bundle.v1",
+        "bijux_dna_planner_fastq::tool_adapters::stages::qc::profile_reads",
+        "benchmark.fastq.profile_reads.compare",
+        resources(2, 4, 4),
+        &[
+            "qualification_uses_the_governed_single_end_profile_when_selected_for_this_stage",
+            "qc_json_and_histograms_are_emitted_by_the_shared_result_normalizer",
+        ],
+    )
+}
+
+fn seqkit_stats_profile_reads() -> ToolBindingV1 {
+    retained_binding(
+        "fastq.profile_reads",
+        "seqkit_stats",
+        &["single_end_reads", "read_statistics", "tabular_statistics"],
+        &[input("reads_r1", FASTQ_PAIRED)],
+        &["threads"],
+        &[output("qc_tsv", TABLE)],
+        &[
+            "/bin/sh",
+            "-c",
+            "'${executable}' -a -T -j '${parameter:threads}' '${input:reads_r1}' > '${output:qc_tsv}'",
+        ],
+        "bijux.benchmark.fastq.profile_reads.bundle.v1",
+        "bijux_dna_planner_fastq::tool_adapters::stages::qc::profile_reads",
+        "benchmark.fastq.profile_reads.compare",
+        resources(2, 2, 2),
+        &[
+            "qualification_binding_uses_the_governed_single_end_profile",
+            "qc_json_and_histograms_are_emitted_by_the_shared_result_normalizer",
+        ],
+    )
+}
+
+fn centrifuge_screen_taxonomy() -> ToolBindingV1 {
+    retained_binding(
+        "fastq.screen_taxonomy",
+        "centrifuge",
+        &["single_end_reads", "taxonomy_database", "read_level_taxonomy_assignments"],
+        &[input("reads_r1", FASTQ_PAIRED), input("taxonomy_database", "bijux.auxiliary.artifact.database.v1")],
+        &["threads"],
+        &[output("screen_report_tsv", TABLE), output("native_assignments", TABLE)],
+        &[
+            "/bin/sh",
+            "-c",
+            "'${executable}' -x '${input:taxonomy_database}/reference' -q -U '${input:reads_r1}' -S '${output:native_assignments}' --report-file '${output:screen_report_tsv}' -p '${parameter:threads}'",
+        ],
+        "bijux.benchmark.fastq.screen_taxonomy.bundle.v1",
+        "bijux_dna_planner_fastq::tool_adapters::stages::qc::screen_taxonomy",
+        "benchmark.fastq.screen_taxonomy.compare",
+        resources(4, 16, 8),
+        &["qualification_binding_uses_the_governed_single_end_profile"],
+    )
+}
+
+fn kaiju_screen_taxonomy() -> ToolBindingV1 {
+    retained_binding(
+        "fastq.screen_taxonomy",
+        "kaiju",
+        &["single_end_reads", "protein_level_taxonomy", "taxonomy_database"],
+        &[input("reads_r1", FASTQ_PAIRED), input("taxonomy_database", "bijux.auxiliary.artifact.database.v1")],
+        &["threads"],
+        &[output("screen_report_tsv", TABLE), output("native_assignments", TABLE)],
+        &[
+            "/bin/sh",
+            "-c",
+            "'${executable}' -t '${input:taxonomy_database}/taxonomy/nodes.dmp' -f '${input:taxonomy_database}/kaiju/kaiju_db.fmi' -i '${input:reads_r1}' -o '${output:native_assignments}' -z '${parameter:threads}' && kaiju2table -t '${input:taxonomy_database}/taxonomy/nodes.dmp' -n '${input:taxonomy_database}/taxonomy/names.dmp' -r genus -o '${output:screen_report_tsv}' '${output:native_assignments}'",
+        ],
+        "bijux.benchmark.fastq.screen_taxonomy.bundle.v1",
+        "bijux_dna_planner_fastq::tool_adapters::stages::qc::screen_taxonomy",
+        "benchmark.fastq.screen_taxonomy.compare",
+        resources(4, 16, 8),
+        &[
+            "qualification_binding_uses_the_governed_single_end_profile",
+            "kaiju2table_must_be_present_in_the_same_admitted_image",
+        ],
+    )
+}
+
+fn kraken2_screen_taxonomy() -> ToolBindingV1 {
+    retained_binding(
+        "fastq.screen_taxonomy",
+        "kraken2",
+        &["single_end_reads", "exact_kmer_taxonomy", "taxonomy_database"],
+        &[
+            input("reads_r1", FASTQ_PAIRED),
+            input("taxonomy_database", "bijux.auxiliary.artifact.database.v1"),
+        ],
+        &["threads"],
+        &[output("screen_report_tsv", TABLE), output("native_assignments", TABLE)],
+        &[
+            "${executable}",
+            "--db",
+            "${input:taxonomy_database}",
+            "--threads",
+            "${parameter:threads}",
+            "--report",
+            "${output:screen_report_tsv}",
+            "--output",
+            "${output:native_assignments}",
+            "${input:reads_r1}",
+        ],
+        "bijux.benchmark.fastq.screen_taxonomy.bundle.v1",
+        "bijux_dna_planner_fastq::tool_adapters::stages::qc::screen_taxonomy",
+        "benchmark.fastq.screen_taxonomy.compare",
+        resources(4, 16, 8),
+        &["qualification_binding_uses_the_governed_single_end_profile"],
+    )
+}
+
+fn krakenuniq_screen_taxonomy() -> ToolBindingV1 {
+    retained_binding(
+        "fastq.screen_taxonomy",
+        "krakenuniq",
+        &["single_end_reads", "unique_kmer_taxonomy", "taxonomy_database"],
+        &[
+            input("reads_r1", FASTQ_PAIRED),
+            input("taxonomy_database", "bijux.auxiliary.artifact.database.v1"),
+        ],
+        &["threads"],
+        &[output("screen_report_tsv", TABLE), output("native_assignments", TABLE)],
+        &[
+            "${executable}",
+            "--db",
+            "${input:taxonomy_database}",
+            "--threads",
+            "${parameter:threads}",
+            "--fastq-input",
+            "--report-file",
+            "${output:screen_report_tsv}",
+            "--output",
+            "${output:native_assignments}",
+            "${input:reads_r1}",
+        ],
+        "bijux.benchmark.fastq.screen_taxonomy.bundle.v1",
+        "bijux_dna_planner_fastq::tool_adapters::stages::qc::screen_taxonomy",
+        "benchmark.fastq.screen_taxonomy.compare",
+        resources(4, 16, 8),
+        &["qualification_binding_uses_the_governed_single_end_profile"],
+    )
 }
 
 fn bedtools_coverage() -> ToolBindingV1 {
@@ -766,10 +1500,11 @@ fn external_binding(
     inputs: &[BindingInputV1],
     outputs: &[BindingOutputV1],
     command_template: &[&str],
-    resources: ToolConstraints,
+    mut resources: ToolConstraints,
     normalizer_id: &str,
     limitations: &[&str],
 ) -> ToolBindingV1 {
+    resources.runtime = "external_artifact".to_string();
     let mut binding_limitations = vec![
         "external_artifact_admission_required".to_string(),
         "artifact_redistribution_prohibited".to_string(),
@@ -823,5 +1558,5 @@ fn output(name: &str, artifact_contract_id: &str) -> BindingOutputV1 {
 }
 
 fn resources(threads: u32, mem_gb: u32, tmp_gb: u32) -> ToolConstraints {
-    ToolConstraints { runtime: "external_artifact".to_string(), mem_gb, tmp_gb, threads }
+    ToolConstraints { runtime: "apptainer".to_string(), mem_gb, tmp_gb, threads }
 }

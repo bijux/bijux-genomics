@@ -3,9 +3,10 @@
 use std::path::Path;
 
 use bijux_dna_runner::api::{
-    cancel_slurm_job, collect_slurm_job, observe_slurm_job, submit_slurm_batch, submit_slurm_job,
-    SlurmArraySpec, SlurmClientPaths, SlurmDependencyCondition, SlurmEvidenceSource, SlurmJobState,
-    SlurmSubmitRequest,
+    cancel_slurm_job, cancel_slurm_jobs, collect_slurm_job, observe_slurm_job, submit_slurm_batch,
+    submit_slurm_job, SlurmArraySpec, SlurmCancelRequest, SlurmClientPaths,
+    SlurmDependencyCondition, SlurmEvidenceSource, SlurmJobState, SlurmSubmitRequest,
+    SLURM_CANCELLATION_SCHEMA_V1,
 };
 
 use crate::scheduler_executable::write_executable;
@@ -458,6 +459,58 @@ fn cancellation_uses_exact_job_identity_and_propagates_failure() -> anyhow::Resu
     paths.scancel = temp.path().join("scancel-denied");
     write_executable(&paths.scancel, "#!/bin/sh\necho denied >&2\nexit 1\n")?;
     assert!(cancel_slurm_job(&paths, &handle).is_err());
+    Ok(())
+}
+
+#[test]
+fn campaign_cancellation_normalizes_manifest_and_explicit_job_ids() -> anyhow::Result<()> {
+    let temp = tempfile::tempdir()?;
+    let paths = client(&temp);
+    let manifest_path = temp.path().join("submission.json");
+    std::fs::write(
+        &manifest_path,
+        r#"{"jobs":[{"scheduler_job_id":"3234"},{"scheduler_job_id":"2234"}]}"#,
+    )?;
+
+    let report = cancel_slurm_jobs(
+        &paths,
+        &SlurmCancelRequest {
+            job_ids: vec!["1234".to_string(), " 2234 ".to_string()],
+            manifest_path: Some(manifest_path),
+            mock: true,
+        },
+    )?;
+
+    assert_eq!(report.schema_version, SLURM_CANCELLATION_SCHEMA_V1);
+    assert_eq!(report.mode, "mock");
+    assert_eq!(report.requested_job_ids, vec!["1234", "2234", "3234"]);
+    assert_eq!(report.cancelled_job_ids, report.requested_job_ids);
+    Ok(())
+}
+
+#[test]
+fn campaign_cancellation_invokes_scancel_once_and_rejects_malformed_ids() -> anyhow::Result<()> {
+    let temp = tempfile::tempdir()?;
+    let paths = client(&temp);
+    let cancellation_log = temp.path().join("campaign-cancelled-jobs");
+    write_executable(
+        &paths.scancel,
+        &format!("#!/bin/sh\nprintf '%s' \"$*\" > {}\n", shell_literal(&cancellation_log)),
+    )?;
+
+    cancel_slurm_jobs(
+        &paths,
+        &SlurmCancelRequest {
+            job_ids: vec!["3459974".to_string(), "3459975".to_string()],
+            manifest_path: None,
+            mock: false,
+        },
+    )?;
+    assert_eq!(std::fs::read_to_string(cancellation_log)?, "3459974 3459975");
+
+    let malformed =
+        SlurmCancelRequest { job_ids: vec!["--help".to_string()], manifest_path: None, mock: true };
+    assert!(cancel_slurm_jobs(&paths, &malformed).is_err());
     Ok(())
 }
 

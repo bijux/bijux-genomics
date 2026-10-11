@@ -1555,19 +1555,16 @@ impl Drop for CurrentDirGuard {
 #[cfg(test)]
 mod tests {
     use super::{render_full_benchmark_report, DEFAULT_FULL_BENCHMARK_REPORT_MARKDOWN_PATH};
+    use crate::commands::benchmark::repo_locking::acquire_cwd_lock;
     use std::path::PathBuf;
 
     fn repo_root() -> PathBuf {
-        PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-            .parent()
-            .expect("workspace crates directory")
-            .parent()
-            .expect("repository root")
-            .to_path_buf()
+        crate::commands::support::workspace_root::resolve_repo_root().expect("repo root")
     }
 
     #[test]
     fn full_benchmark_report_keeps_consistent_sections() {
+        let _cwd_lock = acquire_cwd_lock();
         let repo_root = repo_root();
         let tempdir = tempfile::tempdir().expect("tempdir");
         let report = render_full_benchmark_report(
@@ -1601,6 +1598,7 @@ mod tests {
 
     #[test]
     fn full_benchmark_report_writes_required_sections() {
+        let _cwd_lock = acquire_cwd_lock();
         let repo_root = repo_root();
         let tempdir = tempfile::tempdir().expect("tempdir");
         let output_path = tempdir.path().join(DEFAULT_FULL_BENCHMARK_REPORT_MARKDOWN_PATH);

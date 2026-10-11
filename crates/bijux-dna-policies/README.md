@@ -3,7 +3,7 @@
 `bijux-dna-policies` enforces repository policy checks for source layout, dependency boundaries, documentation hygiene, ownership, fixtures, snapshots, and deterministic governance.
 
 ## Ownership
-This crate owns policy assertion macros, guardrail configuration, deterministic repository scanning, and actionable policy diagnostics.
+This crate owns policy assertion macros, guardrail configuration, deterministic repository scanning, actionable policy diagnostics, and pure product-policy verdicts such as tool eligibility.
 
 It must not own product execution, CLI routing, domain semantics, runtime orchestration, generated-output mutation, process spawning, network access, or snapshot blessing outside explicit test review.
 
@@ -12,6 +12,7 @@ Stable root exports from `src/lib.rs`:
 
 - `check`
 - `GuardrailConfig`
+- `select_eligible_tools`
 - `policy_assert!`
 - `policy_assert_eq!`
 - `policy_assert_ne!`
@@ -21,6 +22,7 @@ Public modules:
 
 - `public_api`
 - `policy_diagnostics`
+- `tool_eligibility`
 
 ## Documentation
 - [docs/INDEX.md](docs/INDEX.md)

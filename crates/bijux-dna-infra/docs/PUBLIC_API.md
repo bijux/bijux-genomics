@@ -9,7 +9,8 @@
 
 ## Stable Root Exports
 
-- Hashing: `hash_file_sha256`.
+- Hashing: `hash_bytes_sha256`, `hash_file_sha256`, and deterministic file-or-directory
+  `hash_path_sha256`.
 - Filesystem IO: `ensure_dir`, `create_file`, `atomic_create_bytes`, `atomic_create_json`,
   `atomic_create_with`, `atomic_write_bytes`, `atomic_write_json`, `atomic_write_with`,
   `write_bytes`, `write_string`, `append_line`, `copy_file`, `rename`, `read_to_end_bounded`,

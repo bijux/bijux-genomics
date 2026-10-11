@@ -140,7 +140,8 @@ mod tests {
 
     #[test]
     fn parallel_runner_collects_every_child_in_declaration_order() -> anyhow::Result<()> {
-        let workspace = Workspace { root: std::env::current_dir()? };
+        let root = tempfile::tempdir()?;
+        let workspace = Workspace { root: root.path().to_path_buf() };
         let specs = ["first", "second"]
             .into_iter()
             .map(|label| ParallelProcessSpec {
@@ -163,7 +164,8 @@ mod tests {
 
     #[test]
     fn parallel_runner_honors_isolated_working_directories() -> anyhow::Result<()> {
-        let workspace = Workspace { root: std::env::current_dir()? };
+        let root = tempfile::tempdir()?;
+        let workspace = Workspace { root: root.path().to_path_buf() };
         let artifact_root = workspace.root.join("artifacts");
         bijux_dna_infra::ensure_dir(&artifact_root)?;
         let isolated = tempfile::tempdir_in(&artifact_root)?;

@@ -961,12 +961,13 @@ mod tests {
         validate_vcf_corpus_fixture_manifest_path, DEFAULT_VCF_MINI_MANIFEST_PATH,
     };
 
+    fn repo_root() -> std::path::PathBuf {
+        crate::commands::support::workspace_root::resolve_repo_root().expect("repo root")
+    }
+
     #[test]
     fn vcf_mini_manifest_contract_is_valid() {
-        let repo_root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-            .join("../..")
-            .canonicalize()
-            .expect("canonicalize repo root");
+        let repo_root = repo_root();
         let manifest_path = repo_root.join(DEFAULT_VCF_MINI_MANIFEST_PATH);
         let manifest =
             load_vcf_corpus_fixture_manifest_path(&manifest_path).expect("load vcf mini manifest");
@@ -976,10 +977,7 @@ mod tests {
 
     #[test]
     fn vcf_mini_manifest_path_validates_fixture_assets() {
-        let repo_root = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-            .join("../..")
-            .canonicalize()
-            .expect("canonicalize repo root");
+        let repo_root = repo_root();
         let manifest_path = repo_root.join(DEFAULT_VCF_MINI_MANIFEST_PATH);
         let report = validate_vcf_corpus_fixture_manifest_path(&repo_root, &manifest_path)
             .expect("validate vcf mini fixture manifest");

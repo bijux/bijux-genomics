@@ -744,8 +744,8 @@ mod tests {
     #[test]
     fn governed_vcf_roh_smoke_reports_segments_and_per_sample_summary() {
         let repo_root =
-            std::path::Path::new(env!("CARGO_MANIFEST_DIR")).ancestors().nth(2).expect("repo root");
-        let report = run_local_vcf_roh_smoke(repo_root, "plink2").expect("run local roh smoke");
+            crate::commands::support::workspace_root::resolve_repo_root().expect("repo root");
+        let report = run_local_vcf_roh_smoke(&repo_root, "plink2").expect("run local roh smoke");
         assert_eq!(report.stage_id, "vcf.roh");
         assert_eq!(report.tool_id, "plink2");
         assert_eq!(report.corpus_id, "vcf_production_regression");

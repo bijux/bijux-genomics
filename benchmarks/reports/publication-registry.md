@@ -4,9 +4,9 @@
 
 Path presence does not confer current benchmark authority. Current products are deterministic crate-owned governance reports; stage evidence is active only in the top-level report namespace and historical only below its exact source commit; any tracked legacy readiness output is quarantined until removed.
 
-- Current governance products: **5**
-- Active stage reports: **1**
-- Historical stage reports: **10**
+- Current governance products: **6**
+- Active stage reports: **0**
+- Historical stage reports: **11**
 - Quarantined tracked files: **0**
 
 ## Current products
@@ -17,6 +17,7 @@ Path presence does not confer current benchmark authority. Current products are 
 | `paper-run-index` | `benchmarks/runs/RUN_INDEX.json` | `benchmarks/runs/RUN_INDEX.md` |
 | `stage-universe` | `benchmarks/contracts/stage-universe.json` | `benchmarks/reports/stage-universe.md` |
 | `stage-benchmark-coverage` | `benchmarks/reports/stage-benchmark-coverage.json` | `benchmarks/reports/stage-benchmark-coverage.md` |
+| `stage-tool-closure` | `benchmarks/reports/STAGE_TOOL_CLOSURE.json` | `benchmarks/reports/STAGE_TOOL_CLOSURE.md` |
 | `scientific-benchmark-readiness` | `benchmarks/reports/scientific-benchmark-readiness.json` | `benchmarks/reports/scientific-benchmark-readiness.md` |
 
 ## Stage reports
@@ -24,7 +25,7 @@ Path presence does not confer current benchmark authority. Current products are 
 | Run | Stage | Source commit | Disposition | JSON |
 |---|---|---|---|---|
 | `run-2001` | `bam.genotyping` | `9348a2417384417ab59052193b56717b69cb0309` | historical | `benchmarks/reports/historical/9348a2417384417ab59052193b56717b69cb0309/run-2001-bam-genotyping.json` |
-| `run-2002` | `bam.coverage` | `8282c2232d021ce60f07edb1ddc65d85598836ed` | active | `benchmarks/reports/run-2002-bam-coverage.json` |
+| `run-2002` | `bam.coverage` | `8282c2232d021ce60f07edb1ddc65d85598836ed` | historical | `benchmarks/reports/historical/8282c2232d021ce60f07edb1ddc65d85598836ed/run-2002-bam-coverage.json` |
 | `run-2002` | `bam.coverage` | `b087cd5ca6412b19a51cb43e7bf4eb098235b7db` | historical | `benchmarks/reports/historical/b087cd5ca6412b19a51cb43e7bf4eb098235b7db/run-2002-bam-coverage.json` |
 | `run-2003` | `bam.endogenous_content` | `27d88388e2fed29f96478c32ec5a5e8c73a7747d` | historical | `benchmarks/reports/historical/27d88388e2fed29f96478c32ec5a5e8c73a7747d/run-2003-bam-endogenous-content.json` |
 | `run-2003` | `bam.endogenous_content` | `4e24ded282af44fb985dd869ba944684538814aa` | historical | `benchmarks/reports/historical/4e24ded282af44fb985dd869ba944684538814aa/run-2003-bam-endogenous-content.json` |

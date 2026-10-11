@@ -52,5 +52,20 @@ fn bench_readiness_adapter_missing_input_file_writes_self_describing_report() {
     );
     assert_eq!(report.get("row_count").and_then(serde_json::Value::as_u64), Some(33));
     assert_eq!(report.get("passed_row_count").and_then(serde_json::Value::as_u64), Some(33));
-    assert_eq!(report.get("rows").and_then(serde_json::Value::as_array).map(Vec::len), Some(33));
+    let rows = report.get("rows").and_then(serde_json::Value::as_array).expect("rows");
+    assert_eq!(rows.len(), 33);
+    assert_eq!(
+        rows.iter()
+            .filter(|row| {
+                row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.genotyping")
+                    && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("bcftools")
+            })
+            .count(),
+        4,
+        "genotyping missing-input probes must exercise the admitted stage implementation"
+    );
+    assert!(rows.iter().all(|row| {
+        row.get("stage_id").and_then(serde_json::Value::as_str) != Some("bam.genotyping")
+            || row.get("tool_id").and_then(serde_json::Value::as_str) != Some("angsd")
+    }));
 }

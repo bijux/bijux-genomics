@@ -8,7 +8,6 @@ use bijux_dna_planner_bam::stage_api::default_tool_for_stage;
 use serde::Serialize;
 use serde_json::Value;
 
-use super::bam_stage_families::{BamStageFamily, BAM_STAGE_FAMILIES};
 use super::local_bam_stage_smoke::run_local_bam_stage_smoke;
 use super::readiness::bam_local_container_probe::{
     collect_bam_local_container_smoke_rows, BamLocalContainerSmokeRow,
@@ -16,6 +15,7 @@ use super::readiness::bam_local_container_probe::{
 use super::readiness::tool_probe_support::{path_relative_to_repo, repo_relative_path};
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
+use bijux_dna_api::v1::api::bench::{BenchmarkStageFamily, BAM_STAGE_FAMILIES};
 
 pub(crate) const DEFAULT_BAM_MICRO_SMOKE_SUMMARY_PATH: &str =
     "artifacts/benchmark-smoke/micro/bam/MICRO_BAM_SUMMARY.json";
@@ -123,7 +123,7 @@ pub(crate) fn render_bam_micro_smoke_subset(
 }
 
 fn select_family_representative<'a>(
-    family: &BamStageFamily,
+    family: &BenchmarkStageFamily,
     smoke_rows: &'a [BamLocalContainerSmokeRow],
 ) -> Result<&'a BamLocalContainerSmokeRow> {
     let mut matching_rows = smoke_rows
@@ -157,7 +157,7 @@ fn select_family_representative<'a>(
 
 fn materialize_family_row(
     repo_root: &Path,
-    family: &BamStageFamily,
+    family: &BenchmarkStageFamily,
     representative: &BamLocalContainerSmokeRow,
 ) -> Result<BamMicroSmokeFamilyRow> {
     let support_path = normalize_optional_string(&representative.smoke_support_path);
@@ -385,7 +385,7 @@ fn default_tool_id(stage_id: &str) -> Option<String> {
     BamStage::try_from(stage_id).ok().map(|stage| default_tool_for_stage(stage).to_string())
 }
 
-fn family_stage_order(family: &BamStageFamily, stage_id: &str) -> usize {
+fn family_stage_order(family: &BenchmarkStageFamily, stage_id: &str) -> usize {
     family
         .stage_ids
         .iter()

@@ -26,7 +26,7 @@ metrics:
   - name: "status"
   - name: "insufficient_reason"
   - name: "insufficient_overlap_probe"
-compatible_tools: ["germline", "ibdseq"]
+compatible_tools: ["germline", "ibdhap", "ibdseq"]
 single_tool_justification: "germline is the governed default because it matches the normalized pair-row contract while retained alternatives provide comparative evidence."
 defaults_source: "doc_ref:domain/vcf/docs/DEFAULT_SETTINGS.md"
 assumptions:

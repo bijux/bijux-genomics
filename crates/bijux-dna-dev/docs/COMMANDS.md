@@ -253,6 +253,7 @@ external-artifact
 extract-version-map
 generate-contract-lock
 generate-evidence-qualification
+generate-execution-bindings
 generate-image-inventory
 generate-image-inventory-report
 generate-image-inventory-publication-schema
@@ -366,6 +367,7 @@ run
 benchmark-attempt-migration
 benchmark-sync-pull
 benchmark-sync-push
+managed-slurm-job
 run-frontend-mini-e2e
 site-cycle-preflight
 validate-frontend-constraints
@@ -410,6 +412,7 @@ benchmark-run-registry
 benchmark-scientific-readiness
 benchmark-smoke-level1
 benchmark-stage-coverage
+benchmark-stage-tool-closure
 benchmark-stage-universe
 bijux
 cargo-targets

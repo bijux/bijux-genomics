@@ -13,8 +13,6 @@ mod mod_contracts_inventory_compatibility_rs;
 mod mod_contracts_manifest_integrity_rs;
 #[path = "contracts/reference.rs"]
 mod mod_contracts_reference_rs;
-#[path = "contracts/run_evidence.rs"]
-mod mod_contracts_run_evidence_rs;
 #[path = "contracts/run_layout_contract.rs"]
 mod mod_contracts_run_layout_contract_rs;
 #[path = "contracts/stage_runner_contract.rs"]

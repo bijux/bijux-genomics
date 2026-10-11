@@ -1,6 +1,5 @@
 use super::{anyhow, sha256_hex, Context, Path, PathBuf, Result, Workspace};
 use crate::model::ops::OpsCommandOutcome;
-use std::fs::OpenOptions;
 use std::io::Write as _;
 use std::sync::atomic::{AtomicU64, Ordering};
 
@@ -76,16 +75,12 @@ fn download_verified_file(
             .with_context(|| format!("download {url}"))?
             .error_for_status()
             .with_context(|| format!("download {url}"))?;
-        let mut output = OpenOptions::new()
-            .create_new(true)
-            .write(true)
-            .open(&partial)
-            .with_context(|| format!("create partial acquisition {}", partial.display()))?;
-        std::io::copy(&mut response, &mut output)
-            .with_context(|| format!("stream {url} to {}", partial.display()))?;
-        output.flush().with_context(|| format!("flush {}", partial.display()))?;
-        output.sync_all().with_context(|| format!("sync {}", partial.display()))?;
-        drop(output);
+        bijux_dna_infra::atomic_create_with(&partial, |output| {
+            std::io::copy(&mut response, output)?;
+            output.flush()?;
+            output.sync_all()
+        })
+        .with_context(|| format!("stream {url} to {}", partial.display()))?;
 
         let observed_size = std::fs::metadata(&partial)
             .with_context(|| format!("inspect {}", partial.display()))?
@@ -173,17 +168,40 @@ pub(super) fn artifact_env_with_common_test_env(
             envs.push(("CARGO_TARGET_DIR".to_string(), value));
         }
     }
-    if let Ok(output) = std::process::Command::new("sh")
-        .args(["-c", "command -v sccache || true"])
-        .current_dir(&workspace.root)
-        .output()
-    {
-        let path = String::from_utf8_lossy(&output.stdout).trim().to_string();
-        if !path.is_empty() {
-            envs.push(("RUSTC_WRAPPER".to_string(), path));
-        }
+    if let Some(wrapper) = compiler_wrapper_env(workspace)? {
+        envs.push(wrapper);
     }
     Ok(envs)
+}
+
+pub(super) fn compiler_wrapper_env(workspace: &Workspace) -> Result<Option<(String, String)>> {
+    let explicit = match std::env::var("RUSTC_WRAPPER") {
+        Ok(value) => Some(value),
+        Err(std::env::VarError::NotPresent) => None,
+        Err(std::env::VarError::NotUnicode(_)) => {
+            return Err(anyhow!("RUSTC_WRAPPER is not valid UTF-8"));
+        }
+    };
+    let discovered = if explicit.is_none() {
+        std::process::Command::new("sh")
+            .args(["-c", "command -v sccache || true"])
+            .current_dir(&workspace.root)
+            .output()
+            .ok()
+            .map(|output| String::from_utf8_lossy(&output.stdout).trim().to_string())
+    } else {
+        None
+    };
+    Ok(select_compiler_wrapper(explicit, discovered))
+}
+
+fn select_compiler_wrapper(
+    explicit: Option<String>,
+    discovered: Option<String>,
+) -> Option<(String, String)> {
+    explicit
+        .or_else(|| discovered.filter(|value| !value.is_empty()))
+        .map(|value| ("RUSTC_WRAPPER".to_string(), value))
 }
 
 pub(super) fn run_make_target(workspace: &Workspace, target: &str) -> Result<OpsCommandOutcome> {
@@ -196,7 +214,24 @@ pub(super) fn resolve_workspace_path(workspace: &Workspace, raw: &str) -> PathBu
 
 #[cfg(test)]
 mod tests {
-    use super::materialize_controlled_file;
+    use super::{materialize_controlled_file, select_compiler_wrapper};
+
+    #[test]
+    fn explicit_empty_compiler_wrapper_disables_discovered_cache() {
+        assert_eq!(
+            select_compiler_wrapper(Some(String::new()), Some("/usr/bin/sccache".to_string())),
+            Some(("RUSTC_WRAPPER".to_string(), String::new()))
+        );
+    }
+
+    #[test]
+    fn compiler_wrapper_discovery_ignores_empty_results() {
+        assert_eq!(select_compiler_wrapper(None, Some(String::new())), None);
+        assert_eq!(
+            select_compiler_wrapper(None, Some("/usr/bin/sccache".to_string())),
+            Some(("RUSTC_WRAPPER".to_string(), "/usr/bin/sccache".to_string()))
+        );
+    }
 
     #[test]
     fn controlled_file_refuses_placeholder_materialization() -> anyhow::Result<()> {

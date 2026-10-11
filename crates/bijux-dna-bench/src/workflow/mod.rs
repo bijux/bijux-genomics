@@ -4,12 +4,15 @@
 
 mod appraisal;
 mod attempt_migration;
+mod bam_alignment;
+mod bam_campaign;
 mod bam_coverage;
 mod bam_duplication_metrics;
 mod bam_endogenous_content;
 mod bam_genotyping;
 mod bam_mapping_summary;
 mod bam_observation;
+mod bam_picard_cohort;
 mod benchmark_matrix;
 mod campaign_cases;
 mod campaign_engine;
@@ -22,29 +25,36 @@ mod cross_campaign;
 mod data_portfolio_audit;
 mod evaluation;
 mod evidence_book;
+mod fastq_campaign;
 mod fastq_detect_adapters;
 mod fastq_expectations;
 mod fastq_profile_read_lengths;
 mod fastq_profile_reads;
 mod fastq_validate_reads;
+mod hardening_campaign;
 mod options;
 mod parameter_authority;
 mod publication_registry;
+mod reference_materialization;
 mod replay;
 mod report_load;
 mod run_index;
 mod run_registry;
 mod run_suite;
+mod runtime_selection;
 mod scientific_readiness;
 mod source_authority;
 mod stage_coverage;
+mod stage_families;
 mod stage_report;
+mod stage_tool_closure;
 mod stage_universe;
 mod suite_load;
 mod summary;
 mod summary_fairness;
 mod summary_scope;
 mod summary_statistics;
+mod vcf_campaign;
 
 pub use appraisal::{
     appraise_matrix_report, hardening_queue_from_appraisal, load_appraisal_report,
@@ -54,6 +64,14 @@ pub use attempt_migration::{
     apply_attempt_migration, plan_attempt_migration, rollback_attempt_migration,
     verify_attempt_migration, write_attempt_migration_plan, BenchmarkAttemptMigrationVerification,
     BenchmarkAttemptMigrationVerificationEntry,
+};
+pub use bam_alignment::{
+    prepare_bam_alignment_material, publish_bam_alignment_stage_report, BamAlignmentMaterial,
+    BamAlignmentStageReportPublication,
+};
+pub use bam_campaign::{
+    derive_bam_benchmark_campaign, load_bam_benchmark_campaign_report,
+    publish_bam_benchmark_campaign_report,
 };
 pub use bam_coverage::{
     prepare_bam_coverage_material, prepare_bam_coverage_material_from_corpus,
@@ -79,6 +97,10 @@ pub use bam_mapping_summary::{
     prepare_bam_mapping_summary_material, prepare_bam_mapping_summary_material_from_corpus,
     publish_bam_mapping_summary_stage_report, render_bam_mapping_summary_markdown,
     BamMappingSummaryMaterial, BamMappingSummaryStageReportPublication,
+};
+pub use bam_picard_cohort::{
+    prepare_bam_picard_cohort_material, publish_bam_gc_bias_stage_report,
+    publish_bam_insert_size_stage_report, BamPicardCohortMaterial,
 };
 pub use benchmark_matrix::{
     current_benchmark_matrix_timestamp, derive_benchmark_matrix, load_benchmark_matrix_report,
@@ -150,6 +172,10 @@ pub use data_portfolio_audit::{
 };
 pub use evaluation::{compare, gate};
 pub use evidence_book::{publish_checked_in_benchmark_evidence_book, BenchmarkEvidenceBookRequest};
+pub use fastq_campaign::{
+    derive_fastq_benchmark_campaign, load_fastq_benchmark_campaign_report,
+    publish_fastq_benchmark_campaign_report,
+};
 pub use fastq_detect_adapters::{
     prepare_fastq_detect_adapters_material_from_expectations,
     publish_fastq_detect_adapters_stage_report, render_fastq_detect_adapters_markdown,
@@ -176,10 +202,17 @@ pub use fastq_validate_reads::{
     publish_fastq_validate_reads_stage_report, render_fastq_validate_reads_markdown,
     FastqValidateReadsMaterial, FastqValidateReadsStageReportPublication,
 };
+pub use hardening_campaign::{
+    derive_hardening_benchmark_campaign, load_hardening_benchmark_campaign_report,
+    publish_hardening_benchmark_campaign_report,
+};
 pub use options::BenchRunOptions;
 pub use publication_registry::{
     derive_benchmark_publication_registry, publish_checked_in_benchmark_publication_registry,
     render_benchmark_publication_registry_markdown, BenchmarkPublicationRegistryWriteMode,
+};
+pub use reference_materialization::{
+    materialize_checked_in_reference_bundle, ReferenceBundleMaterializationRequest,
 };
 pub use replay::{replay_checked_in_benchmark_publication, BenchmarkReplayRequest};
 pub use report_load::{
@@ -193,6 +226,7 @@ pub use run_registry::{
     derive_benchmark_run_registry, publish_checked_in_benchmark_run_registry,
     render_benchmark_run_registry_markdown, BenchmarkRunRegistryWriteMode,
 };
+pub use runtime_selection::resolve_benchmark_runtime;
 pub use scientific_readiness::{
     derive_scientific_readiness, publish_checked_in_scientific_readiness,
     render_scientific_readiness_markdown,
@@ -202,8 +236,15 @@ pub use stage_coverage::{
     derive_stage_coverage, publish_checked_in_stage_coverage, render_stage_coverage_markdown,
     BenchmarkCoverageWriteMode,
 };
+pub use stage_families::{
+    BenchmarkStageFamily, BAM_STAGE_FAMILIES, FASTQ_STAGE_FAMILIES, VCF_STAGE_FAMILIES,
+};
 pub use stage_report::{
     publish_stage_report, render_stage_report_markdown, BenchmarkStageReportPublication,
+};
+pub use stage_tool_closure::{
+    derive_benchmark_stage_tool_closure, publish_checked_in_benchmark_stage_tool_closure,
+    render_benchmark_stage_tool_closure_markdown, BenchmarkStageToolClosureWriteMode,
 };
 pub use stage_universe::{
     derive_stage_universe, publish_checked_in_stage_universe, render_stage_universe_markdown,
@@ -218,3 +259,7 @@ pub use suite_load::{
     load_suite, BenchmarkPublicationInterfaceCatalog, BenchmarkReportPresentationAuthority,
 };
 pub use summary::summarize;
+pub use vcf_campaign::{
+    derive_vcf_benchmark_campaign, load_vcf_benchmark_campaign_report,
+    publish_vcf_benchmark_campaign_report,
+};

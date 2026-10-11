@@ -456,12 +456,7 @@ mod tests {
     use std::path::PathBuf;
 
     fn repo_root() -> PathBuf {
-        PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-            .parent()
-            .expect("workspace crates directory")
-            .parent()
-            .expect("repository root")
-            .to_path_buf()
+        crate::commands::support::workspace_root::resolve_repo_root().expect("repo root")
     }
 
     #[test]

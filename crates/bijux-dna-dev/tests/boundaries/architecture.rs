@@ -129,6 +129,7 @@ fn dev_tree_matches_architecture_contract() {
         "content_support.rs",
         "contracts.rs",
         "dispatch.rs",
+        "execution_bindings.rs",
         "execution_contract.rs",
         "external_artifact.rs",
         "grype_database.rs",

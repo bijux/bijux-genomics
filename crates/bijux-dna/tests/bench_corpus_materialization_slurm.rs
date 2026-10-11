@@ -1,3 +1,4 @@
+#![recursion_limit = "256"]
 #![cfg(unix)]
 
 use std::fs;
@@ -32,6 +33,25 @@ fn prepare_and_submit_recover_across_cli_processes_without_duplicate_effects() -
             "repository_commit": "a".repeat(40),
             "executable_path": executable,
             "executable_sha256": bijux_dna_infra::hash_file_sha256(&executable)?,
+            "command_arguments": [
+                "bench",
+                "materialize-fastq-corpus",
+                "--plan",
+                plan_path.display().to_string(),
+                "--data-root",
+                data_root.display().to_string(),
+                "--repository-commit",
+                "a".repeat(40),
+                "--jobs",
+                "2",
+                "--retries",
+                "2",
+                "--timeout-seconds",
+                "120",
+                "--admitted-at-utc",
+                "2026-08-06T10:25:00Z",
+                "--json"
+            ],
             "plan_path": plan_path,
             "plan_sha256": bijux_dna_infra::hash_file_sha256(&plan_path)?,
             "data_root": data_root,
@@ -132,12 +152,24 @@ fn write_executable(path: &Path, body: &str) -> anyhow::Result<()> {
 
 fn acquisition_plan() -> serde_json::Value {
     serde_json::json!({
-        "schema_version": "bijux.benchmark.corpus_acquisition.v1",
+        "schema_version": "bijux.benchmark.corpus_acquisition.v2",
         "corpus_id": "corpus-01",
         "portfolio_id": "human-short-read-diversity",
         "species": "Homo sapiens",
         "retrieved_at_utc": "2026-08-06T10:00:00Z",
         "source_authority": "European Nucleotide Archive",
+        "description": "real benchmark corpus",
+        "class": "production_real",
+        "access_classification": "public",
+        "redistribution_classification": "public-source-copy",
+        "access_terms_url": "https://www.ebi.ac.uk/ena/browser/about/policies",
+        "attribution": "cite source studies and accessions",
+        "projected_storage_bytes": 1024,
+        "projected_cpu_hours": 1,
+        "projection_basis": "bounded scheduler contract projection",
+        "truth_roles": ["archive_context"],
+        "truth_strategy": "observational_only",
+        "known_limitations": ["not population representative"],
         "source_spec": "benchmarks/corpora/human-short-read-diversity.toml",
         "source_spec_sha256": "b".repeat(64),
         "sample_count": 1,

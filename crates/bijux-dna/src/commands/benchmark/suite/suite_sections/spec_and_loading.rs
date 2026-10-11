@@ -5,6 +5,11 @@ use std::path::{Path, PathBuf};
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use anyhow::{anyhow, Context, Result};
+use bijux_dna_api::v1::api::bench::{
+    ColdWarmContract, DecisionTraceRow, EnvironmentSnapshot, FairnessContract,
+    MetricsArtifactRow, PostconditionRow, RunRecordRow, ScientificDefaultsStatus,
+    SuiteRunManifest, ToolInvocationRow, BENCHMARK_SUITE_RUN_MANIFEST_SCHEMA_V2,
+};
 use flate2::write::GzEncoder;
 use flate2::Compression;
 use serde::{Deserialize, Serialize};
@@ -53,111 +58,6 @@ pub struct FairnessSpec {
 pub enum BenchReportFormat {
     Json,
     Html,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct SuiteRunManifest {
-    pub schema_version: String,
-    pub suite_id: String,
-    pub run_id: String,
-    pub run_context: String,
-    pub corpus: String,
-    pub species_id: Option<String>,
-    pub fairness: FairnessContract,
-    pub cold_vs_warm: ColdWarmContract,
-    pub decision_trace: Vec<DecisionTraceRow>,
-    pub tool_invocations: Vec<ToolInvocationRow>,
-    pub metrics_artifacts: Vec<MetricsArtifactRow>,
-    pub postconditions: Vec<PostconditionRow>,
-    pub run_records: Vec<RunRecordRow>,
-    pub comparability_hash: String,
-    pub environment: EnvironmentSnapshot,
-    pub scientific_defaults: ScientificDefaultsStatus,
-    pub telemetry_path: String,
-    pub reproducibility_bundle: String,
-    pub created_at_unix: u64,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct FairnessContract {
-    pub threads: u32,
-    pub mem_gb: u32,
-    pub tmp_policy: String,
-    pub tmp_root: String,
-    pub deviations: Vec<String>,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct ColdWarmContract {
-    pub cold_runs: u32,
-    pub warm_runs: u32,
-    pub cold_run_records_image_cost: bool,
-    pub warm_runs_exclude_image_cost: bool,
-}
-
-#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
-pub struct DecisionTraceRow {
-    pub stage: String,
-    pub candidates: Vec<String>,
-    pub selected_tool: String,
-    pub reason: String,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct ToolInvocationRow {
-    pub stage: String,
-    pub tool: String,
-    pub mode: String,
-    pub run_index: u32,
-    pub tool_version: String,
-    pub image_digest: String,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct MetricsArtifactRow {
-    pub stage: String,
-    pub tool: String,
-    pub mode: String,
-    pub run_index: u32,
-    pub path: String,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct PostconditionRow {
-    pub stage: String,
-    pub tool: String,
-    pub mode: String,
-    pub run_index: u32,
-    pub ok: bool,
-    pub checks: Vec<String>,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct RunRecordRow {
-    pub stage: String,
-    pub tool: String,
-    pub mode: String,
-    pub run_index: u32,
-    pub runtime_s: f64,
-    pub memory_mb: f64,
-    pub read_retention: f64,
-    pub length_shift: f64,
-    pub delta_metrics: Option<serde_json::Value>,
-    pub valid: bool,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct EnvironmentSnapshot {
-    pub apptainer_version: String,
-    pub kernel: String,
-    pub site_lock: serde_json::Value,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct ScientificDefaultsStatus {
-    pub doc_path: String,
-    pub reference_defaults_ok: bool,
-    pub checked_rows: usize,
 }
 
 #[derive(Debug, Serialize)]

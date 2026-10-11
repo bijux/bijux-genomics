@@ -1,4 +1,6 @@
 // Auto-generated test aggregator for contracts
+#[path = "contracts/active_scope.rs"]
+mod mod_contracts_active_scope_rs;
 #[path = "contracts/appraisal.rs"]
 mod mod_contracts_appraisal_rs;
 #[path = "contracts/benchmark_execution.rs"]
@@ -47,5 +49,7 @@ mod mod_contracts_run_index_rs;
 mod mod_contracts_source_authority_rs;
 #[path = "contracts/stage_result.rs"]
 mod mod_contracts_stage_result_rs;
+#[path = "contracts/stage_tool_closure.rs"]
+mod mod_contracts_stage_tool_closure_rs;
 #[path = "contracts/suite_validation.rs"]
 mod mod_contracts_suite_validation_rs;

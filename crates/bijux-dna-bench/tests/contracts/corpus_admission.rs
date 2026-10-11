@@ -3,8 +3,8 @@ use std::path::{Path, PathBuf};
 
 use anyhow::Result;
 use bijux_dna_bench::{
-    admit_bam_benchmark_corpus, admit_bam_genotyping_corpus, admit_fastq_benchmark_corpus,
-    BenchmarkFastqLayout,
+    admit_bam_benchmark_cohort, admit_bam_benchmark_corpus, admit_bam_genotyping_corpus,
+    admit_benchmark_reference, admit_fastq_benchmark_corpus, BenchmarkFastqLayout,
 };
 use serde_json::{json, Value};
 use tempfile::TempDir;
@@ -29,6 +29,20 @@ struct BamGenotypingCorpusFixture {
     _temp: TempDir,
     study_root: PathBuf,
     data_index: PathBuf,
+}
+
+struct BamCohortFixture {
+    _temp: TempDir,
+    study_root: PathBuf,
+    data_index: PathBuf,
+    first_bam: PathBuf,
+}
+
+struct BenchmarkReferenceFixture {
+    _temp: TempDir,
+    study_root: PathBuf,
+    data_index: PathBuf,
+    dictionary: PathBuf,
 }
 
 #[test]
@@ -90,6 +104,71 @@ fn rejects_bam_bytes_that_drift_after_index_publication() -> Result<()> {
 }
 
 #[test]
+fn admits_verified_bam_cohort_in_sample_identity_order() -> Result<()> {
+    let fixture = bam_cohort_fixture()?;
+    let admitted = admit_bam_benchmark_cohort(
+        &fixture.study_root,
+        &fixture.data_index,
+        "ancient-bam-cohort",
+        2,
+    )?;
+
+    assert_eq!(admitted.sample_count, 2);
+    assert_eq!(admitted.file_count, 4);
+    assert_eq!(admitted.samples[0].sample_id, "ERR000001");
+    assert_eq!(admitted.samples[1].sample_id, "ERR000002");
+    assert_eq!(admitted.samples[0].input_bytes, 14);
+    assert_eq!(admitted.samples[1].input_bytes, 14);
+    assert_eq!(admitted.input_bytes, 28);
+    assert!(admitted.samples.iter().all(|sample| {
+        Path::new(&sample.bam.path).is_absolute() && Path::new(&sample.bam_index.path).is_absolute()
+    }));
+    Ok(())
+}
+
+#[test]
+fn rejects_bam_cohort_bytes_that_drift_after_index_publication() -> Result<()> {
+    let fixture = bam_cohort_fixture()?;
+    fs::write(&fixture.first_bam, b"tampered cohort BAM bytes")?;
+
+    let error = admit_bam_benchmark_cohort(
+        &fixture.study_root,
+        &fixture.data_index,
+        "ancient-bam-cohort",
+        2,
+    )
+    .expect_err("tampered cohort BAM bytes must be rejected");
+    assert!(error.to_string().contains("size differs"));
+    Ok(())
+}
+
+#[test]
+fn admits_complete_reference_bundle() -> Result<()> {
+    let fixture = benchmark_reference_fixture()?;
+    let admitted =
+        admit_benchmark_reference(&fixture.study_root, &fixture.data_index, "grch38-reference")?;
+
+    assert_eq!(admitted.reference_id, "grch38-reference");
+    assert!(admitted.fasta.path.ends_with("GRCh38.fna"));
+    assert!(admitted.fasta_index.path.ends_with("GRCh38.fna.fai"));
+    assert!(admitted.sequence_dictionary.path.ends_with("GRCh38.dict"));
+    assert_eq!(admitted.input_bytes, 35);
+    Ok(())
+}
+
+#[test]
+fn rejects_reference_bytes_that_drift_after_index_publication() -> Result<()> {
+    let fixture = benchmark_reference_fixture()?;
+    fs::write(&fixture.dictionary, b"tampered sequence dictionary")?;
+
+    let error =
+        admit_benchmark_reference(&fixture.study_root, &fixture.data_index, "grch38-reference")
+            .expect_err("tampered reference dictionary must be rejected");
+    assert!(error.to_string().contains("size differs"));
+    Ok(())
+}
+
+#[test]
 fn admits_complete_bam_genotyping_authority_closure() -> Result<()> {
     let fixture = bam_genotyping_corpus_fixture()?;
     let admitted = admit_bam_genotyping_corpus(&fixture.study_root, &fixture.data_index)?;
@@ -143,6 +222,29 @@ fn admits_exact_verified_fastq_closure_in_deterministic_order() -> Result<()> {
         .iter()
         .flat_map(|sample| &sample.files)
         .all(|file| { Path::new(&file.path).is_absolute() && file.sha256.len() == 64 }));
+    Ok(())
+}
+
+#[test]
+fn admits_fastq_closure_reverified_from_existing_governed_bytes() -> Result<()> {
+    let fixture = corpus_fixture()?;
+    let catalog_path = fixture.study_root.join("data/catalog/human-short-read-diversity.json");
+    let mut catalog: Value = serde_json::from_slice(&fs::read(&catalog_path)?)?;
+    for file in catalog["files"].as_array_mut().expect("catalog files") {
+        file["materialization_status"] = Value::String("verified_existing".to_string());
+    }
+    write_json(&catalog_path, &catalog)?;
+    let mut index: Value = serde_json::from_slice(&fs::read(&fixture.data_index)?)?;
+    index["records"][0]["catalog_sha256"] =
+        Value::String(bijux_dna_infra::hash_file_sha256(&catalog_path)?);
+    write_json(&fixture.data_index, &index)?;
+
+    let admitted =
+        admit_fastq_benchmark_corpus(&fixture.study_root, &fixture.data_index, CORPUS_ID, 2, 3)?;
+
+    assert_eq!(admitted.sample_count, 2);
+    assert_eq!(admitted.file_count, 3);
+    assert_eq!(admitted.input_bytes, 54);
     Ok(())
 }
 
@@ -358,6 +460,130 @@ fn bam_corpus_fixture() -> Result<BamCorpusFixture> {
     })]);
     write_json(&data_index, &index)?;
     Ok(BamCorpusFixture { _temp: temp, study_root, data_index, bam })
+}
+
+fn bam_cohort_fixture() -> Result<BamCohortFixture> {
+    let temp = tempfile::tempdir()?;
+    let study_root = temp.path().join("STUDY");
+    let catalog_path = study_root.join("data/catalog/ancient-bam-cohort.json");
+    let data_index = study_root.join("data/evidence/indexes/source/data-index.json");
+    let corpus_root = study_root.join("data/corpora/ancient-bam-cohort");
+    fs::create_dir_all(catalog_path.parent().expect("catalog parent"))?;
+    fs::create_dir_all(data_index.parent().expect("index parent"))?;
+
+    let mut catalog_files = Vec::new();
+    let mut index_files = Vec::new();
+    let mut first_bam = None;
+    for sample_id in ["ERR000002", "ERR000001"] {
+        let sample_root = corpus_root.join(sample_id);
+        fs::create_dir_all(&sample_root)?;
+        for (suffix, role, bytes) in [
+            (".sorted.bam", "coordinate-sorted-deduplicated-bam", b"BAM-bytes".as_slice()),
+            (".sorted.bam.bai", "bam-index", b"index".as_slice()),
+        ] {
+            let path = sample_root.join(format!("{sample_id}{suffix}"));
+            fs::write(&path, bytes)?;
+            if sample_id == "ERR000001" && role == "coordinate-sorted-deduplicated-bam" {
+                first_bam = Some(path.clone());
+            }
+            let sha256 = bijux_dna_infra::hash_bytes_sha256(bytes);
+            catalog_files.push(json!({
+                "accession": sample_id,
+                "path": format!("/archive/{sample_id}/{}", path.file_name().expect("file name").to_string_lossy()),
+                "kind": role,
+                "sha256": sha256,
+                "size_bytes": bytes.len(),
+            }));
+            index_files.push(json!({
+                "path": format!("study://data/corpora/ancient-bam-cohort/{sample_id}/{}", path.file_name().expect("file name").to_string_lossy()),
+                "role": role,
+                "sha256": sha256,
+                "size_bytes": bytes.len(),
+                "legacy_fields": ["path", "sha256", "size_bytes"],
+            }));
+        }
+    }
+    write_json(
+        &catalog_path,
+        &json!({
+            "schema_version": "bijux.data_catalog.v1",
+            "id": "ancient-bam-cohort",
+            "samples": [
+                {"accession": "ERR000002"},
+                {"accession": "ERR000001"},
+            ],
+            "files": catalog_files,
+        }),
+    )?;
+    let catalog_sha256 = bijux_dna_infra::hash_file_sha256(&catalog_path)?;
+    let index = governed_data_index(vec![json!({
+        "id": "ancient-bam-cohort",
+        "benchmark_eligibility": "eligible",
+        "integrity_status": "verified",
+        "catalog_path": "study://data/catalog/ancient-bam-cohort.json",
+        "catalog_sha256": catalog_sha256,
+        "files": index_files,
+        "purpose": "exercise BAM cohort admission",
+        "source_identities": ["source:test-fixture"],
+        "access_classification": "test-only",
+        "redistribution_classification": "test-only",
+        "scientific_name": "Homo sapiens",
+        "reference_assembly": "GRCh38",
+        "temporal_provenance": {
+            "field": "created_at_utc",
+            "timestamp": "2026-08-11T00:00:00Z"
+        },
+        "known_limitations": ["synthetic test data"],
+        "missing_provenance": [],
+    })]);
+    write_json(&data_index, &index)?;
+    Ok(BamCohortFixture {
+        first_bam: first_bam.expect("first BAM"),
+        _temp: temp,
+        study_root,
+        data_index,
+    })
+}
+
+fn benchmark_reference_fixture() -> Result<BenchmarkReferenceFixture> {
+    let temp = tempfile::tempdir()?;
+    let study_root = temp.path().join("STUDY");
+    let data_index = study_root.join("data/evidence/indexes/source/data-index.json");
+    let reference_root = study_root.join("data/references/grch38-reference");
+    let catalog_root = study_root.join("data/catalog");
+    fs::create_dir_all(data_index.parent().expect("index parent"))?;
+    fs::create_dir_all(&reference_root)?;
+    fs::create_dir_all(&catalog_root)?;
+
+    let dictionary = reference_root.join("GRCh38.dict");
+    let files = write_authority_files(
+        &study_root,
+        &[
+            (reference_root.join("GRCh38.fna"), "reference-fasta", b">chr1\nACGT\n".as_slice()),
+            (
+                reference_root.join("GRCh38.fna.fai"),
+                "reference-fasta-index",
+                b"chr1\t4\n".as_slice(),
+            ),
+            (
+                dictionary.clone(),
+                "reference-sequence-dictionary",
+                b"@SQ\tSN:chr1\tLN:4\n".as_slice(),
+            ),
+        ],
+    )?;
+    let catalog = catalog_root.join("grch38-reference.json");
+    write_json(
+        &catalog,
+        &json!({
+            "schema_version": "bijux.data_catalog.v1",
+            "id": "grch38-reference",
+            "files": catalog_files(&study_root, &files, false),
+        }),
+    )?;
+    let record = index_record(&study_root, "grch38-reference", &catalog, &files)?;
+    write_json(&data_index, &governed_data_index(vec![record]))?;
+    Ok(BenchmarkReferenceFixture { _temp: temp, study_root, data_index, dictionary })
 }
 
 fn bam_genotyping_corpus_fixture() -> Result<BamGenotypingCorpusFixture> {

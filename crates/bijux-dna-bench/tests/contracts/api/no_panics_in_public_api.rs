@@ -31,6 +31,7 @@ fn no_panics_in_public_api() {
         let Ok(contents) = fs::read_to_string(&file) else {
             continue;
         };
+        let contents = bijux_dna_testkit::workspace_support::strip_rust_test_modules(&contents);
         for needle in ["panic!(", ".unwrap()", ".expect("] {
             if contents.contains(needle) {
                 offenders.push(format!("{path_str}: {needle}"));

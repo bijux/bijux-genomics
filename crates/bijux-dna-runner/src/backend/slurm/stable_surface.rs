@@ -8,12 +8,14 @@ pub use super::benchmark_cycle::{
     BenchmarkCampaignSubmissionState, BenchmarkCampaignSubmissionUnit,
 };
 pub use super::client::{
-    cancel_slurm_job, collect_slurm_job, observe_slurm_job, submit_slurm_batch, submit_slurm_job,
+    cancel_slurm_job, cancel_slurm_jobs, collect_slurm_job, observe_slurm_job, submit_slurm_batch,
+    submit_slurm_job,
 };
 pub use super::contracts::{
     SlurmAccounting, SlurmArraySpec, SlurmArrayTaskAccounting, SlurmBatchSubmission,
-    SlurmClientPaths, SlurmDependencyCondition, SlurmEvidenceSource, SlurmJobHandle,
-    SlurmJobObservation, SlurmJobState, SlurmSubmissionFailure, SlurmSubmitRequest,
+    SlurmCancelReport, SlurmCancelRequest, SlurmClientPaths, SlurmDependencyCondition,
+    SlurmEvidenceSource, SlurmJobHandle, SlurmJobObservation, SlurmJobState,
+    SlurmSubmissionFailure, SlurmSubmitRequest, SLURM_CANCELLATION_SCHEMA_V1,
     SLURM_JOB_HANDLE_SCHEMA_V1,
 };
 pub use super::corpus_materialization::{
@@ -37,6 +39,14 @@ pub use super::image_campaign::{
     ImageCampaignEvidenceStatus, ImageCampaignSlurmResources, ImageCampaignSlurmSpec,
     PreparedImageCampaignSlurmJob, IMAGE_CAMPAIGN_EVIDENCE_SCHEMA_V1,
     IMAGE_CAMPAIGN_PREPARED_JOB_SCHEMA_V1, IMAGE_CAMPAIGN_SLURM_SPEC_SCHEMA_V1,
+};
+pub use super::managed_job::{
+    collect_managed_slurm_job, load_managed_slurm_job_handle, load_managed_slurm_job_spec,
+    load_prepared_managed_slurm_job, observe_managed_slurm_job, prepare_managed_slurm_job,
+    submit_prepared_managed_slurm_job, ManagedSlurmJobCollection, ManagedSlurmJobEvidence,
+    ManagedSlurmJobResources, ManagedSlurmJobSpec, PreparedManagedSlurmJob,
+    MANAGED_SLURM_JOB_EVIDENCE_SCHEMA_V1, MANAGED_SLURM_JOB_SPEC_SCHEMA_V1,
+    PREPARED_MANAGED_SLURM_JOB_SCHEMA_V1,
 };
 pub use super::qualification::{
     admit_container_qualification_collection, admit_container_qualification_cycle,

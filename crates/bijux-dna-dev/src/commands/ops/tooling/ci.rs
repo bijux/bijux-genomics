@@ -15,7 +15,7 @@ use super::{
 };
 use crate::runtime::process::{ParallelProcessSpec, ProcessRunner};
 
-const FULL_SHARDS_SCHEMA_V2: &str = "bijux.ci.full_shards.v2";
+const FULL_SHARDS_SCHEMA_V3: &str = "bijux.ci.full_shards.v3";
 const FAST_GROUPS_SCHEMA_V1: &str = "bijux.ci.fast_groups.v1";
 const FAST_TIMING_HISTORY_SCHEMA_V1: &str = "bijux.ci.fast_timing_history.v1";
 
@@ -27,6 +27,8 @@ struct FullShardContract {
     partition_strategy: String,
     workspace_isolation: String,
     build_authority: String,
+    archive_build_jobs: usize,
+    archive_root: String,
     shard_artifact_root: String,
     report_root: String,
     shards: Vec<FullShard>,
@@ -52,6 +54,7 @@ struct FullShard {
 #[derive(Debug, Clone, PartialEq, Eq)]
 struct FullShardRoots {
     artifact_root: PathBuf,
+    archive_extract: PathBuf,
     cargo_target: PathBuf,
     test_target: PathBuf,
     coverage_target: PathBuf,
@@ -59,6 +62,65 @@ struct FullShardRoots {
     coverage_tmp: PathBuf,
     test_profraw: PathBuf,
     coverage_profraw: PathBuf,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+struct FullArchiveRoots {
+    artifact_root: PathBuf,
+    cargo_target: PathBuf,
+    archive_file: PathBuf,
+    build_log: PathBuf,
+}
+
+struct FullShardEphemera {
+    report_workspaces: PathBuf,
+    archive_file: PathBuf,
+    archive_target: PathBuf,
+    shard_artifact_roots: Vec<PathBuf>,
+    armed: bool,
+}
+
+impl FullShardEphemera {
+    fn new(
+        report_root: &Path,
+        archive_roots: &FullArchiveRoots,
+        shard_roots: &[FullShardRoots],
+    ) -> Result<Self> {
+        let archive_target = archive_roots
+            .cargo_target
+            .parent()
+            .context("full shard archive Cargo target has no parent")?
+            .to_path_buf();
+        Ok(Self {
+            report_workspaces: report_root.join("workspaces"),
+            archive_file: archive_roots.archive_file.clone(),
+            archive_target,
+            shard_artifact_roots: shard_roots
+                .iter()
+                .map(|roots| roots.artifact_root.clone())
+                .collect(),
+            armed: true,
+        })
+    }
+
+    fn retain_bounded_evidence(&mut self) -> Result<()> {
+        remove_full_shard_ephemera(&self.report_workspaces)?;
+        for path in &self.shard_artifact_roots {
+            remove_full_shard_ephemera(path)?;
+        }
+        remove_full_shard_ephemera(&self.archive_target)?;
+        remove_full_shard_ephemera(&self.archive_file)?;
+        self.armed = false;
+        Ok(())
+    }
+}
+
+impl Drop for FullShardEphemera {
+    fn drop(&mut self) {
+        if self.armed {
+            let _ = self.retain_bounded_evidence();
+        }
+    }
 }
 
 #[derive(Debug, Deserialize)]
@@ -255,7 +317,7 @@ pub(in super::super) fn tooling_ci_fast(
         .with_context(|| format!("parse {}", contract_path.display()))?;
     validate_fast_group_contract(&contract)?;
 
-    let report_root = workspace.path(&contract.report_root);
+    let report_root = ci_output_path(workspace, &contract.report_root)?;
     bijux_dna_infra::ensure_dir(&report_root)?;
     let envs = artifact_env(workspace)?;
     let started = Instant::now();
@@ -379,7 +441,7 @@ pub(in super::super) fn tooling_ci_fast(
         && actual_os == contract.reference_runner.os
         && actual_architecture == contract.reference_runner.architecture
         && actual_rust_toolchain == contract.reference_runner.rust_toolchain;
-    let history_path = workspace.path(&contract.timing_history);
+    let history_path = ci_output_path(workspace, &contract.timing_history)?;
     let mut history = load_fast_timing_history(&history_path)?;
     if eligible_reference_observation {
         history.observations.push(FastTimingObservation {
@@ -412,7 +474,7 @@ pub(in super::super) fn tooling_ci_fast(
         })
     });
     write_json_pretty(
-        &workspace.path(&contract.timing_report),
+        &ci_output_path(workspace, &contract.timing_report)?,
         &serde_json::json!({
             "schema_version": "bijux.ci.fast_timing.v1",
             "source_commit": source_commit,
@@ -510,24 +572,89 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
         .with_context(|| format!("parse {}", contract_path.display()))?;
     validate_full_shard_contract(&contract)?;
 
-    let report_root = workspace.path(&contract.report_root);
+    let report_root = ci_output_path(workspace, &contract.report_root)?;
     let build_authority_path = workspace.path(&contract.build_authority);
     let build_authority = read_ci_build_authority(&build_authority_path)?;
     require_ci_test_executor(workspace, &build_authority)?;
     let build_authority_sha256 = bijux_dna_infra::hash_file_sha256(&build_authority_path)?;
     bijux_dna_infra::ensure_dir(&report_root)?;
     let started = Instant::now();
-    let shard_workspaces = contract
-        .shards
-        .iter()
-        .map(|shard| materialize_full_shard_workspace(workspace, &report_root, shard))
-        .collect::<Result<Vec<_>>>()?;
+    let contract_sha256 = bijux_dna_infra::hash_file_sha256(&contract_path)?;
+    let archive_roots = full_archive_roots(workspace, &contract)?;
+    validate_full_archive_roots(workspace, &archive_roots)?;
     let shard_roots = contract
         .shards
         .iter()
         .map(|shard| full_shard_roots(workspace, &contract, shard))
-        .collect::<Vec<_>>();
+        .collect::<Result<Vec<_>>>()?;
     validate_full_shard_root_set(workspace, &shard_roots)?;
+    let mut ephemera = FullShardEphemera::new(&report_root, &archive_roots, &shard_roots)?;
+    prepare_full_archive_roots(&archive_roots)?;
+    let archive_workspace =
+        materialize_full_shard_workspace(workspace, &report_root, "archive-build")?;
+    let archive_spec = ParallelProcessSpec {
+        label: "archive-build".to_string(),
+        program: "cargo".to_string(),
+        args: full_archive_args(&archive_roots.archive_file),
+        envs: full_archive_env(&archive_roots, contract.archive_build_jobs)?,
+        current_dir: Some(archive_workspace.clone()),
+    };
+    let mut archive_outputs = ProcessRunner::new(workspace).run_parallel(vec![archive_spec])?;
+    let archive_output = archive_outputs.pop().context("archive build was not collected")?;
+    let mut archive_log = archive_output.output.stdout.clone();
+    archive_log.extend_from_slice(&archive_output.output.stderr);
+    bijux_dna_infra::write_bytes(&archive_roots.build_log, &archive_log)?;
+    let archive_exit_code = archive_output.output.status.code().unwrap_or(1);
+    let archive_passed = archive_exit_code == 0 && archive_roots.archive_file.is_file();
+    let archive_sha256 = archive_passed
+        .then(|| bijux_dna_infra::hash_file_sha256(&archive_roots.archive_file))
+        .transpose()?;
+    if archive_passed {
+        set_full_archive_readonly(&archive_roots.archive_file)?;
+    }
+    let mut archive_receipt = serde_json::json!({
+        "workspace": workspace.rel(&archive_workspace).to_string_lossy(),
+        "artifact": workspace.rel(&archive_roots.archive_file).to_string_lossy(),
+        "artifact_sha256": archive_sha256,
+        "artifact_present": archive_roots.archive_file.is_file(),
+        "cargo_target_dir": archive_roots.cargo_target.display().to_string(),
+        "build_jobs": contract.archive_build_jobs,
+        "duration_milliseconds": archive_output.duration.as_millis(),
+        "exit_code": archive_exit_code,
+        "log": workspace.rel(&archive_roots.build_log).to_string_lossy(),
+        "read_only_during_shard_execution": archive_passed,
+    });
+    let mut stdout = String::from_utf8_lossy(&archive_output.output.stdout).into_owned();
+    let mut stderr = String::from_utf8_lossy(&archive_output.output.stderr).into_owned();
+    if !archive_passed {
+        write_json_pretty(
+            &ci_output_path(workspace, "artifacts/ci/full-gate-timing.json")?,
+            &serde_json::json!({
+                "schema_version": "bijux.ci.full_gate_timing.v3",
+                "contract_sha256": contract_sha256,
+                "build_authority": workspace.rel(&build_authority_path).to_string_lossy(),
+                "build_authority_sha256": build_authority_sha256,
+                "archive": archive_receipt,
+                "evidence_retention": {
+                    "policy": "bounded_logs_and_receipts",
+                    "archive_retained": false,
+                    "build_targets_retained": false,
+                    "isolated_workspaces_retained": false,
+                    "shard_runtime_artifacts_retained": false,
+                },
+                "wall_time_milliseconds": started.elapsed().as_millis(),
+                "all_passed": false,
+                "shards": [],
+            }),
+        )?;
+        ephemera.retain_bounded_evidence()?;
+        return Ok(OpsCommandOutcome { exit_code: 1, stdout, stderr });
+    }
+    let shard_workspaces = contract
+        .shards
+        .iter()
+        .map(|shard| materialize_full_shard_workspace(workspace, &report_root, &shard.id))
+        .collect::<Result<Vec<_>>>()?;
     let specs = contract
         .shards
         .iter()
@@ -537,25 +664,13 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
             Ok(ParallelProcessSpec {
                 label: shard.id.clone(),
                 program: "cargo".to_string(),
-                args: vec![
-                    "nextest".to_string(),
-                    "run".to_string(),
-                    "--workspace".to_string(),
-                    "--all-targets".to_string(),
-                    "--all-features".to_string(),
-                    "--locked".to_string(),
-                    "--config-file".to_string(),
-                    "configs/rust/nextest.toml".to_string(),
-                    "--profile".to_string(),
-                    "full".to_string(),
-                    "--run-ignored".to_string(),
-                    "all".to_string(),
-                    "--retries".to_string(),
-                    "0".to_string(),
-                    "--partition".to_string(),
-                    shard.partition.clone(),
-                ],
-                envs: full_shard_env(roots)?,
+                args: full_shard_args(
+                    shard,
+                    &archive_roots.archive_file,
+                    &roots.archive_extract,
+                    shard_workspace,
+                ),
+                envs: full_shard_env(roots, shard_workspace)?,
                 current_dir: Some(shard_workspace.clone()),
             })
         })
@@ -563,8 +678,6 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
     let outputs = ProcessRunner::new(workspace).run_parallel(specs)?;
     let mut all_passed = true;
     let mut shard_receipts = Vec::with_capacity(outputs.len());
-    let mut stdout = String::new();
-    let mut stderr = String::new();
     for (((shard, shard_workspace), roots), completed) in
         contract.shards.iter().zip(&shard_workspaces).zip(&shard_roots).zip(outputs)
     {
@@ -580,19 +693,33 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
             "id": completed.label,
             "partition": shard.partition,
             "workspace": workspace.rel(shard_workspace).to_string_lossy(),
-            "environment_roots": full_shard_root_receipt(roots),
+            "environment_roots": full_shard_root_receipt(roots, shard_workspace),
             "duration_milliseconds": completed.duration.as_millis(),
             "exit_code": exit_code,
             "log": workspace.rel(&log_path).to_string_lossy(),
         }));
     }
+    let archive_sha256_after = bijux_dna_infra::hash_file_sha256(&archive_roots.archive_file)?;
+    let archive_checksum_stable = archive_sha256.as_deref() == Some(archive_sha256_after.as_str());
+    all_passed &= archive_checksum_stable;
+    archive_receipt["artifact_sha256_after_execution"] =
+        serde_json::Value::String(archive_sha256_after);
+    archive_receipt["checksum_stable"] = serde_json::Value::Bool(archive_checksum_stable);
     write_json_pretty(
-        &workspace.path("artifacts/ci/full-gate-timing.json"),
+        &ci_output_path(workspace, "artifacts/ci/full-gate-timing.json")?,
         &serde_json::json!({
-            "schema_version": "bijux.ci.full_gate_timing.v2",
-            "contract_sha256": bijux_dna_infra::hash_file_sha256(&contract_path)?,
+            "schema_version": "bijux.ci.full_gate_timing.v3",
+            "contract_sha256": contract_sha256,
             "build_authority": workspace.rel(&build_authority_path).to_string_lossy(),
             "build_authority_sha256": build_authority_sha256,
+            "archive": archive_receipt,
+            "evidence_retention": {
+                "policy": "bounded_logs_and_receipts",
+                "archive_retained": false,
+                "build_targets_retained": false,
+                "isolated_workspaces_retained": false,
+                "shard_runtime_artifacts_retained": false,
+            },
             "coverage": {
                 "workspace": true,
                 "all_targets": true,
@@ -600,14 +727,31 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
                 "run_ignored": "all",
                 "overlap_policy": "exactly_once",
                 "workspace_isolation": contract.workspace_isolation,
-                "output_isolation": "disjoint_per_shard_roots"
+                "output_isolation": "shared_read_only_archive_with_disjoint_extraction_and_runtime_roots"
             },
             "wall_time_milliseconds": started.elapsed().as_millis(),
             "all_passed": all_passed,
             "shards": shard_receipts,
         }),
     )?;
+    ephemera.retain_bounded_evidence()?;
     Ok(OpsCommandOutcome { exit_code: i32::from(!all_passed), stdout, stderr })
+}
+
+fn remove_full_shard_ephemera(path: &Path) -> Result<()> {
+    let Ok(metadata) = path.symlink_metadata() else {
+        return Ok(());
+    };
+    if metadata.file_type().is_symlink() {
+        anyhow::bail!("full shard ephemeral path is a symlink: {}", path.display());
+    }
+    if metadata.is_dir() {
+        std::fs::remove_dir_all(path)
+            .with_context(|| format!("remove full shard ephemeral directory {}", path.display()))
+    } else {
+        std::fs::remove_file(path)
+            .with_context(|| format!("remove full shard ephemeral file {}", path.display()))
+    }
 }
 
 fn read_ci_build_authority(path: &Path) -> Result<CiBuildAuthority> {
@@ -652,12 +796,57 @@ fn validate_ci_test_executor_observation(
     Ok(())
 }
 
+fn full_archive_args(archive_file: &Path) -> Vec<String> {
+    vec![
+        "nextest".to_string(),
+        "archive".to_string(),
+        "--workspace".to_string(),
+        "--all-targets".to_string(),
+        "--all-features".to_string(),
+        "--locked".to_string(),
+        "--config-file".to_string(),
+        "configs/rust/nextest.toml".to_string(),
+        "--profile".to_string(),
+        "full".to_string(),
+        "--archive-file".to_string(),
+        archive_file.display().to_string(),
+    ]
+}
+
+fn full_shard_args(
+    shard: &FullShard,
+    archive_file: &Path,
+    archive_extract: &Path,
+    workspace_remap: &Path,
+) -> Vec<String> {
+    vec![
+        "nextest".to_string(),
+        "run".to_string(),
+        "--archive-file".to_string(),
+        archive_file.display().to_string(),
+        "--extract-to".to_string(),
+        archive_extract.display().to_string(),
+        "--workspace-remap".to_string(),
+        workspace_remap.display().to_string(),
+        "--config-file".to_string(),
+        "configs/rust/nextest.toml".to_string(),
+        "--profile".to_string(),
+        "full".to_string(),
+        "--run-ignored".to_string(),
+        "all".to_string(),
+        "--retries".to_string(),
+        "0".to_string(),
+        "--partition".to_string(),
+        shard.partition.clone(),
+    ]
+}
+
 fn materialize_full_shard_workspace(
     workspace: &Workspace,
     report_root: &Path,
-    shard: &FullShard,
+    identity: &str,
 ) -> Result<PathBuf> {
-    let shard_workspace = report_root.join("workspaces").join(&shard.id);
+    let shard_workspace = report_root.join("workspaces").join(identity);
     if shard_workspace.exists() {
         std::fs::remove_dir_all(&shard_workspace).with_context(|| {
             format!("remove stale shard workspace {}", shard_workspace.display())
@@ -720,9 +909,10 @@ fn full_shard_roots(
     workspace: &Workspace,
     contract: &FullShardContract,
     shard: &FullShard,
-) -> FullShardRoots {
-    let artifact_root = workspace.path(&contract.shard_artifact_root).join(&shard.id);
-    FullShardRoots {
+) -> Result<FullShardRoots> {
+    let artifact_root = ci_output_path(workspace, &contract.shard_artifact_root)?.join(&shard.id);
+    Ok(FullShardRoots {
+        archive_extract: artifact_root.join("nextest/archive"),
         cargo_target: artifact_root.join("target/cargo"),
         test_target: artifact_root.join("target/test"),
         coverage_target: artifact_root.join("target/coverage"),
@@ -731,14 +921,89 @@ fn full_shard_roots(
         test_profraw: artifact_root.join("coverage/profraw-test"),
         coverage_profraw: artifact_root.join("coverage/profraw-coverage"),
         artifact_root,
+    })
+}
+
+fn full_archive_roots(
+    workspace: &Workspace,
+    contract: &FullShardContract,
+) -> Result<FullArchiveRoots> {
+    let artifact_root = ci_output_path(workspace, &contract.archive_root)?;
+    Ok(FullArchiveRoots {
+        cargo_target: artifact_root.join("target/cargo"),
+        archive_file: artifact_root.join("workspace-tests.tar.zst"),
+        build_log: artifact_root.join("build.log"),
+        artifact_root,
+    })
+}
+
+fn ci_output_path(workspace: &Workspace, configured: &str) -> Result<PathBuf> {
+    ci_output_path_under(&artifact_root_path(workspace)?, configured)
+}
+
+fn ci_output_path_under(artifact_root: &Path, configured: &str) -> Result<PathBuf> {
+    validate_artifact_relative_path(configured)?;
+    let suffix = Path::new(configured)
+        .strip_prefix("artifacts")
+        .context("full shard output path has no artifacts prefix")?;
+    Ok(artifact_root.join(suffix))
+}
+
+fn validate_full_archive_roots(workspace: &Workspace, roots: &FullArchiveRoots) -> Result<()> {
+    let governed_artifacts = artifact_root_path(workspace)?;
+    if roots
+        .all()
+        .into_iter()
+        .any(|root| !root.is_absolute() || !root.starts_with(&governed_artifacts))
+    {
+        anyhow::bail!("full shard archive root is outside artifacts");
     }
+    if !roots.archive_file.starts_with(&roots.artifact_root)
+        || !roots.build_log.starts_with(&roots.artifact_root)
+        || !roots.cargo_target.starts_with(&roots.artifact_root)
+    {
+        anyhow::bail!("full shard archive paths escape the archive root");
+    }
+    Ok(())
+}
+
+fn prepare_full_archive_roots(roots: &FullArchiveRoots) -> Result<()> {
+    bijux_dna_infra::ensure_dir(&roots.cargo_target)?;
+    for stale in [&roots.archive_file, &roots.build_log] {
+        if stale.exists() {
+            std::fs::remove_file(stale)
+                .with_context(|| format!("remove stale full shard artifact {}", stale.display()))?;
+        }
+    }
+    Ok(())
+}
+
+fn set_full_archive_readonly(path: &Path) -> Result<()> {
+    let mut permissions = std::fs::metadata(path)
+        .with_context(|| format!("read full shard archive metadata {}", path.display()))?
+        .permissions();
+    permissions.set_readonly(true);
+    std::fs::set_permissions(path, permissions)
+        .with_context(|| format!("make full shard archive read-only {}", path.display()))
+}
+
+fn full_archive_env(roots: &FullArchiveRoots, build_jobs: usize) -> Result<Vec<(String, String)>> {
+    bijux_dna_infra::ensure_dir(&roots.cargo_target)?;
+    Ok(vec![
+        ("ARTIFACT_ROOT".to_string(), roots.artifact_root.display().to_string()),
+        ("ISO_ROOT".to_string(), roots.artifact_root.display().to_string()),
+        ("CARGO_TARGET_DIR".to_string(), roots.cargo_target.display().to_string()),
+        ("CARGO_BUILD_JOBS".to_string(), build_jobs.to_string()),
+        ("TZ".to_string(), "UTC".to_string()),
+        ("LC_ALL".to_string(), "C".to_string()),
+    ])
 }
 
 fn validate_full_shard_root_set(
     workspace: &Workspace,
     shard_roots: &[FullShardRoots],
 ) -> Result<()> {
-    let governed_artifacts = workspace.path("artifacts");
+    let governed_artifacts = artifact_root_path(workspace)?;
     for roots in shard_roots {
         for root in roots.all() {
             if !root.is_absolute() || !root.starts_with(&governed_artifacts) {
@@ -765,7 +1030,7 @@ fn validate_full_shard_root_set(
     Ok(())
 }
 
-fn full_shard_env(roots: &FullShardRoots) -> Result<Vec<(String, String)>> {
+fn full_shard_env(roots: &FullShardRoots, shard_workspace: &Path) -> Result<Vec<(String, String)>> {
     for root in roots.all() {
         bijux_dna_infra::ensure_dir(root)?;
     }
@@ -779,15 +1044,23 @@ fn full_shard_env(roots: &FullShardRoots) -> Result<Vec<(String, String)>> {
         ("COV_TMP_DIR".to_string(), roots.coverage_tmp.display().to_string()),
         ("TEST_PROFRAW_DIR".to_string(), roots.test_profraw.display().to_string()),
         ("COV_PROFRAW_DIR".to_string(), roots.coverage_profraw.display().to_string()),
+        ("BIJUX_REPO_ROOT".to_string(), shard_workspace.display().to_string()),
+        (
+            "BIJUX_BENCHMARK_ROOT".to_string(),
+            shard_workspace.join("benchmarks").display().to_string(),
+        ),
         ("TZ".to_string(), "UTC".to_string()),
         ("LC_ALL".to_string(), "C".to_string()),
     ])
 }
 
-fn full_shard_root_receipt(roots: &FullShardRoots) -> serde_json::Value {
+fn full_shard_root_receipt(roots: &FullShardRoots, shard_workspace: &Path) -> serde_json::Value {
     serde_json::json!({
+        "repository_root": shard_workspace.display().to_string(),
+        "benchmark_root": shard_workspace.join("benchmarks").display().to_string(),
         "artifact_root": roots.artifact_root.display().to_string(),
         "iso_root": roots.artifact_root.display().to_string(),
+        "archive_extract_dir": roots.archive_extract.display().to_string(),
         "cargo_target_dir": roots.cargo_target.display().to_string(),
         "test_target_dir": roots.test_target.display().to_string(),
         "coverage_target_dir": roots.coverage_target.display().to_string(),
@@ -799,9 +1072,10 @@ fn full_shard_root_receipt(roots: &FullShardRoots) -> serde_json::Value {
 }
 
 impl FullShardRoots {
-    fn all(&self) -> [&Path; 8] {
+    fn all(&self) -> [&Path; 9] {
         [
             &self.artifact_root,
+            &self.archive_extract,
             &self.cargo_target,
             &self.test_target,
             &self.coverage_target,
@@ -813,26 +1087,43 @@ impl FullShardRoots {
     }
 }
 
+impl FullArchiveRoots {
+    fn all(&self) -> [&Path; 4] {
+        [&self.artifact_root, &self.cargo_target, &self.archive_file, &self.build_log]
+    }
+}
+
 fn validate_full_shard_contract(contract: &FullShardContract) -> Result<()> {
-    if contract.schema_version != FULL_SHARDS_SCHEMA_V2
+    if contract.schema_version != FULL_SHARDS_SCHEMA_V3
         || !contract.coverage.workspace
         || !contract.coverage.all_targets
         || !contract.coverage.all_features
         || contract.coverage.run_ignored != "all"
         || contract.coverage.overlap_policy != "exactly_once"
         || contract.partition_strategy != "hash"
-        || contract.workspace_isolation != "tracked_source_clone_with_disjoint_outputs"
+        || contract.workspace_isolation != "tracked_source_clones_with_shared_immutable_archive"
         || contract.build_authority != "configs/ci/build-authority.json"
+        || !(1..=16).contains(&contract.archive_build_jobs)
         || !(2..=16).contains(&contract.shards.len())
     {
         anyhow::bail!("full shard coverage contract is incomplete");
     }
+    validate_artifact_relative_path(&contract.archive_root)?;
     validate_artifact_relative_path(&contract.shard_artifact_root)?;
     validate_artifact_relative_path(&contract.report_root)?;
     let report_root = Path::new(&contract.report_root);
+    let archive_root = Path::new(&contract.archive_root);
     let shard_artifact_root = Path::new(&contract.shard_artifact_root);
-    if shard_artifact_root == report_root || !shard_artifact_root.starts_with(report_root) {
-        anyhow::bail!("full shard artifact root must be a child of the report root");
+    if archive_root == report_root
+        || !archive_root.starts_with(report_root)
+        || shard_artifact_root == report_root
+        || !shard_artifact_root.starts_with(report_root)
+        || archive_root.starts_with(shard_artifact_root)
+        || shard_artifact_root.starts_with(archive_root)
+    {
+        anyhow::bail!(
+            "full shard archive and shard roots must be disjoint children of the report root"
+        );
     }
     let denominator = contract.shards.len();
     let mut ids = BTreeSet::new();
@@ -1142,19 +1433,20 @@ pub(in super::super) fn tooling_ci_coverage(
 #[cfg(test)]
 mod tests {
     use super::{
-        full_shard_env, full_shard_root_receipt, full_shard_roots,
-        materialize_full_shard_workspace, percentile, read_ci_build_authority,
-        reference_timing_samples, validate_ci_test_executor_observation,
-        validate_fast_group_contract, validate_full_shard_contract, validate_full_shard_root_set,
-        FastGroup, FastGroupContract, FastReferenceRunner, FastTimingHistory,
-        FastTimingObservation, FullShard, FullShardContract, FullShardCoverage,
-        FAST_TIMING_HISTORY_SCHEMA_V1,
+        artifact_root_path, ci_output_path, ci_output_path_under, full_archive_args,
+        full_archive_roots, full_shard_args, full_shard_env, full_shard_root_receipt,
+        full_shard_roots, materialize_full_shard_workspace, percentile, read_ci_build_authority,
+        reference_timing_samples, set_full_archive_readonly, validate_ci_test_executor_observation,
+        validate_fast_group_contract, validate_full_archive_roots, validate_full_shard_contract,
+        validate_full_shard_root_set, FastGroup, FastGroupContract, FastReferenceRunner,
+        FastTimingHistory, FastTimingObservation, FullArchiveRoots, FullShard, FullShardContract,
+        FullShardCoverage, FullShardEphemera, FullShardRoots, FAST_TIMING_HISTORY_SCHEMA_V1,
     };
     use crate::runtime::workspace::Workspace;
 
     fn contract() -> FullShardContract {
         FullShardContract {
-            schema_version: "bijux.ci.full_shards.v2".to_string(),
+            schema_version: "bijux.ci.full_shards.v3".to_string(),
             coverage: FullShardCoverage {
                 workspace: true,
                 all_targets: true,
@@ -1163,8 +1455,10 @@ mod tests {
                 overlap_policy: "exactly_once".to_string(),
             },
             partition_strategy: "hash".to_string(),
-            workspace_isolation: "tracked_source_clone_with_disjoint_outputs".to_string(),
+            workspace_isolation: "tracked_source_clones_with_shared_immutable_archive".to_string(),
             build_authority: "configs/ci/build-authority.json".to_string(),
+            archive_build_jobs: 4,
+            archive_root: "artifacts/ci/full-shards/archive".to_string(),
             shard_artifact_root: "artifacts/ci/full-shards/shards".to_string(),
             report_root: "artifacts/ci/full-shards".to_string(),
             shards: (1..=4)
@@ -1247,6 +1541,14 @@ mod tests {
         shared_outputs.shard_artifact_root = shared_outputs.report_root.clone();
         assert!(validate_full_shard_contract(&shared_outputs).is_err());
 
+        let mut shared_archive = contract();
+        shared_archive.archive_root = shared_archive.shard_artifact_root.clone();
+        assert!(validate_full_shard_contract(&shared_archive).is_err());
+
+        let mut unbounded_archive = contract();
+        unbounded_archive.archive_build_jobs = 0;
+        assert!(validate_full_shard_contract(&unbounded_archive).is_err());
+
         let mut unknown_authority = contract();
         unknown_authority.build_authority = "configs/ci/another-authority.json".to_string();
         assert!(validate_full_shard_contract(&unknown_authority).is_err());
@@ -1262,11 +1564,14 @@ mod tests {
             .shards
             .iter()
             .map(|shard| full_shard_roots(&workspace, &contract, shard))
-            .collect::<Vec<_>>();
+            .collect::<anyhow::Result<Vec<_>>>()?;
         validate_full_shard_root_set(&workspace, &roots)?;
 
-        let first_env =
-            full_shard_env(&roots[0])?.into_iter().collect::<std::collections::BTreeMap<_, _>>();
+        let shard_workspace = workspace.path("artifacts/ci/full-shards/workspaces/hash-1-of-4");
+        let first_env = full_shard_env(&roots[0], &shard_workspace)?
+            .into_iter()
+            .collect::<std::collections::BTreeMap<_, _>>();
+        let governed_artifacts = artifact_root_path(&workspace)?;
         for name in [
             "ARTIFACT_ROOT",
             "ISO_ROOT",
@@ -1283,15 +1588,23 @@ mod tests {
                 .ok_or_else(|| anyhow::anyhow!("missing shard environment variable {name}"))?;
             let path = std::path::Path::new(value);
             assert!(path.is_absolute());
-            assert!(path.starts_with(workspace.path("artifacts")));
+            assert!(path.starts_with(&governed_artifacts));
         }
         assert_ne!(first_env["CARGO_TARGET_DIR"], first_env["TEST_TARGET_DIR"]);
         assert_ne!(first_env["TEST_TARGET_DIR"], first_env["COV_TARGET_DIR"]);
         assert_ne!(first_env["TEST_TMP_DIR"], first_env["COV_TMP_DIR"]);
         assert_ne!(first_env["TEST_PROFRAW_DIR"], first_env["COV_PROFRAW_DIR"]);
-        let receipt = full_shard_root_receipt(&roots[0]);
+        assert_eq!(first_env["BIJUX_REPO_ROOT"], shard_workspace.display().to_string());
+        assert_eq!(
+            first_env["BIJUX_BENCHMARK_ROOT"],
+            shard_workspace.join("benchmarks").display().to_string()
+        );
+        let receipt = full_shard_root_receipt(&roots[0], &shard_workspace);
+        assert_eq!(receipt["repository_root"], first_env["BIJUX_REPO_ROOT"]);
+        assert_eq!(receipt["benchmark_root"], first_env["BIJUX_BENCHMARK_ROOT"]);
         assert_eq!(receipt["artifact_root"], first_env["ARTIFACT_ROOT"]);
         assert_eq!(receipt["iso_root"], first_env["ISO_ROOT"]);
+        assert_eq!(receipt["archive_extract_dir"], roots[0].archive_extract.display().to_string());
         assert_eq!(receipt["cargo_target_dir"], first_env["CARGO_TARGET_DIR"]);
         assert_eq!(receipt["test_target_dir"], first_env["TEST_TARGET_DIR"]);
         assert_eq!(receipt["coverage_target_dir"], first_env["COV_TARGET_DIR"]);
@@ -1299,6 +1612,119 @@ mod tests {
         assert_eq!(receipt["coverage_tmp_dir"], first_env["COV_TMP_DIR"]);
         assert_eq!(receipt["test_profraw_dir"], first_env["TEST_PROFRAW_DIR"]);
         assert_eq!(receipt["coverage_profraw_dir"], first_env["COV_PROFRAW_DIR"]);
+        Ok(())
+    }
+
+    #[test]
+    fn full_shards_build_once_and_execute_only_from_the_archive() -> anyhow::Result<()> {
+        let root =
+            std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..").canonicalize()?;
+        let workspace = Workspace { root };
+        let contract = contract();
+        let archive = full_archive_roots(&workspace, &contract)?;
+        validate_full_archive_roots(&workspace, &archive)?;
+
+        let build_args = full_archive_args(&archive.archive_file);
+        for required in ["archive", "--workspace", "--all-targets", "--all-features", "--locked"] {
+            assert!(build_args.iter().any(|arg| arg == required));
+        }
+        assert_eq!(build_args.iter().filter(|arg| arg.as_str() == "--archive-file").count(), 1);
+
+        for shard in &contract.shards {
+            let roots = full_shard_roots(&workspace, &contract, shard)?;
+            let remap = ci_output_path(&workspace, &contract.report_root)?
+                .join("workspaces")
+                .join(&shard.id);
+            let args =
+                full_shard_args(shard, &archive.archive_file, &roots.archive_extract, &remap);
+            for forbidden in ["--workspace", "--all-targets", "--all-features", "--locked"] {
+                assert!(!args.iter().any(|arg| arg == forbidden));
+            }
+            assert!(args.windows(2).any(|pair| {
+                pair[0] == "--archive-file" && pair[1] == archive.archive_file.display().to_string()
+            }));
+            assert!(args.windows(2).any(|pair| {
+                pair[0] == "--extract-to" && pair[1] == roots.archive_extract.display().to_string()
+            }));
+            assert!(args.windows(2).any(|pair| {
+                pair[0] == "--workspace-remap" && pair[1] == remap.display().to_string()
+            }));
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn ci_outputs_rebase_under_configured_artifact_authority() -> anyhow::Result<()> {
+        let authority = std::path::Path::new("/local/slurmtmp.1234/bijux/artifacts");
+
+        let archive = ci_output_path_under(authority, "artifacts/ci/full-shards/archive")?;
+        let report = ci_output_path_under(authority, "artifacts/ci/full-gate-timing.json")?;
+
+        assert_eq!(archive, authority.join("ci/full-shards/archive"));
+        assert_eq!(report, authority.join("ci/full-gate-timing.json"));
+        assert!(ci_output_path_under(authority, "../outside").is_err());
+        Ok(())
+    }
+
+    #[test]
+    fn full_shard_archive_is_read_only_during_partition_execution() -> anyhow::Result<()> {
+        let root =
+            std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..").canonicalize()?;
+        let artifact_root = root.join("artifacts");
+        bijux_dna_infra::ensure_dir(&artifact_root)?;
+        let archive_root = tempfile::tempdir_in(&artifact_root)?;
+        let archive = archive_root.path().join("workspace-tests.tar.zst");
+        std::fs::write(&archive, b"checksum-bound archive")?;
+
+        set_full_archive_readonly(&archive)?;
+
+        assert!(std::fs::metadata(&archive)?.permissions().readonly());
+        Ok(())
+    }
+
+    #[test]
+    fn full_shards_retain_only_bounded_logs_and_receipts() -> anyhow::Result<()> {
+        let root = tempfile::tempdir()?;
+        let report_root = root.path().join("full-shards");
+        let archive_root = report_root.join("archive");
+        let shard_root = report_root.join("shards/hash-1-of-4");
+        std::fs::create_dir_all(report_root.join("workspaces/hash-1-of-4"))?;
+        std::fs::create_dir_all(archive_root.join("target/cargo"))?;
+        std::fs::create_dir_all(&shard_root)?;
+        std::fs::write(report_root.join("hash-1-of-4.log"), b"test failure\n")?;
+        std::fs::write(report_root.join("full-gate-timing.json"), b"{}\n")?;
+        std::fs::write(archive_root.join("build.log"), b"archive build\n")?;
+        std::fs::write(archive_root.join("workspace-tests.tar.zst"), b"archive\n")?;
+        std::fs::write(archive_root.join("target/cargo/output"), b"cargo output\n")?;
+        std::fs::write(shard_root.join("output"), b"shard output\n")?;
+
+        let archive_roots = FullArchiveRoots {
+            artifact_root: archive_root.clone(),
+            cargo_target: archive_root.join("target/cargo"),
+            archive_file: archive_root.join("workspace-tests.tar.zst"),
+            build_log: archive_root.join("build.log"),
+        };
+        let shard_roots = vec![FullShardRoots {
+            artifact_root: shard_root.clone(),
+            archive_extract: shard_root.join("nextest/archive"),
+            cargo_target: shard_root.join("target/cargo"),
+            test_target: shard_root.join("target/test"),
+            coverage_target: shard_root.join("target/coverage"),
+            test_tmp: shard_root.join("tmp/test"),
+            coverage_tmp: shard_root.join("tmp/coverage"),
+            test_profraw: shard_root.join("coverage/profraw-test"),
+            coverage_profraw: shard_root.join("coverage/profraw-coverage"),
+        }];
+        let mut ephemera = FullShardEphemera::new(&report_root, &archive_roots, &shard_roots)?;
+        ephemera.retain_bounded_evidence()?;
+
+        assert!(!report_root.join("workspaces").exists());
+        assert!(!archive_root.join("target").exists());
+        assert!(!archive_root.join("workspace-tests.tar.zst").exists());
+        assert!(!shard_root.exists());
+        assert!(archive_root.join("build.log").is_file());
+        assert!(report_root.join("hash-1-of-4.log").is_file());
+        assert!(report_root.join("full-gate-timing.json").is_file());
         Ok(())
     }
 
@@ -1313,7 +1739,7 @@ mod tests {
         let shard =
             FullShard { id: "isolation-proof".to_string(), partition: "hash:1/4".to_string() };
 
-        let isolated = materialize_full_shard_workspace(&workspace, report_root.path(), &shard)?;
+        let isolated = materialize_full_shard_workspace(&workspace, report_root.path(), &shard.id)?;
         assert!(isolated.join(".git").is_dir());
         assert!(isolated.join("artifacts").is_dir());
         let root_manifest = std::fs::read(workspace.path("Cargo.toml"))?;

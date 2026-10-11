@@ -107,26 +107,85 @@ fn inspect_required_outputs(
     let mut outputs = Vec::new();
     for relative in &plan.required_files {
         let output = output_root.join(relative);
-        match fs::symlink_metadata(&output) {
-            Ok(metadata)
-                if !metadata.file_type().is_symlink()
-                    && metadata.is_file()
-                    && metadata.len() > 0 =>
-            {
+        match inspect_output_identity(&output) {
+            Ok((size_bytes, sha256)) => {
                 outputs.push(QualificationOutputEvidence {
                     path: output.strip_prefix(result_root)?.to_string_lossy().into_owned(),
-                    size_bytes: metadata.len(),
-                    sha256: bijux_dna_infra::hash_file_sha256(&output)?,
+                    size_bytes,
+                    sha256,
                 });
             }
-            _ => failures.push(failure(
+            Err(error) => failures.push(failure(
                 QualificationFailureClass::RequiredOutput,
                 &relative.display().to_string(),
-                &format!("required output is absent or empty: {}", relative.display()),
+                &format!("required output is absent, empty, or unsafe: {error:#}"),
             )),
         }
     }
     Ok(outputs)
+}
+
+fn inspect_output_identity(path: &Path) -> Result<(u64, String)> {
+    let metadata = fs::symlink_metadata(path)
+        .with_context(|| format!("inspect qualification output {}", path.display()))?;
+    if metadata.file_type().is_symlink() {
+        bail!("qualification output is a symlink: {}", path.display());
+    }
+    if metadata.is_file() {
+        if metadata.len() == 0 {
+            bail!("qualification output file is empty: {}", path.display());
+        }
+        return Ok((metadata.len(), bijux_dna_infra::hash_file_sha256(path)?));
+    }
+    if !metadata.is_dir() {
+        bail!("qualification output is neither a regular file nor directory: {}", path.display());
+    }
+    let size_bytes = directory_payload_size(path)?;
+    Ok((size_bytes, bijux_dna_infra::hash_path_sha256(path)?))
+}
+
+fn directory_payload_size(root: &Path) -> Result<u64> {
+    let mut pending = vec![root.to_path_buf()];
+    let mut file_count = 0_u64;
+    let mut size_bytes = 0_u64;
+    while let Some(directory) = pending.pop() {
+        for entry in fs::read_dir(&directory).with_context(|| {
+            format!("read qualification output directory {}", directory.display())
+        })? {
+            let entry = entry.with_context(|| {
+                format!("read qualification output entry under {}", directory.display())
+            })?;
+            let path = entry.path();
+            let metadata = fs::symlink_metadata(&path).with_context(|| {
+                format!("inspect qualification output entry {}", path.display())
+            })?;
+            if metadata.file_type().is_symlink() {
+                bail!("qualification output directory contains a symlink: {}", path.display());
+            }
+            if metadata.is_dir() {
+                pending.push(path);
+            } else if metadata.is_file() {
+                file_count = file_count
+                    .checked_add(1)
+                    .context("qualification output file count overflowed")?;
+                size_bytes = size_bytes
+                    .checked_add(metadata.len())
+                    .context("qualification output size overflowed")?;
+            } else {
+                bail!(
+                    "qualification output directory contains an unsupported entry: {}",
+                    path.display()
+                );
+            }
+        }
+    }
+    if file_count == 0 || size_bytes == 0 {
+        bail!(
+            "qualification output directory contains no non-empty file payload: {}",
+            root.display()
+        );
+    }
+    Ok(size_bytes)
 }
 
 fn evaluate_metrics(

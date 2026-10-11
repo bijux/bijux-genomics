@@ -74,8 +74,8 @@ mod tests {
     use std::path::PathBuf;
 
     use bijux_dna_containers::api::{
-        admit_external_artifact, repository_head_commit, ExternalArtifactAdmissionRequest,
-        ExternalArtifactInput,
+        admit_external_artifact, load_external_artifact_admission, repository_head_commit,
+        ExternalArtifactAdmissionRequest, ExternalArtifactInput,
     };
     use serde_json::json;
 
@@ -89,11 +89,11 @@ mod tests {
             .to_path_buf()
     }
 
-    fn angsd_step(out_dir: &Path) -> Result<ExecutionStep> {
+    fn angsd_step(out_dir: &Path, stage_id: &str) -> Result<ExecutionStep> {
         Ok(serde_json::from_value(json!({
-            "step_id": "sample-0001.bam.sex.angsd",
-            "stage_id": "bam.sex",
-            "command": { "template": ["angsd", "-i", "sample.bam"] },
+            "step_id": "sample-0001.external.angsd",
+            "stage_id": stage_id,
+            "command": { "template": ["angsd", "-i", "sample.input"] },
             "image": { "image": "external-artifact://angsd", "digest": null },
             "resources": { "runtime": "apptainer", "mem_gb": 1, "tmp_gb": 1, "threads": 1 },
             "io": { "inputs": [], "outputs": [] },
@@ -143,9 +143,11 @@ mod tests {
             },
             &admission_path,
         )?;
+        let admission = load_external_artifact_admission(&admission_path)?;
+        let stage_id = admission.stage_ids.first().context("ANGSD admission has no stage")?;
         std::fs::remove_file(&marker)?;
 
-        let step = angsd_step(&temporary.path().join("out"))?;
+        let step = angsd_step(&temporary.path().join("out"), stage_id)?;
 
         execute_external_artifact_step(
             &step,
@@ -181,9 +183,11 @@ mod tests {
             },
             &admission_path,
         )?;
+        let admission = load_external_artifact_admission(&admission_path)?;
+        let stage_id = admission.stage_ids.first().context("ANGSD admission has no stage")?;
 
         let error = execute_external_artifact_step(
-            &angsd_step(&out_dir)?,
+            &angsd_step(&out_dir, stage_id)?,
             &repository_root,
             &active_root,
             &admission_path,

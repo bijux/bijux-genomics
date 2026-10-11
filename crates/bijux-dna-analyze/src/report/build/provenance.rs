@@ -1,4 +1,5 @@
-use std::path::Path;
+use std::ffi::OsStr;
+use std::path::{Path, PathBuf};
 
 pub fn cross_domain_handoff_section(base_dir: &Path) -> Option<serde_json::Value> {
     let manifest_path = base_dir.join("run_manifest.json");
@@ -81,7 +82,18 @@ pub fn normalize_report_path(base_dir: &Path, raw: &str) -> String {
 }
 
 fn read_domain_snapshot_hash() -> Option<String> {
-    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../..");
+    let runtime_root = std::env::var_os("BIJUX_REPO_ROOT").filter(|value| !value.is_empty());
+    let root = repository_root(runtime_root.as_deref())?;
+    read_domain_snapshot_hash_from(&root)
+}
+
+fn repository_root(runtime_root: Option<&OsStr>) -> Option<PathBuf> {
+    let root = runtime_root
+        .map_or_else(|| Path::new(env!("CARGO_MANIFEST_DIR")).join("../.."), PathBuf::from);
+    root.is_absolute().then_some(root)
+}
+
+fn read_domain_snapshot_hash_from(root: &Path) -> Option<String> {
     let registry = root.join("configs/ci/registry/tool_registry.toml");
     let raw = std::fs::read_to_string(registry).ok()?;
     for line in raw.lines().take(8) {
@@ -93,4 +105,32 @@ fn read_domain_snapshot_hash() -> Option<String> {
         }
     }
     None
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{read_domain_snapshot_hash_from, repository_root};
+    use std::ffi::OsStr;
+
+    #[test]
+    fn runtime_repository_controls_the_domain_snapshot_identity() -> anyhow::Result<()> {
+        let runtime = tempfile::tempdir()?;
+        let registry = runtime.path().join("configs/ci/registry/tool_registry.toml");
+        std::fs::create_dir_all(registry.parent().unwrap_or(runtime.path()))?;
+        let expected = "0123456789abcdef0123456789abcdef01234567";
+        std::fs::write(&registry, format!("# source_commit: {expected}\n[tools]\n"))?;
+
+        let Some(root) = repository_root(Some(OsStr::new(runtime.path()))) else {
+            anyhow::bail!("temporary repository root must be absolute");
+        };
+
+        assert_eq!(root, runtime.path());
+        assert_eq!(read_domain_snapshot_hash_from(&root).as_deref(), Some(expected));
+        Ok(())
+    }
+
+    #[test]
+    fn relative_runtime_repository_is_not_admitted_for_provenance() {
+        assert!(repository_root(Some(OsStr::new("relative/source-checkout"))).is_none());
+    }
 }

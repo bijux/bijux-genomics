@@ -8,10 +8,14 @@ pub const VCF_CALL_GL: &str = "vcf.call_gl";
 pub const VCF_CALL_PSEUDOHAPLOID: &str = "vcf.call_pseudohaploid";
 /// Canonical VCF damage-filtering stage.
 pub const VCF_DAMAGE_FILTER: &str = "vcf.damage_filter";
+/// Canonical VCF demographic-inference stage.
+pub const VCF_DEMOGRAPHY: &str = "vcf.demography";
 /// Canonical VCF filtering stage.
 pub const VCF_FILTER: &str = "vcf.filter";
 /// Canonical VCF genotype-likelihood propagation stage.
 pub const VCF_GL_PROPAGATION: &str = "vcf.gl_propagation";
+/// Canonical VCF identity-by-descent stage.
+pub const VCF_IBD: &str = "vcf.ibd";
 /// Canonical VCF imputation-metrics stage.
 pub const VCF_IMPUTATION_METRICS: &str = "vcf.imputation_metrics";
 /// Canonical VCF imputation stage.

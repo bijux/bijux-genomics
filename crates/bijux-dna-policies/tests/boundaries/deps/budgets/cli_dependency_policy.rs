@@ -59,6 +59,7 @@ fn policy__boundaries__cli_dependency_policy__cli_depends_only_on_documented_ada
         "serde_json",
         "serde_yaml",
         "regex",
+        "rayon",
         "toml",
         "sha2",
         "tar",

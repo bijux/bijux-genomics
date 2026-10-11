@@ -907,11 +907,11 @@ mod tests {
     #[test]
     fn governed_vcf_population_structure_smoke_consumes_pca_and_admixture_reports() {
         let repo_root =
-            std::path::Path::new(env!("CARGO_MANIFEST_DIR")).ancestors().nth(2).expect("repo root");
+            crate::commands::support::workspace_root::resolve_repo_root().expect("repo root");
         let _cwd_lock = acquire_cwd_lock();
-        let _repo_lock =
-            RepoProcessLock::acquire(repo_root, "benchmark-readiness-mutators").expect("repo lock");
-        let report = run_local_vcf_population_structure_smoke(repo_root, "plink2")
+        let _repo_lock = RepoProcessLock::acquire(&repo_root, "benchmark-readiness-mutators")
+            .expect("repo lock");
+        let report = run_local_vcf_population_structure_smoke(&repo_root, "plink2")
             .expect("run local population structure smoke");
         assert_eq!(report.stage_id, "vcf.population_structure");
         assert_eq!(report.tool_id, "plink2");

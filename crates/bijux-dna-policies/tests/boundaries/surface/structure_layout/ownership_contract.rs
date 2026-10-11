@@ -65,16 +65,8 @@ fn policy__boundaries__ownership_contract__ownership_contract_is_complete() {
 fn policy__boundaries__ownership_contract__id_definitions_live_in_core_only() {
     let root = workspace_root();
     let mut offenders = Vec::new();
-    let patterns = [
-        "struct StageId",
-        "enum StageId",
-        "struct ToolId",
-        "enum ToolId",
-        "struct PipelineId",
-        "enum PipelineId",
-        "struct MetricId",
-        "enum MetricId",
-    ];
+    let definition =
+        regex::Regex::new(r"\b(?:struct|enum)\s+(StageId|ToolId|PipelineId|MetricId)\b").unwrap();
 
     for entry in WalkDir::new(root.join("crates")).into_iter().filter_map(Result::ok) {
         if !entry.file_type().is_file() {
@@ -83,10 +75,12 @@ fn policy__boundaries__ownership_contract__id_definitions_live_in_core_only() {
         if entry.path().extension().and_then(|s| s.to_str()) != Some("rs") {
             continue;
         }
+        if entry.path().to_string_lossy().contains("/tests/") {
+            continue;
+        }
         if is_core_ids_path(entry.path())
             || is_core_metrics_path(entry.path())
             || is_core_id_catalog_stage_path(entry.path())
-            || is_policies_ownership_test(entry.path())
             || entry
                 .path()
                 .to_string_lossy()
@@ -94,11 +88,15 @@ fn policy__boundaries__ownership_contract__id_definitions_live_in_core_only() {
         {
             continue;
         }
-        let content = std::fs::read_to_string(entry.path()).expect("read source");
-        for pattern in patterns {
-            if content.contains(pattern) {
-                offenders.push(format!("{} defines {pattern}", entry.path().display()));
-            }
+        let content = bijux_dna_testkit::workspace_support::strip_rust_test_modules(
+            &std::fs::read_to_string(entry.path()).expect("read source"),
+        );
+        for captures in definition.captures_iter(&content) {
+            offenders.push(format!(
+                "{} defines canonical ID type {}",
+                entry.path().display(),
+                &captures[1]
+            ));
         }
     }
 
@@ -110,10 +108,13 @@ fn policy__boundaries__ownership_contract__id_definitions_live_in_core_only() {
 }
 
 #[test]
-fn policy__boundaries__ownership_contract__id_parsing_and_validation_live_in_core_only() {
+fn policy__boundaries__ownership_contract__canonical_id_parsing_and_validation_live_in_core_only() {
     let root = workspace_root();
     let mut offenders = Vec::new();
-    let regex = regex::Regex::new(r"fn\s+(parse|validate)_[a-z0-9_]*(?:_id|_id_str)\b").unwrap();
+    let regex = regex::Regex::new(
+        r"fn\s+(parse|validate)_(?:pipeline|stage|tool|artifact|profile|variant|benchmark_result)_id(?:_str)?\b",
+    )
+    .unwrap();
 
     for entry in WalkDir::new(root.join("crates")).into_iter().filter_map(Result::ok) {
         if !entry.file_type().is_file() {

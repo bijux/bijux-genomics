@@ -19,6 +19,9 @@ Validation command: `CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux
 - Replay existing execution manifests without executing tools.
 - Submit bounded Slurm batches without waiting, observe queue state once, collect
   terminal accounting, and request cancellation from typed scheduler identities.
+- Reject benchmark submission from mutable, dirty, or externally linked repository snapshots.
+- Prepare and run exact-checksum external workers through immutable attempt-scoped Slurm evidence
+  without interpreting their product outputs.
 
 ## Forbidden Runtime Responsibilities
 - Planning stages or selecting tools.

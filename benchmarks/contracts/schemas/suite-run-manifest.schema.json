@@ -1,0 +1,390 @@
+{
+  "$defs": {
+    "ColdWarmContract": {
+      "additionalProperties": false,
+      "properties": {
+        "cold_run_records_image_cost": {
+          "type": "boolean"
+        },
+        "cold_runs": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "warm_runs": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "warm_runs_exclude_image_cost": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "cold_runs",
+        "warm_runs",
+        "cold_run_records_image_cost",
+        "warm_runs_exclude_image_cost"
+      ],
+      "type": "object"
+    },
+    "DecisionTraceRow": {
+      "additionalProperties": false,
+      "properties": {
+        "candidates": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "reason": {
+          "type": "string"
+        },
+        "selected_tool": {
+          "type": "string"
+        },
+        "stage": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "stage",
+        "candidates",
+        "selected_tool",
+        "reason"
+      ],
+      "type": "object"
+    },
+    "EnvironmentSnapshot": {
+      "additionalProperties": false,
+      "properties": {
+        "apptainer_version": {
+          "type": "string"
+        },
+        "kernel": {
+          "type": "string"
+        },
+        "site_lock": true
+      },
+      "required": [
+        "apptainer_version",
+        "kernel",
+        "site_lock"
+      ],
+      "type": "object"
+    },
+    "FairnessContract": {
+      "additionalProperties": false,
+      "properties": {
+        "deviations": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "mem_gb": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "threads": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "tmp_policy": {
+          "type": "string"
+        },
+        "tmp_root": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "threads",
+        "mem_gb",
+        "tmp_policy",
+        "tmp_root",
+        "deviations"
+      ],
+      "type": "object"
+    },
+    "MetricsArtifactRow": {
+      "additionalProperties": false,
+      "properties": {
+        "mode": {
+          "type": "string"
+        },
+        "path": {
+          "type": "string"
+        },
+        "run_index": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "stage": {
+          "type": "string"
+        },
+        "tool": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "stage",
+        "tool",
+        "mode",
+        "run_index",
+        "path"
+      ],
+      "type": "object"
+    },
+    "PostconditionRow": {
+      "additionalProperties": false,
+      "properties": {
+        "checks": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "mode": {
+          "type": "string"
+        },
+        "ok": {
+          "type": "boolean"
+        },
+        "run_index": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "stage": {
+          "type": "string"
+        },
+        "tool": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "stage",
+        "tool",
+        "mode",
+        "run_index",
+        "ok",
+        "checks"
+      ],
+      "type": "object"
+    },
+    "RunRecordRow": {
+      "additionalProperties": false,
+      "properties": {
+        "delta_metrics": true,
+        "length_shift": {
+          "format": "double",
+          "type": "number"
+        },
+        "memory_mb": {
+          "format": "double",
+          "type": "number"
+        },
+        "mode": {
+          "type": "string"
+        },
+        "read_retention": {
+          "format": "double",
+          "type": "number"
+        },
+        "run_index": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "runtime_s": {
+          "format": "double",
+          "type": "number"
+        },
+        "stage": {
+          "type": "string"
+        },
+        "tool": {
+          "type": "string"
+        },
+        "valid": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "stage",
+        "tool",
+        "mode",
+        "run_index",
+        "runtime_s",
+        "memory_mb",
+        "read_retention",
+        "length_shift",
+        "valid"
+      ],
+      "type": "object"
+    },
+    "ScientificDefaultsStatus": {
+      "additionalProperties": false,
+      "properties": {
+        "checked_rows": {
+          "format": "uint",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "doc_path": {
+          "type": "string"
+        },
+        "reference_defaults_ok": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "doc_path",
+        "reference_defaults_ok",
+        "checked_rows"
+      ],
+      "type": "object"
+    },
+    "ToolInvocationRow": {
+      "additionalProperties": false,
+      "properties": {
+        "image_digest": {
+          "type": "string"
+        },
+        "mode": {
+          "type": "string"
+        },
+        "run_index": {
+          "format": "uint32",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "stage": {
+          "type": "string"
+        },
+        "tool": {
+          "type": "string"
+        },
+        "tool_version": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "stage",
+        "tool",
+        "mode",
+        "run_index",
+        "tool_version",
+        "image_digest"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "cold_vs_warm": {
+      "$ref": "#/$defs/ColdWarmContract"
+    },
+    "comparability_hash": {
+      "type": "string"
+    },
+    "corpus": {
+      "type": "string"
+    },
+    "created_at_unix": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "decision_trace": {
+      "items": {
+        "$ref": "#/$defs/DecisionTraceRow"
+      },
+      "type": "array"
+    },
+    "environment": {
+      "$ref": "#/$defs/EnvironmentSnapshot"
+    },
+    "fairness": {
+      "$ref": "#/$defs/FairnessContract"
+    },
+    "metrics_artifacts": {
+      "items": {
+        "$ref": "#/$defs/MetricsArtifactRow"
+      },
+      "type": "array"
+    },
+    "postconditions": {
+      "items": {
+        "$ref": "#/$defs/PostconditionRow"
+      },
+      "type": "array"
+    },
+    "reproducibility_bundle": {
+      "type": "string"
+    },
+    "run_context": {
+      "type": "string"
+    },
+    "run_id": {
+      "type": "string"
+    },
+    "run_records": {
+      "items": {
+        "$ref": "#/$defs/RunRecordRow"
+      },
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "bijux.bench.suite_run_manifest.v2",
+      "type": "string"
+    },
+    "scientific_defaults": {
+      "$ref": "#/$defs/ScientificDefaultsStatus"
+    },
+    "species_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "suite_id": {
+      "type": "string"
+    },
+    "telemetry_path": {
+      "type": "string"
+    },
+    "tool_invocations": {
+      "items": {
+        "$ref": "#/$defs/ToolInvocationRow"
+      },
+      "type": "array"
+    }
+  },
+  "required": [
+    "schema_version",
+    "suite_id",
+    "run_id",
+    "run_context",
+    "corpus",
+    "fairness",
+    "cold_vs_warm",
+    "decision_trace",
+    "tool_invocations",
+    "metrics_artifacts",
+    "postconditions",
+    "run_records",
+    "comparability_hash",
+    "environment",
+    "scientific_defaults",
+    "telemetry_path",
+    "reproducibility_bundle",
+    "created_at_unix"
+  ],
+  "title": "SuiteRunManifest",
+  "type": "object"
+}

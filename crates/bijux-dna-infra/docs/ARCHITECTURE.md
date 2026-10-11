@@ -20,8 +20,8 @@ domain semantics.
 - `src/lib.rs` stays explicit about the public surface while delegating curated
   export ownership to `stable_surface.rs`.
 - `src/formats/` owns JSON and YAML encoding boundaries.
-- `src/hashing/` owns file hashing entrypoints and delegates digest IO to a
-  companion module.
+- `src/hashing/` owns byte, file, and deterministic directory-tree hashing entrypoints, with file
+  and path traversal isolated in companion modules.
 - `src/io/` owns filesystem effects and the infra-local IO error taxonomy.
 - `src/locking.rs` owns one-shot cross-process lock helpers; contention is returned immediately
   without retry or sleep polling.

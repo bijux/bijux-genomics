@@ -149,6 +149,43 @@ mod tests {
     }
 
     #[test]
+    fn benchmark_reference_materialization_retains_all_governed_authorities() -> anyhow::Result<()>
+    {
+        let parsed = parse_cli_from_argv(&argv(&[
+            "bijux-dna",
+            "benchmark",
+            "materialize-reference-bundle",
+            "--data-root",
+            "/study/data",
+            "--source-archive",
+            "/study/data/evidence/reference.fna.gz",
+            "--reference-id",
+            "grch38-reference",
+            "--species-id",
+            "Homo sapiens",
+            "--build-id",
+            "GRCh38",
+            "--source-commit",
+            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "--previous-registry",
+            "/study/data/catalog/registries/prior.json",
+            "--admitted-at-utc",
+            "2026-08-11T00:00:00Z",
+        ]))?;
+        let DnaCommand::Bench(root) = parsed.command else {
+            panic!("expected benchmark command");
+        };
+        let BenchCommand::MaterializeReferenceBundle(args) = root.command else {
+            panic!("expected reference materialization command");
+        };
+        assert_eq!(args.reference_id, "grch38-reference");
+        assert_eq!(args.species_id, "Homo sapiens");
+        assert_eq!(args.build_id, "GRCh38");
+        assert!(args.previous_registry.is_some());
+        Ok(())
+    }
+
+    #[test]
     fn benchmark_cycle_plan_uses_the_public_product_namespace() -> anyhow::Result<()> {
         let parsed = parse_cli_from_argv(&argv(&[
             "bijux-dna",

@@ -615,7 +615,10 @@ fn validate_input(input: &QualificationSpecificationInputV1, study_root: &Path) 
         bail!("qualification input mount must be one file under /input");
     }
     require_sha256(&input.sha256, "qualification input")?;
-    if hash(&input.path)? != input.sha256 {
+    if bijux_dna_infra::hash_path_sha256(&input.path)
+        .with_context(|| format!("hash qualification input {}", input.path.display()))?
+        != input.sha256
+    {
         bail!("qualification input bytes differ from the declared identity: {}", input.id);
     }
     Ok(())
@@ -746,8 +749,8 @@ mod tests {
         let input_sha256 = hash(&input_path)?;
         let catalog_sha256 = hash(&repository_root.join("containers/contracts/catalog.toml"))?;
         let registry_sha256 = hash(&registry_path)?;
-        let mut inventory: bijux_dna_containers::api::ContainerImageInventoryPublication =
-            serde_json::from_slice(&fs::read(source_inventory_path)?)?;
+        let mut inventory =
+            bijux_dna_containers::api::load_image_inventory_publication(&source_inventory_path)?;
         inventory.catalog_sha256.clone_from(&catalog_sha256);
         let tool = inventory
             .tools
@@ -833,6 +836,36 @@ mod tests {
     }
 
     #[test]
+    fn directory_database_inputs_use_the_shared_path_identity() -> Result<()> {
+        let temporary = bijux_dna_infra::temp_dir("qualification-directory-input")?;
+        let study_root = temporary.path().join("study");
+        let database = study_root.join("databases/taxonomy");
+        fs::create_dir_all(database.join("taxonomy"))?;
+        fs::write(database.join("index.bin"), b"index bytes\n")?;
+        fs::write(database.join("taxonomy/nodes.dmp"), b"node bytes\n")?;
+        let mut input = QualificationSpecificationInputV1 {
+            binding_input: "taxonomy_database".to_string(),
+            artifact_contract_id: "bijux.auxiliary.artifact.database.v1".to_string(),
+            id: "taxonomy-database-build-1".to_string(),
+            kind: QualificationSpecificationInputKindV1::Database,
+            path: database.clone(),
+            mount_path: PathBuf::from("/input/taxonomy"),
+            sha256: bijux_dna_infra::hash_path_sha256(&database)?,
+        };
+
+        validate_input(&input, &study_root)?;
+        fs::write(database.join("index.bin"), b"changed index bytes\n")?;
+        let error = validate_input(&input, &study_root)
+            .err()
+            .context("changed directory input retained its declared identity")?;
+        assert!(error.to_string().contains("bytes differ"));
+
+        input.sha256 = bijux_dna_infra::hash_path_sha256(&database)?;
+        validate_input(&input, &study_root)?;
+        Ok(())
+    }
+
+    #[test]
     fn coverage_preserves_all_product_supported_tools() -> Result<()> {
         let repository_root = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..");
         let request = QualificationSpecificationCompilationRequest {
@@ -844,12 +877,39 @@ mod tests {
         let coverage = derive_qualification_specification_coverage(&request, sources.path())?;
         assert_eq!(coverage.schema_version, QUALIFICATION_SPECIFICATION_COVERAGE_SCHEMA_V2);
         assert_eq!(coverage.summary.supported_tool_count, 89);
-        for tool_id in ["angsd", "fastuniq", "impute5", "ngsbriggs"] {
+        assert_eq!(coverage.summary.binding_ready_count, 34);
+        for tool_id in [
+            "angsd",
+            "adapterremoval",
+            "bbduk",
+            "bbmerge",
+            "bowtie2_build",
+            "centrifuge",
+            "dada2",
+            "fastp",
+            "fastqc",
+            "fastqvalidator",
+            "fastuniq",
+            "flash2",
+            "fqtools",
+            "impute5",
+            "kaiju",
+            "kraken2",
+            "krakenuniq",
+            "ngsbriggs",
+            "prinseq",
+            "seqfu",
+            "seqkit",
+            "seqkit_stats",
+            "seqtk",
+            "star",
+            "vsearch",
+        ] {
             let unit = coverage
                 .units
                 .iter()
                 .find(|unit| unit.tool_id == tool_id)
-                .context("licensed external tool is missing from coverage")?;
+                .context("governed tool binding is missing from coverage")?;
             assert!(unit.binding_ready);
         }
         Ok(())

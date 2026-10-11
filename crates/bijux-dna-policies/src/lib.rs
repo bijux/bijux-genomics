@@ -9,6 +9,7 @@ pub mod qualification;
 pub mod release_evidence;
 pub mod security_evidence;
 mod source_scan;
+pub mod tool_eligibility;
 
 pub use checks::build_authority::{
     validate_ci_build_authority, CiBuildAuthority, CiCacheAuthority, CiLockfileAuthority,
@@ -65,4 +66,7 @@ pub use security_evidence::{
     VulnerabilityScannerIdentity, VulnerabilitySeverity, VulnerabilitySeverityCounts,
     VulnerabilityWaiver, CONTAINER_SECURITY_EVIDENCE_SCHEMA_V1,
     CONTAINER_SECURITY_EVIDENCE_SCHEMA_V2,
+};
+pub use tool_eligibility::{
+    select_eligible_tools, ToolEligibilityCandidate, ToolEligibilityPolicy, ToolEligibilityTier,
 };

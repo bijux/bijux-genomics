@@ -6,7 +6,7 @@ public stage and artifact contract product surface.
 
 ## Owns
 
-- Low-level contract types for execution graphs, canonical artifact compatibility,
+- Public contract types for execution graphs, canonical artifact compatibility,
   execution records, run records, run metadata, provenance, tooling, and stage
   selection.
 - Canonical JSON rules and canonical byte serialization.
@@ -28,6 +28,8 @@ public stage and artifact contract product surface.
 - Product API handlers or report rendering.
 - Environment provisioning, container runtime behavior, or backend selection.
 - Domain-specific metric interpretation beyond shared core metric contracts.
+- Context-specific identifiers and validation for benchmark attempts, scheduler jobs,
+  qualification receipts, repository objects, and product-owned protocol records.
 
 ## Allowed Effects
 

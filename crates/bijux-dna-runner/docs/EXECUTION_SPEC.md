@@ -14,6 +14,13 @@ The execution spec is the runner contract for turning already-planned tool inten
 - `external artifacts`: `external-artifact://<tool>` plans require an admission record; the runner
   reverifies its catalog, checksum, version evidence, stage allowlist, and command binding before
   selecting local binary or Apptainer SIF execution.
+- `site execution bindings`: `BIJUX_DNA_RUNNER_BINDINGS` may name one absolute, regular JSON
+  manifest. Version 2 exact command keys resolve to a declared program and argument prefix and may
+  name sorted runtime-root environment variables. The runner resolves each root once, rejects
+  missing, relative, filesystem-root, non-directory, or bind-delimiter values, and inserts explicit
+  same-path Apptainer binds before the admitted image. Every declared file identity is rechecked for
+  type, size, and SHA-256 before spawn, and the captured command records the resolved invocation.
+  Version 1 manifests remain readable without dynamic bind roots but are no longer emitted.
 
 ## Hashing
 Invocation hash includes command, args, env, cwd, mounts, and image digest.
@@ -37,6 +44,13 @@ Invocation hash includes command, args, env, cwd, mounts, and image digest.
 - Missing accounting is represented as `accounting_pending`, not guessed as success or failure.
 - Collection is a read-only one-shot observation, and cancellation invokes `scancel` once for the exact job identity.
 - Scheduling cadence belongs to the caller; this crate contains no sleep, wait, or polling loop.
+- Benchmark preparation admits only a clean, self-contained, read-only repository snapshot at the
+  declared source commit. Mutable or alternate-object checkouts are rejected before any scheduler
+  script or submission intent is persisted.
+- Managed Slurm jobs bind one clean repository commit and one exact executable worker. Preparation
+  publishes the wrapper and specification, duplicate-safe submission persists intent before the
+  scheduler effect, observation performs one query, and terminal collection records accounting and
+  log digests without interpreting the worker's domain output.
 - Container qualification status v2 names the next one-shot action `observe` and exposes
   `earliest_observation_at_utc`; v1 `poll` spellings remain deserialize-only compatibility aliases.
 - Container qualification `advance` runs one bounded collect pass, admits every newly passing
@@ -59,6 +73,7 @@ Invocation hash includes command, args, env, cwd, mounts, and image digest.
 | Image missing | Backend cannot resolve or run the declared image. | Fix the image reference or registry access. |
 | External access blocked | Admission records licensed artifact access as unavailable. | Supply and admit a lawful artifact or retain the blocker as the execution result. |
 | External identity drift | Catalog, checksum, version evidence, tool identity, or stage binding differs from admission. | Re-admit the exact artifact against the current governed contract. |
+| Mutable benchmark source | The declared repository is writable, dirty, commit-mismatched, or depends on external Git objects. | Freeze and admit the exact complete repository commit, then allocate a linked retry attempt. |
 | Permission error | Backend returns a filesystem permission failure. | Fix declared mount or output-root permissions. |
 | Timeout | Backend exceeds the declared runtime limit. | Increase the limit or reduce input size. |
 | Nonzero exit | Tool exits with a nonzero status. | Inspect captured stdout/stderr and tool arguments. |

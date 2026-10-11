@@ -33,5 +33,5 @@ pub use stable_surface::{backoff_delay, RetryPolicy};
 pub use stable_surface::{
     bench_base_dir, bench_data_dir, bench_suites_dir, bench_tools_dir, configs_dir, configs_file,
 };
-pub use stable_surface::{hash_bytes_sha256, hash_file_sha256};
+pub use stable_surface::{hash_bytes_sha256, hash_file_sha256, hash_path_sha256};
 pub use stable_surface::{temp_dir, temp_dir_in};

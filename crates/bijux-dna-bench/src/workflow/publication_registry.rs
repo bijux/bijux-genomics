@@ -197,6 +197,11 @@ fn current_products(repository_root: &Path) -> Result<Vec<BenchmarkCurrentPublic
             "benchmarks/reports/stage-benchmark-coverage.md",
         ),
         (
+            "stage-tool-closure",
+            "benchmarks/reports/STAGE_TOOL_CLOSURE.json",
+            "benchmarks/reports/STAGE_TOOL_CLOSURE.md",
+        ),
+        (
             "scientific-benchmark-readiness",
             "benchmarks/reports/scientific-benchmark-readiness.json",
             "benchmarks/reports/scientific-benchmark-readiness.md",

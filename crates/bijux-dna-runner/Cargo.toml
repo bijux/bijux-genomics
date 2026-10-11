@@ -17,7 +17,7 @@ bijux-dna-core.workspace = true
 bijux-dna-bench-model.workspace = true
 bijux-dna-runtime.workspace = true
 bijux-dna-containers.workspace = true
-bijux-dna-containers-qa = { path = "../bijux-dna-containers-qa" }
+bijux-dna-containers-qa.workspace = true
 bijux-dna-infra.workspace = true
 sha2.workspace = true
 walkdir.workspace = true

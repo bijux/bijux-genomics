@@ -32,12 +32,13 @@ fn policy__boundaries__ssot_catalog_authority__ssot_catalog_authority() {
         {
             continue;
         }
-        let content = support::read_to_string(entry.path());
+        let content = bijux_dna_testkit::workspace_support::strip_rust_test_modules(
+            &support::read_to_string(entry.path()),
+        );
         for (id_type, owner) in OWNER_ALLOWLIST {
             if content.contains(id_type) && !path_str.contains(owner) {
                 // Allow references (imports), but ban newtype definitions or const literals.
-                if content.contains(&format!("struct {id_type}"))
-                    || content.contains(&format!("enum {id_type}"))
+                if defines_id_type(&content, id_type)
                     || content.contains("StageId::new(\"")
                     || content.contains("ToolId::new(\"")
                     || content.contains("PipelineId::new(\"")
@@ -57,4 +58,26 @@ See docs/40-policies/STYLE.md for SSOT rules.\n\
 Offenders:\n{}",
         offenders.join("\n")
     );
+}
+
+fn defines_id_type(content: &str, id_type: &str) -> bool {
+    let mut previous = None;
+    for token in content
+        .split(|character: char| !(character.is_ascii_alphanumeric() || character == '_'))
+        .filter(|token| !token.is_empty())
+    {
+        if matches!(previous, Some("struct" | "enum")) && token == id_type {
+            return true;
+        }
+        previous = Some(token);
+    }
+    false
+}
+
+#[test]
+fn policy__boundaries__ssot_catalog_authority__type_definitions_require_exact_tokens() {
+    assert!(defines_id_type("pub struct PipelineId(String);", "PipelineId"));
+    assert!(defines_id_type("enum ToolId { Registered }", "ToolId"));
+    assert!(!defines_id_type("struct PipelineIdentity { value: String }", "PipelineId"));
+    assert!(!defines_id_type("fn use_id(value: StageId) {}", "StageId"));
 }

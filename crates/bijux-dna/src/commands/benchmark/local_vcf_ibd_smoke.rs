@@ -941,15 +941,15 @@ mod tests {
     #[test]
     fn governed_vcf_ibd_smoke_contract_matches_stage_matrix() {
         let repo_root =
-            std::path::Path::new(env!("CARGO_MANIFEST_DIR")).ancestors().nth(2).expect("repo root");
-        let contract = resolve_governed_vcf_ibd_smoke_contract(repo_root, "germline")
+            crate::commands::support::workspace_root::resolve_repo_root().expect("repo root");
+        let contract = resolve_governed_vcf_ibd_smoke_contract(&repo_root, "germline")
             .expect("resolve contract");
         assert_eq!(contract.stage_id, "vcf.ibd");
         assert_eq!(contract.tool_id, "germline");
         assert_eq!(contract.corpus_id, "vcf_production_regression");
         assert_eq!(contract.input_fixture_id, "vcf_mini_multisample_cohort");
 
-        let ibdseq = resolve_governed_vcf_ibd_smoke_contract(repo_root, "ibdseq")
+        let ibdseq = resolve_governed_vcf_ibd_smoke_contract(&repo_root, "ibdseq")
             .expect("resolve IBDseq contract");
         assert_eq!(ibdseq.stage_id, "vcf.ibd");
         assert_eq!(ibdseq.tool_id, "ibdseq");
@@ -972,8 +972,8 @@ mod tests {
     #[test]
     fn governed_vcf_ibd_smoke_reports_pair_rows_and_localized_probe() {
         let repo_root =
-            std::path::Path::new(env!("CARGO_MANIFEST_DIR")).ancestors().nth(2).expect("repo root");
-        let report = run_local_vcf_ibd_smoke(repo_root, "germline").expect("run local ibd smoke");
+            crate::commands::support::workspace_root::resolve_repo_root().expect("repo root");
+        let report = run_local_vcf_ibd_smoke(&repo_root, "germline").expect("run local ibd smoke");
         assert_eq!(report.stage_id, "vcf.ibd");
         assert_eq!(report.tool_id, "germline");
         assert_eq!(report.corpus_id, "vcf_production_regression");

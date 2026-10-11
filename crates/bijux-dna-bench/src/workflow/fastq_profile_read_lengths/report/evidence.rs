@@ -105,6 +105,7 @@ pub(super) fn load_attempt_evidence(
         ]),
         performance,
         scientific_observations,
+        scientific_strata: Vec::new(),
         determinism: BenchmarkReportDeterminism {
             artifact: campaign.result_artifact.clone(),
             sha256: science[0].normalized_bundle_sha256.clone(),

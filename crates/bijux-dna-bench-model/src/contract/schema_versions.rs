@@ -2,6 +2,7 @@
 //! Contract schema versions for benchmark artifacts.
 
 pub const SUITE_SCHEMA_V1: &str = "bijux.bench.suite.v1";
+pub const BENCHMARK_SUITE_RUN_MANIFEST_SCHEMA_V2: &str = "bijux.bench.suite_run_manifest.v2";
 pub const CORPUS_SCHEMA_V1: &str = "bijux.bench.corpus.v1";
 pub const BUNDLE_SCHEMA_V1: &str = "bijux.bench.bundle.v1";
 pub const BENCHMARK_DATA_INDEX_SCHEMA_V1: &str = "bijux.data_index.v1";

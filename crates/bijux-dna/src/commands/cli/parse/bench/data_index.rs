@@ -28,3 +28,23 @@ pub struct BenchDataIndexArgs {
     #[arg(long)]
     pub created_at_utc: String,
 }
+
+#[derive(Debug, Args)]
+pub struct BenchMaterializeReferenceBundleArgs {
+    #[arg(long)]
+    pub data_root: PathBuf,
+    #[arg(long)]
+    pub source_archive: PathBuf,
+    #[arg(long)]
+    pub reference_id: String,
+    #[arg(long)]
+    pub species_id: String,
+    #[arg(long)]
+    pub build_id: String,
+    #[arg(long)]
+    pub source_commit: String,
+    #[arg(long)]
+    pub previous_registry: Option<PathBuf>,
+    #[arg(long)]
+    pub admitted_at_utc: String,
+}

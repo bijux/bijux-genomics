@@ -292,6 +292,11 @@ fn native_container_commands() -> Vec<ContainerCommandDefinition> {
             NativeContainerCommandKey::GenerateEvidenceQualification,
         ),
         native(
+            "generate-execution-bindings",
+            "Resolve catalog-locked images into a verified runner site-binding manifest.",
+            NativeContainerCommandKey::GenerateExecutionBindings,
+        ),
+        native(
             "generate-image-inventory",
             "Derive an immutable image inventory from governed study evidence.",
             NativeContainerCommandKey::GenerateImageInventory,

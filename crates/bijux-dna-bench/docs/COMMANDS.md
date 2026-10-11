@@ -32,6 +32,18 @@ These operations are exported through the crate root and `public_api`.
 | `derive-cross-benchmark-campaign` | `derive_cross_benchmark_campaign(matrix, appraisal, queue, requested_goals)` | Derive a cross-domain goal campaign from admitted matrix and appraisal products. |
 | `load-cross-benchmark-campaign` | `load_cross_benchmark_campaign_report(path)` | Parse and admit a persisted cross-domain campaign report. |
 | `publish-cross-benchmark-campaign` | `publish_cross_benchmark_campaign_report(path, report)` | Validate and atomically publish a cross-domain campaign report. |
+| `derive-bam-benchmark-campaign` | `derive_bam_benchmark_campaign(matrix, appraisal, queue, requested_goals)` | Derive a BAM goal campaign from admitted matrix and appraisal products. |
+| `load-bam-benchmark-campaign` | `load_bam_benchmark_campaign_report(path)` | Parse and admit a persisted BAM campaign report. |
+| `publish-bam-benchmark-campaign` | `publish_bam_benchmark_campaign_report(path, report)` | Validate and atomically publish a BAM campaign report. |
+| `derive-fastq-benchmark-campaign` | `derive_fastq_benchmark_campaign(matrix, appraisal, queue, requested_goals)` | Derive a FASTQ goal campaign from admitted matrix and appraisal products. |
+| `load-fastq-benchmark-campaign` | `load_fastq_benchmark_campaign_report(path)` | Parse and admit a persisted FASTQ campaign report. |
+| `publish-fastq-benchmark-campaign` | `publish_fastq_benchmark_campaign_report(path, report)` | Validate and atomically publish a FASTQ campaign report. |
+| `derive-vcf-benchmark-campaign` | `derive_vcf_benchmark_campaign(matrix, appraisal, queue, requested_goals)` | Derive a VCF goal campaign from admitted matrix and appraisal products. |
+| `load-vcf-benchmark-campaign` | `load_vcf_benchmark_campaign_report(path)` | Parse and admit a persisted VCF campaign report. |
+| `publish-vcf-benchmark-campaign` | `publish_vcf_benchmark_campaign_report(path, report)` | Validate and atomically publish a VCF campaign report. |
+| `derive-hardening-benchmark-campaign` | `derive_hardening_benchmark_campaign(matrix, appraisal, queue, requested_goals)` | Derive a portfolio hardening goal campaign from admitted matrix and appraisal products. |
+| `load-hardening-benchmark-campaign` | `load_hardening_benchmark_campaign_report(path)` | Parse and admit a persisted hardening campaign report. |
+| `publish-hardening-benchmark-campaign` | `publish_hardening_benchmark_campaign_report(path, report)` | Validate and atomically publish a hardening campaign report. |
 | `load-stage-report` | `load_stage_report(path)` | Load one stage-report JSON file into a source- and payload-checksummed admission envelope. |
 | `load-stage-reports-from-dir` | `load_stage_reports_from_dir(path, registry, interfaces)` | Admit a declared report directory as checksummed envelopes against supplied campaign and interface contracts. |
 | `load-checked-in-stage-reports` | `load_checked_in_stage_reports()` | Load all checked-in stage reports and validate campaign/interface alignment and unique stage ownership. |
@@ -40,6 +52,7 @@ These operations are exported through the crate root and `public_api`.
 | `acquire-fastq-corpus` | `acquire_fastq_corpus(request)` | Resolve a reviewed corpus specification against exact ENA run metadata and atomically publish a checksum-pinned acquisition plan. |
 | `derive-fastq-corpus-acquisition-plan` | `derive_fastq_corpus_acquisition_plan(spec_path, records, retrieved_at_utc)` | Deterministically replay acquisition-plan derivation from typed offline ENA records. |
 | `materialize-fastq-corpus` | `materialize_fastq_corpus(request)` | Re-verify or transfer checksum-pinned ENA files, validate every gzip FASTQ record, make admitted bytes read-only, and atomically publish a source-addressed governed catalog snapshot. |
+| `materialize-reference-bundle` | `materialize_checked_in_reference_bundle(request)` | Re-verify a checksum-pinned reference archive, normalize its FASTA, derive FAI and sequence-dictionary identities, and compose a governed catalog snapshot without overwriting prior material. |
 | `publish-governed-data-catalog-registry` | `publish_governed_data_catalog_registry(request)` | Re-hash every explicitly declared catalog snapshot and publish or idempotently revalidate one source-addressed immutable registry. |
 | `build-benchmark-data-index` | `build_benchmark_data_index(request)` | Verify a catalog registry, select each source-addressed current v2 snapshot, and re-hash its governed data closure. |
 | `publish-benchmark-data-index` | `publish_benchmark_data_index(request)` | Publish one immutable registry-bound data index and human-readable report. |
@@ -50,6 +63,7 @@ These operations are exported through the crate root and `public_api`.
 | `prepare-bam-mapping-summary-material` | `prepare_bam_mapping_summary_material(...)` | Prepare complete source-locked executable material for one planned run-2004 tool attempt. |
 | `derive-stage-coverage` | `derive_stage_coverage(registry, catalog, reports, required_commit)` | Derive typed retained-stage definition and admitted-evidence coverage with exact catalog tool closure and current-source freshness. |
 | `publish-checked-in-stage-coverage` | `publish_checked_in_stage_coverage(repository_root, mode)` | Deterministically write or check the checked-in JSON, Markdown, and generated schema publications. |
+| `publish-checked-in-stage-tool-closure` | `publish_checked_in_benchmark_stage_tool_closure(repository_root, mode)` | Write or check exact supported catalog closure against domain bindings and permanent benchmark protocols. |
 | `derive-stage-universe` | `derive_stage_universe(repository_root, portfolio)` | Derive every BAM, FASTQ, and VCF stage disposition and enforce exact benchmark run-reservation closure. |
 | `publish-checked-in-stage-universe` | `publish_checked_in_stage_universe(repository_root, mode)` | Deterministically write or check the canonical stage registry, review index, and generated JSON Schema. |
 | `plan-stage-campaign-attempts` | `plan_stage_campaign_attempts(registry, repository_commit, campaign_registry_sha256, run_id, campaign_id, attempt_id, observed_at_utc)` | Deterministically derive a source-locked plan with one validated lifecycle record per declared campaign tool. |
@@ -62,6 +76,7 @@ These operations are exported through the crate root and `public_api`.
 | `load-benchmark-execution-authorities` | `load_execution_authorities(repository_root, inventory_path, repository_commit, plan)` | Load and hash exact campaign, interface, catalog, and image-inventory authorities, rejecting source or closure drift. |
 | `ensure-benchmark-execution-spec` | `ensure_execution_spec(benchmark_root, spec)` | Crash-safely persist one immutable executable specification beside its wholly planned attempt lifecycle. |
 | `load-benchmark-execution-spec` | `load_execution_spec(benchmark_root, identity)` | Load and validate a persisted executable specification against its immutable attempt identity. |
+| `resolve-benchmark-runtime` | `resolve_benchmark_runtime(platform, runtime_override)` | Select an explicit container runtime and reject local execution before benchmark allocation. |
 | `ensure-stage-campaign-attempts` | `ensure_stage_campaign_attempts(root, plan)` | Validate source locks, then preflight and crash-safely initialize every immutable planned attempt in a campaign cycle. |
 | `plan-benchmark-cases` | `plan_benchmark_cases(request)` | Select one permanent run, close its governed data and tool authorities, and immutably publish its generic case matrix. |
 | `admit-benchmark-cases` | `admit_benchmark_cases(request)` | Validate normalized observations against their exact case matrix and publish an immutable admitted set. |

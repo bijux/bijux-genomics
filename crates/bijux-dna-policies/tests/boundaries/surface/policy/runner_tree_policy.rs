@@ -15,6 +15,7 @@ fn policy__boundaries__runner_tree_policy__runner_src_layout_contract() {
         "lib.rs",
         "command_runner.rs",
         "command_runner",
+        "process_supervision.rs",
         "repo_root",
         "backend",
         "step_runner",

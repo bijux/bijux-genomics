@@ -5,7 +5,7 @@ use std::process::Command;
 use anyhow::{ensure, Context, Result};
 use bijux_dna_containers::api::{
     container_governance_schema, freeze_repository, load_container_governance,
-    validate_container_governance, validate_container_governance_host,
+    validate_container_governance, validate_container_governance_host, verify_frozen_repository,
     write_container_governance_schema, ContainerGovernance, ContainerPathPolicy,
     ContainerPreflightPolicy, ContainerRuntimePolicy, ContainerSitePolicy, ContainerSlurmPolicy,
     RepositoryFreezeRequest, RepositoryFreezeScope, CONTAINER_GOVERNANCE_SCHEMA_V1,
@@ -159,6 +159,7 @@ fn repository_freeze_materializes_scoped_self_contained_snapshots() -> Result<()
         Some("source-freezes")
     );
     for path in [&contracts, &complete, &sources] {
+        verify_frozen_repository(path, &commit)?;
         assert_eq!(git(path, &["rev-parse", "HEAD"])?, commit);
         assert!(git(path, &["status", "--porcelain"])?.is_empty());
         assert!(path.join(".git").is_dir());
@@ -175,6 +176,17 @@ fn repository_freeze_materializes_scoped_self_contained_snapshots() -> Result<()
     }
     let registered_worktrees = git(&governance.paths.active_repository, &["worktree", "list"])?;
     assert_eq!(registered_worktrees.lines().count(), 1);
+
+    let mut permissions = std::fs::metadata(&complete)?.permissions();
+    permissions.set_mode(permissions.mode() | 0o200);
+    std::fs::set_permissions(&complete, permissions)?;
+    let error = verify_frozen_repository(&complete, &commit)
+        .err()
+        .context("writable repository snapshot was accepted")?;
+    assert!(format!("{error:#}").contains("remains writable"));
+    freeze_repository(&request(&governance, &commit, RepositoryFreezeScope::Complete, Vec::new()))?;
+    verify_frozen_repository(&complete, &commit)?;
+
     assert_eq!(
         freeze_repository(&request(
             &governance,

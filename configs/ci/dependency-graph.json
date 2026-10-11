@@ -473,16 +473,6 @@
     },
     {
       "consumer": "crate:bijux-dna",
-      "dependency": "crate:bijux-dna-bench",
-      "kind": "normal"
-    },
-    {
-      "consumer": "crate:bijux-dna",
-      "dependency": "crate:bijux-dna-bench-model",
-      "kind": "normal"
-    },
-    {
-      "consumer": "crate:bijux-dna",
       "dependency": "crate:bijux-dna-core",
       "kind": "normal"
     },
@@ -734,6 +724,11 @@
     {
       "consumer": "crate:bijux-dna-bench",
       "dependency": "crate:bijux-dna-db-ena",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench",
+      "dependency": "crate:bijux-dna-db-ref",
       "kind": "normal"
     },
     {
@@ -1274,11 +1269,6 @@
     {
       "consumer": "crate:bijux-dna-runtime",
       "dependency": "crate:bijux-dna-bench-model",
-      "kind": "normal"
-    },
-    {
-      "consumer": "crate:bijux-dna-runtime",
-      "dependency": "crate:bijux-dna-containers",
       "kind": "normal"
     },
     {

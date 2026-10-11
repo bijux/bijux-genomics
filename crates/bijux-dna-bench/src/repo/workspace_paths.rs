@@ -88,8 +88,7 @@ mod tests {
 
     #[test]
     fn bench_local_config_paths_follow_repo_layout() -> anyhow::Result<()> {
-        let repository =
-            std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("../..").canonicalize()?;
+        let repository = super::super::resolve_repo_root()?;
 
         assert_eq!(
             bench_local_config_dir(),

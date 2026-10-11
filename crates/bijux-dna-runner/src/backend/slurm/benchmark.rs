@@ -42,6 +42,11 @@ pub fn prepare_benchmark_slurm_job(
         Path::new(&spec.source.repository_path),
         "benchmark source repository",
     )?;
+    bijux_dna_containers::api::verify_frozen_repository(
+        &repository_path,
+        &spec.source.repository_commit,
+    )
+    .context("admit immutable benchmark source repository")?;
     let result_root =
         require_canonical_directory(Path::new(&spec.outputs.result_root), "benchmark result root")?;
     let image_path =

@@ -68,6 +68,13 @@ pub fn repo_root() -> Result<PathBuf> {
 }
 
 #[allow(dead_code)]
+pub fn hpc_dry_run_test_directory(repo_root: &Path, label: &str) -> Result<tempfile::TempDir> {
+    let parent = repo_root.join("runs/bench/hpc-dry-run");
+    fs::create_dir_all(&parent)?;
+    Ok(tempfile::Builder::new().prefix(label).tempdir_in(parent)?)
+}
+
+#[allow(dead_code)]
 pub struct RepoSandbox {
     root: tempfile::TempDir,
     git_dir: PathBuf,

@@ -5,6 +5,8 @@ Runner determinism is about stable invocation identity, stable records, and repl
 ## Invocation Identity
 - Invocation hashes include command, args, environment, working directory, mounts, and image digest.
 - Hash inputs must be canonical and order-stable.
+- Version 2 site bindings persist bind-root environment names in sorted order; resolved same-path
+  bind arguments appear in the captured invocation so allocation-specific paths remain explicit.
 - Directory input hashing walks paths deterministically.
 - Container qualification attempt identity includes the permanent run ID, tool ID, campaign ID,
   and attempt ID. Scheduler job IDs remain provenance and never select an attempt directory.
@@ -35,3 +37,10 @@ Replay does not:
 - `tests/determinism/run_id_determinism.rs` covers run-id stability.
 - `tests/determinism/replay.rs` and `tests/determinism/replay/replay_*.rs` cover replay behavior.
 - `tests/boundaries/backend/invocation_hash.rs` covers invocation identity rules.
+
+## Managed Slurm Evidence
+
+Managed-worker specifications and wrapper scripts are deterministic functions of declared source,
+worker, resource, dependency, and attempt identities. A later observation may carry a new timestamp,
+but an existing terminal collection is returned only when scheduler accounting and log hashes still
+match its immutable evidence.

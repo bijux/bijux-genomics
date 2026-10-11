@@ -9,6 +9,8 @@ minimal, and appropriate for helper code used by other crates' tests.
 - Parse caller-provided JSON fixture files.
 - Create temporary directories through `tempfile`.
 - Derive contained paths below `TEST_TMP_DIR` or the process temp directory.
+- Read `BIJUX_REPO_ROOT` to resolve the execution workspace independently of
+  the checkout where a shared test archive was compiled.
 - Read environment variables used only for deterministic snapshot redaction:
   `CARGO_MANIFEST_DIR`, `CARGO_PKG_NAME`, `COMPUTERNAME`, `HOME`, `HOSTNAME`,
   `LC_ALL`, `LOGNAME`, `TEMP`, `TEST_TMP_DIR`, `TMP`, `TMPDIR`, `TZ`, and

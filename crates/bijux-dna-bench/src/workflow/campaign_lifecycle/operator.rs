@@ -1,3 +1,4 @@
+//! Owner: bijux-dna-bench
 //! Checked-in campaign planning for thin operator surfaces.
 
 use std::fs;
@@ -205,12 +206,15 @@ fn admit_attempt(
     }
     let result = (|| -> Result<BenchmarkEvidenceReference> {
         let spec = super::load_execution_spec(benchmark_root, identity)?;
-        let publication =
-            crate::admit_benchmark_execution_outputs(study_root, &spec, admitted_at_utc)?;
+        let publication = if prior_status == Some(BenchmarkLifecycleStatus::Passed) {
+            crate::revalidate_benchmark_execution_outputs(study_root, &spec)?
+        } else {
+            crate::admit_benchmark_execution_outputs(study_root, &spec, admitted_at_utc)?
+        };
         bijux_dna_runtime::record_attempt_acceptance(
             benchmark_root,
             identity,
-            admitted_at_utc,
+            &publication.report.admitted_at_utc,
             vec![publication.evidence.clone()],
         )?;
         Ok(publication.evidence)

@@ -4,11 +4,12 @@ use anyhow::Result;
 use bijux_dna_core::contract::ToolConstraints;
 use bijux_dna_core::ids::{StageId, ToolId};
 use bijux_dna_stage_contract::{
-    canonical_retained_tool_bindings, canonical_tool_bindings, project_tool_parameters,
-    render_tool_command, validate_tool_binding, BindingInputV1, BindingOutputV1,
-    BindingParameterV1, EffectiveToolParameterSourceV1, OutputDiscoveryV1, ToolArtifactSourceV1,
-    ToolBindingRegistry, ToolBindingRenderContext, ToolBindingV1, ToolParameterProjectionRequest,
-    EFFECTIVE_TOOL_PARAMETERS_SCHEMA_V1, TOOL_BINDING_SCHEMA_V1,
+    canonical_external_artifact_tool_bindings, canonical_retained_tool_bindings,
+    canonical_tool_bindings, project_tool_parameters, render_tool_command, validate_tool_binding,
+    BindingInputV1, BindingOutputV1, BindingParameterV1, EffectiveToolParameterSourceV1,
+    OutputDiscoveryV1, ToolArtifactSourceV1, ToolBindingRegistry, ToolBindingRenderContext,
+    ToolBindingV1, ToolParameterProjectionRequest, EFFECTIVE_TOOL_PARAMETERS_SCHEMA_V1,
+    TOOL_BINDING_SCHEMA_V1,
 };
 
 const ALIGN_STAGE: &str = "bam.align";
@@ -24,13 +25,24 @@ const GC_BIAS_STAGE: &str = "bam.gc_bias";
 const SEX_STAGE: &str = "bam.sex";
 const EXTRACT_UMIS_STAGE: &str = "fastq.extract_umis";
 const CORRECT_ERRORS_STAGE: &str = "fastq.correct_errors";
+const CLUSTER_OTUS_STAGE: &str = "fastq.cluster_otus";
+const MERGE_PAIRS_STAGE: &str = "fastq.merge_pairs";
+const SCREEN_TAXONOMY_STAGE: &str = "fastq.screen_taxonomy";
+const DETECT_ADAPTERS_STAGE: &str = "fastq.detect_adapters";
+const INFER_ASVS_STAGE: &str = "fastq.infer_asvs";
+const FILTER_LOW_COMPLEXITY_STAGE: &str = "fastq.filter_low_complexity";
+const FILTER_READS_STAGE: &str = "fastq.filter_reads";
+const INDEX_REFERENCE_STAGE: &str = "fastq.index_reference";
+const VALIDATE_READS_STAGE: &str = "fastq.validate_reads";
+const PROFILE_READ_LENGTHS_STAGE: &str = "fastq.profile_read_lengths";
+const PROFILE_READS_STAGE: &str = "fastq.profile_reads";
 
 #[test]
 fn canonical_retained_registry_owns_bam_align_tools_in_stable_order() -> Result<()> {
     let retained = canonical_retained_tool_bindings()?;
     let align = retained.bindings_for_stage(&StageId::new(ALIGN_STAGE));
 
-    assert_eq!(retained.bindings().len(), 16);
+    assert_eq!(retained.bindings().len(), 40);
     assert_eq!(
         align.iter().map(|binding| binding.tool_id.to_string()).collect::<Vec<_>>(),
         ["bowtie2", "bwa"]
@@ -45,6 +57,7 @@ fn canonical_retained_registry_owns_bam_align_tools_in_stable_order() -> Result<
             binding.artifact_source,
             ToolArtifactSourceV1::CatalogImage { catalog_tool_id: binding.tool_id.clone() }
         );
+        assert_eq!(binding.resources.runtime, "apptainer");
         assert!(!binding.command_template.iter().any(|token| [
             "bash", "sh", "python", "samtools", "gatk"
         ]
@@ -53,8 +66,781 @@ fn canonical_retained_registry_owns_bam_align_tools_in_stable_order() -> Result<
     }
 
     let all = canonical_tool_bindings()?;
-    assert_eq!(all.bindings().len(), 24);
+    assert_eq!(all.bindings().len(), 48);
     assert_eq!(all.bindings_for_stage(&StageId::new(ALIGN_STAGE)).len(), 2);
+    Ok(())
+}
+
+#[test]
+fn canonical_merge_pair_bindings_preserve_each_native_output_shape() -> Result<()> {
+    let registry = canonical_retained_tool_bindings()?;
+    let stage = StageId::new(MERGE_PAIRS_STAGE);
+    assert_eq!(
+        registry
+            .bindings_for_stage(&stage)
+            .iter()
+            .map(|binding| binding.tool_id.to_string())
+            .collect::<Vec<_>>(),
+        ["adapterremoval", "bbmerge", "flash2"]
+    );
+    assert_adapterremoval_merge_binding(&registry, &stage)?;
+    assert_bbmerge_merge_binding(&registry, &stage)?;
+    assert_flash2_merge_binding(&registry, &stage)?;
+    assert!(registry.bindings_for_stage(&stage).iter().all(|binding| {
+        binding.downstream_probe_id == "benchmark.fastq.merge_pairs.consume"
+            && binding.normalizer_id == "bijux_dna_planner_fastq::tool_adapters::fastq::merge_pairs"
+    }));
+    Ok(())
+}
+
+fn assert_adapterremoval_merge_binding(
+    registry: &ToolBindingRegistry,
+    stage: &StageId,
+) -> Result<()> {
+    let adapterremoval = registry
+        .binding(stage, &ToolId::new("adapterremoval"))
+        .ok_or_else(|| anyhow::anyhow!("canonical AdapterRemoval merge binding is missing"))?;
+    let adapterremoval_command = render_tool_command(
+        adapterremoval,
+        &ToolBindingRenderContext {
+            executable: "adapterremoval".to_owned(),
+            inputs: BTreeMap::from([
+                ("reads_r1".to_owned(), "/input/R1.fastq.gz".to_owned()),
+                ("reads_r2".to_owned(), "/input/R2.fastq.gz".to_owned()),
+            ]),
+            input_sets: BTreeMap::new(),
+            parameters: BTreeMap::from([
+                ("threads".to_owned(), "4".to_owned()),
+                ("merge_overlap".to_owned(), "11".to_owned()),
+                ("min_len".to_owned(), "30".to_owned()),
+            ]),
+            outputs: BTreeMap::from([
+                ("merged_reads".to_owned(), "/result/merged.fastq.gz".to_owned()),
+                ("unmerged_reads_r1".to_owned(), "/result/unmerged-R1.fastq.gz".to_owned()),
+                ("unmerged_reads_r2".to_owned(), "/result/unmerged-R2.fastq.gz".to_owned()),
+                ("adapterremoval_settings".to_owned(), "/result/settings.txt".to_owned()),
+            ]),
+        },
+    )?;
+    assert!(adapterremoval_command
+        .windows(2)
+        .any(|pair| pair == ["--outputcollapsed", "/result/merged.fastq.gz"]));
+    assert!(adapterremoval_command
+        .windows(2)
+        .any(|pair| pair == ["--settings", "/result/settings.txt"]));
+    assert_eq!(
+        adapterremoval.normalized_output_contract_id,
+        "bijux.benchmark.fastq.merge_pairs.bundle.v1"
+    );
+    Ok(())
+}
+
+fn assert_bbmerge_merge_binding(registry: &ToolBindingRegistry, stage: &StageId) -> Result<()> {
+    let bbmerge = registry
+        .binding(stage, &ToolId::new("bbmerge"))
+        .ok_or_else(|| anyhow::anyhow!("canonical BBMerge binding is missing"))?;
+    let bbmerge_command = render_tool_command(
+        bbmerge,
+        &ToolBindingRenderContext {
+            executable: "bbmerge".to_owned(),
+            inputs: BTreeMap::from([
+                ("reads_r1".to_owned(), "/input/R1.fastq.gz".to_owned()),
+                ("reads_r2".to_owned(), "/input/R2.fastq.gz".to_owned()),
+            ]),
+            input_sets: BTreeMap::new(),
+            parameters: BTreeMap::from([
+                ("threads".to_owned(), "4".to_owned()),
+                ("merge_overlap".to_owned(), "11".to_owned()),
+                ("min_len".to_owned(), "30".to_owned()),
+            ]),
+            outputs: BTreeMap::from([
+                ("merged_reads".to_owned(), "/result/merged.fastq".to_owned()),
+                ("unmerged_reads_r1".to_owned(), "/result/unmerged-R1.fastq".to_owned()),
+                ("unmerged_reads_r2".to_owned(), "/result/unmerged-R2.fastq".to_owned()),
+            ]),
+        },
+    )?;
+    assert_eq!(
+        bbmerge_command,
+        [
+            "bbmerge",
+            "in1=/input/R1.fastq.gz",
+            "in2=/input/R2.fastq.gz",
+            "out=/result/merged.fastq",
+            "outu1=/result/unmerged-R1.fastq",
+            "outu2=/result/unmerged-R2.fastq",
+            "threads=4",
+            "minoverlap=11",
+            "mininsert=30",
+        ]
+    );
+    Ok(())
+}
+
+fn assert_flash2_merge_binding(registry: &ToolBindingRegistry, stage: &StageId) -> Result<()> {
+    let flash2 = registry
+        .binding(stage, &ToolId::new("flash2"))
+        .ok_or_else(|| anyhow::anyhow!("canonical FLASH2 binding is missing"))?;
+    let flash2_command = render_tool_command(
+        flash2,
+        &ToolBindingRenderContext {
+            executable: "flash2".to_owned(),
+            inputs: BTreeMap::from([
+                ("reads_r1".to_owned(), "/input/R1.fastq.gz".to_owned()),
+                ("reads_r2".to_owned(), "/input/R2.fastq.gz".to_owned()),
+            ]),
+            input_sets: BTreeMap::new(),
+            parameters: BTreeMap::from([
+                ("threads".to_owned(), "4".to_owned()),
+                ("merge_overlap".to_owned(), "11".to_owned()),
+            ]),
+            outputs: BTreeMap::from([(
+                "flash2_result_directory".to_owned(),
+                "/result/flash2".to_owned(),
+            )]),
+        },
+    )?;
+    assert_eq!(
+        flash2_command,
+        [
+            "flash2",
+            "-o",
+            "flash2",
+            "-d",
+            "/result/flash2",
+            "-t",
+            "4",
+            "-m",
+            "11",
+            "/input/R1.fastq.gz",
+            "/input/R2.fastq.gz",
+        ]
+    );
+    assert_eq!(flash2.outputs[0].artifact_contract_id, "bijux.auxiliary.artifact.directory.v1");
+    Ok(())
+}
+
+#[test]
+fn canonical_vsearch_cluster_binding_preserves_native_clustering_outputs() -> Result<()> {
+    let registry = canonical_retained_tool_bindings()?;
+    let binding = registry
+        .binding(&StageId::new(CLUSTER_OTUS_STAGE), &ToolId::new("vsearch"))
+        .ok_or_else(|| anyhow::anyhow!("canonical VSEARCH cluster-OTUs binding is missing"))?;
+
+    assert_eq!(binding.inputs[0].artifact_contract_id, "bijux.fastq.artifact.single_end.v1");
+    assert_eq!(
+        binding.outputs.iter().map(|output| output.name.as_str()).collect::<Vec<_>>(),
+        ["otu_representatives", "otu_clusters", "otu_table"]
+    );
+    assert_eq!(binding.outputs[0].artifact_contract_id, "bijux.reference.artifact.fasta.v1");
+    assert!(binding
+        .outputs
+        .iter()
+        .skip(1)
+        .all(|output| output.artifact_contract_id == "bijux.auxiliary.artifact.table.v1"));
+    assert_eq!(
+        binding.normalized_output_contract_id,
+        "bijux.benchmark.fastq.cluster_otus.bundle.v1"
+    );
+    assert_eq!(binding.downstream_probe_id, "benchmark.fastq.cluster_otus.consume");
+
+    let command = render_tool_command(
+        binding,
+        &ToolBindingRenderContext {
+            executable: "vsearch".to_owned(),
+            inputs: BTreeMap::from([("reads".to_owned(), "/input/amplicons.fastq".to_owned())]),
+            input_sets: BTreeMap::new(),
+            parameters: BTreeMap::from([
+                ("identity_threshold".to_owned(), "0.97".to_owned()),
+                ("threads".to_owned(), "4".to_owned()),
+            ]),
+            outputs: BTreeMap::from([
+                ("otu_representatives".to_owned(), "/result/centroids.fasta".to_owned()),
+                ("otu_clusters".to_owned(), "/result/clusters.uc".to_owned()),
+                ("otu_table".to_owned(), "/result/otu-table.tsv".to_owned()),
+            ]),
+        },
+    )?;
+    assert_eq!(
+        command,
+        [
+            "vsearch",
+            "--cluster_fast",
+            "/input/amplicons.fastq",
+            "--id",
+            "0.97",
+            "--sizein",
+            "--sizeout",
+            "--relabel",
+            "OTU_",
+            "--threads",
+            "4",
+            "--centroids",
+            "/result/centroids.fasta",
+            "--uc",
+            "/result/clusters.uc",
+            "--otutabout",
+            "/result/otu-table.tsv",
+        ]
+    );
+    Ok(())
+}
+
+#[test]
+fn canonical_dada2_binding_collects_the_complete_native_asv_bundle() -> Result<()> {
+    let registry = canonical_retained_tool_bindings()?;
+    let binding = registry
+        .binding(&StageId::new(INFER_ASVS_STAGE), &ToolId::new("dada2"))
+        .ok_or_else(|| anyhow::anyhow!("canonical DADA2 infer-ASVs binding is missing"))?;
+
+    assert_eq!(
+        binding.inputs.iter().map(|input| input.name.as_str()).collect::<Vec<_>>(),
+        ["reads_r1", "reads_r2"]
+    );
+    assert!(binding
+        .inputs
+        .iter()
+        .all(|input| input.artifact_contract_id == "bijux.fastq.artifact.paired_end.v1"));
+    assert_eq!(binding.outputs.len(), 1);
+    assert_eq!(binding.outputs[0].name, "asv_result_directory");
+    assert_eq!(binding.outputs[0].artifact_contract_id, "bijux.auxiliary.artifact.directory.v1");
+    assert_eq!(binding.outputs[0].discovery, OutputDiscoveryV1::ExactPath);
+    assert_eq!(binding.normalized_output_contract_id, "bijux.benchmark.fastq.infer_asvs.bundle.v1");
+    assert_eq!(binding.downstream_probe_id, "benchmark.fastq.infer_asvs.consume");
+
+    let command = render_tool_command(
+        binding,
+        &ToolBindingRenderContext {
+            executable: "dada2".to_owned(),
+            inputs: BTreeMap::from([
+                ("reads_r1".to_owned(), "/input/F3D0_R1.fastq".to_owned()),
+                ("reads_r2".to_owned(), "/input/F3D0_R2.fastq".to_owned()),
+            ]),
+            input_sets: BTreeMap::new(),
+            parameters: BTreeMap::from([
+                ("sample_id".to_owned(), "F3D0".to_owned()),
+                ("threads".to_owned(), "4".to_owned()),
+            ]),
+            outputs: BTreeMap::from([(
+                "asv_result_directory".to_owned(),
+                "/result/asv-bundle".to_owned(),
+            )]),
+        },
+    )?;
+    assert_eq!(
+        command,
+        [
+            "dada2",
+            "infer-asvs",
+            "--input",
+            "/input/F3D0_R1.fastq",
+            "--input-r2",
+            "/input/F3D0_R2.fastq",
+            "--output-dir",
+            "/result/asv-bundle",
+            "--sample-id",
+            "F3D0",
+            "--threads",
+            "4",
+        ]
+    );
+    Ok(())
+}
+
+#[test]
+fn canonical_index_reference_bindings_collect_complete_index_directories() -> Result<()> {
+    let registry = canonical_retained_tool_bindings()?;
+    let bindings = registry.bindings_for_stage(&StageId::new(INDEX_REFERENCE_STAGE));
+    assert_eq!(
+        bindings.iter().map(|binding| binding.tool_id.as_str()).collect::<Vec<_>>(),
+        ["bowtie2_build", "star"]
+    );
+
+    let expected_commands = BTreeMap::from([
+        (
+            "bowtie2_build",
+            "set -eu\nmkdir -p '/result/index'\n'/images/bowtie2-build' --threads '4' '/input/reference.fa' '/result/index/reference'",
+        ),
+        (
+            "star",
+            "set -eu\nmkdir -p '/result/index'\n'/images/star' --runMode genomeGenerate --runThreadN '4' --genomeDir '/result/index' --genomeFastaFiles '/input/reference.fa'",
+        ),
+    ]);
+    for binding in bindings {
+        assert_eq!(binding.inputs[0].artifact_contract_id, "bijux.reference.artifact.fasta.v1");
+        assert_eq!(
+            binding.outputs[0].artifact_contract_id,
+            "bijux.auxiliary.artifact.directory.v1"
+        );
+        assert_eq!(binding.outputs[0].discovery, OutputDiscoveryV1::ExactPath);
+        assert_eq!(
+            binding.normalized_output_contract_id,
+            "bijux.benchmark.fastq.index_reference.bundle.v1"
+        );
+        assert_eq!(
+            binding.normalizer_id,
+            "bijux_dna_planner_fastq::tool_adapters::fastq::index_reference"
+        );
+        assert_eq!(binding.downstream_probe_id, "benchmark.fastq.index_reference.consume");
+        assert!(binding
+            .limitations
+            .iter()
+            .any(|limitation| limitation.contains("compatible_alignment_consumer")));
+
+        let executable = if binding.tool_id.as_str() == "bowtie2_build" {
+            "/images/bowtie2-build"
+        } else {
+            "/images/star"
+        };
+        let command = render_tool_command(
+            binding,
+            &ToolBindingRenderContext {
+                executable: executable.to_owned(),
+                inputs: BTreeMap::from([(
+                    "reference_fasta".to_owned(),
+                    "/input/reference.fa".to_owned(),
+                )]),
+                input_sets: BTreeMap::new(),
+                parameters: BTreeMap::from([("threads".to_owned(), "4".to_owned())]),
+                outputs: BTreeMap::from([(
+                    "reference_index".to_owned(),
+                    "/result/index".to_owned(),
+                )]),
+            },
+        )?;
+        assert_eq!(command, ["sh", "-lc", expected_commands[binding.tool_id.as_str()]]);
+    }
+    Ok(())
+}
+
+#[test]
+fn canonical_low_complexity_bindings_project_declared_single_end_qualification() -> Result<()> {
+    let registry = canonical_retained_tool_bindings()?;
+    let bindings = registry.bindings_for_stage(&StageId::new(FILTER_LOW_COMPLEXITY_STAGE));
+    assert_eq!(
+        bindings.iter().map(|binding| binding.tool_id.as_str()).collect::<Vec<_>>(),
+        ["bbduk", "fastp", "prinseq"]
+    );
+
+    let expected_commands = low_complexity_expected_commands();
+
+    for binding in bindings {
+        assert_eq!(binding.inputs[0].artifact_contract_id, "bijux.fastq.artifact.single_end.v1");
+        assert_eq!(binding.outputs[0].artifact_contract_id, "bijux.fastq.artifact.single_end.v1");
+        assert_eq!(
+            binding.normalized_output_contract_id,
+            "bijux.benchmark.fastq.filter_low_complexity.bundle.v1"
+        );
+        assert_eq!(
+            binding.normalizer_id,
+            "bijux_dna_planner_fastq::tool_adapters::fastq::filter_low_complexity"
+        );
+        assert_eq!(binding.downstream_probe_id, "benchmark.fastq.filter_low_complexity.compare");
+        assert!(binding
+            .limitations
+            .iter()
+            .any(|limitation| limitation.contains("comparative_case_admission_requires")));
+        if binding.tool_id.as_str() == "fastp" {
+            assert!(binding.limitations.iter().any(|limitation| limitation
+                == "fastp_adjacent_base_change_complexity_is_not_shannon_entropy"));
+        }
+
+        let report_name = if binding.tool_id.as_str() == "fastp" {
+            "native-report.json"
+        } else {
+            "native-report.txt"
+        };
+        let mut outputs = BTreeMap::from([(
+            "filtered_reads_r1".to_owned(),
+            "/result/filtered.fastq.gz".to_owned(),
+        )]);
+        if binding.tool_id.as_str() == "bbduk" {
+            outputs.insert("native_filter_statistics".to_owned(), format!("/result/{report_name}"));
+        } else if binding.tool_id.as_str() == "fastp" {
+            outputs.insert("native_filter_report".to_owned(), format!("/result/{report_name}"));
+        }
+        let command = render_tool_command(
+            binding,
+            &ToolBindingRenderContext {
+                executable: binding.tool_id.to_string(),
+                inputs: BTreeMap::from([(
+                    "reads_r1".to_owned(),
+                    "/input/sample.fastq.gz".to_owned(),
+                )]),
+                input_sets: BTreeMap::new(),
+                parameters: BTreeMap::from([("threads".to_owned(), "4".to_owned())]),
+                outputs,
+            },
+        )?;
+        assert_eq!(command, expected_commands[binding.tool_id.as_str()]);
+    }
+    Ok(())
+}
+
+fn low_complexity_expected_commands() -> BTreeMap<&'static str, Vec<&'static str>> {
+    BTreeMap::from([
+        (
+            "bbduk",
+            vec![
+                "bbduk",
+                "in=/input/sample.fastq.gz",
+                "out=/result/filtered.fastq.gz",
+                "stats=/result/native-report.txt",
+                "entropy=0.5",
+                "threads=4",
+                "overwrite=t",
+            ],
+        ),
+        (
+            "fastp",
+            vec![
+                "fastp",
+                "--in1",
+                "/input/sample.fastq.gz",
+                "--out1",
+                "/result/filtered.fastq.gz",
+                "--thread",
+                "4",
+                "--disable_adapter_trimming",
+                "--disable_quality_filtering",
+                "--low_complexity_filter",
+                "--complexity_threshold",
+                "50",
+                "--json",
+                "/result/native-report.json",
+                "--html",
+                "/dev/null",
+            ],
+        ),
+        (
+            "prinseq",
+            vec![
+                "prinseq",
+                "-threads",
+                "4",
+                "-fastq",
+                "/input/sample.fastq.gz",
+                "-out_good",
+                "/result/filtered.fastq.gz",
+                "-out_bad",
+                "/dev/null",
+                "-lc_entropy",
+                "50",
+            ],
+        ),
+    ])
+}
+
+#[test]
+fn canonical_seqkit_filter_binding_projects_one_shot_qualification_io() -> Result<()> {
+    let registry = canonical_retained_tool_bindings()?;
+    let bindings = registry.bindings_for_stage(&StageId::new(FILTER_READS_STAGE));
+    assert_eq!(bindings.len(), 1);
+    let binding = bindings[0];
+
+    assert_eq!(binding.tool_id.as_str(), "seqkit");
+    assert_eq!(binding.inputs[0].name, "reads_r1");
+    assert_eq!(binding.inputs[0].artifact_contract_id, "bijux.fastq.artifact.single_end.v1");
+    assert_eq!(binding.outputs[0].name, "filtered_reads_r1");
+    assert_eq!(binding.outputs[0].artifact_contract_id, "bijux.fastq.artifact.single_end.v1");
+    assert_eq!(
+        binding.normalized_output_contract_id,
+        "bijux.benchmark.fastq.filter_reads.bundle.v1"
+    );
+    assert_eq!(
+        binding.normalizer_id,
+        "bijux_dna_planner_fastq::tool_adapters::fastq::filter_reads"
+    );
+    assert_eq!(binding.downstream_probe_id, "benchmark.fastq.filter_reads.compare");
+
+    let command = render_tool_command(
+        binding,
+        &ToolBindingRenderContext {
+            executable: "seqkit".to_owned(),
+            inputs: BTreeMap::from([("reads_r1".to_owned(), "/input/sample.fastq.gz".to_owned())]),
+            input_sets: BTreeMap::new(),
+            parameters: BTreeMap::from([("threads".to_owned(), "4".to_owned())]),
+            outputs: BTreeMap::from([(
+                "filtered_reads_r1".to_owned(),
+                "/result/filtered.fastq.gz".to_owned(),
+            )]),
+        },
+    )?;
+    assert_eq!(
+        command,
+        [
+            "seqkit",
+            "seq",
+            "-j",
+            "4",
+            "-m",
+            "1",
+            "-o",
+            "/result/filtered.fastq.gz",
+            "/input/sample.fastq.gz",
+        ]
+    );
+    Ok(())
+}
+
+#[test]
+fn canonical_fastqc_binding_preserves_directory_evidence_for_shared_normalization() -> Result<()> {
+    let registry = canonical_retained_tool_bindings()?;
+    let bindings = registry.bindings_for_stage(&StageId::new(DETECT_ADAPTERS_STAGE));
+    assert_eq!(bindings.len(), 1);
+    let binding = bindings[0];
+
+    assert_eq!(binding.tool_id.as_str(), "fastqc");
+    assert_eq!(binding.outputs.len(), 1);
+    assert_eq!(binding.outputs[0].name, "adapter_evidence_dir");
+    assert_eq!(binding.outputs[0].artifact_contract_id, "bijux.auxiliary.artifact.directory.v1");
+    assert_eq!(
+        binding.normalized_output_contract_id,
+        "bijux.benchmark.fastq.detect_adapters.bundle.v1"
+    );
+    assert_eq!(
+        binding.normalizer_id,
+        "bijux_dna_planner_fastq::tool_adapters::fastq::detect_adapters"
+    );
+    assert_eq!(binding.downstream_probe_id, "benchmark.fastq.detect_adapters.compare");
+    assert_eq!(binding.resources.threads, 4);
+
+    let command = render_tool_command(
+        binding,
+        &ToolBindingRenderContext {
+            executable: "fastqc".to_owned(),
+            inputs: BTreeMap::from([("reads_r1".to_owned(), "/input/sample.fastq.gz".to_owned())]),
+            input_sets: BTreeMap::new(),
+            parameters: BTreeMap::from([("threads".to_owned(), "4".to_owned())]),
+            outputs: BTreeMap::from([(
+                "adapter_evidence_dir".to_owned(),
+                "/result/fastqc".to_owned(),
+            )]),
+        },
+    )?;
+    assert_eq!(command[0..2], ["/bin/sh", "-c"]);
+    assert_eq!(
+        command[2],
+        "mkdir -p '/result/fastqc' && 'fastqc' --outdir '/result/fastqc' --threads '4' '/input/sample.fastq.gz'"
+    );
+    assert!(!command[2].contains("fastq_detect_adapters.sh"));
+    Ok(())
+}
+
+#[test]
+fn canonical_fastq_profile_bindings_preserve_native_observations_for_shared_normalizers(
+) -> Result<()> {
+    let registry = canonical_retained_tool_bindings()?;
+    let length_bindings = registry.bindings_for_stage(&StageId::new(PROFILE_READ_LENGTHS_STAGE));
+    assert_eq!(
+        length_bindings.iter().map(|binding| binding.tool_id.as_str()).collect::<Vec<_>>(),
+        ["seqfu", "seqkit"]
+    );
+    for binding in length_bindings {
+        assert_eq!(
+            binding.normalized_output_contract_id,
+            "bijux.benchmark.fastq.profile_read_lengths.bundle.v1"
+        );
+        assert_eq!(
+            binding.normalizer_id,
+            "bijux_dna_planner_fastq::tool_adapters::stages::pre::profile_read_lengths"
+        );
+        assert_eq!(binding.downstream_probe_id, "benchmark.fastq.profile_read_lengths.compare");
+        assert_eq!(binding.outputs[0].name, "length_distribution_tsv");
+        assert_eq!(binding.resources.threads, 2);
+
+        let length_command = render_tool_command(
+            binding,
+            &ToolBindingRenderContext {
+                executable: binding.tool_id.to_string(),
+                inputs: BTreeMap::from([(
+                    "reads_r1".to_owned(),
+                    "/input/sample.fastq.gz".to_owned(),
+                )]),
+                input_sets: BTreeMap::new(),
+                parameters: binding
+                    .parameters
+                    .iter()
+                    .map(|parameter| {
+                        (parameter.name.clone(), binding.resources.threads.to_string())
+                    })
+                    .collect(),
+                outputs: BTreeMap::from([(
+                    "length_distribution_tsv".to_owned(),
+                    "/result/read-lengths.tsv".to_owned(),
+                )]),
+            },
+        )?;
+        assert_eq!(length_command[0..2], ["/bin/sh", "-c"]);
+        assert!(length_command[2].contains("'/input/sample.fastq.gz'"));
+        assert!(length_command[2].ends_with("> '/result/read-lengths.tsv'"));
+        if binding.tool_id.as_str() == "seqfu" {
+            assert!(length_command[2].contains("'seqfu' tab"));
+            assert!(length_command[2].contains("length($3)"));
+        } else {
+            assert!(length_command[2].contains("'seqkit' fx2tab"));
+            assert!(length_command[2].contains("$NF"));
+        }
+    }
+
+    let profile_bindings = registry.bindings_for_stage(&StageId::new(PROFILE_READS_STAGE));
+    assert_eq!(
+        profile_bindings.iter().map(|binding| binding.tool_id.as_str()).collect::<Vec<_>>(),
+        ["seqfu", "seqkit", "seqkit_stats"]
+    );
+    for binding in profile_bindings {
+        assert_eq!(
+            binding.normalized_output_contract_id,
+            "bijux.benchmark.fastq.profile_reads.bundle.v1"
+        );
+        assert_eq!(
+            binding.normalizer_id,
+            "bijux_dna_planner_fastq::tool_adapters::stages::qc::profile_reads"
+        );
+        assert_eq!(binding.downstream_probe_id, "benchmark.fastq.profile_reads.compare");
+        assert_eq!(binding.outputs.len(), 1);
+        assert_eq!(binding.outputs[0].name, "qc_tsv");
+        assert_eq!(binding.resources.threads, 2);
+
+        let command = render_tool_command(
+            binding,
+            &ToolBindingRenderContext {
+                executable: binding.tool_id.to_string(),
+                inputs: BTreeMap::from([(
+                    "reads_r1".to_owned(),
+                    "/input/sample.fastq.gz".to_owned(),
+                )]),
+                input_sets: BTreeMap::new(),
+                parameters: BTreeMap::from([("threads".to_owned(), "2".to_owned())]),
+                outputs: BTreeMap::from([("qc_tsv".to_owned(), "/result/profile.tsv".to_owned())]),
+            },
+        )?;
+        assert_eq!(command[0..2], ["/bin/sh", "-c"]);
+        assert!(command[2].contains("'/input/sample.fastq.gz'"));
+        assert!(command[2].contains("'/result/profile.tsv'"));
+        assert!(command[2].contains("'2'"));
+    }
+    Ok(())
+}
+
+#[test]
+fn canonical_validate_reads_bindings_close_governed_single_stream_qualification() -> Result<()> {
+    let registry = canonical_retained_tool_bindings()?;
+    let bindings = registry.bindings_for_stage(&StageId::new(VALIDATE_READS_STAGE));
+
+    assert_eq!(
+        bindings.iter().map(|binding| binding.tool_id.as_str()).collect::<Vec<_>>(),
+        ["fastqvalidator", "fqtools", "seqtk"]
+    );
+    for binding in bindings {
+        assert_eq!(binding.resources.runtime, "apptainer");
+        assert_eq!(binding.resources.threads, 4);
+        assert_eq!(binding.inputs.len(), 1);
+        assert_eq!(binding.inputs[0].name, "reads_r1");
+        assert_eq!(
+            binding.outputs.iter().map(|output| output.name.as_str()).collect::<Vec<_>>(),
+            ["validation_report", "validated_reads_manifest"]
+        );
+        assert_eq!(
+            binding.normalized_output_contract_id,
+            "bijux.benchmark.fastq.validate_reads.bundle.v1"
+        );
+        assert_eq!(
+            binding.normalizer_id,
+            "bijux_dna_planner_fastq::tool_adapters::stages::pre::validate_reads"
+        );
+        assert_eq!(binding.downstream_probe_id, "benchmark.fastq.validate_reads.compare");
+
+        let command = render_tool_command(
+            binding,
+            &ToolBindingRenderContext {
+                executable: binding.tool_id.to_string(),
+                inputs: BTreeMap::from([(
+                    "reads_r1".to_owned(),
+                    "/input/sample.fastq.gz".to_owned(),
+                )]),
+                input_sets: BTreeMap::new(),
+                parameters: BTreeMap::new(),
+                outputs: BTreeMap::from([
+                    ("validation_report".to_owned(), "/result/validation.json".to_owned()),
+                    (
+                        "validated_reads_manifest".to_owned(),
+                        "/result/validated-reads.json".to_owned(),
+                    ),
+                ]),
+            },
+        )?;
+        assert_eq!(command[0..2], ["/bin/sh", "-c"]);
+        assert!(command[2].contains("/input/sample.fastq.gz"));
+        assert!(command[2].contains("/result/validation.json"));
+        assert!(command[2].contains("/result/validated-reads.json"));
+        assert!(command[2].contains("bijux.fastq.validate.report.v1"));
+        assert!(command[2].contains("bijux.fastq.validate.lineage.v1"));
+        assert!(command[2].contains(&format!("\"tool_id\":\"{}\"", binding.tool_id)));
+    }
+    Ok(())
+}
+
+#[test]
+fn canonical_taxonomy_bindings_close_all_governed_read_classifiers() -> Result<()> {
+    let registry = canonical_retained_tool_bindings()?;
+    let stage_id = StageId::new(SCREEN_TAXONOMY_STAGE);
+    let bindings = registry.bindings_for_stage(&stage_id);
+
+    assert_eq!(
+        bindings.iter().map(|binding| binding.tool_id.as_str()).collect::<Vec<_>>(),
+        ["centrifuge", "kaiju", "kraken2", "krakenuniq"]
+    );
+    for binding in bindings {
+        assert_eq!(binding.resources.runtime, "apptainer");
+        assert_eq!(
+            binding.normalized_output_contract_id,
+            "bijux.benchmark.fastq.screen_taxonomy.bundle.v1"
+        );
+        assert_eq!(
+            binding.normalizer_id,
+            "bijux_dna_planner_fastq::tool_adapters::stages::qc::screen_taxonomy"
+        );
+        assert_eq!(binding.downstream_probe_id, "benchmark.fastq.screen_taxonomy.compare");
+        assert_eq!(
+            binding.inputs.iter().map(|input| input.name.as_str()).collect::<Vec<_>>(),
+            ["reads_r1", "taxonomy_database"]
+        );
+        assert_eq!(
+            binding.outputs.iter().map(|output| output.name.as_str()).collect::<Vec<_>>(),
+            ["screen_report_tsv", "native_assignments"]
+        );
+
+        let command = render_tool_command(
+            binding,
+            &ToolBindingRenderContext {
+                executable: binding.tool_id.to_string(),
+                inputs: BTreeMap::from([
+                    ("reads_r1".to_owned(), "/input/sample_R1.fastq.gz".to_owned()),
+                    ("taxonomy_database".to_owned(), "/input/taxonomy".to_owned()),
+                ]),
+                input_sets: BTreeMap::new(),
+                parameters: BTreeMap::from([("threads".to_owned(), "4".to_owned())]),
+                outputs: BTreeMap::from([
+                    ("screen_report_tsv".to_owned(), "/result/screen.tsv".to_owned()),
+                    ("native_assignments".to_owned(), "/result/assignments.tsv".to_owned()),
+                ]),
+            },
+        )?;
+        let rendered = command.join(" ");
+        assert!(rendered.contains("/input/sample_R1.fastq.gz"));
+        assert!(rendered.contains("/input/taxonomy"));
+        assert!(rendered.contains("/result/screen.tsv"));
+        assert!(rendered.contains("/result/assignments.tsv"));
+    }
+    Ok(())
+}
+
+#[test]
+fn canonical_external_bindings_preserve_external_runtime_identity() -> Result<()> {
+    let registry = canonical_external_artifact_tool_bindings()?;
+    assert_eq!(registry.bindings().len(), 8);
+    assert!(registry.bindings().all(|binding| binding.resources.runtime == "external_artifact"));
     Ok(())
 }
 
