@@ -16,7 +16,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_FASTQ_ADAPTER_OUTPUT_CONTRACT_PATH: &str =
-    "benchmarks/readiness/fastq-adapter-output-contract.tsv";
+    "artifacts/benchmark-smoke/readiness/fastq/fastq-adapter-output-contract.tsv";
 const FASTQ_ADAPTER_OUTPUT_CONTRACT_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.fastq_adapter_output_contract.v1";
 
@@ -428,10 +428,10 @@ mod tests {
         .expect("render FASTQ adapter output contract");
 
         assert_eq!(report.schema_version, FASTQ_ADAPTER_OUTPUT_CONTRACT_SCHEMA_VERSION);
-        assert_eq!(report.row_count, 71);
+        assert_eq!(report.row_count, 69);
         assert_eq!(report.missing_adapter_row_count, 0);
-        assert_eq!(report.adapter_row_count, 71);
-        assert_eq!(report.complete_adapter_row_count, 71);
+        assert_eq!(report.adapter_row_count, 69);
+        assert_eq!(report.complete_adapter_row_count, 69);
         assert_eq!(report.incomplete_adapter_row_count, 0);
         assert!(report.rows.iter().any(|row| {
             row.tool_id == "seqkit_stats"

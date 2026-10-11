@@ -10,13 +10,13 @@ use super::all_domain_active_stage_tool_matrix::{
 };
 use super::all_domain_rendered_commands::{
     render_all_domain_commands, AllDomainRenderedCommandRow,
-    DEFAULT_ALL_DOMAIN_RENDERED_COMMANDS_PATH,
+    DEFAULT_ALL_DOMAIN_RENDERED_COMMANDS_ARGV_PATH, DEFAULT_ALL_DOMAIN_RENDERED_COMMANDS_PATH,
 };
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_ALL_DOMAIN_LOCAL_JOB_COVERAGE_PATH: &str =
-    "benchmarks/readiness/all-domains/local-job-coverage.tsv";
+    "artifacts/benchmark-smoke/readiness/all-domains/local-job-coverage.tsv";
 const ALL_DOMAIN_LOCAL_JOB_COVERAGE_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.all_domain_local_job_coverage.v1";
 const COVERAGE_STATUS_COVERED: &str = "covered";
@@ -347,8 +347,7 @@ fn ensure_all_domain_local_job_coverage_contract(
         ));
     }
     if report.script_output_path != DEFAULT_ALL_DOMAIN_RENDERED_COMMANDS_PATH
-        || report.argv_output_path
-            != "benchmarks/readiness/rendered-commands-all-domains.argv.jsonl"
+        || report.argv_output_path != DEFAULT_ALL_DOMAIN_RENDERED_COMMANDS_ARGV_PATH
     {
         return Err(anyhow!(
             "all-domain local-job coverage drifted from the governed rendered-command artifact paths"

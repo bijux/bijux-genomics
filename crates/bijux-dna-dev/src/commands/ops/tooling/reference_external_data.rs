@@ -4,8 +4,8 @@ use super::{
 };
 use bijux_dna_db_ena::build_workflow_manifest_from_offline_fixture;
 use bijux_dna_db_ref::{
-    enforce_declared_build_and_contigs, materialize_contaminant_databases,
-    materialize_reference_bank, materialize_taxonomy_database, resolve_reference_bundle_contract,
+    enforce_declared_build_and_contigs, resolve_default_reference_set, resolve_reference_bank,
+    resolve_reference_bundle, resolve_reference_bundle_contract, resolve_reference_source_lock,
     resolve_sex_par_organellar_assets,
 };
 use serde::Serialize;
@@ -253,8 +253,8 @@ fn scenario_grch_human_reference() -> Result<(Vec<String>, serde_json::Value)> {
     let resolved = resolve_reference_bundle_contract(
         "Homo sapiens",
         "GRCh38",
-        Some("hsapiens_grch38_mini"),
-        Some("hsapiens_grch38_chr_map"),
+        Some("hsapiens_grch38_1kg_3202_chr22"),
+        Some("hsapiens_grch38_glimpse_chr22"),
         Some("glimpse"),
     )?;
     Ok((
@@ -336,8 +336,8 @@ fn scenario_multi_reference_refusal() -> Result<(Vec<String>, serde_json::Value)
     let mismatch_panel = resolve_reference_bundle_contract(
         "Canis lupus",
         "CanFam4",
-        Some("hsapiens_grch38_mini"),
-        Some("hsapiens_grch38_chr_map"),
+        Some("hsapiens_grch38_1kg_3202_chr22"),
+        Some("hsapiens_grch38_glimpse_chr22"),
         Some("glimpse"),
     )
     .err()
@@ -583,12 +583,12 @@ fn scenario_ena_batch_accession() -> Result<(Vec<String>, serde_json::Value)> {
 }
 
 fn scenario_offline_data_package(
-    workspace: &Workspace,
+    _workspace: &Workspace,
 ) -> Result<(Vec<String>, serde_json::Value)> {
-    let root = workspace.path("artifacts/reference_external_data/offline_package");
-    let refs = materialize_reference_bank("Homo sapiens", "GRCh38", &root, true, true)?;
-    let contaminants = materialize_contaminant_databases(&root.join("contaminant_db"))?;
-    let taxonomy = materialize_taxonomy_database(&root.join("taxonomy_db"))?;
+    let bank = resolve_reference_bank("Homo sapiens", "GRCh38")?;
+    let bundle = resolve_reference_bundle("Homo sapiens", "GRCh38")?;
+    let source_lock = resolve_reference_source_lock()?;
+    let reference_set = resolve_default_reference_set("Homo sapiens", "adna")?;
 
     let fixture = json!({
         "schema_version": "bijux.ena.offline_fixture.v1",
@@ -622,27 +622,24 @@ fn scenario_offline_data_package(
 
     Ok((
         vec![
-            "offline package materialized reference, contaminant, and taxonomy assets".to_string(),
+            "offline package resolved reference, bundle, source-lock, and reference-set contracts without filesystem materialization".to_string(),
             "offline ENA fixture converted to workflow inputs without network dependency"
                 .to_string(),
         ],
         json!({
-            "package_root": root.display().to_string(),
-            "reference_materialization": {
-                "species_id": refs.species_id,
-                "build_id": refs.build_id,
-                "bundle_id": refs.bundle_id,
-                "mode": refs.mode,
-                "index_artifact_count": refs.index_artifacts.len(),
+            "reference_contract": {
+                "species_id": bank.species_id,
+                "build_id": bank.build_id,
+                "source_accession": bank.source_accession,
+                "source_sha256": bank.fasta_sha256,
+                "bundle_id": bundle.bundle_id,
+                "required_indexes": bank.required_indexes,
             },
-            "contaminant_bundle_count": contaminants.bundles.len(),
-            "taxonomy_bundle": {
-                "bundle_id": taxonomy.bundle_id,
-                "lock_family": taxonomy.lock_family,
-                "db_path": taxonomy.db_path,
-                "required_fields": taxonomy.required_fields,
-                "advisory_only": taxonomy.advisory_only,
+            "source_lock": {
+                "schema_version": source_lock.schema_version,
+                "reference_count": source_lock.references.len(),
             },
+            "reference_set_id": reference_set.id,
             "ena_workflow_run_count": ena.runs.len(),
         }),
     ))
@@ -815,7 +812,7 @@ mod tests {
     }
 
     #[test]
-    fn offline_package_scenario_materializes_reference_assets() {
+    fn offline_package_scenario_resolves_reference_contracts() {
         let workspace =
             Workspace::resolve().unwrap_or_else(|error| panic!("resolve workspace: {error}"));
         let report = run_scenario(&workspace, ScenarioId::OfflineDataPackage);
@@ -824,11 +821,11 @@ mod tests {
         assert_eq!(
             report
                 .evidence
-                .get("reference_materialization")
+                .get("reference_contract")
                 .and_then(serde_json::Value::as_object)
-                .and_then(|record| record.get("mode"))
+                .and_then(|record| record.get("source_accession"))
                 .and_then(serde_json::Value::as_str),
-            Some("offline_fixture")
+            Some("GCF_000001405.40")
         );
     }
 }

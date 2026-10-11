@@ -45,7 +45,7 @@ fn bench_readiness_vcf_imputation_family_adapter_reports_governed_rows() {
     assert_eq!(payload.get("domain").and_then(serde_json::Value::as_str), Some("vcf"));
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/adapters/imputation-family.vcf.json")
+        Some("artifacts/benchmark-smoke/readiness/adapters/imputation-family.vcf.json")
     );
     assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(8));
     assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(4));
@@ -101,7 +101,7 @@ fn bench_readiness_vcf_imputation_family_adapter_reports_governed_rows() {
             .and_then(serde_json::Value::as_str)
             .is_some_and(|path| {
                 path.ends_with(
-                    "benchmarks/readiness/adapters/imputation/beagle/vcf.imputation_metrics/artifacts/input/vcf_imputation_metrics.vcf.gz",
+                    "artifacts/benchmark-smoke/readiness/adapters/imputation/beagle/vcf.imputation_metrics/artifacts/input/vcf_imputation_metrics.vcf.gz",
                 )
             }),
         "beagle imputation row must retain the materialized indexed target VCF path"
@@ -113,7 +113,7 @@ fn bench_readiness_vcf_imputation_family_adapter_reports_governed_rows() {
     assert_eq!(
         beagle_imputation.get("quality_output_path").and_then(serde_json::Value::as_str),
         Some(
-            "benchmarks/readiness/adapters/imputation/beagle/vcf.imputation_metrics/imputation_metrics.json"
+            "artifacts/benchmark-smoke/readiness/adapters/imputation/beagle/vcf.imputation_metrics/imputation_metrics.json"
         )
     );
     assert_eq!(

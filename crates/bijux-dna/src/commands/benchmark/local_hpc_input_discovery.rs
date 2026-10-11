@@ -7,8 +7,8 @@ use regex::Regex;
 use sha2::{Digest, Sha256};
 
 use super::local_stage_commands::local_stage_plans;
+use super::readiness::benchmark_command_rows::DEFAULT_STAGE_TOOL_COMMAND_ROOT;
 
-const GENERATED_BENCHMARK_OUTPUT_ROOTS: [&str; 1] = ["benchmarks/readiness/stage-tool-commands/"];
 const OUTPUT_FLAG_ARGS: [&str; 12] = [
     "-o",
     "-O",
@@ -23,7 +23,9 @@ const OUTPUT_FLAG_ARGS: [&str; 12] = [
     "--report",
     "--summary",
 ];
-const SOURCE_ROOTS: [&str; 3] = ["assets/", "benchmarks/", "runs/"];
+const OUTPUT_ASSIGNMENT_KEYS: [&str; 7] =
+    ["out", "output", "output_dir", "output_root", "output_prefix", "report", "summary"];
+const SOURCE_ROOTS: [&str; 4] = ["artifacts/", "assets/", "benchmarks/", "runs/"];
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub(crate) struct LocalHpcStageInputHint {
@@ -362,7 +364,10 @@ fn collect_tokenized_step_path_usage(argv: &[String]) -> StepPathUsage {
 
     for arg in argv {
         if let Some((assignment_key, path)) = assignment_repo_path(arg) {
-            if is_generated_benchmark_output_path(path) || is_output_flag(assignment_key) {
+            if is_generated_benchmark_output_path(path)
+                || is_output_flag(assignment_key)
+                || is_output_assignment_key(assignment_key)
+            {
                 usage.produced.insert(path.to_string());
             } else {
                 usage.consumed.insert(path.to_string());
@@ -384,7 +389,7 @@ fn collect_tokenized_step_path_usage(argv: &[String]) -> StepPathUsage {
 
 fn collect_shell_step_path_usage(shell_command: &str) -> Result<StepPathUsage> {
     let matcher = Regex::new(
-        r#"'((?:assets|benchmarks|runs)/[^']+)'|"((?:assets|benchmarks|runs)/[^"]+)"|((?:assets|benchmarks|runs)/[A-Za-z0-9_./@+-]+)"#,
+        r#"'((?:artifacts|assets|benchmarks|runs)/[^']+)'|"((?:artifacts|assets|benchmarks|runs)/[^"]+)"|((?:artifacts|assets|benchmarks|runs)/[A-Za-z0-9_./@+-]+)"#,
     )
     .context("compile local HPC input-discovery path matcher")?;
     let mut usage = StepPathUsage::default();
@@ -419,7 +424,9 @@ fn is_output_context(body: &str, start: usize) -> bool {
         return true;
     }
 
-    last_shell_token(prefix).is_some_and(is_output_flag)
+    last_shell_token(prefix).is_some_and(|token| {
+        is_output_flag(token) || token.strip_suffix('=').is_some_and(is_output_assignment_key)
+    })
 }
 
 fn last_shell_token(prefix: &str) -> Option<&str> {
@@ -428,6 +435,10 @@ fn last_shell_token(prefix: &str) -> Option<&str> {
 
 fn is_output_flag(flag: &str) -> bool {
     OUTPUT_FLAG_ARGS.contains(&flag)
+}
+
+fn is_output_assignment_key(key: &str) -> bool {
+    OUTPUT_ASSIGNMENT_KEYS.contains(&key)
 }
 
 fn candidate_repo_path(value: &str) -> Option<&str> {
@@ -448,7 +459,10 @@ fn is_repo_source_path(value: &str) -> bool {
 }
 
 fn is_generated_benchmark_output_path(value: &str) -> bool {
-    GENERATED_BENCHMARK_OUTPUT_ROOTS.iter().any(|root| value.starts_with(root))
+    value == DEFAULT_STAGE_TOOL_COMMAND_ROOT
+        || value
+            .strip_prefix(DEFAULT_STAGE_TOOL_COMMAND_ROOT)
+            .is_some_and(|suffix| suffix.starts_with('/'))
 }
 
 fn resolve_prefix_bundle(
@@ -548,4 +562,36 @@ fn hex_sha256_digest(hasher: Sha256) -> String {
         hex.push_str(&format!("{byte:02x}"));
     }
     hex
+}
+
+#[cfg(test)]
+mod tests {
+    use super::collect_shell_step_path_usage;
+
+    #[test]
+    fn shell_discovery_distinguishes_materialized_inputs_from_outputs() {
+        let usage = collect_shell_step_path_usage(
+            "cat 'artifacts/benchmark-smoke/readiness/adapters/descent/ibdne/vcf.demography/artifacts/input/ibd_segments.tsv' | ibdne map='artifacts/benchmark-smoke/readiness/adapters/descent/ibdne/vcf.demography/artifacts/input/genetic.map' out='artifacts/benchmark-smoke/readiness/adapters/descent/ibdne/vcf.demography/demography_report' > 'artifacts/benchmark-smoke/readiness/adapters/descent/ibdne/vcf.demography/demography_report.log' 2>&1",
+        )
+        .expect("discover IBDNe shell paths");
+
+        assert_eq!(
+            usage.consumed,
+            [
+                "artifacts/benchmark-smoke/readiness/adapters/descent/ibdne/vcf.demography/artifacts/input/genetic.map".to_string(),
+                "artifacts/benchmark-smoke/readiness/adapters/descent/ibdne/vcf.demography/artifacts/input/ibd_segments.tsv".to_string(),
+            ]
+            .into_iter()
+            .collect()
+        );
+        assert_eq!(
+            usage.produced,
+            [
+                "artifacts/benchmark-smoke/readiness/adapters/descent/ibdne/vcf.demography/demography_report".to_string(),
+                "artifacts/benchmark-smoke/readiness/adapters/descent/ibdne/vcf.demography/demography_report.log".to_string(),
+            ]
+            .into_iter()
+            .collect()
+        );
+    }
 }

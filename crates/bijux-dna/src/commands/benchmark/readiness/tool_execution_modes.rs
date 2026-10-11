@@ -255,7 +255,7 @@ fn build_mode_assignment_index(
 fn validate_mode_definition(mode: &ToolExecutionModeDefinition) -> Result<()> {
     if !matches!(
         mode.execution_mode.as_str(),
-        "internal" | "binary" | "containerized" | "r" | "java" | "python" | "mixed"
+        "internal" | "binary" | "containerized" | "external" | "r" | "java" | "python" | "mixed"
     ) {
         return Err(anyhow!(
             "tool execution mode `{}` is not one of the governed allowed values",
@@ -541,7 +541,7 @@ mod tests {
 
         assert_eq!(report.schema_version, TOOL_EXECUTION_MODES_VALIDATION_SCHEMA_VERSION);
         assert_eq!(report.classification_scope, "primary_operator_runtime");
-        assert_eq!(report.mode_count, 6);
+        assert_eq!(report.mode_count, 7);
         assert_eq!(report.tool_count, report.rows.len());
         assert!(report.tool_count > 0);
         assert!(report.valid, "tool execution mode config must validate cleanly");
@@ -581,11 +581,14 @@ mod tests {
             report.rows.iter().find(|row| row.tool_id == "trim_galore").expect("trim_galore row");
         assert_eq!(trim_galore.execution_mode, "mixed");
 
-        for unsupported_tool_id in ["angsd", "fastuniq", "ngsbriggs"] {
-            assert!(
-                report.rows.iter().all(|row| row.tool_id != unsupported_tool_id),
-                "unsupported container `{unsupported_tool_id}` must not have an executable mode"
-            );
+        for external_tool_id in ["angsd", "fastuniq", "ngsbriggs"] {
+            let row = report
+                .rows
+                .iter()
+                .find(|row| row.tool_id == external_tool_id)
+                .expect("external artifact must remain in benchmark integration scope");
+            assert_eq!(row.execution_mode, "external");
+            assert_eq!(row.expected_install_kind, "external");
         }
 
         let yleaf = report.rows.iter().find(|row| row.tool_id == "yleaf").expect("yleaf row");

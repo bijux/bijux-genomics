@@ -5,5 +5,11 @@
     "validate_inputs",
     "run_bench",
     "collect_outputs"
+  ],
+  "pipeline": [
+    "vcf.population_structure",
+    "vcf.roh",
+    "vcf.ibd",
+    "vcf.demography"
   ]
 }

@@ -15,6 +15,14 @@ use super::{validate_attempt_identity, BENCHMARK_EXECUTION_SPEC_SCHEMA_V1};
 
 const REQUIRED_SOURCE_LOCKS: &[&str] =
     &["campaign_registry", "container_catalog", "image_inventory", "stage_interface_registry"];
+const DISPOSABLE_PRODUCTION_ROOTS: &[&str] = &[
+    "assets/toy",
+    "benchmarks/tests/fixtures",
+    "configs/bench/local",
+    "runs/bench/local-fake-runs",
+    "runs/bench/readiness-probes",
+    "artifacts/benchmark-smoke",
+];
 
 /// Validate a complete immutable executable benchmark specification.
 ///
@@ -98,6 +106,9 @@ fn validate_commands(commands: &BenchmarkExecutionCommands) -> Result<(), BenchE
     ] {
         if command.is_empty() || command.iter().any(String::is_empty) {
             return Err(invalid(&format!("benchmark execution {label} command is empty")));
+        }
+        for argument in command {
+            reject_disposable_production_root(argument, &format!("{label} command"))?;
         }
     }
     Ok(())
@@ -265,7 +276,7 @@ fn validate_relative_path(value: &str, label: &str) -> Result<(), BenchError> {
     {
         return Err(invalid(&format!("benchmark {label} is not a safe relative path")));
     }
-    Ok(())
+    reject_disposable_production_root(value, label)
 }
 
 fn require_absolute_path(value: &str, label: &str) -> Result<(), BenchError> {
@@ -275,7 +286,28 @@ fn require_absolute_path(value: &str, label: &str) -> Result<(), BenchError> {
     {
         return Err(invalid(&format!("benchmark {label} is not an absolute normalized path")));
     }
+    reject_disposable_production_root(value, label)
+}
+
+fn reject_disposable_production_root(value: &str, label: &str) -> Result<(), BenchError> {
+    let normalized = value.replace('\\', "/");
+    for root in DISPOSABLE_PRODUCTION_ROOTS {
+        if normalized.match_indices(root).any(|(start, _)| {
+            let before = normalized[..start].chars().next_back();
+            let after = normalized[start + root.len()..].chars().next();
+            is_path_segment_boundary(before) && is_path_segment_boundary(after)
+        }) {
+            return Err(invalid(&format!(
+                "benchmark {label} references disposable production root {root}"
+            )));
+        }
+    }
     Ok(())
+}
+
+fn is_path_segment_boundary(character: Option<char>) -> bool {
+    character
+        .is_none_or(|value| !value.is_ascii_alphanumeric() && !matches!(value, '_' | '-' | '.'))
 }
 
 fn validate_component(value: &str, label: &str) -> Result<(), BenchError> {

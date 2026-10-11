@@ -34,7 +34,7 @@ fn bench_readiness_all_domain_no_not_benchmark_ready_rows_writes_governed_json_f
     let rendered_path = String::from_utf8(output.stdout).expect("stdout utf8");
     assert_eq!(
         rendered_path.trim(),
-        "benchmarks/readiness/all-domains/no-not-benchmark-ready-rows.json"
+        "artifacts/benchmark-smoke/readiness/all-domains/no-not-benchmark-ready-rows.json"
     );
 
     let payload = std::fs::read_to_string(repo_root.join(rendered_path.trim()))

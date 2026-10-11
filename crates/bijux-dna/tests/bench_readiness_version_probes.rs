@@ -43,7 +43,7 @@ fn bench_readiness_version_probes_report_governed_probe_contracts() {
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/tools/version-probes.json")
+        Some("artifacts/benchmark-smoke/readiness/tools/version-probes.json")
     );
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows");
     let row_count = rows.len() as u64;

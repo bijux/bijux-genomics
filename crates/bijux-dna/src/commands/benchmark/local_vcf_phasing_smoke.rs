@@ -13,7 +13,7 @@ use serde::Serialize;
 use super::local_stage_result_manifest::{path_relative_to_repo, validate_stage_result_manifest};
 use super::local_vcf_panel_workflow_smoke_support::{
     build_stage_result_manifest, governed_vcf_panel_species_context,
-    materialize_governed_vcf_panel_assets, resolve_governed_vcf_panel_workflow_smoke_contract,
+    resolve_governed_vcf_panel_asset_contract, resolve_governed_vcf_panel_workflow_smoke_contract,
     DEFAULT_STAGE_RESULT_NAME,
 };
 use crate::commands::cli::parse;
@@ -143,10 +143,8 @@ pub(crate) fn run_local_vcf_phasing_smoke(
 
     let input_vcf_path = input_root.join(DEFAULT_INPUT_VCF_NAME);
     write_governed_phasing_input_vcf(&input_vcf_path)?;
-    let panel_assets_report = materialize_governed_vcf_panel_assets(&input_root.join("reference"))
-        .with_context(|| {
-            format!("materialize governed VCF panel assets under {}", input_root.display())
-        })?;
+    let panel_assets_report = resolve_governed_vcf_panel_asset_contract()
+        .context("resolve governed VCF panel asset contract")?;
     let panel_assets_path = output_root.join(DEFAULT_OUTPUT_PANEL_ASSETS_NAME);
     bijux_dna_infra::atomic_write_json(&panel_assets_path, &panel_assets_report)?;
 

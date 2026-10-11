@@ -167,17 +167,22 @@ pub(crate) fn load_benchmark_stage_ids(
     Ok(inventory.stages.iter().map(|entry| entry.stage_id.clone()).collect::<BTreeSet<_>>())
 }
 
-pub(crate) fn load_retained_container_tool_ids(repo_root: &Path) -> Result<BTreeSet<String>> {
-    let retained_tool_ids = load_readiness_container_catalog(repo_root)?
+pub(crate) fn load_benchmark_integrated_container_tool_ids(
+    repo_root: &Path,
+) -> Result<BTreeSet<String>> {
+    let integrated_tool_ids = load_readiness_container_catalog(repo_root)?
         .tools
         .into_iter()
-        .filter(|tool| tool.support_disposition == "retained")
+        .filter(|tool| {
+            tool.support_disposition == "retained"
+                || (tool.support_disposition == "unsupported" && tool.external_artifact_supported)
+        })
         .map(|tool| tool.id)
         .collect::<BTreeSet<_>>();
-    if retained_tool_ids.is_empty() {
-        return Err(anyhow!("container catalog does not retain any executable tools"));
+    if integrated_tool_ids.is_empty() {
+        return Err(anyhow!("container catalog does not integrate any executable tools"));
     }
-    Ok(retained_tool_ids)
+    Ok(integrated_tool_ids)
 }
 
 pub(crate) fn load_external_artifact_tool_contracts(
@@ -517,13 +522,26 @@ fn string_list(value: &toml::Value, key: &str, path: &Path) -> Result<Vec<String
 mod tests {
     use std::path::PathBuf;
 
-    use super::load_registry_tool_matrix;
+    use super::{load_benchmark_integrated_container_tool_ids, load_registry_tool_matrix};
 
     fn repo_root() -> PathBuf {
         PathBuf::from(env!("CARGO_MANIFEST_DIR"))
             .join("../..")
             .canonicalize()
             .expect("canonicalize repo root")
+    }
+
+    #[test]
+    fn benchmark_integration_keeps_external_artifacts_in_scope() {
+        let tool_ids = load_benchmark_integrated_container_tool_ids(&repo_root())
+            .expect("load benchmark-integrated container tools");
+
+        for tool_id in ["angsd", "fastuniq", "impute5", "ngsbriggs"] {
+            assert!(
+                tool_ids.contains(tool_id),
+                "external artifact `{tool_id}` must not be excluded by redistribution policy"
+            );
+        }
     }
 
     #[test]

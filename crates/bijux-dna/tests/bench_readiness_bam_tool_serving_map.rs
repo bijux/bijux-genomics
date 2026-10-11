@@ -45,10 +45,10 @@ fn bench_readiness_bam_tool_serving_map_reports_governed_bam_stage_rows() {
     assert_eq!(payload.get("domain").and_then(serde_json::Value::as_str), Some("bam"));
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/bam-tool-serving-map.tsv")
+        Some("artifacts/benchmark-smoke/readiness/bam/bam-tool-serving-map.tsv")
     );
     assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(24));
-    assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(25));
+    assert_eq!(payload.get("tool_count").and_then(serde_json::Value::as_u64), Some(26));
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
     assert_eq!(
@@ -56,12 +56,6 @@ fn bench_readiness_bam_tool_serving_map_reports_governed_bam_stage_rows() {
         Some(rows.len() as u64)
     );
     assert!(!rows.is_empty(), "BAM readiness map must retain active rows");
-    assert!(rows.iter().all(|row| {
-        !matches!(
-            row.get("tool_id").and_then(serde_json::Value::as_str),
-            Some("angsd" | "ngsbriggs")
-        )
-    }));
 
     let has_row = |tool_id: &str,
                    stage_id: &str,
@@ -82,6 +76,23 @@ fn bench_readiness_bam_tool_serving_map_reports_governed_bam_stage_rows() {
                     == Some(corpus_status)
         })
     };
+
+    assert!(has_row(
+        "angsd",
+        "bam.kinship",
+        "supported",
+        "runnable",
+        "parser_fixture_validated",
+        "fixture:corpus-01-kinship-mini",
+    ));
+    assert!(has_row(
+        "ngsbriggs",
+        "bam.damage",
+        "supported",
+        "runnable",
+        "parser_fixture_validated",
+        "fixture:corpus-01-adna-damage-mini",
+    ));
 
     assert!(
         has_row(

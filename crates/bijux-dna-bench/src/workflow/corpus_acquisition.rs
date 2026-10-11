@@ -6,16 +6,14 @@ use std::path::{Path, PathBuf};
 
 use anyhow::{bail, Context, Result};
 use bijux_dna_bench_model::{
-    validate_corpus_acquisition_plan, CorpusAcquisitionFile, CorpusAcquisitionLayout,
-    CorpusAcquisitionPlan, CorpusAcquisitionSample, CORPUS_ACQUISITION_SCHEMA_V1,
+    validate_corpus_acquisition_plan, validate_fastq_corpus_source_spec, CorpusAcquisitionFile,
+    CorpusAcquisitionLayout, CorpusAcquisitionPlan, CorpusAcquisitionSample,
+    FastqCorpusSourceSample, FastqCorpusSourceSpec, CORPUS_ACQUISITION_SCHEMA_V2,
 };
 use bijux_dna_db_ena::{
     EnaClient, EnaFileSource, EnaQuery, EnaRecord, EnaResultKind, EnaSourcePreference,
 };
 use chrono::{DateTime, FixedOffset};
-use serde::Deserialize;
-
-const CORPUS_SPEC_SCHEMA_V1: &str = "bijux.corpus_spec.v1";
 const MAX_CORPUS_SPEC_BYTES: usize = 4 * 1024 * 1024;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -23,42 +21,6 @@ pub struct CorpusAcquisitionRequest {
     pub spec_path: PathBuf,
     pub output_path: PathBuf,
     pub retrieved_at_utc: String,
-}
-
-#[derive(Debug, Deserialize)]
-#[serde(deny_unknown_fields)]
-struct CorpusSpec {
-    schema_version: String,
-    corpus_id: String,
-    portfolio_id: String,
-    species: String,
-    #[serde(default)]
-    species_id: Option<String>,
-    #[serde(default)]
-    preferred_root: Option<String>,
-    #[serde(default)]
-    description: Option<String>,
-    target_total: usize,
-    #[serde(default)]
-    target_ancient_se: Option<usize>,
-    #[serde(default)]
-    target_ancient_pe: Option<usize>,
-    #[serde(default)]
-    target_modern_se: Option<usize>,
-    #[serde(default)]
-    target_modern_pe: Option<usize>,
-    samples: Vec<CorpusSpecSample>,
-}
-
-#[derive(Debug, Deserialize)]
-#[serde(deny_unknown_fields)]
-struct CorpusSpecSample {
-    accession: String,
-    study_accession: String,
-    era: String,
-    layout: CorpusAcquisitionLayout,
-    size_band: String,
-    reason: String,
 }
 
 /// Resolve live ENA metadata and immutably publish one validated acquisition plan.
@@ -78,7 +40,7 @@ pub fn acquire_fastq_corpus(request: &CorpusAcquisitionRequest) -> Result<Corpus
             });
         }
     }
-    let spec = load_spec(&request.spec_path)?;
+    let spec = load_fastq_corpus_source_spec(&request.spec_path)?;
     let query = EnaQuery {
         projects: Vec::new(),
         samples: Vec::new(),
@@ -104,71 +66,33 @@ pub fn derive_fastq_corpus_acquisition_plan(
     records: &[EnaRecord],
     retrieved_at_utc: &str,
 ) -> Result<CorpusAcquisitionPlan> {
-    let spec = load_spec(spec_path)?;
+    let spec = load_fastq_corpus_source_spec(spec_path)?;
     derive_plan(spec_path, &spec, records, retrieved_at_utc)
 }
 
-fn load_spec(path: &Path) -> Result<CorpusSpec> {
+/// Load and validate a governed production FASTQ source declaration.
+///
+/// # Errors
+/// Returns an error when the declaration is unreadable, malformed, or violates source policy.
+pub fn load_fastq_corpus_source_spec(path: &Path) -> Result<FastqCorpusSourceSpec> {
     let bytes = bijux_dna_infra::read_to_end_bounded(path, MAX_CORPUS_SPEC_BYTES)
         .with_context(|| format!("read corpus specification {}", path.display()))?;
-    let spec: CorpusSpec =
+    let spec: FastqCorpusSourceSpec =
         toml::from_str(std::str::from_utf8(&bytes).context("corpus specification is not UTF-8")?)
             .with_context(|| format!("parse corpus specification {}", path.display()))?;
-    validate_spec(&spec)?;
+    validate_fastq_corpus_source_spec(&spec).context("validate FASTQ corpus source")?;
     Ok(spec)
-}
-
-fn validate_spec(spec: &CorpusSpec) -> Result<()> {
-    if spec.schema_version != CORPUS_SPEC_SCHEMA_V1 {
-        bail!("corpus specification schema is unsupported");
-    }
-    if spec.samples.is_empty() || spec.samples.len() != spec.target_total {
-        bail!("corpus specification target total disagrees with samples");
-    }
-    if !valid_identifier(&spec.corpus_id) || !valid_identifier(&spec.portfolio_id) {
-        bail!("corpus specification identity is malformed");
-    }
-    if spec.species.trim().is_empty() || spec.species != spec.species.trim() {
-        bail!("corpus specification species is empty or malformed");
-    }
-    let cohort_targets = [
-        spec.target_ancient_se,
-        spec.target_ancient_pe,
-        spec.target_modern_se,
-        spec.target_modern_pe,
-    ];
-    if cohort_targets.iter().any(Option::is_some)
-        && (cohort_targets.iter().any(Option::is_none)
-            || cohort_targets.into_iter().flatten().sum::<usize>() != spec.target_total)
-    {
-        bail!("corpus specification cohort targets do not close over target total");
-    }
-    let mut accessions = BTreeSet::new();
-    for sample in &spec.samples {
-        if !accessions.insert(sample.accession.as_str()) {
-            bail!("corpus specification repeats a run accession");
-        }
-        for (value, label) in [
-            (&sample.accession, "run accession"),
-            (&sample.study_accession, "study accession"),
-            (&sample.era, "era"),
-            (&sample.size_band, "size band"),
-            (&sample.reason, "selection reason"),
-        ] {
-            if value.trim().is_empty() || value != value.trim() {
-                bail!("corpus specification {label} is empty or malformed");
-            }
-        }
-    }
-    Ok(())
 }
 
 fn derive_plan(
     spec_path: &Path,
-    spec: &CorpusSpec,
+    spec: &FastqCorpusSourceSpec,
     records: &[EnaRecord],
     retrieved_at_utc: &str,
 ) -> Result<CorpusAcquisitionPlan> {
+    if spec.source_authority != "European Nucleotide Archive" {
+        bail!("FASTQ acquisition source authority is not European Nucleotide Archive");
+    }
     let retrieved_at = DateTime::<FixedOffset>::parse_from_rfc3339(retrieved_at_utc)
         .context("corpus retrieval timestamp is not RFC 3339")?;
     if retrieved_at.offset().local_minus_utc() != 0 {
@@ -207,12 +131,14 @@ fn derive_plan(
             total.checked_add(file.size_bytes).context("corpus acquisition size overflows")
         })?;
     let plan = CorpusAcquisitionPlan {
-        schema_version: CORPUS_ACQUISITION_SCHEMA_V1.to_string(),
+        schema_version: CORPUS_ACQUISITION_SCHEMA_V2.to_string(),
         corpus_id: spec.corpus_id.clone(),
         portfolio_id: spec.portfolio_id.clone(),
         species: spec.species.clone(),
         retrieved_at_utc: retrieved_at_utc.to_string(),
-        source_authority: "European Nucleotide Archive".to_string(),
+        source_authority: spec.source_authority.clone(),
+        description: spec.description.clone(),
+        policy: spec.policy.clone(),
         source_spec: spec_path.display().to_string(),
         source_spec_sha256: bijux_dna_infra::hash_file_sha256(spec_path)
             .context("hash corpus specification")?,
@@ -226,8 +152,8 @@ fn derive_plan(
 }
 
 fn resolve_sample(
-    spec: &CorpusSpec,
-    sample: &CorpusSpecSample,
+    spec: &FastqCorpusSourceSpec,
+    sample: &FastqCorpusSourceSample,
     record: &EnaRecord,
 ) -> Result<CorpusAcquisitionSample> {
     let accession = required(&record.run_accession, "run accession")?;
@@ -283,7 +209,7 @@ fn resolve_sample(
 }
 
 fn resolve_files(
-    sample: &CorpusSpecSample,
+    sample: &FastqCorpusSourceSample,
     record: &EnaRecord,
 ) -> Result<Vec<CorpusAcquisitionFile>> {
     let urls = record.preferred_urls(EnaFileSource::FastqFtp, EnaSourcePreference::Https);
@@ -328,19 +254,31 @@ fn required<'a>(value: &'a Option<String>, label: &str) -> Result<&'a str> {
         .with_context(|| format!("ENA {label} is missing or malformed"))
 }
 
-fn valid_identifier(value: &str) -> bool {
-    let mut bytes = value.bytes();
-    bytes.next().is_some_and(|byte| byte.is_ascii_lowercase() || byte.is_ascii_digit())
-        && bytes.all(|byte| byte.is_ascii_lowercase() || byte.is_ascii_digit() || byte == b'-')
-}
-
 #[cfg(test)]
 mod tests {
-    use std::fs;
+    use std::{fs, path::Path};
 
     use bijux_dna_db_ena::EnaRecord;
 
-    use super::derive_fastq_corpus_acquisition_plan;
+    use super::{derive_fastq_corpus_acquisition_plan, load_fastq_corpus_source_spec};
+
+    #[test]
+    fn checked_in_human_source_has_access_truth_and_projection_authority() -> anyhow::Result<()> {
+        let repository_root = Path::new(env!("CARGO_MANIFEST_DIR"))
+            .parent()
+            .and_then(Path::parent)
+            .ok_or_else(|| anyhow::anyhow!("benchmark crate is outside the workspace"))?;
+        let source = load_fastq_corpus_source_spec(
+            &repository_root.join("benchmarks/corpora/human-short-read-diversity.toml"),
+        )?;
+
+        assert_eq!(source.samples.len(), 20);
+        assert_eq!(source.policy.projected_storage_bytes, 5_457_128_348);
+        assert_eq!(source.policy.projected_cpu_hours, 240);
+        assert!(source.policy.access_terms_url.contains("ebi.ac.uk/ena"));
+        assert_eq!(source.policy.truth_strategy, "observational_only");
+        Ok(())
+    }
 
     #[test]
     fn offline_derivation_locks_urls_digests_sizes_and_context() -> anyhow::Result<()> {
@@ -349,10 +287,23 @@ mod tests {
         fs::write(
             &spec_path,
             concat!(
-                "schema_version = \"bijux.corpus_spec.v1\"\n",
+                "schema_version = \"bijux.benchmark.fastq_corpus_source.v1\"\n",
                 "corpus_id = \"real-panel\"\n",
                 "portfolio_id = \"real-panel-diversity\"\n",
+                "class = \"production_real\"\n",
                 "species = \"Homo sapiens\"\n",
+                "description = \"real archive test panel\"\n",
+                "source_authority = \"European Nucleotide Archive\"\n",
+                "access_classification = \"public\"\n",
+                "redistribution_classification = \"public-source-copy\"\n",
+                "access_terms_url = \"https://www.ebi.ac.uk/ena/browser/about/policies\"\n",
+                "attribution = \"cite source studies and accessions\"\n",
+                "projected_storage_bytes = 1000\n",
+                "projected_cpu_hours = 2\n",
+                "projection_basis = \"bounded unit-test fixture projection\"\n",
+                "truth_roles = [\"archive_context\"]\n",
+                "truth_strategy = \"archive_metadata\"\n",
+                "known_limitations = [\"archive metadata is observational\"]\n",
                 "target_total = 2\n",
                 "[[samples]]\n",
                 "accession = \"ERR000001\"\n",
@@ -381,6 +332,9 @@ mod tests {
         assert_eq!(plan.sample_count, 2);
         assert_eq!(plan.file_count, 3);
         assert_eq!(plan.total_size_bytes, 606);
+        assert_eq!(plan.policy.projected_storage_bytes, 1000);
+        assert_eq!(plan.policy.projected_cpu_hours, 2);
+        assert_eq!(plan.policy.truth_strategy, "archive_metadata");
         assert_eq!(plan.samples[1].files[1].mate, Some(2));
         assert_eq!(plan.samples[1].files[1].source_md5, "b".repeat(32));
         assert_eq!(plan.samples[0].library_selection, "RANDOM");
@@ -395,10 +349,23 @@ mod tests {
         fs::write(
             &spec_path,
             concat!(
-                "schema_version = \"bijux.corpus_spec.v1\"\n",
+                "schema_version = \"bijux.benchmark.fastq_corpus_source.v1\"\n",
                 "corpus_id = \"real-panel\"\n",
                 "portfolio_id = \"real-panel-diversity\"\n",
+                "class = \"production_real\"\n",
                 "species = \"Homo sapiens\"\n",
+                "description = \"real archive test panel\"\n",
+                "source_authority = \"European Nucleotide Archive\"\n",
+                "access_classification = \"public\"\n",
+                "redistribution_classification = \"public-source-copy\"\n",
+                "access_terms_url = \"https://www.ebi.ac.uk/ena/browser/about/policies\"\n",
+                "attribution = \"cite source studies and accessions\"\n",
+                "projected_storage_bytes = 1000\n",
+                "projected_cpu_hours = 1\n",
+                "projection_basis = \"bounded unit-test fixture projection\"\n",
+                "truth_roles = [\"archive_context\"]\n",
+                "truth_strategy = \"archive_metadata\"\n",
+                "known_limitations = [\"archive metadata is observational\"]\n",
                 "target_total = 1\n",
                 "[[samples]]\n",
                 "accession = \"ERR000001\"\n",

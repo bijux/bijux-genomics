@@ -18,7 +18,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_ALL_DOMAIN_REPORT_MAP_COVERAGE_PATH: &str =
-    "benchmarks/readiness/all-domains/report-map-coverage.tsv";
+    "artifacts/benchmark-smoke/readiness/all-domains/report-map-coverage.tsv";
 const ALL_DOMAIN_REPORT_MAP_COVERAGE_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.all_domain_report_map_coverage.v1";
 const COVERAGE_STATUS_COVERED: &str = "covered";

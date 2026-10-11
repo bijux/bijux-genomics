@@ -32,7 +32,10 @@ fn bench_readiness_all_domain_no_planned_rows_writes_governed_json_file() {
     );
 
     let rendered_path = String::from_utf8(output.stdout).expect("stdout utf8");
-    assert_eq!(rendered_path.trim(), "benchmarks/readiness/all-domains/no-planned-rows.json");
+    assert_eq!(
+        rendered_path.trim(),
+        "artifacts/benchmark-smoke/readiness/all-domains/no-planned-rows.json"
+    );
 
     let payload = std::fs::read_to_string(repo_root.join(rendered_path.trim()))
         .expect("read all-domain no-planned-rows report");
@@ -42,7 +45,7 @@ fn bench_readiness_all_domain_no_planned_rows_writes_governed_json_file() {
         .get("active_row_count")
         .and_then(serde_json::Value::as_u64)
         .is_some_and(|count| count > 0));
-    assert_eq!(payload.get("removed_row_count").and_then(serde_json::Value::as_u64), Some(2));
+    assert_eq!(payload.get("removed_row_count").and_then(serde_json::Value::as_u64), Some(0));
     assert_eq!(payload.get("violation_count").and_then(serde_json::Value::as_u64), Some(0));
     assert_eq!(payload.get("ok").and_then(serde_json::Value::as_bool), Some(true));
 

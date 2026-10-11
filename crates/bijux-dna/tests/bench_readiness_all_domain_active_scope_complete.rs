@@ -42,7 +42,7 @@ fn bench_readiness_all_domain_active_scope_complete_reports_unambiguous_active_s
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/all-domains/ACTIVE_SCOPE_COMPLETE.json")
+        Some("artifacts/benchmark-smoke/readiness/all-domains/ACTIVE_SCOPE_COMPLETE.json")
     );
     assert!(payload
         .get("active_row_count")
@@ -56,7 +56,7 @@ fn bench_readiness_all_domain_active_scope_complete_reports_unambiguous_active_s
         .get("active_tool_count")
         .and_then(serde_json::Value::as_u64)
         .is_some_and(|count| count > 0));
-    assert_eq!(payload.get("removed_row_count").and_then(serde_json::Value::as_u64), Some(2));
+    assert_eq!(payload.get("removed_row_count").and_then(serde_json::Value::as_u64), Some(0));
     assert_eq!(payload.get("checked_surface_count").and_then(serde_json::Value::as_u64), Some(19));
     assert_eq!(payload.get("passed_surface_count").and_then(serde_json::Value::as_u64), Some(19));
     assert_eq!(payload.get("failed_surface_count").and_then(serde_json::Value::as_u64), Some(0));
@@ -73,7 +73,10 @@ fn bench_readiness_all_domain_active_scope_complete_reports_unambiguous_active_s
             == Some("all_domain_retained_tools")
             && check.get("proof_paths").and_then(serde_json::Value::as_array).is_some_and(|paths| {
                 paths.iter().any(|path| {
-                    path.as_str() == Some("benchmarks/readiness/tools/retained-tool-inventory.tsv")
+                    path.as_str()
+                        == Some(
+                            "artifacts/benchmark-smoke/readiness/tools/retained-tool-inventory.tsv",
+                        )
                 })
             })
             && check.get("detail").and_then(serde_json::Value::as_str).is_some_and(|detail| {

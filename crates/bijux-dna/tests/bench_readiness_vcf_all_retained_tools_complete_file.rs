@@ -35,7 +35,7 @@ fn bench_readiness_vcf_all_retained_tools_complete_writes_governed_json_file() {
     let rendered_path = String::from_utf8(output.stdout).expect("stdout utf8");
     assert_eq!(
         rendered_path.trim(),
-        "benchmarks/readiness/vcf/VCF_ALL_RETAINED_TOOLS_COMPLETE.json"
+        "artifacts/benchmark-smoke/readiness/vcf/VCF_ALL_RETAINED_TOOLS_COMPLETE.json"
     );
 
     let payload = std::fs::read_to_string(repo_root.join(rendered_path.trim()))

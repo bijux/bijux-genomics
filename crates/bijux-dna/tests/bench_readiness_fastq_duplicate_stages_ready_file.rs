@@ -32,7 +32,10 @@ fn bench_readiness_fastq_duplicate_stages_ready_writes_governed_json_file() {
     );
 
     let rendered_path = String::from_utf8(output.stdout).expect("stdout utf8");
-    assert_eq!(rendered_path.trim(), "benchmarks/readiness/fastq/duplicate-stages-ready.json");
+    assert_eq!(
+        rendered_path.trim(),
+        "artifacts/benchmark-smoke/readiness/fastq/duplicate-stages-ready.json"
+    );
 
     let payload = std::fs::read_to_string(repo_root.join(rendered_path.trim()))
         .expect("read FASTQ duplicate stages readiness report");
@@ -63,11 +66,11 @@ fn bench_readiness_fastq_duplicate_stages_ready_writes_governed_json_file() {
     );
     assert_eq!(
         row.get("command_proof_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/fastq-command-adapter-coverage.tsv")
+        Some("artifacts/benchmark-smoke/readiness/fastq/fastq-command-adapter-coverage.tsv")
     );
     assert_eq!(
         row.get("output_contract_proof_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/fastq-adapter-output-contract.tsv")
+        Some("artifacts/benchmark-smoke/readiness/fastq/fastq-adapter-output-contract.tsv")
     );
     assert_eq!(
         row.get("reason").and_then(serde_json::Value::as_str),

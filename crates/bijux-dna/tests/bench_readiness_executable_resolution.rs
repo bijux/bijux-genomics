@@ -43,7 +43,7 @@ fn bench_readiness_executable_resolution_reports_governed_runtime_locations() {
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/tools/executable-resolution.tsv")
+        Some("artifacts/benchmark-smoke/readiness/tools/executable-resolution.tsv")
     );
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows");
     let row_count = rows.len() as u64;
@@ -90,7 +90,7 @@ fn bench_readiness_executable_resolution_reports_governed_runtime_locations() {
                 == Some("apptainer_image")
             && row.get("resolution_target").and_then(serde_json::Value::as_str)
                 == Some(
-                    "containers/apptainer/lunarc/beagle.def@sha256:220b8f1687f32f6f04cb4e85b0d6ab4ecd2e98f6f5147064c4c2420ddfdd5b3f"
+                    "containers/apptainer/beagle.def@sha256:220b8f1687f32f6f04cb4e85b0d6ab4ecd2e98f6f5147064c4c2420ddfdd5b3f"
                 )
     }));
     assert!(rows.iter().any(|row| {

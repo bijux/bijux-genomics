@@ -13,7 +13,8 @@ fn bench_readiness_vcf_parsers_report_ready_writes_governed_json_file() {
     let sandbox = support::RepoSandbox::new("vcf-parser-readiness-file-").expect("repo sandbox");
     let repo_root = sandbox.path();
     let home = tempfile::tempdir().expect("tempdir");
-    let output_path = repo_root.join("benchmarks/readiness/VCF_PARSERS_REPORT_READY.json");
+    let output_path =
+        repo_root.join("artifacts/benchmark-smoke/readiness/vcf/VCF_PARSERS_REPORT_READY.json");
 
     if output_path.exists() {
         fs::remove_file(&output_path).expect("remove stale output");
@@ -38,7 +39,7 @@ fn bench_readiness_vcf_parsers_report_ready_writes_governed_json_file() {
     );
     assert_eq!(
         String::from_utf8(output.stdout).expect("stdout utf8").trim(),
-        "benchmarks/readiness/VCF_PARSERS_REPORT_READY.json"
+        "artifacts/benchmark-smoke/readiness/vcf/VCF_PARSERS_REPORT_READY.json"
     );
 
     let payload = fs::read_to_string(&output_path).expect("read output file");

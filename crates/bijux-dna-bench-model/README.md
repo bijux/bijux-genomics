@@ -1,8 +1,8 @@
 # bijux-dna-bench-model
 
 `bijux-dna-bench-model` owns pure benchmark model contracts, validation,
-comparison, gate policy evaluation, diagnostics, and deterministic statistical
-helpers.
+comparison, gate policy and decision records, diagnostics, and deterministic
+statistical helpers.
 
 This crate follows repository governance documentation. Re-read
 [../../README.md](../../README.md) before editing this crate or making commits in this
@@ -34,7 +34,6 @@ execution, runner integration, API orchestration, or report persistence.
 - `validate-summary`
 - `validate-decision`
 - `compare-summaries`
-- `gate-policy-decide`
 - `robust-stats`
 - `bootstrap-ci`
 - `mad-outliers`
@@ -45,7 +44,8 @@ execution, runner integration, API orchestration, or report persistence.
 - `src/public_api/` owns stable re-exports.
 - `src/model/` owns benchmark contract data types.
 - `src/contract/` owns schema ids and validation rules.
-- `src/policy/` owns gate configuration and evaluation.
+- `src/policy/` owns gate configuration and decision records. Scientific gate
+  evaluation lives in `bijux-dna-science`.
 - `src/compare/` owns deterministic summary comparison.
 - `src/stats/` owns deterministic statistical helpers.
 - `src/diagnostics/` owns stable error taxonomy.

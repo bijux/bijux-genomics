@@ -17,15 +17,8 @@ Generated from `configs/vcf/panels/panels.toml` and `configs/ci/registry/tool_re
 
 | species_id | build_id | panel_id | tool_id | stage_ids |
 |---|---|---|---|---|
-| Homo sapiens | GRCh38 | hsapiens_grch38_full | beagle | vcf.phasing |
-| Homo sapiens | GRCh38 | hsapiens_grch38_full | eagle | vcf.phasing |
-| Homo sapiens | GRCh38 | hsapiens_grch38_full | glimpse | vcf.impute, vcf.imputation_metrics |
-| Homo sapiens | GRCh38 | hsapiens_grch38_full | impute5 | vcf.impute, vcf.imputation_metrics |
-| Homo sapiens | GRCh38 | hsapiens_grch38_full | minimac4 | vcf.impute, vcf.imputation_metrics |
-| Homo sapiens | GRCh38 | hsapiens_grch38_full | shapeit5 | vcf.phasing |
-| Homo sapiens | GRCh38 | hsapiens_grch38_mini | beagle | vcf.phasing |
-| Homo sapiens | GRCh38 | hsapiens_grch38_mini | eagle | vcf.phasing |
-| Homo sapiens | GRCh38 | hsapiens_grch38_mini | glimpse | vcf.impute, vcf.imputation_metrics |
-| Homo sapiens | GRCh38 | hsapiens_grch38_mini | impute5 | vcf.impute, vcf.imputation_metrics |
-| Homo sapiens | GRCh38 | hsapiens_grch38_mini | minimac4 | vcf.impute, vcf.imputation_metrics |
-| Homo sapiens | GRCh38 | hsapiens_grch38_mini | shapeit5 | vcf.phasing |
+| Homo sapiens | GRCh38 | hsapiens_grch38_1kg_3202_chr22 | beagle | vcf.imputation_metrics, vcf.impute, vcf.phasing |
+| Homo sapiens | GRCh38 | hsapiens_grch38_1kg_3202_chr22 | eagle | vcf.phasing |
+| Homo sapiens | GRCh38 | hsapiens_grch38_1kg_3202_chr22 | glimpse | vcf.imputation_metrics, vcf.impute |
+| Homo sapiens | GRCh38 | hsapiens_grch38_1kg_3202_chr22 | impute5 | vcf.imputation_metrics, vcf.impute |
+| Homo sapiens | GRCh38 | hsapiens_grch38_1kg_3202_chr22 | shapeit5 | vcf.phasing |

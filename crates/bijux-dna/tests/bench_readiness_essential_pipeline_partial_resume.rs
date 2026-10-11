@@ -46,11 +46,13 @@ fn bench_readiness_essential_pipeline_partial_resume_tracks_resume_actions() {
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/essential-pipeline-partial-resume.json")
+        Some(
+            "artifacts/benchmark-smoke/readiness/pipelines/essential-pipeline-partial-resume.json"
+        )
     );
     assert_eq!(
         payload.get("simulation_root").and_then(serde_json::Value::as_str),
-        Some("runs/bench/local-fake-runs/pipelines/essential-partial-resume")
+        Some("artifacts/benchmark-smoke/simulated-runs/pipelines/essential-partial-resume")
     );
     assert_eq!(payload.get("pipeline_count").and_then(serde_json::Value::as_u64), Some(10));
     assert_eq!(payload.get("node_count").and_then(serde_json::Value::as_u64), Some(93));

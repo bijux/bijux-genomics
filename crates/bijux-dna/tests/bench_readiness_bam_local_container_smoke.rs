@@ -44,7 +44,7 @@ fn bench_readiness_bam_local_container_smoke_reports_retained_wrapper_paths() {
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/bam/bam-local-container-smoke.tsv")
+        Some("artifacts/benchmark-smoke/readiness/bam/bam-local-container-smoke.tsv")
     );
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
     let stage_ids = rows
@@ -62,7 +62,15 @@ fn bench_readiness_bam_local_container_smoke_reports_retained_wrapper_paths() {
                 == Some("host_stage_smoke")
         })
         .count() as u64;
-    let expected_container_count = rows.len() as u64 - expected_host_count;
+    let expected_external_artifact_count = rows
+        .iter()
+        .filter(|row| {
+            row.get("smoke_path_kind").and_then(serde_json::Value::as_str)
+                == Some("external_artifact_admission")
+        })
+        .count() as u64;
+    let expected_container_count =
+        rows.len() as u64 - expected_host_count - expected_external_artifact_count;
     assert_eq!(
         payload.get("row_count").and_then(serde_json::Value::as_u64),
         Some(rows.len() as u64)
@@ -83,6 +91,10 @@ fn bench_readiness_bam_local_container_smoke_reports_retained_wrapper_paths() {
         payload.get("container_smoke_row_count").and_then(serde_json::Value::as_u64),
         Some(expected_container_count)
     );
+    assert_eq!(
+        payload.get("external_artifact_row_count").and_then(serde_json::Value::as_u64),
+        Some(expected_external_artifact_count)
+    );
 
     let runtime_counts = payload
         .get("runtime_counts")
@@ -94,7 +106,20 @@ fn bench_readiness_bam_local_container_smoke_reports_retained_wrapper_paths() {
     );
 
     assert!(!rows.is_empty());
-    assert!(tool_ids.is_disjoint(&["angsd", "ngsbriggs"].into_iter().collect()));
+    assert_eq!(expected_external_artifact_count, 3);
+    for (stage_id, tool_id) in
+        [("bam.damage", "ngsbriggs"), ("bam.kinship", "angsd"), ("bam.sex", "angsd")]
+    {
+        assert!(rows.iter().any(|row| {
+            row.get("stage_id").and_then(serde_json::Value::as_str) == Some(stage_id)
+                && row.get("tool_id").and_then(serde_json::Value::as_str) == Some(tool_id)
+                && row.get("smoke_path_kind").and_then(serde_json::Value::as_str)
+                    == Some("external_artifact_admission")
+                && row.get("smoke_runtime").and_then(serde_json::Value::as_str) == Some("external")
+                && row.get("smoke_support_path").and_then(serde_json::Value::as_str)
+                    == Some("containers/contracts/catalog.toml")
+        }));
+    }
 
     assert!(rows.iter().any(|row| {
         row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.validate")
@@ -118,10 +143,10 @@ fn bench_readiness_bam_local_container_smoke_reports_retained_wrapper_paths() {
         row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.coverage")
             && row.get("tool_id").and_then(serde_json::Value::as_str) == Some("mosdepth")
             && row.get("smoke_path_kind").and_then(serde_json::Value::as_str)
-                == Some("docker_container_smoke")
-            && row.get("smoke_runtime").and_then(serde_json::Value::as_str) == Some("docker-arm64")
+                == Some("apptainer_container_smoke")
+            && row.get("smoke_runtime").and_then(serde_json::Value::as_str) == Some("apptainer")
             && row.get("smoke_command").and_then(serde_json::Value::as_str)
-                == Some("bijux-dna env smoke docker-arm64 mosdepth")
+                == Some("bijux-dna env smoke apptainer mosdepth")
     }));
     assert!(rows.iter().any(|row| {
         row.get("stage_id").and_then(serde_json::Value::as_str) == Some("bam.align")

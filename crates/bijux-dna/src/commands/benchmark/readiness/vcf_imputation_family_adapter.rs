@@ -10,7 +10,7 @@ use bijux_dna_stages_vcf::stage_specs::{
 use serde::Serialize;
 
 use crate::commands::benchmark::local_vcf_panel_workflow_smoke_support::{
-    materialize_governed_vcf_panel_assets, with_governed_vcf_panel_materialization_lock,
+    materialize_local_vcf_panel_fixture, with_local_vcf_panel_fixture_lock,
 };
 use crate::commands::benchmark::local_vcf_stage_catalog::{
     build_vcf_stage_catalog_rows, VcfStageCatalogRow,
@@ -23,7 +23,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_VCF_IMPUTATION_FAMILY_ADAPTER_PATH: &str =
-    "benchmarks/readiness/adapters/imputation-family.vcf.json";
+    "artifacts/benchmark-smoke/readiness/adapters/imputation-family.vcf.json";
 const VCF_IMPUTATION_FAMILY_ADAPTER_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.vcf_imputation_family_adapter.v1";
 const GOVERNED_IMPUTATION_STAGE_IDS: [&str; 2] = ["vcf.imputation_metrics", "vcf.impute"];
@@ -263,8 +263,10 @@ fn build_imputation_family_row(
         .map_or_else(|| "vcf_production_regression".to_string(), |row| row.corpus_id.clone());
     let asset_profile_id = matrix_row
         .map_or_else(|| "vcf_cohort_with_panel".to_string(), |row| row.asset_profile_id.clone());
-    let output_root =
-        format!("benchmarks/readiness/adapters/imputation/{}/{}", registry_tool.tool_id, stage_id);
+    let output_root = format!(
+        "artifacts/benchmark-smoke/readiness/adapters/imputation/{}/{}",
+        registry_tool.tool_id, stage_id
+    );
     let output_prefix = format!("{output_root}/imputed");
     let materialized_inputs = materialize_panel_inputs(repo_root, &output_root)?;
     let (target_vcf_path, target_vcf_index_path) = materialize_indexed_vcf_input(
@@ -658,26 +660,24 @@ fn materialize_panel_inputs(
     output_root: &str,
 ) -> Result<MaterializedPanelInputs> {
     let materialization_root = repo_root.join(output_root).join("artifacts/reference");
-    let report = with_governed_vcf_panel_materialization_lock(|| {
-        materialize_governed_vcf_panel_assets(&materialization_root)
+    let report = with_local_vcf_panel_fixture_lock(|| {
+        materialize_local_vcf_panel_fixture(&materialization_root)
     })?;
     let panel_vcf_path = report
         .materialized_files
         .iter()
         .find(|path| path.ends_with("/panel.vcf.gz"))
         .cloned()
-        .ok_or_else(|| {
-            anyhow!("governed VCF panel materialization did not produce panel.vcf.gz")
-        })?;
+        .ok_or_else(|| anyhow!("local VCF panel fixture did not produce panel.vcf.gz"))?;
     let panel_m3vcf_path =
         report.materialized_files.iter().find(|path| path.ends_with("/panel.m3vcf.gz")).cloned();
     let genetic_map_path = report
         .materialized_files
         .iter()
-        .find(|path| path.ends_with("/recombination_map.tsv.gz"))
+        .find(|path| path.ends_with(".gmap.gz") || path.ends_with("/recombination_map.tsv.gz"))
         .cloned()
         .ok_or_else(|| {
-            anyhow!("governed VCF panel materialization did not produce recombination_map.tsv.gz")
+            anyhow!("local VCF panel fixture did not produce a governed gzip genetic map")
         })?;
 
     Ok(MaterializedPanelInputs {
@@ -838,11 +838,15 @@ fn run_missing_input_probe(
 ) -> (String, String, String, bool) {
     let mut mutated_inputs = inputs.to_vec();
     let probe = mutated_inputs.first().cloned().unwrap_or_else(|| {
-        artifact("missing_input", "unknown", "artifacts/bench-readiness/adapters/none.missing")
+        artifact(
+            "missing_input",
+            "unknown",
+            "artifacts/benchmark-smoke/readiness/adapters/none.missing",
+        )
     });
     if let Some(first) = mutated_inputs.first_mut() {
         first.path = format!(
-            "artifacts/bench-readiness/adapters/probes/{stage_id}/{}.missing",
+            "artifacts/benchmark-smoke/readiness/adapters/probes/{stage_id}/{}.missing",
             first.artifact_id
         );
     }

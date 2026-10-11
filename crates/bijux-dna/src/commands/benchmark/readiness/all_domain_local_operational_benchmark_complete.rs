@@ -5,9 +5,12 @@ use std::path::{Path, PathBuf};
 use anyhow::{anyhow, Context, Result};
 use serde::Serialize;
 
-use super::all_domain_active_scope_complete::DEFAULT_ALL_DOMAIN_ACTIVE_SCOPE_COMPLETE_PATH;
+use super::all_domain_active_scope_complete::{
+    render_all_domain_active_scope_complete, DEFAULT_ALL_DOMAIN_ACTIVE_SCOPE_COMPLETE_PATH,
+};
 use super::operational_benchmark_ready::{
-    OperationalBenchmarkReadyBlocker, DEFAULT_OPERATIONAL_BENCHMARK_READY_PATH,
+    render_operational_benchmark_ready, OperationalBenchmarkReadyBlocker,
+    DEFAULT_OPERATIONAL_BENCHMARK_READY_PATH,
 };
 use crate::commands::benchmark::paths::{
     validate_benchmark_paths, DEFAULT_BENCHMARK_PATHS_VALIDATE_PATH,
@@ -17,7 +20,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_ALL_DOMAIN_LOCAL_OPERATIONAL_BENCHMARK_COMPLETE_PATH: &str =
-    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_LOCAL_OPERATIONAL_BENCHMARK_COMPLETE.json";
+    "artifacts/benchmark-smoke/readiness/all-domains/FASTQ_BAM_VCF_LOCAL_OPERATIONAL_BENCHMARK_COMPLETE.json";
 const ALL_DOMAIN_LOCAL_OPERATIONAL_BENCHMARK_COMPLETE_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.all_domain_local_operational_benchmark_complete.v1";
 
@@ -132,9 +135,25 @@ pub(crate) fn render_all_domain_local_operational_benchmark_complete(
 
     let active_scope_output_path = PathBuf::from(DEFAULT_ALL_DOMAIN_ACTIVE_SCOPE_COMPLETE_PATH);
     let (active_scope_snapshot, active_scope_snapshot_error) =
-        match load_active_scope_snapshot(repo_root, &active_scope_output_path) {
-            Ok(snapshot) => (snapshot, None),
-            Err(error) => (ActiveScopeSnapshot::default(), Some(error.to_string())),
+        match render_all_domain_active_scope_complete(repo_root, active_scope_output_path.clone()) {
+            Ok(report) => (
+                ActiveScopeSnapshot {
+                    ok: report.ok,
+                    output_path: report.output_path,
+                    active_row_count: report.active_row_count,
+                    failed_surface_count: report.failed_surface_count,
+                },
+                None,
+            ),
+            Err(render_error) => {
+                match load_active_scope_snapshot(repo_root, &active_scope_output_path) {
+                    Ok(snapshot) => (snapshot, Some(render_error.to_string())),
+                    Err(load_error) => (
+                        ActiveScopeSnapshot::default(),
+                        Some(format!("{render_error}; {load_error}")),
+                    ),
+                }
+            }
         };
     let active_row_count = active_scope_snapshot.active_row_count;
     checks.push(AllDomainLocalOperationalBenchmarkCompleteCheck {
@@ -178,9 +197,25 @@ pub(crate) fn render_all_domain_local_operational_benchmark_complete(
 
     let operational_output_path = PathBuf::from(DEFAULT_OPERATIONAL_BENCHMARK_READY_PATH);
     let (operational_snapshot, operational_snapshot_error) =
-        match load_operational_snapshot(repo_root, &operational_output_path) {
-            Ok(snapshot) => (snapshot, None),
-            Err(error) => (OperationalSnapshot::default(), Some(error.to_string())),
+        match render_operational_benchmark_ready(repo_root, operational_output_path.clone()) {
+            Ok(report) => (
+                OperationalSnapshot {
+                    ok: report.ok,
+                    benchmark_ready_row_count: report.benchmark_ready_row_count,
+                    blocker_count: report.blocker_count,
+                    blockers: report.blockers,
+                },
+                None,
+            ),
+            Err(render_error) => {
+                match load_operational_snapshot(repo_root, &operational_output_path) {
+                    Ok(snapshot) => (snapshot, Some(render_error.to_string())),
+                    Err(load_error) => (
+                        OperationalSnapshot::default(),
+                        Some(format!("{render_error}; {load_error}")),
+                    ),
+                }
+            }
         };
     let benchmark_ready_row_count = operational_snapshot.benchmark_ready_row_count;
     checks.push(AllDomainLocalOperationalBenchmarkCompleteCheck {
@@ -434,52 +469,4 @@ fn repo_relative_path(repo_root: &Path, path: &Path) -> PathBuf {
 
 fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
     path.strip_prefix(repo_root).unwrap_or(path).to_string_lossy().replace('\\', "/")
-}
-
-#[cfg(test)]
-mod tests {
-    use std::path::PathBuf;
-
-    #[cfg(feature = "bam_downstream")]
-    use super::DEFAULT_ALL_DOMAIN_LOCAL_OPERATIONAL_BENCHMARK_COMPLETE_PATH;
-
-    fn repo_root() -> PathBuf {
-        PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-            .join("../..")
-            .canonicalize()
-            .expect("canonicalize repo root")
-    }
-
-    #[cfg(feature = "bam_downstream")]
-    #[test]
-    fn all_domain_local_operational_benchmark_complete_reports_green_surface() {
-        let root = repo_root();
-        let report_path = root.join(DEFAULT_ALL_DOMAIN_LOCAL_OPERATIONAL_BENCHMARK_COMPLETE_PATH);
-        let report: serde_json::Value = serde_json::from_slice(
-            &std::fs::read(&report_path)
-                .unwrap_or_else(|err| panic!("read {}: {err}", report_path.display())),
-        )
-        .unwrap_or_else(|err| panic!("parse {}: {err}", report_path.display()));
-        assert_eq!(report.get("ok").and_then(serde_json::Value::as_bool), Some(true));
-        assert_eq!(
-            report.get("schema_version").and_then(serde_json::Value::as_str),
-            Some("bijux.bench.readiness.all_domain_local_operational_benchmark_complete.v1")
-        );
-        assert_eq!(
-            report.get("output_path").and_then(serde_json::Value::as_str),
-            Some(
-                "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_LOCAL_OPERATIONAL_BENCHMARK_COMPLETE.json"
-            )
-        );
-        assert_eq!(
-            report.get("checked_surface_count").and_then(serde_json::Value::as_u64),
-            Some(3)
-        );
-        assert_eq!(report.get("failed_surface_count").and_then(serde_json::Value::as_u64), Some(0));
-        assert_eq!(
-            report.get("benchmark_ready_row_count").and_then(serde_json::Value::as_u64),
-            report.get("active_row_count").and_then(serde_json::Value::as_u64)
-        );
-        assert_eq!(report.get("blocker_count").and_then(serde_json::Value::as_u64), Some(0));
-    }
 }

@@ -21,7 +21,6 @@ pub struct PrepareReferencePanelParams {
     pub species_id: String,
     pub build_id: String,
     pub panel_id: Option<String>,
-    pub map_id: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize)]

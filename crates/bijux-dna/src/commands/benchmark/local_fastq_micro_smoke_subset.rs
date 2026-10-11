@@ -18,7 +18,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_FASTQ_MICRO_SMOKE_SUMMARY_PATH: &str =
-    "runs/bench/micro/fastq/MICRO_FASTQ_SUMMARY.json";
+    "artifacts/benchmark-smoke/micro/fastq/MICRO_FASTQ_SUMMARY.json";
 const FASTQ_MICRO_SMOKE_SUMMARY_SCHEMA_VERSION: &str =
     "bijux.bench.local_fastq_micro_smoke_subset.v1";
 const LOCAL_STAGE_MATERIALIZATION_PATH_KIND: &str = "local_stage_materialization";

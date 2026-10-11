@@ -25,7 +25,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_BAM_INSERT_SIZE_GC_BIAS_READY_PATH: &str =
-    "benchmarks/readiness/bam/insert-size-gc-bias-ready.json";
+    "artifacts/benchmark-smoke/readiness/bam/insert-size-gc-bias-ready.json";
 const BAM_INSERT_SIZE_GC_BIAS_READY_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.bam_insert_size_gc_bias_ready.v1";
 const COVERAGE_STATUS_COMPLETE: &str = "complete";

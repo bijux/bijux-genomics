@@ -8,11 +8,11 @@ use anyhow::{bail, Context, Result};
 use bijux_dna_bench_model::{
     validate_benchmark_data_index, AdmittedFastqCorpus, AdmittedFastqCorpusFile,
     AdmittedFastqCorpusSample, BenchmarkDataIndex, BenchmarkDataIndexFile, BenchmarkEligibility,
-    BenchmarkFastqLayout, DataIntegrityStatus,
+    BenchmarkFastqLayout, DataIntegrityStatus, GOVERNED_DATA_CATALOG_SCHEMA_V1,
+    GOVERNED_DATA_CATALOG_SCHEMA_V2,
 };
 use serde::Deserialize;
 
-const DATA_CATALOG_SCHEMA: &str = "bijux.data_catalog.v1";
 const MAX_AUTHORITY_BYTES: u64 = 64 * 1024 * 1024;
 
 #[derive(Debug, Deserialize)]
@@ -93,7 +93,11 @@ pub fn admit_fastq_benchmark_corpus(
     }
     let catalog: DataCatalog = serde_json::from_slice(&catalog_bytes)
         .with_context(|| format!("parse corpus catalog {}", catalog_path.display()))?;
-    if catalog.schema_version != DATA_CATALOG_SCHEMA || catalog.id != corpus_id {
+    if !matches!(
+        catalog.schema_version.as_str(),
+        GOVERNED_DATA_CATALOG_SCHEMA_V1 | GOVERNED_DATA_CATALOG_SCHEMA_V2
+    ) || catalog.id != corpus_id
+    {
         bail!("corpus catalog identity is unsupported");
     }
     if catalog.samples.len() != expected_sample_count

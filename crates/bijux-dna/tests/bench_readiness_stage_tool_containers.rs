@@ -93,13 +93,28 @@ fn bench_readiness_stage_tool_containers_reports_governed_runtime_rows() {
     );
 
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
-    for unsupported_tool_id in ["angsd", "fastuniq", "ngsbriggs"] {
+    let external_artifact_rows = rows
+        .iter()
+        .filter(|row| {
+            row.get("execution_mode").and_then(serde_json::Value::as_str) == Some("external")
+        })
+        .collect::<Vec<_>>();
+    assert_eq!(external_artifact_rows.len(), 4);
+    for (stage_id, tool_id) in [
+        ("bam.damage", "ngsbriggs"),
+        ("bam.kinship", "angsd"),
+        ("bam.sex", "angsd"),
+        ("fastq.remove_duplicates", "fastuniq"),
+    ] {
+        let expected_container_id = format!("external-artifact://{tool_id}");
         assert!(
-            rows.iter().all(|row| {
-                row.get("tool_id").and_then(serde_json::Value::as_str)
-                    != Some(unsupported_tool_id)
+            external_artifact_rows.iter().any(|row| {
+                row.get("stage_id").and_then(serde_json::Value::as_str) == Some(stage_id)
+                    && row.get("tool_id").and_then(serde_json::Value::as_str) == Some(tool_id)
+                    && row.get("container_id").and_then(serde_json::Value::as_str)
+                        == Some(expected_container_id.as_str())
             }),
-            "unsupported container `{unsupported_tool_id}` must not enter executable benchmark rows"
+            "missing external artifact benchmark row `{stage_id}` / `{tool_id}`"
         );
     }
     let bwa_align = rows
@@ -157,7 +172,7 @@ fn bench_readiness_stage_tool_containers_reports_governed_runtime_rows() {
     );
     assert_eq!(
         bcftools_genotyping.get("container_id").and_then(serde_json::Value::as_str),
-        Some("bijuxdna/bcftools:1.20")
+        Some("quay.io/biocontainers/bcftools:1.20--h8b25389_0@sha256:67f54df47f501f6ddef08e3b9ad89cf693952f9a89de0d74df6e39fce15f1ff6")
     );
     let king_kinship = rows
         .iter()

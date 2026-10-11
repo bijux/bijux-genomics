@@ -5,7 +5,7 @@ fn checked_in_benchmark_contracts_load_from_rust_authority() -> Result<()> {
     let (registry, portfolio, interfaces) =
         bijux_dna_bench::load_checked_in_benchmark_planning_contracts()?;
     assert_eq!(registry.schema_version, bijux_dna_bench::BENCHMARK_STAGE_CAMPAIGNS_SCHEMA_V1,);
-    assert_eq!(portfolio.schema_version, bijux_dna_bench::BENCHMARK_PORTFOLIO_SCHEMA_V1,);
+    assert_eq!(portfolio.schema_version, bijux_dna_bench::BENCHMARK_PORTFOLIO_SCHEMA_V2,);
     assert_eq!(portfolio.stage_runs.len(), 71);
     assert!(
         registry.campaigns.len() >= 7,
@@ -61,15 +61,18 @@ fn stage_interface_admission_uses_the_declared_repository_root() -> Result<()> {
 }
 
 #[test]
-fn checked_in_stage_reports_are_admitted_by_rust_contracts() -> Result<()> {
+fn checked_in_stage_reports_exclude_historical_evidence() -> Result<()> {
     let reports = bijux_dna_bench::load_checked_in_stage_reports()?;
-    assert!(reports.iter().any(|admission| admission.report.run_id == "run-2001"));
-    assert!(reports.iter().any(|admission| admission.report.run_id == "run-2042"));
-    assert!(reports.iter().all(|admission| {
-        admission.schema_version == bijux_dna_bench::BENCHMARK_REPORT_ADMISSION_SCHEMA_V1
-            && admission.source_sha256.len() == 64
-            && admission.report_sha256.len() == 64
-            && admission.report.schema_version == bijux_dna_bench::BENCHMARK_STAGE_REPORT_SCHEMA_V1
+    assert!(reports.is_empty());
+
+    let repository_root = repository_root()?;
+    let registry = bijux_dna_bench::derive_benchmark_publication_registry(&repository_root)?;
+    assert_eq!(registry.summary.active_stage_report_count, 0);
+    assert_eq!(registry.summary.historical_stage_report_count, 7);
+    assert!(registry.stage_reports.iter().all(|report| {
+        report.disposition == bijux_dna_bench::BenchmarkStagePublicationDisposition::Historical
+            && report.json_path.contains("/historical/")
+            && report.json_path.contains(&report.source_commit)
     }));
     Ok(())
 }
@@ -106,13 +109,9 @@ fn checked_in_stage_coverage_derives_from_catalog_and_admitted_reports() -> Resu
         row.stage_id == "bam.genotyping"
             && row.campaign_run_id.as_deref() == Some("run-2001")
             && row.retained_tools == ["bcftools"]
-            && row.report_repository_commit.as_deref().is_some_and(|commit| commit.len() == 40)
-            && row.report_sha256.as_deref().is_some_and(|digest| digest.len() == 64)
-            && matches!(
-                row.execution_status,
-                bijux_dna_bench::BenchmarkStageExecutionStatus::Admitted
-                    | bijux_dna_bench::BenchmarkStageExecutionStatus::Stale
-            )
+            && row.report_repository_commit.is_none()
+            && row.report_sha256.is_none()
+            && row.execution_status == bijux_dna_bench::BenchmarkStageExecutionStatus::NotAdmitted
     }));
     assert!(coverage.stages.iter().any(|row| {
         row.stage_id == "bam.coverage"
@@ -130,13 +129,13 @@ fn checked_in_stage_coverage_derives_from_catalog_and_admitted_reports() -> Resu
         row.stage_id == "bam.mapping_summary"
             && row.campaign_run_id.as_deref() == Some("run-2004")
             && row.retained_tools == ["picard", "samtools"]
-            && row.execution_status == bijux_dna_bench::BenchmarkStageExecutionStatus::Stale
+            && row.execution_status == bijux_dna_bench::BenchmarkStageExecutionStatus::NotAdmitted
     }));
     assert!(coverage.stages.iter().any(|row| {
         row.stage_id == "fastq.profile_read_lengths"
             && row.campaign_run_id.as_deref() == Some("run-2042")
             && row.retained_tools == ["seqfu", "seqkit"]
-            && row.execution_status == bijux_dna_bench::BenchmarkStageExecutionStatus::Stale
+            && row.execution_status == bijux_dna_bench::BenchmarkStageExecutionStatus::NotAdmitted
     }));
     Ok(())
 }
@@ -198,10 +197,60 @@ fn checked_in_stage_universe_publications_have_no_drift() -> Result<()> {
 }
 
 #[test]
+fn checked_in_run_registry_closes_the_permanent_namespace() -> Result<()> {
+    let reports_dir = bijux_dna_bench::bench_reports_dir();
+    let repository_root = reports_dir
+        .ancestors()
+        .find(|root| root.join(".git").exists())
+        .ok_or_else(|| anyhow::anyhow!("resolve repository root"))?;
+    let registry = bijux_dna_bench::publish_checked_in_benchmark_run_registry(
+        repository_root,
+        bijux_dna_bench::BenchmarkRunRegistryWriteMode::Check,
+    )?;
+
+    assert_eq!(registry.summary.run_count, 71);
+    assert_eq!(registry.summary.active_count, 9);
+    assert_eq!(registry.summary.reserved_count, 62);
+    assert_eq!(registry.namespace.next_run_number, 2072);
+    assert_eq!(registry.runs.first().map(|row| row.run_id.as_str()), Some("run-2001"));
+    assert_eq!(registry.runs.last().map(|row| row.run_id.as_str()), Some("run-2071"));
+    assert!(registry.runs.windows(2).all(|rows| rows[0].run_id < rows[1].run_id));
+    assert!(registry.runs.iter().all(|row| {
+        !row.tool_ids.is_empty()
+            && !row.required_corpus_roles.is_empty()
+            && row.introduced_at_commit.len() == 40
+    }));
+    assert!(registry
+        .runs
+        .iter()
+        .filter(|row| row.state == bijux_dna_bench::BenchmarkRunRegistryState::Active)
+        .all(|row| {
+            !row.accepted_input_contracts.is_empty()
+                && row.output_contract.is_some()
+                && row.normalized_result_contract.is_some()
+        }));
+    Ok(())
+}
+
+#[test]
+fn checked_in_publication_registry_has_no_drift() -> Result<()> {
+    let repository_root = repository_root()?;
+    let registry = bijux_dna_bench::publish_checked_in_benchmark_publication_registry(
+        &repository_root,
+        bijux_dna_bench::BenchmarkPublicationRegistryWriteMode::Check,
+    )?;
+    assert_eq!(registry.summary.current_product_count, 4);
+    assert_eq!(registry.summary.active_stage_report_count, 0);
+    assert_eq!(registry.summary.historical_stage_report_count, 7);
+    assert_eq!(registry.summary.quarantined_surface_count, 0);
+    assert_eq!(registry.summary.quarantined_file_count, 0);
+    assert!(registry.quarantined_surfaces.is_empty());
+    Ok(())
+}
+
+#[test]
 fn stage_report_admission_rejects_incomplete_tool_closure() -> Result<()> {
-    let mut reports = bijux_dna_bench::load_checked_in_stage_reports()?;
-    let mut report =
-        reports.pop().ok_or_else(|| anyhow::anyhow!("checked-in stage report set is empty"))?;
+    let mut report = historical_stage_report()?;
     report.report.tools.pop();
 
     let error = bijux_dna_bench_model::contract::validate_stage_report(&report.report)
@@ -213,9 +262,7 @@ fn stage_report_admission_rejects_incomplete_tool_closure() -> Result<()> {
 
 #[test]
 fn stage_report_admission_rejects_verdict_drift() -> Result<()> {
-    let mut reports = bijux_dna_bench::load_checked_in_stage_reports()?;
-    let mut report =
-        reports.pop().ok_or_else(|| anyhow::anyhow!("checked-in stage report set is empty"))?;
+    let mut report = historical_stage_report()?;
     report.report.verdict = bijux_dna_bench::BenchmarkReportVerdict::Failed;
 
     let error = bijux_dna_bench_model::contract::validate_stage_report(&report.report)
@@ -227,9 +274,7 @@ fn stage_report_admission_rejects_verdict_drift() -> Result<()> {
 
 #[test]
 fn stage_report_admission_rejects_abbreviated_identities() -> Result<()> {
-    let mut reports = bijux_dna_bench::load_checked_in_stage_reports()?;
-    let mut admission =
-        reports.pop().ok_or_else(|| anyhow::anyhow!("checked-in stage report set is empty"))?;
+    let mut admission = historical_stage_report()?;
     let report_sha256 = admission.report_sha256.clone();
     admission.report_sha256 = "1234567".to_string();
     let error = bijux_dna_bench_model::contract::validate_report_admission(&admission)
@@ -257,12 +302,7 @@ fn stage_report_admission_rejects_abbreviated_identities() -> Result<()> {
 
 #[test]
 fn stage_report_admission_requires_data_locks() -> Result<()> {
-    let reports = bijux_dna_bench::load_checked_in_stage_reports()?;
-    let mut report = reports
-        .first()
-        .ok_or_else(|| anyhow::anyhow!("checked-in stage report set is empty"))?
-        .report
-        .clone();
+    let mut report = historical_stage_report()?.report;
     report.comparability = None;
     for tool in &mut report.tools {
         tool.input_locks.clear();
@@ -281,11 +321,7 @@ fn stage_report_admission_requires_data_locks() -> Result<()> {
 fn stage_report_admission_rejects_stale_catalog_identity() -> Result<()> {
     let (registry, _, interfaces) =
         bijux_dna_bench::load_checked_in_benchmark_planning_contracts()?;
-    let mut reports = bijux_dna_bench::load_checked_in_stage_reports()?;
-    let mut report = reports
-        .pop()
-        .ok_or_else(|| anyhow::anyhow!("checked-in stage report set is empty"))?
-        .report;
+    let mut report = historical_stage_report()?.report;
     report.catalog_sha256 = "f".repeat(64);
 
     let reports_dir = bijux_dna_bench::bench_reports_dir();
@@ -304,4 +340,20 @@ fn stage_report_admission_rejects_stale_catalog_identity() -> Result<()> {
             .map(|error| error.to_string());
     assert!(error.as_deref().is_some_and(|message| message.contains("catalog identity is stale")));
     Ok(())
+}
+
+fn repository_root() -> Result<std::path::PathBuf> {
+    bijux_dna_bench::bench_reports_dir()
+        .ancestors()
+        .find(|root| root.join(".git").exists())
+        .map(std::path::Path::to_path_buf)
+        .ok_or_else(|| anyhow::anyhow!("resolve repository root"))
+}
+
+fn historical_stage_report() -> Result<bijux_dna_bench::AdmittedBenchmarkStageReport> {
+    bijux_dna_bench::load_stage_report(
+        &repository_root()?.join(
+            "benchmarks/reports/historical/520efb95cf753b65fca168f0610b1b4138932031/run-2042-fastq-profile-read-lengths.json",
+        ),
+    )
 }

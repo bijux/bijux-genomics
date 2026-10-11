@@ -1,5 +1,4 @@
 use std::collections::BTreeMap;
-use std::path::PathBuf;
 
 use serde::{Deserialize, Serialize};
 
@@ -7,11 +6,39 @@ use serde::{Deserialize, Serialize};
 pub struct ReferenceBankEntry {
     pub species_id: String,
     pub build_id: String,
+    pub source_accession: String,
     pub fasta_url: String,
+    pub fasta_md5: String,
     pub fasta_sha256: String,
+    pub fasta_size_bytes: u64,
     pub license_id: String,
     pub license_url: String,
     #[serde(default)]
+    pub required_indexes: Vec<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct ReferenceSourceLock {
+    pub schema_version: u64,
+    pub source: String,
+    pub source_evidence_commit: String,
+    pub references: Vec<ReferenceSourceLockEntry>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct ReferenceSourceLockEntry {
+    pub species_id: String,
+    pub build_id: String,
+    pub source_accession: String,
+    pub fasta_url: String,
+    pub fasta_md5: String,
+    pub fasta_sha256: String,
+    pub size_bytes: u64,
+    pub license_id: String,
+    pub license_url: String,
+    pub evidence_uri: String,
     pub required_indexes: Vec<String>,
 }
 
@@ -85,28 +112,6 @@ pub struct ReferenceProvenance {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub struct MaterializedIndexArtifact {
-    pub tool_id: String,
-    pub path: PathBuf,
-    pub status: String,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub struct ReferenceMaterializationReport {
-    pub schema_version: String,
-    pub species_id: String,
-    pub build_id: String,
-    pub source_url: String,
-    pub declared_sha256: String,
-    pub license_id: String,
-    pub license_url: String,
-    pub materialization_root: PathBuf,
-    pub mode: String,
-    pub bundle_id: String,
-    pub index_artifacts: Vec<MaterializedIndexArtifact>,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub struct ReferenceBundleResolverReport {
     pub schema_version: String,
     pub species_id: String,
@@ -117,50 +122,4 @@ pub struct ReferenceBundleResolverReport {
     pub map_id: Option<String>,
     pub map_bank_id: Option<String>,
     pub compatibility_checked_tool: Option<String>,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub struct ReferenceIndexQaReport {
-    pub schema_version: String,
-    pub species_id: String,
-    pub build_id: String,
-    pub materialization_root: PathBuf,
-    pub verified_artifacts: Vec<String>,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub struct VcfPanelMaterializationReport {
-    pub schema_version: String,
-    pub species_id: String,
-    pub build_id: String,
-    pub panel_id: String,
-    pub map_id: String,
-    pub materialization_root: PathBuf,
-    pub compatible_tool_tags: Vec<String>,
-    pub materialized_files: Vec<String>,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub struct MaterializedDbBundle {
-    pub bundle_id: String,
-    pub lock_family: String,
-    pub db_path: PathBuf,
-    pub required_fields: Vec<String>,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub struct ContaminantDbMaterializationReport {
-    pub schema_version: String,
-    pub materialization_root: PathBuf,
-    pub bundles: Vec<MaterializedDbBundle>,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub struct TaxonomyDbMaterializationReport {
-    pub schema_version: String,
-    pub bundle_id: String,
-    pub lock_family: String,
-    pub db_path: PathBuf,
-    pub required_fields: Vec<String>,
-    pub advisory_only: bool,
 }

@@ -2,7 +2,7 @@
 
 `bijux-dna-bench-model` is the pure benchmark model crate. It owns typed
 benchmark contracts, deterministic validation, comparison reports, gate policy
-decisions, and statistical helpers.
+and decision records, and statistical helpers.
 
 ## Source Map
 
@@ -12,8 +12,8 @@ decisions, and statistical helpers.
 - `src/contract/` validates records, suite shape, stage governance, graph edges,
   parameter bindings, diversity requirements, and analysis requirements.
 - `src/compare/` builds deterministic typed diffs between benchmark summaries.
-- `src/policy/` evaluates gate thresholds, regression windows, required
-  metrics, and per-stage overrides.
+- `src/policy/` owns typed gate configuration, violations, and decision records.
+  `bijux-dna-science` owns scientific gate evaluation.
 - `src/diagnostics/` owns the stable benchmark error taxonomy.
 - `src/stats/` owns deterministic estimators, seeded bootstrap intervals, and
   MAD-based outlier detection.

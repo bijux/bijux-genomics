@@ -17,7 +17,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_TOOL_COMPARISON_TEMPLATE_PATH: &str =
-    "benchmarks/readiness/local-ready/tool-comparison-template.tsv";
+    "artifacts/benchmark-smoke/readiness/local-ready/tool-comparison-template.tsv";
 const LOCAL_TOOL_COMPARISON_TEMPLATE_SCHEMA_VERSION: &str =
     "bijux.bench.local_tool_comparison_template.v1";
 
@@ -190,7 +190,9 @@ mod tests {
         let root = repo_root();
         let report = render_local_tool_comparison_template(
             &root,
-            PathBuf::from("runs/bench/local-fake-runs/stages-tool-comparison-template"),
+            PathBuf::from(
+                "artifacts/benchmark-smoke/simulated-runs/stages-tool-comparison-template",
+            ),
             PathBuf::from(DEFAULT_TOOL_COMPARISON_TEMPLATE_PATH),
         )
         .expect("render tool comparison template");

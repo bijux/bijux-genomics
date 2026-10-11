@@ -5,7 +5,7 @@ use anyhow::{bail, Result};
 use bijux_dna_bench_model::{
     CorpusAcquisitionPlan, CorpusAcquisitionSample, CorpusMaterializationDisposition,
     GovernedDataCatalog, GovernedDataCatalogFile, GovernedDataCatalogSample,
-    GOVERNED_DATA_CATALOG_SCHEMA_V1,
+    GOVERNED_DATA_CATALOG_SCHEMA_V2,
 };
 use bijux_dna_db_ena::{VerifiedDownloadDisposition, VerifiedDownloadOutcome};
 
@@ -56,30 +56,18 @@ pub(super) fn build_catalog(
         })
         .collect();
     GovernedDataCatalog {
-        schema_version: GOVERNED_DATA_CATALOG_SCHEMA_V1.to_string(),
+        schema_version: GOVERNED_DATA_CATALOG_SCHEMA_V2.to_string(),
         id: plan.portfolio_id.clone(),
-        purpose: "real human short-read diversity corpus for comparative FASTQ campaigns"
-            .to_string(),
+        purpose: plan.description.clone(),
         source: plan.source_authority.clone(),
+        policy: plan.policy.clone(),
         source_record,
         source_record_sha256,
         retrieved_at_utc: plan.retrieved_at_utc.clone(),
         admitted_at_utc,
-        access_classification: "public".to_string(),
-        redistribution_classification: "accession-referenced".to_string(),
-        access_terms: "ENA public data access terms apply; publication identifies source accessions."
-            .to_string(),
         scientific_name: plan.species.clone(),
         samples: plan.samples.iter().map(catalog_sample).collect(),
         files,
-        known_limitations: vec![
-            "The cohort is curated for workload diversity and is not population-representative."
-                .to_string(),
-            "Public archive metadata and sequencing context differ across studies and eras."
-                .to_string(),
-            "No independent sequence truth is available; this corpus supports observational and robustness comparisons only."
-                .to_string(),
-        ],
     }
 }
 
@@ -95,6 +83,8 @@ pub(super) fn validate_existing_catalog(
     let expected_samples = plan.samples.iter().map(catalog_sample).collect::<Vec<_>>();
     if catalog.id != plan.portfolio_id
         || catalog.source != plan.source_authority
+        || catalog.purpose != plan.description
+        || catalog.policy != plan.policy
         || catalog.source_record != source_record
         || catalog.source_record_sha256 != source_record_sha256
         || catalog.scientific_name != plan.species

@@ -8,7 +8,7 @@ mod support;
 #[test]
 fn repo_sandboxes_keep_governed_writes_independent() {
     let source_root = support::repo_root().expect("repo root");
-    let relative_path = "benchmarks/readiness/missing-result-report-test.json";
+    let relative_path = "benchmarks/contracts/run-registry.json";
     let source_path = source_root.join(relative_path);
     let source_contents = fs::read(&source_path).expect("read source report");
 

@@ -38,12 +38,16 @@ fn bench_readiness_benchmark_readiness_dashboard_writes_markdown_and_json_output
     );
 
     let rendered_path = String::from_utf8(output.stdout).expect("stdout utf8");
-    assert_eq!(rendered_path.trim(), "benchmarks/readiness/FASTQ_BAM_BENCHMARK_READINESS.md");
+    assert_eq!(
+        rendered_path.trim(),
+        "artifacts/benchmark-smoke/readiness/FASTQ_BAM_BENCHMARK_READINESS.md"
+    );
 
     let repo_root = sandbox.path();
     let markdown = std::fs::read_to_string(repo_root.join(rendered_path.trim()))
         .expect("read dashboard markdown");
-    let json_path = repo_root.join("benchmarks/readiness/FASTQ_BAM_BENCHMARK_READINESS.json");
+    let json_path =
+        repo_root.join("artifacts/benchmark-smoke/readiness/FASTQ_BAM_BENCHMARK_READINESS.json");
     let json_payload = std::fs::read_to_string(&json_path).expect("read dashboard json");
     let json_value: serde_json::Value =
         serde_json::from_str(&json_payload).expect("parse dashboard json");
@@ -77,10 +81,10 @@ fn bench_readiness_benchmark_readiness_dashboard_writes_markdown_and_json_output
     )));
     assert!(markdown.contains(
         &format!(
-            "| pair_readiness | benchmarks/readiness/pair-readiness.tsv | {expected_pair_count} stage_tool_pairs |"
+            "| pair_readiness | artifacts/benchmark-smoke/readiness/pair-readiness.tsv | {expected_pair_count} stage_tool_pairs |"
         )
     ));
-    assert!(markdown.contains("| stage_centric_report | benchmarks/readiness/stage-centric-report.md | 51 stage_sections |"));
+    assert!(markdown.contains("| stage_centric_report | artifacts/benchmark-smoke/readiness/stage-centric-report.md | 51 stage_sections |"));
     assert!(markdown.contains("## Exact Blockers"));
     assert!(markdown
         .contains("| Domain | Stage | Tool | Gap | Support | Adapter | Parser | Corpus | Asset |"));
@@ -91,10 +95,10 @@ fn bench_readiness_benchmark_readiness_dashboard_writes_markdown_and_json_output
     );
     assert_eq!(
         json_value.get("markdown_output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/FASTQ_BAM_BENCHMARK_READINESS.md")
+        Some("artifacts/benchmark-smoke/readiness/FASTQ_BAM_BENCHMARK_READINESS.md")
     );
     assert_eq!(
         json_value.get("json_output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/FASTQ_BAM_BENCHMARK_READINESS.json")
+        Some("artifacts/benchmark-smoke/readiness/FASTQ_BAM_BENCHMARK_READINESS.json")
     );
 }

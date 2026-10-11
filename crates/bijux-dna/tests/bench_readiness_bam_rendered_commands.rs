@@ -45,11 +45,11 @@ fn bench_readiness_bam_rendered_commands_report_tracks_active_rows() {
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/bam/bam-rendered-commands.sh")
+        Some("artifacts/benchmark-smoke/readiness/bam/bam-rendered-commands.sh")
     );
     assert_eq!(
         payload.get("argv_output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/bam/bam-rendered-commands.argv.jsonl")
+        Some("artifacts/benchmark-smoke/readiness/bam/bam-rendered-commands.argv.jsonl")
     );
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
     assert_eq!(
@@ -123,7 +123,7 @@ fn bench_readiness_bam_rendered_commands_report_tracks_active_rows() {
 
     let repo_root = support::repo_root().expect("repo root");
     let argv_jsonl = std::fs::read_to_string(
-        repo_root.join("benchmarks/readiness/bam/bam-rendered-commands.argv.jsonl"),
+        repo_root.join("artifacts/benchmark-smoke/readiness/bam/bam-rendered-commands.argv.jsonl"),
     )
     .expect("read BAM rendered command argv jsonl");
     let argv_rows = argv_jsonl.lines().collect::<Vec<_>>();

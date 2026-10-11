@@ -48,7 +48,7 @@ fn bench_readiness_bam_kinship_ready_reports_complete_governed_rows() {
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/bam/kinship-ready.json")
+        Some("artifacts/benchmark-smoke/readiness/bam/kinship-ready.json")
     );
     assert_eq!(
         payload.get("active_row_count").and_then(serde_json::Value::as_u64),

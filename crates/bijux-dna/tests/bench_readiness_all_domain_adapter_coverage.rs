@@ -45,7 +45,7 @@ fn bench_readiness_all_domain_adapter_coverage_reports_complete_active_rows() {
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/all-domains/adapter-coverage.tsv")
+        Some("artifacts/benchmark-smoke/readiness/all-domains/adapter-coverage.tsv")
     );
     let rows = support::json_array(&payload, "rows");
     let row_count = u64::try_from(rows.len()).expect("row count fits u64");
@@ -122,7 +122,7 @@ fn bench_readiness_all_domain_adapter_coverage_reports_complete_active_rows() {
     );
     assert_eq!(
         command_source_counts.get("vcf_descent_family_adapter").and_then(serde_json::Value::as_u64),
-        Some(1)
+        Some(4)
     );
 
     let coverage_status_counts = support::json_object(&payload, "coverage_status_counts");

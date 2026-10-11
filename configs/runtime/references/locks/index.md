@@ -1,3 +1,5 @@
-# runtime/references/locks
+# Reference Source Locks
 
-Lock artifacts generated from `configs/runtime/references/locks/lock.json`.
+`lock.json` records the NCBI assembly accession, archive MD5, independently observed SHA-256,
+byte size, and immutable STUDY evidence URI for every reference-bank source. Index artifacts are
+not source files and require separate tool-execution evidence.

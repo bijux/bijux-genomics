@@ -44,7 +44,7 @@ fn bench_local_fastq_micro_smoke_subset_reports_one_governed_row_per_family() {
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("runs/bench/micro/fastq/MICRO_FASTQ_SUMMARY.json")
+        Some("artifacts/benchmark-smoke/micro/fastq/MICRO_FASTQ_SUMMARY.json")
     );
     assert_eq!(payload.get("family_count").and_then(serde_json::Value::as_u64), Some(13));
     assert_eq!(payload.get("local_smoke_count").and_then(serde_json::Value::as_u64), Some(10));

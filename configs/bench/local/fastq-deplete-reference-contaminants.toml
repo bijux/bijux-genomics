@@ -11,4 +11,4 @@ input_r2 = "assets/toy/core-v1/fastq/reads_2.fastq"
 reference_index = "assets/reference/contaminants/references/toy_contaminant_reference"
 tool_id = "bowtie2"
 threads = 4
-output_dir = "benchmarks/readiness/local-ready/fastq.deplete_reference_contaminants"
+output_dir = "artifacts/benchmark-smoke/readiness/local-ready/fastq.deplete_reference_contaminants"

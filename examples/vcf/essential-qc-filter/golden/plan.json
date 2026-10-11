@@ -5,5 +5,11 @@
     "validate_inputs",
     "run_bench",
     "collect_outputs"
+  ],
+  "pipeline": [
+    "vcf.filter",
+    "vcf.postprocess",
+    "vcf.qc",
+    "vcf.stats"
   ]
 }

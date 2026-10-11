@@ -33,7 +33,10 @@ fn bench_readiness_fastq_local_container_smoke_writes_governed_tsv_file() {
     );
 
     let rendered_path = String::from_utf8(output.stdout).expect("stdout utf8");
-    assert_eq!(rendered_path.trim(), "benchmarks/readiness/fastq/fastq-local-container-smoke.tsv");
+    assert_eq!(
+        rendered_path.trim(),
+        "artifacts/benchmark-smoke/readiness/fastq/fastq-local-container-smoke.tsv"
+    );
 
     let payload = std::fs::read_to_string(repo_root.join(rendered_path.trim()))
         .expect("read FASTQ local-container smoke TSV");
@@ -55,6 +58,9 @@ fn bench_readiness_fastq_local_container_smoke_writes_governed_tsv_file() {
         })
         .collect::<BTreeSet<_>>();
     assert_eq!(bindings.len(), rows.len(), "stage-tool bindings must be unique");
+    assert!(rows.iter().any(|row| {
+        row == &"fastq.remove_duplicates\tfastuniq\tfastuniq\tunsupported\tbenchmark_ready\tgoverned_benchmark_cohort\tfixture:corpus-01-mini\texternal_artifact_admission\texternal\tfastuniq\tfastuniq --version\tcontainers/contracts/catalog.toml\t\tbinding `fastq.remove_duplicates` / `fastuniq` requires checksum-admitted operator-provided artifact evidence; no redistributable container wrapper is authorized"
+    }));
     assert!(rows.iter().any(|row| {
         row == &"fastq.detect_duplicates_premerge\tbijux_dna\tbijux-dna\tproduction\tbenchmark_ready\tgoverned_execution\tfixture:corpus-01-mini\tdocker_container_smoke\tdocker-arm64\tbijux-dna\tbijux-dna env smoke docker-arm64 bijux-dna\tcontainers/docker/Dockerfile.arm64.bijux_dna\t\tbinding `fastq.detect_duplicates_premerge` / `bijux_dna` matches the governed FASTQ execution default tool, but no exact tiny-fixture stage smoke wrapper is checked in, so the governed container smoke wrapper is the available local exercise path for `fastq.detect_duplicates_premerge` / `bijux_dna`"
     }));

@@ -47,11 +47,11 @@ fn bench_readiness_all_domain_missing_result_audit_tracks_three_governed_missing
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/missing-result-test-all-domains.json")
+        Some("artifacts/benchmark-smoke/readiness/missing-result-test-all-domains.json")
     );
     assert_eq!(
         payload.get("fake_result_root").and_then(serde_json::Value::as_str),
-        Some("runs/bench/readiness-probes/all-domains/missing-result-test")
+        Some("artifacts/benchmark-smoke/simulated-runs/readiness-probes/all-domains/missing-result-test")
     );
     let expected_row_count =
         support::json_u64(&payload, "expected_row_count").expect("expected_row_count");

@@ -35,7 +35,6 @@ const FAILED_RESULT_JOB_ID: &str =
 const MISSING_RESULT_JOB_ID: &str =
     "benchmark:bam:corpus-01-adna-bam-mini:bam.contamination:sample-set:contammix";
 const INSUFFICIENT_RESULT_JOB_ID: &str = "pipeline:relatedness-segments-vcf:vcf.demography";
-const UNAVAILABLE_RESULT_JOB_ID: &str = "pipeline:relatedness-segments-vcf:vcf.ibd";
 const INSUFFICIENT_FIXTURE_PATH: &str =
     "benchmarks/tests/fixtures/bench/parsers/vcf/segments/ibdne/vcf.demography/insufficient_data/expected.normalized.json";
 
@@ -234,6 +233,9 @@ fn build_hpc_result_collection_simulation(
         .map(|job| (job.job_id_local.clone(), job))
         .collect::<BTreeMap<_, _>>();
     validate_seeded_job_presence(&jobs_by_id)?;
+    let execution_resolver_report = collect_hpc_execution_resolver_report(repo_root)?;
+    let unavailable_result_job_id =
+        select_unavailable_result_job_id(&execution_resolver_report, &jobs_by_id)?;
 
     let seeded_jobs = [
         COMPLETE_RESULT_JOB_ID,
@@ -297,10 +299,7 @@ fn build_hpc_result_collection_simulation(
             repo_root,
             seeded_jobs.get(INSUFFICIENT_RESULT_JOB_ID).expect("validated insufficient job"),
         )?,
-        collect_unavailable_row(
-            &collect_hpc_execution_resolver_report(repo_root)?,
-            UNAVAILABLE_RESULT_JOB_ID,
-        )?,
+        collect_unavailable_row(&execution_resolver_report, &unavailable_result_job_id)?,
     ];
     rows.sort_by(|left, right| left.record_id.cmp(&right.record_id));
 
@@ -309,7 +308,7 @@ fn build_hpc_result_collection_simulation(
     let missing_row_count = count_status(&rows, LocalHpcResultCollectionStatus::Missing);
     let insufficient_row_count = count_status(&rows, LocalHpcResultCollectionStatus::Insufficient);
     let unavailable_row_count = count_status(&rows, LocalHpcResultCollectionStatus::Unavailable);
-    let behavior = build_behavior(&rows)?;
+    let behavior = build_behavior(&rows, &unavailable_result_job_id)?;
     let report = LocalHpcResultCollectionSimulationReport {
         schema_version: LOCAL_HPC_RESULT_COLLECTION_SIMULATION_SCHEMA_VERSION,
         output_path: path_relative_to_repo(repo_root, absolute_output_path),
@@ -337,7 +336,6 @@ fn validate_seeded_job_presence(
         FAILED_RESULT_JOB_ID,
         MISSING_RESULT_JOB_ID,
         INSUFFICIENT_RESULT_JOB_ID,
-        UNAVAILABLE_RESULT_JOB_ID,
     ] {
         if !jobs_by_id.contains_key(job_id_local) {
             return Err(anyhow!(
@@ -346,6 +344,23 @@ fn validate_seeded_job_presence(
         }
     }
     Ok(())
+}
+
+fn select_unavailable_result_job_id(
+    resolver_report: &super::local_hpc_execution_resolver::LocalHpcExecutionResolverReport,
+    jobs_by_id: &BTreeMap<String, BenchLocalAllDomainSlurmSubmitJob>,
+) -> Result<String> {
+    resolver_report
+        .rows
+        .iter()
+        .filter(|row| row.resolution_kind == "unavailable_with_reason")
+        .flat_map(|row| row.selected_job_ids.iter())
+        .filter(|job_id| jobs_by_id.contains_key(*job_id))
+        .min()
+        .cloned()
+        .ok_or_else(|| {
+            anyhow!("HPC result-collection simulation requires a governed unavailable resolver job")
+        })
 }
 
 fn seed_insufficient_output_payload(
@@ -577,6 +592,7 @@ fn count_status(
 
 fn build_behavior(
     rows: &[LocalHpcResultCollectionSimulationRow],
+    unavailable_result_job_id: &str,
 ) -> Result<LocalHpcResultCollectionSimulationBehavior> {
     let rows_by_record_id =
         rows.iter().map(|row| (row.record_id.as_str(), row)).collect::<BTreeMap<_, _>>();
@@ -592,15 +608,16 @@ fn build_behavior(
     let insufficient = rows_by_record_id
         .get(&format!("result:{INSUFFICIENT_RESULT_JOB_ID}") as &str)
         .ok_or_else(|| anyhow!("missing insufficient row"))?;
+    let unavailable_record_id = format!("unavailable:{unavailable_result_job_id}");
     let unavailable = rows_by_record_id
-        .get(&format!("unavailable:{UNAVAILABLE_RESULT_JOB_ID}") as &str)
+        .get(unavailable_record_id.as_str())
         .ok_or_else(|| anyhow!("missing unavailable row"))?;
     let behavior = LocalHpcResultCollectionSimulationBehavior {
         complete_result_job_id: COMPLETE_RESULT_JOB_ID.to_string(),
         failed_result_job_id: FAILED_RESULT_JOB_ID.to_string(),
         missing_result_job_id: MISSING_RESULT_JOB_ID.to_string(),
         insufficient_result_job_id: INSUFFICIENT_RESULT_JOB_ID.to_string(),
-        unavailable_result_job_id: UNAVAILABLE_RESULT_JOB_ID.to_string(),
+        unavailable_result_job_id: unavailable_result_job_id.to_string(),
         complete_row_present: complete.collection_status
             == LocalHpcResultCollectionStatus::Complete.as_str(),
         failed_row_present: failed.collection_status

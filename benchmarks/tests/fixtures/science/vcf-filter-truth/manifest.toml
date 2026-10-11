@@ -10,10 +10,6 @@ source_paths = [
   "benchmarks/tests/fixtures/bench/parsers/vcf/bcftools/vcf.damage_filter/raw.damage_filter_summary.json",
   "benchmarks/tests/fixtures/bench/parsers/vcf/bcftools/vcf.damage_filter/raw.damage_filter_counts.json",
   "benchmarks/tests/fixtures/bench/parsers/vcf/bcftools/vcf.damage_filter/expected.normalized.json",
-  "benchmarks/tests/fixtures/bench/parsers/vcf/angsd/vcf.damage_filter/raw.command.json",
-  "benchmarks/tests/fixtures/bench/parsers/vcf/angsd/vcf.damage_filter/raw.damage_report.txt",
-  "benchmarks/tests/fixtures/bench/parsers/vcf/angsd/vcf.damage_filter/raw.damage_bias_audit_report.json",
-  "benchmarks/tests/fixtures/bench/parsers/vcf/angsd/vcf.damage_filter/expected.normalized.json",
   "domain/vcf/stages/filter.yaml",
   "domain/vcf/stages/damage_filter.yaml",
 ]
@@ -32,11 +28,4 @@ stage_id = "vcf.damage_filter"
 tool_id = "bcftools"
 artifact_root_path = "benchmarks/tests/fixtures/bench/parsers/vcf/bcftools/vcf.damage_filter"
 output_vcf_path = "benchmarks/tests/fixtures/bench/parsers/vcf/bcftools/vcf.damage_filter/raw.damage_filtered.vcf"
-truth_kind = "damage_removal"
-
-[[cases]]
-case_id = "angsd_damage_filter_removal"
-stage_id = "vcf.damage_filter"
-tool_id = "angsd"
-artifact_root_path = "benchmarks/tests/fixtures/bench/parsers/vcf/angsd/vcf.damage_filter"
 truth_kind = "damage_removal"

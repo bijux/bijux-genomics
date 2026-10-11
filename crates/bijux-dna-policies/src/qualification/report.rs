@@ -9,7 +9,7 @@ use super::{
     SupportDisposition, REQUIRED_EVIDENCE_DIMENSIONS,
 };
 
-pub const QUALIFICATION_REPORT_SCHEMA_V2: &str = "bijux.container.qualification_report.v2";
+pub const QUALIFICATION_REPORT_SCHEMA_V3: &str = "bijux.container.qualification_report.v3";
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
@@ -47,14 +47,14 @@ impl QualificationReport {
     /// # Errors
     /// Returns an error for missing or non-portable sources, invalid assessments, or duplicate
     /// qualification subjects.
-    pub fn v2(
+    pub fn v3(
         sources: BTreeMap<String, QualificationEvidenceSource>,
         mut assessments: Vec<QualificationAssessment>,
     ) -> Result<Self> {
         assessments.sort_by(|left, right| left.subject_id.cmp(&right.subject_id));
         let summary = derive_summary(&assessments);
         let report = Self {
-            schema_version: QUALIFICATION_REPORT_SCHEMA_V2.to_string(),
+            schema_version: QUALIFICATION_REPORT_SCHEMA_V3.to_string(),
             sources,
             summary,
             assessments,
@@ -69,7 +69,7 @@ impl QualificationReport {
     /// Returns an error when serialized report content is malformed or contradicts its evidence.
     pub fn validate(&self) -> Result<()> {
         ensure!(
-            self.schema_version == QUALIFICATION_REPORT_SCHEMA_V2,
+            self.schema_version == QUALIFICATION_REPORT_SCHEMA_V3,
             "unsupported qualification report schema: {}",
             self.schema_version
         );
@@ -150,7 +150,7 @@ fn derive_summary(assessments: &[QualificationAssessment]) -> QualificationRepor
 fn qualification_report_schema_version(_: &mut SchemaGenerator) -> Schema {
     json_schema!({
         "type": "string",
-        "const": QUALIFICATION_REPORT_SCHEMA_V2,
+        "const": QUALIFICATION_REPORT_SCHEMA_V3,
     })
 }
 
@@ -164,7 +164,7 @@ fn valid_sha256(value: &str) -> bool {
 mod tests {
     use std::collections::BTreeMap;
 
-    use super::{QualificationEvidenceSource, QualificationReport, QUALIFICATION_REPORT_SCHEMA_V2};
+    use super::{QualificationEvidenceSource, QualificationReport, QUALIFICATION_REPORT_SCHEMA_V3};
     use crate::qualification::{
         EvidenceDecision, EvidenceVerdict, PublicationDisposition, QualificationAssessment,
         SupportDisposition, REQUIRED_EVIDENCE_DIMENSIONS,
@@ -182,18 +182,30 @@ mod tests {
         let dimensions = REQUIRED_EVIDENCE_DIMENSIONS
             .into_iter()
             .map(|dimension| {
-                (
-                    dimension,
-                    EvidenceDecision {
-                        verdict,
-                        evidence_sha256: (verdict == EvidenceVerdict::Passed)
-                            .then(|| "a".repeat(64)),
-                        reasons: Vec::new(),
-                    },
-                )
+                let measured =
+                    BTreeMap::from([("evidence_state".to_string(), format!("{verdict:?}"))]);
+                let thresholds =
+                    BTreeMap::from([("required_state".to_string(), "passed".to_string())]);
+                let decision = if verdict == EvidenceVerdict::Passed {
+                    EvidenceDecision::passed(
+                        "qualification.report.test.v1",
+                        measured,
+                        thresholds,
+                        "a".repeat(64),
+                        "test evidence passes",
+                    )
+                } else {
+                    EvidenceDecision::not_applicable(
+                        "qualification.report.test.v1",
+                        measured,
+                        thresholds,
+                        "test subject is outside the retained population",
+                    )
+                };
+                (dimension, decision)
             })
             .collect();
-        QualificationAssessment::v1(
+        QualificationAssessment::v2(
             subject.to_string(),
             disposition,
             PublicationDisposition::Current,
@@ -213,7 +225,7 @@ mod tests {
 
     #[test]
     fn report_derives_summary_and_canonical_subject_order() -> anyhow::Result<()> {
-        let report = QualificationReport::v2(
+        let report = QualificationReport::v3(
             sources(),
             vec![
                 assessment("samtools", SupportDisposition::Retained)?,
@@ -237,13 +249,13 @@ mod tests {
             .get_mut("catalog")
             .ok_or_else(|| anyhow::anyhow!("catalog fixture is missing"))?;
         catalog_source.uri = "/home/operator/catalog.toml".to_string();
-        assert!(QualificationReport::v2(
+        assert!(QualificationReport::v3(
             local_sources,
             vec![assessment("samtools", SupportDisposition::Retained)?],
         )
         .is_err_and(|error| error.to_string().contains("not portable")));
 
-        let mut report = QualificationReport::v2(
+        let mut report = QualificationReport::v3(
             sources(),
             vec![assessment("samtools", SupportDisposition::Retained)?],
         )?;
@@ -257,7 +269,7 @@ mod tests {
     #[test]
     fn report_rejects_unknown_serialized_fields() {
         let payload = serde_json::json!({
-            "schema_version": QUALIFICATION_REPORT_SCHEMA_V2,
+            "schema_version": QUALIFICATION_REPORT_SCHEMA_V3,
             "sources": {},
             "summary": {},
             "assessments": [],

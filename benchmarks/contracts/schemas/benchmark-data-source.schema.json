@@ -1,0 +1,169 @@
+{
+  "$defs": {
+    "BenchmarkCorpusClass": {
+      "enum": [
+        "production_real",
+        "qualification_real",
+        "test_fixture",
+        "toy",
+        "synthetic",
+        "smoke",
+        "local_development"
+      ],
+      "type": "string"
+    },
+    "BenchmarkDataSourceCollection": {
+      "additionalProperties": false,
+      "properties": {
+        "access_terms_url": {
+          "type": "string"
+        },
+        "accession": {
+          "type": "string"
+        },
+        "authority": {
+          "type": "string"
+        },
+        "data_types": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "id": {
+          "type": "string"
+        },
+        "known_limitations": {
+          "items": {
+            "type": "string"
+          },
+          "type": "array"
+        },
+        "planned_sample_count": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "selection_scope": {
+          "type": "string"
+        },
+        "source_url": {
+          "type": "string"
+        },
+        "truth_basis": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "authority",
+        "accession",
+        "source_url",
+        "access_terms_url",
+        "data_types",
+        "selection_scope",
+        "truth_basis",
+        "known_limitations"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "access_classification": {
+      "type": "string"
+    },
+    "access_terms_url": {
+      "type": "string"
+    },
+    "attribution": {
+      "type": "string"
+    },
+    "class": {
+      "$ref": "#/$defs/BenchmarkCorpusClass"
+    },
+    "collections": {
+      "items": {
+        "$ref": "#/$defs/BenchmarkDataSourceCollection"
+      },
+      "type": "array"
+    },
+    "data_types": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "description": {
+      "type": "string"
+    },
+    "known_limitations": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "portfolio_id": {
+      "type": "string"
+    },
+    "projected_cpu_hours": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "projected_storage_bytes": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "projection_basis": {
+      "type": "string"
+    },
+    "redistribution_classification": {
+      "type": "string"
+    },
+    "schema_version": {
+      "const": "bijux.benchmark.data_source.v1",
+      "type": "string"
+    },
+    "target_sample_count": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "truth_roles": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "truth_strategy": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "portfolio_id",
+    "class",
+    "access_classification",
+    "redistribution_classification",
+    "access_terms_url",
+    "attribution",
+    "projected_storage_bytes",
+    "projected_cpu_hours",
+    "projection_basis",
+    "truth_roles",
+    "truth_strategy",
+    "known_limitations",
+    "description",
+    "data_types",
+    "target_sample_count",
+    "collections"
+  ],
+  "title": "BenchmarkDataSourceSpec",
+  "type": "object"
+}

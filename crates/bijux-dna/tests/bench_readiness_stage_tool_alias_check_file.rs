@@ -34,7 +34,7 @@ fn bench_readiness_stage_tool_alias_check_writes_governed_json_file() {
     let rendered_path = String::from_utf8(output.stdout).expect("stdout utf8");
     assert_eq!(
         rendered_path.trim(),
-        "benchmarks/readiness/all-domains/stage-tool-alias-check.json"
+        "artifacts/benchmark-smoke/readiness/all-domains/stage-tool-alias-check.json"
     );
 
     let payload = std::fs::read_to_string(repo_root.join(rendered_path.trim()))

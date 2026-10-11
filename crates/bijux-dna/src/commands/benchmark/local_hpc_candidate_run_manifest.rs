@@ -25,7 +25,7 @@ use crate::commands::cli::render;
 const LOCAL_HPC_CANDIDATE_RUN_MANIFEST_SCHEMA_VERSION: &str =
     "bijux.bench.local_hpc_candidate_run_manifest.v1";
 pub(crate) const DEFAULT_HPC_CANDIDATE_RUN_MANIFEST_PATH: &str =
-    "benchmarks/readiness/hpc/FIRST_HPC_CANDIDATE_RUN.json";
+    "artifacts/benchmark-smoke/readiness/hpc/FIRST_HPC_CANDIDATE_RUN.json";
 const SMALL_CANDIDATE_PROFILE_ID: &str = "small_runtime_surface_representatives";
 const SMALL_INPUT_FOOTPRINT_MAX_BYTES: u64 = 10 * 1024 * 1024;
 const SMALL_CPUS_PER_TASK_MAX: u32 = 4;

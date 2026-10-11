@@ -8,13 +8,13 @@ use serde::Serialize;
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
-const BENCHMARK_PATHS_VALIDATE_SCHEMA_VERSION: &str = "bijux.bench.paths_validate.v2";
+const BENCHMARK_PATHS_VALIDATE_SCHEMA_VERSION: &str = "bijux.bench.paths_validate.v3";
 pub(crate) const DEFAULT_BENCHMARK_PATHS_VALIDATE_PATH: &str =
-    "benchmarks/readiness/benchmark-paths-validation.json";
+    "artifacts/benchmark-smoke/readiness/benchmark-paths-validation.json";
 const DISPOSABLE_ROOT_CLEANUP_PROOF_SCHEMA_VERSION: &str =
     "bijux.bench.disposable_root_cleanup_proof.v1";
 pub(crate) const DEFAULT_DISPOSABLE_ROOT_CLEANUP_PROOF_PATH: &str =
-    "benchmarks/readiness/path-cleanup/DELETE_DISPOSABLE_ROOTS_SAFE.json";
+    "artifacts/benchmark-smoke/readiness/path-cleanup/DELETE_DISPOSABLE_ROOTS_SAFE.json";
 const DISPOSABLE_ROOTS: &[&str] = &["target", "artifacts", "runs"];
 
 const REQUIRED_BENCHMARK_ROOTS: &[BenchmarkRootContract] = &[
@@ -30,14 +30,6 @@ const REQUIRED_BENCHMARK_ROOTS: &[BenchmarkRootContract] = &[
     BenchmarkRootContract {
         relative_path: "benchmarks/tests",
         marker_path: "benchmarks/tests/README.md",
-    },
-    BenchmarkRootContract {
-        relative_path: "benchmarks/readiness",
-        marker_path: "benchmarks/readiness/README.md",
-    },
-    BenchmarkRootContract {
-        relative_path: "benchmarks/readiness/local-ready",
-        marker_path: "benchmarks/readiness/local-ready/README.md",
     },
 ];
 
@@ -363,18 +355,14 @@ fn collect_path_violations(
             });
         }
     }
-    if !readiness_snapshots.iter().any(|path| path.ends_with(".json")) {
+    if !readiness_snapshots.is_empty() {
         violations.push(BenchmarkPathViolation {
             relative_path: "benchmarks/readiness".to_string(),
-            violation_type: "missing_readiness_json_snapshot".to_string(),
-            detail: "tracked readiness proof must include at least one .json snapshot".to_string(),
-        });
-    }
-    if !readiness_snapshots.iter().any(|path| path.ends_with(".tsv")) {
-        violations.push(BenchmarkPathViolation {
-            relative_path: "benchmarks/readiness".to_string(),
-            violation_type: "missing_readiness_tsv_snapshot".to_string(),
-            detail: "tracked readiness proof must include at least one .tsv snapshot".to_string(),
+            violation_type: "tracked_readiness_surface".to_string(),
+            detail: format!(
+                "generated readiness output must live under artifacts; tracked files: {}",
+                readiness_snapshots.join(", ")
+            ),
         });
     }
     violations
@@ -420,10 +408,6 @@ fn collect_readiness_snapshots_recursive(
         if !file_type.is_file() {
             continue;
         }
-        let extension = entry_path.extension().and_then(|value| value.to_str());
-        if !matches!(extension, Some("json" | "tsv")) {
-            continue;
-        }
         let relative_path = entry_path
             .strip_prefix(repo_root)
             .with_context(|| format!("strip repo root from {}", entry_path.display()))?;
@@ -457,19 +441,6 @@ fn git_check_ignored(repo_root: &Path, relative_path: &str) -> Result<bool> {
         1 => Ok(false),
         code => Err(anyhow!(
             "git check-ignore returned {code} for {relative_path}: {}",
-            output.stderr.trim()
-        )),
-    }
-}
-
-fn git_check_tracked(repo_root: &Path, relative_path: &str) -> Result<bool> {
-    let output = run_git(repo_root, &["ls-files", "--error-unmatch", relative_path])
-        .with_context(|| format!("run git ls-files for {relative_path}"))?;
-    match output.exit_code {
-        0 => Ok(true),
-        1 => Ok(false),
-        code => Err(anyhow!(
-            "git ls-files returned {code} for {relative_path}: {}",
             output.stderr.trim()
         )),
     }
@@ -522,11 +493,6 @@ mod tests {
         write_text(&root.join("benchmarks/configs/README.md"), "# Benchmark Configs\n");
         write_text(&root.join("benchmarks/schemas/README.md"), "# Benchmark Schemas\n");
         write_text(&root.join("benchmarks/tests/README.md"), "# Benchmark Tests\n");
-        write_text(&root.join("benchmarks/readiness/README.md"), "# Benchmark Readiness\n");
-        write_text(
-            &root.join("benchmarks/readiness/local-ready/README.md"),
-            "# Local Benchmark Ready\n",
-        );
     }
 
     #[test]
@@ -534,14 +500,6 @@ mod tests {
         let temp = tempfile::tempdir().expect("tempdir");
         init_repo(temp.path());
         write_benchmark_root(temp.path());
-        write_text(
-            &temp.path().join("benchmarks/readiness/all-domain-schema-validation.json"),
-            "{\n  \"ok\": true\n}\n",
-        );
-        write_text(
-            &temp.path().join("benchmarks/readiness/all-domain-stage-tool-table.tsv"),
-            "stage_id\ttool_id\nvcf.call\tbcftools\n",
-        );
         write_text(&temp.path().join(".gitignore"), "");
         stage_all(temp.path());
 
@@ -553,21 +511,37 @@ mod tests {
         .expect("validate benchmark paths");
 
         assert!(report.ok);
-        assert_eq!(report.root_count, 6);
-        assert_eq!(report.existing_root_count, 6);
-        assert_eq!(report.tracked_marker_count, 6);
+        assert_eq!(report.root_count, 4);
+        assert_eq!(report.existing_root_count, 4);
+        assert_eq!(report.tracked_marker_count, 4);
         assert_eq!(report.ignored_root_count, 0);
-        assert_eq!(report.readiness_snapshot_count, 2);
-        assert_eq!(report.readiness_json_snapshot_count, 1);
-        assert_eq!(report.readiness_tsv_snapshot_count, 1);
-        assert_eq!(
-            report.readiness_snapshots,
-            vec![
-                "benchmarks/readiness/all-domain-schema-validation.json".to_string(),
-                "benchmarks/readiness/all-domain-stage-tool-table.tsv".to_string(),
-            ]
-        );
+        assert_eq!(report.readiness_snapshot_count, 0);
+        assert_eq!(report.readiness_json_snapshot_count, 0);
+        assert_eq!(report.readiness_tsv_snapshot_count, 0);
+        assert!(report.readiness_snapshots.is_empty());
         assert!(report.violations.is_empty());
+    }
+
+    #[test]
+    fn benchmark_path_validation_rejects_tracked_readiness_files() {
+        let temp = tempfile::tempdir().expect("tempdir");
+        init_repo(temp.path());
+        write_benchmark_root(temp.path());
+        write_text(
+            &temp.path().join("benchmarks/readiness/legacy-report.json"),
+            "{\n  \"ok\": false\n}\n",
+        );
+        write_text(&temp.path().join(".gitignore"), "");
+        stage_all(temp.path());
+
+        let error = validate_benchmark_paths(
+            temp.path(),
+            std::path::PathBuf::from(DEFAULT_BENCHMARK_PATHS_VALIDATE_PATH),
+            true,
+        )
+        .expect_err("tracked readiness output must fail validation");
+
+        assert!(error.to_string().contains("tracked_readiness_surface"));
     }
 
     #[test]
@@ -597,10 +571,8 @@ mod tests {
             marker_tracked_by_git: false,
         }];
         let violations = collect_path_violations(&roots, &[]);
-        assert_eq!(violations.len(), 4);
+        assert_eq!(violations.len(), 2);
         assert_eq!(violations[0].violation_type, "missing_marker");
         assert_eq!(violations[1].violation_type, "untracked_marker");
-        assert_eq!(violations[2].violation_type, "missing_readiness_json_snapshot");
-        assert_eq!(violations[3].violation_type, "missing_readiness_tsv_snapshot");
     }
 }

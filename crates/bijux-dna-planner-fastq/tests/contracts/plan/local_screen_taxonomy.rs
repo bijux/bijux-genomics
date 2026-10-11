@@ -42,7 +42,7 @@ fn local_screen_taxonomy_plan_uses_governed_corpus02_inputs() -> Result<()> {
     assert_eq!(plan.resources.mem_gb, 16);
     assert_eq!(
         plan.out_dir,
-        PathBuf::from("benchmarks/readiness/local-ready/fastq.screen_taxonomy")
+        PathBuf::from("artifacts/benchmark-smoke/readiness/local-ready/fastq.screen_taxonomy")
     );
     for (name, expected) in [
         ("reads_r1", "assets/toy/corpus-02-edna-mini/fastq/mock_community_reads.fastq"),
@@ -54,19 +54,19 @@ fn local_screen_taxonomy_plan_uses_governed_corpus02_inputs() -> Result<()> {
     for (name, expected) in [
         (
             "screen_report_tsv",
-            "benchmarks/readiness/local-ready/fastq.screen_taxonomy/kraken2.report.tsv",
+            "artifacts/benchmark-smoke/readiness/local-ready/fastq.screen_taxonomy/kraken2.report.tsv",
         ),
         (
             "classification_report_json",
-            "benchmarks/readiness/local-ready/fastq.screen_taxonomy/kraken2.classifications.json",
+            "artifacts/benchmark-smoke/readiness/local-ready/fastq.screen_taxonomy/kraken2.classifications.json",
         ),
         (
             "unclassified_reads_r1",
-            "benchmarks/readiness/local-ready/fastq.screen_taxonomy/kraken2.unclassified_reads_1.fastq",
+            "artifacts/benchmark-smoke/readiness/local-ready/fastq.screen_taxonomy/kraken2.unclassified_reads_1.fastq",
         ),
         (
             "unclassified_reads_r2",
-            "benchmarks/readiness/local-ready/fastq.screen_taxonomy/kraken2.unclassified_reads_2.fastq",
+            "artifacts/benchmark-smoke/readiness/local-ready/fastq.screen_taxonomy/kraken2.unclassified_reads_2.fastq",
         ),
     ] {
         assert_eq!(output_path(&plan, name), Path::new(expected));
@@ -93,10 +93,10 @@ fn local_screen_taxonomy_plan_uses_governed_corpus02_inputs() -> Result<()> {
     );
     assert!(
         plan.command.template[2].contains("--db 'assets/reference/taxonomy/references/mock_community_taxonomy/kraken2'")
-            && plan.command.template[2].contains("'benchmarks/readiness/local-ready/fastq.screen_taxonomy/kraken2.report.tsv'")
-            && plan.command.template[2].contains("'benchmarks/readiness/local-ready/fastq.screen_taxonomy/kraken2.classifications.native.tsv'")
+            && plan.command.template[2].contains("'artifacts/benchmark-smoke/readiness/local-ready/fastq.screen_taxonomy/kraken2.report.tsv'")
+            && plan.command.template[2].contains("'artifacts/benchmark-smoke/readiness/local-ready/fastq.screen_taxonomy/kraken2.classifications.native.tsv'")
             && plan.command.template[2].contains("--paired 'assets/toy/corpus-02-edna-mini/fastq/mock_community_reads.fastq' 'assets/toy/corpus-02-edna-mini/fastq/mock_community_reads_R2.fastq'")
-            && plan.command.template[2].contains("--unclassified-out 'benchmarks/readiness/local-ready/fastq.screen_taxonomy/kraken2.unclassified_reads_#.fastq'"),
+            && plan.command.template[2].contains("--unclassified-out 'artifacts/benchmark-smoke/readiness/local-ready/fastq.screen_taxonomy/kraken2.unclassified_reads_#.fastq'"),
         "local-ready taxonomy plan command must carry the governed database root and output paths"
     );
     Ok(())

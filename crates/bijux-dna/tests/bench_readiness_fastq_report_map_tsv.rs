@@ -32,7 +32,10 @@ fn bench_readiness_fastq_report_map_writes_governed_tsv_columns() {
     );
 
     let rendered_path = String::from_utf8(output.stdout).expect("stdout utf8");
-    assert_eq!(rendered_path.trim(), "benchmarks/readiness/fastq/fastq-report-map.tsv");
+    assert_eq!(
+        rendered_path.trim(),
+        "artifacts/benchmark-smoke/readiness/fastq/fastq-report-map.tsv"
+    );
 
     let tsv = std::fs::read_to_string(repo_root.join(rendered_path.trim()))
         .expect("read FASTQ report map TSV");

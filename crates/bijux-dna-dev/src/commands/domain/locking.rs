@@ -71,6 +71,8 @@ pub(super) fn check_reference_bundle_lock(workspace: &Workspace) -> Result<Domai
                 materialization_lock_sha.display()
             )));
         }
+        bijux_dna_db_ref::resolve_reference_source_lock()
+            .context("validate typed reference source lock")?;
         stdout.push_str("reference materialization lock: OK\n");
     }
     Ok(DomainCommandOutcome::success(stdout))

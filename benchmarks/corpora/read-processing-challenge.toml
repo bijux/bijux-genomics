@@ -1,0 +1,50 @@
+# owner = bijux-genomics-benchmarks
+# purpose = Source authorities for real read-processing truth material
+# authority = bijux-genomics-benchmarks
+# stability = stable
+# last_updated = 2026-08-08
+
+schema_version = "bijux.benchmark.data_source.v1"
+portfolio_id = "read-processing-challenge"
+class = "production_real"
+access_classification = "mixed-public"
+redistribution_classification = "accession-referenced-source-copy"
+access_terms_url = "https://www.ncbi.nlm.nih.gov/home/about/policies/"
+attribution = "Cite the SEQC consortium, each original ancient-DNA study, NCBI GEO/SRA, and ENA."
+projected_storage_bytes = 100000000000
+projected_cpu_hours = 1000
+projection_basis = "The selection reserves up to 100 GB and 1,000 CPU-hours for ten SEQC lanes, ten ancient-DNA runs, immutable metadata, signal calibration, and validation outputs."
+truth_roles = ["read_processing_truth", "adapter_damage_complexity_challenge"]
+truth_strategy = "real_reads_with_calibrated_spike_ins"
+known_limitations = [
+  "SEQC ERCC spike-ins calibrate abundance and repeatability but do not establish adapter, UMI, duplicate, or ancient-damage truth.",
+  "Ancient-library metadata supports damage challenges but independent per-molecule damage and duplicate truth must be derived and admitted separately.",
+  "No files, checksums, spike-in truth tables, or expected-output observations are admitted by this declaration.",
+]
+description = "A source-defined panel combining calibrated SEQC RNA-seq lanes with public ancient-DNA reads for signal-specific read-processing evaluation."
+data_types = ["fastq"]
+target_sample_count = 10
+
+[[collections]]
+id = "ena-ancient-read-panel"
+authority = "European Nucleotide Archive"
+accession = "PRJEB8448+PRJEB38152+PRJEB80740+PRJEB101287"
+source_url = "https://www.ebi.ac.uk/ena/browser/view/PRJEB8448"
+access_terms_url = "https://www.ebi.ac.uk/ena/browser/about/policies"
+data_types = ["fastq"]
+planned_sample_count = 10
+selection_scope = "The ten ancient runs already declared in the human short-read diversity source authority, spanning single- and paired-end libraries and four studies."
+truth_basis = "Archive metadata and study evidence establish authentic ancient-library context; damage observations require an independent governed derivation."
+known_limitations = ["The collection has no calibrated adapter, UMI, or molecule-level duplicate truth."]
+
+[[collections]]
+id = "seqc-reference-rna"
+authority = "NCBI Gene Expression Omnibus and Sequence Read Archive"
+accession = "GSE47774;SRP025982;PRJNA208369"
+source_url = "https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE47774"
+access_terms_url = "https://www.ncbi.nlm.nih.gov/home/about/policies/"
+data_types = ["fastq"]
+planned_sample_count = 10
+selection_scope = "Ten Illumina lanes stratified across SEQC reference samples A, B, C, and D, with fixed site and lane identities selected during acquisition planning."
+truth_basis = "Well-characterized reference RNA mixtures, titrations, technical replication, and ERCC spike-in profiles provide independent abundance and repeatability anchors."
+known_limitations = ["RNA-seq reference mixtures do not model ancient DNA damage or UMI-bearing DNA libraries."]

@@ -12,9 +12,9 @@ use bijux_dna_bench_model::contract::{
     validate_stage_interface_catalog,
 };
 use bijux_dna_bench_model::{
-    benchmark_scientific_readiness_schema, AdmittedBenchmarkStageReport, BenchmarkCorpusStatus,
-    BenchmarkEvidenceScope, BenchmarkEvidenceTier, BenchmarkPortfolio, BenchmarkReportVerdict,
-    BenchmarkScientificReadinessCorpus, BenchmarkScientificReadinessDomain,
+    benchmark_scientific_readiness_schema, AdmittedBenchmarkStageReport, BenchmarkCorpusClass,
+    BenchmarkCorpusStatus, BenchmarkEvidenceScope, BenchmarkEvidenceTier, BenchmarkPortfolio,
+    BenchmarkReportVerdict, BenchmarkScientificReadinessCorpus, BenchmarkScientificReadinessDomain,
     BenchmarkScientificReadinessReport, BenchmarkScientificReadinessStage,
     BenchmarkScientificReadinessStatus, BenchmarkScientificReadinessSummary,
     BenchmarkStageCampaignRegistry, BenchmarkStageInterfaceCatalog, BenchmarkStageInterfaceStatus,
@@ -228,6 +228,7 @@ fn derive_scientific_readiness_with_current_sources(
             id: corpus.id.clone(),
             status: corpus.status,
             evidence_scope: corpus.evidence_scope,
+            class: corpus.class,
             sample_count: corpus.sample_count,
             truth_strategy: corpus.truth_strategy.clone(),
             roles: corpus.roles.clone(),
@@ -276,7 +277,7 @@ fn derive_scientific_readiness_with_current_sources(
             .filter(|campaign| campaign.evidence_tier == BenchmarkEvidenceTier::Comparative)
             .count(),
     };
-    let report = BenchmarkScientificReadinessReport::v1(
+    let report = BenchmarkScientificReadinessReport::v2(
         summary,
         domains,
         portfolio.measurement.clone(),
@@ -393,13 +394,14 @@ pub fn render_scientific_readiness_markdown(report: &BenchmarkScientificReadines
         String::new(),
         "## Corpus portfolio".to_string(),
         String::new(),
-        "| Corpus | Status | Scope | Samples | Truth strategy |".to_string(),
-        "|---|---|---|---:|---|".to_string(),
+        "| Corpus | Class | Status | Scope | Samples | Truth strategy |".to_string(),
+        "|---|---|---|---|---:|---|".to_string(),
     ]);
     for corpus in &report.corpora {
         lines.push(format!(
-            "| `{}` | {} | {} | {} | `{}` |",
+            "| `{}` | {} | {} | {} | {} | `{}` |",
             corpus.id,
+            corpus.class.as_str(),
             corpus_status(corpus.status),
             evidence_scope(corpus.evidence_scope),
             corpus.sample_count,
@@ -538,11 +540,13 @@ fn validate_campaign_readiness(
 fn comparative_corpus(corpus: &bijux_dna_bench_model::BenchmarkCorpusContract) -> bool {
     corpus.status == BenchmarkCorpusStatus::Admitted
         && corpus.evidence_scope == BenchmarkEvidenceScope::Comparative
+        && corpus.class == BenchmarkCorpusClass::ProductionReal
 }
 
 fn comparative_readiness_corpus(corpus: &BenchmarkScientificReadinessCorpus) -> bool {
     corpus.status == BenchmarkCorpusStatus::Admitted
         && corpus.evidence_scope == BenchmarkEvidenceScope::Comparative
+        && corpus.class == BenchmarkCorpusClass::ProductionReal
 }
 
 fn corpus_status(status: BenchmarkCorpusStatus) -> &'static str {

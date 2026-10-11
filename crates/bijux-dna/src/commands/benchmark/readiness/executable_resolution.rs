@@ -13,7 +13,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_EXECUTABLE_RESOLUTION_PATH: &str =
-    "benchmarks/readiness/tools/executable-resolution.tsv";
+    "artifacts/benchmark-smoke/readiness/tools/executable-resolution.tsv";
 const EXECUTABLE_RESOLUTION_SCHEMA_VERSION: &str = "bijux.bench.readiness.executable_resolution.v1";
 pub(crate) const RESOLUTION_KIND_HOST_BINARY: &str = "host_binary";
 pub(crate) const RESOLUTION_KIND_DOCKER_IMAGE: &str = "docker_image";

@@ -31,9 +31,9 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_BENCHMARK_READINESS_DASHBOARD_MARKDOWN_PATH: &str =
-    "benchmarks/readiness/FASTQ_BAM_BENCHMARK_READINESS.md";
+    "artifacts/benchmark-smoke/readiness/FASTQ_BAM_BENCHMARK_READINESS.md";
 pub(crate) const DEFAULT_BENCHMARK_READINESS_DASHBOARD_JSON_PATH: &str =
-    "benchmarks/readiness/FASTQ_BAM_BENCHMARK_READINESS.json";
+    "artifacts/benchmark-smoke/readiness/FASTQ_BAM_BENCHMARK_READINESS.json";
 const BENCHMARK_READINESS_DASHBOARD_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.benchmark_readiness_dashboard.v1";
 
@@ -309,8 +309,9 @@ fn summarize_adapters(pair_rows: &[PairReadinessRow]) -> BenchmarkReadinessAdapt
         attention_required_pair_count,
         status_counts,
         output_paths: vec![
-            "benchmarks/readiness/fastq-command-adapter-coverage.tsv".to_string(),
-            "benchmarks/readiness/bam-command-adapter-coverage.tsv".to_string(),
+            "artifacts/benchmark-smoke/readiness/fastq/fastq-command-adapter-coverage.tsv"
+                .to_string(),
+            "artifacts/benchmark-smoke/readiness/bam/bam-command-adapter-coverage.tsv".to_string(),
         ],
     }
 }
@@ -391,8 +392,8 @@ fn summarize_corpora(
         assigned_stage_count,
         status_counts,
         output_paths: vec![
-            "benchmarks/readiness/fastq-corpus-assignment.tsv".to_string(),
-            "benchmarks/readiness/bam-corpus-assignment.tsv".to_string(),
+            "artifacts/benchmark-smoke/readiness/fastq/fastq-corpus-assignment.tsv".to_string(),
+            "artifacts/benchmark-smoke/readiness/bam/bam-corpus-assignment.tsv".to_string(),
             DEFAULT_CORPUS_CENTRIC_REPORT_PATH.to_string(),
         ],
     })
@@ -836,8 +837,10 @@ mod tests {
             .contains("| Matrix | complete | all governed fastq and bam stage-tool pairs |"));
         assert!(markdown
             .contains("| Corpora | complete | all governed fastq and bam stage-tool pairs |"));
-        assert!(markdown.contains("| pair_readiness | benchmarks/readiness/pair-readiness.tsv |"));
-        assert!(markdown.contains("| corpus_centric_report | benchmarks/readiness/corpus-centric-report.md | 8 corpus_sections |"));
+        assert!(markdown.contains(
+            "| pair_readiness | artifacts/benchmark-smoke/readiness/pair-readiness.tsv |"
+        ));
+        assert!(markdown.contains("| corpus_centric_report | artifacts/benchmark-smoke/readiness/corpus-centric-report.md | 8 corpus_sections |"));
         assert!(markdown.contains("## Exact Blockers"));
     }
 }

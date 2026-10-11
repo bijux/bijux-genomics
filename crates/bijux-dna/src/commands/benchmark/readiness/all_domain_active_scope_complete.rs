@@ -68,7 +68,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_ALL_DOMAIN_ACTIVE_SCOPE_COMPLETE_PATH: &str =
-    "benchmarks/readiness/all-domains/ACTIVE_SCOPE_COMPLETE.json";
+    "artifacts/benchmark-smoke/readiness/all-domains/ACTIVE_SCOPE_COMPLETE.json";
 const ALL_DOMAIN_ACTIVE_SCOPE_COMPLETE_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.all_domain_active_scope_complete.v1";
 const COVERAGE_STATUS_COVERED: &str = "covered";

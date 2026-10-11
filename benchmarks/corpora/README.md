@@ -15,3 +15,17 @@ Downloaded data belongs under the configured study data root. Before a
 campaign uses it, the acquisition plan, source checksums, local checksums,
 read counts, access and redistribution facts, and known limitations must be
 recorded in the governed data catalog.
+
+## Production classes
+
+The production portfolio accepts only `production_real` corpora for comparative evidence and
+`qualification_real` corpora for qualification evidence. The typed portfolio validator rejects
+`test_fixture`, `toy`, `synthetic`, `smoke`, and `local_development` classes before campaign
+alignment or readiness derivation. Corpus class is carried into the governed data audit and
+scientific-readiness report.
+
+Fixtures remain in test-owned fixture trees and may exercise parsing, failure handling, and output
+contracts. They must not be copied into this production selector namespace, bound to an admitted
+portfolio corpus, or used to satisfy a publishable benchmark gate. Existing readiness-era fixture
+and local-ready outputs remain quarantined historical material until their owning migration removes
+them; they confer no admission state.

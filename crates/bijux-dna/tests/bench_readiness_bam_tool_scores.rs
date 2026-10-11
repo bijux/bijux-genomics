@@ -45,7 +45,7 @@ fn bench_readiness_bam_tool_scores_report_governs_real_bam_evidence() {
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("runs/bench/micro/bam/BAM_TOOL_SCORES.tsv")
+        Some("artifacts/benchmark-smoke/micro/bam/BAM_TOOL_SCORES.tsv")
     );
     assert_eq!(
         payload.get("config_path").and_then(serde_json::Value::as_str),

@@ -15,7 +15,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_ESSENTIAL_PIPELINE_REPORT_MAP_PATH: &str =
-    "benchmarks/readiness/essential-pipeline-report-map.tsv";
+    "artifacts/benchmark-smoke/readiness/pipelines/essential-pipeline-report-map.tsv";
 const ESSENTIAL_PIPELINE_REPORT_MAP_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.essential_pipeline_report_map.v1";
 
@@ -137,7 +137,7 @@ pub(crate) fn collect_essential_pipeline_report_map_rows(
                 pipeline_id,
             );
         let report_path = repo_root
-            .join("benchmarks/readiness/local-ready/pipeline-dag")
+            .join("artifacts/benchmark-smoke/readiness/local-ready/pipeline-dag")
             .join(format!("{pipeline_id}.json"));
         let report = validate_pipeline_dag_path(repo_root, &config_path, &report_path)?;
         for node_id in &report.topological_order {

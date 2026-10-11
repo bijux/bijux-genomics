@@ -44,7 +44,7 @@ fn bench_readiness_vcf_gl_propagation_ready_reports_complete_active_retained_cal
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/vcf/gl-propagation-ready.json")
+        Some("artifacts/benchmark-smoke/readiness/vcf/gl-propagation-ready.json")
     );
     assert_eq!(payload.get("retained_row_count").and_then(serde_json::Value::as_u64), Some(1));
     assert_eq!(payload.get("active_row_count").and_then(serde_json::Value::as_u64), Some(1));

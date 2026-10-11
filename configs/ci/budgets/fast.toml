@@ -1,0 +1,36 @@
+# schema_version = 1
+# owner = bijux-dna
+# purpose = Govern commands and elapsed-time limits for the fast CI profile.
+# authority = bijux-dna
+# stability = stable
+# last_updated = 2026-08-08
+
+[profile.fast]
+max_parallel_window_seconds = 1200.0
+targets = [
+  "ci-fast",
+  "bench-active-fast",
+  "bench-parser-fast",
+  "bench-adapter-fast",
+  "science-fixtures-fast",
+]
+
+[target.ci-fast]
+command = "make ci-fast"
+max_seconds = 900.0
+
+[target.bench-active-fast]
+command = "make bench-active-fast"
+max_seconds = 180.0
+
+[target.bench-parser-fast]
+command = "make bench-parser-fast"
+max_seconds = 180.0
+
+[target.bench-adapter-fast]
+command = "make bench-adapter-fast"
+max_seconds = 180.0
+
+[target.science-fixtures-fast]
+command = "make science-fixtures-fast"
+max_seconds = 180.0

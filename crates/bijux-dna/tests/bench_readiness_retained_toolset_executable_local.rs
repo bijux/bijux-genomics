@@ -4,9 +4,24 @@
 mod support;
 
 pub(crate) fn seed_tool_smoke_manifests(repo_root: &std::path::Path) {
+    let output = std::process::Command::new(env!("CARGO_BIN_EXE_bijux-dna"))
+        .current_dir(repo_root)
+        .env("BIJUX_SKIP_QA", "1")
+        .env("BIJUX_ALLOW_SILVER", "1")
+        .env("BIJUX_SKIP_IMAGE_CHECK", "1")
+        .args(["bench", "readiness", "render-version-probes"])
+        .output()
+        .expect("render version probes");
+    assert!(
+        output.status.success(),
+        "version probe rendering failed: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
     let version_probes: serde_json::Value = serde_json::from_slice(
-        &std::fs::read(repo_root.join("benchmarks/readiness/tools/version-probes.json"))
-            .expect("read version probes"),
+        &std::fs::read(
+            repo_root.join("artifacts/benchmark-smoke/readiness/tools/version-probes.json"),
+        )
+        .expect("read version probes"),
     )
     .expect("parse version probes");
     let rows = version_probes
@@ -194,7 +209,7 @@ fn bench_readiness_retained_toolset_executable_local_reports_goal_430_gate() {
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/tools/RETAINED_TOOLSET_EXECUTABLE_LOCAL.json")
+        Some("artifacts/benchmark-smoke/readiness/tools/RETAINED_TOOLSET_EXECUTABLE_LOCAL.json")
     );
     assert_eq!(payload.get("checked_goal_count").and_then(serde_json::Value::as_u64), Some(9));
     assert_eq!(
@@ -272,7 +287,7 @@ fn bench_readiness_retained_toolset_executable_local_writes_gate_file() {
     let rendered_path = String::from_utf8(output.stdout).expect("stdout utf8");
     assert_eq!(
         rendered_path.trim(),
-        "benchmarks/readiness/tools/RETAINED_TOOLSET_EXECUTABLE_LOCAL.json"
+        "artifacts/benchmark-smoke/readiness/tools/RETAINED_TOOLSET_EXECUTABLE_LOCAL.json"
     );
 
     let payload: serde_json::Value = serde_json::from_slice(

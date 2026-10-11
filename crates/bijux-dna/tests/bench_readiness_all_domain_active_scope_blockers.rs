@@ -44,11 +44,11 @@ fn bench_readiness_all_domain_active_scope_blockers_reports_exact_removed_bindin
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/all-domains/active-scope-blockers.tsv")
+        Some("artifacts/benchmark-smoke/readiness/all-domains/active-scope-blockers.tsv")
     );
     assert_eq!(
         payload.get("removed_from_scope_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/removed-from-scope.tsv")
+        Some("artifacts/benchmark-smoke/readiness/removed-from-scope.tsv")
     );
     assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(0));
     assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(0));

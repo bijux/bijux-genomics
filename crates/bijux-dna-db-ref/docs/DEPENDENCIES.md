@@ -9,6 +9,7 @@ must stay below planners, stages, runners, APIs, and CLIs.
 - `bijux-dna-domain-vcf`: shared VCF `SpeciesContext`, `ContigSpec`, and
   coverage regime contracts.
 - `serde`: config and public contract serialization/deserialization.
+- `serde_json`: checked reference-source lock parsing.
 - `toml`: checked-in runtime and VCF catalog config parsing.
 
 ## Dev Dependencies

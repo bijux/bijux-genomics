@@ -32,7 +32,10 @@ fn bench_readiness_fastq_parser_coverage_writes_governed_tsv_columns() {
     );
 
     let rendered_path = String::from_utf8(output.stdout).expect("stdout utf8");
-    assert_eq!(rendered_path.trim(), "benchmarks/readiness/fastq-parser-coverage.tsv");
+    assert_eq!(
+        rendered_path.trim(),
+        "artifacts/benchmark-smoke/readiness/fastq/fastq-parser-coverage.tsv"
+    );
 
     let tsv = std::fs::read_to_string(repo_root.join(rendered_path.trim()))
         .expect("read FASTQ parser coverage TSV");
@@ -45,13 +48,17 @@ fn bench_readiness_fastq_parser_coverage_writes_governed_tsv_columns() {
     );
     let rows = lines.collect::<Vec<_>>();
     assert!(!rows.is_empty());
+    assert!(rows.iter().any(|row| {
+        row.starts_with(
+            "fastuniq\tfastq.remove_duplicates\tcovered\tbenchmark_normalized\tgoverned_benchmark_cohort\trunnable\tfixture:corpus-01-mini\t"
+        )
+    }));
     assert!(rows.iter().all(|row| {
         let mut columns = row.split('\t');
         let tool_id = columns.next();
         let stage_id = columns.next();
-        tool_id != Some("fastuniq")
-            && (stage_id != Some("fastq.profile_read_lengths")
-                || matches!(tool_id, Some("seqfu" | "seqkit")))
+        stage_id != Some("fastq.profile_read_lengths")
+            || matches!(tool_id, Some("seqfu" | "seqkit"))
     }));
     assert!(
         rows.iter().any(|row| {

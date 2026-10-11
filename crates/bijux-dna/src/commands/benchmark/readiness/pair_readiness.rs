@@ -15,7 +15,8 @@ use super::stage_tool_assets::collect_stage_tool_asset_rows;
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
-pub(crate) const DEFAULT_PAIR_READINESS_PATH: &str = "benchmarks/readiness/pair-readiness.tsv";
+pub(crate) const DEFAULT_PAIR_READINESS_PATH: &str =
+    "artifacts/benchmark-smoke/readiness/pair-readiness.tsv";
 const PAIR_READINESS_SCHEMA_VERSION: &str = "bijux.bench.readiness.pair_readiness.v1";
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]

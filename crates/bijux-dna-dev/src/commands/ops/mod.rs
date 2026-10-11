@@ -389,6 +389,21 @@ fn generate_tool_index(workspace: &Workspace, out: &Path) -> Result<()> {
                         .map(|source| format!("software:{source}"))
                 })
                 .unwrap_or_else(|| "TBD".to_string());
+            let execution = catalog_entry.map_or("unavailable", |row| {
+                if row
+                    .get("external_artifact_supported")
+                    .and_then(TomlValue::as_bool)
+                    .unwrap_or(false)
+                {
+                    "external_artifact"
+                } else if row.get("support_disposition").and_then(TomlValue::as_str)
+                    == Some("retained")
+                {
+                    "packaged"
+                } else {
+                    "unavailable"
+                }
+            });
             tools.insert(
                 tool_id.to_string(),
                 json!({
@@ -408,6 +423,7 @@ fn generate_tool_index(workspace: &Workspace, out: &Path) -> Result<()> {
                         .and_then(TomlValue::as_str)
                         .or_else(|| entry.get("version").and_then(TomlValue::as_str))
                         .unwrap_or("-"),
+                    "execution": execution,
                 }),
             );
         }
@@ -435,6 +451,19 @@ fn generate_tool_index(workspace: &Workspace, out: &Path) -> Result<()> {
                     .unwrap_or("-"),
                 "citation": upstream,
                 "version": entry.get("version").and_then(TomlValue::as_str).unwrap_or("-"),
+                "execution": if entry
+                    .get("external_artifact_supported")
+                    .and_then(TomlValue::as_bool)
+                    .unwrap_or(false)
+                {
+                    "external_artifact"
+                } else if entry.get("support_disposition").and_then(TomlValue::as_str)
+                    == Some("retained")
+                {
+                    "packaged"
+                } else {
+                    "unavailable"
+                },
             })
         });
     }
@@ -487,15 +516,16 @@ fn generate_tool_index(workspace: &Workspace, out: &Path) -> Result<()> {
                 (disposition.as_str(), qualification.as_str())
             });
         lines.push(format!(
-            "- `{tool_id}` ({disposition}; {qualification}): {}",
+            "- `{tool_id}` ({disposition} distribution; {} execution; {qualification}): {}",
+            info.get("execution").and_then(Value::as_str).unwrap_or("unavailable"),
             if stages.is_empty() { "-".to_string() } else { stages }
         ));
     }
     lines.extend([
         String::new(),
-        "| Tool ID | Purpose | Stage Bindings | Apptainer Definition | Version | Citation | Support | Qualification |"
+        "| Tool ID | Purpose | Stage Bindings | Apptainer Definition | Version | Citation | Distribution | Execution | Qualification |"
             .to_string(),
-        "|---|---|---|---|---|---|---|---|".to_string(),
+        "|---|---|---|---|---|---|---|---|---|".to_string(),
     ]);
     for (tool_id, row) in tools {
         let stages = row
@@ -513,12 +543,13 @@ fn generate_tool_index(workspace: &Workspace, out: &Path) -> Result<()> {
                 (disposition.as_str(), qualification.as_str())
             });
         lines.push(format!(
-            "| `{tool_id}` | {} | `{}` | `{}` | `{}` | {} | `{disposition}` | `{qualification}` |",
+            "| `{tool_id}` | {} | `{}` | `{}` | `{}` | {} | `{disposition}` | `{}` | `{qualification}` |",
             row.get("purpose").and_then(Value::as_str).unwrap_or("unknown"),
             if stages.is_empty() { "-" } else { &stages },
             row.get("container_recipe").and_then(Value::as_str).unwrap_or("-"),
             row.get("version").and_then(Value::as_str).unwrap_or("-"),
             row.get("citation").and_then(Value::as_str).unwrap_or("TBD"),
+            row.get("execution").and_then(Value::as_str).unwrap_or("unavailable"),
         ));
     }
     write_utf8(out, &format!("{}\n", lines.join("\n")))

@@ -22,7 +22,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_CORPUS_ASSET_COVERAGE_GATE_PATH: &str =
-    "benchmarks/readiness/gate-corpus-assets-complete.json";
+    "artifacts/benchmark-smoke/readiness/gate-corpus-assets-complete.json";
 const CORPUS_ASSET_COVERAGE_GATE_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.corpus_asset_coverage_gate.v1";
 

@@ -15,9 +15,7 @@ use super::local_hpc_job_resources::{
 };
 use super::local_hpc_selected_jobs::load_local_hpc_selected_jobs;
 use super::path_resolution::{ensure_path_stays_within_benchmark_runs_root, BenchmarkPathResolver};
-use crate::commands::benchmark::readiness::all_domain_rendered_commands::{
-    render_all_domain_commands, DEFAULT_ALL_DOMAIN_RENDERED_COMMANDS_PATH,
-};
+use crate::commands::benchmark::readiness::all_domain_rendered_commands::render_all_domain_commands;
 use crate::commands::benchmark::readiness::essential_pipeline_rendered_commands::{
     render_essential_pipeline_commands, DEFAULT_ESSENTIAL_PIPELINE_RENDERED_COMMANDS_PATH,
 };
@@ -29,9 +27,11 @@ pub(crate) const DEFAULT_HPC_SCRATCH_LAYOUT_PATH: &str =
     "runs/bench/hpc-dry-run/scratch-layout.json";
 const CLEANUP_POLICY_ID: &str = "copy_back_outputs_remove_successful_scratch";
 const DEFAULT_ALL_DOMAIN_RENDERED_COMMANDS_ARGV_PATH: &str =
-    "benchmarks/readiness/rendered-commands-all-domains.argv.jsonl";
+    "artifacts/benchmark-smoke/readiness/hpc/rendered-commands-all-domains.argv.jsonl";
+const DEFAULT_ALL_DOMAIN_RENDERED_COMMANDS_PATH_FOR_HPC: &str =
+    "artifacts/benchmark-smoke/readiness/hpc/rendered-commands-all-domains.sh";
 const DEFAULT_ESSENTIAL_PIPELINE_RENDERED_COMMANDS_ARGV_PATH: &str =
-    "benchmarks/readiness/essential-pipelines-rendered-commands.argv.jsonl";
+    "artifacts/benchmark-smoke/readiness/pipelines/essential-pipelines-rendered-commands.argv.jsonl";
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub(crate) struct LocalHpcScratchLayout {
@@ -492,10 +492,8 @@ fn load_all_domain_rendered_command_argv_rows(
     repo_root: &Path,
 ) -> Result<Vec<ScratchLayoutAllDomainCommandRow>> {
     let path = repo_root.join(DEFAULT_ALL_DOMAIN_RENDERED_COMMANDS_ARGV_PATH);
-    if !path.is_file() {
-        render_all_domain_commands(repo_root, DEFAULT_ALL_DOMAIN_RENDERED_COMMANDS_PATH.into())
-            .with_context(|| format!("render {}", path.display()))?;
-    }
+    render_all_domain_commands(repo_root, DEFAULT_ALL_DOMAIN_RENDERED_COMMANDS_PATH_FOR_HPC.into())
+        .with_context(|| format!("render {}", path.display()))?;
     load_jsonl_rows(&path, "all-domain rendered command argv row")
 }
 
@@ -503,13 +501,11 @@ fn load_essential_pipeline_rendered_command_argv_rows(
     repo_root: &Path,
 ) -> Result<Vec<ScratchLayoutEssentialPipelineCommandRow>> {
     let path = repo_root.join(DEFAULT_ESSENTIAL_PIPELINE_RENDERED_COMMANDS_ARGV_PATH);
-    if !path.is_file() {
-        render_essential_pipeline_commands(
-            repo_root,
-            DEFAULT_ESSENTIAL_PIPELINE_RENDERED_COMMANDS_PATH.into(),
-        )
-        .with_context(|| format!("render {}", path.display()))?;
-    }
+    render_essential_pipeline_commands(
+        repo_root,
+        DEFAULT_ESSENTIAL_PIPELINE_RENDERED_COMMANDS_PATH.into(),
+    )
+    .with_context(|| format!("render {}", path.display()))?;
     let rows = load_jsonl_rows(&path, "essential pipeline rendered command argv row")?;
     if rows
         .iter()

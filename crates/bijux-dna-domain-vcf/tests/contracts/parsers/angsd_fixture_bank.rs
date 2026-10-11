@@ -25,37 +25,13 @@ const VCF_ANGSD_FIXTURE_CASES: &[VcfAngsdFixtureCase] = &[
         parser_id: "parse_angsd_call_pseudohaploid_metrics",
         required_files: &["raw.pseudohaploid.vcf", "raw.command.json", "expected.normalized.json"],
     },
-    VcfAngsdFixtureCase {
-        stage: VcfDomainStage::DamageFilter,
-        parser_id: "parse_angsd_damage_filter_metrics",
-        required_files: &[
-            "raw.damage_report.txt",
-            "raw.damage_bias_audit_report.json",
-            "raw.command.json",
-            "expected.normalized.json",
-        ],
-    },
-    VcfAngsdFixtureCase {
-        stage: VcfDomainStage::GlPropagation,
-        parser_id: "parse_angsd_gl_propagation_metrics",
-        required_files: &[
-            "raw.input.vcf",
-            "raw.gl_propagated.vcf",
-            "raw.gl_propagation_report.json",
-            "raw.command.json",
-            "expected.normalized.json",
-        ],
-    },
 ];
 
 #[test]
 fn vcf_angsd_fixture_bank_covers_governed_stage_set() {
     let governed_stage_ids =
         VCF_ANGSD_FIXTURE_CASES.iter().map(|case| case.stage.as_str()).collect::<Vec<_>>();
-    assert_eq!(
-        governed_stage_ids,
-        vec!["vcf.call_gl", "vcf.call_pseudohaploid", "vcf.damage_filter", "vcf.gl_propagation",]
-    );
+    assert_eq!(governed_stage_ids, vec!["vcf.call_gl", "vcf.call_pseudohaploid"]);
     for case in VCF_ANGSD_FIXTURE_CASES {
         let dir = fixture_dir(case);
         assert!(dir.exists(), "missing fixture directory: {}", dir.display());
@@ -77,6 +53,20 @@ fn vcf_angsd_fixture_bank_matches_expected_normalized_json() -> Result<()> {
         assert_json_matches(&observed, &expected, case.stage.as_str());
     }
     Ok(())
+}
+
+#[test]
+fn vcf_angsd_parser_rejects_non_applicable_vcf_transform_stages() {
+    for stage in [VcfDomainStage::DamageFilter, VcfDomainStage::GlPropagation] {
+        let Err(error) = parse_angsd_stage_metrics(stage, Path::new("unused")) else {
+            panic!("ANGSD must not advertise VCF-to-VCF transformation support");
+        };
+        assert!(
+            error.to_string().contains("unsupported angsd VCF parser stage"),
+            "unexpected rejection for {}: {error}",
+            stage.as_str()
+        );
+    }
 }
 
 fn render_case(case: &VcfAngsdFixtureCase) -> Result<serde_json::Value> {

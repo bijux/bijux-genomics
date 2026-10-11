@@ -13,7 +13,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_VERSION_PROBES_PATH: &str =
-    "benchmarks/readiness/tools/version-probes.json";
+    "artifacts/benchmark-smoke/readiness/tools/version-probes.json";
 const VERSION_PROBES_SCHEMA_VERSION: &str = "bijux.bench.readiness.version_probes.v1";
 const VERSION_PROBE_STATUS_READY: &str = "ready";
 const VERSION_PROBE_STATUS_UNAVAILABLE: &str = "unavailable_with_reason";

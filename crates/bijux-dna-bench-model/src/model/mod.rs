@@ -5,6 +5,8 @@
 pub mod admission;
 pub mod campaign_engine;
 pub mod corpus;
+pub mod data_catalog_registry;
+pub mod data_portfolio_audit;
 pub mod execution;
 pub mod graph;
 pub mod interfaces;
@@ -15,8 +17,10 @@ pub mod observation;
 pub mod planning;
 pub mod protocol;
 pub mod publication;
+pub mod publication_registry;
 pub mod replay;
 pub mod report;
+pub mod source_authority;
 pub mod stage_result;
 pub mod suite;
 pub mod summary;
@@ -44,6 +48,17 @@ pub use corpus::{
     CorpusDomain, CorpusScale, DataIntegrityStatus, DriftScenarioSpec,
     FastqProfileReadsExpectationsProvenance, FastqReadLengthExpectationSample,
     FastqReadLengthExpectations, TruthSetHook, TruthSetStatus,
+};
+#[allow(unused_imports)]
+pub use data_catalog_registry::{
+    governed_data_catalog_registry_schema, GovernedDataCatalogRegistry,
+    GovernedDataCatalogRegistryRecord, GovernedDataCatalogSnapshot,
+};
+#[allow(unused_imports)]
+pub use data_portfolio_audit::{
+    benchmark_data_portfolio_audit_schema, BenchmarkCorpusDataAudit, BenchmarkDataPortfolioAudit,
+    BenchmarkDataPortfolioAuditSummary, BenchmarkDataSourceSpecIdentity,
+    BenchmarkGovernedDataBinding, BenchmarkUnboundDataAsset,
 };
 #[allow(unused_imports)]
 pub use execution::{
@@ -88,19 +103,24 @@ pub use lifecycle::{
 #[allow(unused_imports)]
 pub use materialization::{
     corpus_acquisition_plan_schema, corpus_materialization_publication_schema,
-    governed_data_catalog_schema, CorpusAcquisitionFile, CorpusAcquisitionLayout,
-    CorpusAcquisitionPlan, CorpusAcquisitionSample, CorpusMaterializationDisposition,
-    CorpusMaterializationPublication, GovernedDataCatalog, GovernedDataCatalogFile,
-    GovernedDataCatalogSample,
+    fastq_corpus_source_spec_schema, governed_data_catalog_schema, CorpusAcquisitionFile,
+    CorpusAcquisitionLayout, CorpusAcquisitionPlan, CorpusAcquisitionSample,
+    CorpusMaterializationDisposition, CorpusMaterializationPublication, CorpusSourcePolicy,
+    FastqCorpusSourceSample, FastqCorpusSourceSpec, GovernedDataCatalog,
+    GovernedDataCatalogDocument, GovernedDataCatalogFile, GovernedDataCatalogSample,
+    GovernedPreservedDataCatalog,
 };
 pub use observation::BenchmarkObservation;
 #[allow(unused_imports)]
 pub use planning::{
-    benchmark_stage_coverage_schema, benchmark_stage_universe_schema, BenchmarkCachePolicy,
-    BenchmarkComparisonMetricTolerance, BenchmarkCorpusContract, BenchmarkCorpusStatus,
-    BenchmarkDisposition, BenchmarkEvidenceScope, BenchmarkEvidenceTier, BenchmarkExecutionRuntime,
+    benchmark_run_registry_schema, benchmark_stage_coverage_schema,
+    benchmark_stage_universe_schema, BenchmarkCachePolicy, BenchmarkComparisonMetricTolerance,
+    BenchmarkCorpusClass, BenchmarkCorpusContract, BenchmarkCorpusStatus, BenchmarkDisposition,
+    BenchmarkEvidenceScope, BenchmarkEvidenceTier, BenchmarkExecutionRuntime,
     BenchmarkExecutionScheduler, BenchmarkMeasurementContract, BenchmarkPortfolio,
-    BenchmarkProfileAssignment, BenchmarkScientificProfile, BenchmarkScientificReadinessCorpus,
+    BenchmarkProfileAssignment, BenchmarkRunNamespacePolicy, BenchmarkRunRegistry,
+    BenchmarkRunRegistryRow, BenchmarkRunRegistryState, BenchmarkRunRegistrySummary,
+    BenchmarkScientificProfile, BenchmarkScientificReadinessCorpus,
     BenchmarkScientificReadinessDomain, BenchmarkScientificReadinessReport,
     BenchmarkScientificReadinessStage, BenchmarkScientificReadinessStatus,
     BenchmarkScientificReadinessSummary, BenchmarkStageCampaignRegistry,
@@ -123,6 +143,13 @@ pub use publication::{
     BenchmarkEvidenceBookStatus, BenchmarkPublicationReceipt,
 };
 #[allow(unused_imports)]
+pub use publication_registry::{
+    benchmark_publication_registry_schema, BenchmarkCurrentPublication,
+    BenchmarkPublicationRegistry, BenchmarkPublicationRegistrySummary,
+    BenchmarkQuarantinedPublicationSurface, BenchmarkStagePublication,
+    BenchmarkStagePublicationDisposition,
+};
+#[allow(unused_imports)]
 pub use replay::{
     benchmark_replay_receipt_schema, BenchmarkReplayOutcome, BenchmarkReplayReceipt,
     BenchmarkReplaySemanticIdentity,
@@ -135,6 +162,10 @@ pub use report::{
     BenchmarkReportInputLock, BenchmarkReportSlurmJob, BenchmarkReportStageInterface,
     BenchmarkReportVerdict, BenchmarkScientificValue, BenchmarkStageReport,
     BenchmarkStageReportDesign, BenchmarkToolReport,
+};
+#[allow(unused_imports)]
+pub use source_authority::{
+    benchmark_data_source_spec_schema, BenchmarkDataSourceCollection, BenchmarkDataSourceSpec,
 };
 #[allow(unused_imports)]
 pub use stage_result::{

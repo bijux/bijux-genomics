@@ -22,7 +22,8 @@ use crate::commands::benchmark::local_vcf_stats_smoke::{
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
-pub(crate) const DEFAULT_VCF_STATS_READY_PATH: &str = "benchmarks/readiness/vcf/stats-ready.json";
+pub(crate) const DEFAULT_VCF_STATS_READY_PATH: &str =
+    "artifacts/benchmark-smoke/readiness/vcf/stats-ready.json";
 const VCF_STATS_READY_SCHEMA_VERSION: &str = "bijux.bench.readiness.vcf_stats_ready.v1";
 const VCF_STATS_STAGE_ID: &str = "vcf.stats";
 const REQUIRED_METRIC_NAMES: [&str; 7] = [
@@ -346,7 +347,8 @@ fn build_vcf_stats_ready_row(
         retained_scope_proof_path: binding.retained_row.scope_proof_path,
         all_domain_active_row_present,
         all_domain_active_row_proof_path:
-            "benchmarks/readiness/all-domains/active-stage-tool-matrix.tsv".to_string(),
+            "artifacts/benchmark-smoke/readiness/all-domains/active-stage-tool-matrix.tsv"
+                .to_string(),
         command_ready,
         command_source: binding
             .command_row

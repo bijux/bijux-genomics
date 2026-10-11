@@ -46,11 +46,11 @@ fn bench_readiness_vcf_missing_result_report_tracks_one_removed_row() {
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/vcf-missing-result-report-test.json")
+        Some("artifacts/benchmark-smoke/readiness/missing-result/vcf/report.json")
     );
     assert_eq!(
         payload.get("fake_result_root").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/vcf-missing-result-report-fixture")
+        Some("artifacts/benchmark-smoke/readiness/missing-result/vcf/results")
     );
     assert_eq!(payload.get("expected_row_count").and_then(serde_json::Value::as_u64), Some(24));
     assert_eq!(

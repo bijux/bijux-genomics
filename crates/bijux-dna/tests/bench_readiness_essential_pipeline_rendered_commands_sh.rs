@@ -31,26 +31,33 @@ fn bench_readiness_essential_pipeline_rendered_commands_write_bash_parseable_scr
         String::from_utf8_lossy(&output.stderr)
     );
 
-    let script_path =
-        repo_root.join("benchmarks/readiness/essential-pipelines-rendered-commands.sh");
+    let script_path = repo_root.join(
+        "artifacts/benchmark-smoke/readiness/pipelines/essential-pipelines-rendered-commands.sh",
+    );
     assert!(script_path.is_file(), "essential pipeline rendered command script must exist");
 
     let script = std::fs::read_to_string(&script_path)
         .expect("read essential pipeline rendered command script");
     assert!(script.starts_with("#!/usr/bin/env bash\nset -euo pipefail\n"));
-    assert!(
-        script.contains("repo_root=\"$(cd \"$(dirname \"${BASH_SOURCE[0]}\")/../..\" && pwd)\"")
-    );
+    assert!(script
+        .contains("repo_root=\"$(cd \"$(dirname \"${BASH_SOURCE[0]}\")/../../../..\" && pwd)\""));
     assert!(script.contains("# core-germline-fastq-bam-vcf / vcf.call / vcf.call / bcftools"));
     assert!(script.contains("# reference-panel-imputation / vcf.phasing / vcf.phasing / shapeit5"));
     assert!(script.contains("bcftools mpileup"));
     assert!(script.contains("shapeit5 phase_common"));
     assert!(script.contains("# edna-taxonomy-no-vcf / fastq.report_qc / fastq.report_qc / multiqc"));
     assert!(script.contains("multiqc -o"));
-    assert!(script.contains(
-        "# bam-genotyping-to-vcf-downstream / bam.genotyping / bam.genotyping / bijux-dna"
-    ));
-    assert!(script.contains("bench local materialize-stage --stage-id bam.genotyping"));
+    if cfg!(feature = "bam_downstream") {
+        assert!(script.contains(
+            "# bam-genotyping-to-vcf-downstream / bam.genotyping / bam.genotyping / bcftools"
+        ));
+        assert!(script.contains("genotyping.raw.bcf"));
+    } else {
+        assert!(script.contains(
+            "# bam-genotyping-to-vcf-downstream / bam.genotyping / bam.genotyping / bijux-dna"
+        ));
+        assert!(script.contains("bench local materialize-stage --stage-id bam.genotyping"));
+    }
     assert!(
         script.contains("# bam-genotyping-to-vcf-downstream / vcf.filter / vcf.filter / bcftools")
     );

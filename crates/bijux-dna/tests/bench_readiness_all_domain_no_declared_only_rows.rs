@@ -44,7 +44,7 @@ fn bench_readiness_all_domain_no_declared_only_rows_reports_clean_active_scope()
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/all-domains/no-declared-only-rows.json")
+        Some("artifacts/benchmark-smoke/readiness/all-domains/no-declared-only-rows.json")
     );
     let active_row_count = support::json_u64(&payload, "active_row_count").expect("active rows");
     assert!(active_row_count > 0);

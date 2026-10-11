@@ -13,7 +13,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_ALL_DOMAIN_RETAINED_TOOLS_PATH: &str =
-    "benchmarks/readiness/tools/retained-tool-inventory.tsv";
+    "artifacts/benchmark-smoke/readiness/tools/retained-tool-inventory.tsv";
 const ALL_DOMAIN_RETAINED_TOOLS_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.retained_tool_inventory.v1";
 const BENCHMARK_READY_STATUS: &str = "benchmark_ready";

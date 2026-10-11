@@ -22,7 +22,7 @@ pub(in crate::workflow) fn current_report_sources(
     Ok(sources)
 }
 
-pub(super) fn report_source_is_current(
+pub(in crate::workflow) fn report_source_is_current(
     repository_root: &Path,
     report_commit: &str,
     current_commit: &str,

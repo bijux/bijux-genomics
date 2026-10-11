@@ -2,6 +2,7 @@ use super::{
     ensure, required_roots, AuthorityObservation, BTreeSet, Context, Digest,
     NativeContainerCommandKey, Path, PreflightObservation, PreflightRequest, ProbeState,
     ProcessRunner, Result, RootObservation, Sha256, SiteCyclePolicy, Utc, Workspace,
+    DATA_INDEX_SCHEMAS,
 };
 
 pub(super) fn observe(
@@ -103,12 +104,17 @@ pub(super) fn observe(
         .collect();
 
     let data_index = request.data_index.as_ref().map(|input| {
-        observe_authority(&input.path, "bijux.data_index.v1", Some(&request.expected_commit))
+        observe_authority(
+            &input.path,
+            "bijux.data_index.",
+            &DATA_INDEX_SCHEMAS,
+            Some(&request.expected_commit),
+        )
     });
     let image_inventory = request
         .image_inventory
         .as_ref()
-        .map(|input| observe_authority(&input.path, "bijux.container.image_inventory", None));
+        .map(|input| observe_authority(&input.path, "bijux.container.image_inventory", &[], None));
 
     let _ = output_dir;
     PreflightObservation {
@@ -199,6 +205,7 @@ fn valid_json_file(path: &Path) -> bool {
 fn observe_authority(
     path: &Path,
     expected_schema_prefix: &str,
+    exact_schemas: &[&str],
     commit_from_parent: Option<&str>,
 ) -> AuthorityObservation {
     let result = (|| -> Result<AuthorityObservation> {
@@ -208,9 +215,9 @@ fn observe_authority(
         let schema_version =
             value.get("schema_version").and_then(serde_json::Value::as_str).map(str::to_string);
         ensure!(
-            schema_version
-                .as_deref()
-                .is_some_and(|schema| schema.starts_with(expected_schema_prefix)),
+            schema_version.as_deref().is_some_and(|schema| {
+                super::authority_schema_matches(schema, expected_schema_prefix, exact_schemas)
+            }),
             "authority schema is unsupported"
         );
         let repository_commit = value

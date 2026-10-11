@@ -1,6 +1,6 @@
 use std::collections::BTreeMap;
 
-use bijux_dna_bench::GatePolicy;
+use bijux_dna_bench::{evaluate_benchmark_gate_policy, GatePolicy};
 
 #[test]
 fn gate_rejects_based_on_metric_semantics() {
@@ -19,7 +19,14 @@ fn gate_rejects_based_on_metric_semantics() {
         semantics_overrides: BTreeMap::new(),
         stage_overrides: BTreeMap::new(),
     };
-    let decision = policy.decide("dataset-1", "fastq.trim_reads", "tool-a", "params-a", &metrics);
+    let decision = evaluate_benchmark_gate_policy(
+        &policy,
+        "dataset-1",
+        "fastq.trim_reads",
+        "tool-a",
+        "params-a",
+        &metrics,
+    );
     assert!(!decision.passes);
     assert_eq!(decision.violations.len(), 2);
 }

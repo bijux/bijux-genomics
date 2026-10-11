@@ -45,7 +45,7 @@ fn bench_readiness_bam_stage_decision_table_reports_governed_bam_stage_outcomes(
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/bam-stage-decision-table.tsv")
+        Some("artifacts/benchmark-smoke/readiness/bam/bam-stage-decision-table.tsv")
     );
     assert_eq!(payload.get("stage_count").and_then(serde_json::Value::as_u64), Some(24));
     assert_eq!(payload.get("row_count").and_then(serde_json::Value::as_u64), Some(24));

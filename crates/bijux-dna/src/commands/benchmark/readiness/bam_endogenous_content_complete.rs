@@ -12,7 +12,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_BAM_ENDOGENOUS_CONTENT_COMPLETE_PATH: &str =
-    "benchmarks/readiness/bam/stages/bam.endogenous_content.complete.json";
+    "artifacts/benchmark-smoke/readiness/bam/stages/bam.endogenous_content.complete.json";
 const BAM_ENDOGENOUS_CONTENT_COMPLETE_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.bam_endogenous_content_complete.v1";
 const EXPECTED_STAGE_ID: &str = "bam.endogenous_content";

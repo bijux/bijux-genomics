@@ -2,7 +2,6 @@
 
 use std::fs;
 use std::os::unix::fs::symlink;
-use std::os::unix::fs::PermissionsExt as _;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
@@ -22,6 +21,8 @@ use bijux_dna_runner::api::{
     ContainerQualificationSubmissionKind, HistoricalContainerQualificationReplayRequest,
     SlurmClientPaths, SlurmJobState,
 };
+
+use crate::scheduler_executable::write_executable;
 
 #[test]
 fn preparation_archives_exact_contracts_and_renders_frozen_execution() -> Result<()> {
@@ -968,14 +969,6 @@ fn scheduler_client(root: &Path, sbatch_body: &str) -> Result<SlurmClientPaths> 
     };
     write_executable(&paths.sbatch, &format!("#!/bin/sh\n{sbatch_body}"))?;
     Ok(paths)
-}
-
-fn write_executable(path: &Path, body: &str) -> Result<()> {
-    fs::write(path, body)?;
-    let mut permissions = fs::metadata(path)?.permissions();
-    permissions.set_mode(0o755);
-    fs::set_permissions(path, permissions)?;
-    Ok(())
 }
 
 fn git(repository: &Path, args: &[&str]) -> Result<String> {

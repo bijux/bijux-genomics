@@ -32,7 +32,10 @@ fn bench_readiness_vcf_damage_filter_ready_writes_governed_json_file() {
     );
 
     let rendered_path = String::from_utf8(output.stdout).expect("stdout utf8");
-    assert_eq!(rendered_path.trim(), "benchmarks/readiness/vcf/damage-filter-ready.json");
+    assert_eq!(
+        rendered_path.trim(),
+        "artifacts/benchmark-smoke/readiness/vcf/damage-filter-ready.json"
+    );
 
     let payload = std::fs::read_to_string(repo_root.join(rendered_path.trim()))
         .expect("read VCF damage_filter readiness report");
@@ -70,7 +73,7 @@ fn bench_readiness_vcf_damage_filter_ready_writes_governed_json_file() {
             .is_some_and(|outputs| outputs.iter().any(|value| {
                 value.as_str()
                     == Some(
-                        "damage_filtered_vcf=benchmarks/readiness/adapters/bcftools/vcf.damage_filter/damage_filtered_vcf.vcf.gz",
+                        "damage_filtered_vcf=artifacts/benchmark-smoke/readiness/adapters/bcftools/vcf.damage_filter/damage_filtered_vcf.vcf.gz",
                     )
             }))
     );
@@ -80,7 +83,7 @@ fn bench_readiness_vcf_damage_filter_ready_writes_governed_json_file() {
             .is_some_and(|outputs| outputs.iter().any(|value| {
                 value.as_str()
                     == Some(
-                        "damage_filtered_vcf_tbi=benchmarks/readiness/adapters/bcftools/vcf.damage_filter/damage_filtered_vcf.vcf.gz.tbi",
+                        "damage_filtered_vcf_tbi=artifacts/benchmark-smoke/readiness/adapters/bcftools/vcf.damage_filter/damage_filtered_vcf.vcf.gz.tbi",
                     )
             }))
     );

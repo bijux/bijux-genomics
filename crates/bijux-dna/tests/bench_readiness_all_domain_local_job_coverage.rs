@@ -45,15 +45,17 @@ fn bench_readiness_all_domain_local_job_coverage_reports_complete_active_rows() 
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/all-domains/local-job-coverage.tsv")
+        Some("artifacts/benchmark-smoke/readiness/all-domains/local-job-coverage.tsv")
     );
     assert_eq!(
         payload.get("script_output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/rendered-commands-all-domains.sh")
+        Some("artifacts/benchmark-smoke/readiness/all-domains/rendered-commands-all-domains.sh")
     );
     assert_eq!(
         payload.get("argv_output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/rendered-commands-all-domains.argv.jsonl")
+        Some(
+            "artifacts/benchmark-smoke/readiness/all-domains/rendered-commands-all-domains.argv.jsonl"
+        )
     );
     let rows = support::json_array(&payload, "rows");
     let row_count = u64::try_from(rows.len()).expect("row count fits u64");
@@ -112,7 +114,7 @@ fn bench_readiness_all_domain_local_job_coverage_reports_complete_active_rows() 
     );
     assert_eq!(
         command_source_counts.get("vcf_descent_family_adapter").and_then(serde_json::Value::as_u64),
-        Some(1)
+        Some(4)
     );
     assert_eq!(
         command_source_counts.get("vcf_plink_family_adapter").and_then(serde_json::Value::as_u64),
@@ -153,9 +155,13 @@ fn bench_readiness_all_domain_local_job_coverage_reports_complete_active_rows() 
             && row.get("command_step_count").and_then(serde_json::Value::as_u64) == Some(1)
             && row.get("script_command_count").and_then(serde_json::Value::as_u64) == Some(1)
             && row.get("script_output_path").and_then(serde_json::Value::as_str)
-                == Some("benchmarks/readiness/rendered-commands-all-domains.sh")
+                == Some(
+                    "artifacts/benchmark-smoke/readiness/all-domains/rendered-commands-all-domains.sh"
+                )
             && row.get("argv_output_path").and_then(serde_json::Value::as_str)
-                == Some("benchmarks/readiness/rendered-commands-all-domains.argv.jsonl")
+                == Some(
+                    "artifacts/benchmark-smoke/readiness/all-domains/rendered-commands-all-domains.argv.jsonl"
+                )
             && row
                 .get("primary_executables")
                 .and_then(serde_json::Value::as_array)

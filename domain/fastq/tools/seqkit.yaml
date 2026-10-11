@@ -77,6 +77,8 @@ execution_contract:
     - "qc_json"
     - "qc_tsv"
     - "report_json"
+    - "length_distribution_tsv"
+    - "length_distribution_json"
   forbidden_outputs: []
   forbid_unexpected_outputs: true
 

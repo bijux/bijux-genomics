@@ -23,7 +23,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_VCF_DAMAGE_FILTER_READY_PATH: &str =
-    "benchmarks/readiness/vcf/damage-filter-ready.json";
+    "artifacts/benchmark-smoke/readiness/vcf/damage-filter-ready.json";
 const VCF_DAMAGE_FILTER_READY_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.vcf_damage_filter_ready.v1";
 const VCF_DAMAGE_FILTER_STAGE_ID: &str = "vcf.damage_filter";
@@ -369,7 +369,8 @@ fn build_vcf_damage_filter_ready_row(
         retained_scope_proof_path: binding.retained_row.scope_proof_path,
         all_domain_active_row_present,
         all_domain_active_row_proof_path:
-            "benchmarks/readiness/all-domains/active-stage-tool-matrix.tsv".to_string(),
+            "artifacts/benchmark-smoke/readiness/all-domains/active-stage-tool-matrix.tsv"
+                .to_string(),
         command_ready,
         command_source: binding
             .command_row

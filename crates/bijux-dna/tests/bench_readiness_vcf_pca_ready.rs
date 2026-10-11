@@ -43,7 +43,7 @@ fn bench_readiness_vcf_pca_ready_reports_complete_active_retained_callers() {
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/vcf/pca-ready.json")
+        Some("artifacts/benchmark-smoke/readiness/vcf/pca-ready.json")
     );
     assert_eq!(payload.get("retained_row_count").and_then(serde_json::Value::as_u64), Some(2));
     assert_eq!(payload.get("active_row_count").and_then(serde_json::Value::as_u64), Some(2));
@@ -123,7 +123,7 @@ fn bench_readiness_vcf_pca_ready_reports_complete_active_retained_callers() {
     assert!(plink2.get("raw_outputs").and_then(serde_json::Value::as_array).is_some_and(
         |outputs| outputs.iter().any(|value| {
             value.as_str()
-                == Some("pca_eigenvec=benchmarks/readiness/adapters/plink2/vcf.pca/pca.eigenvec")
+                == Some("pca_eigenvec=artifacts/benchmark-smoke/readiness/adapters/plink2/vcf.pca/pca.eigenvec")
         })
     ));
     assert!(plink2.get("smoke_rows").and_then(serde_json::Value::as_array).is_some_and(|items| {
@@ -189,7 +189,7 @@ fn bench_readiness_vcf_pca_ready_reports_complete_active_retained_callers() {
         |outputs| outputs.iter().any(|value| {
             value.as_str()
                 == Some(
-                    "smartpca_eigenvec=benchmarks/readiness/adapters/eigensoft/vcf.pca/pca_report.evec",
+                    "smartpca_eigenvec=artifacts/benchmark-smoke/readiness/adapters/eigensoft/vcf.pca/pca_report.evec",
                 )
         })
     ));

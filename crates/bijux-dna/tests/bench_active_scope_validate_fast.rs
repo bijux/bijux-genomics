@@ -99,9 +99,11 @@ fn bench_active_scope_validate_fast_reports_complete_fast_surface() {
             && check.get("surface_id").and_then(serde_json::Value::as_str)
                 == Some("all_domain_active_stage_tool_matrix")
             && check.get("output_path").and_then(serde_json::Value::as_str)
-                == Some("benchmarks/readiness/all-domains/active-stage-tool-matrix.tsv")
+                == Some(
+                    "artifacts/benchmark-smoke/readiness/all-domains/active-stage-tool-matrix.tsv",
+                )
             && check.get("detail").and_then(serde_json::Value::as_str)
-                == Some("row_count=141, stage_count=69, tool_count=71")
+                == Some("row_count=142, stage_count=71, tool_count=74")
     }));
     assert!(checks.iter().any(|check| {
         check.get("category").and_then(serde_json::Value::as_str) == Some("fixtures")
@@ -115,13 +117,13 @@ fn bench_active_scope_validate_fast_reports_complete_fast_surface() {
             && check.get("surface_id").and_then(serde_json::Value::as_str)
                 == Some("all_domain_no_placeholder_command_check")
             && check.get("detail").and_then(serde_json::Value::as_str)
-                == Some("valid_row_count=141, invalid_row_count=0, violation_count=0")
+                == Some("valid_row_count=142, invalid_row_count=0, violation_count=0")
     }));
     assert!(checks.iter().any(|check| {
         check.get("category").and_then(serde_json::Value::as_str) == Some("reports")
             && check.get("surface_id").and_then(serde_json::Value::as_str)
                 == Some("all_domain_report_map_coverage")
             && check.get("detail").and_then(serde_json::Value::as_str)
-                == Some("covered_row_count=141, missing_row_count=0")
+                == Some("covered_row_count=142, missing_row_count=0")
     }));
 }

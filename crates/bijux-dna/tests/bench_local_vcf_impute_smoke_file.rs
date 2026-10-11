@@ -117,16 +117,25 @@ fn bench_local_vcf_impute_smoke_writes_governed_files() {
         serde_json::from_str(&panel_assets_raw).expect("parse panel assets");
     assert_eq!(
         panel_assets.get("panel_id").and_then(serde_json::Value::as_str),
-        Some("hsapiens_grch38_mini")
+        Some("hsapiens_grch38_1kg_3202_chr22")
     );
     assert_eq!(
         panel_assets.get("map_id").and_then(serde_json::Value::as_str),
-        Some("hsapiens_grch38_chr_map")
+        Some("hsapiens_grch38_glimpse_chr22")
+    );
+    assert_eq!(
+        panel_assets.get("fixture_class").and_then(serde_json::Value::as_str),
+        Some("local_smoke_metadata_only")
     );
     assert!(panel_assets
-        .get("materialized_files")
+        .get("panel_files")
         .and_then(serde_json::Value::as_array)
         .is_some_and(|rows| !rows.is_empty()));
+    assert!(panel_assets
+        .get("map_files")
+        .and_then(serde_json::Value::as_array)
+        .is_some_and(|rows| !rows.is_empty()));
+    assert!(panel_assets.get("materialized_files").is_none());
 
     let imputation_qc_raw =
         std::fs::read_to_string(&imputation_qc_path).expect("read imputation qc");

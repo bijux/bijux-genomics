@@ -19,9 +19,9 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_VCF_MISSING_RESULT_REPORT_TEST_PATH: &str =
-    "benchmarks/readiness/vcf-missing-result-report-test.json";
+    "artifacts/benchmark-smoke/readiness/missing-result/vcf/report.json";
 const DEFAULT_VCF_MISSING_RESULT_REPORT_FIXTURE_ROOT: &str =
-    "benchmarks/readiness/vcf-missing-result-report-fixture";
+    "artifacts/benchmark-smoke/readiness/missing-result/vcf/results";
 const VCF_MISSING_RESULT_REPORT_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.vcf_missing_result_report.v1";
 
@@ -464,7 +464,7 @@ mod tests {
         assert_eq!(report.output_path, DEFAULT_VCF_MISSING_RESULT_REPORT_TEST_PATH);
         assert_eq!(
             report.fake_result_root,
-            "benchmarks/readiness/vcf-missing-result-report-fixture"
+            "artifacts/benchmark-smoke/readiness/missing-result/vcf/results"
         );
         assert_eq!(report.expected_row_count, 24);
         assert_eq!(report.present_result_row_count, 23);

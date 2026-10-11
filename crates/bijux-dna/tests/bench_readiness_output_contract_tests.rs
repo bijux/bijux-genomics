@@ -44,7 +44,7 @@ fn bench_readiness_output_contract_audit_report_governs_all_retained_bindings() 
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/tools/output-contract-tests.json")
+        Some("artifacts/benchmark-smoke/readiness/tools/output-contract-tests.json")
     );
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
     assert_eq!(
@@ -77,12 +77,20 @@ fn bench_readiness_output_contract_audit_report_governs_all_retained_bindings() 
     let proof_count =
         proof_surface_counts.values().filter_map(serde_json::Value::as_u64).sum::<u64>();
     assert_eq!(proof_count, rows.len() as u64);
-    assert!(rows.iter().all(|row| {
-        !matches!(
-            row.get("tool_id").and_then(serde_json::Value::as_str),
-            Some("angsd" | "ngsbriggs")
-        )
-    }));
+    for (tool_id, stage_id) in [
+        ("angsd", "bam.kinship"),
+        ("angsd", "bam.sex"),
+        ("fastuniq", "fastq.remove_duplicates"),
+        ("ngsbriggs", "bam.damage"),
+    ] {
+        assert!(rows.iter().any(|row| {
+            row.get("tool_id").and_then(serde_json::Value::as_str) == Some(tool_id)
+                && row.get("stage_id").and_then(serde_json::Value::as_str) == Some(stage_id)
+                && row.get("passed").and_then(serde_json::Value::as_bool) == Some(true)
+                && row.get("independent_execution_proven").and_then(serde_json::Value::as_bool)
+                    == Some(true)
+        }));
+    }
 
     assert!(rows.iter().any(|row| {
         row.get("domain").and_then(serde_json::Value::as_str) == Some("bam")
@@ -138,7 +146,10 @@ fn bench_readiness_output_contract_audit_write_governed_json_file() {
     );
 
     let rendered_path = String::from_utf8(output.stdout).expect("stdout utf8");
-    assert_eq!(rendered_path.trim(), "benchmarks/readiness/tools/output-contract-tests.json");
+    assert_eq!(
+        rendered_path.trim(),
+        "artifacts/benchmark-smoke/readiness/tools/output-contract-tests.json"
+    );
 
     let report_path = sandbox.path().join(rendered_path.trim());
     assert!(report_path.is_file(), "output contract report JSON must exist");

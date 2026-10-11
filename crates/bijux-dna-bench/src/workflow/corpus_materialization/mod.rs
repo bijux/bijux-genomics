@@ -27,6 +27,7 @@ const MAX_ACQUISITION_PLAN_BYTES: usize = 16 * 1024 * 1024;
 pub struct CorpusMaterializationRequest {
     pub plan_path: PathBuf,
     pub data_root: PathBuf,
+    pub repository_commit: String,
     pub maximum_parallelism: usize,
     pub retries: usize,
     pub timeout_seconds: u64,
@@ -66,7 +67,8 @@ pub fn materialize_fastq_corpus(
     let _lock = bijux_dna_infra::FileLock::acquire(&lock_path, Duration::from_secs(30))
         .context("acquire corpus materialization lock")?;
     let targets = materialization_targets(&data_root, &plan);
-    let catalog_path = data_root.join("catalog").join(format!("{}.json", plan.portfolio_id));
+    let catalog_path =
+        catalog_snapshot_path(&data_root, &request.repository_commit, &plan.portfolio_id);
     if let Some(catalog) = load_existing_catalog(&catalog_path)? {
         return revalidate_existing_catalog(
             request,
@@ -218,6 +220,14 @@ fn revalidate_existing_catalog(
 }
 
 fn validate_request(request: &CorpusMaterializationRequest) -> Result<()> {
+    if request.repository_commit.len() != 40
+        || !request
+            .repository_commit
+            .bytes()
+            .all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte))
+    {
+        bail!("repository commit must be a lowercase 40-character Git object id");
+    }
     if request.maximum_parallelism == 0 || request.maximum_parallelism > 64 {
         bail!("corpus materialization parallelism must be between 1 and 64");
     }
@@ -236,6 +246,10 @@ fn validate_request(request: &CorpusMaterializationRequest) -> Result<()> {
         bail!("corpus admission timestamp must use UTC");
     }
     Ok(())
+}
+
+fn catalog_snapshot_path(data_root: &Path, repository_commit: &str, portfolio_id: &str) -> PathBuf {
+    data_root.join("catalog/snapshots").join(repository_commit).join(format!("{portfolio_id}.json"))
 }
 
 fn materialization_targets(

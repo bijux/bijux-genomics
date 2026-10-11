@@ -42,7 +42,7 @@ fn bench_local_core_germline_micro_pipeline_reports_real_stage_handoffs() {
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("runs/bench/micro/pipelines/core-germline/MICRO_PIPELINE_SUMMARY.json")
+        Some("artifacts/benchmark-smoke/micro/pipelines/core-germline/MICRO_PIPELINE_SUMMARY.json")
     );
     assert_eq!(
         payload.get("pipeline_id").and_then(serde_json::Value::as_str),

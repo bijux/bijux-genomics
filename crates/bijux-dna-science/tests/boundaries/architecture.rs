@@ -17,6 +17,7 @@ fn science_source_tree_matches_architecture_contract() {
             "app/",
             "cli.rs",
             "compile.rs",
+            "decision/",
             "domain/",
             "evidence/",
             "errors.rs",
@@ -34,6 +35,11 @@ fn science_source_tree_matches_architecture_contract() {
         dir_entries(&root.join("src/app")),
         entries(["mod.rs"]),
         "science app command coordinator must stay isolated"
+    );
+    assert_eq!(
+        dir_entries(&root.join("src/decision")),
+        entries(["benchmark_gate.rs", "mod.rs", "qualification.rs"]),
+        "science decisions must stay isolated from persistence and execution concerns"
     );
     assert_eq!(
         dir_entries(&root.join("src/domain")),
@@ -66,6 +72,7 @@ fn science_test_tree_matches_architecture_contract() {
         entries([
             "boundaries/",
             "boundaries.rs",
+            "benchmark_gate.rs",
             "contracts.rs",
             "fastq_environment_slice.rs",
             "fastq_read_length_truth.rs",

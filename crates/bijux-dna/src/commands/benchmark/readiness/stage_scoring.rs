@@ -31,12 +31,13 @@ pub(crate) const DEFAULT_STAGE_SCORING_PATH: &str = "configs/bench/local/stage-s
 const STAGE_SCORING_SCHEMA_VERSION: &str = "bijux.bench.local_stage_scoring.v1";
 const STAGE_SCORING_REPORT_SCHEMA_VERSION: &str = "bijux.bench.readiness.stage_scoring.v1";
 const STAGE_SCORING_FULL_BENCHMARK_SOURCE: &str =
-    "benchmarks/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json";
-const STAGE_SCORING_MICRO_SOURCE: &str = "runs/bench/micro/MICRO_BENCHMARK_REPORT.json";
+    "artifacts/benchmark-smoke/readiness/all-domains/FASTQ_BAM_VCF_BENCHMARK_REPORT.json";
+const STAGE_SCORING_MICRO_SOURCE: &str =
+    "artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json";
 const STAGE_SCORING_FAILURE_CLASS_SOURCE: &str =
-    "benchmarks/readiness/failure-classification-all-domains.json";
+    "artifacts/benchmark-smoke/readiness/failure-classification-all-domains.json";
 const STAGE_SCORING_ACTIVE_STAGE_SOURCE: &str =
-    "benchmarks/readiness/all-domains/active-stage-catalog.tsv";
+    "artifacts/benchmark-smoke/readiness/all-domains/active-stage-catalog.tsv";
 const STAGE_SCORING_THRESHOLD_SOURCE: &str =
     "configs/bench/local/scientific-acceptance-thresholds.toml";
 

@@ -2,7 +2,7 @@
     fn prepare_reference_panel_stage_writes_manifest_and_overlap_artifacts() {
         let dir = tempfile::tempdir().unwrap_or_else(|err| panic!("tempdir: {err}"));
         let input = Path::new("tests/fixtures/vcf/default/input.vcf");
-        let panel_root = dir.path().join("panel_store/hsapiens_grch38_mini").join("abc123");
+        let panel_root = dir.path().join("panel_store/hsapiens_grch38_1kg_3202_chr22").join("abc123");
         let panel_raw = panel_root.join("raw");
         let panel_normalized = panel_root.join("normalized");
         let panel_derived = panel_root.join("derived");
@@ -48,8 +48,7 @@
             &PrepareReferencePanelParams {
                 species_id: "Homo sapiens".to_string(),
                 build_id: "GRCh38".to_string(),
-                panel_id: Some("hsapiens_grch38_mini".to_string()),
-                map_id: Some("hsapiens_grch38_chr_map".to_string()),
+                panel_id: Some("hsapiens_grch38_1kg_3202_chr22".to_string()),
             },
         )
         .unwrap_or_else(|err| panic!("prepare_reference_panel: {err}"));
@@ -78,7 +77,7 @@
     fn prepare_reference_panel_stage_deduplicates_and_records_normalization_counts() {
         let dir = tempfile::tempdir().unwrap_or_else(|err| panic!("tempdir: {err}"));
         let input = Path::new("tests/fixtures/vcf/default/input.vcf");
-        let panel_root = dir.path().join("panel_store/hsapiens_grch38_mini").join("dup001");
+        let panel_root = dir.path().join("panel_store/hsapiens_grch38_1kg_3202_chr22").join("dup001");
         let panel_raw = panel_root.join("raw");
         let panel_normalized = panel_root.join("normalized");
         let panel_derived = panel_root.join("derived");
@@ -136,8 +135,7 @@
             &PrepareReferencePanelParams {
                 species_id: "Homo sapiens".to_string(),
                 build_id: "GRCh38".to_string(),
-                panel_id: Some("hsapiens_grch38_mini".to_string()),
-                map_id: Some("hsapiens_grch38_chr_map".to_string()),
+                panel_id: Some("hsapiens_grch38_1kg_3202_chr22".to_string()),
             },
         )
         .unwrap_or_else(|err| panic!("prepare_reference_panel: {err}"));
@@ -202,7 +200,7 @@
         std::env::set_var("BIJUX_VCF_PANEL_OVERLAP_MIN", "0.0");
         let dir = tempfile::tempdir().unwrap_or_else(|err| panic!("tempdir: {err}"));
         let input = Path::new("tests/fixtures/vcf/default/input.vcf");
-        let panel_root = dir.path().join("panel_store/hsapiens_grch38_mini").join("abc123");
+        let panel_root = dir.path().join("panel_store/hsapiens_grch38_1kg_3202_chr22").join("abc123");
         let panel_raw = panel_root.join("raw");
         let panel_normalized = panel_root.join("normalized");
         let panel_derived = panel_root.join("derived");
@@ -251,8 +249,7 @@
             &PrepareReferencePanelParams {
                 species_id: "Homo sapiens".to_string(),
                 build_id: "GRCh38".to_string(),
-                panel_id: Some("hsapiens_grch38_mini".to_string()),
-                map_id: Some("hsapiens_grch38_chr_map".to_string()),
+                panel_id: Some("hsapiens_grch38_1kg_3202_chr22".to_string()),
             },
         )
         .expect_err("excessive allele mismatch must fail");
@@ -270,10 +267,10 @@
     }
 
     #[test]
-    fn prepare_reference_panel_refuses_when_backend_field_contract_missing() {
+    fn prepare_reference_panel_refuses_when_genotype_fields_are_missing() {
         let dir = tempfile::tempdir().unwrap_or_else(|err| panic!("tempdir: {err}"));
         let input = Path::new("tests/fixtures/vcf/default/input.vcf");
-        let panel_root = dir.path().join("panel_store/hsapiens_grch38_mini").join("abc123");
+        let panel_root = dir.path().join("panel_store/hsapiens_grch38_1kg_3202_chr22").join("abc123");
         let panel_raw = panel_root.join("raw");
         let panel_normalized = panel_root.join("normalized");
         let panel_derived = panel_root.join("derived");
@@ -322,12 +319,13 @@
             &PrepareReferencePanelParams {
                 species_id: "Homo sapiens".to_string(),
                 build_id: "GRCh38".to_string(),
-                panel_id: Some("hsapiens_grch38_mini".to_string()),
-                map_id: Some("hsapiens_grch38_chr_map".to_string()),
+                panel_id: Some("hsapiens_grch38_1kg_3202_chr22".to_string()),
             },
         )
-        .expect_err("missing backend format requirements must fail");
-        assert!(err.to_string().contains("panel compatibility failed"));
+        .expect_err("a panel without genotype-bearing fields must fail");
+        assert!(err
+            .to_string()
+            .contains("no genotype-bearing GT/GL/GP/PL FORMAT field"));
     }
 
     #[test]
@@ -407,7 +405,7 @@
                 species_id: "Homo sapiens".to_string(),
                 build_id: "GRCh38".to_string(),
                 backend: PhasingBackend::Shapeit5,
-                map_id: Some("hsapiens_grch38_chr_map".to_string()),
+                map_id: Some("hsapiens_grch38_glimpse_chr22".to_string()),
                 threads: 2,
                 seed: 7,
                 region: Some("1:1-1000000".to_string()),
@@ -518,7 +516,7 @@
                 species_id: "Homo sapiens".to_string(),
                 build_id: "GRCh38".to_string(),
                 backend: PhasingBackend::Shapeit5,
-                map_id: Some("hsapiens_grch38_chr_map".to_string()),
+                map_id: Some("hsapiens_grch38_glimpse_chr22".to_string()),
                 threads: 2,
                 seed: 11,
                 region: None,
@@ -651,7 +649,7 @@
                 species_id: species.species_id.clone(),
                 build_id: species.build_id.clone(),
                 backend: PhasingBackend::Auto,
-                map_id: Some("hsapiens_grch38_chr_map".to_string()),
+                map_id: Some("hsapiens_grch38_glimpse_chr22".to_string()),
                 threads: 2,
                 seed: 42,
                 region: None,
@@ -760,7 +758,7 @@
                 species_id: species.species_id.clone(),
                 build_id: species.build_id.clone(),
                 backend: PhasingBackend::Eagle,
-                map_id: Some("hsapiens_grch38_chr_map".to_string()),
+                map_id: Some("hsapiens_grch38_glimpse_chr22".to_string()),
                 threads: 2,
                 seed: 42,
                 region: None,
@@ -772,7 +770,7 @@
     }
 
     #[test]
-    fn phasing_eagle_refuses_invalid_region_bounds() {
+    fn phasing_shapeit5_refuses_invalid_region_bounds() {
         let dir = tempfile::tempdir().unwrap_or_else(|err| panic!("tempdir: {err}"));
         let input = Path::new("tests/fixtures/vcf/default/input.vcf");
         let species = SpeciesContext {
@@ -794,8 +792,8 @@
             &PhasingStageParams {
                 species_id: species.species_id.clone(),
                 build_id: species.build_id.clone(),
-                backend: PhasingBackend::Eagle,
-                map_id: Some("hsapiens_grch38_chr_map".to_string()),
+                backend: PhasingBackend::Shapeit5,
+                map_id: Some("hsapiens_grch38_glimpse_chr22".to_string()),
                 threads: 2,
                 seed: 42,
                 region: Some("1:200-100".to_string()),

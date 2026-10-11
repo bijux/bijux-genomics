@@ -1,6 +1,8 @@
 use anyhow::{anyhow, bail, Result};
 
-use crate::resolution::{parse_lock_ref, validate_sha256};
+use crate::resolution::{
+    parse_lock_ref, validate_catalog_lock_files, validate_catalog_source_authority,
+};
 use crate::runtime_config::{load_toml, workspace_root, PanelLocksConfig, PanelsConfig};
 use crate::{PanelCatalogEntry, PanelLockEntry};
 
@@ -31,19 +33,19 @@ pub fn resolve_panel(
     if panel.lock_ref.trim().is_empty() {
         bail!("panel {} missing required lock_ref metadata", panel.id);
     }
-    validate_panel_catalog_files(&panel)?;
+    validate_panel_catalog(&panel)?;
     let _ = resolve_panel_lock(&panel)?;
     Ok(panel)
 }
 
-fn validate_panel_catalog_files(panel: &PanelCatalogEntry) -> Result<()> {
-    if panel.files.is_empty() {
-        bail!("panel {} has no catalog files", panel.id);
-    }
-    for file in &panel.files {
-        validate_sha256(&file.checksum_sha256, "panel catalog checksum_sha256")?;
-    }
-    Ok(())
+fn validate_panel_catalog(panel: &PanelCatalogEntry) -> Result<()> {
+    validate_catalog_source_authority(
+        "panel",
+        &panel.id,
+        &panel.status,
+        panel.citation.as_deref(),
+        &panel.files,
+    )
 }
 
 /// # Errors
@@ -60,21 +62,17 @@ pub fn resolve_panel_lock(panel: &PanelCatalogEntry) -> Result<PanelLockEntry> {
     if entry.panel_id != panel.id
         || entry.species_id != panel.species_id
         || entry.build_id != panel.build_id
+        || entry.version != panel.version
     {
         bail!("panel lock entry does not match panel identity {}", panel.id);
     }
-    if entry.files.is_empty() {
-        bail!("panel lock entry {} has no files", panel.id);
-    }
-    for file in &entry.files {
-        crate::resolution::validate_sha256(&file.checksum_sha256, "panel lock checksum_sha256")?;
-    }
+    validate_catalog_lock_files("panel", &panel.id, &panel.files, &entry.files)?;
     Ok(entry)
 }
 
 #[cfg(test)]
 mod tests {
-    use super::validate_panel_catalog_files;
+    use super::validate_panel_catalog;
     use crate::{CatalogCompatibility, CatalogFileEntry, PanelCatalogEntry};
 
     #[test]
@@ -87,13 +85,17 @@ mod tests {
             version: "1.0.0".to_string(),
             license: "CC-BY-4.0".to_string(),
             lock_ref: "locks/panel_locks.toml#locks.panel".to_string(),
-            citation: None,
+            citation: Some("Byrska-Bishop et al. 2022".to_string()),
             files: vec![CatalogFileEntry {
                 name: "panel_vcf".to_string(),
                 path: "panel.vcf.gz".to_string(),
                 format: "vcf.gz".to_string(),
                 url: "https://example.org/panel.vcf.gz".to_string(),
                 checksum_sha256: "BAD".to_string(),
+                size_bytes: 1,
+                source_checksum_algorithm: "md5".to_string(),
+                source_checksum: "a".repeat(32),
+                source_authority_url: "https://authority.example/panel.md5".to_string(),
                 required: true,
             }],
             compatibility: CatalogCompatibility {
@@ -105,10 +107,10 @@ mod tests {
             },
         };
 
-        let Err(error) = validate_panel_catalog_files(&panel) else {
+        let Err(error) = validate_panel_catalog(&panel) else {
             panic!("bad panel checksum must fail");
         };
 
-        assert!(error.to_string().contains("panel catalog checksum"));
+        assert!(error.to_string().contains("catalog checksum"));
     }
 }

@@ -20,7 +20,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_ALL_DOMAIN_ACTIVE_STAGE_TOOL_MATRIX_PATH: &str =
-    "benchmarks/readiness/all-domains/active-stage-tool-matrix.tsv";
+    "artifacts/benchmark-smoke/readiness/all-domains/active-stage-tool-matrix.tsv";
 const ALL_DOMAIN_ACTIVE_STAGE_TOOL_MATRIX_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.all_domain_active_stage_tool_matrix.v1";
 pub(crate) const STATUS_BENCHMARK_READY: &str = "benchmark_ready";

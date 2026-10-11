@@ -9,42 +9,50 @@ use bijux_dna_bench::{
 type LegacyRenderer = fn(&BenchmarkStageReport) -> String;
 
 #[test]
-fn generic_renderer_preserves_current_report_bytes() -> anyhow::Result<()> {
+fn generic_renderer_preserves_historical_report_bytes() -> anyhow::Result<()> {
     let root = repository_root()?;
     let interfaces =
         load_stage_interface_catalog(&root.join("benchmarks/contracts/stage-interfaces.toml"))?;
-    let cases: [(&str, &str, LegacyRenderer); 4] = [
-        ("bam.genotyping", "run-2001-bam-genotyping", render_bam_genotyping_markdown),
+    let cases: [(&str, &str, &str, LegacyRenderer); 4] = [
+        (
+            "bam.genotyping",
+            "9348a2417384417ab59052193b56717b69cb0309",
+            "run-2001-bam-genotyping",
+            render_bam_genotyping_markdown,
+        ),
         (
             "bam.mapping_summary",
+            "520efb95cf753b65fca168f0610b1b4138932031",
             "run-2004-bam-mapping-summary",
             render_bam_mapping_summary_markdown,
         ),
         (
             "fastq.profile_read_lengths",
+            "520efb95cf753b65fca168f0610b1b4138932031",
             "run-2042-fastq-profile-read-lengths",
             render_fastq_profile_read_lengths_markdown,
         ),
         (
             "fastq.profile_reads",
+            "520efb95cf753b65fca168f0610b1b4138932031",
             "run-2043-fastq-profile-reads",
             render_fastq_profile_reads_markdown,
         ),
     ];
-    for (stage_id, stem, legacy_renderer) in cases {
+    for (stage_id, source_commit, stem, legacy_renderer) in cases {
         let interface = interfaces
             .interfaces
             .iter()
             .find(|interface| interface.stage_id == stage_id)
             .ok_or_else(|| anyhow::anyhow!("missing stage interface {stage_id}"))?;
-        let report: BenchmarkStageReport = serde_json::from_slice(&std::fs::read(
-            root.join(format!("benchmarks/reports/{stem}.json")),
-        )?)?;
+        let report_root = root.join("benchmarks/reports/historical").join(source_commit);
+        let report: BenchmarkStageReport =
+            serde_json::from_slice(&std::fs::read(report_root.join(format!("{stem}.json")))?)?;
         let generic = render_stage_report_markdown(&report, &interface.report_presentation)?;
         assert_eq!(generic, legacy_renderer(&report), "legacy parity failed for {stage_id}");
         assert_eq!(
             generic.as_bytes(),
-            std::fs::read(root.join(format!("benchmarks/reports/{stem}.md")))?,
+            std::fs::read(report_root.join(format!("{stem}.md")))?,
             "checked-in parity failed for {stage_id}"
         );
     }

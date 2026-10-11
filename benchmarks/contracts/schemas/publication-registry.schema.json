@@ -1,0 +1,191 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "BenchmarkPublicationRegistry",
+  "type": "object",
+  "properties": {
+    "current_products": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/BenchmarkCurrentPublication"
+      }
+    },
+    "quarantined_surfaces": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/BenchmarkQuarantinedPublicationSurface"
+      }
+    },
+    "schema_version": {
+      "type": "string",
+      "const": "bijux.benchmark.publication_registry.v1"
+    },
+    "stage_reports": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/BenchmarkStagePublication"
+      }
+    },
+    "summary": {
+      "$ref": "#/$defs/BenchmarkPublicationRegistrySummary"
+    }
+  },
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "summary",
+    "current_products",
+    "stage_reports",
+    "quarantined_surfaces"
+  ],
+  "$defs": {
+    "BenchmarkCurrentPublication": {
+      "type": "object",
+      "properties": {
+        "json_path": {
+          "type": "string"
+        },
+        "json_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "markdown_path": {
+          "type": "string"
+        },
+        "markdown_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "product_id": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "product_id",
+        "json_path",
+        "json_sha256",
+        "markdown_path",
+        "markdown_sha256"
+      ]
+    },
+    "BenchmarkPublicationRegistrySummary": {
+      "type": "object",
+      "properties": {
+        "active_stage_report_count": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0
+        },
+        "current_product_count": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0
+        },
+        "historical_stage_report_count": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0
+        },
+        "quarantined_file_count": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0
+        },
+        "quarantined_surface_count": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "current_product_count",
+        "active_stage_report_count",
+        "historical_stage_report_count",
+        "quarantined_surface_count",
+        "quarantined_file_count"
+      ]
+    },
+    "BenchmarkQuarantinedPublicationSurface": {
+      "type": "object",
+      "properties": {
+        "authority_policy": {
+          "type": "string"
+        },
+        "disposition": {
+          "type": "string"
+        },
+        "path_prefix": {
+          "type": "string"
+        },
+        "tracked_file_count": {
+          "type": "integer",
+          "format": "uint",
+          "minimum": 0
+        },
+        "tree_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "path_prefix",
+        "disposition",
+        "tracked_file_count",
+        "tree_sha256",
+        "authority_policy"
+      ]
+    },
+    "BenchmarkStagePublication": {
+      "type": "object",
+      "properties": {
+        "disposition": {
+          "$ref": "#/$defs/BenchmarkStagePublicationDisposition"
+        },
+        "json_path": {
+          "type": "string"
+        },
+        "json_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "markdown_path": {
+          "type": "string"
+        },
+        "markdown_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$"
+        },
+        "run_id": {
+          "type": "string"
+        },
+        "source_commit": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{40}$"
+        },
+        "stage_id": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false,
+      "required": [
+        "run_id",
+        "stage_id",
+        "source_commit",
+        "disposition",
+        "json_path",
+        "json_sha256",
+        "markdown_path",
+        "markdown_sha256"
+      ]
+    },
+    "BenchmarkStagePublicationDisposition": {
+      "type": "string",
+      "enum": [
+        "active",
+        "historical"
+      ]
+    }
+  }
+}

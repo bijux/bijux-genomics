@@ -102,13 +102,14 @@ fastq.prepare_primer_bank	bijux_dna	stage_not_marked_closed	advisory	bijux_dna c
 fastq.profile_overrepresented_sequences	fastq_scan	missing_environment_qa_stage	advisory	fastq_scan cannot be treated as world-class closed for fastq.profile_overrepresented_sequences until missing_environment_qa_stage is resolved
 fastq.profile_overrepresented_sequences	fastqc	missing_environment_qa_stage	blocking	fastqc cannot be treated as world-class closed for fastq.profile_overrepresented_sequences until missing_environment_qa_stage is resolved
 fastq.profile_overrepresented_sequences	seqkit	missing_environment_qa_stage	advisory	seqkit cannot be treated as world-class closed for fastq.profile_overrepresented_sequences until missing_environment_qa_stage is resolved
-fastq.profile_read_lengths	fastp	missing_environment_qa_stage	advisory	fastp cannot be treated as world-class closed for fastq.profile_read_lengths until missing_environment_qa_stage is resolved
-fastq.profile_read_lengths	prinseq	missing_environment_qa_stage	advisory	prinseq cannot be treated as world-class closed for fastq.profile_read_lengths until missing_environment_qa_stage is resolved
 fastq.profile_read_lengths	seqfu	missing_environment_qa_stage	advisory	seqfu cannot be treated as world-class closed for fastq.profile_read_lengths until missing_environment_qa_stage is resolved
-fastq.profile_read_lengths	seqkit_stats	missing_environment_qa_stage	blocking	seqkit_stats cannot be treated as world-class closed for fastq.profile_read_lengths until missing_environment_qa_stage is resolved
+fastq.profile_read_lengths	seqkit	missing_environment_qa_stage	blocking	seqkit cannot be treated as world-class closed for fastq.profile_read_lengths until missing_environment_qa_stage is resolved
 fastq.remove_chimeras	vsearch	missing_environment_qa_stage	blocking	vsearch cannot be treated as world-class closed for fastq.remove_chimeras until missing_environment_qa_stage is resolved
 fastq.remove_duplicates	clumpify	missing_environment_qa_stage	blocking	clumpify cannot be treated as world-class closed for fastq.remove_duplicates until missing_environment_qa_stage is resolved
+fastq.remove_duplicates	fastuniq	missing_container_ref	advisory	fastuniq cannot be treated as world-class closed for fastq.remove_duplicates until missing_container_ref is resolved
 fastq.remove_duplicates	fastuniq	missing_environment_qa_stage	advisory	fastuniq cannot be treated as world-class closed for fastq.remove_duplicates until missing_environment_qa_stage is resolved
+fastq.remove_duplicates	fastuniq	missing_runtime_surface	advisory	fastuniq cannot be treated as world-class closed for fastq.remove_duplicates until missing_runtime_surface is resolved
+fastq.remove_duplicates	fastuniq	registry_not_production	advisory	fastuniq cannot be treated as world-class closed for fastq.remove_duplicates until registry_not_production is resolved
 fastq.repair_pairs	bijux_dna	missing_benchmark_support	advisory	bijux_dna cannot be treated as world-class closed for fastq.repair_pairs until missing_benchmark_support is resolved
 fastq.repair_pairs	bijux_dna	missing_environment_qa_stage	advisory	bijux_dna cannot be treated as world-class closed for fastq.repair_pairs until missing_environment_qa_stage is resolved
 fastq.repair_pairs	bijux_dna	missing_paper_archive	advisory	bijux_dna cannot be treated as world-class closed for fastq.repair_pairs until missing_paper_archive is resolved

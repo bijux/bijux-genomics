@@ -17,7 +17,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_VCF_BCFTOOLS_ADAPTER_PATH: &str =
-    "benchmarks/readiness/adapters/bcftools.vcf.json";
+    "artifacts/benchmark-smoke/readiness/adapters/bcftools.vcf.json";
 const VCF_BCFTOOLS_ADAPTER_SCHEMA_VERSION: &str = "bijux.bench.readiness.vcf_bcftools_adapter.v1";
 const GOVERNED_BCFTOOLS_TOOL_ID: &str = "bcftools";
 const GOVERNED_BAM_PATH: &str =
@@ -189,8 +189,10 @@ fn build_bcftools_row(
 ) -> Result<VcfBcftoolsAdapterRow> {
     let stage = VcfDomainStage::try_from(matrix_row.stage_id.as_str())
         .map_err(|error| anyhow!("unknown VCF stage `{}`: {error}", matrix_row.stage_id))?;
-    let output_root =
-        format!("benchmarks/readiness/adapters/{}/{}", matrix_row.tool_id, matrix_row.stage_id);
+    let output_root = format!(
+        "artifacts/benchmark-smoke/readiness/adapters/{}/{}",
+        matrix_row.tool_id, matrix_row.stage_id
+    );
     let required_inputs = governed_inputs_for_stage(repo_root, stage, &output_root)?;
     validate_required_inputs(repo_root, &matrix_row.stage_id, &required_inputs)?;
     let stage_output_ids = vcf_domain_stage_expected_output_ids(stage)
@@ -832,11 +834,15 @@ fn run_missing_input_probe(
 ) -> (String, String, String, bool) {
     let mut mutated_inputs = inputs.to_vec();
     let probe = mutated_inputs.first().cloned().unwrap_or_else(|| {
-        artifact("missing_input", "unknown", "artifacts/bench-readiness/adapters/none.missing")
+        artifact(
+            "missing_input",
+            "unknown",
+            "artifacts/benchmark-smoke/readiness/adapters/none.missing",
+        )
     });
     if let Some(first) = mutated_inputs.first_mut() {
         first.path = format!(
-            "artifacts/bench-readiness/adapters/probes/{stage_id}/{}.missing",
+            "artifacts/benchmark-smoke/readiness/adapters/probes/{stage_id}/{}.missing",
             first.artifact_id
         );
     }
@@ -1000,7 +1006,7 @@ mod tests {
                     step.step_id == "call_diploid"
                         && step.argv
                             == vec!["bcftools", "call", "-mv", "-Oz", "-o",
-                                "benchmarks/readiness/adapters/bcftools/vcf.call_diploid/diploid_vcf.vcf.gz"]
+                                "artifacts/benchmark-smoke/readiness/adapters/bcftools/vcf.call_diploid/diploid_vcf.vcf.gz"]
                 })
         }));
         assert!(report.rows.iter().any(|row| {

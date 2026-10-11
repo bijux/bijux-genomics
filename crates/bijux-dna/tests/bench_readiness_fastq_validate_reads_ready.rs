@@ -44,7 +44,7 @@ fn bench_readiness_fastq_validate_reads_ready_reports_complete_active_validator_
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/fastq/validate-reads-ready.json")
+        Some("artifacts/benchmark-smoke/readiness/fastq/validate-reads-ready.json")
     );
     assert_eq!(payload.get("active_row_count").and_then(serde_json::Value::as_u64), Some(5));
     assert_eq!(payload.get("complete_row_count").and_then(serde_json::Value::as_u64), Some(5));
@@ -138,23 +138,23 @@ fn bench_readiness_fastq_validate_reads_ready_reports_complete_active_validator_
     );
     assert_eq!(
         fastqc.get("command_argv_output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/rendered-commands.argv.jsonl")
+        Some("artifacts/benchmark-smoke/readiness/rendered-commands.argv.jsonl")
     );
     assert_eq!(
         fastqc.get("output_contract_proof_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/fastq-adapter-output-contract.tsv")
+        Some("artifacts/benchmark-smoke/readiness/fastq/fastq-adapter-output-contract.tsv")
     );
     assert_eq!(
         fastqc.get("parser_proof_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/fastq-parser-coverage.tsv")
+        Some("artifacts/benchmark-smoke/readiness/fastq/fastq-parser-coverage.tsv")
     );
     assert_eq!(
         fastqc.get("comparable_metrics_proof_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/fastq-comparable-metrics.tsv")
+        Some("artifacts/benchmark-smoke/readiness/fastq/fastq-comparable-metrics.tsv")
     );
     assert_eq!(
         fastqc.get("expected_result_proof_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/expected-benchmark-results.tsv")
+        Some("artifacts/benchmark-smoke/readiness/expected-benchmark-results.tsv")
     );
     assert_eq!(
         fastqc.get("smoke_proof_path").and_then(serde_json::Value::as_str),

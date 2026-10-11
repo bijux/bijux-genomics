@@ -96,6 +96,7 @@ pub(super) fn build_tool_registries_toml(
     let _ = writeln!(required_tools_toml, "required_tools = {}", toml_array(&required_tools));
     required_tools_toml.push('\n');
     let mut production_tool_ids = BTreeSet::new();
+    let mut benchmark_integrated_tool_ids = BTreeSet::new();
     let mut experimental_tool_count = 0usize;
     for tool in tools.values() {
         let contract = container_catalog.get(&tool.id).ok_or_else(|| {
@@ -135,6 +136,10 @@ pub(super) fn build_tool_registries_toml(
         } else {
             "production"
         };
+
+        if !is_planned && !is_experimental && contract.is_benchmark_integrated() {
+            benchmark_integrated_tool_ids.insert(tool.id.clone());
+        }
 
         let out = if is_not_retained || is_planned || is_experimental {
             experimental_tool_count += 1;
@@ -203,7 +208,7 @@ pub(super) fn build_tool_registries_toml(
         let stage_domain = stage_id.split('.').next().unwrap_or_default();
         let mut all = tools_set.iter().cloned().collect::<Vec<_>>();
         all.retain(|tool_id| {
-            production_tool_ids.contains(tool_id)
+            benchmark_integrated_tool_ids.contains(tool_id)
                 && tool_supports_stage_domain(tools, tool_id, stage_domain)
         });
         all.sort();
@@ -214,7 +219,7 @@ pub(super) fn build_tool_registries_toml(
             .get(stage_id)
             .cloned()
             .filter(|tool_id| {
-                production_tool_ids.contains(tool_id)
+                benchmark_integrated_tool_ids.contains(tool_id)
                     && tool_supports_stage_domain(tools, tool_id, stage_domain)
             })
             .into_iter()

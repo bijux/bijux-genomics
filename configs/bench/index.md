@@ -19,7 +19,15 @@ Keep benchmark runtime knobs here while suite definitions live under `crates/bij
 ## Local Benchmark Readiness Contracts
 - `configs/bench/local/tool-execution-modes.toml` classifies every governed FASTQ and BAM benchmark tool by its primary operator runtime and required runtime fields so readiness validation can prove the current execution surface is explicit and complete.
 - `configs/bench/local/tool-families.toml` classifies every governed FASTQ, BAM, and VCF benchmark tool by its primary benchmark function so readiness reports can group tools consistently across domains.
-- `benchmarks/readiness/bam/stages/` holds stage-owned BAM completion gates when a single stage needs an explicit governed completion artifact beyond broader BAM slice reports, including the owned `bam.overlap_correction`, `bam.endogenous_content`, `bam.damage`, `bam.contamination`, `bam.haplogroups`, `bam.recalibration`, `bam.genotyping`, `bam.sex`, and `bam.authenticity` completion JSON artifacts.
+- `artifacts/benchmark-smoke/readiness/bam/stages/` holds disposable stage-owned BAM completion reports when a single stage needs an explicit local validation artifact beyond broader BAM slice reports, including `bam.overlap_correction`, `bam.endogenous_content`, `bam.damage`, `bam.contamination`, `bam.haplogroups`, `bam.recalibration`, `bam.genotyping`, `bam.sex`, and `bam.authenticity`.
+- `artifacts/benchmark-smoke/readiness/bam/` holds disposable BAM aggregate readiness reports that combine governed stage, tool, parser, result, and science contracts for local validation.
+- `artifacts/benchmark-smoke/readiness/vcf/` holds disposable VCF readiness matrices, commands, parser coverage, local probes, report maps, stage gates, and the retained-tool aggregate for local validation.
+- `artifacts/benchmark-smoke/readiness/fastq/` holds disposable FASTQ readiness matrices, commands, parser coverage, local probes, report maps, and stage-slice gates for local validation.
+- `artifacts/benchmark-smoke/readiness/tools/` holds disposable cross-domain tool inventory, resolution, probe, contract, parser, and aggregate reports for local validation.
+- `artifacts/benchmark-smoke/readiness/crates/` holds disposable crate-boundary, dependency, metric, identity, cycle, and aggregate reports for local validation.
+- `artifacts/benchmark-smoke/readiness/science/` holds disposable cross-domain sample consistency and scientific truth-set gate reports for local validation.
+- `artifacts/benchmark-smoke/readiness/hpc/` holds disposable local candidate-selection and HPC dry-run readiness manifests before governed scheduler submission.
+- `artifacts/benchmark-smoke/readiness/ci/` holds disposable workflow, feature, changed-path, and fast-tier gate reports for local validation.
 
 ## Control Plane Contract
 - `bijux-dna` is the primary benchmark control plane for workspace lookups, dossier refresh, publication audits, and corpus benchmark execution.

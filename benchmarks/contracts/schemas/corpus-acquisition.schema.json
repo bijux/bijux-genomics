@@ -1,0 +1,277 @@
+{
+  "$defs": {
+    "BenchmarkCorpusClass": {
+      "enum": [
+        "production_real",
+        "qualification_real",
+        "test_fixture",
+        "toy",
+        "synthetic",
+        "smoke",
+        "local_development"
+      ],
+      "type": "string"
+    },
+    "CorpusAcquisitionFile": {
+      "additionalProperties": false,
+      "properties": {
+        "mate": {
+          "format": "uint8",
+          "maximum": 255,
+          "minimum": 0,
+          "type": [
+            "integer",
+            "null"
+          ]
+        },
+        "name": {
+          "type": "string"
+        },
+        "size_bytes": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "source_md5": {
+          "type": "string"
+        },
+        "source_url": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "source_url",
+        "source_md5",
+        "size_bytes"
+      ],
+      "type": "object"
+    },
+    "CorpusAcquisitionLayout": {
+      "enum": [
+        "se",
+        "pe"
+      ],
+      "type": "string"
+    },
+    "CorpusAcquisitionSample": {
+      "additionalProperties": false,
+      "properties": {
+        "accession": {
+          "type": "string"
+        },
+        "archive_base_count": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "archive_read_count": {
+          "format": "uint64",
+          "minimum": 0,
+          "type": "integer"
+        },
+        "era": {
+          "type": "string"
+        },
+        "experiment_accession": {
+          "type": "string"
+        },
+        "files": {
+          "items": {
+            "$ref": "#/$defs/CorpusAcquisitionFile"
+          },
+          "type": "array"
+        },
+        "first_public": {
+          "type": "string"
+        },
+        "instrument_model": {
+          "type": "string"
+        },
+        "instrument_platform": {
+          "type": "string"
+        },
+        "last_updated": {
+          "type": "string"
+        },
+        "layout": {
+          "$ref": "#/$defs/CorpusAcquisitionLayout"
+        },
+        "library_selection": {
+          "type": "string"
+        },
+        "library_source": {
+          "type": "string"
+        },
+        "library_strategy": {
+          "type": "string"
+        },
+        "sample_accession": {
+          "type": "string"
+        },
+        "scientific_name": {
+          "type": "string"
+        },
+        "selection_reason": {
+          "type": "string"
+        },
+        "size_band": {
+          "type": "string"
+        },
+        "source_report_url": {
+          "type": "string"
+        },
+        "study_accession": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "accession",
+        "study_accession",
+        "sample_accession",
+        "experiment_accession",
+        "era",
+        "layout",
+        "size_band",
+        "selection_reason",
+        "scientific_name",
+        "library_source",
+        "library_strategy",
+        "library_selection",
+        "instrument_platform",
+        "instrument_model",
+        "archive_base_count",
+        "archive_read_count",
+        "first_public",
+        "last_updated",
+        "source_report_url",
+        "files"
+      ],
+      "type": "object"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "access_classification": {
+      "type": "string"
+    },
+    "access_terms_url": {
+      "type": "string"
+    },
+    "attribution": {
+      "type": "string"
+    },
+    "class": {
+      "$ref": "#/$defs/BenchmarkCorpusClass"
+    },
+    "corpus_id": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "file_count": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "known_limitations": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "portfolio_id": {
+      "type": "string"
+    },
+    "projected_cpu_hours": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "projected_storage_bytes": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "projection_basis": {
+      "type": "string"
+    },
+    "redistribution_classification": {
+      "type": "string"
+    },
+    "retrieved_at_utc": {
+      "type": "string"
+    },
+    "sample_count": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "samples": {
+      "items": {
+        "$ref": "#/$defs/CorpusAcquisitionSample"
+      },
+      "type": "array"
+    },
+    "schema_version": {
+      "const": "bijux.benchmark.corpus_acquisition.v2",
+      "type": "string"
+    },
+    "source_authority": {
+      "type": "string"
+    },
+    "source_spec": {
+      "type": "string"
+    },
+    "source_spec_sha256": {
+      "type": "string"
+    },
+    "species": {
+      "type": "string"
+    },
+    "total_size_bytes": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "truth_roles": {
+      "items": {
+        "type": "string"
+      },
+      "type": "array"
+    },
+    "truth_strategy": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema_version",
+    "corpus_id",
+    "portfolio_id",
+    "species",
+    "retrieved_at_utc",
+    "source_authority",
+    "description",
+    "class",
+    "access_classification",
+    "redistribution_classification",
+    "access_terms_url",
+    "attribution",
+    "projected_storage_bytes",
+    "projected_cpu_hours",
+    "projection_basis",
+    "truth_roles",
+    "truth_strategy",
+    "known_limitations",
+    "source_spec",
+    "source_spec_sha256",
+    "sample_count",
+    "file_count",
+    "total_size_bytes",
+    "samples"
+  ],
+  "title": "CorpusAcquisitionPlan",
+  "type": "object"
+}

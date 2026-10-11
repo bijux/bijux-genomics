@@ -11,16 +11,14 @@ use crate::model::{
     DataIntegrityStatus,
 };
 
-use super::BENCHMARK_DATA_INDEX_SCHEMA_V1;
+use super::{BENCHMARK_DATA_INDEX_SCHEMA_V1, BENCHMARK_DATA_INDEX_SCHEMA_V2};
 
 /// Validate persisted data-index identity, provenance, ordering, and aggregate closure.
 ///
 /// # Errors
 /// Returns an error when the index is malformed or its summary differs from its records.
 pub fn validate_benchmark_data_index(index: &BenchmarkDataIndex) -> Result<(), BenchError> {
-    if index.schema_version != BENCHMARK_DATA_INDEX_SCHEMA_V1 {
-        return Err(invalid("benchmark data-index schema mismatch"));
-    }
+    validate_schema_identity(index)?;
     validate_utc_timestamp(&index.created_at_utc)?;
     if index.data_root != "study://data" {
         return Err(invalid("benchmark data-index root is not canonical"));
@@ -68,6 +66,29 @@ pub fn validate_benchmark_data_index(index: &BenchmarkDataIndex) -> Result<(), B
         return Err(invalid("benchmark data-index summary does not close over its records"));
     }
     Ok(())
+}
+
+fn validate_schema_identity(index: &BenchmarkDataIndex) -> Result<(), BenchError> {
+    match (
+        index.schema_version.as_str(),
+        index.catalog_registry_path.as_deref(),
+        index.catalog_registry_sha256.as_deref(),
+    ) {
+        (BENCHMARK_DATA_INDEX_SCHEMA_V1, None, None) => Ok(()),
+        (BENCHMARK_DATA_INDEX_SCHEMA_V2, Some(path), Some(digest)) => {
+            validate_study_uri(path, "catalog registry")?;
+            if !path.starts_with("study://data/catalog/")
+                || std::path::Path::new(path).extension() != Some(std::ffi::OsStr::new("json"))
+            {
+                return Err(invalid("benchmark data-index catalog registry path is invalid"));
+            }
+            validate_digest(digest, "catalog registry")
+        }
+        (BENCHMARK_DATA_INDEX_SCHEMA_V1 | BENCHMARK_DATA_INDEX_SCHEMA_V2, _, _) => {
+            Err(invalid("benchmark data-index registry identity disagrees with schema"))
+        }
+        _ => Err(invalid("benchmark data-index schema mismatch")),
+    }
 }
 
 fn validate_record(record: &BenchmarkDataIndexRecord) -> Result<(), BenchError> {

@@ -32,7 +32,10 @@ fn bench_readiness_executable_resolution_writes_governed_tsv_file() {
     );
 
     let rendered_path = String::from_utf8(output.stdout).expect("stdout utf8");
-    assert_eq!(rendered_path.trim(), "benchmarks/readiness/tools/executable-resolution.tsv");
+    assert_eq!(
+        rendered_path.trim(),
+        "artifacts/benchmark-smoke/readiness/tools/executable-resolution.tsv"
+    );
 
     let payload = std::fs::read_to_string(repo_root.join(rendered_path.trim()))
         .expect("read executable resolution tsv");
@@ -53,7 +56,7 @@ fn bench_readiness_executable_resolution_writes_governed_tsv_file() {
         row == &"samtools\tbam\tbam.coverage,bam.duplication_metrics,bam.endogenous_content,bam.filter,bam.length_filter,bam.mapping_summary,bam.mapq_filter,bam.markdup,bam.qc_pre,bam.validate\tcontainer\tdocker_image\tbijuxdna/samtools:1.21\tsamtools\tdomain/bam/tools/samtools.yaml"
     }));
     assert!(rows.iter().any(|row| {
-        row == &"beagle\tvcf\tvcf.imputation_metrics,vcf.impute\tcontainer\tapptainer_image\tcontainers/apptainer/lunarc/beagle.def@sha256:220b8f1687f32f6f04cb4e85b0d6ab4ecd2e98f6f5147064c4c2420ddfdd5b3f\tbeagle\tdomain/vcf/tools/beagle.yaml"
+        row == &"beagle\tvcf\tvcf.imputation_metrics,vcf.impute\tcontainer\tapptainer_image\tcontainers/apptainer/beagle.def@sha256:220b8f1687f32f6f04cb4e85b0d6ab4ecd2e98f6f5147064c4c2420ddfdd5b3f\tbeagle\tdomain/vcf/tools/beagle.yaml"
     }));
     assert!(rows.iter().any(|row| {
         row.starts_with("angsd\t")

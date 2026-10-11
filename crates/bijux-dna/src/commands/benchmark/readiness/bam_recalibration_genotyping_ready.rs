@@ -25,7 +25,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_BAM_RECALIBRATION_GENOTYPING_READY_PATH: &str =
-    "benchmarks/readiness/bam/recalibration-genotyping-ready.json";
+    "artifacts/benchmark-smoke/readiness/bam/recalibration-genotyping-ready.json";
 const BAM_RECALIBRATION_GENOTYPING_READY_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.bam_recalibration_genotyping_ready.v1";
 const COVERAGE_STATUS_COMPLETE: &str = "complete";
@@ -116,9 +116,9 @@ const GENOTYPING_REQUIRED_LOCAL_PROOF_COMMAND_FRAGMENTS: [&str; 7] = [
     "corpus_01_bam_reference.fasta",
     "human_like_genotyping_candidate_sites.vcf",
     "human_like_genotyping_target_regions.txt",
-    "benchmarks/readiness/local-ready/bam.genotyping/genotyping.bcf",
-    "benchmarks/readiness/local-ready/bam.genotyping/genotyping.vcf.gz",
-    "benchmarks/readiness/local-ready/bam.genotyping/genotyping.gl.json",
+    "artifacts/benchmark-smoke/readiness/local-ready/bam.genotyping/genotyping.bcf",
+    "artifacts/benchmark-smoke/readiness/local-ready/bam.genotyping/genotyping.vcf.gz",
+    "artifacts/benchmark-smoke/readiness/local-ready/bam.genotyping/genotyping.gl.json",
 ];
 
 fn bam_binding_specs() -> Vec<BamBindingSpec> {

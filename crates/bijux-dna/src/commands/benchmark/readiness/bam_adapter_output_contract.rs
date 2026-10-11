@@ -16,7 +16,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_BAM_ADAPTER_OUTPUT_CONTRACT_PATH: &str =
-    "benchmarks/readiness/bam-adapter-output-contract.tsv";
+    "artifacts/benchmark-smoke/readiness/bam/bam-adapter-output-contract.tsv";
 const BAM_ADAPTER_OUTPUT_CONTRACT_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.bam_adapter_output_contract.v1";
 
@@ -455,7 +455,7 @@ mod tests {
                 && row.normalized_metrics_output_id.as_deref() == Some("haplogroups")
         }));
         assert!(report.rows.iter().any(|row| {
-            row.tool_id == "angsd"
+            row.tool_id == "bcftools"
                 && row.stage_id == "bam.genotyping"
                 && super::output_contract_status_label(row.output_contract_status) == "complete"
                 && row.normalized_metrics_output_id.as_deref() == Some("genotyping_report")
@@ -489,10 +489,10 @@ mod tests {
         assert!(
             rows.iter().any(|row| {
                 row.starts_with(
-                    "angsd\tbam.genotyping\trunnable\tcomplete\tgenotyping_bcf,genotyping_vcf,genotyping_vcf_tbi,genotyping_gl,genotyping_report,summary,stage_metrics\tgenotyping_report,summary,stage_metrics,population_metrics\t"
+                    "bcftools\tbam.genotyping\trunnable\tcomplete\tgenotyping_bcf,genotyping_vcf,genotyping_vcf_tbi,genotyping_gl,genotyping_report,summary,stage_metrics\tgenotyping_report,summary,stage_metrics,genotyping_bcf,genotyping_vcf,genotyping_vcf_tbi,genotyping_gl\t"
                 )
             }),
-            "the governed angsd genotyping row must declare the full BAM adapter output contract"
+            "the governed bcftools genotyping row must declare the full BAM adapter output contract"
         );
     }
 }

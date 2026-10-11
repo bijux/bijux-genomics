@@ -12,19 +12,21 @@ pub(crate) const DEFAULT_BENCHMARK_FIXTURE_ROOT_SUFFIX: &str = "tests/fixtures";
 pub(crate) const DEFAULT_BENCHMARK_PARSER_FIXTURE_ROOT_SUFFIX: &str = "tests/fixtures/bench";
 pub(crate) const DEFAULT_BENCHMARK_CORPORA_ROOT_SUFFIX: &str = "tests/fixtures/corpora";
 pub(crate) const DEFAULT_BENCHMARK_DATABASES_ROOT_SUFFIX: &str = "tests/fixtures/databases";
-pub(crate) const DEFAULT_BENCHMARK_READINESS_ROOT_RELATIVE: &str = "benchmarks/readiness";
-pub(crate) const DEFAULT_BENCHMARK_READINESS_HPC_ROOT_RELATIVE: &str = "benchmarks/readiness/hpc";
+pub(crate) const DEFAULT_BENCHMARK_READINESS_ROOT_RELATIVE: &str =
+    "artifacts/benchmark-smoke/readiness";
+pub(crate) const DEFAULT_BENCHMARK_READINESS_HPC_ROOT_RELATIVE: &str =
+    "artifacts/benchmark-smoke/readiness/hpc";
 pub(crate) const DEFAULT_BENCHMARK_LOCAL_READY_ROOT_RELATIVE: &str =
-    "benchmarks/readiness/local-ready";
+    "artifacts/benchmark-smoke/readiness/local-ready";
 pub(crate) const DEFAULT_BENCHMARK_RUNS_ROOT_RELATIVE: &str = "runs/bench";
-pub(crate) const DEFAULT_BENCHMARK_MICRO_ROOT_RELATIVE: &str = "runs/bench/micro";
+pub(crate) const DEFAULT_BENCHMARK_MICRO_ROOT_RELATIVE: &str = "artifacts/benchmark-smoke/micro";
 pub(crate) const DEFAULT_BENCHMARK_LOCAL_SMOKE_ROOT_RELATIVE: &str = "runs/bench/local-smoke";
 pub(crate) const DEFAULT_BENCHMARK_LOCAL_FAKE_RUN_ROOT_RELATIVE: &str =
-    "runs/bench/local-fake-runs";
+    "artifacts/benchmark-smoke/simulated-runs";
 pub(crate) const DEFAULT_BENCHMARK_HPC_DRY_RUN_ROOT_RELATIVE: &str = "runs/bench/hpc-dry-run";
 pub(crate) const DEFAULT_BENCHMARK_SLURM_DRY_RUN_ROOT_RELATIVE: &str = "runs/bench/slurm-dry-run";
 pub(crate) const DEFAULT_BENCHMARK_READINESS_PROBE_ROOT_RELATIVE: &str =
-    "runs/bench/readiness-probes";
+    "artifacts/benchmark-smoke/simulated-runs/readiness-probes";
 
 #[derive(Debug, Clone)]
 pub(crate) struct BenchmarkPathResolver {
@@ -212,15 +214,43 @@ pub(crate) fn ensure_path_stays_within_benchmark_runs_root(
     bail!("{output_kind} must resolve inside `{DEFAULT_BENCHMARK_RUNS_ROOT_RELATIVE}`");
 }
 
+pub(crate) fn ensure_path_stays_within_benchmark_micro_root(
+    repo_root: &Path,
+    candidate: &Path,
+    output_kind: &str,
+) -> Result<()> {
+    let resolved = absolutize(repo_root, candidate);
+    let micro_root = repo_root.join(DEFAULT_BENCHMARK_MICRO_ROOT_RELATIVE);
+    if resolved == micro_root || resolved.starts_with(&micro_root) {
+        return Ok(());
+    }
+    bail!("{output_kind} must resolve inside `{DEFAULT_BENCHMARK_MICRO_ROOT_RELATIVE}`");
+}
+
+pub(crate) fn ensure_path_stays_within_benchmark_simulated_run_root(
+    repo_root: &Path,
+    candidate: &Path,
+    output_kind: &str,
+) -> Result<()> {
+    let resolved = absolutize(repo_root, candidate);
+    let simulated_root = repo_root.join(DEFAULT_BENCHMARK_LOCAL_FAKE_RUN_ROOT_RELATIVE);
+    if resolved == simulated_root || resolved.starts_with(&simulated_root) {
+        return Ok(());
+    }
+    bail!("{output_kind} must resolve inside `{DEFAULT_BENCHMARK_LOCAL_FAKE_RUN_ROOT_RELATIVE}`");
+}
+
 #[cfg(test)]
 #[allow(clippy::expect_used)]
 mod tests {
     use super::{
         ensure_path_stays_outside_benchmark_readiness_root,
+        ensure_path_stays_within_benchmark_micro_root,
         ensure_path_stays_within_benchmark_readiness_hpc_root,
         ensure_path_stays_within_benchmark_readiness_root,
-        ensure_path_stays_within_benchmark_runs_root, BenchmarkPathResolver, BENCHMARK_ROOT_ENV,
-        DEFAULT_BENCHMARK_HPC_DRY_RUN_ROOT_RELATIVE,
+        ensure_path_stays_within_benchmark_runs_root,
+        ensure_path_stays_within_benchmark_simulated_run_root, BenchmarkPathResolver,
+        BENCHMARK_ROOT_ENV, DEFAULT_BENCHMARK_HPC_DRY_RUN_ROOT_RELATIVE,
         DEFAULT_BENCHMARK_LOCAL_FAKE_RUN_ROOT_RELATIVE,
         DEFAULT_BENCHMARK_LOCAL_READY_ROOT_RELATIVE, DEFAULT_BENCHMARK_LOCAL_SMOKE_ROOT_RELATIVE,
         DEFAULT_BENCHMARK_MICRO_ROOT_RELATIVE, DEFAULT_BENCHMARK_READINESS_HPC_ROOT_RELATIVE,
@@ -360,7 +390,7 @@ mod tests {
 
         let error = ensure_path_stays_outside_benchmark_readiness_root(
             repo_root,
-            Path::new("benchmarks/readiness/local-ready/fastq.validate_reads"),
+            Path::new("artifacts/benchmark-smoke/readiness/local-ready/fastq.validate_reads"),
             "local-smoke output",
         )
         .expect_err("readiness-root output should be rejected");
@@ -377,7 +407,7 @@ mod tests {
 
         ensure_path_stays_within_benchmark_readiness_root(
             repo_root,
-            Path::new("benchmarks/readiness/hpc/FIRST_HPC_CANDIDATE_RUN.json"),
+            Path::new("artifacts/benchmark-smoke/readiness/local-ready/manifest.json"),
             "candidate manifest output",
         )
         .expect("readiness-root output should be accepted");
@@ -389,7 +419,7 @@ mod tests {
 
         ensure_path_stays_within_benchmark_readiness_hpc_root(
             repo_root,
-            Path::new("benchmarks/readiness/hpc/HPC_DRY_RUN_LOCAL_READY.json"),
+            Path::new("artifacts/benchmark-smoke/readiness/hpc/HPC_DRY_RUN_LOCAL_READY.json"),
             "HPC dry-run readiness output",
         )
         .expect("readiness-hpc-root output should be accepted");
@@ -407,7 +437,7 @@ mod tests {
         .expect_err("non-readiness output should be rejected");
 
         assert!(
-            error.to_string().contains("must resolve inside `benchmarks/readiness`"),
+            error.to_string().contains("must resolve inside `artifacts/benchmark-smoke/readiness`"),
             "unexpected error: {error}"
         );
     }
@@ -418,7 +448,7 @@ mod tests {
 
         let error = ensure_path_stays_within_benchmark_readiness_hpc_root(
             repo_root,
-            Path::new("benchmarks/readiness/local-ready/HPC_SUBMISSION_READY.json"),
+            Path::new("artifacts/benchmark-smoke/readiness/local-ready/HPC_SUBMISSION_READY.json"),
             "HPC dry-run readiness output",
         )
         .expect_err("non-hpc readiness output should be rejected");
@@ -435,7 +465,7 @@ mod tests {
 
         let error = ensure_path_stays_within_benchmark_runs_root(
             repo_root,
-            Path::new("benchmarks/readiness/local-ready"),
+            Path::new("artifacts/benchmark-smoke/readiness/local-ready"),
             "slurm dry-run output",
         )
         .expect_err("path outside runs root should be rejected");
@@ -444,5 +474,39 @@ mod tests {
             error.to_string().contains("must resolve inside `runs/bench`"),
             "unexpected error: {error}"
         );
+    }
+
+    #[test]
+    fn benchmark_micro_guard_accepts_only_disposable_smoke_artifacts() {
+        let repo_root = Path::new("/workspace/repo");
+        ensure_path_stays_within_benchmark_micro_root(
+            repo_root,
+            Path::new("artifacts/benchmark-smoke/micro/report.json"),
+            "micro report",
+        )
+        .expect("micro artifact should be accepted");
+        assert!(ensure_path_stays_within_benchmark_micro_root(
+            repo_root,
+            Path::new("runs/bench/micro/report.json"),
+            "micro report",
+        )
+        .is_err());
+    }
+
+    #[test]
+    fn benchmark_simulated_run_guard_rejects_production_run_namespace() {
+        let repo_root = Path::new("/workspace/repo");
+        ensure_path_stays_within_benchmark_simulated_run_root(
+            repo_root,
+            Path::new("artifacts/benchmark-smoke/simulated-runs/stages/manifest.json"),
+            "simulated run",
+        )
+        .expect("simulated artifact should be accepted");
+        assert!(ensure_path_stays_within_benchmark_simulated_run_root(
+            repo_root,
+            Path::new("runs/bench/run-2042-fastq-profile-read-lengths/manifest.json"),
+            "simulated run",
+        )
+        .is_err());
     }
 }

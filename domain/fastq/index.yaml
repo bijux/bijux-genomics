@@ -141,6 +141,7 @@ governed_tool_ids:
   - fastq_scan
   - fastqc
   - fastqvalidator
+  - fastuniq
   - fastx_clipper
   - flash2
   - fqtools
@@ -241,6 +242,7 @@ stage_tool_compatibility:
   fastq.remove_chimeras:
   - vsearch
   fastq.remove_duplicates:
+  - fastuniq
   - clumpify
   fastq.repair_pairs:
   fastq.report_qc:
@@ -339,6 +341,7 @@ stage_tool_integration:
     leehom: governed_contract
   fastq.remove_duplicates:
     clumpify: governed_contract
+    fastuniq: governed_contract
   fastq.filter_low_complexity:
     fastp: governed_contract
     prinseq: governed_contract
@@ -757,6 +760,9 @@ stage_default_settings:
     clumpify:
       profile: adna_sane_default
       notes: kmer-clumped duplicate removal preset
+    fastuniq:
+      profile: paired_exact_duplicates
+      notes: paired-read duplicate removal using a checksum-admitted external artifact
   fastq.report_qc:
     multiqc:
       profile: adna_sane_default

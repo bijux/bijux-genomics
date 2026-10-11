@@ -228,7 +228,7 @@ fn runner_tree_matches_architecture_contract() {
 
     let support_entries = dir_entries(&root.join("tests/support"));
     let expected_support_tests: BTreeSet<_> =
-        ["workspace_paths.rs"].into_iter().map(str::to_string).collect();
+        ["scheduler_executable.rs", "workspace_paths.rs"].into_iter().map(str::to_string).collect();
     assert_eq!(
         support_entries, expected_support_tests,
         "runner support tests must stay under tests/support"

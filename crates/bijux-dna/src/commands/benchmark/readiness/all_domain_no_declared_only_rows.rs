@@ -15,7 +15,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_ALL_DOMAIN_NO_DECLARED_ONLY_ROWS_PATH: &str =
-    "benchmarks/readiness/all-domains/no-declared-only-rows.json";
+    "artifacts/benchmark-smoke/readiness/all-domains/no-declared-only-rows.json";
 const ALL_DOMAIN_NO_DECLARED_ONLY_ROWS_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.all_domain_no_declared_only_rows.v1";
 

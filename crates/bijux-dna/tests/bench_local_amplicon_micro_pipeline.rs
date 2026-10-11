@@ -35,7 +35,7 @@ fn bench_local_amplicon_micro_pipeline_reports_validated_amplicon_outputs() {
     let rendered_path = String::from_utf8(output.stdout).expect("stdout utf8");
     assert_eq!(
         rendered_path.trim(),
-        "runs/bench/micro/pipelines/amplicon/MICRO_AMPLICON_SUMMARY.json"
+        "artifacts/benchmark-smoke/micro/pipelines/amplicon/MICRO_AMPLICON_SUMMARY.json"
     );
     let payload: serde_json::Value = serde_json::from_slice(
         &std::fs::read(repo_root.join(rendered_path.trim())).expect("read summary"),
@@ -47,7 +47,7 @@ fn bench_local_amplicon_micro_pipeline_reports_validated_amplicon_outputs() {
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("runs/bench/micro/pipelines/amplicon/MICRO_AMPLICON_SUMMARY.json")
+        Some("artifacts/benchmark-smoke/micro/pipelines/amplicon/MICRO_AMPLICON_SUMMARY.json")
     );
     assert_eq!(
         payload.get("pipeline_id").and_then(serde_json::Value::as_str),

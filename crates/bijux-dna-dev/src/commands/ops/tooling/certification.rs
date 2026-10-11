@@ -185,7 +185,7 @@ pub(in super::super) fn tooling_certify_domains_with_mode(
     if matches!(mode, "vcf" | "all") {
         for example_id in [
             "vcf_damage_aware_genotype_mini",
-            "vcf_downstream_vcf_full_mini",
+            "vcf_downstream_chr22_reference",
             "vcf_downstream_demography_mini",
             "vcf_essential_qc_filter",
             "vcf_imputation_mini",
@@ -358,8 +358,8 @@ pub(in super::super) fn tooling_certify_domains_with_mode(
                 workspace.path("examples/vcf/damage-aware-genotype-mini"),
             ),
             (
-                "vcf_downstream_vcf_full_mini",
-                workspace.path("examples/vcf/downstream-vcf-full-mini"),
+                "vcf_downstream_chr22_reference",
+                workspace.path("examples/vcf/downstream-vcf-chr22-reference"),
             ),
             (
                 "vcf_downstream_demography_mini",

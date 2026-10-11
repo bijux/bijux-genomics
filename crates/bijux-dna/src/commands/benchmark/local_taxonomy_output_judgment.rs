@@ -17,7 +17,7 @@ use crate::commands::numeric::rounded_f64_to_u64;
 pub(crate) const LOCAL_TAXONOMY_OUTPUT_JUDGMENT_SCHEMA_VERSION: &str =
     "bijux.bench.local_taxonomy_output_judgment.v1";
 pub(crate) const DEFAULT_TAXONOMY_OUTPUT_JUDGMENT_PATH: &str =
-    "benchmarks/readiness/local-ready/corpus-02-edna-taxonomy-judgment.json";
+    "artifacts/benchmark-smoke/readiness/local-ready/corpus-02-edna-taxonomy-judgment.json";
 
 #[derive(Debug, Clone)]
 pub(crate) struct LocalTaxonomyObservedReportArg {

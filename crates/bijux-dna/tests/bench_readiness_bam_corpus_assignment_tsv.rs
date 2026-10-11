@@ -31,7 +31,8 @@ fn bench_readiness_bam_corpus_assignment_writes_governed_tsv_columns() {
         String::from_utf8_lossy(&output.stderr)
     );
 
-    let tsv_path = repo_root.join("benchmarks/readiness/bam-corpus-assignment.tsv");
+    let tsv_path =
+        repo_root.join("artifacts/benchmark-smoke/readiness/bam/bam-corpus-assignment.tsv");
     assert!(tsv_path.is_file(), "BAM corpus assignment TSV must exist");
 
     let tsv = std::fs::read_to_string(&tsv_path).expect("read BAM corpus assignment");
@@ -44,7 +45,18 @@ fn bench_readiness_bam_corpus_assignment_writes_governed_tsv_columns() {
     );
     let rows = lines.map(|line| line.split('\t').collect::<Vec<_>>()).collect::<Vec<_>>();
     assert!(!rows.is_empty(), "TSV must retain active BAM rows");
-    assert!(rows.iter().all(|row| row[0] != "angsd" && row[0] != "ngsbriggs"));
+    assert!(rows.iter().any(|row| {
+        row[0] == "angsd"
+            && row[1] == "bam.kinship"
+            && row[2] == "benchmark_ready"
+            && row[7] == "corpus-01-kinship-mini"
+    }));
+    assert!(rows.iter().any(|row| {
+        row[0] == "ngsbriggs"
+            && row[1] == "bam.damage"
+            && row[2] == "benchmark_ready"
+            && row[7] == "corpus-01-adna-damage-mini"
+    }));
     assert!(rows.iter().any(|row| {
         row[0] == "authenticct"
             && row[1] == "bam.authenticity"

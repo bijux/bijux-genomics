@@ -5,5 +5,11 @@
     "validate_inputs",
     "run_bench",
     "collect_outputs"
+  ],
+  "pipeline": [
+    "fastq.normalize_primers",
+    "fastq.remove_chimeras",
+    "fastq.cluster_otus",
+    "fastq.normalize_abundance"
   ]
 }

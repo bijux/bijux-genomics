@@ -13,7 +13,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_ALL_DOMAIN_NO_PLACEHOLDER_COMMAND_CHECK_PATH: &str =
-    "benchmarks/readiness/all-domains/no-placeholder-command-check.json";
+    "artifacts/benchmark-smoke/readiness/all-domains/no-placeholder-command-check.json";
 const ALL_DOMAIN_NO_PLACEHOLDER_COMMAND_CHECK_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.all_domain_no_placeholder_command_check.v1";
 const FINDING_TO_DO_MARKER: &str = "contains_todo_marker";

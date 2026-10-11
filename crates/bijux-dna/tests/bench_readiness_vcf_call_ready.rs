@@ -43,7 +43,7 @@ fn bench_readiness_vcf_call_ready_reports_complete_retained_callers() {
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/vcf/call-ready.json")
+        Some("artifacts/benchmark-smoke/readiness/vcf/call-ready.json")
     );
     assert_eq!(payload.get("retained_row_count").and_then(serde_json::Value::as_u64), Some(1));
     assert_eq!(payload.get("active_row_count").and_then(serde_json::Value::as_u64), Some(1));
@@ -85,7 +85,7 @@ fn bench_readiness_vcf_call_ready_reports_complete_retained_callers() {
     );
     assert_eq!(
         row.get("retained_scope_proof_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/all-domains/active-stage-tool-matrix.tsv")
+        Some("artifacts/benchmark-smoke/readiness/all-domains/active-stage-tool-matrix.tsv")
     );
     assert_eq!(
         row.get("all_domain_active_row_present").and_then(serde_json::Value::as_bool),
@@ -100,17 +100,17 @@ fn bench_readiness_vcf_call_ready_reports_complete_retained_callers() {
     assert_eq!(row.get("command_step_count").and_then(serde_json::Value::as_u64), Some(3));
     assert_eq!(
         row.get("command_output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/vcf/vcf-rendered-commands.sh")
+        Some("artifacts/benchmark-smoke/readiness/vcf/vcf-rendered-commands.sh")
     );
     assert_eq!(
         row.get("command_argv_output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/vcf/vcf-rendered-commands.argv.jsonl")
+        Some("artifacts/benchmark-smoke/readiness/vcf/vcf-rendered-commands.argv.jsonl")
     );
 
     assert_eq!(row.get("output_ready").and_then(serde_json::Value::as_bool), Some(true));
     assert_eq!(
         row.get("output_proof_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/vcf-adapter-output-coverage.tsv")
+        Some("artifacts/benchmark-smoke/readiness/vcf/vcf-adapter-output-coverage.tsv")
     );
     assert_eq!(row.get("parser_ready").and_then(serde_json::Value::as_bool), Some(true));
     assert_eq!(
@@ -129,7 +129,7 @@ fn bench_readiness_vcf_call_ready_reports_complete_retained_callers() {
     assert_eq!(row.get("expected_result_ready").and_then(serde_json::Value::as_bool), Some(true));
     assert_eq!(
         row.get("expected_result_proof_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/vcf-expected-benchmark-results.tsv")
+        Some("artifacts/benchmark-smoke/readiness/vcf/vcf-expected-benchmark-results.tsv")
     );
     assert_eq!(
         row.get("report_section_id").and_then(serde_json::Value::as_str),

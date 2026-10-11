@@ -35,7 +35,7 @@ fn bench_readiness_bam_contamination_complete_writes_governed_json_file() {
     let rendered_path = String::from_utf8(output.stdout).expect("stdout utf8");
     assert_eq!(
         rendered_path.trim(),
-        "benchmarks/readiness/bam/stages/bam.contamination.complete.json"
+        "artifacts/benchmark-smoke/readiness/bam/stages/bam.contamination.complete.json"
     );
 
     let payload = fs::read_to_string(repo_root.join(rendered_path.trim()))

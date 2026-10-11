@@ -13,21 +13,26 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_MICRO_BENCHMARK_EXECUTION_READY_PATH: &str =
-    "benchmarks/readiness/micro/MICRO_BENCHMARK_EXECUTION_READY.json";
+    "artifacts/benchmark-smoke/readiness/micro/MICRO_BENCHMARK_EXECUTION_READY.json";
 const MICRO_BENCHMARK_EXECUTION_READY_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.micro_benchmark_execution_ready.v1";
 
-const REAL_SMOKE_CORE_SUMMARY_PATH: &str = "runs/bench/micro/core/REAL_SMOKE_CORE_SUMMARY.json";
-const FASTQ_MICRO_SUMMARY_PATH: &str = "runs/bench/micro/fastq/MICRO_FASTQ_SUMMARY.json";
-const BAM_MICRO_SUMMARY_PATH: &str = "runs/bench/micro/bam/MICRO_BAM_SUMMARY.json";
-const VCF_MICRO_SUMMARY_PATH: &str = "runs/bench/micro/vcf/MICRO_VCF_SUMMARY.json";
+const REAL_SMOKE_CORE_SUMMARY_PATH: &str =
+    "artifacts/benchmark-smoke/micro/core/REAL_SMOKE_CORE_SUMMARY.json";
+const FASTQ_MICRO_SUMMARY_PATH: &str =
+    "artifacts/benchmark-smoke/micro/fastq/MICRO_FASTQ_SUMMARY.json";
+const BAM_MICRO_SUMMARY_PATH: &str = "artifacts/benchmark-smoke/micro/bam/MICRO_BAM_SUMMARY.json";
+const VCF_MICRO_SUMMARY_PATH: &str = "artifacts/benchmark-smoke/micro/vcf/MICRO_VCF_SUMMARY.json";
 const AMPLICON_MICRO_SUMMARY_PATH: &str =
-    "runs/bench/micro/pipelines/amplicon/MICRO_AMPLICON_SUMMARY.json";
-const ADNA_MICRO_SUMMARY_PATH: &str = "runs/bench/micro/pipelines/adna/MICRO_ADNA_SUMMARY.json";
-const EDNA_MICRO_SUMMARY_PATH: &str = "runs/bench/micro/pipelines/edna/MICRO_EDNA_SUMMARY.json";
+    "artifacts/benchmark-smoke/micro/pipelines/amplicon/MICRO_AMPLICON_SUMMARY.json";
+const ADNA_MICRO_SUMMARY_PATH: &str =
+    "artifacts/benchmark-smoke/micro/pipelines/adna/MICRO_ADNA_SUMMARY.json";
+const EDNA_MICRO_SUMMARY_PATH: &str =
+    "artifacts/benchmark-smoke/micro/pipelines/edna/MICRO_EDNA_SUMMARY.json";
 const CORE_GERMLINE_MICRO_SUMMARY_PATH: &str =
-    "runs/bench/micro/pipelines/core-germline/MICRO_PIPELINE_SUMMARY.json";
-const MICRO_BENCHMARK_REPORT_PATH: &str = "runs/bench/micro/MICRO_BENCHMARK_REPORT.json";
+    "artifacts/benchmark-smoke/micro/pipelines/core-germline/MICRO_PIPELINE_SUMMARY.json";
+const MICRO_BENCHMARK_REPORT_PATH: &str =
+    "artifacts/benchmark-smoke/micro/MICRO_BENCHMARK_REPORT.json";
 
 const REQUIRED_MICRO_COMPONENT_IDS: &[&str] = &[
     "amplicon_micro_pipeline",

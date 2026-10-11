@@ -47,7 +47,7 @@ fn bench_local_pipeline_dag_validates_fastq_core_preprocess_contract() {
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/local-ready/pipeline-dag/fastq-core-preprocess.json")
+        Some("artifacts/benchmark-smoke/readiness/local-ready/pipeline-dag/fastq-core-preprocess.json")
     );
     assert_eq!(
         payload.get("pipeline_id").and_then(serde_json::Value::as_str),
@@ -105,7 +105,9 @@ fn bench_local_pipeline_dag_validates_fastq_paired_merge_contract() {
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/local-ready/pipeline-dag/fastq-paired-merge.json")
+        Some(
+            "artifacts/benchmark-smoke/readiness/local-ready/pipeline-dag/fastq-paired-merge.json"
+        )
     );
     assert_eq!(
         payload.get("pipeline_id").and_then(serde_json::Value::as_str),
@@ -168,7 +170,9 @@ fn bench_local_pipeline_dag_validates_fastq_edna_taxonomy_contract() {
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/local-ready/pipeline-dag/fastq-edna-taxonomy.json")
+        Some(
+            "artifacts/benchmark-smoke/readiness/local-ready/pipeline-dag/fastq-edna-taxonomy.json"
+        )
     );
     assert_eq!(
         payload.get("pipeline_id").and_then(serde_json::Value::as_str),
@@ -226,7 +230,7 @@ fn bench_local_pipeline_dag_validates_edna_taxonomy_no_vcf_contract() {
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/local-ready/pipeline-dag/edna-taxonomy-no-vcf.json")
+        Some("artifacts/benchmark-smoke/readiness/local-ready/pipeline-dag/edna-taxonomy-no-vcf.json")
     );
     assert_eq!(
         payload.get("pipeline_id").and_then(serde_json::Value::as_str),
@@ -306,7 +310,7 @@ fn bench_local_pipeline_dag_validates_fastq_amplicon_contract() {
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/local-ready/pipeline-dag/fastq-amplicon.json")
+        Some("artifacts/benchmark-smoke/readiness/local-ready/pipeline-dag/fastq-amplicon.json")
     );
     assert_eq!(
         payload.get("pipeline_id").and_then(serde_json::Value::as_str),
@@ -370,7 +374,7 @@ fn bench_local_pipeline_dag_validates_amplicon_asv_otu_no_vcf_contract() {
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/local-ready/pipeline-dag/amplicon-asv-otu-no-vcf.json")
+        Some("artifacts/benchmark-smoke/readiness/local-ready/pipeline-dag/amplicon-asv-otu-no-vcf.json")
     );
     assert_eq!(
         payload.get("pipeline_id").and_then(serde_json::Value::as_str),
@@ -446,7 +450,7 @@ fn bench_local_pipeline_dag_validates_fastq_umi_contract() {
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/local-ready/pipeline-dag/fastq-umi.json")
+        Some("artifacts/benchmark-smoke/readiness/local-ready/pipeline-dag/fastq-umi.json")
     );
     assert_eq!(payload.get("pipeline_id").and_then(serde_json::Value::as_str), Some("fastq-umi"));
     assert_eq!(
@@ -523,7 +527,7 @@ fn bench_local_pipeline_dag_validates_fastq_to_bam_contract() {
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/local-ready/pipeline-dag/fastq-to-bam.json")
+        Some("artifacts/benchmark-smoke/readiness/local-ready/pipeline-dag/fastq-to-bam.json")
     );
     assert_eq!(
         payload.get("pipeline_id").and_then(serde_json::Value::as_str),
@@ -600,7 +604,7 @@ fn bench_local_pipeline_dag_validates_core_germline_fastq_bam_vcf_contract() {
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/local-ready/pipeline-dag/core-germline-fastq-bam-vcf.json")
+        Some("artifacts/benchmark-smoke/readiness/local-ready/pipeline-dag/core-germline-fastq-bam-vcf.json")
     );
     assert_eq!(
         payload.get("pipeline_id").and_then(serde_json::Value::as_str),
@@ -674,7 +678,7 @@ fn bench_local_pipeline_dag_validates_bam_core_qc_contract() {
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/local-ready/pipeline-dag/bam-core-qc.json")
+        Some("artifacts/benchmark-smoke/readiness/local-ready/pipeline-dag/bam-core-qc.json")
     );
     assert_eq!(payload.get("pipeline_id").and_then(serde_json::Value::as_str), Some("bam-core-qc"));
     assert_eq!(
@@ -746,7 +750,7 @@ fn bench_local_pipeline_dag_validates_bam_authenticity_contract() {
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/local-ready/pipeline-dag/bam-authenticity.json")
+        Some("artifacts/benchmark-smoke/readiness/local-ready/pipeline-dag/bam-authenticity.json")
     );
     assert_eq!(
         payload.get("pipeline_id").and_then(serde_json::Value::as_str),
@@ -813,7 +817,7 @@ fn bench_local_pipeline_dag_validates_adna_pseudohaploid_contract() {
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/local-ready/pipeline-dag/adna-pseudohaploid-fastq-bam-vcf.json")
+        Some("artifacts/benchmark-smoke/readiness/local-ready/pipeline-dag/adna-pseudohaploid-fastq-bam-vcf.json")
     );
     assert_eq!(
         payload.get("pipeline_id").and_then(serde_json::Value::as_str),
@@ -904,7 +908,7 @@ fn bench_local_pipeline_dag_validates_adna_gl_contract() {
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/local-ready/pipeline-dag/adna-gl-fastq-bam-vcf.json")
+        Some("artifacts/benchmark-smoke/readiness/local-ready/pipeline-dag/adna-gl-fastq-bam-vcf.json")
     );
     assert_eq!(
         payload.get("pipeline_id").and_then(serde_json::Value::as_str),
@@ -1001,7 +1005,7 @@ fn bench_local_pipeline_dag_validates_diploid_small_contract() {
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/local-ready/pipeline-dag/diploid-small-fastq-bam-vcf.json")
+        Some("artifacts/benchmark-smoke/readiness/local-ready/pipeline-dag/diploid-small-fastq-bam-vcf.json")
     );
     assert_eq!(
         payload.get("pipeline_id").and_then(serde_json::Value::as_str),
@@ -1108,7 +1112,7 @@ fn bench_local_pipeline_dag_validates_reference_panel_imputation_contract() {
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/local-ready/pipeline-dag/reference-panel-imputation.json")
+        Some("artifacts/benchmark-smoke/readiness/local-ready/pipeline-dag/reference-panel-imputation.json")
     );
     assert_eq!(
         payload.get("pipeline_id").and_then(serde_json::Value::as_str),
@@ -1254,7 +1258,7 @@ fn bench_local_pipeline_dag_validates_popgen_structure_contract() {
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/local-ready/pipeline-dag/popgen-structure-vcf.json")
+        Some("artifacts/benchmark-smoke/readiness/local-ready/pipeline-dag/popgen-structure-vcf.json")
     );
     assert_eq!(
         payload.get("pipeline_id").and_then(serde_json::Value::as_str),
@@ -1389,7 +1393,7 @@ fn bench_local_pipeline_dag_validates_relatedness_segments_contract() {
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/local-ready/pipeline-dag/relatedness-segments-vcf.json")
+        Some("artifacts/benchmark-smoke/readiness/local-ready/pipeline-dag/relatedness-segments-vcf.json")
     );
     assert_eq!(
         payload.get("pipeline_id").and_then(serde_json::Value::as_str),
@@ -1509,7 +1513,7 @@ fn bench_local_pipeline_dag_validates_bam_genotyping_to_vcf_downstream_contract(
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/local-ready/pipeline-dag/bam-genotyping-to-vcf-downstream.json")
+        Some("artifacts/benchmark-smoke/readiness/local-ready/pipeline-dag/bam-genotyping-to-vcf-downstream.json")
     );
     assert_eq!(
         payload.get("pipeline_id").and_then(serde_json::Value::as_str),
@@ -1658,7 +1662,7 @@ fn bench_local_pipeline_dag_validates_bam_genotyping_contract() {
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/local-ready/pipeline-dag/bam-genotyping.json")
+        Some("artifacts/benchmark-smoke/readiness/local-ready/pipeline-dag/bam-genotyping.json")
     );
     assert_eq!(
         payload.get("pipeline_id").and_then(serde_json::Value::as_str),
@@ -1754,7 +1758,7 @@ fn bench_local_pipeline_dag_validates_bam_kinship_contract() {
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/local-ready/pipeline-dag/bam-kinship.json")
+        Some("artifacts/benchmark-smoke/readiness/local-ready/pipeline-dag/bam-kinship.json")
     );
     assert_eq!(payload.get("pipeline_id").and_then(serde_json::Value::as_str), Some("bam-kinship"));
     assert_eq!(

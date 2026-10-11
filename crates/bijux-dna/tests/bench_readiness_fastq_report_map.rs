@@ -49,7 +49,7 @@ fn bench_readiness_fastq_report_map_reports_governed_expected_result_bindings() 
     assert_eq!(payload.get("domain").and_then(serde_json::Value::as_str), Some("fastq"));
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/fastq/fastq-report-map.tsv")
+        Some("artifacts/benchmark-smoke/readiness/fastq/fastq-report-map.tsv")
     );
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
     let row_count = u64::try_from(rows.len()).expect("row count fits u64");

@@ -18,7 +18,7 @@ use bijux_dna_planner_bam::stage_api::{
 use serde::Serialize;
 
 use super::active_scope::include_fastq_active_benchmark_pair;
-use super::catalog::load_retained_container_tool_ids;
+use super::catalog::load_benchmark_integrated_container_tool_ids;
 use crate::commands::benchmark::local_corpus_stage_compatibility::{
     load_corpus_stage_compatibility_declarations, DEFAULT_CORPUS_STAGE_COMPATIBILITY_PATH,
 };
@@ -29,9 +29,9 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_FASTQ_TOOL_SERVING_MAP_PATH: &str =
-    "benchmarks/readiness/fastq-tool-serving-map.tsv";
+    "artifacts/benchmark-smoke/readiness/fastq/fastq-tool-serving-map.tsv";
 pub(crate) const DEFAULT_BAM_TOOL_SERVING_MAP_PATH: &str =
-    "benchmarks/readiness/bam-tool-serving-map.tsv";
+    "artifacts/benchmark-smoke/readiness/bam/bam-tool-serving-map.tsv";
 const FASTQ_TOOL_SERVING_MAP_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.fastq_tool_serving_map.v1";
 const BAM_TOOL_SERVING_MAP_SCHEMA_VERSION: &str = "bijux.bench.readiness.bam_tool_serving_map.v1";
@@ -117,7 +117,7 @@ pub(crate) fn collect_fastq_tool_serving_map_rows(
     repo_root: &Path,
 ) -> Result<(usize, usize, Vec<ToolServingMapRow>)> {
     let corpus_status_by_stage = load_corpus_status_by_stage(repo_root)?;
-    let retained_container_tool_ids = load_retained_container_tool_ids(repo_root)?;
+    let integrated_container_tool_ids = load_benchmark_integrated_container_tool_ids(repo_root)?;
     let inventory = load_local_stage_inventory(repo_root, BenchLocalDomain::Fastq)?;
     let mut rows = Vec::new();
     let mut tool_ids = BTreeSet::new();
@@ -131,7 +131,7 @@ pub(crate) fn collect_fastq_tool_serving_map_rows(
                 )
             })?;
         for binding in stage_tool_bindings_for_stage(&stage_id) {
-            if !retained_container_tool_ids.contains(binding.tool_id.as_str()) {
+            if !integrated_container_tool_ids.contains(binding.tool_id.as_str()) {
                 continue;
             }
             let runtime_normalization =
@@ -266,7 +266,7 @@ pub(crate) fn collect_bam_tool_serving_map_rows(
     repo_root: &Path,
 ) -> Result<(usize, usize, Vec<ToolServingMapRow>)> {
     let corpus_status_by_stage = load_corpus_status_by_stage(repo_root)?;
-    let retained_container_tool_ids = load_retained_container_tool_ids(repo_root)?;
+    let integrated_container_tool_ids = load_benchmark_integrated_container_tool_ids(repo_root)?;
     let inventory = load_local_stage_inventory(repo_root, BenchLocalDomain::Bam)?;
     let mut rows = Vec::new();
     let mut tool_ids = BTreeSet::new();
@@ -283,7 +283,7 @@ pub(crate) fn collect_bam_tool_serving_map_rows(
             })?;
         let parser_status = bam_parser_status_label(stage);
         for tool_id in allowed_bam_tools_for_stage(stage) {
-            if !retained_container_tool_ids.contains(tool_id.as_str()) {
+            if !integrated_container_tool_ids.contains(tool_id.as_str()) {
                 continue;
             }
             tool_ids.insert(tool_id.as_str().to_string());
@@ -490,7 +490,13 @@ mod tests {
         assert_eq!(report.stage_count, 27);
         assert_eq!(report.row_count, report.rows.len());
         assert!(!report.rows.is_empty(), "FASTQ tool serving map must contain rows");
-        assert!(report.rows.iter().all(|row| row.tool_id != "fastuniq"));
+        assert!(report.rows.iter().any(|row| {
+            row.tool_id == "fastuniq"
+                && row.stage_id == "fastq.remove_duplicates"
+                && row.support_status == "governed_benchmark_cohort"
+                && row.adapter_status == "runnable"
+                && row.parser_status == "benchmark_normalized"
+        }));
         assert!(report.rows.iter().any(|row| {
             row.tool_id == "fastqc"
                 && row.stage_id == "fastq.validate_reads"
@@ -642,9 +648,18 @@ mod tests {
         assert_eq!(report.stage_count, 24);
         assert_eq!(report.row_count, report.rows.len());
         assert!(!report.rows.is_empty(), "BAM tool serving map must contain rows");
-        for unsupported_tool_id in ["angsd", "ngsbriggs"] {
-            assert!(report.rows.iter().all(|row| row.tool_id != unsupported_tool_id));
-        }
+        assert!(report.rows.iter().any(|row| {
+            row.tool_id == "angsd"
+                && row.stage_id == "bam.kinship"
+                && row.support_status == "supported"
+                && row.adapter_status == "runnable"
+        }));
+        assert!(report.rows.iter().any(|row| {
+            row.tool_id == "ngsbriggs"
+                && row.stage_id == "bam.damage"
+                && row.support_status == "supported"
+                && row.adapter_status == "runnable"
+        }));
         assert!(report.rows.iter().any(|row| {
             row.tool_id == "bwa"
                 && row.stage_id == "bam.align"

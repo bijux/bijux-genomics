@@ -1,4 +1,4 @@
-schema_version = "bijux.benchmark.portfolio.v1"
+schema_version = "bijux.benchmark.portfolio.v2"
 
 [measurement]
 warmup_repetitions = 1
@@ -98,7 +98,7 @@ required_quality_dimensions = [
 id = "human-short-read-diversity"
 status = "admitted"
 evidence_scope = "comparative"
-real_data = true
+class = "production_real"
 sample_count = 20
 data_types = ["fastq"]
 roles = ["short_read_diversity", "ancient_and_modern_reads", "single_and_paired_reads"]
@@ -116,7 +116,7 @@ limitations = [
 id = "ancient-horse-alignment-qualification"
 status = "admitted"
 evidence_scope = "qualification"
-real_data = true
+class = "qualification_real"
 sample_count = 1
 data_types = ["bam"]
 roles = ["ancient_bam_qualification"]
@@ -130,9 +130,9 @@ limitations = [
 
 [[corpora]]
 id = "read-processing-challenge"
-status = "missing"
+status = "source_defined"
 evidence_scope = "comparative"
-real_data = true
+class = "production_real"
 sample_count = 0
 minimum_sample_count = 10
 data_types = ["fastq"]
@@ -140,12 +140,13 @@ roles = ["read_processing_truth", "adapter_damage_complexity_challenge"]
 truth_strategy = "real_reads_with_calibrated_spike_ins"
 scientific_rationale = "Real libraries with independently quantified adapter, damage, duplicate, UMI, complexity, and low-quality signals are required to measure true retention and removal rather than only runtime."
 limitations = ["The challenge panel, spike-in recipe, and independent truth observations are not yet admitted."]
+source_specs = ["benchmarks/corpora/read-processing-challenge.toml"]
 
 [[corpora]]
 id = "environmental-taxonomy-challenge"
-status = "missing"
+status = "source_defined"
 evidence_scope = "comparative"
-real_data = true
+class = "production_real"
 sample_count = 0
 minimum_sample_count = 10
 data_types = ["fastq", "taxonomy_database"]
@@ -153,38 +154,41 @@ roles = ["environmental_taxonomy_truth", "host_and_rrna_challenge"]
 truth_strategy = "real_edna_with_mock_community_and_orthogonal_assays"
 scientific_rationale = "Environmental and mock-community libraries with independently supported composition are needed for Kraken, Centrifuge, Kaiju, rRNA, and host-depletion sensitivity and specificity."
 limitations = ["No governed eDNA panel, database snapshot, expected-taxon set, or negative controls are admitted."]
+source_specs = ["benchmarks/corpora/environmental-taxonomy-challenge.toml"]
 
 [[corpora]]
 id = "amplicon-community-challenge"
-status = "missing"
+status = "source_defined"
 evidence_scope = "comparative"
-real_data = true
+class = "production_real"
 sample_count = 0
 minimum_sample_count = 10
-data_types = ["fastq", "amplicon_reference"]
+data_types = ["amplicon_reference", "fastq"]
 roles = ["amplicon_truth"]
 truth_strategy = "real_mock_communities_with_known_composition"
 scientific_rationale = "Replicated real mock communities with known membership and abundance are needed to compare ASV, OTU, chimera, and normalization behavior."
 limitations = ["No governed mock-community panel or independently declared expected composition is admitted."]
+source_specs = ["benchmarks/corpora/amplicon-community-challenge.toml"]
 
 [[corpora]]
 id = "alignment-truth-panel"
-status = "missing"
+status = "source_defined"
 evidence_scope = "comparative"
-real_data = true
+class = "production_real"
 sample_count = 0
 minimum_sample_count = 10
-data_types = ["fastq", "bam", "fasta"]
+data_types = ["bam", "fasta", "fastq"]
 roles = ["alignment_truth"]
 truth_strategy = "real_reference_material_with_orthogonal_truth_and_supplementary_simulation"
 scientific_rationale = "Diverse real libraries tied to independently characterized reference material are needed for mapping correctness; simulation may test controlled edge cases but cannot replace the real panel."
 limitations = ["No governed multi-sample alignment truth panel or common alignment scoring surface is admitted."]
+source_specs = ["benchmarks/corpora/alignment-truth-panel.toml"]
 
 [[corpora]]
 id = "ancient-dna-bam-diversity"
-status = "missing"
+status = "source_defined"
 evidence_scope = "comparative"
-real_data = true
+class = "production_real"
 sample_count = 0
 minimum_sample_count = 10
 data_types = ["bam", "fasta"]
@@ -192,32 +196,35 @@ roles = ["bam_diversity", "ancient_damage_truth"]
 truth_strategy = "real_ancient_libraries_with_orthogonal_authentication"
 scientific_rationale = "Multiple libraries spanning damage, depth, duplication, contamination, fragment length, and library preparation are required for defensible BAM-stage comparisons."
 limitations = ["Only one ancient horse BAM is currently checksum-admitted for qualification."]
+source_specs = ["benchmarks/corpora/ancient-dna-bam-diversity.toml"]
 
 [[corpora]]
 id = "variant-truth-panel"
-status = "missing"
+status = "source_defined"
 evidence_scope = "comparative"
-real_data = true
+class = "production_real"
 sample_count = 0
 minimum_sample_count = 10
-data_types = ["bam", "vcf", "reference_panel", "genetic_map"]
+data_types = ["bam", "genetic_map", "reference_panel", "vcf"]
 roles = ["variant_truth", "masked_genotype_truth"]
 truth_strategy = "independently_curated_genotypes_with_masked_truth"
 scientific_rationale = "A diverse truth cohort with held-out genotypes, immutable panels, and genetic maps is required for calling, filtering, phasing, and imputation accuracy."
 limitations = ["No governed multi-sample truth VCF, mask split, reference panel, or genetic map is admitted."]
+source_specs = ["benchmarks/corpora/variant-truth-panel.toml"]
 
 [[corpora]]
 id = "ancient-population-panel"
-status = "missing"
+status = "source_defined"
 evidence_scope = "comparative"
-real_data = true
+class = "production_real"
 sample_count = 0
 minimum_sample_count = 10
-data_types = ["vcf", "genotype_likelihoods", "sample_metadata"]
+data_types = ["genotype_likelihoods", "sample_metadata", "vcf"]
 roles = ["population_inference_truth", "ancient_population_diversity"]
 truth_strategy = "real_cohort_with_independent_metadata_and_sensitivity_analysis"
 scientific_rationale = "Population analyses require a cohort large and diverse enough to test missingness, relatedness, ancestry, sex, age, and low-coverage sensitivity without treating software agreement as truth."
 limitations = ["No governed population cohort, metadata authority, or expected-result sensitivity surface is admitted."]
+source_specs = ["benchmarks/corpora/ancient-population-panel.toml"]
 
 [[profiles]]
 id = "fastq-observational-qc"

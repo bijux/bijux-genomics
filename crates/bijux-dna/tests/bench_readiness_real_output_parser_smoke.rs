@@ -45,7 +45,7 @@ fn bench_readiness_real_output_parser_smoke_report_governs_retained_family_parse
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/tools/real-output-parser-smoke.json")
+        Some("artifacts/benchmark-smoke/readiness/tools/real-output-parser-smoke.json")
     );
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows array");
     assert_eq!(
@@ -234,7 +234,10 @@ fn bench_readiness_real_output_parser_smoke_writes_governed_json_file() {
     );
 
     let rendered_path = String::from_utf8(output.stdout).expect("stdout utf8");
-    assert_eq!(rendered_path.trim(), "benchmarks/readiness/tools/real-output-parser-smoke.json");
+    assert_eq!(
+        rendered_path.trim(),
+        "artifacts/benchmark-smoke/readiness/tools/real-output-parser-smoke.json"
+    );
 
     let report_path = sandbox.path().join(rendered_path.trim());
     assert!(report_path.is_file(), "real-output parser smoke report JSON must exist");

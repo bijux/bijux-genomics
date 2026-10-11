@@ -11,7 +11,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_VCF_MATRIX_REGISTRY_CONSISTENCY_PATH: &str =
-    "benchmarks/readiness/vcf-matrix-registry-consistency.json";
+    "artifacts/benchmark-smoke/readiness/vcf/vcf-matrix-registry-consistency.json";
 const VCF_MATRIX_REGISTRY_CONSISTENCY_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.vcf_matrix_registry_consistency.v1";
 
@@ -350,7 +350,7 @@ mod tests {
         assert!(report.passes_gate);
         assert_eq!(report.stage_count, 20);
         assert_eq!(report.matrix_row_count, 24);
-        assert_eq!(report.registry_pair_count, 41);
+        assert_eq!(report.registry_pair_count, 39);
         assert_eq!(report.benchmark_ready_registry_pair_count, 20);
         assert_eq!(report.unregistered_matrix_pair_count, 0);
         assert_eq!(report.missing_benchmark_ready_registry_pair_count, 0);

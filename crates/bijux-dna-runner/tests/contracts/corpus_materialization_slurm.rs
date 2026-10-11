@@ -1,17 +1,22 @@
 use std::fs;
 
 use bijux_dna_bench_model::{
-    CorpusAcquisitionFile, CorpusAcquisitionLayout, CorpusAcquisitionPlan, CorpusAcquisitionSample,
-    CorpusMaterializationDisposition, GovernedDataCatalog, GovernedDataCatalogFile,
-    GovernedDataCatalogSample, CORPUS_ACQUISITION_SCHEMA_V1, GOVERNED_DATA_CATALOG_SCHEMA_V1,
+    BenchmarkCorpusClass, CorpusAcquisitionFile, CorpusAcquisitionLayout, CorpusAcquisitionPlan,
+    CorpusAcquisitionSample, CorpusMaterializationDisposition, CorpusSourcePolicy,
+    GovernedDataCatalog, GovernedDataCatalogFile, GovernedDataCatalogSample,
+    CORPUS_ACQUISITION_SCHEMA_V2, GOVERNED_DATA_CATALOG_SCHEMA_V2,
 };
 use bijux_dna_runner::api::{
     collect_corpus_materialization_slurm_job, load_corpus_materialization_slurm_spec,
     load_prepared_corpus_materialization_slurm_job, prepare_corpus_materialization_slurm_job,
-    submit_prepared_corpus_materialization_job, CorpusMaterializationEvidenceStatus,
+    publish_corpus_materialization_evidence_correction, submit_prepared_corpus_materialization_job,
+    CorpusMaterializationEvidenceCorrectionRequest, CorpusMaterializationEvidenceStatus,
     CorpusMaterializationSlurmResources, CorpusMaterializationSlurmSpec, SlurmClientPaths,
     CORPUS_MATERIALIZATION_SLURM_SPEC_SCHEMA_V1,
 };
+
+#[cfg(unix)]
+use crate::scheduler_executable::write_executable;
 
 #[cfg(unix)]
 use std::os::unix::fs::PermissionsExt as _;
@@ -25,6 +30,7 @@ fn preparation_binds_exact_authorities_and_renders_rust_cli() -> anyhow::Result<
 
     assert!(script.contains("#SBATCH --cpus-per-task=2"));
     assert!(script.contains("'bench' 'materialize-fastq-corpus'"));
+    assert!(script.contains("'--repository-commit' 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'"));
     assert!(script.contains(&fixture.spec.executable_sha256));
     assert!(script.contains(&fixture.spec.plan_sha256));
     assert!(!script.contains("python"));
@@ -45,8 +51,7 @@ fn preparation_binds_exact_authorities_and_renders_rust_cli() -> anyhow::Result<
 fn preparation_binds_an_existing_catalog_for_idempotent_replay() -> anyhow::Result<()> {
     let mut fixture = fixture()?;
     publish_catalog(&fixture)?;
-    let catalog_path =
-        fixture.spec.data_root.join("catalog").join(format!("{}.json", fixture.spec.portfolio_id));
+    let catalog_path = catalog_snapshot_path(&fixture);
     let catalog_sha256 = bijux_dna_infra::hash_file_sha256(&catalog_path)?;
     fixture.spec.existing_catalog_sha256 = Some(catalog_sha256.clone());
 
@@ -117,8 +122,7 @@ fn submission_is_duplicate_safe_and_terminal_collection_verifies_catalog() -> an
         }))?,
     )?;
     let catalog = publish_catalog(&fixture)?;
-    let catalog_path =
-        fixture.spec.data_root.join("catalog").join(format!("{}.json", fixture.spec.portfolio_id));
+    let catalog_path = catalog_snapshot_path(&fixture);
     let catalog_sha256 = bijux_dna_infra::hash_file_sha256(&catalog_path)?;
     fs::write(
         fixture.spec.evidence_root.join("materialization-publication.json"),
@@ -140,7 +144,30 @@ fn submission_is_duplicate_safe_and_terminal_collection_verifies_catalog() -> an
 
     assert_eq!(evidence.status, CorpusMaterializationEvidenceStatus::Passed);
     assert_eq!(evidence.catalog_sha256.as_deref(), Some(catalog_sha256.as_str()));
-    assert!(fixture.spec.evidence_root.join("materialization-evidence.json").is_file());
+    let evidence_path = fixture.spec.evidence_root.join("materialization-evidence.json");
+    assert!(evidence_path.is_file());
+    let correction_path =
+        fixture.spec.evidence_root.join("materialization-evidence-correction.json");
+    let correction_request = CorpusMaterializationEvidenceCorrectionRequest {
+        evidence_path,
+        output_path: correction_path.clone(),
+        observed_local_time: "2026-08-06T10:30:00+02:00".to_string(),
+        source_timezone: "Europe/Stockholm".to_string(),
+        corrected_at_utc: "2026-08-06T11:00:00Z".to_string(),
+        source_commit: "b".repeat(40),
+        reason: "The operator supplied the scheduler-local clock as a UTC timestamp.".to_string(),
+    };
+    let correction = publish_corpus_materialization_evidence_correction(&correction_request)?;
+    assert_eq!(correction.recorded_value, "2026-08-06T10:30:00Z");
+    assert_eq!(correction.corrected_value, "2026-08-06T08:30:00Z");
+    assert_eq!(
+        correction,
+        publish_corpus_materialization_evidence_correction(&correction_request)?
+    );
+    let mut conflicting_correction = correction_request;
+    conflicting_correction.observed_local_time = "2026-08-06T10:31:00+02:00".to_string();
+    assert!(publish_corpus_materialization_evidence_correction(&conflicting_correction)
+        .is_err_and(|error| error.to_string().contains("conflicts")));
     fs::write(&prepared.request.stdout_path, b"tampered")?;
     assert!(collect_corpus_materialization_slurm_job(
         &scheduler,
@@ -235,12 +262,14 @@ fn fixture() -> anyhow::Result<Fixture> {
 
 fn acquisition_plan(size_bytes: u64) -> CorpusAcquisitionPlan {
     CorpusAcquisitionPlan {
-        schema_version: CORPUS_ACQUISITION_SCHEMA_V1.to_string(),
+        schema_version: CORPUS_ACQUISITION_SCHEMA_V2.to_string(),
         corpus_id: "corpus-01".to_string(),
         portfolio_id: "human-short-read-diversity".to_string(),
         species: "Homo sapiens".to_string(),
         retrieved_at_utc: "2026-08-06T10:00:00Z".to_string(),
         source_authority: "European Nucleotide Archive".to_string(),
+        description: "real benchmark corpus".to_string(),
+        policy: source_policy(size_bytes),
         source_spec: "benchmarks/corpora/human-short-read-diversity.toml".to_string(),
         source_spec_sha256: "b".repeat(64),
         sample_count: 1,
@@ -310,17 +339,15 @@ fn publish_catalog(fixture: &Fixture) -> anyhow::Result<GovernedDataCatalog> {
         last_updated: sample.last_updated.clone(),
     };
     let catalog = GovernedDataCatalog {
-        schema_version: GOVERNED_DATA_CATALOG_SCHEMA_V1.to_string(),
+        schema_version: GOVERNED_DATA_CATALOG_SCHEMA_V2.to_string(),
         id: fixture.spec.portfolio_id.clone(),
         purpose: "real benchmark corpus".to_string(),
         source: "European Nucleotide Archive".to_string(),
+        policy: fixture.plan.policy.clone(),
         source_record: "study://data/evidence/acquisition-plans/plan.json".to_string(),
         source_record_sha256: fixture.spec.plan_sha256.clone(),
         retrieved_at_utc: fixture.plan.retrieved_at_utc.clone(),
         admitted_at_utc: fixture.spec.admitted_at_utc.clone(),
-        access_classification: "public".to_string(),
-        redistribution_classification: "accession-referenced".to_string(),
-        access_terms: "ENA public data access terms apply".to_string(),
         scientific_name: fixture.plan.species.clone(),
         samples: vec![catalog_sample],
         files: vec![GovernedDataCatalogFile {
@@ -341,13 +368,36 @@ fn publish_catalog(fixture: &Fixture) -> anyhow::Result<GovernedDataCatalog> {
             source_md5: sample.files[0].source_md5.clone(),
             materialization_status: CorpusMaterializationDisposition::Downloaded,
         }],
-        known_limitations: vec!["not population representative".to_string()],
     };
-    let catalog_path =
-        fixture.spec.data_root.join("catalog").join(format!("{}.json", fixture.spec.portfolio_id));
+    let catalog_path = catalog_snapshot_path(fixture);
     fs::create_dir_all(catalog_path.parent().ok_or_else(|| anyhow::anyhow!("catalog parent"))?)?;
     fs::write(catalog_path, serde_json::to_vec_pretty(&catalog)?)?;
     Ok(catalog)
+}
+
+fn catalog_snapshot_path(fixture: &Fixture) -> std::path::PathBuf {
+    fixture
+        .spec
+        .data_root
+        .join("catalog/snapshots")
+        .join(&fixture.spec.repository_commit)
+        .join(format!("{}.json", fixture.spec.portfolio_id))
+}
+
+fn source_policy(projected_storage_bytes: u64) -> CorpusSourcePolicy {
+    CorpusSourcePolicy {
+        class: BenchmarkCorpusClass::ProductionReal,
+        access_classification: "public".to_string(),
+        redistribution_classification: "public-source-copy".to_string(),
+        access_terms_url: "https://www.ebi.ac.uk/ena/browser/about/policies".to_string(),
+        attribution: "cite source studies and accessions".to_string(),
+        projected_storage_bytes,
+        projected_cpu_hours: 1,
+        projection_basis: "bounded scheduler contract projection".to_string(),
+        truth_roles: vec!["archive_context".to_string()],
+        truth_strategy: "observational_only".to_string(),
+        known_limitations: vec!["not population representative".to_string()],
+    }
 }
 
 #[cfg(unix)]
@@ -360,13 +410,4 @@ fn scheduler_client(root: &std::path::Path, sbatch_body: &str) -> anyhow::Result
     };
     write_executable(&paths.sbatch, &format!("#!/bin/sh\n{sbatch_body}"))?;
     Ok(paths)
-}
-
-#[cfg(unix)]
-fn write_executable(path: &std::path::Path, body: &str) -> anyhow::Result<()> {
-    fs::write(path, body)?;
-    let mut permissions = fs::metadata(path)?.permissions();
-    permissions.set_mode(0o755);
-    fs::set_permissions(path, permissions)?;
-    Ok(())
 }

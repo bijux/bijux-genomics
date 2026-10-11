@@ -43,7 +43,7 @@ fn bench_readiness_apptainer_map_reports_governed_docker_to_sif_mappings() {
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/tools/apptainer-map.tsv")
+        Some("artifacts/benchmark-smoke/readiness/tools/apptainer-map.tsv")
     );
     let rows = payload.get("rows").and_then(serde_json::Value::as_array).expect("rows");
     let row_count = u64::try_from(rows.len()).expect("row count fits u64");

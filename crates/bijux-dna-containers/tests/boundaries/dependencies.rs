@@ -26,11 +26,17 @@ fn dependency_graph_matches_environment_boundary() {
     assert_eq!(dependencies, expected_dependencies, "unexpected direct dependency shape");
 
     let dev_dependencies = section_keys(&manifest, "[dev-dependencies]");
-    let expected_dev_dependencies: BTreeSet<_> =
-        ["bijux-dna-core", "bijux-dna-policies", "bijux-dna-testkit", "tempfile", "walkdir"]
-            .into_iter()
-            .map(str::to_string)
-            .collect();
+    let expected_dev_dependencies: BTreeSet<_> = [
+        "bijux-dna-core",
+        "bijux-dna-policies",
+        "bijux-dna-stage-contract",
+        "bijux-dna-testkit",
+        "tempfile",
+        "walkdir",
+    ]
+    .into_iter()
+    .map(str::to_string)
+    .collect();
     assert_eq!(dev_dependencies, expected_dev_dependencies, "unexpected dev dependency shape");
     assert!(
         manifest.contains("bijux-dna-policies.workspace = true"),

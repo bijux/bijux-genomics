@@ -45,7 +45,7 @@ fn bench_readiness_all_domain_local_harness_complete_reports_governed_pass_state
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/all-domains/ALL_DOMAIN_LOCAL_HARNESS_COMPLETE.json")
+        Some("artifacts/benchmark-smoke/readiness/all-domains/ALL_DOMAIN_LOCAL_HARNESS_COMPLETE.json")
     );
     assert_eq!(payload.get("checked_goal_count").and_then(serde_json::Value::as_u64), Some(12));
     assert_eq!(payload.get("passed_goal_count").and_then(serde_json::Value::as_u64), Some(12));

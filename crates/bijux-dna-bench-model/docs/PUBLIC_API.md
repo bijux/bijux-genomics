@@ -35,6 +35,9 @@ Model contracts:
 - `BenchmarkToolReport`
 - `BenchmarkMeasurementContract`
 - `BenchmarkCorpusContract`
+- `BenchmarkCorpusClass`
+- `FastqCorpusSourceSpec`
+- `FastqCorpusSourceSample`
 - `BenchmarkScientificProfile`
 - `BenchmarkProfileAssignment`
 - `BenchmarkComparisonMetricTolerance`
@@ -72,9 +75,13 @@ Model contracts:
 - `CorpusAcquisitionSample`
 - `CorpusAcquisitionFile`
 - `CorpusAcquisitionLayout`
+- `CorpusSourcePolicy`
 - `GovernedDataCatalog`
 - `GovernedDataCatalogSample`
 - `GovernedDataCatalogFile`
+- `GovernedDataCatalogRegistry`
+- `GovernedDataCatalogRegistryRecord`
+- `GovernedDataCatalogSnapshot`
 - `CorpusMaterializationDisposition`
 - `BenchmarkAttemptRecord`
 - `BenchmarkCycleStatus`
@@ -117,11 +124,22 @@ Policy and diagnostics:
 - `BENCHMARK_STAGE_COVERAGE_SCHEMA_V1`
 - `BENCHMARK_STAGE_UNIVERSE_SCHEMA_V1`
 - `BENCHMARK_PORTFOLIO_SCHEMA_V1`
+- `BENCHMARK_PORTFOLIO_SCHEMA_V2`
+- `BENCHMARK_SCIENTIFIC_READINESS_SCHEMA_V1`
+- `BENCHMARK_SCIENTIFIC_READINESS_SCHEMA_V2`
+- `BENCHMARK_DATA_PORTFOLIO_AUDIT_SCHEMA_V1`
+- `BENCHMARK_DATA_PORTFOLIO_AUDIT_SCHEMA_V2`
 - `BENCHMARK_STAGE_INTERFACES_SCHEMA_V1`
 - `BENCHMARK_PIPELINE_PARAMETERS_SCHEMA_V1`
 - `BENCHMARK_STAGE_REPORT_SCHEMA_V1`
 - `CORPUS_ACQUISITION_SCHEMA_V1`
+- `CORPUS_ACQUISITION_SCHEMA_V2`
+- `FASTQ_CORPUS_SOURCE_SCHEMA_V1`
 - `GOVERNED_DATA_CATALOG_SCHEMA_V1`
+- `GOVERNED_DATA_CATALOG_SCHEMA_V2`
+- `GOVERNED_DATA_CATALOG_REGISTRY_SCHEMA_V1`
+- `BENCHMARK_DATA_INDEX_SCHEMA_V1`
+- `BENCHMARK_DATA_INDEX_SCHEMA_V2`
 
 Statistics:
 
@@ -146,11 +164,17 @@ Schema derivation:
 - `benchmark_execution_spec_schema`
 - `benchmark_scheduler_observation_schema`
 - `corpus_acquisition_plan_schema`
+- `fastq_corpus_source_spec_schema`
 - `governed_data_catalog_schema`
+- `governed_data_catalog_registry_schema`
+- `benchmark_data_index_schema`
 - `validate_scheduler_observation`
 - `validate_execution_spec`
 - `validate_corpus_acquisition_plan`
+- `validate_fastq_corpus_source_spec`
 - `validate_governed_data_catalog`
+- `validate_governed_data_catalog_registry`
+- `validate_benchmark_data_index`
 - `validate_utc_timestamp`
 
 Namespaces:

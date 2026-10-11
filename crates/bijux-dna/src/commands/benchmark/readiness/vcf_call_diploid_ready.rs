@@ -23,7 +23,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_VCF_CALL_DIPLOID_READY_PATH: &str =
-    "benchmarks/readiness/vcf/call-diploid-ready.json";
+    "artifacts/benchmark-smoke/readiness/vcf/call-diploid-ready.json";
 const VCF_CALL_DIPLOID_READY_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.vcf_call_diploid_ready.v1";
 const VCF_CALL_DIPLOID_STAGE_ID: &str = "vcf.call_diploid";
@@ -350,7 +350,8 @@ fn build_vcf_call_diploid_ready_row(
         retained_scope_proof_path: binding.retained_row.scope_proof_path,
         all_domain_active_row_present,
         all_domain_active_row_proof_path:
-            "benchmarks/readiness/all-domains/active-stage-tool-matrix.tsv".to_string(),
+            "artifacts/benchmark-smoke/readiness/all-domains/active-stage-tool-matrix.tsv"
+                .to_string(),
         command_ready,
         command_source: binding
             .command_row

@@ -32,7 +32,10 @@ fn bench_readiness_bam_parser_fixture_coverage_writes_governed_tsv_columns() {
     );
 
     let rendered_path = String::from_utf8(output.stdout).expect("stdout utf8");
-    assert_eq!(rendered_path.trim(), "benchmarks/readiness/bam/bam-parser-fixture-coverage.tsv");
+    assert_eq!(
+        rendered_path.trim(),
+        "artifacts/benchmark-smoke/readiness/bam/bam-parser-fixture-coverage.tsv"
+    );
 
     let tsv = std::fs::read_to_string(repo_root.join(rendered_path.trim()))
         .expect("read BAM parser coverage TSV");
@@ -45,9 +48,9 @@ fn bench_readiness_bam_parser_fixture_coverage_writes_governed_tsv_columns() {
     );
     let rows = lines.collect::<Vec<_>>();
     assert!(!rows.is_empty());
-    assert!(rows
-        .iter()
-        .all(|row| { !matches!(row.split('\t').next(), Some("angsd" | "ngsbriggs")) }));
+    assert!(rows.iter().any(|row| row.starts_with("angsd\tbam.kinship\t")));
+    assert!(rows.iter().any(|row| row.starts_with("ngsbriggs\tbam.damage\t")));
+    assert!(rows.iter().all(|row| !row.starts_with("angsd\tbam.genotyping\t")));
     assert!(
         rows.iter().any(|row| {
             row == &"samtools\tbam.validate\tfixture_corpus\tfixture:corpus-01-bam-mini\tcovered\tparser_fixture_validated\tsupported\trunnable\trow `bam.validate` / `samtools` is benchmark_ready with governed support, adapter-backed command rendering, fixture-backed corpus coverage, and parser-fixture-validated output"

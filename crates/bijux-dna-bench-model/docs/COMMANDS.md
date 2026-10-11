@@ -41,10 +41,13 @@ not own CLI commands or process execution.
 | `validate-summary` | `contract::validate_summary` | Validate a `BenchmarkSummary` before persistence or comparison. |
 | `validate-decision` | `contract::validate_decision` | Validate a `GateDecision` before persistence. |
 | `compare-summaries` | `compare::compare_summaries` | Build a deterministic typed comparison report from two summaries. |
-| `gate-policy-decide` | `GatePolicy::decide` | Evaluate one summary row metric map against gate policy thresholds and overrides. |
 | `robust-stats` | `stats::robust_stats` | Compute deterministic robust statistics. |
 | `bootstrap-ci` | `stats::bootstrap_ci` | Compute seeded bootstrap confidence intervals. |
 | `mad-outliers` | `stats::mad_outliers` | Detect deterministic median-absolute-deviation outliers. |
+
+Scientific gate evaluation is owned by
+`bijux_dna_science::decision::evaluate_benchmark_gate_policy`; this crate owns
+the typed policy inputs and decision records consumed by that evaluator.
 
 ## Local Verification Commands
 

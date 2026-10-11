@@ -33,7 +33,10 @@ fn bench_readiness_bam_active_row_consistency_writes_governed_json_file() {
     );
 
     let rendered_path = String::from_utf8(output.stdout).expect("stdout utf8");
-    assert_eq!(rendered_path.trim(), "benchmarks/readiness/bam/BAM_ACTIVE_ROW_CONSISTENCY.json");
+    assert_eq!(
+        rendered_path.trim(),
+        "artifacts/benchmark-smoke/readiness/bam/BAM_ACTIVE_ROW_CONSISTENCY.json"
+    );
 
     let payload = fs::read_to_string(repo_root.join(rendered_path.trim()))
         .expect("read BAM consistency JSON");

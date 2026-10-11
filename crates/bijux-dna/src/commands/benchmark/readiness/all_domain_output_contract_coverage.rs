@@ -28,7 +28,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_ALL_DOMAIN_OUTPUT_CONTRACT_COVERAGE_PATH: &str =
-    "benchmarks/readiness/all-domains/output-contract-coverage.tsv";
+    "artifacts/benchmark-smoke/readiness/all-domains/output-contract-coverage.tsv";
 const ALL_DOMAIN_OUTPUT_CONTRACT_COVERAGE_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.all_domain_output_contract_coverage.v1";
 const COVERAGE_STATUS_COVERED: &str = "covered";

@@ -189,7 +189,8 @@ pub(super) fn evaluate(
         "authority.data_index",
         request.data_index.as_ref(),
         observation.data_index.as_ref(),
-        "bijux.data_index.v1",
+        "bijux.data_index.",
+        &DATA_INDEX_SCHEMAS,
         &request.expected_commit,
         None,
         request.cycle.requires_execution_authorities(),
@@ -200,6 +201,7 @@ pub(super) fn evaluate(
         request.image_inventory.as_ref(),
         observation.image_inventory.as_ref(),
         "bijux.container.image_inventory",
+        &[],
         &request.expected_commit,
         Some(&request.expected_catalog_sha256),
         request.cycle.requires_execution_authorities(),
@@ -227,6 +229,7 @@ fn add_authority_check(
     input: Option<&AuthorityInput>,
     observation: Option<&AuthorityObservation>,
     expected_schema_prefix: &str,
+    exact_schemas: &[&str],
     expected_commit: &str,
     expected_catalog: Option<&String>,
     mandatory: bool,
@@ -243,10 +246,9 @@ fn add_authority_check(
     let passed = input.zip(observation).is_some_and(|(input, observed)| {
         observed.error.is_none()
             && observed.actual_sha256.as_deref() == Some(input.expected_sha256.as_str())
-            && observed
-                .schema_version
-                .as_deref()
-                .is_some_and(|schema| schema.starts_with(expected_schema_prefix))
+            && observed.schema_version.as_deref().is_some_and(|schema| {
+                authority_schema_matches(schema, expected_schema_prefix, exact_schemas)
+            })
             && observed.repository_commit.as_deref() == Some(expected_commit)
             && expected_catalog
                 .is_none_or(|catalog| observed.catalog_sha256.as_deref() == Some(catalog.as_str()))
@@ -490,5 +492,24 @@ mod tests {
             &evaluate(&policy, &request, &observed, "c".repeat(64)),
             "slurm.account_partitions",
         );
+    }
+
+    #[test]
+    fn data_index_preflight_accepts_only_supported_schema_versions() {
+        assert!(authority_schema_matches(
+            "bijux.data_index.v1",
+            "bijux.data_index.",
+            &DATA_INDEX_SCHEMAS
+        ));
+        assert!(authority_schema_matches(
+            "bijux.data_index.v2",
+            "bijux.data_index.",
+            &DATA_INDEX_SCHEMAS
+        ));
+        assert!(!authority_schema_matches(
+            "bijux.data_index.v3",
+            "bijux.data_index.",
+            &DATA_INDEX_SCHEMAS
+        ));
     }
 }

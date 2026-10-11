@@ -24,7 +24,7 @@ use serde::Serialize;
 use super::BenchmarkReportPresentationAuthority;
 
 pub(super) use evidence::load_admitted_attempt_evidence;
-pub(super) use freshness::current_report_sources;
+pub(super) use freshness::{current_report_sources, report_source_is_current};
 pub(super) use metrics::{distribution, read_resource_observation, ResourceObservation};
 pub(super) use publication::{
     canonical_directory, ensure_bytes, ensure_directory, MAX_REPORT_INPUT_BYTES,

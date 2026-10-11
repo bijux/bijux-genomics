@@ -31,7 +31,8 @@ fn bench_readiness_render_command_argv_writes_governed_jsonl() {
         String::from_utf8_lossy(&output.stderr)
     );
 
-    let jsonl_path = repo_root.join("benchmarks/readiness/rendered-commands.argv.jsonl");
+    let jsonl_path =
+        repo_root.join("artifacts/benchmark-smoke/readiness/rendered-commands.argv.jsonl");
     assert!(jsonl_path.is_file(), "rendered command argv JSONL must exist");
 
     let jsonl = std::fs::read_to_string(&jsonl_path).expect("read rendered command argv JSONL");

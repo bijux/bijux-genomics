@@ -5,7 +5,7 @@ use std::path::Path;
 fn normal_dependency_graph_matches_boundary() {
     let manifest = read_manifest();
     let dependencies = dependency_names(&manifest, "dependencies");
-    let expected = entries(["anyhow", "bijux-dna-domain-vcf", "serde", "toml"]);
+    let expected = entries(["anyhow", "bijux-dna-domain-vcf", "serde", "serde_json", "toml"]);
 
     assert_eq!(dependencies, expected, "normal dependencies must match docs/DEPENDENCIES.md");
 }

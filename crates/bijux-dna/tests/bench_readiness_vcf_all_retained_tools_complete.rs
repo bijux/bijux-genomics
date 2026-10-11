@@ -43,7 +43,7 @@ fn bench_readiness_vcf_all_retained_tools_complete_reports_governed_pass_state()
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/vcf/VCF_ALL_RETAINED_TOOLS_COMPLETE.json")
+        Some("artifacts/benchmark-smoke/readiness/vcf/VCF_ALL_RETAINED_TOOLS_COMPLETE.json")
     );
     assert_eq!(payload.get("checked_goal_count").and_then(serde_json::Value::as_u64), Some(24));
     assert_eq!(payload.get("passed_goal_count").and_then(serde_json::Value::as_u64), Some(24));

@@ -16,22 +16,37 @@ pub(super) struct ToolValidationState<'a> {
     pub(super) domain_metrics_schemas: &'a mut BTreeMap<String, BTreeMap<String, String>>,
 }
 
-fn validate_supported_packaging(
+fn validate_supported_execution(
     path: &Path,
     tool_id: &str,
     support_disposition: &str,
+    external_artifact_supported: bool,
     runtimes: &[String],
 ) -> Result<()> {
-    if support_disposition != "retained" {
-        bail!(
-            "{} supported tool {} conflicts with catalog disposition {}",
-            path.display(),
-            tool_id,
-            support_disposition
-        );
-    }
-    if runtimes.is_empty() {
-        bail!("{} supported tool {} has no catalog-authorized runtime", path.display(), tool_id);
+    match (support_disposition, external_artifact_supported) {
+        ("retained", false) if runtimes.is_empty() => {
+            bail!(
+                "{} supported tool {} has no catalog-authorized runtime",
+                path.display(),
+                tool_id
+            );
+        }
+        ("unsupported", true) if !runtimes.is_empty() => {
+            bail!(
+                "{} external artifact tool {} must not claim a redistributable runtime",
+                path.display(),
+                tool_id
+            );
+        }
+        ("retained", false) | ("unsupported", true) => {}
+        _ => {
+            bail!(
+                "{} supported tool {} conflicts with catalog disposition {}",
+                path.display(),
+                tool_id,
+                support_disposition
+            );
+        }
     }
     Ok(())
 }
@@ -120,10 +135,11 @@ pub(super) fn validate_tool_files(
                 .insert(tool.tool_id.clone(), tool.capabilities.iter().cloned().collect());
         }
         if tool.status == "supported" {
-            validate_supported_packaging(
+            validate_supported_execution(
                 &path,
                 &tool.tool_id,
                 &container_contract.support_disposition,
+                container_contract.external_artifact_supported,
                 &container_contract.runtimes(),
             )?;
         }
@@ -220,10 +236,11 @@ mod tests {
 
     #[test]
     fn supported_domain_tool_cannot_promote_unsupported_catalog_tool() {
-        let result = validate_supported_packaging(
+        let result = validate_supported_execution(
             Path::new("domain/bam/tools/angsd.yaml"),
             "angsd",
             "unsupported",
+            false,
             &[],
         );
         let Err(error) = result else {
@@ -235,10 +252,11 @@ mod tests {
 
     #[test]
     fn supported_domain_tool_requires_catalog_runtime() {
-        let result = validate_supported_packaging(
+        let result = validate_supported_execution(
             Path::new("domain/bam/tools/tool.yaml"),
             "tool",
             "retained",
+            false,
             &[],
         );
         let Err(error) = result else {
@@ -246,5 +264,32 @@ mod tests {
         };
 
         assert!(error.to_string().contains("has no catalog-authorized runtime"));
+    }
+
+    #[test]
+    fn supported_external_artifact_requires_no_redistributable_runtime() {
+        assert!(
+            validate_supported_execution(
+                Path::new("domain/bam/tools/angsd.yaml"),
+                "angsd",
+                "unsupported",
+                true,
+                &[],
+            )
+            .is_ok(),
+            "external artifact execution must remain supported"
+        );
+
+        let result = validate_supported_execution(
+            Path::new("domain/bam/tools/angsd.yaml"),
+            "angsd",
+            "unsupported",
+            true,
+            &["apptainer".to_string()],
+        );
+        let Err(error) = result else {
+            panic!("external artifact must not claim a redistributable runtime");
+        };
+        assert!(error.to_string().contains("must not claim a redistributable runtime"));
     }
 }

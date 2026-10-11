@@ -3,7 +3,7 @@ use std::env;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, bail, Context, Result};
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 
 use super::bam_active_row_consistency;
 use super::bam_adapter_output_contract;
@@ -31,7 +31,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_BAM_ALL_RETAINED_TOOLS_COMPLETE_PATH: &str =
-    "benchmarks/readiness/bam/BAM_ALL_RETAINED_TOOLS_COMPLETE.json";
+    "artifacts/benchmark-smoke/readiness/bam/BAM_ALL_RETAINED_TOOLS_COMPLETE.json";
 const BAM_ALL_RETAINED_TOOLS_COMPLETE_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.bam_all_retained_tools_complete.v1";
 const EXPECTED_CHECKED_GOAL_COUNT: usize = 19;
@@ -122,17 +122,6 @@ const BAM_STAGE_COMPLETION_GOALS: &[BamStageCompletionGoal] = &[
     },
 ];
 
-#[derive(Debug, Clone, Deserialize)]
-struct StageCompletionFallbackReport {
-    output_path: String,
-    active_row_count: usize,
-    complete_row_count: usize,
-    incomplete_row_count: usize,
-    checked_surface_count: usize,
-    violation_count: usize,
-    ok: bool,
-}
-
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 struct BamBindingKey {
     stage_id: String,
@@ -167,6 +156,7 @@ pub(crate) struct BamAllRetainedToolsCompleteReport {
     pub(crate) local_smoke_row_count: usize,
     pub(crate) local_smoke_host_stage_row_count: usize,
     pub(crate) local_smoke_container_row_count: usize,
+    pub(crate) local_smoke_external_artifact_row_count: usize,
     pub(crate) report_map_row_count: usize,
     pub(crate) active_row_consistency_surface_count: usize,
     pub(crate) micro_smoke_family_count: usize,
@@ -315,16 +305,19 @@ pub(crate) fn render_bam_all_retained_tools_complete(
             if local_smoke.row_count != expected_retained_row_count
                 || local_smoke.stage_count != expected_retained_stage_count
                 || local_smoke.tool_count != expected_retained_tool_count
-                || local_smoke.host_stage_smoke_row_count + local_smoke.container_smoke_row_count
+                || local_smoke.host_stage_smoke_row_count
+                    + local_smoke.container_smoke_row_count
+                    + local_smoke.external_artifact_row_count
                     != expected_retained_row_count
             {
                 bail!(
-                    "BAM local/container smoke drifted: rows={}, stages={}, tools={}, host_stage_smokes={}, container_smokes={}",
+                    "BAM local/container smoke drifted: rows={}, stages={}, tools={}, host_stage_smokes={}, container_smokes={}, external_artifacts={}",
                     local_smoke.row_count,
                     local_smoke.stage_count,
                     local_smoke.tool_count,
                     local_smoke.host_stage_smoke_row_count,
-                    local_smoke.container_smoke_row_count
+                    local_smoke.container_smoke_row_count,
+                    local_smoke.external_artifact_row_count
                 );
             }
             ensure_binding_subset(
@@ -334,9 +327,10 @@ pub(crate) fn render_bam_all_retained_tools_complete(
                 &local_smoke_bindings,
             )?;
             Ok(format!(
-                "validated host-vs-container smoke coverage for every retained BAM binding with {} host smoke row(s) and {} container smoke row(s)",
+                "validated runtime smoke coverage for every retained BAM binding with {} host row(s), {} container row(s), and {} external-artifact admission row(s)",
                 local_smoke.host_stage_smoke_row_count,
-                local_smoke.container_smoke_row_count
+                local_smoke.container_smoke_row_count,
+                local_smoke.external_artifact_row_count
             ))
         },
     );
@@ -603,6 +597,7 @@ pub(crate) fn render_bam_all_retained_tools_complete(
         local_smoke_row_count: local_smoke.row_count,
         local_smoke_host_stage_row_count: local_smoke.host_stage_smoke_row_count,
         local_smoke_container_row_count: local_smoke.container_smoke_row_count,
+        local_smoke_external_artifact_row_count: local_smoke.external_artifact_row_count,
         report_map_row_count: report_map.row_count,
         active_row_consistency_surface_count: active_row_consistency.checked_surface_count,
         micro_smoke_family_count: micro_smoke_summary.family_count,
@@ -726,12 +721,6 @@ fn validate_stage_completion_goal(
     repo_root: &Path,
     goal: BamStageCompletionGoal,
 ) -> Result<String> {
-    if !cfg!(feature = "bam_downstream")
-        && matches!(goal.stage_id, "bam.haplogroups" | "bam.genotyping" | "bam.kinship")
-    {
-        return validate_checked_in_stage_completion_artifact(repo_root, goal);
-    }
-
     let rendered: Result<String> = match goal.stage_id {
         "bam.overlap_correction" => {
             bam_overlap_correction_complete::render_bam_overlap_correction_complete(
@@ -919,13 +908,7 @@ fn validate_stage_completion_goal(
         _ => bail!("unknown BAM stage completion goal `{}`", goal.stage_id),
     };
 
-    match rendered {
-        Ok(detail) => Ok(detail),
-        Err(error) if error.to_string().contains("`bam_downstream` feature") => {
-            validate_checked_in_stage_completion_artifact(repo_root, goal)
-        }
-        Err(error) => Err(error),
-    }
+    rendered
 }
 
 fn validate_stage_completion_counts(
@@ -949,47 +932,6 @@ fn validate_stage_completion_counts(
         );
     }
     Ok(())
-}
-
-fn validate_checked_in_stage_completion_artifact(
-    repo_root: &Path,
-    goal: BamStageCompletionGoal,
-) -> Result<String> {
-    let absolute_path = repo_relative_path(repo_root, Path::new(goal.output_path));
-    let payload = std::fs::read_to_string(&absolute_path)
-        .with_context(|| format!("read {}", absolute_path.display()))?;
-    let report: StageCompletionFallbackReport = serde_json::from_str(&payload)
-        .with_context(|| format!("parse {}", absolute_path.display()))?;
-    if report.output_path != goal.output_path {
-        bail!(
-            "checked-in stage completion artifact for `{}` drifted output_path: observed=`{}` expected=`{}`",
-            goal.stage_id,
-            report.output_path,
-            goal.output_path
-        );
-    }
-    if !report.ok || report.incomplete_row_count != 0 || report.violation_count != 0 {
-        bail!(
-            "checked-in stage completion artifact for `{}` is not complete: ok={}, incomplete_rows={}, violations={}",
-            goal.stage_id,
-            report.ok,
-            report.incomplete_row_count,
-            report.violation_count
-        );
-    }
-    validate_stage_completion_counts(
-        goal,
-        report.complete_row_count,
-        report.active_row_count,
-        report.checked_surface_count,
-    )?;
-    Ok(format!(
-        "validated checked-in `{}` completion artifact across {}/{} retained row(s) and {} governed surface(s) because the local binary was built without `bam_downstream`",
-        goal.stage_id,
-        report.complete_row_count,
-        report.active_row_count,
-        report.checked_surface_count
-    ))
 }
 
 fn format_stage_completion_detail(
@@ -1060,7 +1002,7 @@ impl Drop for CurrentDirGuard {
     }
 }
 
-#[cfg(test)]
+#[cfg(all(test, feature = "bam_downstream"))]
 mod tests {
     use std::path::{Path, PathBuf};
     use std::time::Duration;
@@ -1126,7 +1068,9 @@ mod tests {
         assert_eq!(report.parser_fixture_row_count, report.retained_row_count);
         assert_eq!(report.local_smoke_row_count, report.retained_row_count);
         assert_eq!(
-            report.local_smoke_host_stage_row_count + report.local_smoke_container_row_count,
+            report.local_smoke_host_stage_row_count
+                + report.local_smoke_container_row_count
+                + report.local_smoke_external_artifact_row_count,
             report.retained_row_count
         );
         assert_eq!(report.report_map_row_count, report.retained_row_count);

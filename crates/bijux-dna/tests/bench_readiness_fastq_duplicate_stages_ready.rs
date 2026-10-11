@@ -44,7 +44,7 @@ fn bench_readiness_fastq_duplicate_stages_ready_reports_complete_duplicate_bindi
     );
     assert_eq!(
         payload.get("output_path").and_then(serde_json::Value::as_str),
-        Some("benchmarks/readiness/fastq/duplicate-stages-ready.json")
+        Some("artifacts/benchmark-smoke/readiness/fastq/duplicate-stages-ready.json")
     );
     assert_eq!(payload.get("active_row_count").and_then(serde_json::Value::as_u64), Some(3));
     assert_eq!(payload.get("complete_row_count").and_then(serde_json::Value::as_u64), Some(3));

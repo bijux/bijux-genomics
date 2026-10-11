@@ -82,8 +82,8 @@ fn policy__contracts__operations_reference_authority_policy__reproducibility_lin
     let expected = BTreeSet::from([
         "RUN_ARTIFACTS.md".to_string(),
         "../../configs/vcf/panels/panels.toml".to_string(),
-        "../../configs/vcf/panels/locks/lock.json".to_string(),
-        "../../configs/vcf/panels/locks/lock.json.sha256".to_string(),
+        "../../configs/vcf/panels/locks/panel_locks.toml".to_string(),
+        "../../configs/vcf/maps/locks/map_locks.toml".to_string(),
         "../../crates/bijux-dna-bench/bench/suites/".to_string(),
     ]);
     let documented = markdown_link_targets("docs/30-operations/REPRODUCIBILITY.md");
@@ -98,7 +98,7 @@ fn policy__contracts__operations_reference_authority_policy__vcf_reference_cache
 ) {
     let expected = BTreeSet::from([
         "../../configs/vcf/panels/panels.toml".to_string(),
-        "../../configs/vcf/panels/locks/lock.json".to_string(),
+        "../../configs/vcf/panels/locks/panel_locks.toml".to_string(),
         "../../configs/runtime/profiles/vcf_downstream_local.toml".to_string(),
     ]);
     let documented = markdown_link_targets("docs/30-operations/VCF_REFERENCE_CACHE_POLICY.md");

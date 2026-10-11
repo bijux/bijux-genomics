@@ -4,7 +4,9 @@ use chrono::{DateTime, Duration, Utc};
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use super::model::{EvidenceDecision, EvidenceVerdict};
+use super::model::EvidenceDecision;
+
+pub const PUBLICATION_FRESHNESS_RULE_V1: &str = "qualification.publication_freshness.v1";
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
@@ -102,18 +104,32 @@ impl PublicationFreshnessEvaluation {
 
     #[must_use]
     pub fn qualification_decision(&self, evaluation_sha256: String) -> EvidenceDecision {
+        let measured_values = BTreeMap::from([
+            ("evaluated_at_utc".to_string(), self.evaluated_at_utc.clone()),
+            ("mismatch_count".to_string(), self.mismatches.len().to_string()),
+        ]);
+        let thresholds = BTreeMap::from([("mismatch_count".to_string(), "0".to_string())]);
         if self.is_current() {
-            EvidenceDecision {
-                verdict: EvidenceVerdict::Passed,
-                evidence_sha256: Some(evaluation_sha256),
-                reasons: Vec::new(),
-            }
+            EvidenceDecision::passed(
+                PUBLICATION_FRESHNESS_RULE_V1,
+                measured_values,
+                thresholds,
+                evaluation_sha256,
+                "publication identity and age match the current authority",
+            )
         } else {
-            EvidenceDecision {
-                verdict: EvidenceVerdict::Failed,
-                evidence_sha256: None,
-                reasons: self.mismatches.iter().map(PublicationIdentityMismatch::reason).collect(),
-            }
+            let reason = self
+                .mismatches
+                .iter()
+                .map(PublicationIdentityMismatch::reason)
+                .collect::<Vec<_>>()
+                .join("; ");
+            EvidenceDecision::failed(
+                PUBLICATION_FRESHNESS_RULE_V1,
+                measured_values,
+                thresholds,
+                &reason,
+            )
         }
     }
 }
@@ -440,6 +456,7 @@ fn invalid_publication(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::qualification::EvidenceVerdict;
 
     fn artifact(uri: &str, digest: char) -> PublicationArtifactIdentity {
         PublicationArtifactIdentity { uri: uri.to_string(), sha256: digest.to_string().repeat(64) }

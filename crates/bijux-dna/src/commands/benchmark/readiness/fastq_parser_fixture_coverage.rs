@@ -24,7 +24,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_FASTQ_PARSER_FIXTURE_COVERAGE_PATH: &str =
-    "benchmarks/readiness/fastq/fastq-parser-fixture-coverage.tsv";
+    "artifacts/benchmark-smoke/readiness/fastq/fastq-parser-fixture-coverage.tsv";
 const FASTQ_PARSER_FIXTURE_COVERAGE_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.fastq_parser_fixture_coverage.v1";
 const FIXTURE_REFERENCE_KIND: &str = "fixture_case";

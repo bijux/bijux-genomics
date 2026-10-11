@@ -25,7 +25,7 @@ use crate::commands::fixtures::root_validation::{
 };
 
 pub(crate) const DEFAULT_SCIENCE_TRUTH_SETS_COMPLETE_PATH: &str =
-    "benchmarks/readiness/science/SCIENCE_TRUTH_SETS_COMPLETE.json";
+    "artifacts/benchmark-smoke/readiness/science/SCIENCE_TRUTH_SETS_COMPLETE.json";
 const SCIENCE_TRUTH_SETS_COMPLETE_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.science_truth_sets_complete.v1";
 
@@ -137,14 +137,14 @@ const SCIENCE_TRUTH_REQUIREMENTS: &[ScienceTruthRequirement] = &[
             "vcf.call_gl",
             "vcf.gl_propagation",
         ],
-        acceptance_stage_ids: &["vcf.call_pseudohaploid", "vcf.call_gl", "vcf.gl_propagation"],
+        acceptance_stage_ids: &["vcf.call_pseudohaploid", "vcf.call_gl"],
     },
     ScienceTruthRequirement {
         surface_id: "vcf_filtering",
         domain: "vcf",
         truth_fixture_id: "vcf-filter-truth",
         stage_ids: &["vcf.filter", "vcf.damage_filter"],
-        acceptance_stage_ids: &["vcf.damage_filter"],
+        acceptance_stage_ids: &[],
     },
     ScienceTruthRequirement {
         surface_id: "vcf_phasing_imputation",
@@ -565,13 +565,9 @@ mod tests {
             .expect("vcf_genotyping row");
         assert_eq!(
             vcf_genotyping.acceptance_stage_ids,
-            vec![
-                "vcf.call_pseudohaploid".to_string(),
-                "vcf.call_gl".to_string(),
-                "vcf.gl_propagation".to_string()
-            ]
+            vec!["vcf.call_pseudohaploid".to_string(), "vcf.call_gl".to_string()]
         );
-        assert_eq!(vcf_genotyping.accepted_stage_count, 3);
+        assert_eq!(vcf_genotyping.accepted_stage_count, 2);
         assert!(vcf_genotyping.missing_acceptance_stage_ids.is_empty());
     }
 

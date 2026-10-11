@@ -18,10 +18,12 @@ serde_json.workspace = true
 sha2.workspace = true
 toml.workspace = true
 walkdir.workspace = true
+bijux-dna-bench-model.workspace = true
+bijux-dna-core.workspace = true
 bijux-dna-infra = { workspace = true, features = ["yaml"] }
+bijux-dna-policies.workspace = true
 
 [dev-dependencies]
-bijux-dna-policies.workspace = true
 nix.workspace = true
 
 [lints]

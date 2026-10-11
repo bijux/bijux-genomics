@@ -33,8 +33,8 @@ const GOVERNED_VCF_PREPARE_PANEL_STAGE_ID: &str = "vcf.prepare_reference_panel";
 const GOVERNED_VCF_PREPARE_PANEL_TOOL_ID: &str = "bcftools";
 const GOVERNED_VCF_PREPARE_PANEL_CORPUS_ID: &str = "vcf_production_regression";
 const GOVERNED_VCF_PREPARE_PANEL_ASSET_PROFILE_ID: &str = "vcf_reference_panel";
-const GOVERNED_VCF_PREPARE_PANEL_PANEL_ID: &str = "hsapiens_grch38_mini";
-const GOVERNED_VCF_PREPARE_PANEL_MAP_ID: &str = "hsapiens_grch38_chr_map";
+const GOVERNED_VCF_PREPARE_PANEL_PANEL_ID: &str = "hsapiens_grch38_1kg_3202_chr22";
+const GOVERNED_VCF_PREPARE_PANEL_MAP_ID: &str = "hsapiens_grch38_glimpse_chr22";
 const GOVERNED_VCF_PREPARE_PANEL_INPUT_FIXTURE_ID: &str = "reference_panel_sort_and_deduplicate";
 const DEFAULT_INPUT_VCF_NAME: &str = "prepare_reference_panel_input.vcf";
 const DEFAULT_RAW_PANEL_NAME: &str = "panel.vcf.gz";
@@ -153,7 +153,6 @@ pub(crate) fn run_local_vcf_prepare_reference_panel_smoke(
             species_id: species_context.species_id.clone(),
             build_id: species_context.build_id.clone(),
             panel_id: Some(contract.panel_id.clone()),
-            map_id: Some(contract.map_id.clone()),
         },
     )
     .with_context(|| {
@@ -642,7 +641,7 @@ mod tests {
         assert_eq!(contract.tool_id, "bcftools");
         assert_eq!(contract.corpus_id, "vcf_production_regression");
         assert_eq!(contract.input_fixture_id, "reference_panel_sort_and_deduplicate");
-        assert_eq!(contract.panel_id, "hsapiens_grch38_mini");
-        assert_eq!(contract.map_id, "hsapiens_grch38_chr_map");
+        assert_eq!(contract.panel_id, "hsapiens_grch38_1kg_3202_chr22");
+        assert_eq!(contract.map_id, "hsapiens_grch38_glimpse_chr22");
     }
 }

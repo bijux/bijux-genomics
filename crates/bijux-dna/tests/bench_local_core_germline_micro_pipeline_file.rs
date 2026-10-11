@@ -36,7 +36,7 @@ fn bench_local_core_germline_micro_pipeline_writes_governed_summary_file() {
     let rendered_path = String::from_utf8(output.stdout).expect("stdout utf8");
     assert_eq!(
         rendered_path.trim(),
-        "runs/bench/micro/pipelines/core-germline/MICRO_PIPELINE_SUMMARY.json"
+        "artifacts/benchmark-smoke/micro/pipelines/core-germline/MICRO_PIPELINE_SUMMARY.json"
     );
 
     let summary_path = repo_root.join(rendered_path.trim());

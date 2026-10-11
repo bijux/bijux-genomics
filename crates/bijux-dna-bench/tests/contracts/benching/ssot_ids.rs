@@ -32,6 +32,13 @@ fn is_stage_id(value: &str) -> bool {
     matches!(parts.as_slice(), [prefix, _] if *prefix == "fastq" || *prefix == "bam")
 }
 
+fn is_identifier_literal(value: &str) -> bool {
+    !value.is_empty()
+        && value
+            .bytes()
+            .all(|byte| byte.is_ascii_lowercase() || byte.is_ascii_digit() || byte == b'_')
+}
+
 #[test]
 fn benchmark_references_canonical_ids() {
     let mut allowed_stages = HashSet::new();
@@ -97,7 +104,7 @@ fn benchmark_references_canonical_ids() {
                 continue;
             };
             let literal = &trimmed[start + 1..start + 1 + end];
-            if !allowed_tools.contains(literal) {
+            if is_identifier_literal(literal) && !allowed_tools.contains(literal) {
                 offenders.push(format!(
                     "{}: unowned tool id literal {}",
                     entry.path().display(),

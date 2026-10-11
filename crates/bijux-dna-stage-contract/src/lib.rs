@@ -35,11 +35,11 @@ pub use stage_plugin::{
     StageReportPartV1,
 };
 pub use tool_binding::{
-    project_tool_parameters, render_tool_command, validate_effective_tool_parameters,
-    validate_tool_binding, BindingInputV1, BindingOutputV1, BindingParameterV1,
-    EffectiveToolParameterSourceV1, EffectiveToolParameterV1, EffectiveToolParametersV1,
-    OutputDiscoveryV1, ToolArtifactSourceV1, ToolBinding, ToolBindingRegistry,
-    ToolBindingRenderContext, ToolBindingV1, ToolParameterProjectionRequest,
+    canonical_external_artifact_tool_bindings, project_tool_parameters, render_tool_command,
+    validate_effective_tool_parameters, validate_tool_binding, BindingInputV1, BindingOutputV1,
+    BindingParameterV1, EffectiveToolParameterSourceV1, EffectiveToolParameterV1,
+    EffectiveToolParametersV1, OutputDiscoveryV1, ToolArtifactSourceV1, ToolBinding,
+    ToolBindingRegistry, ToolBindingRenderContext, ToolBindingV1, ToolParameterProjectionRequest,
     EFFECTIVE_TOOL_PARAMETERS_SCHEMA_V1, TOOL_BINDING_SCHEMA_V1,
 };
 

@@ -31,7 +31,7 @@ fn bench_readiness_orphan_tools_writes_governed_tsv_columns() {
         String::from_utf8_lossy(&output.stderr)
     );
 
-    let tsv_path = repo_root.join("benchmarks/readiness/orphan-tools.tsv");
+    let tsv_path = repo_root.join("artifacts/benchmark-smoke/readiness/orphan-tools.tsv");
     assert!(tsv_path.is_file(), "orphan tools TSV must exist");
 
     let tsv = std::fs::read_to_string(&tsv_path).expect("read orphan tools");
@@ -49,11 +49,5 @@ fn bench_readiness_orphan_tools_writes_governed_tsv_columns() {
     assert!(rows.iter().any(|row| {
         row == &"fastq\tseqpurge\tfuture_tool\tfastq.trim_reads\t\ttool `seqpurge` only declares non-benchmarked stages fastq.trim_reads; keep it visible for future benchmark expansion"
     }));
-    for prefix in [
-        "bam\tangsd\tfuture_tool\t",
-        "bam\tngsbriggs\tfuture_tool\t",
-        "fastq\tfastuniq\tfuture_tool\t",
-    ] {
-        assert!(rows.iter().any(|row| row.starts_with(prefix)));
-    }
+    assert_eq!(rows.len(), 2);
 }

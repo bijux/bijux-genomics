@@ -24,7 +24,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_ESSENTIAL_PIPELINES_LOCAL_COMPLETE_PATH: &str =
-    "benchmarks/readiness/pipelines/ESSENTIAL_PIPELINES_LOCAL_COMPLETE.json";
+    "artifacts/benchmark-smoke/readiness/pipelines/ESSENTIAL_PIPELINES_LOCAL_COMPLETE.json";
 const ESSENTIAL_PIPELINES_LOCAL_COMPLETE_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.essential_pipelines_local_complete.v1";
 const EXPECTED_PIPELINE_COUNT: usize = 10;
@@ -136,7 +136,7 @@ pub(crate) fn render_essential_pipelines_local_complete(
     for pipeline_id in ESSENTIAL_PIPELINE_IDS {
         let config_path = benchmark_local_pipeline_config_path(repo_root, pipeline_id);
         let report_path = repo_root
-            .join("benchmarks/readiness/local-ready/pipeline-dag")
+            .join("artifacts/benchmark-smoke/readiness/local-ready/pipeline-dag")
             .join(format!("{pipeline_id}.json"));
         let dag = validate_pipeline_dag_path(repo_root, &config_path, &report_path)?;
         let nodes_by_id =

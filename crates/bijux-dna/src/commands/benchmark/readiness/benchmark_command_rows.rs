@@ -25,6 +25,9 @@ use crate::commands::benchmark::local_stage_inventory::{
     load_local_stage_inventory, BenchLocalDomain, LocalStageReadinessKind,
 };
 
+pub(crate) const DEFAULT_STAGE_TOOL_COMMAND_ROOT: &str =
+    "artifacts/benchmark-smoke/readiness/stage-tool-commands";
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub(crate) struct BenchmarkCommandRow {
     pub(crate) stage_id: String,
@@ -441,10 +444,7 @@ fn render_bam_stage_tool_argv(
 
 fn benchmark_command_out_dir(domain: &str, stage_id: &str, tool_id: &str) -> Result<PathBuf> {
     let stage_path = stage_id.replace('.', "/");
-    Ok(PathBuf::from("benchmarks/readiness/stage-tool-commands")
-        .join(domain)
-        .join(stage_path)
-        .join(tool_id))
+    Ok(PathBuf::from(DEFAULT_STAGE_TOOL_COMMAND_ROOT).join(domain).join(stage_path).join(tool_id))
 }
 
 fn resolve_repo_input_path(repo_root: &Path, path: &Path) -> PathBuf {

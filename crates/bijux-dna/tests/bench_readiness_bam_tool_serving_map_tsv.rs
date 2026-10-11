@@ -31,7 +31,8 @@ fn bench_readiness_bam_tool_serving_map_writes_governed_tsv_columns() {
         String::from_utf8_lossy(&output.stderr)
     );
 
-    let tsv_path = repo_root.join("benchmarks/readiness/bam-tool-serving-map.tsv");
+    let tsv_path =
+        repo_root.join("artifacts/benchmark-smoke/readiness/bam/bam-tool-serving-map.tsv");
     assert!(tsv_path.is_file(), "BAM tool serving map TSV must exist");
 
     let tsv = std::fs::read_to_string(&tsv_path).expect("read BAM tool serving map");
@@ -43,6 +44,8 @@ fn bench_readiness_bam_tool_serving_map_writes_governed_tsv_columns() {
     let rows = lines.collect::<Vec<_>>();
     assert!(!rows.is_empty(), "TSV must retain governed BAM rows");
     for row in [
+        "angsd\tbam.kinship\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-kinship-mini",
+        "ngsbriggs\tbam.damage\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-adna-damage-mini",
         "addeam\tbam.damage\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-adna-damage-mini",
         "authenticct\tbam.authenticity\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-adna-damage-mini",
         "contammix\tbam.contamination\tsupported\trunnable\tparser_fixture_validated\tfixture:corpus-01-adna-bam-mini",
@@ -90,9 +93,6 @@ fn bench_readiness_bam_tool_serving_map_writes_governed_tsv_columns() {
             "TSV must retain governed BAM readiness row: {row}"
         );
     }
-    assert!(rows
-        .iter()
-        .all(|row| { !matches!(row.split('\t').next(), Some("angsd" | "ngsbriggs")) }));
     assert!(
         !rows
             .iter()

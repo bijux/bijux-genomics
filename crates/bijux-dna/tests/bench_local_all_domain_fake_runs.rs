@@ -44,7 +44,7 @@ fn bench_local_fake_run_all_domains_json_reports_governed_result_slice() {
     );
     assert_eq!(
         payload.get("fake_run_root").and_then(serde_json::Value::as_str),
-        Some("runs/bench/local-fake-runs/all-domains")
+        Some("artifacts/benchmark-smoke/simulated-runs/all-domains")
     );
     let result_count = support::json_u64(&payload, "result_count").expect("result_count");
     assert!(payload

@@ -32,7 +32,10 @@ fn bench_readiness_all_domain_local_job_coverage_writes_governed_tsv_file() {
     );
 
     let rendered_path = String::from_utf8(output.stdout).expect("stdout utf8");
-    assert_eq!(rendered_path.trim(), "benchmarks/readiness/all-domains/local-job-coverage.tsv");
+    assert_eq!(
+        rendered_path.trim(),
+        "artifacts/benchmark-smoke/readiness/all-domains/local-job-coverage.tsv"
+    );
 
     let payload = std::fs::read_to_string(repo_root.join(rendered_path.trim()))
         .expect("read local job coverage TSV");
@@ -46,18 +49,60 @@ fn bench_readiness_all_domain_local_job_coverage_writes_governed_tsv_file() {
 
     let rows = lines.collect::<Vec<_>>();
     assert!(rows.len() >= 128);
-    assert!(rows.iter().any(|row| {
-        row == &"fastq:corpus-02-edna-mini:fastq.screen_taxonomy:sample-set:kraken2\tfastq\tfastq.screen_taxonomy\tkraken2\tcorpus-02-edna-mini\tdatabase_artifact_id+taxonomy_database_root\tfastq.adapter.screen_taxonomy\tfastq.parser.screen_taxonomy\tfastq_screen_taxonomy_v1\tdry_or_smoke\tbenchmark_ready\tfastq_bam_command_adapter\t1\t1\tinvoke\tsh\tbenchmarks/readiness/rendered-commands-all-domains.sh\tbenchmarks/readiness/rendered-commands-all-domains.argv.jsonl\tcovered\tactive row `fastq` / `fastq.screen_taxonomy` / `kraken2` keeps one local benchmark job row in `benchmarks/readiness/rendered-commands-all-domains.sh` and `benchmarks/readiness/rendered-commands-all-domains.argv.jsonl` through `fastq_bam_command_adapter`"
-    }));
-    assert!(rows.iter().any(|row| {
-        row == &"bam:corpus-01-kinship-mini:bam.kinship:sample-set:king\tbam\tbam.kinship\tking\tcorpus-01-kinship-mini\treference_fasta+reference_panel\tbam.adapter.kinship\tbam.parser.kinship\tbam_kinship_normalized_v1\tsmoke\tbenchmark_ready\tfastq_bam_command_adapter\t1\t1\tinvoke\tcargo\tbenchmarks/readiness/rendered-commands-all-domains.sh\tbenchmarks/readiness/rendered-commands-all-domains.argv.jsonl\tcovered\tactive row `bam` / `bam.kinship` / `king` keeps one local benchmark job row in `benchmarks/readiness/rendered-commands-all-domains.sh` and `benchmarks/readiness/rendered-commands-all-domains.argv.jsonl` through `fastq_bam_command_adapter`"
-    }));
-    assert!(rows.iter().any(|row| {
-        row == &"vcf:vcf_production_regression:vcf.postprocess:vcf_single_sample:bcftools\tvcf\tvcf.postprocess\tbcftools\tvcf_production_regression\tvcf_single_sample\tvcf.adapter.transform\tvcf.parser.vcf_output\tbijux.schemas.bench.vcf-normalized-metrics.postprocess.v1\tbenchmark_ready\tbenchmark_ready\tvcf_bcftools_adapter\t2\t2\tfill_tags,index_postprocess_vcf\tbcftools,bcftools\tbenchmarks/readiness/rendered-commands-all-domains.sh\tbenchmarks/readiness/rendered-commands-all-domains.argv.jsonl\tcovered\tactive row `vcf` / `vcf.postprocess` / `bcftools` keeps one local benchmark job row in `benchmarks/readiness/rendered-commands-all-domains.sh` and `benchmarks/readiness/rendered-commands-all-domains.argv.jsonl` through `vcf_bcftools_adapter`"
-    }));
-    assert!(rows.iter().any(|row| {
-        row == &"vcf:vcf_production_regression:vcf.imputation_metrics:vcf_cohort_with_panel:beagle\tvcf\tvcf.imputation_metrics\tbeagle\tvcf_production_regression\tvcf_cohort_with_panel\tvcf.adapter.panel_workflow\tvcf.parser.report_json\tbijux.schemas.bench.vcf-normalized-metrics.imputation-metrics.v1\tbenchmark_ready\tbenchmark_ready\tvcf_imputation_family_adapter\t3\t3\timpute,index_imputed_vcf,derive_imputation_metrics\tsh,bcftools,sh\tbenchmarks/readiness/rendered-commands-all-domains.sh\tbenchmarks/readiness/rendered-commands-all-domains.argv.jsonl\tcovered\tactive row `vcf` / `vcf.imputation_metrics` / `beagle` keeps one local benchmark job row in `benchmarks/readiness/rendered-commands-all-domains.sh` and `benchmarks/readiness/rendered-commands-all-domains.argv.jsonl` through `vcf_imputation_family_adapter`"
-    }));
+    let script_path =
+        "artifacts/benchmark-smoke/readiness/all-domains/rendered-commands-all-domains.sh";
+    let argv_path =
+        "artifacts/benchmark-smoke/readiness/all-domains/rendered-commands-all-domains.argv.jsonl";
+    for (result_id, adapter_id, parser_id, command_source, command_steps, executables) in [
+        (
+            "fastq:corpus-02-edna-mini:fastq.screen_taxonomy:sample-set:kraken2",
+            "fastq.adapter.screen_taxonomy",
+            "fastq.parser.screen_taxonomy",
+            "fastq_bam_command_adapter",
+            "invoke",
+            "sh",
+        ),
+        (
+            "bam:corpus-01-kinship-mini:bam.kinship:sample-set:king",
+            "bam.adapter.kinship",
+            "bam.parser.kinship",
+            "fastq_bam_command_adapter",
+            "invoke",
+            "cargo",
+        ),
+        (
+            "vcf:vcf_production_regression:vcf.postprocess:vcf_single_sample:bcftools",
+            "vcf.adapter.transform",
+            "vcf.parser.vcf_output",
+            "vcf_bcftools_adapter",
+            "fill_tags,index_postprocess_vcf",
+            "bcftools,bcftools",
+        ),
+        (
+            "vcf:vcf_production_regression:vcf.imputation_metrics:vcf_cohort_with_panel:beagle",
+            "vcf.adapter.panel_workflow",
+            "vcf.parser.report_json",
+            "vcf_imputation_family_adapter",
+            "impute,index_imputed_vcf,derive_imputation_metrics",
+            "sh,bcftools,sh",
+        ),
+    ] {
+        let columns = rows
+            .iter()
+            .find(|row| row.starts_with(&format!("{result_id}\t")))
+            .map(|row| row.split('\t').collect::<Vec<_>>())
+            .expect("governed local-job coverage row");
+        assert_eq!(columns[6], adapter_id);
+        assert_eq!(columns[7], parser_id);
+        assert_eq!(columns[11], command_source);
+        assert_eq!(columns[14], command_steps);
+        assert_eq!(columns[15], executables);
+        assert_eq!(columns[16], script_path);
+        assert_eq!(columns[17], argv_path);
+        assert_eq!(columns[18], "covered");
+        assert!(columns[19].contains(script_path));
+        assert!(columns[19].contains(argv_path));
+    }
     assert!(
         rows.iter().all(|row| row.contains("\tcovered\t")),
         "every active binding must retain complete governed local benchmark job coverage"

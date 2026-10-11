@@ -34,7 +34,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_VCF_ALL_RETAINED_TOOLS_COMPLETE_PATH: &str =
-    "benchmarks/readiness/vcf/VCF_ALL_RETAINED_TOOLS_COMPLETE.json";
+    "artifacts/benchmark-smoke/readiness/vcf/VCF_ALL_RETAINED_TOOLS_COMPLETE.json";
 const VCF_ALL_RETAINED_TOOLS_COMPLETE_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.vcf_all_retained_tools_complete.v1";
 const EXPECTED_CHECKED_GOAL_COUNT: usize = 24;
@@ -212,7 +212,7 @@ pub(crate) fn render_vcf_all_retained_tools_complete(
         "vcf.call readiness",
         Some(vcf_call_ready::DEFAULT_VCF_CALL_READY_PATH.to_string()),
         || {
-            validate_direct_vcf_ready_output(
+            render_and_validate_direct_vcf_ready_output(
                 repo_root,
                 vcf_call_ready::DEFAULT_VCF_CALL_READY_PATH,
                 "vcf.call readiness",
@@ -228,7 +228,7 @@ pub(crate) fn render_vcf_all_retained_tools_complete(
         "vcf.call_diploid readiness",
         Some(vcf_call_diploid_ready::DEFAULT_VCF_CALL_DIPLOID_READY_PATH.to_string()),
         || {
-            validate_direct_vcf_ready_output(
+            render_and_validate_direct_vcf_ready_output(
                 repo_root,
                 vcf_call_diploid_ready::DEFAULT_VCF_CALL_DIPLOID_READY_PATH,
                 "vcf.call_diploid readiness",
@@ -244,7 +244,7 @@ pub(crate) fn render_vcf_all_retained_tools_complete(
         "vcf.call_pseudohaploid readiness",
         Some(vcf_call_pseudohaploid_ready::DEFAULT_VCF_CALL_PSEUDOHAPLOID_READY_PATH.to_string()),
         || {
-            validate_direct_vcf_ready_output(
+            render_and_validate_direct_vcf_ready_output(
                 repo_root,
                 vcf_call_pseudohaploid_ready::DEFAULT_VCF_CALL_PSEUDOHAPLOID_READY_PATH,
                 "vcf.call_pseudohaploid readiness",
@@ -261,7 +261,7 @@ pub(crate) fn render_vcf_all_retained_tools_complete(
         "vcf.call_gl readiness",
         Some(vcf_call_gl_ready::DEFAULT_VCF_CALL_GL_READY_PATH.to_string()),
         || {
-            validate_direct_vcf_ready_output(
+            render_and_validate_direct_vcf_ready_output(
                 repo_root,
                 vcf_call_gl_ready::DEFAULT_VCF_CALL_GL_READY_PATH,
                 "vcf.call_gl readiness",
@@ -277,7 +277,7 @@ pub(crate) fn render_vcf_all_retained_tools_complete(
         "vcf.damage_filter readiness",
         Some(vcf_damage_filter_ready::DEFAULT_VCF_DAMAGE_FILTER_READY_PATH.to_string()),
         || {
-            validate_direct_vcf_ready_output(
+            render_and_validate_direct_vcf_ready_output(
                 repo_root,
                 vcf_damage_filter_ready::DEFAULT_VCF_DAMAGE_FILTER_READY_PATH,
                 "vcf.damage_filter readiness",
@@ -293,7 +293,7 @@ pub(crate) fn render_vcf_all_retained_tools_complete(
         "vcf.gl_propagation readiness",
         Some(vcf_gl_propagation_ready::DEFAULT_VCF_GL_PROPAGATION_READY_PATH.to_string()),
         || {
-            validate_direct_vcf_ready_output(
+            render_and_validate_direct_vcf_ready_output(
                 repo_root,
                 vcf_gl_propagation_ready::DEFAULT_VCF_GL_PROPAGATION_READY_PATH,
                 "vcf.gl_propagation readiness",
@@ -309,7 +309,7 @@ pub(crate) fn render_vcf_all_retained_tools_complete(
         "vcf.filter readiness",
         Some(vcf_filter_ready::DEFAULT_VCF_FILTER_READY_PATH.to_string()),
         || {
-            validate_direct_vcf_ready_output(
+            render_and_validate_direct_vcf_ready_output(
                 repo_root,
                 vcf_filter_ready::DEFAULT_VCF_FILTER_READY_PATH,
                 "vcf.filter readiness",
@@ -325,7 +325,7 @@ pub(crate) fn render_vcf_all_retained_tools_complete(
         "vcf.stats readiness",
         Some(vcf_stats_ready::DEFAULT_VCF_STATS_READY_PATH.to_string()),
         || {
-            validate_direct_vcf_ready_output(
+            render_and_validate_direct_vcf_ready_output(
                 repo_root,
                 vcf_stats_ready::DEFAULT_VCF_STATS_READY_PATH,
                 "vcf.stats readiness",
@@ -341,7 +341,7 @@ pub(crate) fn render_vcf_all_retained_tools_complete(
         "vcf.qc readiness",
         Some(vcf_qc_ready::DEFAULT_VCF_QC_READY_PATH.to_string()),
         || {
-            validate_direct_vcf_ready_output(
+            render_and_validate_direct_vcf_ready_output(
                 repo_root,
                 vcf_qc_ready::DEFAULT_VCF_QC_READY_PATH,
                 "vcf.qc readiness",
@@ -360,7 +360,7 @@ pub(crate) fn render_vcf_all_retained_tools_complete(
                 .to_string(),
         ),
         || {
-            validate_direct_vcf_ready_output(
+            render_and_validate_direct_vcf_ready_output(
                 repo_root,
                 vcf_prepare_reference_panel_ready::DEFAULT_VCF_PREPARE_REFERENCE_PANEL_READY_PATH,
                 "vcf.prepare_reference_panel readiness",
@@ -377,6 +377,17 @@ pub(crate) fn render_vcf_all_retained_tools_complete(
         "vcf.phasing retained family coverage",
         Some(vcf_phasing_family_adapter::DEFAULT_VCF_SHAPEIT5_ADAPTER_PATH.to_string()),
         || {
+            for (tool_id, output_path) in [
+                ("shapeit5", vcf_phasing_family_adapter::DEFAULT_VCF_SHAPEIT5_ADAPTER_PATH),
+                ("beagle", vcf_phasing_family_adapter::DEFAULT_VCF_BEAGLE_ADAPTER_PATH),
+                ("eagle", vcf_phasing_family_adapter::DEFAULT_VCF_EAGLE_ADAPTER_PATH),
+            ] {
+                vcf_phasing_family_adapter::render_vcf_phasing_family_adapter(
+                    repo_root,
+                    tool_id,
+                    PathBuf::from(output_path),
+                )?;
+            }
             ensure_single_phasing_output(
                 &read_governed_json(
                     repo_root,
@@ -423,6 +434,12 @@ pub(crate) fn render_vcf_all_retained_tools_complete(
         "vcf.impute retained family coverage",
         Some(vcf_imputation_family_adapter::DEFAULT_VCF_IMPUTATION_FAMILY_ADAPTER_PATH.to_string()),
         || {
+            vcf_imputation_family_adapter::render_vcf_imputation_family_adapter(
+                repo_root,
+                PathBuf::from(
+                    vcf_imputation_family_adapter::DEFAULT_VCF_IMPUTATION_FAMILY_ADAPTER_PATH,
+                ),
+            )?;
             let payload = read_governed_json(
                 repo_root,
                 vcf_imputation_family_adapter::DEFAULT_VCF_IMPUTATION_FAMILY_ADAPTER_PATH,
@@ -474,7 +491,7 @@ pub(crate) fn render_vcf_all_retained_tools_complete(
         "vcf.imputation_metrics readiness",
         Some(vcf_imputation_metrics_ready::DEFAULT_VCF_IMPUTATION_METRICS_READY_PATH.to_string()),
         || {
-            validate_direct_vcf_ready_output(
+            render_and_validate_direct_vcf_ready_output(
                 repo_root,
                 vcf_imputation_metrics_ready::DEFAULT_VCF_IMPUTATION_METRICS_READY_PATH,
                 "vcf.imputation_metrics readiness",
@@ -490,7 +507,7 @@ pub(crate) fn render_vcf_all_retained_tools_complete(
         "vcf.pca readiness",
         Some(vcf_pca_ready::DEFAULT_VCF_PCA_READY_PATH.to_string()),
         || {
-            validate_direct_vcf_ready_output(
+            render_and_validate_direct_vcf_ready_output(
                 repo_root,
                 vcf_pca_ready::DEFAULT_VCF_PCA_READY_PATH,
                 "vcf.pca readiness",
@@ -506,7 +523,7 @@ pub(crate) fn render_vcf_all_retained_tools_complete(
         "vcf.admixture readiness",
         Some(vcf_admixture_ready::DEFAULT_VCF_ADMIXTURE_READY_PATH.to_string()),
         || {
-            validate_direct_vcf_ready_output(
+            render_and_validate_direct_vcf_ready_output(
                 repo_root,
                 vcf_admixture_ready::DEFAULT_VCF_ADMIXTURE_READY_PATH,
                 "vcf.admixture readiness",
@@ -524,7 +541,7 @@ pub(crate) fn render_vcf_all_retained_tools_complete(
             vcf_population_structure_ready::DEFAULT_VCF_POPULATION_STRUCTURE_READY_PATH.to_string(),
         ),
         || {
-            validate_direct_vcf_ready_output(
+            render_and_validate_direct_vcf_ready_output(
                 repo_root,
                 vcf_population_structure_ready::DEFAULT_VCF_POPULATION_STRUCTURE_READY_PATH,
                 "vcf.population_structure readiness",
@@ -541,6 +558,10 @@ pub(crate) fn render_vcf_all_retained_tools_complete(
         "vcf.roh retained family coverage",
         Some(vcf_descent_family_adapter::DEFAULT_VCF_DESCENT_FAMILY_ADAPTER_PATH.to_string()),
         || {
+            vcf_descent_family_adapter::render_vcf_descent_family_adapter(
+                repo_root,
+                PathBuf::from(vcf_descent_family_adapter::DEFAULT_VCF_DESCENT_FAMILY_ADAPTER_PATH),
+            )?;
             let payload = read_governed_json(
                 repo_root,
                 vcf_descent_family_adapter::DEFAULT_VCF_DESCENT_FAMILY_ADAPTER_PATH,
@@ -560,6 +581,10 @@ pub(crate) fn render_vcf_all_retained_tools_complete(
         "vcf.ibd retained family coverage",
         Some(vcf_descent_family_adapter::DEFAULT_VCF_DESCENT_FAMILY_ADAPTER_PATH.to_string()),
         || {
+            vcf_descent_family_adapter::render_vcf_descent_family_adapter(
+                repo_root,
+                PathBuf::from(vcf_descent_family_adapter::DEFAULT_VCF_DESCENT_FAMILY_ADAPTER_PATH),
+            )?;
             let payload = read_governed_json(
                 repo_root,
                 vcf_descent_family_adapter::DEFAULT_VCF_DESCENT_FAMILY_ADAPTER_PATH,
@@ -581,6 +606,10 @@ pub(crate) fn render_vcf_all_retained_tools_complete(
         "vcf.demography retained family coverage",
         Some(vcf_descent_family_adapter::DEFAULT_VCF_DESCENT_FAMILY_ADAPTER_PATH.to_string()),
         || {
+            vcf_descent_family_adapter::render_vcf_descent_family_adapter(
+                repo_root,
+                PathBuf::from(vcf_descent_family_adapter::DEFAULT_VCF_DESCENT_FAMILY_ADAPTER_PATH),
+            )?;
             let payload = read_governed_json(
                 repo_root,
                 vcf_descent_family_adapter::DEFAULT_VCF_DESCENT_FAMILY_ADAPTER_PATH,
@@ -840,12 +869,78 @@ pub(crate) fn render_vcf_all_retained_tools_complete(
     Ok(report)
 }
 
-fn validate_direct_vcf_ready_output(
+fn render_and_validate_direct_vcf_ready_output(
     repo_root: &Path,
     output_path: &str,
     label: &str,
     expected_rows: u64,
 ) -> Result<()> {
+    match output_path {
+        vcf_call_ready::DEFAULT_VCF_CALL_READY_PATH => {
+            vcf_call_ready::render_vcf_call_ready(repo_root, PathBuf::from(output_path))?;
+        }
+        vcf_call_diploid_ready::DEFAULT_VCF_CALL_DIPLOID_READY_PATH => {
+            vcf_call_diploid_ready::render_vcf_call_diploid_ready(
+                repo_root,
+                PathBuf::from(output_path),
+            )?;
+        }
+        vcf_call_pseudohaploid_ready::DEFAULT_VCF_CALL_PSEUDOHAPLOID_READY_PATH => {
+            vcf_call_pseudohaploid_ready::render_vcf_call_pseudohaploid_ready(
+                repo_root,
+                PathBuf::from(output_path),
+            )?;
+        }
+        vcf_call_gl_ready::DEFAULT_VCF_CALL_GL_READY_PATH => {
+            vcf_call_gl_ready::render_vcf_call_gl_ready(repo_root, PathBuf::from(output_path))?;
+        }
+        vcf_damage_filter_ready::DEFAULT_VCF_DAMAGE_FILTER_READY_PATH => {
+            vcf_damage_filter_ready::render_vcf_damage_filter_ready(
+                repo_root,
+                PathBuf::from(output_path),
+            )?;
+        }
+        vcf_gl_propagation_ready::DEFAULT_VCF_GL_PROPAGATION_READY_PATH => {
+            vcf_gl_propagation_ready::render_vcf_gl_propagation_ready(
+                repo_root,
+                PathBuf::from(output_path),
+            )?;
+        }
+        vcf_filter_ready::DEFAULT_VCF_FILTER_READY_PATH => {
+            vcf_filter_ready::render_vcf_filter_ready(repo_root, PathBuf::from(output_path))?;
+        }
+        vcf_stats_ready::DEFAULT_VCF_STATS_READY_PATH => {
+            vcf_stats_ready::render_vcf_stats_ready(repo_root, PathBuf::from(output_path))?;
+        }
+        vcf_qc_ready::DEFAULT_VCF_QC_READY_PATH => {
+            vcf_qc_ready::render_vcf_qc_ready(repo_root, PathBuf::from(output_path))?;
+        }
+        vcf_prepare_reference_panel_ready::DEFAULT_VCF_PREPARE_REFERENCE_PANEL_READY_PATH => {
+            vcf_prepare_reference_panel_ready::render_vcf_prepare_reference_panel_ready(
+                repo_root,
+                PathBuf::from(output_path),
+            )?;
+        }
+        vcf_imputation_metrics_ready::DEFAULT_VCF_IMPUTATION_METRICS_READY_PATH => {
+            vcf_imputation_metrics_ready::render_vcf_imputation_metrics_ready(
+                repo_root,
+                PathBuf::from(output_path),
+            )?;
+        }
+        vcf_pca_ready::DEFAULT_VCF_PCA_READY_PATH => {
+            vcf_pca_ready::render_vcf_pca_ready(repo_root, PathBuf::from(output_path))?;
+        }
+        vcf_admixture_ready::DEFAULT_VCF_ADMIXTURE_READY_PATH => {
+            vcf_admixture_ready::render_vcf_admixture_ready(repo_root, PathBuf::from(output_path))?;
+        }
+        vcf_population_structure_ready::DEFAULT_VCF_POPULATION_STRUCTURE_READY_PATH => {
+            vcf_population_structure_ready::render_vcf_population_structure_ready(
+                repo_root,
+                PathBuf::from(output_path),
+            )?;
+        }
+        _ => bail!("unknown direct VCF readiness output `{output_path}`"),
+    }
     let payload = read_governed_json(repo_root, output_path)?;
     if json_u64(&payload, "retained_row_count") != Some(expected_rows)
         || json_u64(&payload, "active_row_count") != Some(expected_rows)

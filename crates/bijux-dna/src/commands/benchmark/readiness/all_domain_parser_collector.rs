@@ -15,15 +15,15 @@ use crate::commands::benchmark::local_stage_result_manifest::load_validated_stag
 use crate::commands::benchmark::local_vcf_prepare_reference_panel_smoke::run_local_vcf_prepare_reference_panel_smoke;
 use crate::commands::benchmark::local_vcf_stats_smoke::run_local_vcf_stats_smoke;
 use crate::commands::benchmark::path_resolution::{
-    ensure_path_stays_within_benchmark_runs_root, BenchmarkPathResolver,
+    ensure_path_stays_within_benchmark_simulated_run_root, BenchmarkPathResolver,
 };
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_ALL_DOMAIN_PARSER_COLLECTOR_PATH: &str =
-    "benchmarks/readiness/parser-collector-all-domains.json";
+    "artifacts/benchmark-smoke/readiness/parser-collector-all-domains.json";
 const DEFAULT_ALL_DOMAIN_PARSER_COLLECTOR_FIXTURE_ROOT: &str =
-    "runs/bench/readiness-probes/all-domains/parser-collector";
+    "artifacts/benchmark-smoke/simulated-runs/readiness-probes/all-domains/parser-collector";
 const ALL_DOMAIN_PARSER_COLLECTOR_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.all_domain_parser_collector.v1";
 
@@ -102,7 +102,7 @@ pub(crate) fn render_all_domain_parser_collector(
 
     let fixture_root =
         benchmark_paths.benchmark_readiness_probe_root().join("all-domains/parser-collector");
-    ensure_path_stays_within_benchmark_runs_root(
+    ensure_path_stays_within_benchmark_simulated_run_root(
         repo_root,
         &fixture_root,
         "all-domain parser collector fixture root",
@@ -669,10 +669,10 @@ mod tests {
 
         assert_eq!(report.schema_version, ALL_DOMAIN_PARSER_COLLECTOR_SCHEMA_VERSION);
         assert_eq!(report.output_path, DEFAULT_ALL_DOMAIN_PARSER_COLLECTOR_PATH);
-        assert_eq!(report.fixture_root, "runs/bench/readiness-probes/all-domains/parser-collector");
+        assert_eq!(report.fixture_root, "artifacts/benchmark-smoke/simulated-runs/readiness-probes/all-domains/parser-collector");
         assert_eq!(
             report.fake_run_root,
-            "runs/bench/readiness-probes/all-domains/parser-collector/fake-runs"
+            "artifacts/benchmark-smoke/simulated-runs/readiness-probes/all-domains/parser-collector/fake-runs"
         );
         assert_eq!(report.row_count, report.fake_run_row_count + report.real_smoke_row_count);
         assert_eq!(report.real_smoke_row_count, 4);

@@ -24,7 +24,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_ALL_DOMAIN_OUTPUT_DECLARATIONS_PATH: &str =
-    "benchmarks/readiness/output-declarations-all-domains.tsv";
+    "artifacts/benchmark-smoke/readiness/output-declarations-all-domains.tsv";
 const ALL_DOMAIN_OUTPUT_DECLARATIONS_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.all_domain_output_declarations.v1";
 

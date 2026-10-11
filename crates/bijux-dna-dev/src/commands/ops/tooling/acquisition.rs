@@ -1,5 +1,5 @@
 use super::{
-    anyhow, artifact_root_path, assert_no_excess_float_precision, ensure_help_only, examples_run,
+    artifact_root_path, assert_no_excess_float_precision, ensure_help_only, examples_run,
     find_first_named_file, id_catalog, json, materialize_controlled_file, normalize_benchmark_html,
     path_from_arg, read_json_value, read_utf8, relative_diff, run_program_with_env, sha256_hex,
     sha256_hex_bytes, stable_now_utc_compact, stable_now_utc_string, success_line, toml_string,
@@ -67,8 +67,11 @@ pub(in super::super) fn tooling_acquire_reference(
     let acquire_log_root = workspace.path("artifacts/containers/smoke/reference-acquire");
     bijux_dna_infra::ensure_dir(&acquire_log_root)
         .with_context(|| format!("create {}", acquire_log_root.display()))?;
-    let lock_json = workspace.path("configs/runtime/references/locks/lock.json");
-    let lock_sha = workspace.path("configs/runtime/references/locks/lock.json.sha256");
+    let evidence_root = cache_root.join("evidence");
+    bijux_dna_infra::ensure_dir(&evidence_root)
+        .with_context(|| format!("create {}", evidence_root.display()))?;
+    let lock_json = evidence_root.join("reference-acquisition.json");
+    let lock_sha = evidence_root.join("reference-acquisition.json.sha256");
     let mut stdout = String::new();
     let mut rows = Vec::new();
     let mut log_rows = Vec::new();
@@ -83,7 +86,17 @@ pub(in super::super) fn tooling_acquire_reference(
             continue;
         }
         let url = toml_string(row.get("fasta_url"))?;
+        let source_accession = toml_string(row.get("source_accession"))?;
+        let source_md5 = toml_string(row.get("fasta_md5"))?;
         let expected = toml_string(row.get("fasta_sha256"))?;
+        let expected_size_bytes = row
+            .get("fasta_size_bytes")
+            .and_then(TomlValue::as_integer)
+            .and_then(|value| u64::try_from(value).ok())
+            .context("reference fasta_size_bytes must be a positive u64")?;
+        if expected_size_bytes == 0 {
+            return Err(anyhow::anyhow!("reference fasta_size_bytes must be positive"));
+        }
         let license_id = toml_string(row.get("license_id"))?;
         let license_url = toml_string(row.get("license_url"))?;
         let required_indexes = row
@@ -105,58 +118,28 @@ pub(in super::super) fn tooling_acquire_reference(
         bijux_dna_infra::ensure_dir(&derived_dir)
             .with_context(|| format!("create {}", derived_dir.display()))?;
         let raw_fasta = raw_dir.join("reference.fa.gz");
-        let filename = raw_fasta
-            .file_name()
-            .and_then(|value| value.to_str())
-            .unwrap_or("reference.fa.gz")
-            .to_string();
-        let synthetic = format!("synthetic reference payload for {species}/{build}\n").into_bytes();
         let materialized = materialize_controlled_file(
             &raw_fasta,
             &url,
             &expected,
-            &synthetic,
+            Some(expected_size_bytes),
             download,
             verbose,
             &format!("{species}:{build}"),
             &mut stdout,
         )?;
-        let mut index_outputs = Vec::new();
-        for tool in &required_indexes {
-            let output = match tool.as_str() {
-                "samtools_faidx" => {
-                    let path = normalized_dir.join(format!("{filename}.fai"));
-                    write_utf8(&path, &format!("{filename}\t0\t0\t0\t0\n"))?;
-                    path
-                }
-                "bwa_index" => {
-                    let path = normalized_dir.join(format!("{filename}.bwt"));
-                    write_utf8(&path, "synthetic-bwa-index\n")?;
-                    path
-                }
-                "bowtie2_index" => {
-                    let path = normalized_dir.join(format!("{filename}.1.bt2"));
-                    write_utf8(&path, "synthetic-bowtie2-index\n")?;
-                    path
-                }
-                "star_genome_generate" => {
-                    let path = normalized_dir.join("star/genomeParameters.txt");
-                    write_utf8(&path, "synthetic-star-index\n")?;
-                    path
-                }
-                other => return Err(anyhow!("unsupported required index tool: {other}")),
-            };
-            index_outputs.push(json!({
-                "tool": tool,
-                "status": "synthetic",
-                "output": output.display().to_string(),
-            }));
-        }
+        let index_outputs = required_indexes
+            .iter()
+            .map(|tool| json!({"tool": tool, "status": "pending_tool_execution"}))
+            .collect::<Vec<_>>();
         write_json_pretty(
             &derived_dir.join("materialization.json"),
             &json!({
                 "species_id": species,
                 "build_id": build,
+                "source_accession": source_accession,
+                "source_md5": source_md5,
+                "source_size_bytes": expected_size_bytes,
                 "license_id": license_id,
                 "license_url": license_url,
                 "required_indexes": required_indexes,
@@ -167,6 +150,9 @@ pub(in super::super) fn tooling_acquire_reference(
             "species_id": species,
             "build_id": build,
             "fasta_url": url,
+            "source_accession": source_accession,
+            "source_md5": source_md5,
+            "source_size_bytes": expected_size_bytes,
             "fasta_sha256": expected,
             "observed_sha256": materialized.observed_sha256,
             "license_id": license_id,
@@ -201,10 +187,7 @@ pub(in super::super) fn tooling_acquire_reference(
     write_utf8(&lock_json, &raw)?;
     write_utf8(
         &lock_sha,
-        &format!(
-            "{}  configs/runtime/references/locks/lock.json\n",
-            sha256_hex_bytes(raw.as_bytes())
-        ),
+        &format!("{}  reference-acquisition.json\n", sha256_hex_bytes(raw.as_bytes())),
     )?;
     let run_log =
         acquire_log_root.join(format!("reference-acquire-{}.json", stable_now_utc_compact()));
@@ -274,8 +257,11 @@ pub(in super::super) fn tooling_acquire_panels(
     let acquire_log_root = workspace.path("artifacts/containers/smoke/panel-acquire");
     bijux_dna_infra::ensure_dir(&acquire_log_root)
         .with_context(|| format!("create {}", acquire_log_root.display()))?;
-    let lock_json = workspace.path("configs/vcf/panels/locks/lock.json");
-    let lock_sha = workspace.path("configs/vcf/panels/locks/lock.json.sha256");
+    let evidence_root = cache_root.join("evidence");
+    bijux_dna_infra::ensure_dir(&evidence_root)
+        .with_context(|| format!("create {}", evidence_root.display()))?;
+    let lock_json = evidence_root.join("panel-acquisition.json");
+    let lock_sha = evidence_root.join("panel-acquisition.json.sha256");
     let mut stdout = String::new();
     let mut lock_rows = Vec::new();
     let mut log_rows = Vec::new();
@@ -307,14 +293,17 @@ pub(in super::super) fn tooling_acquire_panels(
             let rel_path = toml_string(file.get("path"))?;
             let url = toml_string(file.get("url"))?;
             let expected = toml_string(file.get("checksum_sha256"))?;
+            let expected_size_bytes = required_positive_u64(&file, "size_bytes")?;
+            let source_checksum_algorithm = toml_string(file.get("source_checksum_algorithm"))?;
+            let source_checksum = toml_string(file.get("source_checksum"))?;
+            let source_authority_url = toml_string(file.get("source_authority_url"))?;
             let format_name = toml_string(file.get("format"))?;
             let dest = raw_dir.join(&rel_path);
-            let synthetic = format!("synthetic payload for {panel_id}/{name}\n").into_bytes();
             let materialized = materialize_controlled_file(
                 &dest,
                 &url,
                 &expected,
-                &synthetic,
+                Some(expected_size_bytes),
                 download,
                 verbose,
                 &format!("{panel_id}:{name}"),
@@ -326,18 +315,14 @@ pub(in super::super) fn tooling_acquire_panels(
                 "materialized_path": dest.strip_prefix(&cache_root).unwrap_or(&dest).display().to_string(),
                 "url": url,
                 "checksum_sha256": expected,
+                "size_bytes": expected_size_bytes,
+                "source_checksum_algorithm": source_checksum_algorithm,
+                "source_checksum": source_checksum,
+                "source_authority_url": source_authority_url,
                 "observed_sha256": materialized.observed_sha256,
                 "format": format_name,
                 "action": materialized.action,
             }));
-        }
-        write_utf8(
-            &derived_dir.join("overlap.tsv"),
-            "chr\toverlap_sites\toverlap_fraction\nall\t0\t0.0\n",
-        )?;
-        let index_stub = normalized_dir.join("panel.vcf.gz.tbi");
-        if !index_stub.exists() {
-            write_utf8(&index_stub, "tabix-index-placeholder\n")?;
         }
         let file_count = manifest_files.len();
         lock_rows.push(json!({
@@ -348,6 +333,7 @@ pub(in super::super) fn tooling_acquire_panels(
             "license": license,
             "citation": citation,
             "files": manifest_files,
+            "derived_outputs_status": "pending_tool_execution",
             "storage_layout": {
                 "raw": raw_dir.strip_prefix(&cache_root).unwrap_or(&raw_dir).display().to_string(),
                 "normalized": normalized_dir.strip_prefix(&cache_root).unwrap_or(&normalized_dir).display().to_string(),
@@ -373,7 +359,7 @@ pub(in super::super) fn tooling_acquire_panels(
     write_utf8(&lock_json, &raw)?;
     write_utf8(
         &lock_sha,
-        &format!("{}  configs/vcf/panels/locks/lock.json\n", sha256_hex_bytes(raw.as_bytes())),
+        &format!("{}  panel-acquisition.json\n", sha256_hex_bytes(raw.as_bytes())),
     )?;
     let run_log = acquire_log_root.join(format!("panel-acquire-{}.json", stable_now_utc_compact()));
     write_json_pretty(
@@ -468,13 +454,16 @@ pub(in super::super) fn tooling_acquire_maps(
             let rel_path = toml_string(file.get("path"))?;
             let url = toml_string(file.get("url"))?;
             let expected = toml_string(file.get("checksum_sha256"))?;
+            let expected_size_bytes = required_positive_u64(&file, "size_bytes")?;
+            let source_checksum_algorithm = toml_string(file.get("source_checksum_algorithm"))?;
+            let source_checksum = toml_string(file.get("source_checksum"))?;
+            let source_authority_url = toml_string(file.get("source_authority_url"))?;
             let target = raw_dir.join(&rel_path);
-            let synthetic = format!("synthetic payload for {map_id}/{name}\n").into_bytes();
             let materialized = materialize_controlled_file(
                 &target,
                 &url,
                 &expected,
-                &synthetic,
+                Some(expected_size_bytes),
                 download,
                 verbose,
                 &format!("{map_id}:{name}"),
@@ -483,17 +472,21 @@ pub(in super::super) fn tooling_acquire_maps(
             observed.push(json!({
                 "name": name,
                 "checksum_sha256": expected,
+                "size_bytes": expected_size_bytes,
+                "source_checksum_algorithm": source_checksum_algorithm,
+                "source_checksum": source_checksum,
+                "source_authority_url": source_authority_url,
                 "observed_sha256": materialized.observed_sha256,
                 "path": target.strip_prefix(&cache_root).unwrap_or(&target).display().to_string(),
                 "action": materialized.action,
             }));
         }
-        write_utf8(&derived_dir.join("chunk_index.tsv"), "chunk\tregion\n0\tall\n")?;
         rows.push(json!({
             "map_id": map_id,
             "species_id": species,
             "build_id": build,
             "files": observed,
+            "derived_outputs_status": "pending_tool_execution",
         }));
     }
 
@@ -507,6 +500,18 @@ pub(in super::super) fn tooling_acquire_maps(
     )?;
     stdout.push_str(&format!("wrote {}\n", workspace.rel(&run_log).display()));
     Ok(OpsCommandOutcome::success(stdout))
+}
+
+fn required_positive_u64(table: &TomlValue, field: &str) -> Result<u64> {
+    let value = table
+        .get(field)
+        .and_then(TomlValue::as_integer)
+        .and_then(|value| u64::try_from(value).ok())
+        .with_context(|| format!("{field} must be a positive u64"))?;
+    if value == 0 {
+        return Err(anyhow::anyhow!("{field} must be positive"));
+    }
+    Ok(value)
 }
 
 pub(in super::super) fn tooling_benchmark_integrity_mini(
@@ -765,7 +770,10 @@ pub(in super::super) fn tooling_validate_frontend_mini_domain_stacks(
             "vcf_damage_aware_genotype_mini",
             workspace.path("examples/vcf/damage-aware-genotype-mini"),
         ),
-        ("vcf_downstream_vcf_full_mini", workspace.path("examples/vcf/downstream-vcf-full-mini")),
+        (
+            "vcf_downstream_chr22_reference",
+            workspace.path("examples/vcf/downstream-vcf-chr22-reference"),
+        ),
         (
             "vcf_downstream_demography_mini",
             workspace.path("examples/vcf/downstream-demography-mini"),
@@ -820,17 +828,10 @@ pub(in super::super) fn tooling_validate_frontend_mini_domain_stacks(
             .map(|value| toml_value_string(&value))
             .collect::<Vec<_>>();
         let plan = read_json_value(&artifact_dir.join("plan.json"))?;
-        let got_stages = plan
-            .get("stages")
-            .and_then(Value::as_array)
-            .cloned()
-            .unwrap_or_default()
-            .into_iter()
-            .map(|value| value_string(Some(&value)))
-            .collect::<Vec<_>>();
+        let got_stages = plan_pipeline(&plan);
         for stage in stages {
             if !got_stages.contains(&stage) {
-                errors.push(format!("{example_id}: stage {stage} missing in plan.json stages"));
+                errors.push(format!("{example_id}: stage {stage} missing in plan.json pipeline"));
             }
         }
         let logs = read_utf8(&artifact_dir.join("logs.txt")).unwrap_or_default();
@@ -988,4 +989,52 @@ pub(in super::super) fn tooling_validate_frontend_mini_domain_stacks(
         stderr.push_str(&format!("- {error}\n"));
     }
     Ok(OpsCommandOutcome { exit_code: 1, stdout, stderr })
+}
+
+fn plan_pipeline(plan: &Value) -> Vec<String> {
+    plan.get("pipeline")
+        .and_then(Value::as_array)
+        .into_iter()
+        .flatten()
+        .map(|value| value_string(Some(value)))
+        .collect()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{plan_pipeline, required_positive_u64, TomlValue};
+
+    #[test]
+    fn acquisition_size_parser_accepts_positive_integer() {
+        let table = toml::from_str::<TomlValue>("size_bytes = 42")
+            .unwrap_or_else(|error| panic!("parse TOML: {error}"));
+        let size = required_positive_u64(&table, "size_bytes")
+            .unwrap_or_else(|error| panic!("positive size: {error}"));
+
+        assert_eq!(size, 42);
+    }
+
+    #[test]
+    fn acquisition_size_parser_rejects_invalid_values() {
+        for raw in ["", "size_bytes = 0", "size_bytes = -1", "size_bytes = \"42\""] {
+            let table = toml::from_str::<TomlValue>(raw)
+                .unwrap_or_else(|error| panic!("parse TOML `{raw}`: {error}"));
+
+            assert!(
+                required_positive_u64(&table, "size_bytes").is_err(),
+                "invalid size must fail: {raw}"
+            );
+        }
+    }
+
+    #[test]
+    fn frontend_plan_pipeline_uses_canonical_field() {
+        let plan = serde_json::json!({
+            "pipeline": ["vcf.filter", "vcf.qc"],
+            "stages": ["legacy.stage"]
+        });
+
+        assert_eq!(plan_pipeline(&plan), ["vcf.filter", "vcf.qc"]);
+        assert!(plan_pipeline(&serde_json::json!({"stages": ["legacy.stage"]})).is_empty());
+    }
 }

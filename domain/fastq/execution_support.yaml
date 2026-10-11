@@ -157,6 +157,7 @@ stages:
     default_tool: "clumpify"
     admitted_tools:
       - "clumpify"
+      - "fastuniq"
   - stage_id: "fastq.filter_low_complexity"
     execution_status: "closed"
     planning_support: "stage_family"

@@ -26,7 +26,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_VCF_POPULATION_STRUCTURE_READY_PATH: &str =
-    "benchmarks/readiness/vcf/population-structure-ready.json";
+    "artifacts/benchmark-smoke/readiness/vcf/population-structure-ready.json";
 const VCF_POPULATION_STRUCTURE_READY_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.vcf_population_structure_ready.v1";
 const VCF_POPULATION_STRUCTURE_STAGE_ID: &str = "vcf.population_structure";
@@ -377,7 +377,10 @@ fn build_vcf_population_structure_ready_row(
         all_domain_active_row_present,
         all_domain_active_row_proof_path: binding.active_row.as_ref().map_or_else(
             || NO_VALUE.to_string(),
-            |_| "benchmarks/readiness/all-domains/active-stage-tool-matrix.tsv".to_string(),
+            |_| {
+                "artifacts/benchmark-smoke/readiness/all-domains/active-stage-tool-matrix.tsv"
+                    .to_string()
+            },
         ),
         command_ready,
         command_source: binding

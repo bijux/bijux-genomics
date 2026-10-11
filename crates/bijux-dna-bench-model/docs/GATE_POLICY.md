@@ -1,8 +1,9 @@
-# Gate Policy
+# Gate Policy Contracts
 
-Gate policy evaluates one benchmark summary row metric map and returns a
-deterministic `GateDecision`. The crate does not decide when a gate runs or
-where the result is persisted.
+This crate defines the typed `GatePolicy` input and `GateDecision` output
+contracts. `bijux-dna-science` evaluates one benchmark summary row metric map
+against a policy. Orchestration decides when evaluation runs and where the
+result is persisted.
 
 ## Policy Inputs
 
@@ -18,10 +19,10 @@ where the result is persisted.
 - `stage_overrides`: per-stage replacements for required metrics, thresholds,
   regression windows, and semantics overrides.
 
-Metric direction comes from `bijux-dna-analyze` semantics unless the policy
-provides an override.
+The science evaluator resolves metric direction through canonical metric
+semantics unless the policy provides an override.
 
-## Decision Rules
+## Evaluator Contract
 
 - Required metrics that are absent are recorded in `missing_metrics`.
 - Threshold checks compare observed values using the resolved metric direction:
@@ -35,8 +36,9 @@ provides an override.
 
 ## Boundaries
 
-Gate policy is pure in-memory evaluation. It must not read benchmark artifacts,
-invoke tools, run pipelines, write reports, or make API decisions.
+The policy and decision types are pure data contracts. They must not read
+benchmark artifacts, invoke tools, run pipelines, write reports, or make API
+decisions. Scientific acceptance logic must not be added to this crate.
 
 ## Verification
 
@@ -44,4 +46,5 @@ Run from the repository root:
 
 ```sh
 CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-bench-model --test semantics --no-default-features
+CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-science --test benchmark_gate
 ```

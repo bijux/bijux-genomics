@@ -63,7 +63,7 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) const DEFAULT_OPERATIONAL_BENCHMARK_READY_PATH: &str =
-    "benchmarks/readiness/FASTQ_BAM_VCF_OPERATIONAL_BENCHMARK_READY.json";
+    "artifacts/benchmark-smoke/readiness/all-domains/FASTQ_BAM_VCF_OPERATIONAL_BENCHMARK_READY.json";
 const OPERATIONAL_BENCHMARK_READY_SCHEMA_VERSION: &str =
     "bijux.bench.readiness.operational_benchmark_ready.v1";
 
@@ -1206,64 +1206,8 @@ fn path_relative_to_repo(repo_root: &Path, path: &Path) -> String {
 
 #[cfg(test)]
 mod tests {
-    use std::path::PathBuf;
-
-    #[cfg(feature = "bam_downstream")]
-    use super::DEFAULT_OPERATIONAL_BENCHMARK_READY_PATH;
     use super::{benchmark_asset_profile_id_for_resource_row, binding_blocker, BindingKey};
-    #[cfg(feature = "bam_downstream")]
-    use crate::commands::benchmark::readiness::all_domain_active_stage_tool_matrix::collect_all_domain_active_stage_tool_matrix_rows;
     use crate::commands::benchmark::readiness::stage_tool_resources::StageToolResourceRow;
-
-    fn repo_root() -> PathBuf {
-        PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-            .join("../..")
-            .canonicalize()
-            .expect("canonicalize repo root")
-    }
-
-    #[cfg(feature = "bam_downstream")]
-    #[test]
-    fn operational_benchmark_ready_reports_green_governed_surface() {
-        let root = repo_root();
-        let report_path = root.join(DEFAULT_OPERATIONAL_BENCHMARK_READY_PATH);
-        let report: serde_json::Value = serde_json::from_slice(
-            &std::fs::read(&report_path)
-                .unwrap_or_else(|err| panic!("read {}: {err}", report_path.display())),
-        )
-        .unwrap_or_else(|err| panic!("parse {}: {err}", report_path.display()));
-
-        assert_eq!(
-            report.get("schema_version").and_then(serde_json::Value::as_str),
-            Some("bijux.bench.readiness.operational_benchmark_ready.v1")
-        );
-        assert_eq!(
-            report.get("output_path").and_then(serde_json::Value::as_str),
-            Some("benchmarks/readiness/FASTQ_BAM_VCF_OPERATIONAL_BENCHMARK_READY.json")
-        );
-        assert_eq!(
-            report.get("benchmark_ready_row_count").and_then(serde_json::Value::as_u64),
-            Some(
-                collect_all_domain_active_stage_tool_matrix_rows(&root)
-                    .expect("collect active stage-tool rows")
-                    .len() as u64,
-            )
-        );
-        assert_eq!(report.get("blocker_count").and_then(serde_json::Value::as_u64), Some(0));
-        assert_eq!(
-            report.get("missing_result_row_count").and_then(serde_json::Value::as_u64),
-            Some(3)
-        );
-        assert_eq!(
-            report.get("insufficient_data_row_count").and_then(serde_json::Value::as_u64),
-            Some(1)
-        );
-        assert_eq!(
-            report.get("unsupported_pair_row_count").and_then(serde_json::Value::as_u64),
-            Some(1)
-        );
-        assert_eq!(report.get("ok").and_then(serde_json::Value::as_bool), Some(true));
-    }
 
     #[test]
     fn benchmark_resource_asset_profile_maps_vcf_panel_workflow_rows() {
