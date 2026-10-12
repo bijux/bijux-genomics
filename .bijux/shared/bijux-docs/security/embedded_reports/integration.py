@@ -11,6 +11,7 @@ from .contract import (
     digest,
     json_data,
     read_owned,
+    public_route,
     source_inputs,
 )
 from .html import (
@@ -218,7 +219,7 @@ def verify_composition(
             unlinked = source.replace(
                 "<head>",
                 '<head><link rel="canonical" href="'
-                + escape(retained["site_url"] + record["path"], quote=True)
+                + escape(public_route(retained["site_url"], record["path"]), quote=True)
                 + '">',
                 1,
             )
@@ -265,7 +266,7 @@ def verify_composition(
                 or record["input_sha256"] != digest(source.encode())
                 or record["normalized_sha256"]
                 != digest(record["normalized_html"].encode())
-                or record["canonical"] != retained["site_url"] + record["path"]
+                or record["canonical"] != public_route(retained["site_url"], record["path"])
                 or record["recipe"] != expected_recipe
                 or record["resources"] != expected_resources
                 or record["providers"] != owner["providers"]

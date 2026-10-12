@@ -374,7 +374,7 @@ def applied_csp(policy: str, admitted_hashes: set[str], capability: dict | None 
                 "form-action": ["'self'"], "script-src-attr": ["'none'"],
                 "style-src": ["'self'", "'unsafe-inline'"], "font-src": ["'self'"],
                 "connect-src": ["'self'"], "worker-src": ["'self'", "blob:"],
-                "img-src": ["'self'", "data:", "https://img.shields.io", "https://raw.githubusercontent.com"],
+                "img-src": ["'self'", "data:", "https://img.shields.io", "https://raw.githubusercontent.com", "https://github.com/bijux/"],
                 "media-src": ["'self'"], "frame-src": ["'none'"], "manifest-src": ["'self'"]}
     if capability is not None:
         expected["frame-src"] = capability["frame_uris"] or ["'none'"]
@@ -657,6 +657,9 @@ def qualified_manifest(repo_root: Path, site_dir: str, site_url: str, source_sha
             "build receipt: completed publication renderer identity required")
     require(build.get("source_checkpoint") == source and build.get("source_checkpoint_sha256") == identity.json_digest(source),
             "build receipt: another source checkpoint")
+    require(identity.render_epoch_matches(build.get("render_epoch"), source["render_epoch"]) and
+            source["render_epoch"] == identity.source_render_epoch(root, source_sha),
+            "Render clock: build/source epoch differs")
     require(build.get("processor_sha256") == hashlib.sha256(Path(__file__).with_name("build_identity.py").read_bytes()).hexdigest(),
             "build receipt: identity processor differs from accepted source")
     require(build.get("derivation") == source.get("derivation"),

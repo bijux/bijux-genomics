@@ -13,6 +13,7 @@ from .contract import (
     digest,
     json_data,
     read_owned,
+    public_route,
     relative,
     site_url,
     source_inputs,
@@ -281,7 +282,7 @@ def plan_embedded_reports(
             if any(p not in report["resources"] for p in observed):
                 raise AdmissionError("undeclared executable/style resource in report tree")
             bootstrap(document, report)
-        canonical_url = product_base + output
+        canonical_url = public_route(product_base, output)
         if any(
             tag == "link" and attrs.get("rel") == "canonical"
             for tag, attrs in document.tags
@@ -312,7 +313,7 @@ def plan_embedded_reports(
                 "providers": providers,
             }
         )
-        mappings[output] = canonical_url
+        mappings[output] = product_base + output
     for parent in descriptor["parents"]:
         output = relative(parent["output"])
         if output in seen_routes:
@@ -526,7 +527,7 @@ def final_receipt(plan, final_build_receipt, final_policy_records):
             expected_html = original.replace(
                 "<head>",
                 '<head><link rel="canonical" href="'
-                + escape(plan["site_url"] + record["path"], quote=True)
+                + escape(public_route(plan["site_url"], record["path"]), quote=True)
                 + '">',
                 1,
             )
