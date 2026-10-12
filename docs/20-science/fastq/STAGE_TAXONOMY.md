@@ -12,9 +12,9 @@ Stage classification controls completeness checks and pipeline guarantees.
 
 ## Contracts
 - Stage inventory and canonical FASTQ stage IDs live in
-  [domain/fastq/index.yaml](../../../domain/fastq/index.yaml).
+  [domain/fastq/index.yaml](https://github.com/bijux/bijux-genomics/blob/main/domain/fastq/index.yaml).
 - Execution status and admitted support live in
-  [domain/fastq/execution_support.yaml](../../../domain/fastq/execution_support.yaml).
+  [domain/fastq/execution_support.yaml](https://github.com/bijux/bijux-genomics/blob/main/domain/fastq/execution_support.yaml).
 - Readable stage descriptions live in [STAGE_CATALOG.md](STAGE_CATALOG.md).
 
 ## Examples

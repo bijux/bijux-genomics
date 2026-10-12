@@ -15,7 +15,7 @@ Give contributors one place to answer four questions before they edit code:
 4. which dependency direction keeps the workspace acyclic.
 
 The machine-readable companion is
-[../../configs/ci/crate-boundaries.toml](../../configs/ci/crate-boundaries.toml).
+[../../configs/ci/crate-boundaries.toml](https://github.com/bijux/bijux-genomics/blob/main/configs/ci/crate-boundaries.toml).
 
 ## Dependency direction
 

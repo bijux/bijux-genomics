@@ -14,7 +14,7 @@ This document covers corpus composition, materialization, and the committed corp
 
 ## Contracts
 - Corpus membership must stay aligned with
-  [benchmarks/corpora/human-short-read-diversity.toml](../../benchmarks/corpora/human-short-read-diversity.toml).
+  [benchmarks/corpora/human-short-read-diversity.toml](https://github.com/bijux/bijux-genomics/blob/main/benchmarks/corpora/human-short-read-diversity.toml).
 - Materialized files must remain under the configured corpus root, not under source directories.
 
 It is intentionally curated instead of randomly sampled so the benchmark surface stays stable over time:
@@ -26,7 +26,7 @@ It is intentionally curated instead of randomly sampled so the benchmark surface
 - size variation spans compact, mid-size, and larger sub-gigabyte inputs
 
 The selection contract lives in
-[benchmarks/corpora/human-short-read-diversity.toml](../../benchmarks/corpora/human-short-read-diversity.toml).
+[benchmarks/corpora/human-short-read-diversity.toml](https://github.com/bijux/bijux-genomics/blob/main/benchmarks/corpora/human-short-read-diversity.toml).
 
 ## Composition
 
@@ -50,7 +50,7 @@ cargo run -q -p bijux-dna -- corpus materialize --spec benchmarks/corpora/human-
 ```
 
 The materialization root comes from `--root` or from `preferred_root` in
-[benchmarks/corpora/human-short-read-diversity.toml](../../benchmarks/corpora/human-short-read-diversity.toml).
+[benchmarks/corpora/human-short-read-diversity.toml](https://github.com/bijux/bijux-genomics/blob/main/benchmarks/corpora/human-short-read-diversity.toml).
 The committed spec keeps that path machine-neutral through `${BIJUX_CORPUS_01_ROOT}`, so a new machine only needs to set that environment variable or pass `--root` explicitly.
 
 Materialization writes:

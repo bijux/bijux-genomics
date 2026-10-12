@@ -14,7 +14,7 @@ Applies to failures from `cargo run -q -p bijux-dna-dev -- examples run run` and
 - Example runs must satisfy [EXAMPLE_RUNNER_CONTRACT.md](EXAMPLE_RUNNER_CONTRACT.md) and write
   artifacts under `artifacts/examples/<example-id>/`.
 - Triage decisions should be based on generated `plan.json`, `explain.json`, `report.json`, `run_report.json`, `manifest.json`, and `logs.txt`.
-- Shared example governance is defined in [examples/POLICY.md](../../examples/POLICY.md).
+- Shared example governance is defined in [examples/POLICY.md](https://github.com/bijux/bijux-genomics/blob/main/examples/POLICY.md).
 
 ## Common Failure Modes
 - Missing corpus metadata (`MANIFEST.toml` / `CHECKSUMS.sha256`).
@@ -38,7 +38,7 @@ Applies to failures from `cargo run -q -p bijux-dna-dev -- examples run run` and
 5. Validate CLI snapshot if command surface changed:
    - `cargo run -q -p bijux-dna-dev -- checks run check-cli-command-snapshot`
    - Command inventory for those checks is published in
-     [crates/bijux-dna-dev/docs/COMMANDS.md](../../crates/bijux-dna-dev/docs/COMMANDS.md).
+     [crates/bijux-dna-dev/docs/COMMANDS.md](https://github.com/bijux/bijux-genomics/blob/main/crates/bijux-dna-dev/docs/COMMANDS.md).
 
 ## Examples
 - `fastq_qc_pre_bench` fails with golden drift:

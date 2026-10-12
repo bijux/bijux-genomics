@@ -15,7 +15,7 @@ This document records the cross-domain scientific decisions that remain normativ
 - Domain-specific scientific specs remain the detailed authority for each surface.
 - Cross-domain defaults recorded here stay normative until a governed update changes them.
 
-Publication-scoped scientific artifacts are referenced via [the current publication index](../../assets/publications/adna-methods-2024/index.md); governed publication-asset handling lives in [Publication Assets](PUBLICATION_ASSETS.md).
+Publication-scoped scientific artifacts are referenced via [the current publication index](https://github.com/bijux/bijux-genomics/blob/main/assets/publications/adna-methods-2024/index.md); governed publication-asset handling lives in [Publication Assets](PUBLICATION_ASSETS.md).
 
 ## FASTQ
 - Authority: [FASTQ Scientific Spec](fastq/SCIENTIFIC_SPEC.md).

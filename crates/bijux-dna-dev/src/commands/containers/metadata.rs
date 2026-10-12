@@ -1641,13 +1641,13 @@ fn generate_qa_matrix_content(workspace: &Workspace) -> Result<String> {
         "## Authority Surfaces".to_string(),
         "- [docs/30-operations/CONTAINERS.md](CONTAINERS.md)".to_string(),
         "- [docs/30-operations/HPC_FRONTEND_RUNBOOK.md](HPC_FRONTEND_RUNBOOK.md)".to_string(),
-        "- [containers/docs/FRONTEND_BUILD_AUTHORITY.md](../../containers/docs/FRONTEND_BUILD_AUTHORITY.md)"
+        "- [containers/docs/FRONTEND_BUILD_AUTHORITY.md](https://github.com/bijux/bijux-genomics/blob/main/containers/docs/FRONTEND_BUILD_AUTHORITY.md)"
             .to_string(),
-        "- [containers/docs/SMOKE_CONTRACT.md](../../containers/docs/SMOKE_CONTRACT.md)"
+        "- [containers/docs/SMOKE_CONTRACT.md](https://github.com/bijux/bijux-genomics/blob/main/containers/docs/SMOKE_CONTRACT.md)"
             .to_string(),
-        "- [containers/docs/NETWORK_USAGE.md](../../containers/docs/NETWORK_USAGE.md)"
+        "- [containers/docs/NETWORK_USAGE.md](https://github.com/bijux/bijux-genomics/blob/main/containers/docs/NETWORK_USAGE.md)"
             .to_string(),
-        "- [containers/reports/qualification.md](../../containers/reports/qualification.md)"
+        "- [containers/reports/qualification.md](https://github.com/bijux/bijux-genomics/blob/main/containers/reports/qualification.md)"
             .to_string(),
         String::new(),
         "## Contracts".to_string(),

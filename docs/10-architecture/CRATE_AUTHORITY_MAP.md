@@ -14,20 +14,20 @@ rules.
 
 Allowed dependency edges remain authoritative in
 [BOUNDARY_MAP.md](BOUNDARY_MAP.md). Repository policy diagnostics are documented in
-[bijux-dna-policies enforcement](../../crates/bijux-dna-policies/docs/ENFORCEMENT.md).
+[bijux-dna-policies enforcement](https://github.com/bijux/bijux-genomics/blob/main/crates/bijux-dna-policies/docs/ENFORCEMENT.md).
 
 ## Enforcement
 
 - Dependency edges:
-  [dependency_boundaries.rs](../../crates/bijux-dna-policies/tests/boundaries/deps/core/dependency_boundaries.rs)
+  [dependency_boundaries.rs](https://github.com/bijux/bijux-genomics/blob/main/crates/bijux-dna-policies/tests/boundaries/deps/core/dependency_boundaries.rs)
 - Dependency graph:
-  [dependency_graph.rs](../../crates/bijux-dna-policies/tests/boundaries/deps/graph/dependency_graph.rs)
+  [dependency_graph.rs](https://github.com/bijux/bijux-genomics/blob/main/crates/bijux-dna-policies/tests/boundaries/deps/graph/dependency_graph.rs)
 - Effect boundaries:
-  [effect_boundary_map.rs](../../crates/bijux-dna-policies/tests/boundaries/deps/graph/effect_boundary_map.rs)
+  [effect_boundary_map.rs](https://github.com/bijux/bijux-genomics/blob/main/crates/bijux-dna-policies/tests/boundaries/deps/graph/effect_boundary_map.rs)
 - Command spawn confinement:
-  [command_spawn_policy.rs](../../crates/bijux-dna-policies/tests/contracts/tooling/governance_core/command_spawn_policy.rs)
+  [command_spawn_policy.rs](https://github.com/bijux/bijux-genomics/blob/main/crates/bijux-dna-policies/tests/contracts/tooling/governance_core/command_spawn_policy.rs)
 - Domain, stage, and crate responsibility checks:
-  [purity_effects_responsibility_policy.rs](../../crates/bijux-dna-policies/tests/contracts/tooling/governance/purity_effects_responsibility_policy.rs)
+  [purity_effects_responsibility_policy.rs](https://github.com/bijux/bijux-genomics/blob/main/crates/bijux-dna-policies/tests/contracts/tooling/governance/purity_effects_responsibility_policy.rs)
 
 ## Failure Mode
 

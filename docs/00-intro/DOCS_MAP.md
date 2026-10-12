@@ -15,7 +15,7 @@ Documentation section graph and entry points.
 
 ## Supporting Sections
 - [docs/cli/index.md](../cli/index.md)
-- [containers/index.md](../../containers/index.md) (container docs hub)
+- [containers/index.md](https://github.com/bijux/bijux-genomics/blob/main/containers/index.md) (container docs hub)
 - [docs/decisions/TOOL_BINDING_DECISIONS.md](../decisions/TOOL_BINDING_DECISIONS.md)
 - [REPO_ROOT_MAP.generated.md](REPO_ROOT_MAP.generated.md)
 

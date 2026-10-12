@@ -1,0 +1,2 @@
+# Preserve reviewed third-party component bytes and package provenance.
+docs/assets/vendor/mathjax/** -text -whitespace linguist-vendored

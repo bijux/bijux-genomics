@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+from contextlib import contextmanager
 import hashlib
 import importlib.metadata
 import importlib.util
@@ -58,6 +59,44 @@ def clean_source(root: Path, expected: str) -> dict:
     require(not git(root, "status", "--porcelain", "--untracked-files=all"),
             "Source identity: tracked or untracked source is dirty")
     return {"sha": expected, "tree": git(root, "rev-parse", "HEAD^{tree}")}
+
+
+def source_render_epoch(root: Path, source_sha: str) -> dict:
+    """Bind native time-derived output to the selected immutable Git revision."""
+    require(bool(SHA.fullmatch(source_sha)), "Render clock: exact source SHA required")
+    require(git(root, "rev-parse", "HEAD") == source_sha, "Render clock: source differs from HEAD")
+    timestamp = git(root, "show", "--no-patch", "--format=%ct", source_sha)
+    require(timestamp.isdecimal() and str(int(timestamp)) == timestamp,
+            "Render clock: canonical commit timestamp required")
+    seconds = int(timestamp)
+    require(0 <= seconds <= 253402300799, "Render clock: commit timestamp outside native date range")
+    return {"source_sha": source_sha, "seconds": seconds}
+
+
+def render_epoch_matches(actual: dict | None, expected: dict) -> bool:
+    return (isinstance(actual, dict) and set(actual) == {"source_sha", "seconds"}
+            and type(actual["seconds"]) is int and actual == expected)
+
+
+@contextmanager
+def publication_clock(root: Path, source_sha: str):
+    epoch = source_render_epoch(root, source_sha)
+    previous = os.environ.get("SOURCE_DATE_EPOCH")
+    expected = str(epoch["seconds"])
+    require(previous is None or previous == expected,
+            "Render clock: ambient SOURCE_DATE_EPOCH differs from committed source")
+    os.environ["SOURCE_DATE_EPOCH"] = expected
+    try:
+        yield epoch
+        require(os.environ.get("SOURCE_DATE_EPOCH") == expected,
+                "Render clock: native rendering changed the committed epoch")
+        require(source_render_epoch(root, source_sha) == epoch,
+                "Render clock: committed source changed during rendering")
+    finally:
+        if previous is None:
+            os.environ.pop("SOURCE_DATE_EPOCH", None)
+        else:
+            os.environ["SOURCE_DATE_EPOCH"] = previous
 
 
 def regular(root: Path, value: str) -> Path:
@@ -126,8 +165,26 @@ def catalogue_derivation(root: Path, recipe: str, expected=None):
     return result
 
 
+STANDARD_PINS = {"runtime": ".github/standards/bijux-std.sha",
+                 "publication": ".github/standards/bijux-docs.sha"}
+
+
+def standard_pin_path(selector: str) -> str:
+    require(isinstance(selector, str) and selector in STANDARD_PINS, "Standard identity: explicit runtime or publication pin selector required")
+    return STANDARD_PINS[selector]
+
+
+def checkpoint_pin(checkpoint: dict) -> str:
+    record = checkpoint.get("standard_pin", {"selector": "runtime", "path": STANDARD_PINS["runtime"]})
+    require(isinstance(record, dict) and set(record) == {"selector", "path"},
+            "Standard identity: typed source-owned pin checkpoint required")
+    selected = standard_pin_path(record["selector"])
+    require(record["path"] == selected, "Standard identity: pin path differs from finite source-owned selector")
+    return selected
+
+
 def source_checkpoint(root: Path, source_sha: str, standard_root: str,
-                      site_url: str, site_dir: str, build_command: str, verify_command: str, config: str = "mkdocs.yml", source_recipe: str | None = None) -> dict:
+                      site_url: str, site_dir: str, build_command: str, verify_command: str, config: str = "mkdocs.yml", source_recipe: str | None = None, standard_pin: str = "runtime") -> dict:
     for key in ("BIJUX_STD_LOCAL_VERIFY", "BIJUX_STD_ALLOW_LOCAL_SOURCE"):
         require(os.environ.get(key, "0") != "1", "Publication identity: local verification bypass forbidden")
     boundary = publication()
@@ -137,8 +194,9 @@ def source_checkpoint(root: Path, source_sha: str, standard_root: str,
     config_path = regular(root, config)
     git(root, "ls-files", "--error-unmatch", config)
     owned_config = {"path": config, "sha256": digest(config_path.read_bytes())}
-    pin_path = regular(root, ".github/standards/bijux-std.sha")
-    git(root, "ls-files", "--error-unmatch", ".github/standards/bijux-std.sha")
+    pin_name = standard_pin_path(standard_pin)
+    pin_path = regular(root, pin_name)
+    git(root, "ls-files", "--error-unmatch", pin_name)
     pin = pin_path.read_text().strip()
     require(bool(SHA.fullmatch(pin)), "Standard identity: tracked exact accepted pin required")
     standard = boundary.site_directory(root, standard_root)
@@ -151,7 +209,9 @@ def source_checkpoint(root: Path, source_sha: str, standard_root: str,
     require(build_command.strip() and verify_command.strip(), "Publication identity: build and verifier commands required")
     result = {"schema": 1, "scope": "clean-source-and-fetched-standard", "verification_only": False,
             "repository_source": source, "standard": authority,
+            "render_epoch": source_render_epoch(root, source_sha),
             "standard_root": standard.relative_to(root).as_posix(),
+            "standard_pin": {"selector": standard_pin, "path": pin_name},
             "pin_sha256": digest(pin_path.read_bytes()), "shared_root": shared.relative_to(root).as_posix(),
             "site_url": site_url, "site_dir": site_dir, "config": owned_config,
             "build_command_sha256": digest(build_command.encode()),
@@ -168,11 +228,15 @@ def verify_source(root: Path, checkpoint: dict) -> None:
             "Publication identity: qualified source checkpoint required")
     require(clean_source(root, checkpoint["repository_source"]["sha"]) == checkpoint["repository_source"],
             "Source identity: tree changed after capture")
+    require(render_epoch_matches(checkpoint.get("render_epoch"), source_render_epoch(root, checkpoint["repository_source"]["sha"])),
+            "Render clock: source checkpoint lacks the exact committed epoch")
     config = checkpoint.get("config")
     require(isinstance(config, dict) and set(config) == {"path", "sha256"}, "Source identity: owner config checkpoint required")
     git(root, "ls-files", "--error-unmatch", config["path"])
     require(digest(regular(root, config["path"]).read_bytes()) == config["sha256"], "Source identity: owner config changed")
-    pin = regular(root, ".github/standards/bijux-std.sha")
+    pin_name = checkpoint_pin(checkpoint)
+    git(root, "ls-files", "--error-unmatch", pin_name)
+    pin = regular(root, pin_name)
     require(digest(pin.read_bytes()) == checkpoint["pin_sha256"], "Standard identity: accepted pin changed")
     require(pin.read_text().strip() == checkpoint["standard"]["sha"], "Standard identity: fetched source differs from tracked accepted pin")
     boundary = publication()
@@ -320,6 +384,7 @@ def begin(root: Path, config: str, site_dir: str, site_url: str, source_path: st
               "renderer_inputs": source_inputs(configuration, root, publication_scope=actual_source is not None, catalogue=catalogue),
               "processor_sha256": digest(Path(__file__).read_bytes()),
               "source_checkpoint": actual_source,
+              "render_epoch": actual_source["render_epoch"] if actual_source else None,
               "source_checkpoint_sha256": json_digest(actual_source) if actual_source else None}
     if catalogue:
         result.update(effective_config=catalogue.record["configuration"], derivation=catalogue.record)
@@ -349,6 +414,8 @@ def finish(root: Path, receipt: dict) -> dict:
             "Build identity: renderer source inputs changed during build")
     if receipt["source_checkpoint"]:
         verify_source(root, receipt["source_checkpoint"])
+        require(render_epoch_matches(receipt.get("render_epoch"), receipt["source_checkpoint"]["render_epoch"]),
+                "Render clock: build/source epoch differs")
         require(receipt.get("derivation") == receipt["source_checkpoint"].get("derivation"),
                 "Catalogue identity: build/source derivation differs")
     module = publication()
@@ -364,6 +431,7 @@ def main() -> int:
     capture = commands.add_parser("capture-source")
     for name in ("source-sha", "standard-root", "site-url", "site-dir", "build-command", "verify-command", "output"):
         capture.add_argument("--" + name, required=True)
+    capture.add_argument("--standard-pin", choices=sorted(STANDARD_PINS), default="runtime")
     capture.add_argument("--config", default="mkdocs.yml")
     capture.add_argument("--source-recipe", choices=["masterclass-catalogue"])
     prepare = commands.add_parser("begin")
@@ -378,7 +446,7 @@ def main() -> int:
     try:
         if args.command == "capture-source":
             result = source_checkpoint(root, args.source_sha, args.standard_root, args.site_url, args.site_dir,
-                                       args.build_command, args.verify_command, args.config, args.source_recipe)
+                                       args.build_command, args.verify_command, args.config, args.source_recipe, args.standard_pin)
             output = artifact(root, args.output)
         elif args.command == "begin":
             result = begin(root, args.config, args.site_dir, args.site_url, args.source_checkpoint, args.source_recipe)

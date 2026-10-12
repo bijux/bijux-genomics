@@ -13,11 +13,11 @@ Reference-linked BAM stages are the easiest place to create silent scientific dr
 
 ## Contracts
 - Any BAM stage with non-empty `bank_hooks` in
-  [domain/bam/stages/](../../../domain/bam/stages/) must appear exactly once here.
+  [domain/bam/stages/](https://github.com/bijux/bijux-genomics/tree/main/domain/bam/stages) must appear exactly once here.
 - Stages without `bank_hooks` are intentionally omitted; this file governs reference-bound stages only.
 - The banks listed here are refusal boundaries, not best-effort hints.
 - Pinned default reference-owning stages stay documented in
-  [../../../domain/bam/docs/DEFAULT_SETTINGS.md](../../../domain/bam/docs/DEFAULT_SETTINGS.md).
+  [../../../domain/bam/docs/DEFAULT_SETTINGS.md](https://github.com/bijux/bijux-genomics/blob/main/domain/bam/docs/DEFAULT_SETTINGS.md).
 
 | Stage | Required banks | Why it exists |
 | --- | --- | --- |

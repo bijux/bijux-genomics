@@ -22,8 +22,8 @@ Define the machine-checkable contract for repository architecture authority.
 - Policy tests may enforce those authorities, but they must not invent parallel sources of truth.
 
 ## Allowed inputs
-- Workspace membership from [Cargo.toml](../../Cargo.toml).
-- Dependency edges from crate [Cargo.toml](../../Cargo.toml) files.
+- Workspace membership from [Cargo.toml](https://github.com/bijux/bijux-genomics/blob/main/Cargo.toml).
+- Dependency edges from crate [Cargo.toml](https://github.com/bijux/bijux-genomics/blob/main/Cargo.toml) files.
 - Boundary authority from [docs/10-architecture/BOUNDARY_MAP.md](BOUNDARY_MAP.md).
 - Responsibility authority from [TARGET_ARCHITECTURE.md](TARGET_ARCHITECTURE.md).
 - Contract artifact authority from [docs/10-architecture/CONTRACT_SPINE.md](CONTRACT_SPINE.md).

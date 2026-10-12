@@ -27,7 +27,7 @@ Welcome to the Bijux Genomics documentation. Start with the overview and then di
 - [Boundary Map](10-architecture/BOUNDARY_MAP.md)
 - [SSOT](10-architecture/SSOT.md)
 - [Contract Spine](10-architecture/CONTRACT_SPINE.md)
-- [Configs Index](../configs/index.md)
+- [Configs Index](https://github.com/bijux/bijux-genomics/blob/main/configs/index.md)
 
 ## Operations
 - [Operations Index](30-operations/index.md)

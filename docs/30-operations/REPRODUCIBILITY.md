@@ -28,13 +28,13 @@ Applies to manifest/lock/hash-based replay and contract-level reproducibility ch
 - Tool digests in lock artifacts must be immutable.
 - Param hash changes must change profile hash snapshots.
 - Reference panels are locked inputs defined under
-  [configs/vcf/panels/panels.toml](../../configs/vcf/panels/panels.toml).
+  [configs/vcf/panels/panels.toml](https://github.com/bijux/bijux-genomics/blob/main/configs/vcf/panels/panels.toml).
 - Panel catalog entries must include pinned `version`, pinned `url`, and `checksum_sha256`.
 - Floating URLs are forbidden for panel artifacts.
 - Panel metadata must include `population_set`, `genome_build`, and `variant_set_compatibility` to prevent ancestry/build mismatches.
 - Canonical repository locks are
-  [configs/vcf/panels/locks/panel_locks.toml](../../configs/vcf/panels/locks/panel_locks.toml) and
-  [configs/vcf/maps/locks/map_locks.toml](../../configs/vcf/maps/locks/map_locks.toml). Acquisition
+  [configs/vcf/panels/locks/panel_locks.toml](https://github.com/bijux/bijux-genomics/blob/main/configs/vcf/panels/locks/panel_locks.toml) and
+  [configs/vcf/maps/locks/map_locks.toml](https://github.com/bijux/bijux-genomics/blob/main/configs/vcf/maps/locks/map_locks.toml). Acquisition
   commands publish observed-byte manifests under the configured artifact root.
 
 ## HPC Forward-compat
@@ -47,7 +47,7 @@ Applies to manifest/lock/hash-based replay and contract-level reproducibility ch
 - Verify `manifest_signature_sha256` equality before comparing metrics.
 - Verify benchmark suite/config locations with `bijux-dna bench status`.
 - Benchmark suites are owned under
-  [crates/bijux-dna-bench/bench/suites/](../../crates/bijux-dna-bench/bench/suites/).
+  [crates/bijux-dna-bench/bench/suites/](https://github.com/bijux/bijux-genomics/tree/main/crates/bijux-dna-bench/bench/suites).
 - Refresh toy inputs deterministically with `make refresh-toy` (writes `assets/toy/core-v1/`).
 - Refresh toy-run golden outputs deterministically with `make refresh-golden` (writes `assets/golden/toy-runs-v1/`).
 

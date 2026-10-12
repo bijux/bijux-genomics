@@ -11,7 +11,7 @@ Provides a single index for governance checks.
 
 ## Contracts
 - Policy IDs are cataloged in [POLICY_INDEX.md](POLICY_INDEX.md).
-- Policy tests live under [crates/bijux-dna-policies/tests/](../../crates/bijux-dna-policies/tests/).
+- Policy tests live under [crates/bijux-dna-policies/tests/](https://github.com/bijux/bijux-genomics/tree/main/crates/bijux-dna-policies/tests).
 
 ## Examples
 - docs_required_policy.rs → enforces docs placement.

@@ -1,0 +1,485 @@
+{
+  "schema": 1,
+  "package": "mathjax",
+  "version": "3.2.2",
+  "archive": {
+    "url": "https://registry.npmjs.org/mathjax/-/mathjax-3.2.2.tgz",
+    "integrity": "sha512-Bt+SSVU8eBG27zChVewOicYs7Xsdt40qm4+UpHyX7k0/O9NliPc+x77k1/FEsPsjKPZGJvtRZM1vO+geW0OhGw==",
+    "sha256": "1b9c0a1c44df864e915690558e72adb9cc5203360daefd385084ced3b6c64c09"
+  },
+  "selection": "tex-mml-chtml.js and complete native component/font subdirectories",
+  "asset_root": "docs/assets/vendor/mathjax",
+  "files": [
+    {
+      "path": "LICENSE.txt",
+      "bytes": 11358,
+      "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30",
+      "archive_member": "package/LICENSE"
+    },
+    {
+      "path": "a11y/assistive-mml.js",
+      "bytes": 6460,
+      "sha256": "5b8414e36cd63d154b90beab67e5e3399c7439aff97f4b556761224f8176f657"
+    },
+    {
+      "path": "a11y/complexity.js",
+      "bytes": 18034,
+      "sha256": "cc05edc9c9ead1b972410d0e7c1b8611c565a87fe513822bce94268954d03463"
+    },
+    {
+      "path": "a11y/explorer.js",
+      "bytes": 36348,
+      "sha256": "8729b09b7f23927c724a0a502b04acb2df0943109bb75602c26db68cb87643ac"
+    },
+    {
+      "path": "a11y/semantic-enrich.js",
+      "bytes": 8084,
+      "sha256": "366e94cbf3ca49386413d64a910ecf5db018449fbed03275f93d6f2e81d5c596"
+    },
+    {
+      "path": "a11y/sre.js",
+      "bytes": 337064,
+      "sha256": "a41dc487037b75d6dae75677e36fe2f03d1d2684f232d96f0422a11b35051660"
+    },
+    {
+      "path": "adaptors/liteDOM.js",
+      "bytes": 22827,
+      "sha256": "30e7d3f231e5c86b0c6ecdc283e5b6f2a46d6ddee140745a050bd5ccfe62b3ef"
+    },
+    {
+      "path": "input/asciimath.js",
+      "bytes": 107781,
+      "sha256": "19b136e45ed82e690a9ff99a7392e713df3b4538a237534a4bcba17dc25ae847"
+    },
+    {
+      "path": "input/mml.js",
+      "bytes": 14583,
+      "sha256": "65c93277d980860f34341112c59520b9d2745cd46280d9c2fe036718b826624d"
+    },
+    {
+      "path": "input/mml/entities.js",
+      "bytes": 51126,
+      "sha256": "90ef0fcf002a37cb6cb3d1f1148cea4bfcbe77f9b298262b260c872a066ef974"
+    },
+    {
+      "path": "input/mml/extensions/mml3.js",
+      "bytes": 28862,
+      "sha256": "17e8f1a2e6fcf5fe13769318f2a0ee646bd60b64185e4401207165f068e61ff7"
+    },
+    {
+      "path": "input/mml/extensions/mml3.sef.json",
+      "bytes": 199492,
+      "sha256": "38acbd5de4dd0260eaa657ac35baa6ccc26dacc3cec8a1085612f0f577447663"
+    },
+    {
+      "path": "input/tex-base.js",
+      "bytes": 135594,
+      "sha256": "8479dec6af20d01ecca8f9785609c6d80ff9e3fc2ff4e038400632e78cec6c51"
+    },
+    {
+      "path": "input/tex-full.js",
+      "bytes": 345624,
+      "sha256": "de76b151355304bde8217d8056264d9c2bec2f47acb7ffd4d142cbe14f5b0035"
+    },
+    {
+      "path": "input/tex.js",
+      "bytes": 179888,
+      "sha256": "fa6524c5b16c20bed3f040c9833e88c7b8ab25ffe988af9cda8395016a0b643c"
+    },
+    {
+      "path": "input/tex/extensions/action.js",
+      "bytes": 2611,
+      "sha256": "37b44965893dafb424811f3a78718aba2cfd450ce2a9344b53a5a7e24f2874a7"
+    },
+    {
+      "path": "input/tex/extensions/all-packages.js",
+      "bytes": 215178,
+      "sha256": "b44661fc134a5b53ad3ef5bf4d587e9b412e97421cf33e0dab2095ea0e8a3491"
+    },
+    {
+      "path": "input/tex/extensions/ams.js",
+      "bytes": 29459,
+      "sha256": "624d59b8b8585d3d69a8106b87bac62f8a2495b6caea7906a258ce1f15ff1ea4"
+    },
+    {
+      "path": "input/tex/extensions/amscd.js",
+      "bytes": 6769,
+      "sha256": "7dc7256ebc5822379cdf9f504559309d97c5f26e09e2150d25dd46e35a6acf94"
+    },
+    {
+      "path": "input/tex/extensions/autoload.js",
+      "bytes": 6357,
+      "sha256": "7656bc471cb75a43167f6bdeb284c95f323317893d26df4ceaa676d409ac9dbf"
+    },
+    {
+      "path": "input/tex/extensions/bbox.js",
+      "bytes": 3006,
+      "sha256": "73d208a3425ed27dea7ed61f5984b43accfba8949bad7077d3eac47e668ba764"
+    },
+    {
+      "path": "input/tex/extensions/boldsymbol.js",
+      "bytes": 4056,
+      "sha256": "d6771fee0772db2657796c8d0e20e1878bb3237f6d3ed1e828e1834a4ff743ca"
+    },
+    {
+      "path": "input/tex/extensions/braket.js",
+      "bytes": 6729,
+      "sha256": "2abb032ca0eaff9fb2322a28b5d14ba058e7934d3e56974c55f574059e907a4c"
+    },
+    {
+      "path": "input/tex/extensions/bussproofs.js",
+      "bytes": 18344,
+      "sha256": "47c46e011949f0700ed02698b1a7fc243cc0dfa9529e49935e45ee5e09299bda"
+    },
+    {
+      "path": "input/tex/extensions/cancel.js",
+      "bytes": 3326,
+      "sha256": "0d263ecf2671d1cc13135b8b4afcdca4d40151a9aea51b69402e68adde4cf8c9"
+    },
+    {
+      "path": "input/tex/extensions/cases.js",
+      "bytes": 7064,
+      "sha256": "9c11e0644dabdb5adf9065adef7f6224340eaecb96e48a7ce9a27de3c7056f3c"
+    },
+    {
+      "path": "input/tex/extensions/centernot.js",
+      "bytes": 3477,
+      "sha256": "a1e4be1e20d190a553c74796054335f5f7790414deb966cdc8a78e941a28a351"
+    },
+    {
+      "path": "input/tex/extensions/color.js",
+      "bytes": 8627,
+      "sha256": "7fdc8f7cda1630f35ccd579379ba04add9dec50c66cebbc05a4b129027b32435"
+    },
+    {
+      "path": "input/tex/extensions/colortbl.js",
+      "bytes": 5392,
+      "sha256": "d9c0e39634f43f0e29c6d6e82a3624e09f9835747fae5ba56156660fd4aab79b"
+    },
+    {
+      "path": "input/tex/extensions/colorv2.js",
+      "bytes": 1998,
+      "sha256": "30c09ca19b5d778c1718c47ee3d76b0a301dd2040f11f0b4ae3b2d59d67ffe21"
+    },
+    {
+      "path": "input/tex/extensions/configmacros.js",
+      "bytes": 4676,
+      "sha256": "a6d4604cbd3a7e7b9691eb108291ddd0093b9750355357478c6b637aad0d5419"
+    },
+    {
+      "path": "input/tex/extensions/empheq.js",
+      "bytes": 11100,
+      "sha256": "f425b835aeb4e4373b6176b622590d72692f1a85f05018e1035fbfcfc3be1842"
+    },
+    {
+      "path": "input/tex/extensions/enclose.js",
+      "bytes": 2387,
+      "sha256": "8804f756f369946919c388f587f80cf2d1fd9151f76ed37570d01af8d7fb3f4c"
+    },
+    {
+      "path": "input/tex/extensions/extpfeil.js",
+      "bytes": 3451,
+      "sha256": "d8d5ecd75abc4306a6d589442dfa66a4345dee1288347591bddaf19551388163"
+    },
+    {
+      "path": "input/tex/extensions/gensymb.js",
+      "bytes": 2104,
+      "sha256": "9f55af256604b89a7980b9f903c6f33ce3c2d0e279fd347b9a433fe4c58de794"
+    },
+    {
+      "path": "input/tex/extensions/html.js",
+      "bytes": 2969,
+      "sha256": "e3647c848f26ad228d07043f1e63c56a646da9d20a6c0f180a4067fa9e10facc"
+    },
+    {
+      "path": "input/tex/extensions/mathtools.js",
+      "bytes": 31845,
+      "sha256": "04272d69a0b64783cd5b66820d6f8220ee510409d0b12c38626404be9ed9689c"
+    },
+    {
+      "path": "input/tex/extensions/mhchem.js",
+      "bytes": 38270,
+      "sha256": "aec2e1e1c423129cf3d2fe86980642335127d1161734ffe47dd99ed676038627"
+    },
+    {
+      "path": "input/tex/extensions/newcommand.js",
+      "bytes": 11768,
+      "sha256": "a41669a4ae924ab83cbc3d08f95ae90490a33cd649ed865e83675011b8708ab9"
+    },
+    {
+      "path": "input/tex/extensions/noerrors.js",
+      "bytes": 1226,
+      "sha256": "9317a33b00e114e679bb3cf07df06102342131412a3daced25b733da334f2ccd"
+    },
+    {
+      "path": "input/tex/extensions/noundefined.js",
+      "bytes": 1852,
+      "sha256": "b90ecf838a6f5363b260a4dd4e939812abaf062f91234fe20fd63d1c7e88a43f"
+    },
+    {
+      "path": "input/tex/extensions/physics.js",
+      "bytes": 24029,
+      "sha256": "83d5ad43ea478baf855e0ef9456d63d2d735d10c78ab7544019e0cb0b8083a83"
+    },
+    {
+      "path": "input/tex/extensions/require.js",
+      "bytes": 6286,
+      "sha256": "d508f823c2cf39509bdd088f6dd17fde20b481a8b1d702aa24061a00f38006c3"
+    },
+    {
+      "path": "input/tex/extensions/setoptions.js",
+      "bytes": 5549,
+      "sha256": "a259b86c9f49fea08abbc05bf4e5ed510e65870b9d7d127404e8486493b8ad40"
+    },
+    {
+      "path": "input/tex/extensions/tagformat.js",
+      "bytes": 2864,
+      "sha256": "a1407f0ba6abddf53ed3048aaeec7d5290dfa213878181679f4a62c604515784"
+    },
+    {
+      "path": "input/tex/extensions/textcomp.js",
+      "bytes": 6808,
+      "sha256": "6eaa4c938145a6ace042806b2d0c710c8d4d806386c97e9d0ec0c6d6e5fc30cf"
+    },
+    {
+      "path": "input/tex/extensions/textmacros.js",
+      "bytes": 16138,
+      "sha256": "cd783f048f64f6a3750d716af0e10ed2f6539cd181dacf1204e323e2e41bd640"
+    },
+    {
+      "path": "input/tex/extensions/unicode.js",
+      "bytes": 3450,
+      "sha256": "903e7d0d11d5d639eb13931fd3da78d49bbf9c59b57e82a945da9fb7b710137d"
+    },
+    {
+      "path": "input/tex/extensions/upgreek.js",
+      "bytes": 2676,
+      "sha256": "4335d722671b77186d6490e326adad5f727ed2db954deafece2d10803cb651a1"
+    },
+    {
+      "path": "input/tex/extensions/verb.js",
+      "bytes": 2562,
+      "sha256": "fdaface3c13d4f2a9e3013bf986fca04d63175c69eec99b17705f006a6528dc7"
+    },
+    {
+      "path": "output/chtml.js",
+      "bytes": 221887,
+      "sha256": "287022a5672cb02108104df6a0c4d1ae219cc9d9e53e06ccb8c023c47ff867ce"
+    },
+    {
+      "path": "output/chtml/fonts/tex.js",
+      "bytes": 104800,
+      "sha256": "b525b71e41a7fdb124ef6a2b44d5250cb7fc2f56d7e73494ad03d090d0e4f28a"
+    },
+    {
+      "path": "output/chtml/fonts/woff-v2/MathJax_AMS-Regular.woff",
+      "bytes": 40808,
+      "sha256": "3de784d07b9fa8f104c10928a878ee879cf3305cae5195cba663c9c2bb0195eb"
+    },
+    {
+      "path": "output/chtml/fonts/woff-v2/MathJax_Calligraphic-Bold.woff",
+      "bytes": 9908,
+      "sha256": "af04542b29eaac04550a140c5f1760a649783989426f2540855bf4157819367d"
+    },
+    {
+      "path": "output/chtml/fonts/woff-v2/MathJax_Calligraphic-Regular.woff",
+      "bytes": 9600,
+      "sha256": "26683bf201fb258a2237d9754616de9d4ecf4cc1cd39dd1902476df7d75f1d16"
+    },
+    {
+      "path": "output/chtml/fonts/woff-v2/MathJax_Fraktur-Bold.woff",
+      "bytes": 22340,
+      "sha256": "721921bab0d001ebff0206c24cb5de6ca136467bf1843a7aa32030ba061d1e92"
+    },
+    {
+      "path": "output/chtml/fonts/woff-v2/MathJax_Fraktur-Regular.woff",
+      "bytes": 21480,
+      "sha256": "870673df72e70f87c91a5a317d558c2c3b54392264ad79bbadc6d424ae8765fe"
+    },
+    {
+      "path": "output/chtml/fonts/woff-v2/MathJax_Main-Bold.woff",
+      "bytes": 34464,
+      "sha256": "88b98cad3688915e50da55553ff6ad185e0dce134b47f176e91b100f8a9b175c"
+    },
+    {
+      "path": "output/chtml/fonts/woff-v2/MathJax_Main-Italic.woff",
+      "bytes": 20832,
+      "sha256": "355254db9ca10a09a3b5f0929d74eb4670f44fbe864c07526a06213e0a0caf6c"
+    },
+    {
+      "path": "output/chtml/fonts/woff-v2/MathJax_Main-Regular.woff",
+      "bytes": 34160,
+      "sha256": "1cb1c39ea642f26a4dfed230b4aea1c3c218689421f6e9c0a7c1811693c4fa07"
+    },
+    {
+      "path": "output/chtml/fonts/woff-v2/MathJax_Math-BoldItalic.woff",
+      "bytes": 19776,
+      "sha256": "8ea8dbb1b02e6f730f55b4cb5d413b785b9f5c39807d0a0fa7da206a0824a457"
+    },
+    {
+      "path": "output/chtml/fonts/woff-v2/MathJax_Math-Italic.woff",
+      "bytes": 19360,
+      "sha256": "a009bea404f7a500ded48f8b9ad9cf16e12504b3195dd9e25975289b8256b0f0"
+    },
+    {
+      "path": "output/chtml/fonts/woff-v2/MathJax_Math-Regular.woff",
+      "bytes": 19288,
+      "sha256": "c01d3321e89b403c4b811aa153c4e618eda3421f92d8a072a02c8d190782a191"
+    },
+    {
+      "path": "output/chtml/fonts/woff-v2/MathJax_SansSerif-Bold.woff",
+      "bytes": 15944,
+      "sha256": "32792104b5ef69eded905b6d1598ed05d8087684d38e7a94d52e3c38ba16f47e"
+    },
+    {
+      "path": "output/chtml/fonts/woff-v2/MathJax_SansSerif-Italic.woff",
+      "bytes": 14628,
+      "sha256": "fc6ddf5df402b263cfb158aed8e89972542c34b719cd87b1db30461985f7bd5b"
+    },
+    {
+      "path": "output/chtml/fonts/woff-v2/MathJax_SansSerif-Regular.woff",
+      "bytes": 12660,
+      "sha256": "b418136e3b384baaadecb70bd3c48a8da9825210130b2897db808c44efc883cb"
+    },
+    {
+      "path": "output/chtml/fonts/woff-v2/MathJax_Script-Regular.woff",
+      "bytes": 11852,
+      "sha256": "af96f67d7accf5fd2a4a682d0b9f8b339f8ea6fe34c310c1694c8ba7f6ddc96f"
+    },
+    {
+      "path": "output/chtml/fonts/woff-v2/MathJax_Size1-Regular.woff",
+      "bytes": 5792,
+      "sha256": "c49810b53ecc0d87d8028762c518924197dd9d3f905b08f99ea241301085b9cb"
+    },
+    {
+      "path": "output/chtml/fonts/woff-v2/MathJax_Size2-Regular.woff",
+      "bytes": 5464,
+      "sha256": "30e889b58cbc51adfbb038ab1a96dc4025aa3542a3cff7712fc55ece510675e2"
+    },
+    {
+      "path": "output/chtml/fonts/woff-v2/MathJax_Size3-Regular.woff",
+      "bytes": 3244,
+      "sha256": "5cda41563a095bd70c78e2dda13d0f8cb922c71c90fffd0a0044c65173a66e83"
+    },
+    {
+      "path": "output/chtml/fonts/woff-v2/MathJax_Size4-Regular.woff",
+      "bytes": 5148,
+      "sha256": "3bc6ecaae7ecf6f8d7f8ea07bddbaca8601e2cb6e89d6aef58e78d9f6d8a398f"
+    },
+    {
+      "path": "output/chtml/fonts/woff-v2/MathJax_Typewriter-Regular.woff",
+      "bytes": 17604,
+      "sha256": "c56da8d69f1a0208b8e0703656c3264b6dd748bd452524c82b0385b60f6a68c1"
+    },
+    {
+      "path": "output/chtml/fonts/woff-v2/MathJax_Vector-Bold.woff",
+      "bytes": 1116,
+      "sha256": "36e0d72d8a7afc696a3e7a5c7369807634640de9b02257bca447bdf126221a27"
+    },
+    {
+      "path": "output/chtml/fonts/woff-v2/MathJax_Vector-Regular.woff",
+      "bytes": 1136,
+      "sha256": "72bc573386dd1d48c5bbd286302ca9e3400c5eb0f298e7cfbf945b9d08fc688f"
+    },
+    {
+      "path": "output/chtml/fonts/woff-v2/MathJax_Zero.woff",
+      "bytes": 1368,
+      "sha256": "481e39042508ae313a60618af1e37146ab93e9324c98e4c78b8f17fe55d41e0b"
+    },
+    {
+      "path": "output/svg.js",
+      "bytes": 208515,
+      "sha256": "6fdee599b240851fd27b31017e1a18802d99743ac4fae8204998997176647609"
+    },
+    {
+      "path": "output/svg/fonts/tex.js",
+      "bytes": 1065875,
+      "sha256": "6afb8e7f4f7f19255c4b111f4a00c06716b70ea9b977516127c054e7799d2da4"
+    },
+    {
+      "path": "sre/mathmaps/base.json",
+      "bytes": 115025,
+      "sha256": "83311887b069476a6a4d0c6afe7f8e55075c85b44b029588739c0d835fc912b8"
+    },
+    {
+      "path": "sre/mathmaps/ca.json",
+      "bytes": 296176,
+      "sha256": "dd70d958b0badd13924f4ce6678492bfccb75c4fb58a323fa5a8fbc1ec3f4677"
+    },
+    {
+      "path": "sre/mathmaps/da.json",
+      "bytes": 294956,
+      "sha256": "876276389afe78b8870d861a57c98d0c6c073d6812cc429024f369a10eb84361"
+    },
+    {
+      "path": "sre/mathmaps/de.json",
+      "bytes": 329805,
+      "sha256": "89e72d1b94ea8e0b781cd341bb2fc66d8d5a99dc5fb7ac04684d3e31c600d60e"
+    },
+    {
+      "path": "sre/mathmaps/en.json",
+      "bytes": 409173,
+      "sha256": "19d9b309dc0d25d2bde2d3130bd3772b6d7c3f8316ebbd85306bef55ac89b2a7"
+    },
+    {
+      "path": "sre/mathmaps/es.json",
+      "bytes": 298556,
+      "sha256": "57421b588b6a809008bd0a0c527c6cd1b3d57431949e528cdb5a95cf66a00fa8"
+    },
+    {
+      "path": "sre/mathmaps/fr.json",
+      "bytes": 322917,
+      "sha256": "ebae6c18e88e0c64a422a64e5862a4cd0d58f357237f13538ccbd9cff26f748d"
+    },
+    {
+      "path": "sre/mathmaps/hi.json",
+      "bytes": 440548,
+      "sha256": "6ef6f35d83590cc0c10de8dd3367f91f2da6546177033005aef102071030acff"
+    },
+    {
+      "path": "sre/mathmaps/it.json",
+      "bytes": 328235,
+      "sha256": "b1c3449d989bfd16b30fa36137b7f52f2d484826deb8b2fb404421511911a040"
+    },
+    {
+      "path": "sre/mathmaps/nb.json",
+      "bytes": 307312,
+      "sha256": "6713463f2f1f781d8cdf13c97377e5687cb8e2e9060ccc03d49e04c15a1059be"
+    },
+    {
+      "path": "sre/mathmaps/nemeth.json",
+      "bytes": 224008,
+      "sha256": "35f253e59912d2ec3bd08be4271462fc58904d5da74ea368e073c2a593eb9516"
+    },
+    {
+      "path": "sre/mathmaps/nn.json",
+      "bytes": 308992,
+      "sha256": "b6d15b62081965f9ed07ae6b6c1afb1bc2a1476cf62392d302ae8b6decf69d60"
+    },
+    {
+      "path": "sre/mathmaps/sv.json",
+      "bytes": 317841,
+      "sha256": "31228993e7deec281c2c28f28bcdae09209125b2bc496c899e58be00bef9e2eb"
+    },
+    {
+      "path": "tex-mml-chtml.js",
+      "bytes": 1173007,
+      "sha256": "300480069078b5892d2363a2b65e2dfbbf30fe5c80f83edbfecf4610fd093862"
+    },
+    {
+      "path": "ui/lazy.js",
+      "bytes": 11148,
+      "sha256": "64cb5353fc9766b7609a14806db030fe63ee21f76b31fa44d2fe3145e712247e"
+    },
+    {
+      "path": "ui/menu.js",
+      "bytes": 425918,
+      "sha256": "a8f65a130574a979aa67ac22dd618346acfb77ffa97cde112498b097bcf1970d"
+    },
+    {
+      "path": "ui/safe.js",
+      "bytes": 11189,
+      "sha256": "9fef48d868277a8bc1852f7ba796b33ead812d38916a7131b0a29ea48961a6a4"
+    }
+  ]
+}

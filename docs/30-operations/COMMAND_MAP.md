@@ -84,7 +84,7 @@ Authority:
   `cargo run -q -p bijux-dna -- analyze report <run-id>`
 
 Notes:
-- Use [examples/index.yaml](../../examples/index.yaml) to discover governed canonical example ids.
+- Use [examples/index.yaml](https://github.com/bijux/bijux-genomics/blob/main/examples/index.yaml) to discover governed canonical example ids.
 - Use [RELEASE_RUNNABLE_EXAMPLES.md](RELEASE_RUNNABLE_EXAMPLES.md) for manifest/output/caveat links and release-facing example command paths.
 - Use [BACKLOG_SCOREBOARD.md](BACKLOG_SCOREBOARD.md) for Level 1 closure-scope routing and status policy.
 

@@ -8,14 +8,14 @@ These assumptions define when BAM-stage outputs are scientifically interpretable
 instead of merely syntactically valid.
 
 ## Non-goals
-- Replacing the lower-level stage manifests under [domain/bam/stages/](../../../domain/bam/stages/).
+- Replacing the lower-level stage manifests under [domain/bam/stages/](https://github.com/bijux/bijux-genomics/tree/main/domain/bam/stages).
 - Repeating tool-specific failure modes that belong in [TOOLS_ROSTER.md](TOOLS_ROSTER.md).
 
 ## Contracts
 - Every `status: "supported"` BAM stage must appear exactly once below.
 - Planned BAM stages stay out of this list until they are promoted to supported.
 - The authoritative source for per-stage assumption payloads remains
-  [domain/bam/stages/](../../../domain/bam/stages/) (`assumptions` field).
+  [domain/bam/stages/](https://github.com/bijux/bijux-genomics/tree/main/domain/bam/stages) (`assumptions` field).
 
 ## Stage assumptions
 - `bam.align`: read-to-reference mapping is meaningful under selected aligner parameters.

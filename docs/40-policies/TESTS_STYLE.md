@@ -12,11 +12,11 @@ Consistent structure keeps policies enforceable and tests easy to navigate.
 
 ## Contracts
 - Policy enforcement lives under
-  [crates/bijux-dna-policies/tests/contracts/](../../crates/bijux-dna-policies/tests/contracts/).
+  [crates/bijux-dna-policies/tests/contracts/](https://github.com/bijux/bijux-genomics/tree/main/crates/bijux-dna-policies/tests/contracts).
 - Shared test helpers and workspace fixtures live under
-  [crates/bijux-dna-policies/tests/support/](../../crates/bijux-dna-policies/tests/support/).
+  [crates/bijux-dna-policies/tests/support/](https://github.com/bijux/bijux-genomics/tree/main/crates/bijux-dna-policies/tests/support).
 - Snapshot sanitization helpers and shared testkit utilities live under
-  [crates/bijux-dna-testkit/README.md](../../crates/bijux-dna-testkit/README.md).
+  [crates/bijux-dna-testkit/README.md](https://github.com/bijux/bijux-genomics/blob/main/crates/bijux-dna-testkit/README.md).
 
 ## Examples
 See the sections below for the required layout and naming rules enforced through those

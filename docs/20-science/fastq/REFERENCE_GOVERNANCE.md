@@ -6,7 +6,7 @@ adapter, taxonomy, or asset registries.
 
 ## Scope
 This document covers every FASTQ stage whose manifest declares non-empty `bank_hooks` under
-[domain/fastq/stages/](../../../domain/fastq/stages/).
+[domain/fastq/stages/](https://github.com/bijux/bijux-genomics/tree/main/domain/fastq/stages).
 
 ## Non-goals
 - Replacing the lower-level bank-hook implementation in the FASTQ stage manifests.
@@ -15,12 +15,12 @@ This document covers every FASTQ stage whose manifest declares non-empty `bank_h
 
 ## Contracts
 - Any FASTQ stage with non-empty `bank_hooks` in
-  [domain/fastq/stages/](../../../domain/fastq/stages/) must appear exactly once here.
+  [domain/fastq/stages/](https://github.com/bijux/bijux-genomics/tree/main/domain/fastq/stages) must appear exactly once here.
 - Route-level required assets in
-  [domain/fastq/route_policies.toml](../../../domain/fastq/route_policies.toml) remain refusal
+  [domain/fastq/route_policies.toml](https://github.com/bijux/bijux-genomics/blob/main/domain/fastq/route_policies.toml) remain refusal
   boundaries, not best-effort hints.
 - Pinned default bank-owning stages and baseline policy live in
-  [domain/fastq/docs/DEFAULT_SETTINGS.md](../../../domain/fastq/docs/DEFAULT_SETTINGS.md).
+  [domain/fastq/docs/DEFAULT_SETTINGS.md](https://github.com/bijux/bijux-genomics/blob/main/domain/fastq/docs/DEFAULT_SETTINGS.md).
 
 | Stage | Required banks | Why it exists |
 | --- | --- | --- |

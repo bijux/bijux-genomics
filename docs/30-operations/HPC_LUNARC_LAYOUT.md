@@ -1,7 +1,7 @@
 # HPC Lunarc Layout
 
 This document describes the Lunarc benchmark workspace contract as configured through
-[configs/bench/benchmark.toml](../../configs/bench/benchmark.toml). Read it together with
+[configs/bench/benchmark.toml](https://github.com/bijux/bijux-genomics/blob/main/configs/bench/benchmark.toml). Read it together with
 [benchmark/workspace-contract.md](benchmark/workspace-contract.md) and
 [benchmark/workspace-model.md](benchmark/workspace-model.md).
 
@@ -18,7 +18,7 @@ This document describes the Lunarc benchmark workspace contract as configured th
 1. `bijux-dna-bench` owns benchmark orchestration and corpus dossier generation; `bijux-dna-api` composes those services, while `bijux-dna` and Make remain thin operator surfaces.
 2. Repo sync and benchmark artifact sync are separate responsibilities. Code belongs under `workspace.remote.repo_root`; shared artifacts belong under the configured workspace roots.
 3. Corpus benchmarks should resolve their inputs through
-   [configs/bench/benchmark.toml](../../configs/bench/benchmark.toml), not through hardcoded
+   [configs/bench/benchmark.toml](https://github.com/bijux/bijux-genomics/blob/main/configs/bench/benchmark.toml), not through hardcoded
    frontend paths in scripts, docs, or wrapper targets.
 4. Every HPC run must carry reproducibility metadata and run-context metadata in
    [RUN_ARTIFACTS.md](RUN_ARTIFACTS.md).

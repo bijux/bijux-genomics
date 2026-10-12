@@ -63,7 +63,7 @@ targets, and isolated concurrent target roots.
   LUNARC supplies BCFtools by loading `GCC/13.3.0` followed by `BCFtools/1.21` before invoking the
   shard command.
 - The local helper surface for cache-aware Rust workflows is
-  [makes/cargo-dev.mk](../../makes/cargo-dev.mk).
+  [makes/cargo-dev.mk](https://github.com/bijux/bijux-genomics/blob/main/makes/cargo-dev.mk).
 - Crate-local `RUSTFLAGS` overrides require governance review.
 
 ## Recommended Local Setup

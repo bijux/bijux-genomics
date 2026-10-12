@@ -5,7 +5,7 @@ Define required outputs for any example runner execution.
 
 ## Scope
 Applies to scripts and commands that run curated examples and sample workflows listed in
-[examples/index.yaml](../../examples/index.yaml).
+[examples/index.yaml](https://github.com/bijux/bijux-genomics/blob/main/examples/index.yaml).
 
 ## Non-goals
 - Defining tool-specific scientific metric semantics.

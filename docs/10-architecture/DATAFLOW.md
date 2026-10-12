@@ -11,9 +11,9 @@ Provides an audit-friendly chain of custody for artifacts.
 
 ## Contracts
 Enforced by tests:
-- [../../crates/bijux-dna-engine/tests/contracts/recording/recording_completeness.rs](../../crates/bijux-dna-engine/tests/contracts/recording/recording_completeness.rs)
-- [../../crates/bijux-dna-runtime/tests/contracts/manifest_integrity.rs](../../crates/bijux-dna-runtime/tests/contracts/manifest_integrity.rs)
-- [../../crates/bijux-dna-analyze/tests/contracts/report/report_contract.rs](../../crates/bijux-dna-analyze/tests/contracts/report/report_contract.rs)
+- [../../crates/bijux-dna-engine/tests/contracts/recording/recording_completeness.rs](https://github.com/bijux/bijux-genomics/blob/main/crates/bijux-dna-engine/tests/contracts/recording/recording_completeness.rs)
+- [../../crates/bijux-dna-runtime/tests/contracts/manifest_integrity.rs](https://github.com/bijux/bijux-genomics/blob/main/crates/bijux-dna-runtime/tests/contracts/manifest_integrity.rs)
+- [../../crates/bijux-dna-analyze/tests/contracts/report/report_contract.rs](https://github.com/bijux/bijux-genomics/blob/main/crates/bijux-dna-analyze/tests/contracts/report/report_contract.rs)
 - Runtime artifact layout lives in [../30-operations/RUN_ARTIFACTS.md](../30-operations/RUN_ARTIFACTS.md).
 - Report bundle layout lives in [../30-operations/REPORT_CONTRACT.md](../30-operations/REPORT_CONTRACT.md).
 - Pipeline family entrypoints live in [../50-reference/PIPELINES.md](../50-reference/PIPELINES.md).

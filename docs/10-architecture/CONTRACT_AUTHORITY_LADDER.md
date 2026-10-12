@@ -29,7 +29,7 @@ Applies to contract decisions for stage/tool/param/runtime/container/docs author
 
 ## Examples
 - If [docs/20-science/TOOL_INDEX.md](../20-science/TOOL_INDEX.md) and
-  [configs/ci/registry/tool_registry.toml](../../configs/ci/registry/tool_registry.toml) differ,
+  [configs/ci/registry/tool_registry.toml](https://github.com/bijux/bijux-genomics/blob/main/configs/ci/registry/tool_registry.toml) differ,
   registry wins and docs are regenerated.
 - If a container def exists without registry entry, registry policy check fails and def is invalid.
 

@@ -12,7 +12,7 @@ Keeps selection and execution reproducible.
 
 ## Contracts
 - Profile IDs are sourced from
-  [crates/bijux-dna-core/src/id_catalog/pipeline/](../../crates/bijux-dna-core/src/id_catalog/pipeline/).
+  [crates/bijux-dna-core/src/id_catalog/pipeline/](https://github.com/bijux/bijux-genomics/tree/main/crates/bijux-dna-core/src/id_catalog/pipeline).
 - Compatibility expectations are published in [COMPATIBILITY_MATRIX.md](COMPATIBILITY_MATRIX.md).
 
 ## Examples

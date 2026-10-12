@@ -466,14 +466,14 @@
         }
       },
       "workflow_allowlist": [
+        "dependency-notice",
         "deploy-docs",
         "github-policy",
         "pr-approval-policy",
         "release-artifacts",
         "release-crates",
         "release-ghcr",
-        "release-github",
-        "dependency-notice"
+        "release-github"
       ],
       "pinned_std_sha": "44a77e32edc759e92b95feb63b2988ff90f0ca59",
       "workflow_execution_policy": {
@@ -482,7 +482,11 @@
           "deploy-docs": {
             "mode": "manual-only",
             "controller": "iac",
-            "refs": "main-only"
+            "refs": "main-only",
+            "destination": {
+              "repository": "bijux-atlas",
+              "path": "/bijux-atlas/"
+            }
           },
           "release-crates": {
             "mode": "manual-only",
@@ -1367,14 +1371,14 @@
         }
       },
       "workflow_allowlist": [
+        "dependency-notice",
         "deploy-docs",
         "github-policy",
         "pr-approval-policy",
         "release-artifacts",
         "release-ghcr",
         "release-github",
-        "release-pypi",
-        "dependency-notice"
+        "release-pypi"
       ],
       "pinned_std_sha": "214f8c6e8881a97a258e57c450badb74a5fb7b5c",
       "workflow_execution_policy": {
@@ -1384,7 +1388,11 @@
           "deploy-docs": {
             "mode": "manual-only",
             "controller": "iac",
-            "refs": "main-only"
+            "refs": "main-only",
+            "destination": {
+              "repository": "bijux-canon",
+              "path": "/bijux-canon/"
+            }
           },
           "release-ghcr": {
             "mode": "manual-only",
@@ -1805,6 +1813,7 @@
         }
       },
       "workflow_allowlist": [
+        "dependency-notice",
         "deploy-docs",
         "github-policy",
         "pr-approval-policy",
@@ -1812,8 +1821,7 @@
         "release-crates",
         "release-ghcr",
         "release-github",
-        "release-pypi",
-        "dependency-notice"
+        "release-pypi"
       ],
       "pinned_std_sha": "a44a4e85b09714ce8863c9573ef1059e843b5e8e",
       "workflow_execution_policy": {
@@ -1822,7 +1830,11 @@
           "deploy-docs": {
             "mode": "manual-only",
             "controller": "iac",
-            "refs": "main-only"
+            "refs": "main-only",
+            "destination": {
+              "repository": "bijux-core",
+              "path": "/bijux-core/"
+            }
           },
           "release-crates": {
             "mode": "manual-only",
@@ -2064,10 +2076,10 @@
         }
       },
       "workflow_allowlist": [
+        "dependency-notice",
         "deploy-docs",
         "github-policy",
-        "pr-approval-policy",
-        "dependency-notice"
+        "pr-approval-policy"
       ],
       "pinned_std_sha": "05d63cd12b4d96afe4b74dbda1cd1e27bee344e5",
       "workflow_execution_policy": {
@@ -2076,7 +2088,11 @@
           "deploy-docs": {
             "mode": "manual-only",
             "controller": "iac",
-            "refs": "main-only"
+            "refs": "main-only",
+            "destination": {
+              "repository": "bijux-genomics",
+              "path": "/bijux-genomics/"
+            }
           }
         },
         "dependency_pull_requests": "notification-only",
@@ -2088,9 +2104,10 @@
       "name": "bijux-iac",
       "release_env": [],
       "workflow_allowlist": [
+        "dependency-notice",
+        "deploy-docs",
         "github-policy",
-        "pr-approval-policy",
-        "dependency-notice"
+        "pr-approval-policy"
       ],
       "additional_required_status_checks": [
         {
@@ -2108,7 +2125,17 @@
       ],
       "workflow_execution_policy": {
         "schema": 1,
-        "publication_entrypoints": {},
+        "publication_entrypoints": {
+          "deploy-docs": {
+            "mode": "manual-only",
+            "controller": "iac",
+            "refs": "main-only",
+            "destination": {
+              "repository": "bijux.github.io",
+              "path": "/infrastructure/"
+            }
+          }
+        },
         "dependency_pull_requests": "notification-only",
         "dependency_merge": "owner-consolidation",
         "main_verification": "accepted-pull-request"
@@ -2207,10 +2234,10 @@
         ]
       },
       "workflow_allowlist": [
+        "dependency-notice",
         "deploy-docs",
         "github-policy",
-        "pr-approval-policy",
-        "dependency-notice"
+        "pr-approval-policy"
       ],
       "pinned_std_sha": "5d4059e207559a51ed40dac1384693c57347018f",
       "workflow_execution_policy": {
@@ -2219,7 +2246,11 @@
           "deploy-docs": {
             "mode": "manual-only",
             "controller": "iac",
-            "refs": "main-only"
+            "refs": "main-only",
+            "destination": {
+              "repository": "bijux-masterclass",
+              "path": "/bijux-masterclass/"
+            }
           }
         },
         "dependency_pull_requests": "notification-only",
@@ -2738,14 +2769,14 @@
         }
       },
       "workflow_allowlist": [
+        "dependency-notice",
         "deploy-docs",
         "github-policy",
         "pr-approval-policy",
         "release-artifacts",
         "release-ghcr",
         "release-github",
-        "release-pypi",
-        "dependency-notice"
+        "release-pypi"
       ],
       "pinned_std_sha": "214f8c6e8881a97a258e57c450badb74a5fb7b5c",
       "workflow_execution_policy": {
@@ -2754,7 +2785,11 @@
           "deploy-docs": {
             "mode": "manual-only",
             "controller": "iac",
-            "refs": "main-only"
+            "refs": "main-only",
+            "destination": {
+              "repository": "bijux-phylogenetics",
+              "path": "/bijux-phylogenetics/"
+            }
           },
           "release-ghcr": {
             "mode": "manual-only",
@@ -3159,14 +3194,14 @@
         }
       },
       "workflow_allowlist": [
+        "dependency-notice",
         "deploy-docs",
         "github-policy",
         "pr-approval-policy",
         "release-artifacts",
         "release-ghcr",
         "release-github",
-        "release-pypi",
-        "dependency-notice"
+        "release-pypi"
       ],
       "pinned_std_sha": "214f8c6e8881a97a258e57c450badb74a5fb7b5c",
       "additional_required_status_checks": [
@@ -3182,7 +3217,11 @@
           "deploy-docs": {
             "mode": "manual-only",
             "controller": "iac",
-            "refs": "main-only"
+            "refs": "main-only",
+            "destination": {
+              "repository": "bijux-pollenomics",
+              "path": "/bijux-pollenomics/"
+            }
           },
           "release-ghcr": {
             "mode": "manual-only",
@@ -4008,14 +4047,14 @@
         }
       },
       "workflow_allowlist": [
+        "dependency-notice",
         "deploy-docs",
         "github-policy",
         "pr-approval-policy",
         "release-artifacts",
         "release-ghcr",
         "release-github",
-        "release-pypi",
-        "dependency-notice"
+        "release-pypi"
       ],
       "pinned_std_sha": "214f8c6e8881a97a258e57c450badb74a5fb7b5c",
       "additional_required_status_checks": [
@@ -4031,7 +4070,11 @@
           "deploy-docs": {
             "mode": "manual-only",
             "controller": "iac",
-            "refs": "main-only"
+            "refs": "main-only",
+            "destination": {
+              "repository": "bijux-proteomics",
+              "path": "/bijux-proteomics/"
+            }
           },
           "release-ghcr": {
             "mode": "manual-only",
@@ -4097,14 +4140,25 @@
         ]
       },
       "workflow_allowlist": [
+        "dependency-notice",
+        "deploy-docs",
         "github-policy",
-        "pr-approval-policy",
-        "dependency-notice"
+        "pr-approval-policy"
       ],
       "pinned_std_sha": "5da4225aedcfc2af92bb431875243fa2db2b0ce9",
       "workflow_execution_policy": {
         "schema": 1,
-        "publication_entrypoints": {},
+        "publication_entrypoints": {
+          "deploy-docs": {
+            "mode": "manual-only",
+            "controller": "iac",
+            "refs": "main-only",
+            "destination": {
+              "repository": "bijux.github.io",
+              "path": "/standards/"
+            }
+          }
+        },
         "dependency_pull_requests": "notification-only",
         "dependency_merge": "owner-consolidation",
         "main_verification": "accepted-pull-request"
@@ -4466,14 +4520,14 @@
         }
       },
       "workflow_allowlist": [
+        "dependency-notice",
         "deploy-docs",
         "github-policy",
         "pr-approval-policy",
         "release-artifacts",
         "release-crates",
         "release-ghcr",
-        "release-github",
-        "dependency-notice"
+        "release-github"
       ],
       "pinned_std_sha": "44a77e32edc759e92b95feb63b2988ff90f0ca59",
       "workflow_execution_policy": {
@@ -4482,7 +4536,11 @@
           "deploy-docs": {
             "mode": "manual-only",
             "controller": "iac",
-            "refs": "main-only"
+            "refs": "main-only",
+            "destination": {
+              "repository": "bijux-gnss",
+              "path": "/bijux-gnss/"
+            }
           },
           "release-crates": {
             "mode": "manual-only",
@@ -4535,10 +4593,10 @@
         ]
       },
       "workflow_allowlist": [
+        "dependency-notice",
         "deploy-docs",
         "github-policy",
-        "pr-approval-policy",
-        "dependency-notice"
+        "pr-approval-policy"
       ],
       "pinned_std_sha": "5d4059e207559a51ed40dac1384693c57347018f",
       "workflow_execution_policy": {
@@ -4547,7 +4605,11 @@
           "deploy-docs": {
             "mode": "manual-only",
             "controller": "iac",
-            "refs": "main-only"
+            "refs": "main-only",
+            "destination": {
+              "repository": "bijux.github.io",
+              "path": "/"
+            }
           }
         },
         "dependency_pull_requests": "notification-only",

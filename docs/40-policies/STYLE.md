@@ -11,11 +11,11 @@ Consistency reduces review time and errors.
 
 ## Contracts
 - Docs placement contract is defined in [DOCS_STYLE.md](DOCS_STYLE.md) and enforced by
-  [boundary_docs_policy.rs](../../crates/bijux-dna-policies/tests/contracts/tooling/docs/boundary_docs_policy.rs).
+  [boundary_docs_policy.rs](https://github.com/bijux/bijux-genomics/blob/main/crates/bijux-dna-policies/tests/contracts/tooling/docs/boundary_docs_policy.rs).
 
 ## Examples
 - Crate docs live under the boundary surfaces enforced by
-  [boundary_docs_policy.rs](../../crates/bijux-dna-policies/tests/contracts/tooling/docs/boundary_docs_policy.rs).
+  [boundary_docs_policy.rs](https://github.com/bijux/bijux-genomics/blob/main/crates/bijux-dna-policies/tests/contracts/tooling/docs/boundary_docs_policy.rs).
 
 ## Failure modes
 - Misplaced docs fail policies.

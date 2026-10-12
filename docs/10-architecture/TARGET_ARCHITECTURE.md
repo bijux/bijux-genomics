@@ -21,7 +21,7 @@ Production corpus, truth, materialization, and scientific claim eligibility rema
 ## Product Boundary
 
 Containers and benchmarks are application products implemented by workspace crates. The
-[`containers/`](../../containers/) and [`benchmarks/`](../../benchmarks/) trees are declarative and
+[`containers/`](../../containers/) and [`benchmarks/`](https://github.com/bijux/bijux-genomics/tree/main/benchmarks) trees are declarative and
 publication surfaces. They may contain reviewed recipes, catalogs, contracts, generated schemas,
 protocol definitions, citations, small reports, documentation, and narrow external-tool workers.
 

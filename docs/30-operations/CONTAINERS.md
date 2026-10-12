@@ -101,8 +101,8 @@ accuracy or release claim.
 
 ## References
 
-- [Container implementation](../../containers/index.md)
-- [Container contract documentation](../../containers/docs/index.md)
-- [Container operating guide](../../containers/README.md)
-- [Release checklist](../../containers/docs/RELEASE_CHECKLIST.md)
+- [Container implementation](https://github.com/bijux/bijux-genomics/blob/main/containers/index.md)
+- [Container contract documentation](https://github.com/bijux/bijux-genomics/blob/main/containers/docs/index.md)
+- [Container operating guide](https://github.com/bijux/bijux-genomics/blob/main/containers/README.md)
+- [Release checklist](https://github.com/bijux/bijux-genomics/blob/main/containers/docs/RELEASE_CHECKLIST.md)
 - [Tool admission reference](../50-reference/TOOL_ADMISSION.md)
