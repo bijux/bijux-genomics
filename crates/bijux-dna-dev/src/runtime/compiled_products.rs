@@ -3,7 +3,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 
-use anyhow::{ensure, Context, Result};
+use anyhow::{ensure, Result};
 use serde_json::{json, Value};
 
 use crate::application::ci::{
@@ -12,10 +12,13 @@ use crate::application::ci::{
 use crate::runtime::process::{ParallelProcessOutput, ParallelProcessSpec, ProcessRunner};
 use crate::runtime::workspace::Workspace;
 
+mod executable_seal;
+pub(crate) use executable_seal::ExecutableSeal;
+
 pub(crate) struct LocalCompiledProducts {
     pub(crate) reuse: NextestReuseInputs,
     pub(crate) receipt: Value,
-    fingerprints: BTreeMap<PathBuf, String>,
+    seal: ExecutableSeal,
 }
 
 impl LocalCompiledProducts {
@@ -86,14 +89,16 @@ impl LocalCompiledProducts {
             target,
         )?;
         paths.extend([cargo.clone(), binaries.clone()]);
-        let fingerprints = fingerprint_files(&paths)?;
+        let mut seal = ExecutableSeal::capture(&paths)?;
         receipt["fingerprint_scope"] = json!("test_and_workspace_executables_and_metadata");
-        receipt["file_sha256"] = json!(fingerprints);
+        receipt["file_sha256"] = json!(seal.digest_manifest());
+        receipt["input_manifest"] =
+            seal.publish_manifest(&reports.join("compiled-inputs.manifest.json"))?;
         bijux_dna_infra::write_bytes(&receipt_path, &serde_json::to_vec_pretty(&receipt)?)?;
         Ok(Self {
             reuse: NextestReuseInputs::new(cargo, binaries, target.to_owned())?,
             receipt,
-            fingerprints,
+            seal,
         })
     }
 
@@ -158,17 +163,19 @@ impl LocalCompiledProducts {
         Ok((merged, started.elapsed()))
     }
 
-    pub(crate) fn verify_unchanged(&mut self) -> Result<bool> {
-        let paths = self.fingerprints.keys().cloned().collect();
-        let observed = fingerprint_files(&paths)?;
-        let stable = observed == self.fingerprints;
-        self.receipt["file_sha256_after_execution"] = json!(observed);
-        self.receipt["checksum_stable"] = json!(stable);
-        Ok(stable)
+    pub(crate) fn verify_unchanged(&mut self) -> bool {
+        let observed = self.seal.verify();
+        self.receipt["file_sha256_after_execution"] = json!(observed.file_sha256);
+        self.receipt["input_verification"] = observed.receipt;
+        self.receipt["checksum_stable"] = json!(observed.unchanged);
+        observed.unchanged
     }
 }
 
-fn inventory_arguments(reuse: &NextestReuseInputs, source: &Path) -> Result<Vec<String>> {
+pub(crate) fn inventory_arguments(
+    reuse: &NextestReuseInputs,
+    source: &Path,
+) -> Result<Vec<String>> {
     let mut args = [
         "nextest",
         "list",
@@ -190,25 +197,7 @@ fn producer_receipt(output: &ParallelProcessOutput) -> Value {
 }
 
 fn fingerprint_files(paths: &BTreeSet<PathBuf>) -> Result<BTreeMap<PathBuf, String>> {
-    paths
-        .iter()
-        .map(|path| {
-            let metadata = path
-                .symlink_metadata()
-                .with_context(|| format!("inspect compiled product {}", path.display()))?;
-            ensure!(
-                metadata.is_file() && !metadata.file_type().is_symlink(),
-                "compiled product must be an ordinary file: {}",
-                path.display()
-            );
-            ensure!(
-                path.canonicalize()? == *path,
-                "compiled product traverses a symbolic path alias: {}",
-                path.display()
-            );
-            Ok((path.clone(), bijux_dna_infra::hash_file_sha256(path)?))
-        })
-        .collect()
+    Ok(ExecutableSeal::capture(paths)?.digest_manifest())
 }
 
 #[cfg(test)]

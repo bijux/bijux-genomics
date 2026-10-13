@@ -17,11 +17,13 @@ use super::{
     set_assets_readonly, write_json_pretty, Context, OpsCommandOutcome, Result, Workspace,
 };
 use crate::application::ci::{
-    CompiledWorkspaceExecutables, CoverageAttestation, ExpectedTestInventory, NextestReuseInputs,
-    ShardDiscoveryPlan,
+    admit_compiled_executable_paths, CompiledWorkspaceExecutables, CoverageAttestation,
+    ExpectedTestInventory, NextestReuseInputs, ShardDiscoveryPlan,
 };
 use crate::runtime::compilation_cache::CompilationCache;
-use crate::runtime::compiled_products::LocalCompiledProducts;
+use crate::runtime::compiled_products::{
+    inventory_arguments, ExecutableSeal, LocalCompiledProducts,
+};
 use crate::runtime::owned_artifacts::{
     owned_children, remove_empty_owned_directory, remove_owned_tree as remove_full_shard_ephemera,
     remove_owned_trees,
@@ -105,6 +107,11 @@ struct FullArchiveRoots {
     cargo_target: PathBuf,
     archive_file: PathBuf,
     build_log: PathBuf,
+}
+
+struct ArchivedExecutableSeal {
+    extracted: ExecutableSeal,
+    producer: ExecutableSeal,
 }
 
 #[derive(Debug)]
@@ -1180,19 +1187,71 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
                 });
                 return Ok(OpsCommandOutcome { exit_code: 1, stdout, stderr });
             }
-            let (reuse_inputs, compiled_target, inventory_args) =
-                if let Some(products) = &local_compiled {
-                    (
-                        None,
-                        compilation_cache.target().to_path_buf(),
-                        products.inventory_arguments(&archive_workspace)?,
-                    )
-                } else {
-                    prepare_full_archive_extraction(&archive_roots.archive_extract)?;
-                    let target = archive_roots.archive_extract.join("target");
-                    let reuse = archive_reuse_inputs(&archive_roots.archive_extract)?;
-                    (Some(reuse), target, full_inventory_args(&archive_roots))
-                };
+            let compiled_source = Workspace { root: archive_workspace.clone() };
+            let source_seal = TrackedSourceSnapshot::capture(&compiled_source)?;
+            anyhow::ensure!(
+                source_seal.commit() == source_identity
+                    && source_seal.patch_sha256() == source_patch_sha256,
+                "compiled source changed from its admitted source snapshot"
+            );
+            receipt["compiled_source"] = serde_json::json!({
+                "workspace": archive_workspace, "source_commit": source_seal.commit(),
+                "source_patch_sha256": source_seal.patch_sha256(),
+            });
+            receipt["compiled_products"] =
+                serde_json::to_value(local_compiled.as_ref().map(|products| &products.receipt))?;
+            let mut archive_seal = None;
+            let (reuse_inputs, compiled_target, inventory_args) = if let Some(products) =
+                &local_compiled
+            {
+                (
+                    None,
+                    compilation_cache.target().to_path_buf(),
+                    products.inventory_arguments(&archive_workspace)?,
+                )
+            } else {
+                prepare_full_archive_extraction(&archive_roots.archive_extract)?;
+                let extraction_args = full_archive_extraction_args(&archive_roots);
+                let mut extraction_outputs = ProcessRunner::new(workspace).run_parallel_logged(
+                    vec![ParallelProcessSpec {
+                        label: "archive-extract".to_string(),
+                        program: "cargo".to_string(),
+                        args: extraction_args.clone(),
+                        envs: full_archive_env(&archive_roots, contract.archive_build_jobs)?,
+                        current_dir: Some(archive_workspace.clone()),
+                    }],
+                    &report_root,
+                )?;
+                let extraction =
+                    extraction_outputs.pop().context("archive extraction was not collected")?;
+                archive_receipt["extraction"] = serde_json::json!({
+                    "command": extraction_args, "duration_milliseconds": extraction.duration.as_millis(),
+                    "exit_code": extraction.output.status.code().unwrap_or(1),
+                    "stdout_log": report_root.join("archive-extract.stdout.log"),
+                    "stderr_log": report_root.join("archive-extract.stderr.log"),
+                    "native_test_discovery": false,
+                });
+                receipt["archive"] = archive_receipt.clone();
+                anyhow::ensure!(
+                    extraction.output.status.success(),
+                    "archive extraction failed; see archive-extract.stderr.log"
+                );
+                seal_full_archive_extraction(&archive_roots.archive_extract)?;
+                let mut seal = capture_archive_executable_seal(&archive_roots, &archive_workspace)?;
+                seal.extracted.require_readonly()?;
+                archive_receipt["input_manifest"] = seal
+                    .extracted
+                    .publish_manifest(&report_root.join("compiled-inputs.manifest.json"))?;
+                archive_receipt["producer_input_manifest"] = seal.producer.publish_manifest(
+                    &report_root.join("compiled-producer-inputs.manifest.json"),
+                )?;
+                receipt["archive"] = archive_receipt.clone();
+                archive_seal = Some(seal);
+                let target = archive_roots.archive_extract.join("target");
+                let reuse = archive_reuse_inputs(&archive_roots.archive_extract)?;
+                let args = inventory_arguments(&reuse, &archive_workspace)?;
+                (Some(reuse), target, args)
+            };
             let reuse_inputs = local_compiled
                 .as_ref()
                 .map(|products| &products.reuse)
@@ -1244,9 +1303,6 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
                 &report_root.join("test-inventory.receipt.json"),
                 &inventory_receipt,
             )?;
-            if local_compiled.is_none() {
-                seal_full_archive_extraction(&archive_roots.archive_extract)?;
-            }
             let shard_plans = selected_shards
                 .iter()
                 .map(|shard| {
@@ -1325,7 +1381,8 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
         }));
             }
             if let Some(products) = &mut local_compiled {
-                all_passed &= products.verify_unchanged()?;
+                all_passed &= products.verify_unchanged();
+                receipt["compiled_products"] = products.receipt.clone();
                 write_json_pretty(
                     &report_root.join("compiled-products.receipt.json"),
                     &products.receipt,
@@ -1340,7 +1397,19 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
                     serde_json::Value::String(archive_sha256_after);
                 archive_receipt["checksum_stable"] =
                     serde_json::Value::Bool(archive_checksum_stable);
+                let seal = archive_seal.as_ref().context("archive executable seal is absent")?;
+                let observed = seal.extracted.verify();
+                all_passed &= observed.unchanged;
+                archive_receipt["input_verification"] = observed.receipt;
+                let producer = seal.producer.verify();
+                all_passed &= producer.unchanged;
+                archive_receipt["producer_input_verification"] = producer.receipt;
+                receipt["archive"] = archive_receipt.clone();
             }
+            let observed_source = TrackedSourceSnapshot::capture(&compiled_source)?;
+            let source_unchanged = observed_source.commit() == source_seal.commit()
+                && observed_source.patch_sha256() == source_seal.patch_sha256();
+            all_passed &= source_unchanged;
             *receipt = serde_json::json!({
                 "schema_version": "bijux.ci.full_gate_timing.v4",
                 "execution_resources": execution_budget,
@@ -1349,6 +1418,12 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
                 "source_commit": source_identity,
                 "source_worktree_clean": source_clean,
                 "source_patch_sha256": source_patch_sha256,
+                "compiled_source_verification": {
+                    "workspace": archive_workspace,
+                    "source_commit_after_execution": observed_source.commit(),
+                    "source_patch_sha256_after_execution": observed_source.patch_sha256(),
+                    "unchanged": source_unchanged,
+                },
                 "contract_sha256": contract_sha256,
                 "build_authority": workspace.rel(&build_authority_path).to_string_lossy(),
                 "build_authority_sha256": build_authority_sha256,
@@ -1647,6 +1722,12 @@ fn full_inventory_args(archive: &FullArchiveRoots) -> Vec<String> {
     ]
 }
 
+fn full_archive_extraction_args(archive: &FullArchiveRoots) -> Vec<String> {
+    let mut args = full_inventory_args(archive);
+    args.extend(["--list-type".to_string(), "binaries-only".to_string()]);
+    args
+}
+
 fn full_shard_args(
     shard: &FullShard,
     reuse: &NextestReuseInputs,
@@ -1687,6 +1768,51 @@ fn archive_reuse_inputs(archive_extract: &Path) -> Result<NextestReuseInputs> {
         target.join("nextest/binaries-metadata.json"),
         target,
     )
+}
+
+fn capture_archive_executable_seal(
+    archive: &FullArchiveRoots,
+    source: &Path,
+) -> Result<ArchivedExecutableSeal> {
+    let extracted_target = archive.archive_extract.join("target");
+    let cargo_metadata = extracted_target.join("nextest/cargo-metadata.json");
+    let binary_metadata = extracted_target.join("nextest/binaries-metadata.json");
+    let paths = admit_compiled_executable_paths(
+        &fs::read(&cargo_metadata)?,
+        &fs::read(&binary_metadata)?,
+        source,
+        &archive.cargo_target,
+    )?;
+    let producer = ExecutableSeal::capture(&paths)?;
+    let original = producer.digest_manifest();
+    let mut extracted = paths
+        .iter()
+        .map(|path| {
+            let relative = path
+                .strip_prefix(&archive.cargo_target)
+                .context("archived executable escaped its producer target")?;
+            let extracted = extracted_target.join(relative);
+            anyhow::ensure!(
+                bijux_dna_infra::hash_file_sha256(&extracted)? == original[path],
+                "extracted executable differs from its source-bound producer: {}",
+                extracted.display()
+            );
+            #[cfg(unix)]
+            {
+                use std::os::unix::fs::MetadataExt;
+                let producer = path.metadata()?;
+                let consumer = extracted.metadata()?;
+                anyhow::ensure!(
+                    producer.dev() != consumer.dev() || producer.ino() != consumer.ino(),
+                    "extracted executable aliases its mutable compilation product: {}",
+                    extracted.display()
+                );
+            }
+            Ok(extracted)
+        })
+        .collect::<Result<BTreeSet<_>>>()?;
+    extracted.extend([cargo_metadata, binary_metadata]);
+    Ok(ArchivedExecutableSeal { extracted: ExecutableSeal::capture(&extracted)?, producer })
 }
 
 fn materialize_full_shard_workspace(
@@ -3036,6 +3162,22 @@ mod tests {
         assert!(inventory.windows(2).any(|pair| pair[0] == "--extract-to"
             && pair[1] == archive.archive_extract.display().to_string()));
         assert!(!inventory.iter().any(|arg| arg == "--workspace" || arg == "--all-targets"));
+        let extraction = super::full_archive_extraction_args(&archive);
+        assert!(extraction
+            .windows(2)
+            .any(|pair| pair[0] == "--list-type" && pair[1] == "binaries-only"));
+        let native_inventory = super::inventory_arguments(
+            &super::archive_reuse_inputs(&archive.archive_extract)?,
+            &storage.scratch_root.join("producer"),
+        )?;
+        assert!(native_inventory.iter().any(|arg| arg == "--cargo-metadata"));
+        assert!(!native_inventory.iter().any(|arg| [
+            "--archive-file",
+            "--extract-to",
+            "--workspace",
+            "--all-targets"
+        ]
+        .contains(&arg.as_str())));
 
         for shard in &contract.shards {
             let remap = storage.scratch_root.join("workspaces").join(&shard.id);
@@ -3102,6 +3244,77 @@ mod tests {
         assert!(std::fs::metadata(&archive)?.permissions().readonly());
         super::remove_full_shard_ephemera(&archive)?;
         assert!(!archive.exists());
+        Ok(())
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn archive_executable_seal_rejects_changed_materialization_with_unchanged_archive(
+    ) -> anyhow::Result<()> {
+        use std::os::unix::fs::PermissionsExt;
+
+        let temp = tempfile::tempdir()?;
+        let root = temp.path().canonicalize()?;
+        let archive = FullArchiveRoots {
+            artifact_root: root.join("archive"),
+            archive_extract: root.join("extracted"),
+            cargo_target: root.join("producer-target"),
+            archive_file: root.join("archive.tar.zst"),
+            build_log: root.join("build.log"),
+        };
+        let source = root.join("producer-source");
+        let target = archive.archive_extract.join("target");
+        let metadata = target.join("nextest");
+        let binary = target.join("debug/deps/owner");
+        std::fs::create_dir_all(&metadata)?;
+        std::fs::create_dir_all(binary.parent().context("binary parent")?)?;
+        std::fs::write(&binary, b"original executable")?;
+        let producer_binary = archive.cargo_target.join("debug/deps/owner");
+        std::fs::create_dir_all(producer_binary.parent().context("producer binary parent")?)?;
+        std::fs::write(&producer_binary, b"original executable")?;
+        std::fs::set_permissions(&binary, std::fs::Permissions::from_mode(0o755))?;
+        std::fs::write(
+            metadata.join("cargo-metadata.json"),
+            serde_json::to_vec(&serde_json::json!({
+                "workspace_root": source, "target_directory": archive.cargo_target,
+            }))?,
+        )?;
+        std::fs::write(
+            metadata.join("binaries-metadata.json"),
+            serde_json::to_vec(&serde_json::json!({
+                "rust-build-meta": {"target-directory": archive.cargo_target, "non-test-binaries": {}},
+                "rust-binaries": {"owner": {"binary-id": "owner", "binary-path": archive.cargo_target.join("debug/deps/owner")}},
+            }))?,
+        )?;
+        std::fs::write(&archive.archive_file, b"unchanged source-bound archive")?;
+        let archive_sha256 = bijux_dna_infra::hash_file_sha256(&archive.archive_file)?;
+        super::seal_full_archive_extraction(&archive.archive_extract)?;
+        let seal = super::capture_archive_executable_seal(&archive, &source)?;
+        seal.extracted.require_readonly()?;
+        assert!(seal.extracted.verify().unchanged);
+        assert!(seal.producer.verify().unchanged);
+        let original_permissions = std::fs::metadata(&binary)?.permissions();
+        std::fs::set_permissions(&binary, std::fs::Permissions::from_mode(0o755))?;
+        std::fs::write(&binary, b"modified executable")?;
+        std::fs::set_permissions(&binary, original_permissions)?;
+        assert_eq!(bijux_dna_infra::hash_file_sha256(&archive.archive_file)?, archive_sha256);
+        let observed = seal.extracted.verify();
+        assert!(!observed.unchanged);
+        assert_eq!(observed.receipt["changed_inputs"][0], binary.display().to_string());
+        assert!(seal.producer.verify().unchanged);
+        std::fs::write(&producer_binary, b"changed retained producer")?;
+        assert!(!seal.producer.verify().unchanged);
+        let cargo_metadata = std::fs::read(metadata.join("cargo-metadata.json"))?;
+        let binary_metadata = std::fs::read(metadata.join("binaries-metadata.json"))?;
+        super::remove_full_shard_ephemera(&archive.archive_extract)?;
+        std::fs::create_dir_all(&metadata)?;
+        std::fs::create_dir_all(binary.parent().context("binary parent")?)?;
+        std::fs::write(metadata.join("cargo-metadata.json"), cargo_metadata)?;
+        std::fs::write(metadata.join("binaries-metadata.json"), binary_metadata)?;
+        std::fs::hard_link(&producer_binary, &binary)?;
+        super::seal_full_archive_extraction(&archive.archive_extract)?;
+        assert!(super::capture_archive_executable_seal(&archive, &source).is_err());
+        super::remove_full_shard_ephemera(&archive.archive_extract)?;
         Ok(())
     }
 
