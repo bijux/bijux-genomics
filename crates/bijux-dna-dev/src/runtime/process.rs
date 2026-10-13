@@ -17,6 +17,13 @@ pub struct DependentProcessSpec {
     pub dependencies: Vec<String>,
 }
 
+#[derive(Debug, Clone)]
+pub struct WeightedProcessSpec {
+    pub process: DependentProcessSpec,
+    pub resource_units: usize,
+    pub terminal_dependencies: Vec<String>,
+}
+
 #[derive(Debug)]
 pub enum DependencyProcessOutput {
     Completed(ParallelProcessOutput),
@@ -177,14 +184,53 @@ impl<'a> ProcessRunner<'a> {
         specs: Vec<DependentProcessSpec>,
         max_parallelism: usize,
     ) -> Result<Vec<DependencyProcessOutput>> {
-        dependency_graph::collect(specs, max_parallelism, |spec| {
+        self.run_weighted_dependency_graph(
+            specs
+                .into_iter()
+                .map(|process| WeightedProcessSpec {
+                    process,
+                    resource_units: 1,
+                    terminal_dependencies: Vec::new(),
+                })
+                .collect(),
+            max_parallelism,
+            max_parallelism,
+        )
+    }
+
+    /// Admit dependency-ready children against a shared resource budget and process limit.
+    /// Terminal dependencies require predecessor completion regardless of its verdict; ordinary
+    /// dependencies still require success. Every declared unit weight must fit before launch.
+    ///
+    /// # Errors
+    /// Returns an error for invalid capacity/dependencies or child launch/collection failure.
+    pub fn run_weighted_dependency_graph(
+        &self,
+        specs: Vec<WeightedProcessSpec>,
+        max_parallelism: usize,
+        resource_capacity: usize,
+    ) -> Result<Vec<DependencyProcessOutput>> {
+        let run = |spec: &ParallelProcessSpec| {
             let mut command = std::process::Command::new(&spec.program);
             command
                 .args(&spec.args)
                 .envs(spec.envs.iter().map(|(key, value)| (key, value)))
                 .current_dir(spec.current_dir.as_ref().unwrap_or(&self.workspace.root));
             command.output().with_context(|| format!("run dependency process {}", spec.label))
-        })
+        };
+        if resource_capacity == max_parallelism
+            && specs
+                .iter()
+                .all(|spec| spec.resource_units == 1 && spec.terminal_dependencies.is_empty())
+        {
+            dependency_graph::collect(
+                specs.into_iter().map(|spec| spec.process).collect(),
+                max_parallelism,
+                run,
+            )
+        } else {
+            dependency_graph::collect_weighted(specs, max_parallelism, resource_capacity, run)
+        }
     }
 
     fn collect_parallel(

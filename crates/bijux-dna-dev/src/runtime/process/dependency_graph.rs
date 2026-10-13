@@ -7,6 +7,7 @@ use anyhow::{ensure, Context, Result};
 
 use super::{
     DependencyProcessOutput, DependentProcessSpec, ParallelProcessOutput, ParallelProcessSpec,
+    WeightedProcessSpec,
 };
 
 #[derive(Clone, Copy, PartialEq, Eq)]
@@ -75,12 +76,73 @@ pub(super) fn collect<F>(
 where
     F: Fn(&ParallelProcessSpec) -> Result<Output> + Sync,
 {
-    let dependencies = dependencies(&specs, max_parallelism)?;
+    collect_weighted(
+        specs
+            .into_iter()
+            .map(|process| WeightedProcessSpec {
+                process,
+                resource_units: 1,
+                terminal_dependencies: Vec::new(),
+            })
+            .collect(),
+        max_parallelism,
+        max_parallelism,
+        run,
+    )
+}
+
+pub(super) fn collect_weighted<F>(
+    specs: Vec<WeightedProcessSpec>,
+    max_parallelism: usize,
+    resource_capacity: usize,
+    run: F,
+) -> Result<Vec<DependencyProcessOutput>>
+where
+    F: Fn(&ParallelProcessSpec) -> Result<Output> + Sync,
+{
+    ensure!(resource_capacity > 0, "weighted resource capacity must be positive");
+    for spec in &specs {
+        ensure!(
+            spec.resource_units > 0 && spec.resource_units <= resource_capacity,
+            "weighted process {} does not fit the resource capacity",
+            spec.process.process.label
+        );
+    }
+    specs
+        .iter()
+        .try_fold(0usize, |total, spec| total.checked_add(spec.resource_units))
+        .context("declared weighted process units overflow")?;
+    let combined = specs
+        .iter()
+        .map(|spec| DependentProcessSpec {
+            process: spec.process.process.clone(),
+            dependencies: spec
+                .process
+                .dependencies
+                .iter()
+                .chain(&spec.terminal_dependencies)
+                .cloned()
+                .collect(),
+        })
+        .collect::<Vec<_>>();
+    let combined_dependencies = dependencies(&combined, max_parallelism)?;
+    let dependencies = specs
+        .iter()
+        .zip(&combined_dependencies)
+        .map(|(spec, dependencies)| dependencies[..spec.process.dependencies.len()].to_vec())
+        .collect::<Vec<_>>();
+    let terminal = specs
+        .iter()
+        .zip(&combined_dependencies)
+        .map(|(spec, dependencies)| dependencies[spec.process.dependencies.len()..].to_vec())
+        .collect::<Vec<_>>();
+
     let mut states = vec![State::Pending; specs.len()];
     let mut outputs = (0..specs.len()).map(|_| None).collect::<Vec<_>>();
     let (sender, receiver) = mpsc::channel();
     std::thread::scope(|scope| {
         let mut active = 0usize;
+        let mut occupied_units = 0usize;
         let mut first_error = None;
         loop {
             if first_error.is_none() {
@@ -100,7 +162,7 @@ where
                     for index in blocked {
                         states[index] = State::Blocked;
                         outputs[index] = Some(DependencyProcessOutput::BlockedDependency {
-                            label: specs[index].process.label.clone(),
+                            label: specs[index].process.process.label.clone(),
                         });
                     }
                 }
@@ -110,13 +172,20 @@ where
                     }
                     if states[index] != State::Pending
                         || !dependencies[index].iter().all(|&id| states[id] == State::Passed)
+                        || !terminal[index].iter().all(|&id| {
+                            matches!(states[id], State::Passed | State::Failed | State::Blocked)
+                        })
+                        || occupied_units
+                            .checked_add(specs[index].resource_units)
+                            .is_none_or(|units| units > resource_capacity)
                     {
                         continue;
                     }
                     states[index] = State::Running;
                     active += 1;
+                    occupied_units += specs[index].resource_units;
                     let sender = sender.clone();
-                    let spec = &specs[index].process;
+                    let spec = &specs[index].process.process;
                     let run = &run;
                     scope.spawn(move || {
                         let started = Instant::now();
@@ -145,6 +214,7 @@ where
             let (index, result) =
                 receiver.recv().context("dependency process completion channel closed")?;
             active -= 1;
+            occupied_units -= specs[index].resource_units;
             match result {
                 Ok(output) => {
                     states[index] =
@@ -167,7 +237,10 @@ where
             .enumerate()
             .map(|(index, output)| {
                 output.with_context(|| {
-                    format!("dependency process {} was not collected", specs[index].process.label)
+                    format!(
+                        "dependency process {} was not collected",
+                        specs[index].process.process.label
+                    )
                 })
             })
             .collect()
@@ -192,6 +265,104 @@ mod tests {
             },
             dependencies: dependencies.iter().map(|id| (*id).into()).collect(),
         }
+    }
+
+    fn weighted(
+        label: &str,
+        weight: usize,
+        success: &[&str],
+        terminal: &[&str],
+    ) -> WeightedProcessSpec {
+        WeightedProcessSpec {
+            process: spec(label, success),
+            resource_units: weight,
+            terminal_dependencies: terminal.iter().map(|value| (*value).to_string()).collect(),
+        }
+    }
+
+    #[test]
+    fn failed_success_consumer_is_blocked_while_terminal_consumers_run() -> Result<()> {
+        let outputs = collect_weighted(
+            vec![
+                weighted("producer", 2, &[], &[]),
+                weighted("success", 1, &["producer"], &[]),
+                weighted("terminal", 1, &[], &["producer"]),
+                weighted("blocked-terminal", 1, &[], &["success"]),
+            ],
+            3,
+            3,
+            |spec| output(spec.label != "producer"),
+        )?;
+        assert!(matches!(&outputs[1], DependencyProcessOutput::BlockedDependency { .. }));
+        assert!(
+            matches!(&outputs[2], DependencyProcessOutput::Completed(value) if value.output.status.success())
+        );
+        assert!(
+            matches!(&outputs[3], DependencyProcessOutput::Completed(value) if value.output.status.success())
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn weighted_admission_rejects_bad_weights_and_mixed_dependency_cycles_before_launch() {
+        for (specs, capacity) in [
+            (vec![weighted("zero", 0, &[], &[])], 2),
+            (vec![weighted("large", 3, &[], &[])], 2),
+            (vec![weighted("a", 1, &[], &["b"]), weighted("b", 1, &["a"], &[])], 2),
+            (vec![weighted("a", 1, &[], &["missing"])], 2),
+            (vec![weighted("a", 1, &[], &["a"])], 2),
+            (vec![weighted("a", 1, &[], &[]), weighted("b", 1, &["a"], &["a"])], 2),
+            (vec![weighted("a", usize::MAX, &[], &[]), weighted("b", 1, &[], &[])], usize::MAX),
+            (vec![weighted("a", 1, &[], &[])], 0),
+        ] {
+            assert!(collect_weighted(specs, 2, capacity, |_| panic!(
+                "invalid weighted process launched"
+            ))
+            .is_err());
+        }
+    }
+
+    #[test]
+    fn fitting_work_refills_weighted_slots_while_an_independent_peer_waits() -> Result<()> {
+        use std::sync::atomic::{AtomicUsize, Ordering};
+        let signal = (Mutex::new(false), Condvar::new());
+        let active = AtomicUsize::new(0);
+        let maximum = AtomicUsize::new(0);
+        let outputs = collect_weighted(
+            vec![
+                weighted("producer", 2, &[], &[]),
+                weighted("peer", 1, &[], &[]),
+                weighted("consumer", 2, &["producer"], &[]),
+            ],
+            3,
+            3,
+            |spec| {
+                let weight = if spec.label == "peer" { 1 } else { 2 };
+                let current = active.fetch_add(weight, Ordering::SeqCst) + weight;
+                maximum.fetch_max(current, Ordering::SeqCst);
+                if spec.label == "peer" {
+                    let (ready, _) = signal
+                        .1
+                        .wait_timeout_while(
+                            signal.0.lock().unwrap(),
+                            Duration::from_secs(10),
+                            |value| !*value,
+                        )
+                        .unwrap();
+                    ensure!(*ready, "fitting consumer waited for peer");
+                } else if spec.label == "consumer" {
+                    *signal.0.lock().unwrap() = true;
+                    signal.1.notify_all();
+                }
+                let result = output(true);
+                active.fetch_sub(weight, Ordering::SeqCst);
+                result
+            },
+        )?;
+        assert_eq!(outputs.len(), 3);
+        assert!(maximum.load(Ordering::SeqCst) <= 3);
+        assert_eq!(active.load(Ordering::SeqCst), 0);
+        Ok(())
     }
 
     fn output(success: bool) -> Result<Output> {
