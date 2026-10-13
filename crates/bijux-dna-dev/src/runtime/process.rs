@@ -9,6 +9,20 @@ use anyhow::{ensure, Context, Result};
 
 use crate::runtime::workspace::Workspace;
 
+mod dependency_graph;
+
+#[derive(Debug, Clone)]
+pub struct DependentProcessSpec {
+    pub process: ParallelProcessSpec,
+    pub dependencies: Vec<String>,
+}
+
+#[derive(Debug)]
+pub enum DependencyProcessOutput {
+    Completed(ParallelProcessOutput),
+    BlockedDependency { label: String },
+}
+
 #[derive(Debug)]
 pub struct ProcessRunner<'a> {
     workspace: &'a Workspace,
@@ -76,20 +90,6 @@ impl<'a> ProcessRunner<'a> {
             })
     }
 
-    /// Run independent processes concurrently and return outputs in declaration order.
-    ///
-    /// Completion is delivered through a channel as each child exits; no polling or sleeps are
-    /// used. All launched children are collected before a launch failure is returned.
-    ///
-    /// # Errors
-    /// Returns an error when a child cannot be launched or its completion cannot be collected.
-    pub fn run_parallel(
-        &self,
-        specs: Vec<ParallelProcessSpec>,
-    ) -> Result<Vec<ParallelProcessOutput>> {
-        self.collect_parallel(specs, None)
-    }
-
     /// Run independent processes with directly written stdout and stderr files.
     ///
     /// Files are visible while children run and survive coordinator interruption. Each label
@@ -121,13 +121,36 @@ impl<'a> ProcessRunner<'a> {
         }
         bijux_dna_infra::ensure_dir(log_directory)
             .with_context(|| format!("create process log directory {}", log_directory.display()))?;
-        self.collect_parallel(specs, Some(log_directory))
+        self.collect_parallel(specs, log_directory)
+    }
+
+    /// Run a dependency graph with a bounded number of active children.
+    ///
+    /// Each completion immediately releases its slot and admits newly ready consumers. Failed
+    /// children block their descendants while independent work continues. Results retain input
+    /// order, and launched children are drained before a launch error is returned.
+    ///
+    /// # Errors
+    /// Returns an error for an invalid graph or a child launch/collection failure.
+    pub fn run_dependency_graph(
+        &self,
+        specs: Vec<DependentProcessSpec>,
+        max_parallelism: usize,
+    ) -> Result<Vec<DependencyProcessOutput>> {
+        dependency_graph::collect(specs, max_parallelism, |spec| {
+            let mut command = std::process::Command::new(&spec.program);
+            command
+                .args(&spec.args)
+                .envs(spec.envs.iter().map(|(key, value)| (key, value)))
+                .current_dir(spec.current_dir.as_ref().unwrap_or(&self.workspace.root));
+            command.output().with_context(|| format!("run dependency process {}", spec.label))
+        })
     }
 
     fn collect_parallel(
         &self,
         specs: Vec<ParallelProcessSpec>,
-        log_directory: Option<&Path>,
+        log_directory: &Path,
     ) -> Result<Vec<ParallelProcessOutput>> {
         let root = self.workspace.root.clone();
         let count = specs.len();
@@ -144,16 +167,13 @@ impl<'a> ProcessRunner<'a> {
                         .args(&spec.args)
                         .envs(spec.envs.iter().map(|(key, value)| (key, value)))
                         .current_dir(current_dir);
-                    let result = match log_directory {
-                        Some(directory) => run_with_logs(&mut command, directory, &spec.label),
-                        None => command.output().map_err(Into::into),
-                    }
-                    .with_context(|| format!("run parallel process {}", spec.label))
-                    .map(|output| ParallelProcessOutput {
-                        label: spec.label,
-                        output,
-                        duration: started.elapsed(),
-                    });
+                    let result = run_with_logs(&mut command, log_directory, &spec.label)
+                        .with_context(|| format!("run parallel process {}", spec.label))
+                        .map(|output| ParallelProcessOutput {
+                            label: spec.label,
+                            output,
+                            duration: started.elapsed(),
+                        });
                     let _ = sender.send((index, result));
                 });
             }
@@ -205,7 +225,10 @@ fn run_with_logs(
 
 #[cfg(test)]
 mod tests {
-    use super::{ParallelProcessSpec, ProcessRunner};
+    use super::{
+        DependencyProcessOutput, DependentProcessSpec, ParallelProcessOutput, ParallelProcessSpec,
+        ProcessRunner,
+    };
     use crate::runtime::workspace::Workspace;
 
     #[test]
@@ -214,15 +237,13 @@ mod tests {
         let workspace = Workspace { root: root.path().to_path_buf() };
         let specs = ["first", "second"]
             .into_iter()
-            .map(|label| ParallelProcessSpec {
-                label: label.to_string(),
-                program: "sh".to_string(),
-                args: vec!["-c".to_string(), format!("printf '%s' {label}")],
-                envs: Vec::new(),
-                current_dir: None,
+            .map(|label| DependentProcessSpec {
+                process: shell_spec(label, &format!("printf '%s' {label}")),
+                dependencies: Vec::new(),
             })
             .collect();
-        let outputs = ProcessRunner::new(&workspace).run_parallel(specs)?;
+        let outputs =
+            completed_outputs(ProcessRunner::new(&workspace).run_dependency_graph(specs, 2)?)?;
         assert_eq!(
             outputs.iter().map(|output| output.label.as_str()).collect::<Vec<_>>(),
             ["first", "second"]
@@ -239,13 +260,19 @@ mod tests {
         let artifact_root = workspace.root.join("artifacts");
         bijux_dna_infra::ensure_dir(&artifact_root)?;
         let isolated = tempfile::tempdir_in(&artifact_root)?;
-        let outputs = ProcessRunner::new(&workspace).run_parallel(vec![ParallelProcessSpec {
-            label: "isolated".to_string(),
-            program: "pwd".to_string(),
-            args: Vec::new(),
-            envs: Vec::new(),
-            current_dir: Some(isolated.path().to_path_buf()),
-        }])?;
+        let outputs = completed_outputs(ProcessRunner::new(&workspace).run_dependency_graph(
+            vec![DependentProcessSpec {
+                process: ParallelProcessSpec {
+                    label: "isolated".to_string(),
+                    program: "pwd".to_string(),
+                    args: Vec::new(),
+                    envs: Vec::new(),
+                    current_dir: Some(isolated.path().to_path_buf()),
+                },
+                dependencies: Vec::new(),
+            }],
+            1,
+        )?)?;
 
         assert_eq!(
             String::from_utf8(outputs[0].output.stdout.clone())?.trim(),
@@ -253,6 +280,21 @@ mod tests {
         );
         Ok(())
     }
+
+    fn completed_outputs(
+        outputs: Vec<DependencyProcessOutput>,
+    ) -> anyhow::Result<Vec<ParallelProcessOutput>> {
+        outputs
+            .into_iter()
+            .map(|output| match output {
+                DependencyProcessOutput::Completed(output) => Ok(output),
+                DependencyProcessOutput::BlockedDependency { label } => {
+                    anyhow::bail!("independent child {label} was blocked")
+                }
+            })
+            .collect()
+    }
+
     fn shell_spec(label: &str, script: &str) -> ParallelProcessSpec {
         ParallelProcessSpec {
             label: label.to_string(),

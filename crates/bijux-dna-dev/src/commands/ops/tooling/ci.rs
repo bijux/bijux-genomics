@@ -1,3 +1,5 @@
+mod fast_execution;
+
 use super::super::suite_selection::governed_slow_expression;
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Component, Path, PathBuf};
@@ -453,134 +455,24 @@ pub(in super::super) fn tooling_ci_fast(
         read_sccache_stats(workspace, wrapper, &sccache_runtime_env).ok().flatten()
     });
     let started = Instant::now();
-    let mut pending =
-        contract.groups.iter().map(|group| group.id.as_str()).collect::<BTreeSet<_>>();
-    let mut passed = BTreeSet::new();
-    let mut failed = BTreeSet::new();
-    let mut receipts = Vec::with_capacity(contract.groups.len());
-    let mut stdout = String::new();
-    let mut stderr = String::new();
-    let mut group_durations = BTreeMap::new();
-    let mut compiler_lock_wait_events = 0usize;
-    let mut compiler_lock_wait_duration_upper_bound_milliseconds = 0u64;
-    let mut compiler_lock_wait_targets = BTreeSet::new();
-
-    while !pending.is_empty() {
-        let blocked = contract
-            .groups
-            .iter()
-            .filter(|group| {
-                pending.contains(group.id.as_str())
-                    && group
-                        .dependencies
-                        .iter()
-                        .any(|dependency| failed.contains(dependency.as_str()))
-            })
-            .collect::<Vec<_>>();
-        for group in blocked {
-            pending.remove(group.id.as_str());
-            failed.insert(group.id.as_str());
-            group_durations.insert(group.id.clone(), 0);
-            stderr.push_str(&format!("ci-fast group {}: blocked by failed dependency\n", group.id));
-            receipts.push(serde_json::json!({
-                "id": group.id,
-                "status": "blocked_dependency",
-                "dependencies": group.dependencies,
-                "command": std::iter::once(group.program.as_str())
-                    .chain(group.args.iter().map(String::as_str))
-                    .collect::<Vec<_>>(),
-                "duration_milliseconds": 0,
-                "compiler_lock_wait_events": 0,
-                "build_target": build_authority.target.join(&group.id),
-                "exit_code": 1,
-                "log": serde_json::Value::Null,
-            }));
-        }
-        if pending.is_empty() {
-            break;
-        }
-
-        let ready = contract
-            .groups
-            .iter()
-            .filter(|group| {
-                pending.contains(group.id.as_str())
-                    && group
-                        .dependencies
-                        .iter()
-                        .all(|dependency| passed.contains(dependency.as_str()))
-            })
-            .take(contract.max_parallelism)
-            .collect::<Vec<_>>();
-        if ready.is_empty() {
-            anyhow::bail!("ci-fast DAG has no ready group");
-        }
-        let specs = ready
-            .iter()
-            .map(|group| {
-                Ok(ParallelProcessSpec {
-                    label: group.id.clone(),
-                    program: group.program.clone(),
-                    args: group.args.clone(),
-                    envs: ci_fast_group_env(
-                        workspace,
-                        &build_authority,
-                        &group.id,
-                        &sccache_runtime_env,
-                        &group_compiler_env,
-                    )?,
-                    current_dir: None,
-                })
-            })
-            .collect::<Result<Vec<_>>>()?;
-        let outputs = ProcessRunner::new(workspace).run_parallel(specs)?;
-        for (group, completed) in ready.into_iter().zip(outputs) {
-            let log_path = report_root.join(format!("{}.log", group.id));
-            let mut log = completed.output.stdout;
-            log.extend_from_slice(&completed.output.stderr);
-            bijux_dna_infra::write_bytes(&log_path, &log)?;
-            let exit_code = completed.output.status.code().unwrap_or(1);
-            let duration_milliseconds = duration_milliseconds(completed.duration);
-            let group_lock_wait_events = cargo_lock_wait_events(&log);
-            compiler_lock_wait_events += group_lock_wait_events;
-            if group_lock_wait_events > 0 {
-                compiler_lock_wait_duration_upper_bound_milliseconds += duration_milliseconds;
-                compiler_lock_wait_targets.insert(group.id.clone());
-            }
-            group_durations.insert(group.id.clone(), duration_milliseconds);
-            pending.remove(group.id.as_str());
-            if exit_code == 0 {
-                passed.insert(group.id.as_str());
-                stdout.push_str(&format!(
-                    "ci-fast group {}: passed in {} ms ({})\n",
-                    group.id,
-                    duration_milliseconds,
-                    workspace.rel(&log_path).display()
-                ));
-            } else {
-                failed.insert(group.id.as_str());
-                stderr.push_str(&format!(
-                    "ci-fast group {}: failed with exit {} ({})\n",
-                    group.id,
-                    exit_code,
-                    workspace.rel(&log_path).display()
-                ));
-            }
-            receipts.push(serde_json::json!({
-                "id": group.id,
-                "status": if exit_code == 0 { "passed" } else { "failed" },
-                "dependencies": group.dependencies,
-                "command": std::iter::once(group.program.as_str())
-                    .chain(group.args.iter().map(String::as_str))
-                    .collect::<Vec<_>>(),
-                "duration_milliseconds": duration_milliseconds,
-                "compiler_lock_wait_events": group_lock_wait_events,
-                "build_target": build_authority.target.join(&group.id),
-                "exit_code": exit_code,
-                "log": workspace.rel(&log_path).to_string_lossy(),
-            }));
-        }
-    }
+    let fast_execution::FastGroupExecution {
+        passed,
+        failed,
+        receipts,
+        stdout,
+        stderr,
+        group_durations,
+        compiler_lock_wait_events,
+        compiler_lock_wait_duration_upper_bound_milliseconds,
+        compiler_lock_wait_targets,
+    } = fast_execution::run_groups(
+        workspace,
+        &contract,
+        &report_root,
+        &build_authority,
+        &sccache_runtime_env,
+        &group_compiler_env,
+    )?;
 
     let wall_time_milliseconds = duration_milliseconds(started.elapsed());
     let all_passed = failed.is_empty() && passed.len() == contract.groups.len();
