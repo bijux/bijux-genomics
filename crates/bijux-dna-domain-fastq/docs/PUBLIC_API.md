@@ -42,6 +42,12 @@ private implementation modules.
 - Removing, renaming, or changing public fields is breaking unless compatibility is preserved.
 - Internal modules should stay private unless a downstream consumer needs a stable domain contract.
 
+`ScreenTaxonomyReportV1::derived_read_counts` returns classified and unclassified read-count
+estimates from the report's existing fields. It prefers `reads_in` to `reads_out` and the
+unclassified fraction to the classified fraction, rounds and bounds the selected count, then
+derives its saturating complement. Missing totals or both fractions return `(None, None)`.
+This pure method does not add serialized fields or turn screening estimates into measured counts.
+
 The bank selection module exposes `adapter_bank_context_at`, `polyx_bank_context_at`
 and `contaminant_bank_context_at` for callers with an explicit repository root.
 They reuse the same selection and provenance authority as the existing current-directory
