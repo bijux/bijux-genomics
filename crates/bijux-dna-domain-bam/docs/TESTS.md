@@ -32,6 +32,9 @@ Tests should explain the contract they enforce.
 - `tests/support/mod.rs` → crate-local test helpers; shared helpers belong in `bijux-dna-testkit`.
 - `tests/snapshots/*` → reviewed stage contract snapshots.
 - `tests/fixtures/*` → small deterministic BAM/reference/tool-metric fixtures.
+- `src/artifacts/observation/alignment/contracts.rs` → governed binary BAM and text SAM header/truth observations, mapped/unmapped counts, positions and classes.
+- `src/artifacts/transformation/sort_index/contracts.rs` → coordinate ordering, index publication, artifact inventory and validation of the sorted fixture.
+- `tests/contracts/parsers/alignment_header.rs` → sorting/merging header preservation and refusal before overwriting prior outputs.
 
 The raw BAM parser bank for benchmark-facing observer fixtures lives at
 `benchmarks/tests/fixtures/bench/parsers/bam/<stage>/<tool>/` in the repository root.

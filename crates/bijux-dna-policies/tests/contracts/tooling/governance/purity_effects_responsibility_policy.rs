@@ -21,6 +21,8 @@ fn is_domain_effect_allowlisted(path: &std::path::Path) -> bool {
     let path_str = path.to_string_lossy();
     path_str.contains("/crates/bijux-dna-domain-fastq/src/stages/contract/runtime/")
         || path_str.ends_with("/crates/bijux-dna-domain-bam/src/artifacts.rs")
+        || path_str
+            .ends_with("/crates/bijux-dna-domain-bam/src/artifacts/transformation/sort_index.rs")
 }
 
 fn scan_forbidden_patterns(base: &std::path::Path, forbidden: &[&str]) -> Vec<String> {
@@ -36,7 +38,9 @@ fn scan_forbidden_patterns(base: &std::path::Path, forbidden: &[&str]) -> Vec<St
         if path.to_string_lossy().contains("/tests/") || is_domain_effect_allowlisted(path) {
             continue;
         }
-        let content = support::read_to_string(path);
+        let content = bijux_dna_testkit::workspace_support::strip_rust_test_modules(
+            &support::read_to_string(path),
+        );
         for needle in forbidden {
             if content.contains(needle) {
                 offenders.push(format!("{} contains `{}`", path.display(), needle));

@@ -31,6 +31,7 @@ fn is_allowed_writer_path(path: &Path) -> bool {
         )
         || path_str.contains("/crates/bijux-dna-db-ref/src/resolution/reference_assets.rs")
         || path_str.contains("/crates/bijux-dna-domain-bam/src/artifacts.rs")
+        || path_str.ends_with("/crates/bijux-dna-domain-bam/src/artifacts/transformation/sort_index.rs")
         || path_str.contains("/crates/bijux-dna-domain-vcf/src/artifacts.rs")
         || path_str.contains("/crates/bijux-dna-api/src/v1/run/runtime_support.rs")
         || path_str.contains(

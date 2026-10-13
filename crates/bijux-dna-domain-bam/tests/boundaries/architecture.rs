@@ -52,17 +52,7 @@ fn crate_tree_matches_domain_boundary() {
     .collect();
     assert_eq!(dir_entries(&root.join("src")), expected_src, "source tree changed");
 
-    assert_eq!(
-        dir_entries(&root.join("src/artifacts")),
-        BTreeSet::from(["alignment/".to_string()])
-    );
-    assert_eq!(
-        dir_entries(&root.join("src/artifacts/alignment")),
-        ["mod.rs", "document.rs", "sam.rs", "bam.rs", "header.rs"]
-            .into_iter()
-            .map(str::to_string)
-            .collect()
-    );
+    assert_alignment_artifact_owners(root);
 
     let report_models: BTreeSet<_> = [
         "mod.rs",
@@ -96,6 +86,33 @@ fn crate_tree_matches_domain_boundary() {
         dir_entries(&root.join("tests/boundaries")),
         expected_boundaries,
         "boundary tests must stay focused on architecture, guardrails, and purity"
+    );
+}
+
+fn assert_alignment_artifact_owners(root: &Path) {
+    assert_eq!(
+        dir_entries(&root.join("src/artifacts")),
+        ["alignment/", "observation/", "transformation/"].into_iter().map(str::to_string).collect()
+    );
+    assert_eq!(
+        dir_entries(&root.join("src/artifacts/alignment")),
+        ["mod.rs", "document.rs", "sam.rs", "bam.rs", "header.rs"]
+            .into_iter()
+            .map(str::to_string)
+            .collect()
+    );
+    assert_eq!(
+        dir_entries(&root.join("src/artifacts/observation")),
+        ["mod.rs", "alignment.rs", "alignment/"]
+            .into_iter()
+            .map(str::to_string)
+            .collect(),
+        "alignment observations must keep acquisition and scientific projection distinct from codecs"
+    );
+    assert_eq!(
+        dir_entries(&root.join("src/artifacts/transformation")),
+        ["mod.rs", "sort_index.rs", "sort_index/"].into_iter().map(str::to_string).collect(),
+        "coordinate fixture transforms must remain separate from scientific report evaluation"
     );
 }
 

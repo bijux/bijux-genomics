@@ -1,8 +1,13 @@
 mod alignment;
+mod observation;
+mod transformation;
+
 use alignment::{
     parse_tiny_alignment, parse_tiny_sam, write_tiny_sam_document, write_tiny_sam_from_document,
     TinySamDocument, TinySamRecord,
 };
+pub use observation::{inspect_tiny_alignment, summarize_tiny_bam_alignment_truth};
+pub use transformation::sort_and_index_tiny_bam;
 
 use std::collections::{BTreeSet, HashMap};
 use std::path::{Path, PathBuf};
@@ -17,14 +22,12 @@ use crate::params::{BqsrMode, FilterEffectiveParams, ReadGroupSpec, Recalibratio
 use crate::types::artifact_reports::{
     BamAdnaContaminationTruthSummaryV1, BamAdnaDamageTruthSummaryV1, BamAdnaWorkflowV1,
     BamAdvisoryBoundaryV1, BamAlignmentProvenanceV1, BamAlignmentStrategyV1,
-    BamAlignmentSuitabilityV1, BamAlignmentTruthCigarClassV1, BamAlignmentTruthMapqClassV1,
-    BamAlignmentTruthPositionV1, BamAlignmentTruthRecordV1, BamAlignmentTruthSummaryV1,
-    BamArtifactEntryV1, BamArtifactInventoryV1, BamAuthenticityAdvisoryV1,
-    BamBenchCorpusDatasetManifestEntryV1, BamBenchCorpusManifestV1, BamBenchDatasetScenarioV1,
-    BamBiasMitigationSummaryV1, BamComplexitySummaryV1, BamContaminationEvidenceV1,
-    BamContaminationToolContractV1, BamContaminationWorkflowV1, BamCoverageRegimeClassV1,
-    BamCoverageRegimeV1, BamCoverageRegionSummaryV1, BamCoverageSummaryV1,
-    BamCoverageTruthSummaryV1, BamDamageEvidenceV1, BamDuplicateComparisonV1,
+    BamAlignmentSuitabilityV1, BamArtifactEntryV1, BamArtifactInventoryV1,
+    BamAuthenticityAdvisoryV1, BamBenchCorpusDatasetManifestEntryV1, BamBenchCorpusManifestV1,
+    BamBenchDatasetScenarioV1, BamBiasMitigationSummaryV1, BamComplexitySummaryV1,
+    BamContaminationEvidenceV1, BamContaminationToolContractV1, BamContaminationWorkflowV1,
+    BamCoverageRegimeClassV1, BamCoverageRegimeV1, BamCoverageRegionSummaryV1,
+    BamCoverageSummaryV1, BamCoverageTruthSummaryV1, BamDamageEvidenceV1, BamDuplicateComparisonV1,
     BamDuplicateFamilyHistogramBinV1, BamDuplicateInsertTruthSummaryV1,
     BamDuplicateMethodMetricsV1, BamDuplicatePolicyV1, BamDuplicationMetricsSummaryV1,
     BamEndogenousContentEstimateV1, BamEndogenousTruthSummaryV1, BamFilterSummaryV1,
@@ -37,163 +40,32 @@ use crate::types::artifact_reports::{
     BamQcPreSummaryV1, BamReadGroupMappingCountV1, BamRecalibrationCoverageGateV1,
     BamRecalibrationSummaryV1, BamSampleIdentityV1, BamScientificReportContractV1,
     BamScientificReportIdV1, BamSexInferenceEvidenceV1, BamSexSummaryV1, BamStageResourcePlanV1,
-    BamTinyAlignmentInspectionV1, BamValidationSummaryV1, BamWorkflowModeV1, BamWorkflowTemplateV1,
+    BamValidationSummaryV1, BamWorkflowModeV1, BamWorkflowTemplateV1,
     BAM_ADNA_CONTAMINATION_TRUTH_SUMMARY_SCHEMA_VERSION,
     BAM_ADNA_DAMAGE_TRUTH_SUMMARY_SCHEMA_VERSION, BAM_ADNA_WORKFLOW_SCHEMA_VERSION,
     BAM_ADVISORY_BOUNDARY_SCHEMA_VERSION, BAM_ALIGNMENT_PROVENANCE_SCHEMA_VERSION,
-    BAM_ALIGNMENT_STRATEGY_SCHEMA_VERSION, BAM_ALIGNMENT_TRUTH_SUMMARY_SCHEMA_VERSION,
-    BAM_ARTIFACT_INVENTORY_SCHEMA_VERSION, BAM_AUTHENTICITY_ADVISORY_SCHEMA_VERSION,
-    BAM_BENCH_CORPUS_MANIFEST_SCHEMA_VERSION, BAM_BIAS_MITIGATION_SUMMARY_SCHEMA_VERSION,
-    BAM_COMPLEXITY_SUMMARY_SCHEMA_VERSION, BAM_CONTAMINATION_EVIDENCE_SCHEMA_VERSION,
-    BAM_CONTAMINATION_WORKFLOW_SCHEMA_VERSION, BAM_COVERAGE_REGIME_SCHEMA_VERSION,
-    BAM_COVERAGE_SUMMARY_SCHEMA_VERSION, BAM_COVERAGE_TRUTH_SUMMARY_SCHEMA_VERSION,
-    BAM_DAMAGE_EVIDENCE_SCHEMA_VERSION, BAM_DUPLICATE_COMPARISON_SCHEMA_VERSION,
-    BAM_DUPLICATE_INSERT_TRUTH_SUMMARY_SCHEMA_VERSION, BAM_DUPLICATE_POLICY_SCHEMA_VERSION,
-    BAM_DUPLICATION_METRICS_SUMMARY_SCHEMA_VERSION, BAM_ENDOGENOUS_CONTENT_SCHEMA_VERSION,
-    BAM_ENDOGENOUS_TRUTH_SUMMARY_SCHEMA_VERSION, BAM_FILTER_SUMMARY_SCHEMA_VERSION,
-    BAM_GC_BIAS_SUMMARY_SCHEMA_VERSION, BAM_GC_BIAS_TRUTH_SUMMARY_SCHEMA_VERSION,
-    BAM_HAPLOGROUP_READINESS_SCHEMA_VERSION, BAM_HAPLOGROUP_TRUTH_SUMMARY_SCHEMA_VERSION,
-    BAM_INSERT_SIZE_SUMMARY_SCHEMA_VERSION, BAM_KINSHIP_PREREQUISITES_SCHEMA_VERSION,
-    BAM_KINSHIP_SUMMARY_SCHEMA_VERSION, BAM_LENGTH_FILTER_SUMMARY_SCHEMA_VERSION,
-    BAM_MAPPING_SUMMARY_SCHEMA_VERSION, BAM_MAPQ_FILTER_SUMMARY_SCHEMA_VERSION,
-    BAM_MARKDUP_SUMMARY_SCHEMA_VERSION, BAM_MERGE_COMPATIBILITY_SCHEMA_VERSION,
-    BAM_OVERLAP_CORRECTION_SUMMARY_SCHEMA_VERSION, BAM_POST_ALIGNMENT_CHAIN_SCHEMA_VERSION,
-    BAM_QC_PRE_SUMMARY_SCHEMA_VERSION, BAM_RECALIBRATION_SUMMARY_SCHEMA_VERSION,
-    BAM_RESOURCE_PLAN_SCHEMA_VERSION, BAM_SAMPLE_IDENTITY_SCHEMA_VERSION,
-    BAM_SCIENTIFIC_REPORT_SCHEMA_VERSION, BAM_SEX_EVIDENCE_SCHEMA_VERSION,
-    BAM_SEX_SUMMARY_SCHEMA_VERSION, BAM_VALIDATION_SUMMARY_SCHEMA_VERSION,
-    BAM_WORKFLOW_TEMPLATE_SCHEMA_VERSION,
+    BAM_ALIGNMENT_STRATEGY_SCHEMA_VERSION, BAM_ARTIFACT_INVENTORY_SCHEMA_VERSION,
+    BAM_AUTHENTICITY_ADVISORY_SCHEMA_VERSION, BAM_BENCH_CORPUS_MANIFEST_SCHEMA_VERSION,
+    BAM_BIAS_MITIGATION_SUMMARY_SCHEMA_VERSION, BAM_COMPLEXITY_SUMMARY_SCHEMA_VERSION,
+    BAM_CONTAMINATION_EVIDENCE_SCHEMA_VERSION, BAM_CONTAMINATION_WORKFLOW_SCHEMA_VERSION,
+    BAM_COVERAGE_REGIME_SCHEMA_VERSION, BAM_COVERAGE_SUMMARY_SCHEMA_VERSION,
+    BAM_COVERAGE_TRUTH_SUMMARY_SCHEMA_VERSION, BAM_DAMAGE_EVIDENCE_SCHEMA_VERSION,
+    BAM_DUPLICATE_COMPARISON_SCHEMA_VERSION, BAM_DUPLICATE_INSERT_TRUTH_SUMMARY_SCHEMA_VERSION,
+    BAM_DUPLICATE_POLICY_SCHEMA_VERSION, BAM_DUPLICATION_METRICS_SUMMARY_SCHEMA_VERSION,
+    BAM_ENDOGENOUS_CONTENT_SCHEMA_VERSION, BAM_ENDOGENOUS_TRUTH_SUMMARY_SCHEMA_VERSION,
+    BAM_FILTER_SUMMARY_SCHEMA_VERSION, BAM_GC_BIAS_SUMMARY_SCHEMA_VERSION,
+    BAM_GC_BIAS_TRUTH_SUMMARY_SCHEMA_VERSION, BAM_HAPLOGROUP_READINESS_SCHEMA_VERSION,
+    BAM_HAPLOGROUP_TRUTH_SUMMARY_SCHEMA_VERSION, BAM_INSERT_SIZE_SUMMARY_SCHEMA_VERSION,
+    BAM_KINSHIP_PREREQUISITES_SCHEMA_VERSION, BAM_KINSHIP_SUMMARY_SCHEMA_VERSION,
+    BAM_LENGTH_FILTER_SUMMARY_SCHEMA_VERSION, BAM_MAPPING_SUMMARY_SCHEMA_VERSION,
+    BAM_MAPQ_FILTER_SUMMARY_SCHEMA_VERSION, BAM_MARKDUP_SUMMARY_SCHEMA_VERSION,
+    BAM_MERGE_COMPATIBILITY_SCHEMA_VERSION, BAM_OVERLAP_CORRECTION_SUMMARY_SCHEMA_VERSION,
+    BAM_POST_ALIGNMENT_CHAIN_SCHEMA_VERSION, BAM_QC_PRE_SUMMARY_SCHEMA_VERSION,
+    BAM_RECALIBRATION_SUMMARY_SCHEMA_VERSION, BAM_RESOURCE_PLAN_SCHEMA_VERSION,
+    BAM_SAMPLE_IDENTITY_SCHEMA_VERSION, BAM_SCIENTIFIC_REPORT_SCHEMA_VERSION,
+    BAM_SEX_EVIDENCE_SCHEMA_VERSION, BAM_SEX_SUMMARY_SCHEMA_VERSION,
+    BAM_VALIDATION_SUMMARY_SCHEMA_VERSION, BAM_WORKFLOW_TEMPLATE_SCHEMA_VERSION,
 };
-
-/// Inspect a tiny BAM/SAM fixture and expose the normalized alignment header footprint.
-///
-/// # Errors
-/// Returns an error when the alignment fixture cannot be parsed.
-pub fn inspect_tiny_alignment(path: &Path) -> Result<BamTinyAlignmentInspectionV1> {
-    let document = parse_tiny_alignment(path)?;
-    let mut header_contigs = document.references.clone();
-    header_contigs.sort();
-    header_contigs.dedup();
-
-    let mut header_sample_ids = document.read_group_samples.clone();
-    header_sample_ids.sort();
-    header_sample_ids.dedup();
-
-    let mut read_group_ids = document.read_groups.clone();
-    read_group_ids.sort();
-    read_group_ids.dedup();
-
-    let mut mapped_record_contigs = document
-        .records
-        .iter()
-        .filter(|record| record.is_mapped())
-        .map(|record| record.rname.clone())
-        .collect::<Vec<_>>();
-    mapped_record_contigs.sort();
-    mapped_record_contigs.dedup();
-
-    Ok(BamTinyAlignmentInspectionV1 {
-        sort_order: document.sort_order,
-        header_contigs,
-        header_sample_ids,
-        read_group_ids,
-        mapped_record_contigs,
-        record_count: document.records.len() as u64,
-    })
-}
-
-/// Summarize exact tiny-alignment truth for governed BAM/SAM fixtures.
-///
-/// # Errors
-/// Returns an error when the alignment fixture cannot be parsed.
-pub fn summarize_tiny_bam_alignment_truth(input_bam: &Path) -> Result<BamAlignmentTruthSummaryV1> {
-    let document = parse_tiny_alignment(input_bam)?;
-
-    let total_reads = document.records.len() as u64;
-    let mapped_reads = document.records.iter().filter(|record| record.is_mapped()).count() as u64;
-    let unmapped_reads = total_reads.saturating_sub(mapped_reads);
-
-    let mut mapped_contigs = document
-        .records
-        .iter()
-        .filter(|record| record.is_mapped())
-        .map(|record| record.rname.clone())
-        .collect::<Vec<_>>();
-    mapped_contigs.sort();
-    mapped_contigs.dedup();
-
-    let mut mapped_positions = HashMap::<(String, u64), u64>::new();
-    let mut mapped_mapq_classes = HashMap::<u8, u64>::new();
-    let mut cigar_classes = HashMap::<String, u64>::new();
-    let mut records = document
-        .records
-        .iter()
-        .map(|record| {
-            *cigar_classes.entry(record.cigar.clone()).or_insert(0) += 1;
-            if record.is_mapped() {
-                *mapped_positions.entry((record.rname.clone(), record.pos)).or_insert(0) += 1;
-                *mapped_mapq_classes.entry(record.mapq).or_insert(0) += 1;
-            }
-            BamAlignmentTruthRecordV1 {
-                qname: record.qname.clone(),
-                mapped: record.is_mapped(),
-                reference_name: record.is_mapped().then(|| record.rname.clone()),
-                position: record.is_mapped().then_some(record.pos),
-                mapq: record.mapq,
-                cigar: record.cigar.clone(),
-            }
-        })
-        .collect::<Vec<_>>();
-    records.sort_by(|left, right| {
-        left.mapped
-            .cmp(&right.mapped)
-            .reverse()
-            .then(left.reference_name.cmp(&right.reference_name))
-            .then(left.position.cmp(&right.position))
-            .then(left.qname.cmp(&right.qname))
-            .then(left.cigar.cmp(&right.cigar))
-            .then(left.mapq.cmp(&right.mapq))
-    });
-
-    let mut mapped_positions = mapped_positions
-        .into_iter()
-        .map(|((reference_name, position), read_count)| BamAlignmentTruthPositionV1 {
-            reference_name,
-            position,
-            read_count,
-        })
-        .collect::<Vec<_>>();
-    mapped_positions.sort_by(|left, right| {
-        left.reference_name
-            .cmp(&right.reference_name)
-            .then(left.position.cmp(&right.position))
-            .then(left.read_count.cmp(&right.read_count))
-    });
-
-    let mut mapped_mapq_classes = mapped_mapq_classes
-        .into_iter()
-        .map(|(mapq, read_count)| BamAlignmentTruthMapqClassV1 { mapq, read_count })
-        .collect::<Vec<_>>();
-    mapped_mapq_classes.sort_by_key(|row| row.mapq);
-
-    let mut cigar_classes = cigar_classes
-        .into_iter()
-        .map(|(cigar, read_count)| BamAlignmentTruthCigarClassV1 { cigar, read_count })
-        .collect::<Vec<_>>();
-    cigar_classes.sort_by(|left, right| left.cigar.cmp(&right.cigar));
-
-    Ok(BamAlignmentTruthSummaryV1 {
-        schema_version: BAM_ALIGNMENT_TRUTH_SUMMARY_SCHEMA_VERSION.to_string(),
-        total_reads,
-        mapped_reads,
-        unmapped_reads,
-        mapped_contigs,
-        mapped_positions,
-        mapped_mapq_classes,
-        cigar_classes,
-        records,
-    })
-}
 
 /// Summarize duplicate burden and insert-size geometry for a tiny BAM/SAM fixture.
 ///
@@ -851,67 +723,6 @@ pub fn align_fastq_to_bam_bowtie2_style(
         sample_id,
         read_group,
     )
-}
-
-/// Sort tiny SAM/BAM fixtures by coordinate and emit a deterministic index sidecar.
-///
-/// # Errors
-/// Returns an error if input parsing or output materialization fails.
-pub fn sort_and_index_tiny_bam(
-    input_bam: &Path,
-    output_bam: &Path,
-    output_bai: &Path,
-) -> Result<BamArtifactInventoryV1> {
-    let mut document = parse_tiny_sam(input_bam)?;
-    let mut reference_rank = HashMap::<String, usize>::new();
-    for (index, reference) in document.references.iter().enumerate() {
-        reference_rank.insert(reference.clone(), index);
-    }
-    let fallback_rank = reference_rank.len() + 1;
-    document.records.sort_by(|left, right| {
-        let left_rank = if left.is_mapped() {
-            *reference_rank.get(&left.rname).unwrap_or(&fallback_rank)
-        } else {
-            fallback_rank
-        };
-        let right_rank = if right.is_mapped() {
-            *reference_rank.get(&right.rname).unwrap_or(&fallback_rank)
-        } else {
-            fallback_rank
-        };
-        (left_rank, left.pos, left.qname.as_str()).cmp(&(
-            right_rank,
-            right.pos,
-            right.qname.as_str(),
-        ))
-    });
-    write_tiny_sam_from_document(output_bam, &document, "coordinate")?;
-
-    let mut mapped_by_reference = HashMap::<String, u64>::new();
-    for record in document.records.iter().filter(|entry| entry.is_mapped()) {
-        *mapped_by_reference.entry(record.rname.clone()).or_insert(0) += 1;
-    }
-    let mut index_payload = String::new();
-    for reference in &document.references {
-        let count = mapped_by_reference.get(reference).copied().unwrap_or(0);
-        index_payload.push_str(&format!("{reference}\t{count}\n"));
-    }
-    std::fs::write(output_bai, index_payload)?;
-
-    let output_root = output_bam.parent().unwrap_or_else(|| Path::new("."));
-    let outputs = vec![
-        ArtifactRef::required(
-            ArtifactId::from_static("sorted_bam"),
-            output_bam.to_path_buf(),
-            ArtifactRole::Bam,
-        ),
-        ArtifactRef::required(
-            ArtifactId::from_static("sorted_bai"),
-            output_bai.to_path_buf(),
-            ArtifactRole::Index,
-        ),
-    ];
-    Ok(bam_artifact_inventory_from_outputs("bam.sort_index", output_root, &outputs))
 }
 
 #[must_use]
@@ -5326,109 +5137,6 @@ r001\t99\tchr1\n",
     }
 
     #[test]
-    fn inspect_tiny_alignment_accepts_governed_binary_bam_fixture() {
-        let repo_root = workspace_root();
-        let bam = repo_root.join("assets/toy/core-v1/bam/validation_pass.bam");
-
-        let inspection = inspect_tiny_alignment(&bam).expect("inspect BAM fixture");
-        assert_eq!(inspection.sort_order.as_deref(), Some("coordinate"));
-        assert_eq!(inspection.header_contigs, vec!["chr1".to_string()]);
-        assert_eq!(inspection.header_sample_ids, vec!["core-v1-pass".to_string()]);
-        assert_eq!(inspection.read_group_ids.len(), 1);
-        assert_eq!(inspection.mapped_record_contigs, vec!["chr1".to_string()]);
-        assert_eq!(inspection.record_count, 2);
-    }
-
-    #[test]
-    fn summarize_tiny_bam_alignment_truth_accepts_governed_binary_bam_fixture() {
-        let repo_root = workspace_root();
-        let bam = repo_root.join("assets/toy/core-v1/bam/validation_pass.bam");
-
-        let summary = summarize_tiny_bam_alignment_truth(&bam).expect("summarize BAM fixture");
-        assert_eq!(summary.schema_version, BAM_ALIGNMENT_TRUTH_SUMMARY_SCHEMA_VERSION);
-        assert_eq!(summary.total_reads, 2);
-        assert_eq!(summary.mapped_reads, 2);
-        assert_eq!(summary.unmapped_reads, 0);
-        assert_eq!(summary.mapped_contigs, vec!["chr1".to_string()]);
-        assert_eq!(
-            summary.mapped_positions,
-            vec![
-                BamAlignmentTruthPositionV1 {
-                    reference_name: "chr1".to_string(),
-                    position: 1,
-                    read_count: 1,
-                },
-                BamAlignmentTruthPositionV1 {
-                    reference_name: "chr1".to_string(),
-                    position: 7,
-                    read_count: 1,
-                },
-            ]
-        );
-        assert_eq!(
-            summary.mapped_mapq_classes,
-            vec![BamAlignmentTruthMapqClassV1 { mapq: 60, read_count: 2 }]
-        );
-        assert_eq!(
-            summary.cigar_classes,
-            vec![BamAlignmentTruthCigarClassV1 { cigar: "6M".to_string(), read_count: 2 }]
-        );
-    }
-
-    #[test]
-    fn summarize_tiny_bam_alignment_truth_tracks_mapped_unmapped_positions_and_classes() {
-        let repo_root = workspace_root();
-        let sam = repo_root.join("assets/toy/core-v1/bam/filter_mixed_constraints.sam");
-
-        let summary = summarize_tiny_bam_alignment_truth(&sam).expect("summarize SAM fixture");
-        assert_eq!(summary.schema_version, BAM_ALIGNMENT_TRUTH_SUMMARY_SCHEMA_VERSION);
-        assert_eq!(summary.total_reads, 5);
-        assert_eq!(summary.mapped_reads, 4);
-        assert_eq!(summary.unmapped_reads, 1);
-        assert_eq!(summary.mapped_contigs, vec!["chr1".to_string()]);
-        assert_eq!(
-            summary.mapped_positions,
-            vec![
-                BamAlignmentTruthPositionV1 {
-                    reference_name: "chr1".to_string(),
-                    position: 1,
-                    read_count: 1,
-                },
-                BamAlignmentTruthPositionV1 {
-                    reference_name: "chr1".to_string(),
-                    position: 10,
-                    read_count: 1,
-                },
-                BamAlignmentTruthPositionV1 {
-                    reference_name: "chr1".to_string(),
-                    position: 20,
-                    read_count: 1,
-                },
-                BamAlignmentTruthPositionV1 {
-                    reference_name: "chr1".to_string(),
-                    position: 30,
-                    read_count: 1,
-                },
-            ]
-        );
-        assert_eq!(
-            summary.mapped_mapq_classes,
-            vec![
-                BamAlignmentTruthMapqClassV1 { mapq: 10, read_count: 1 },
-                BamAlignmentTruthMapqClassV1 { mapq: 60, read_count: 3 },
-            ]
-        );
-        assert_eq!(
-            summary.cigar_classes,
-            vec![
-                BamAlignmentTruthCigarClassV1 { cigar: "*".to_string(), read_count: 1 },
-                BamAlignmentTruthCigarClassV1 { cigar: "6M".to_string(), read_count: 1 },
-                BamAlignmentTruthCigarClassV1 { cigar: "8M".to_string(), read_count: 3 },
-            ]
-        );
-    }
-
-    #[test]
     fn summarize_tiny_bam_duplicate_insert_truth_reports_governed_duplicate_cluster() {
         let repo_root = workspace_root();
         let sam = repo_root.join(
@@ -5528,29 +5236,6 @@ pair003\t147\tchr1\t50\t60\t5M\t=\t40\t-15\tGGGGG\tFFFFF\tRG:Z:rg1\n",
     }
 
     #[test]
-    fn inspect_tiny_alignment_accepts_text_sam_fixture() {
-        let temp = unique_temp_dir("inspect-tiny-alignment-sam");
-        let sam = temp.join("fixture.sam");
-        std::fs::write(
-            &sam,
-            "@HD\tVN:1.6\tSO:coordinate\n\
-@SQ\tSN:chranc\tLN:64\n\
-@RG\tID:rg-adna\tSM:adna_like_damage\n\
-read1\t99\tchranc\t5\t42\t8M\t=\t13\t8\tCCTTCCAA\tFFFFFFFF\tRG:Z:rg-adna\n\
-read1\t147\tchranc\t13\t42\t8M\t=\t5\t-8\tTTCCAAGG\tFFFFFFFF\tRG:Z:rg-adna\n",
-        )
-        .expect("write SAM fixture");
-
-        let inspection = inspect_tiny_alignment(&sam).expect("inspect SAM fixture");
-        assert_eq!(inspection.sort_order.as_deref(), Some("coordinate"));
-        assert_eq!(inspection.header_contigs, vec!["chranc".to_string()]);
-        assert_eq!(inspection.header_sample_ids, vec!["adna_like_damage".to_string()]);
-        assert_eq!(inspection.read_group_ids, vec!["rg-adna".to_string()]);
-        assert_eq!(inspection.mapped_record_contigs, vec!["chranc".to_string()]);
-        assert_eq!(inspection.record_count, 2);
-    }
-
-    #[test]
     fn execute_bam_validation_refuses_governed_malformed_bam_fixture() {
         let repo_root = workspace_root();
         let bam = repo_root.join("assets/toy/core-v1/bam/validation_malformed.bam");
@@ -5627,37 +5312,6 @@ read1\t147\tchranc\t13\t42\t8M\t=\t5\t-8\tTTCCAAGG\tFFFFFFFF\tRG:Z:rg-adna\n",
         assert_eq!(provenance.sensitivity_profile.as_deref(), Some("very_sensitive_local"));
         assert_eq!(summary.flagstat.total_reads, Some(2));
         assert_eq!(summary.flagstat.mapped_reads, Some(1));
-    }
-
-    #[test]
-    fn sort_and_index_tiny_bam_produces_coordinate_order_and_index() {
-        let temp = unique_temp_dir("bam-sort-index");
-        let input = temp.join("unsorted.sam");
-        let output = temp.join("sorted.bam");
-        let index = temp.join("sorted.bam.bai");
-        std::fs::write(
-            &input,
-            "@HD\tVN:1.6\tSO:unsorted\n\
-@SQ\tSN:chr1\tLN:50\n\
-@RG\tID:rg1\tSM:sample1\n\
-r10\t0\tchr1\t10\t40\t6M\t*\t0\t0\tACGTAC\tFFFFFF\tRG:Z:rg1\n\
-r01\t0\tchr1\t1\t40\t6M\t*\t0\t0\tGTACGT\tFFFFFF\tRG:Z:rg1\n",
-        )
-        .expect("write unsorted SAM fixture");
-
-        let inventory = sort_and_index_tiny_bam(&input, &output, &index).expect("sort and index");
-        assert_eq!(inventory.stage_id, "bam.sort_index");
-        assert!(output.exists());
-        assert!(index.exists());
-
-        let sorted_payload = std::fs::read_to_string(&output).expect("read sorted output");
-        let record_lines =
-            sorted_payload.lines().filter(|line| !line.starts_with('@')).collect::<Vec<_>>();
-        assert!(record_lines[0].starts_with("r01\t"));
-        assert!(record_lines[1].starts_with("r10\t"));
-
-        let validation = execute_bam_validation(&output, Some(&index), None).expect("validate");
-        assert!(validation.validation_report_present);
     }
 
     #[test]

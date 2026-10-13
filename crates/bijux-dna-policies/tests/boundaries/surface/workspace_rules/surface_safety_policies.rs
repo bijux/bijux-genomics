@@ -145,6 +145,7 @@ fn policy__boundaries__workspace__workspace_no_ad_hoc_fs_write() {
         "crates/bijux-dna-domain-compiler/src/compiler/validation/strict_stage_schemas.rs",
         "crates/bijux-dna-db-ref/src/resolution/reference_assets.rs",
         "crates/bijux-dna-domain-bam/src/artifacts.rs",
+        "crates/bijux-dna-domain-bam/src/artifacts/transformation/sort_index.rs",
         "crates/bijux-dna-api/src/v1/run/runtime_support.rs",
         "crates/bijux-dna-dev/src/commands/ops/tooling/operator_workflow_maturity.rs",
         "crates/bijux-dna-dev/src/commands/ops/tooling/scientific_caveat_propagation.rs",
