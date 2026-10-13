@@ -4,6 +4,7 @@
 pub mod contract;
 pub mod ids;
 pub mod ports;
+pub(crate) mod primer_normalization;
 pub mod semantics;
 pub mod specs;
 

@@ -36,16 +36,25 @@ src/
   run/                    FASTQ input discovery and benchmark corpus helpers
   stage_tool_governance/  tool layout, readiness, maturity, and input layout policy
   stages/                 stage IDs, specs, ports, semantics, and contract JSON
+    primer_normalization.rs deterministic native primer-prefix computation on record values
+    primer_normalization/   scientific computation contracts without filesystem setup
     contract/             contract catalog, export helpers, and runtime policy
     ports/                governed manifest ports and query helpers
     semantics/            semantic catalog and query helpers
   types/                  shared FASTQ domain value types
+    record.rs             FASTQ record identity, content, and header pairing semantics
   lib.rs                  public facade and compatibility re-exports
 ```
 
 ## Ownership Rules
 
 - `stages/` is the authority for FASTQ stage IDs, semantics, IO, and contract JSON.
+- `stages/primer_normalization` owns the pure native local-smoke prefix transform and its typed
+  admission error. It keeps the two exact primer motifs, overlap threshold, and paired fraction
+  semantics. Orientation, primer-bank, mismatch, and IUPAC metadata do not add algorithm behavior.
+  The module and shared record value are crate-private. The existing path-based
+  `stages::contract::normalize_primers` operation retains acquisition, publication, and report
+  projection; this separation does not relocate its filesystem effects.
 - `params/`, `metrics/`, and `invariants/` must stay aligned; changing one usually requires tests
   for the others.
 - `banks/` owns bank content, preset resolution, provenance, and deterministic hashes.

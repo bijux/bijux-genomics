@@ -17,17 +17,9 @@ use crate::params::edna::{
 use crate::params::PairedMode;
 
 use super::fastq_io::{read_fastq_records, write_fastq_records, FastqRecord};
-
-const PRIMER_MOTIFS: &[&str] = &["CCTACGGG", "GACTAC"];
-
-fn trim_primer_prefix(sequence: &str, quality: &str, min_overlap: usize) -> (String, String, bool) {
-    for motif in PRIMER_MOTIFS {
-        if sequence.starts_with(motif) && motif.len() >= min_overlap {
-            return (sequence[motif.len()..].to_string(), quality[motif.len()..].to_string(), true);
-        }
-    }
-    (sequence.to_string(), quality.to_string(), false)
-}
+use crate::stages::primer_normalization::{
+    normalize_primer_records, validate_primer_read_counts, PrimerNormalizationRequest,
+};
 
 /// Normalize primer orientation and trim primer prefixes for eDNA workflows.
 ///
@@ -43,62 +35,32 @@ pub fn normalize_primers(
     primer_stats_json: &Path,
     raw_backend_report: Option<&Path>,
 ) -> Result<NormalizePrimersReportV1> {
-    let mut left = read_fastq_records(r1)?;
-    let mut right = if let Some(path) = r2 { read_fastq_records(path)? } else { Vec::new() };
+    let left = read_fastq_records(r1)?;
+    let right = r2.map(read_fastq_records).transpose()?;
 
     let paired = r2.is_some();
-    if paired && left.len() != right.len() {
-        return Err(anyhow!(
-            "fastq.normalize_primers refused incoherent paired input: R1 count {} != R2 count {}",
-            left.len(),
-            right.len()
-        ));
-    }
+    validate_primer_read_counts(left.len(), right.as_ref().map(Vec::len))?;
     if paired && output_r2.is_none() {
         return Err(anyhow!("fastq.normalize_primers requires output_r2 for paired input"));
     }
 
-    let reads_in = if paired { (left.len() + right.len()) as u64 } else { left.len() as u64 };
-    let bases_in = left.iter().map(|r| r.sequence.len() as u64).sum::<u64>()
-        + right.iter().map(|r| r.sequence.len() as u64).sum::<u64>();
-
-    let mut trimmed_reads = 0_u64;
-    let mut forward_oriented = 0_u64;
-
-    for record in &mut left {
-        let (seq, qual, trimmed) =
-            trim_primer_prefix(&record.sequence, &record.quality, params.min_overlap_bp as usize);
-        if trimmed {
-            trimmed_reads += 1;
-            forward_oriented += 1;
-            record.sequence = seq;
-            record.quality = qual;
-        }
-    }
-
-    for record in &mut right {
-        let (seq, qual, trimmed) =
-            trim_primer_prefix(&record.sequence, &record.quality, params.min_overlap_bp as usize);
-        if trimmed {
-            trimmed_reads += 1;
-            record.sequence = seq;
-            record.quality = qual;
-        }
-    }
+    let normalized =
+        normalize_primer_records(PrimerNormalizationRequest { r1: left, r2: right, params })?;
+    let left = normalized.r1;
+    let right = normalized.r2.unwrap_or_default();
+    let summary = normalized.summary;
+    let reads_in = summary.reads_in;
+    let reads_out = summary.reads_out;
+    let bases_in = summary.bases_in;
+    let bases_out = summary.bases_out;
+    let trimmed_reads = summary.primer_trimmed_reads;
+    let orientation_forward_fraction = summary.orientation_forward_fraction;
+    let primer_trimmed_fraction = summary.primer_trimmed_fraction;
 
     write_fastq_records(output_r1, &left)?;
     if let Some(output_r2) = output_r2 {
         write_fastq_records(output_r2, &right)?;
     }
-
-    let reads_out = if paired { (left.len() + right.len()) as u64 } else { left.len() as u64 };
-    let bases_out = left.iter().map(|r| r.sequence.len() as u64).sum::<u64>()
-        + right.iter().map(|r| r.sequence.len() as u64).sum::<u64>();
-
-    let orientation_forward_fraction =
-        if reads_in == 0 { Some(0.0) } else { Some(forward_oriented as f64 / reads_in as f64) };
-    let primer_trimmed_fraction =
-        if reads_in == 0 { Some(0.0) } else { Some(trimmed_reads as f64 / reads_in as f64) };
 
     std::fs::write(
         primer_orientation_report,
@@ -530,6 +492,144 @@ mod tests {
             payload.push_str(&format!("@{header}\n{seq}\n+\n{qual}\n"));
         }
         std::fs::write(path, payload)?;
+        Ok(())
+    }
+
+    fn primer_parameters() -> PrimerNormalizationEffectiveParams {
+        PrimerNormalizationEffectiveParams {
+            schema_version: "v1".to_string(),
+            paired_mode: PairedMode::SingleEnd,
+            threads: Some(2),
+            orientation_policy: "normalize_to_forward_primer".to_string(),
+            primer_set_id: "16s".to_string(),
+            marker_id: Some("16S".to_string()),
+            primer_fasta: None,
+            max_mismatch_rate: 0.1,
+            min_overlap_bp: 6,
+            strict_5p_anchor: true,
+            allow_iupac_codes: true,
+        }
+    }
+
+    #[test]
+    fn primer_outputs_preserve_exact_fastq_tsv_and_stats_bytes() -> anyhow::Result<()> {
+        let temp = bijux_dna_infra::temp_dir("bijux-primer-publication")?;
+        let input = temp.path().join("input.fastq");
+        std::fs::write(&input, "@a/1 retained\nCCTACGGGACGT\n+identity\nabcdefghIJKL\n")?;
+        let output = temp.path().join("normalized.fastq");
+        let empty_mate = temp.path().join("optional-mate.fastq");
+        let orientation = temp.path().join("orientation.tsv");
+        let stats = temp.path().join("stats.json");
+        let report = normalize_primers(
+            &input,
+            None,
+            &primer_parameters(),
+            &output,
+            Some(&empty_mate),
+            &orientation,
+            &stats,
+            Some(&stats),
+        )?;
+        assert_eq!(std::fs::read_to_string(&output)?, "@a/1 retained\nACGT\n+identity\nIJKL\n");
+        assert_eq!(std::fs::read(&empty_mate)?, Vec::<u8>::new());
+        assert_eq!(
+            std::fs::read_to_string(&orientation)?,
+            "metric\tvalue\nforward_fraction\t1.000000\ntrimmed_fraction\t1.000000\n"
+        );
+        assert_eq!(
+            std::fs::read_to_string(&stats)?,
+            "{\n  \"primer_trimmed_reads\": 1,\n  \"reads_in\": 1,\n  \"reads_out\": 1\n}"
+        );
+        assert_eq!(report.paired_mode, PairedMode::SingleEnd);
+        assert_eq!(report.output_r2, Some(empty_mate.display().to_string()));
+        assert_eq!(report.pairs_in, None);
+        assert_eq!(report.bases_in, Some(12));
+        assert_eq!(report.bases_out, Some(4));
+        assert_eq!(report.tool_id, "bijux");
+        assert!(!report.used_fallback);
+        assert_eq!(report.raw_backend_report_format.as_deref(), Some("cutadapt_json"));
+        Ok(())
+    }
+
+    #[test]
+    fn primer_mate_count_error_precedes_missing_output_and_all_writes() -> anyhow::Result<()> {
+        let temp = bijux_dna_infra::temp_dir("bijux-primer-admission")?;
+        let r1 = temp.path().join("r1.fastq");
+        let r2 = temp.path().join("r2.fastq");
+        let output = temp.path().join("output.fastq");
+        let orientation = temp.path().join("orientation.tsv");
+        let stats = temp.path().join("stats.json");
+        write_fastq(&r1, &[("a", "ACGT", "IIII")])?;
+        write_fastq(&r2, &[])?;
+        let run = || {
+            normalize_primers(
+                &r1,
+                Some(&r2),
+                &primer_parameters(),
+                &output,
+                None,
+                &orientation,
+                &stats,
+                None,
+            )
+        };
+        assert_eq!(
+            run().expect_err("count mismatch rejected").to_string(),
+            "fastq.normalize_primers refused incoherent paired input: R1 count 1 != R2 count 0"
+        );
+        write_fastq(&r2, &[("a", "ACGT", "IIII")])?;
+        assert_eq!(
+            run().expect_err("missing paired output rejected").to_string(),
+            "fastq.normalize_primers requires output_r2 for paired input"
+        );
+        assert!(!output.exists());
+        assert!(!orientation.exists());
+        assert!(!stats.exists());
+        Ok(())
+    }
+
+    #[test]
+    fn primer_publication_failures_retain_declared_write_order() -> anyhow::Result<()> {
+        let temp = bijux_dna_infra::temp_dir("bijux-primer-write-order")?;
+        let input = temp.path().join("input.fastq");
+        write_fastq(&input, &[("a", "CCTACGGGACGT", "IIIIIIIIIIII")])?;
+        for blocked in ["r2", "orientation", "stats"] {
+            let root = temp.path().join(blocked);
+            std::fs::create_dir(&root)?;
+            let r1 = root.join("r1.fastq");
+            let r2 = root.join("r2.fastq");
+            let orientation = root.join("orientation.tsv");
+            let stats = root.join("stats.json");
+            let failure = match blocked {
+                "r2" => &r2,
+                "orientation" => &orientation,
+                _ => &stats,
+            };
+            std::fs::create_dir(failure)?;
+            assert!(normalize_primers(
+                &input,
+                Some(&input),
+                &primer_parameters(),
+                &r1,
+                Some(&r2),
+                &orientation,
+                &stats,
+                None,
+            )
+            .is_err());
+            assert!(r1.is_file(), "R1 publication precedes {blocked}");
+            if blocked == "r2" {
+                assert!(!orientation.exists());
+                assert!(!stats.exists());
+            } else {
+                assert!(r2.is_file(), "R2 publication precedes {blocked}");
+                if blocked == "orientation" {
+                    assert!(!stats.exists());
+                } else {
+                    assert!(orientation.is_file(), "orientation publication precedes stats");
+                }
+            }
+        }
         Ok(())
     }
 

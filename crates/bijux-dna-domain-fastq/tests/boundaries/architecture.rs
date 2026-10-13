@@ -282,6 +282,8 @@ fn crate_tree_matches_domain_fastq_boundary() {
         "ids.rs",
         "mod.rs",
         "ports/",
+        "primer_normalization.rs",
+        "primer_normalization/",
         "semantics.rs",
         "semantics/",
         "specs.rs",
