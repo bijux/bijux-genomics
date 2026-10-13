@@ -1,3 +1,4 @@
+//! Owner: bijux-dna-bench
 //! Canonical VCF row adapter and public inventory compatibility surface.
 use anyhow::{Context, Result};
 use bijux_dna_bench_model::{

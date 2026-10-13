@@ -553,11 +553,26 @@ fn thin_cli_uses_model_owned_local_stage_completion_contracts() {
 #[test]
 fn thin_cli_uses_model_owned_local_stage_command_contract() {
     let repo_root = crate::support::repo_root().expect("resolve repository root");
-    let cli_source =
-        repo_root.join("crates/bijux-dna/src/commands/benchmark/local_stage_commands.rs");
-    let contents = fs::read_to_string(&cli_source)
-        .unwrap_or_else(|err| panic!("read {}: {err}", cli_source.display()));
-    assert!(contents.contains("validate_benchmark_local_stage_commands"));
+    let cli_root = repo_root.join("crates/bijux-dna/src/commands/benchmark/local_stage_commands");
+    let command = fs::read_to_string(cli_root.join("mod.rs")).expect("read stage command adapter");
+    assert!(command.contains("bijux_dna_bench_stage::execution"));
+    assert!(command.contains("publish_stage_commands("));
+    let owner = fs::read_to_string(
+        repo_root.join("crates/bijux-dna-bench-stage/src/execution/publication.rs"),
+    )
+    .expect("read stage command publication owner");
+    let admission = owner
+        .find("validate_benchmark_local_stage_commands(&report)?")
+        .expect("stage publication must admit its typed manifest");
+    let publication = owner.find("atomic_write_bytes(").expect("stage publication writes output");
+    assert!(admission < publication, "stage manifest admission must precede publication");
+    let mut modules = Vec::new();
+    collect_rs_files(&cli_root, &mut modules);
+    let contents = modules
+        .iter()
+        .map(|path| fs::read_to_string(path).expect("read stage command adapter module"))
+        .collect::<Vec<_>>()
+        .join("\n");
     for forbidden in [
         "struct BenchLocalStageArtifactEntry {",
         "struct BenchLocalStageCommandEntry {",
@@ -705,13 +720,42 @@ fn thin_cli_uses_model_owned_fastq_corpus_run_contract() {
     let repo_root = crate::support::repo_root().expect("resolve repository root");
     let cli_root = repo_root.join("crates/bijux-dna/src/commands/benchmark/corpus_fastq");
     let command = fs::read_to_string(cli_root.join("mod.rs")).expect("read corpus command");
-    let local_models = fs::read_to_string(cli_root.join("models.rs")).expect("read CLI models");
-
-    assert!(command.contains("validate_benchmark_local_corpus_run"));
-    assert!(command.contains("BenchmarkCorpusRunManifest"));
-    assert!(!local_models.contains("struct CorpusRunManifest"));
-    assert!(!local_models.contains("struct SampleRunRecord"));
-    assert!(!local_models.contains("bijux.fastq.corpus_benchmark_run.v1"));
+    assert!(command.contains("bijux_dna_bench_campaign::run_corpus_campaign("));
+    assert!(command.contains("CorpusCampaignRequest"));
+    let service = fs::read_to_string(
+        repo_root.join("crates/bijux-dna-bench-campaign/src/campaign/service.rs"),
+    )
+    .expect("read corpus campaign service owner");
+    assert!(service.contains("bijux_dna_bench_corpus::run::BenchmarkCorpusRunManifest"));
+    assert!(service.contains("publish_run("));
+    let owner = fs::read_to_string(
+        repo_root.join("crates/bijux-dna-bench-campaign/src/campaign/publication.rs"),
+    )
+    .expect("read corpus campaign publication owner");
+    assert!(owner.contains("bijux_dna_bench_corpus::run"));
+    let admission = owner
+        .find("validate_benchmark_local_corpus_run(&manifest)?")
+        .expect("corpus publication must admit its typed manifest");
+    let publication = owner.find("fs::write(").expect("corpus publication writes output");
+    assert!(admission < publication, "corpus manifest admission must precede publication");
+    let mut modules = Vec::new();
+    collect_rs_files(&cli_root, &mut modules);
+    for source in modules {
+        let contents = fs::read_to_string(&source).expect("read corpus command adapter module");
+        for forbidden in [
+            "struct CorpusRunManifest",
+            "struct SampleRunRecord",
+            "struct BenchmarkCorpusRunManifest",
+            "struct BenchmarkCorpusSampleRun",
+            "bijux.fastq.corpus_benchmark_run.v1",
+        ] {
+            assert!(
+                !contents.contains(forbidden),
+                "thin CLI reintroduced {forbidden} in {}",
+                source.display()
+            );
+        }
+    }
 }
 
 #[test]
