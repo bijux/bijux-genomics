@@ -1,8 +1,6 @@
 use std::collections::BTreeSet;
-use std::ffi::OsString;
 use std::fs;
 use std::path::{Path, PathBuf};
-use std::sync::Mutex;
 
 use anyhow::{Context, Result};
 use bijux_dna_science::compile::compile_workspace;
@@ -23,55 +21,8 @@ fn repo_root() -> Result<PathBuf> {
         .context("resolve repository root from crate manifest")
 }
 
-const TEST_LOCK_ROOT: &str = "artifacts/test-locks";
-
-static CWD_LOCK: Mutex<()> = Mutex::new(());
-
-struct EnvGuard {
-    cwd: PathBuf,
-    env: std::collections::BTreeMap<OsString, OsString>,
-}
-
-impl EnvGuard {
-    fn new() -> Result<Self> {
-        Ok(Self { cwd: std::env::current_dir()?, env: std::env::vars_os().collect() })
-    }
-}
-
-impl Drop for EnvGuard {
-    fn drop(&mut self) {
-        let current: std::collections::BTreeMap<OsString, OsString> = std::env::vars_os().collect();
-        for key in current.keys() {
-            if !self.env.contains_key(key) {
-                std::env::remove_var(key);
-            }
-        }
-        for (key, value) in &self.env {
-            std::env::set_var(key, value);
-        }
-        let _ = std::env::set_current_dir(&self.cwd);
-    }
-}
-
-struct RepoProcessLock {
-    _file_lock: bijux_dna_infra::FileLock,
-}
-
-impl RepoProcessLock {
-    fn acquire(name: &str) -> Result<Self> {
-        let repo_root = repo_root()?;
-        let path = repo_root.join(TEST_LOCK_ROOT).join(format!("{name}.lock"));
-        let file_lock = bijux_dna_infra::FileLock::try_acquire(&path)
-            .with_context(|| format!("acquire repo test lock {}", path.display()))?;
-        Ok(Self { _file_lock: file_lock })
-    }
-}
-
 #[test]
 fn fastq_environment_slice_matches_committed_outputs() -> Result<()> {
-    let _cwd_guard = CWD_LOCK.lock().map_err(|err| anyhow::anyhow!("cwd lock: {err}"))?;
-    let _repo_lock = RepoProcessLock::acquire("benchmark-readiness-mutators")?;
-    let _env_guard = EnvGuard::new()?;
     let root = repo_root()?;
     let compiled = compile_workspace(&root)?;
 
