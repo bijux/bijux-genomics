@@ -25,7 +25,7 @@ fn profile_contract_violations(profile: &toml::Value, complete: bool) -> Vec<&'s
     let period = timeout.and_then(|value| {
         value.as_str().or_else(|| value.get("period").and_then(toml::Value::as_str))
     });
-    if !period.is_some_and(|period| !period.trim().is_empty()) {
+    if period.is_none_or(|period| period.trim().is_empty()) {
         violations.push("profile must report slow tests");
     }
     let termination = timeout.and_then(|value| value.get("terminate-after"));
@@ -33,7 +33,7 @@ fn profile_contract_violations(profile: &toml::Value, complete: bool) -> Vec<&'s
         if termination.is_some() {
             violations.push("complete profile must not terminate slow tests");
         }
-    } else if !termination.and_then(toml::Value::as_integer).is_some_and(|count| count > 0) {
+    } else if termination.and_then(toml::Value::as_integer).is_none_or(|count| count <= 0) {
         violations.push("bounded profile must terminate stalled tests");
     }
     for override_config in

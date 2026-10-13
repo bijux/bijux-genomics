@@ -9,6 +9,18 @@ fn repo_root() -> PathBuf {
     bijux_dna_testkit::workspace_root_from_manifest(env!("CARGO_MANIFEST_DIR"))
 }
 
+const CAMPAIGN_IDENTITY_PATHS: &[&str] = &[
+    "/crates/bijux-dna-bench-campaign/src/catalog.rs",
+    "/crates/bijux-dna-bench-campaign/src/catalog/contracts.rs",
+    "/crates/bijux-dna-bench-campaign/src/planning/manifest.rs",
+    "/crates/bijux-dna-bench-campaign/src/cache/layout.rs",
+    "/crates/bijux-dna-bench-campaign/src/campaign/service.rs",
+    "/crates/bijux-dna-bench-campaign/src/campaign/samples.rs",
+    "/crates/bijux-dna-bench-campaign/src/qc/prepare.rs",
+    "/crates/bijux-dna-bench-campaign/src/qc/model.rs",
+    "/crates/bijux-dna-bench-campaign/src/qc/contracts.rs",
+];
+
 fn is_allowed_path(path: &Path) -> bool {
     let path_str = path.to_string_lossy();
     if path_str.contains("/crates/bijux-dna-stages-") {
@@ -25,18 +37,8 @@ fn is_allowed_path(path: &Path) -> bool {
     }
     // Campaign registries and parameter projections consume persisted stage identities.
     // Keep the allowance at the owning records and projections, not the whole crate.
-    let campaign_identity_paths = [
-        "/crates/bijux-dna-bench-campaign/src/catalog.rs",
-        "/crates/bijux-dna-bench-campaign/src/catalog/contracts.rs",
-        "/crates/bijux-dna-bench-campaign/src/planning/manifest.rs",
-        "/crates/bijux-dna-bench-campaign/src/cache/layout.rs",
-        "/crates/bijux-dna-bench-campaign/src/campaign/service.rs",
-        "/crates/bijux-dna-bench-campaign/src/campaign/samples.rs",
-        "/crates/bijux-dna-bench-campaign/src/qc/prepare.rs",
-        "/crates/bijux-dna-bench-campaign/src/qc/model.rs",
-        "/crates/bijux-dna-bench-campaign/src/qc/contracts.rs",
-    ];
-    if campaign_identity_paths.iter().any(|suffix| path_str.ends_with(suffix)) {
+
+    if CAMPAIGN_IDENTITY_PATHS.iter().any(|suffix| path_str.ends_with(suffix)) {
         return true;
     }
     // Canonical parser family catalogs and the BAM genotyping wire producer own these identities.
