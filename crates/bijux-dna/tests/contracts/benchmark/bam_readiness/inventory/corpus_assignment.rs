@@ -1,7 +1,5 @@
 #![allow(clippy::expect_used, clippy::too_many_lines)]
 
-use std::process::Command;
-
 use serde_json::Value;
 
 use crate::support;
@@ -14,7 +12,7 @@ fn bench_readiness_bam_corpus_assignment_prints_governed_output_path() {
     let repo_root = support::repo_root().expect("repo root");
     let home = tempfile::tempdir().expect("tempdir");
 
-    let output = Command::new(env!("CARGO_BIN_EXE_bijux-dna"))
+    let output = support::bijux_dna_command(&repo_root)
         .current_dir(&repo_root)
         .env("HOME", home.path())
         .env("BIJUX_SKIP_QA", "1")
@@ -45,7 +43,7 @@ fn bench_readiness_bam_corpus_assignment_json_reports_governed_stage_contracts()
     let repo_root = support::repo_root().expect("repo root");
     let home = tempfile::tempdir().expect("tempdir");
 
-    let output = Command::new(env!("CARGO_BIN_EXE_bijux-dna"))
+    let output = support::bijux_dna_command(&repo_root)
         .current_dir(&repo_root)
         .env("HOME", home.path())
         .env("BIJUX_SKIP_QA", "1")
