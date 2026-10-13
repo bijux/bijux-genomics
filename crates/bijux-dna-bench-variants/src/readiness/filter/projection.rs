@@ -11,6 +11,10 @@ use bijux_dna_bench_vcf_evidence::{
     snapshot::VcfStageReadinessBinding,
 };
 // The compatible flat wire record projects admitted surfaces and stage-specific smoke fields; coverage policy is evaluated separately.
+#[allow(
+    clippy::too_many_lines,
+    reason = "The flat persisted readiness row requires explicit field-for-field projection."
+)]
 pub(super) fn build_vcf_filter_ready_row(
     command_report: &ReadinessCommandPaths,
     binding: VcfStageReadinessBinding,
