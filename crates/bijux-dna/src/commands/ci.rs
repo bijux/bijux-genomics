@@ -232,14 +232,9 @@ const CHANGED_PATH_RULES: &[ChangedPathRule] = &[
         reason: "benchmark contract changes must preserve active fast proofs",
     },
     ChangedPathRule {
-        matcher: "crates/bijux-dna/tests/bench_readiness_parser_failure_tests",
+        matcher: "crates/bijux-dna/tests/contracts/benchmark/readiness/parser_failures/",
         command: "make bench-parser-fast",
-        reason: "parser failure probes must stay governed and explicit",
-    },
-    ChangedPathRule {
-        matcher: "crates/bijux-dna/tests/bench_readiness_vcf_parser_failure_tests",
-        command: "make bench-parser-fast",
-        reason: "VCF parser failure probes must stay governed and explicit",
+        reason: "owned parser failure probes must stay governed and explicit",
     },
     ChangedPathRule {
         matcher: "crates/bijux-dna-domain-bam/tests/contracts/parsers",
@@ -1023,6 +1018,19 @@ mod tests {
             write_utf8_report(&fixture, path)?;
             let report = changed_path_commands(root.path(), &fixture)?;
             assert_eq!(report.commands, vec!["make bench-active-fast".to_string()], "{path}");
+        }
+        for path in [
+            "crates/bijux-dna/tests/contracts/benchmark/readiness/parser_failures/mod.rs",
+            "crates/bijux-dna/tests/contracts/benchmark/readiness/parser_failures/fastq_bam.rs",
+            "crates/bijux-dna/tests/contracts/benchmark/readiness/parser_failures/vcf.rs",
+        ] {
+            write_utf8_report(&fixture, path)?;
+            let report = changed_path_commands(root.path(), &fixture)?;
+            assert_eq!(
+                report.commands,
+                vec!["make bench-active-fast".to_string(), "make bench-parser-fast".to_string()],
+                "{path}"
+            );
         }
         Ok(())
     }
