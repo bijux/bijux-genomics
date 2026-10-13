@@ -1,9 +1,6 @@
 #![allow(clippy::expect_used, clippy::too_many_lines)]
 
 #[cfg(feature = "bam_downstream")]
-use std::process::Command;
-
-#[cfg(feature = "bam_downstream")]
 #[cfg(feature = "bam_downstream")]
 use crate::support;
 
@@ -15,7 +12,7 @@ fn run_cli_json(args: &[&str]) -> serde_json::Value {
     let repo_root = support::repo_root().expect("repo root");
     let home = tempfile::tempdir().expect("tempdir");
 
-    let output = Command::new(env!("CARGO_BIN_EXE_bijux-dna"))
+    let output = support::bijux_dna_command(&repo_root)
         .current_dir(&repo_root)
         .env("HOME", home.path())
         .env("BIJUX_SKIP_QA", "1")

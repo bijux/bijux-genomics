@@ -71,6 +71,19 @@ pub fn repo_root() -> Result<PathBuf> {
 }
 
 #[allow(dead_code)]
+#[must_use]
+pub fn bijux_dna_command(root: &Path) -> Command {
+    let executable = bijux_dna_testkit::workspace_support::workspace_binary_path(
+        "bijux-dna",
+        Path::new(env!("CARGO_BIN_EXE_bijux-dna")),
+    )
+    .unwrap_or_else(|error| panic!("resolve finalized bijux-dna executable: {error}"));
+    let mut command = Command::new(executable);
+    command.current_dir(root);
+    command
+}
+
+#[allow(dead_code)]
 pub fn configure_isolated_runtime_resolution(command: &mut Command, root: &Path) {
     command
         .env("BIJUX_HPC_ROOT", root)
@@ -122,8 +135,8 @@ impl RepoSandbox {
 
     #[must_use]
     pub fn bijux_dna_command(&self) -> Command {
-        let mut command = Command::new(env!("CARGO_BIN_EXE_bijux-dna"));
-        command.current_dir(self.path()).envs(self.environment());
+        let mut command = bijux_dna_command(self.path());
+        command.envs(self.environment());
         command
     }
 

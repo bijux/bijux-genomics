@@ -11,6 +11,8 @@ minimal, and appropriate for helper code used by other crates' tests.
 - Derive contained paths below `TEST_TMP_DIR` or the process temp directory.
 - Read `BIJUX_REPO_ROOT` to resolve the execution workspace independently of
   the checkout where a shared test archive was compiled.
+- Read `NEXTEST_BIN_EXE_<binary>` to select a finalized executable and inspect
+  its file metadata and Unix executable permissions without launching it.
 - Read environment variables used only for deterministic snapshot redaction:
   `CARGO_MANIFEST_DIR`, `CARGO_PKG_NAME`, `COMPUTERNAME`, `HOME`, `HOSTNAME`,
   `LC_ALL`, `LOGNAME`, `TEMP`, `TEST_TMP_DIR`, `TMP`, `TMPDIR`, `TZ`, and

@@ -1,9 +1,6 @@
 #![allow(clippy::expect_used, clippy::too_many_lines)]
 
 #[cfg(feature = "bam_downstream")]
-use std::process::Command;
-
-#[cfg(feature = "bam_downstream")]
 use crate::support;
 
 #[cfg(feature = "bam_downstream")]
@@ -42,7 +39,7 @@ fn bench_local_validate_stage_result_rejects_missing_runtime_field() {
     )
     .expect("write invalid manifest");
 
-    let output = Command::new(env!("CARGO_BIN_EXE_bijux-dna"))
+    let output = support::bijux_dna_command(&repo_root)
         .current_dir(&repo_root)
         .env("HOME", home.path())
         .env("BIJUX_SKIP_QA", "1")

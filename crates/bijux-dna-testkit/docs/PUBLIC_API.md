@@ -38,10 +38,22 @@ explicit namespace.
 - `read_policy_text`
 - `workspace_root_from_manifest`
 
+## Workspace Executable Binding
+
+`workspace_support::workspace_binary_path(binary, compiled_path)` resolves
+`NEXTEST_BIN_EXE_<binary>` before the caller's compiled executable path. The
+selected path must be absolute, point to a regular file, and have executable
+permission on Unix. An invalid configured binding returns an error instead of
+falling back. The helper reads metadata and constructs no process.
+
+Parallel runners must finalize executable provenance and feature compatibility
+before binding worker environments. An unbound Cargo path requires exclusive
+ownership of its build output for the duration of execution.
+
 ## Compatibility Rules
 
 - Removing or renaming a stable root export is breaking.
 - Changing snapshot normalization semantics is breaking unless covered by
   explicit snapshot updates and release notes.
-- Adding a public helper requires `docs/COMMANDS.md`, this file, public API
-  tests, and snapshot updates.
+- Adding a public helper requires `docs/COMMANDS.md`, this file, and public API
+  tests. Changes to root exports also require root API snapshot updates.
