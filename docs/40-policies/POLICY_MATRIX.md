@@ -20,7 +20,13 @@ Provides a single index for governance checks.
 - Missing entries lead to governance drift.
 
 ## Style
+
 - docs_required_policy.rs
-- no_thin_modules_policy.rs
+- no_empty_dirs_policy.rs
 - no_helpers_policy.rs
 - mod_naming_policy.rs
+
+Dependency and effect boundaries establish module ownership. The namespace integrity
+check rejects empty or placeholder directories and requires compact module declarations
+to resolve to real source files. Public-item counts and directory depth are not ownership
+criteria.

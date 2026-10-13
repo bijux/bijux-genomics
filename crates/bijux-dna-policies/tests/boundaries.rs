@@ -98,8 +98,6 @@ mod mod_boundaries_surface_no_policy_duplication_rs;
 mod mod_boundaries_surface_no_repo_tree_snapshots_rs;
 #[path = "boundaries/surface/structure_guards/no_serde_json_writer.rs"]
 mod mod_boundaries_surface_no_serde_json_writer_rs;
-#[path = "boundaries/surface/structure_guards/no_thin_modules_policy.rs"]
-mod mod_boundaries_surface_no_thin_modules_policy_rs;
 #[path = "boundaries/surface/structure_layout/ownership_contract.rs"]
 mod mod_boundaries_surface_ownership_contract_rs;
 #[path = "boundaries/surface/structure_layout/path_policies.rs"]

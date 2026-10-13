@@ -74,7 +74,6 @@ Welcome to the Bijux Genomics documentation. Start with the overview and then di
 - `no_repo_tree_snapshots.rs`
 - `no_serde_json_writer.rs`
 - `no_standalone_bijux_cli.rs`
-- `no_thin_modules_policy.rs`
 - `ownership_contract.rs`
 - `path_policies.rs`
 - `pipelines_dependency_policy.rs`
