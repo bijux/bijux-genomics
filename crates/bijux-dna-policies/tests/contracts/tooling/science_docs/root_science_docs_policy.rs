@@ -6,22 +6,13 @@ use std::collections::BTreeSet;
 use std::fs;
 
 fn markdown_link_targets(path: &str) -> BTreeSet<String> {
-    let root = support::workspace_root();
-    let raw =
-        fs::read_to_string(root.join(path)).unwrap_or_else(|err| panic!("read {path}: {err}"));
-    let mut targets = BTreeSet::new();
-    for line in raw.lines() {
-        let mut rest = line;
-        while let Some((_, suffix)) = rest.split_once("](") {
-            if let Some((target, tail)) = suffix.split_once(')') {
-                targets.insert(target.to_string());
-                rest = tail;
-            } else {
-                break;
-            }
-        }
-    }
-    targets
+    crate::document_references::markdown_targets(&support::workspace_root(), path)
+        .unwrap_or_else(|error| panic!("invalid references in {path}: {error}"))
+}
+
+fn expected_link_targets(path: &str, expected: &BTreeSet<String>) -> BTreeSet<String> {
+    crate::document_references::expected_targets(&support::workspace_root(), path, expected)
+        .unwrap_or_else(|error| panic!("invalid governed references for {path}: {error}"))
 }
 
 fn publication_index_targets() -> BTreeSet<String> {
@@ -57,6 +48,7 @@ fn policy__contracts__root_science_docs_policy__science_index_links_root_docs_ex
         "bam/index.md".to_string(),
         "vcf/index.md".to_string(),
     ]);
+    let expected = expected_link_targets("docs/20-science/index.md", &expected);
     let documented = markdown_link_targets("docs/20-science/index.md");
     assert_eq!(
         expected, documented,
@@ -73,6 +65,7 @@ fn policy__contracts__root_science_docs_policy__scientific_decisions_link_govern
         "bam/METHODOLOGICAL_INTENT.md".to_string(),
         "vcf/index.md".to_string(),
     ]);
+    let expected = expected_link_targets("docs/20-science/SCIENTIFIC_DECISIONS.md", &expected);
     let documented = markdown_link_targets("docs/20-science/SCIENTIFIC_DECISIONS.md");
     assert_eq!(
         expected, documented,
@@ -90,6 +83,7 @@ fn policy__contracts__root_science_docs_policy__scientific_defaults_link_governe
         "VALIDITY_LIMITS.md".to_string(),
         "vcf/STAGE_CATALOG.md".to_string(),
     ]);
+    let expected = expected_link_targets("docs/20-science/SCIENTIFIC_DEFAULTS.md", &expected);
     let documented = markdown_link_targets("docs/20-science/SCIENTIFIC_DEFAULTS.md");
     assert_eq!(
         expected, documented,
@@ -108,6 +102,7 @@ fn policy__contracts__root_science_docs_policy__validity_limits_link_domain_auth
         "vcf/IBD.md".to_string(),
         "vcf/DEMOGRAPHY.md".to_string(),
     ]);
+    let expected = expected_link_targets("docs/20-science/VALIDITY_LIMITS.md", &expected);
     let documented = markdown_link_targets("docs/20-science/VALIDITY_LIMITS.md");
     assert_eq!(
         expected, documented,
@@ -124,6 +119,7 @@ fn policy__contracts__root_science_docs_policy__tool_stage_citations_link_govern
         "../../science/docs/upstream/papers/TOOL_PAPER_MAP.tsv".to_string(),
         "../../science/docs/upstream/github-repos/MANIFEST.tsv".to_string(),
     ]);
+    let expected = expected_link_targets("docs/20-science/TOOL_STAGE_CITATIONS.md", &expected);
     let documented = markdown_link_targets("docs/20-science/TOOL_STAGE_CITATIONS.md");
     assert_eq!(
         expected, documented,
@@ -135,9 +131,10 @@ fn policy__contracts__root_science_docs_policy__tool_stage_citations_link_govern
 fn policy__contracts__root_science_docs_policy__publication_assets_list_publication_indexes_exactly(
 ) {
     let expected = publication_index_targets();
+    let expected = expected_link_targets("docs/20-science/PUBLICATION_ASSETS.md", &expected);
     let documented = markdown_link_targets("docs/20-science/PUBLICATION_ASSETS.md")
         .into_iter()
-        .filter(|target| target.starts_with("../../assets/publications/"))
+        .filter(|target| target.starts_with("assets/publications/"))
         .collect::<BTreeSet<_>>();
     assert_eq!(
         expected, documented,

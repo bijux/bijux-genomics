@@ -3,31 +3,22 @@
 mod support;
 
 use std::collections::BTreeSet;
-use std::fs;
 
 fn markdown_link_targets(path: &str) -> BTreeSet<String> {
-    let root = support::workspace_root();
-    let raw =
-        fs::read_to_string(root.join(path)).unwrap_or_else(|err| panic!("read {path}: {err}"));
-    let mut targets = BTreeSet::new();
-    for line in raw.lines() {
-        let mut rest = line;
-        while let Some((_, suffix)) = rest.split_once("](") {
-            if let Some((target, tail)) = suffix.split_once(')') {
-                targets.insert(target.to_string());
-                rest = tail;
-            } else {
-                break;
-            }
-        }
-    }
-    targets
+    crate::document_references::markdown_targets(&support::workspace_root(), path)
+        .unwrap_or_else(|error| panic!("invalid references in {path}: {error}"))
+}
+
+fn expected_link_targets(path: &str, expected: &BTreeSet<String>) -> BTreeSet<String> {
+    crate::document_references::expected_targets(&support::workspace_root(), path, expected)
+        .unwrap_or_else(|error| panic!("invalid governed references for {path}: {error}"))
 }
 
 #[test]
 fn policy__contracts__operations_reference_authority_policy__security_links_governed_surfaces_exactly(
 ) {
     let expected = BTreeSet::from(["THREAT_MODEL.md".to_string()]);
+    let expected = expected_link_targets("docs/30-operations/SECURITY.md", &expected);
     let documented = markdown_link_targets("docs/30-operations/SECURITY.md");
     assert_eq!(
         expected, documented,
@@ -42,6 +33,7 @@ fn policy__contracts__operations_reference_authority_policy__ci_links_governed_s
         "../../configs/coverage/runner.toml".to_string(),
         "ISOLATION.md".to_string(),
     ]);
+    let expected = expected_link_targets("docs/30-operations/CI.md", &expected);
     let documented = markdown_link_targets("docs/30-operations/CI.md");
     assert_eq!(
         expected, documented,
@@ -53,6 +45,7 @@ fn policy__contracts__operations_reference_authority_policy__ci_links_governed_s
 fn policy__contracts__operations_reference_authority_policy__benchmark_variance_links_governed_surfaces_exactly(
 ) {
     let expected = BTreeSet::from(["../../configs/bench/knobs.toml".to_string()]);
+    let expected = expected_link_targets("docs/30-operations/BENCHMARK_VARIANCE.md", &expected);
     let documented = markdown_link_targets("docs/30-operations/BENCHMARK_VARIANCE.md");
     assert_eq!(
         expected, documented,
@@ -69,6 +62,7 @@ fn policy__contracts__operations_reference_authority_policy__hpc_lunarc_layout_l
         "benchmark/workspace-model.md".to_string(),
         "RUN_ARTIFACTS.md".to_string(),
     ]);
+    let expected = expected_link_targets("docs/30-operations/HPC_LUNARC_LAYOUT.md", &expected);
     let documented = markdown_link_targets("docs/30-operations/HPC_LUNARC_LAYOUT.md");
     assert_eq!(
         expected, documented,
@@ -86,6 +80,7 @@ fn policy__contracts__operations_reference_authority_policy__reproducibility_lin
         "../../configs/vcf/maps/locks/map_locks.toml".to_string(),
         "../../crates/bijux-dna-bench/bench/suites/".to_string(),
     ]);
+    let expected = expected_link_targets("docs/30-operations/REPRODUCIBILITY.md", &expected);
     let documented = markdown_link_targets("docs/30-operations/REPRODUCIBILITY.md");
     assert_eq!(
         expected, documented,
@@ -101,6 +96,8 @@ fn policy__contracts__operations_reference_authority_policy__vcf_reference_cache
         "../../configs/vcf/panels/locks/panel_locks.toml".to_string(),
         "../../configs/runtime/profiles/vcf_downstream_local.toml".to_string(),
     ]);
+    let expected =
+        expected_link_targets("docs/30-operations/VCF_REFERENCE_CACHE_POLICY.md", &expected);
     let documented = markdown_link_targets("docs/30-operations/VCF_REFERENCE_CACHE_POLICY.md");
     assert_eq!(
         expected, documented,
@@ -116,6 +113,10 @@ fn policy__contracts__operations_reference_authority_policy__vcf_downstream_read
         "TRACEABILITY_PROOF_FRONTEND.md".to_string(),
         "../../configs/vcf/downstream_acceptance.toml".to_string(),
     ]);
+    let expected = expected_link_targets(
+        "docs/30-operations/VCF_DOWNSTREAM_READINESS_CHECKLIST.md",
+        &expected,
+    );
     let documented =
         markdown_link_targets("docs/30-operations/VCF_DOWNSTREAM_READINESS_CHECKLIST.md");
     assert_eq!(
@@ -133,6 +134,8 @@ fn policy__contracts__operations_reference_authority_policy__frontend_mini_stack
         "EXPLAINABILITY.md".to_string(),
         "REPORT_CONTRACT.md".to_string(),
     ]);
+    let expected =
+        expected_link_targets("docs/30-operations/FRONTEND_MINI_STACK_VALIDATION.md", &expected);
     let documented = markdown_link_targets("docs/30-operations/FRONTEND_MINI_STACK_VALIDATION.md");
     assert_eq!(
         expected, documented,
@@ -150,6 +153,7 @@ fn policy__contracts__operations_reference_authority_policy__production_guarante
         "DOCS_BUILD_REPRODUCIBLE.md".to_string(),
         "REPRODUCIBILITY.md".to_string(),
     ]);
+    let expected = expected_link_targets("docs/30-operations/PRODUCTION_GUARANTEES.md", &expected);
     let documented = markdown_link_targets("docs/30-operations/PRODUCTION_GUARANTEES.md");
     assert_eq!(
         expected, documented,
@@ -166,6 +170,7 @@ fn policy__contracts__operations_reference_authority_policy__test_failure_triage
         "../../crates/bijux-dna-dev/docs/COMMANDS.md".to_string(),
         "../../configs/rust/nextest.toml".to_string(),
     ]);
+    let expected = expected_link_targets("docs/30-operations/TEST_FAILURE_TRIAGE.md", &expected);
     let documented = markdown_link_targets("docs/30-operations/TEST_FAILURE_TRIAGE.md");
     assert_eq!(
         expected, documented,
@@ -182,6 +187,7 @@ fn policy__contracts__operations_reference_authority_policy__explainability_link
         "REPORT_CONTRACT.md".to_string(),
         "../../crates/bijux-dna-dev/docs/COMMANDS.md".to_string(),
     ]);
+    let expected = expected_link_targets("docs/30-operations/EXPLAINABILITY.md", &expected);
     let documented = markdown_link_targets("docs/30-operations/EXPLAINABILITY.md");
     assert_eq!(
         expected, documented,
@@ -194,6 +200,8 @@ fn policy__contracts__operations_reference_authority_policy__compilation_cache_p
 ) {
     let expected =
         BTreeSet::from(["ISOLATION.md".to_string(), "../../makes/cargo-dev.mk".to_string()]);
+    let expected =
+        expected_link_targets("docs/30-operations/COMPILATION_CACHE_POLICY.md", &expected);
     let documented = markdown_link_targets("docs/30-operations/COMPILATION_CACHE_POLICY.md");
     assert_eq!(
         expected, documented,
@@ -209,6 +217,7 @@ fn policy__contracts__operations_reference_authority_policy__certification_scope
         "RUN_ARTIFACTS.md".to_string(),
         "../50-reference/EXAMPLE_RUNNER_CONTRACT.md".to_string(),
     ]);
+    let expected = expected_link_targets("docs/30-operations/CERTIFICATION_SCOPE.md", &expected);
     let documented = markdown_link_targets("docs/30-operations/CERTIFICATION_SCOPE.md");
     assert_eq!(
         expected, documented,
@@ -224,6 +233,7 @@ fn policy__contracts__operations_reference_authority_policy__artifact_explorer_l
         "../10-architecture/DATAFLOW.md".to_string(),
         "REPORT_CONTRACT.md".to_string(),
     ]);
+    let expected = expected_link_targets("docs/30-operations/ARTIFACT_EXPLORER.md", &expected);
     let documented = markdown_link_targets("docs/30-operations/ARTIFACT_EXPLORER.md");
     assert_eq!(
         expected, documented,
@@ -236,6 +246,7 @@ fn policy__contracts__operations_reference_authority_policy__corpus_01_links_gov
 ) {
     let expected =
         BTreeSet::from(["../../benchmarks/corpora/human-short-read-diversity.toml".to_string()]);
+    let expected = expected_link_targets("docs/30-operations/corpus-01.md", &expected);
     let documented = markdown_link_targets("docs/30-operations/corpus-01.md");
     assert_eq!(
         expected, documented,
@@ -247,6 +258,7 @@ fn policy__contracts__operations_reference_authority_policy__corpus_01_links_gov
 fn policy__contracts__operations_reference_authority_policy__release_hygiene_links_governed_surfaces_exactly(
 ) {
     let expected = BTreeSet::from(["../50-reference/CONTRACT_VERSIONING.md".to_string()]);
+    let expected = expected_link_targets("docs/30-operations/RELEASE_HYGIENE.md", &expected);
     let documented = markdown_link_targets("docs/30-operations/RELEASE_HYGIENE.md");
     assert_eq!(
         expected, documented,
@@ -258,6 +270,7 @@ fn policy__contracts__operations_reference_authority_policy__release_hygiene_lin
 fn policy__contracts__operations_reference_authority_policy__mkdocs_build_redirect_links_governed_surfaces_exactly(
 ) {
     let expected = BTreeSet::from(["DOCS_BUILD_REPRODUCIBLE.md".to_string()]);
+    let expected = expected_link_targets("docs/30-operations/MKDOCS_BUILD.md", &expected);
     let documented = markdown_link_targets("docs/30-operations/MKDOCS_BUILD.md");
     assert_eq!(
         expected, documented,
@@ -273,6 +286,8 @@ fn policy__contracts__operations_reference_authority_policy__docs_build_reproduc
         "../../configs/docs/mkdocs.toml".to_string(),
         "../../mkdocs.yml".to_string(),
     ]);
+    let expected =
+        expected_link_targets("docs/30-operations/DOCS_BUILD_REPRODUCIBLE.md", &expected);
     let documented = markdown_link_targets("docs/30-operations/DOCS_BUILD_REPRODUCIBLE.md");
     assert_eq!(
         expected, documented,
@@ -284,6 +299,7 @@ fn policy__contracts__operations_reference_authority_policy__docs_build_reproduc
 fn policy__contracts__operations_reference_authority_policy__developer_workflow_redirect_links_governed_surfaces_exactly(
 ) {
     let expected = BTreeSet::from(["../30-operations/DEVELOPER_WORKFLOW.md".to_string()]);
+    let expected = expected_link_targets("docs/40-policies/DEVELOPER_WORKFLOW.md", &expected);
     let documented = markdown_link_targets("docs/40-policies/DEVELOPER_WORKFLOW.md");
     assert_eq!(
         expected, documented,
@@ -295,6 +311,7 @@ fn policy__contracts__operations_reference_authority_policy__developer_workflow_
 fn policy__contracts__operations_reference_authority_policy__no_orphans_links_governed_surfaces_exactly(
 ) {
     let expected = BTreeSet::from(["REFERENCE_INDEX.md".to_string()]);
+    let expected = expected_link_targets("docs/50-reference/NO_ORPHANS.md", &expected);
     let documented = markdown_link_targets("docs/50-reference/NO_ORPHANS.md");
     assert_eq!(
         expected, documented,
@@ -311,6 +328,7 @@ fn policy__contracts__operations_reference_authority_policy__schemas_index_links
         "../../crates/bijux-dna-core/tests/schemas".to_string(),
         "../../crates/bijux-dna-stage-contract/tests/schemas".to_string(),
     ]);
+    let expected = expected_link_targets("docs/50-reference/SCHEMAS_INDEX.md", &expected);
     let documented = markdown_link_targets("docs/50-reference/SCHEMAS_INDEX.md");
     assert_eq!(
         expected, documented,
@@ -336,6 +354,7 @@ fn policy__contracts__operations_reference_authority_policy__tool_admission_link
         "../../examples/index.yaml".to_string(),
         "../30-operations/CI.md".to_string(),
     ]);
+    let expected = expected_link_targets("docs/50-reference/TOOL_ADMISSION.md", &expected);
     let documented = markdown_link_targets("docs/50-reference/TOOL_ADMISSION.md");
     assert_eq!(
         expected, documented,

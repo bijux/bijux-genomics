@@ -20,20 +20,13 @@ fn workspace_dir_paths(path: &str) -> Vec<PathBuf> {
 }
 
 fn markdown_link_targets(path: &str) -> BTreeSet<String> {
-    let raw = workspace_file(path);
-    let mut targets = BTreeSet::new();
-    for line in raw.lines() {
-        let mut rest = line;
-        while let Some((_, suffix)) = rest.split_once("](") {
-            if let Some((target, tail)) = suffix.split_once(')') {
-                targets.insert(target.to_string());
-                rest = tail;
-            } else {
-                break;
-            }
-        }
-    }
-    targets
+    crate::document_references::markdown_targets(&support::workspace_root(), path)
+        .unwrap_or_else(|error| panic!("invalid references in {path}: {error}"))
+}
+
+fn expected_link_targets(path: &str, expected: &BTreeSet<String>) -> BTreeSet<String> {
+    crate::document_references::expected_targets(&support::workspace_root(), path, expected)
+        .unwrap_or_else(|error| panic!("invalid governed references for {path}: {error}"))
 }
 
 fn markdown_table_rows(path: &str, header_prefix: &str) -> Vec<Vec<String>> {
@@ -334,6 +327,7 @@ fn policy__contracts__fastq_science_docs_policy__fastq_evidence_closure_links_go
         "../../../science/generated/current/evidence/fastq_paper_archive_matrix.tsv".to_string(),
         "../../../science/generated/current/evidence/fastq_download_backlog.tsv".to_string(),
     ]);
+    let expected = expected_link_targets("domain/fastq/docs/EVIDENCE_CLOSURE.md", &expected);
     let documented = markdown_link_targets("domain/fastq/docs/EVIDENCE_CLOSURE.md");
     assert_eq!(
         expected, documented,
@@ -352,11 +346,12 @@ fn policy__contracts__fastq_science_docs_policy__fastq_references_link_generated
         "../../../science/generated/current/evidence/fastq_download_backlog.tsv".to_string(),
         "../../../domain/fastq/execution_support.yaml".to_string(),
     ]);
+    let expected = expected_link_targets("docs/20-science/fastq/REFERENCES.md", &expected);
     let documented = markdown_link_targets("docs/20-science/fastq/REFERENCES.md")
         .into_iter()
         .filter(|target| {
-            target.starts_with("../../../science/generated/current/evidence/")
-                || target == "../../../domain/fastq/execution_support.yaml"
+            target.starts_with("science/generated/current/evidence/")
+                || target == "domain/fastq/execution_support.yaml"
         })
         .collect::<BTreeSet<_>>();
     assert_eq!(
@@ -400,6 +395,7 @@ fn policy__contracts__fastq_science_docs_policy__primer_assumptions_link_governe
         "../../../domain/fastq/stages/normalize_primers.yaml".to_string(),
         "../../../domain/fastq/docs/DEFAULT_SETTINGS.md".to_string(),
     ]);
+    let expected = expected_link_targets("docs/20-science/fastq/PRIMER_ASSUMPTIONS.md", &expected);
     let documented = markdown_link_targets("docs/20-science/fastq/PRIMER_ASSUMPTIONS.md");
     assert_eq!(
         expected, documented,
@@ -415,6 +411,7 @@ fn policy__contracts__fastq_science_docs_policy__chimera_semantics_link_governed
         "../../../domain/fastq/docs/DEFAULT_SETTINGS.md".to_string(),
         "REFERENCE_GOVERNANCE.md".to_string(),
     ]);
+    let expected = expected_link_targets("docs/20-science/fastq/CHIMERA_SEMANTICS.md", &expected);
     let documented = markdown_link_targets("docs/20-science/fastq/CHIMERA_SEMANTICS.md");
     assert_eq!(
         expected, documented,
@@ -431,6 +428,8 @@ fn policy__contracts__fastq_science_docs_policy__otu_vs_asv_semantics_link_gover
         "../../../domain/fastq/docs/DEFAULT_SETTINGS.md".to_string(),
         "../../../domain/fastq/route_policies.toml".to_string(),
     ]);
+    let expected =
+        expected_link_targets("docs/20-science/fastq/OTU_VS_ASV_SEMANTICS.md", &expected);
     let documented = markdown_link_targets("docs/20-science/fastq/OTU_VS_ASV_SEMANTICS.md");
     assert_eq!(
         expected, documented,
@@ -446,6 +445,8 @@ fn policy__contracts__fastq_science_docs_policy__normalization_semantics_link_go
         "../../../domain/fastq/metrics.yaml".to_string(),
         "../../../domain/fastq/docs/DEFAULT_SETTINGS.md".to_string(),
     ]);
+    let expected =
+        expected_link_targets("docs/20-science/fastq/NORMALIZATION_SEMANTICS.md", &expected);
     let documented = markdown_link_targets("docs/20-science/fastq/NORMALIZATION_SEMANTICS.md");
     assert_eq!(
         expected, documented,
@@ -461,6 +462,7 @@ fn policy__contracts__fastq_science_docs_policy__gold_pipeline_spec_links_govern
         "../../../domain/fastq/route_policies.toml".to_string(),
         "../../../domain/fastq/docs/DEFAULT_SETTINGS.md".to_string(),
     ]);
+    let expected = expected_link_targets("docs/20-science/fastq/GOLD_PIPELINE_SPEC.md", &expected);
     let documented = markdown_link_targets("docs/20-science/fastq/GOLD_PIPELINE_SPEC.md");
     assert_eq!(
         expected, documented,
@@ -476,6 +478,8 @@ fn policy__contracts__fastq_science_docs_policy__methodological_intent_links_gov
         "STAGE_CATALOG.md".to_string(),
         "STAGE_ASSUMPTIONS.md".to_string(),
     ]);
+    let expected =
+        expected_link_targets("docs/20-science/fastq/METHODOLOGICAL_INTENT.md", &expected);
     let documented = markdown_link_targets("docs/20-science/fastq/METHODOLOGICAL_INTENT.md");
     assert_eq!(
         expected, documented,
@@ -491,6 +495,7 @@ fn policy__contracts__fastq_science_docs_policy__metric_semantics_link_governed_
         "SCIENTIFIC_SPEC.md".to_string(),
         "OPERATIONAL_CONTRACT.md".to_string(),
     ]);
+    let expected = expected_link_targets("docs/20-science/fastq/METRIC_SEMANTICS.md", &expected);
     let documented = markdown_link_targets("docs/20-science/fastq/METRIC_SEMANTICS.md");
     assert_eq!(
         expected, documented,
@@ -506,6 +511,8 @@ fn policy__contracts__fastq_science_docs_policy__operational_contract_links_gove
         "../../../domain/fastq/metrics.yaml".to_string(),
         "STAGE_CATALOG.md".to_string(),
     ]);
+    let expected =
+        expected_link_targets("docs/20-science/fastq/OPERATIONAL_CONTRACT.md", &expected);
     let documented = markdown_link_targets("docs/20-science/fastq/OPERATIONAL_CONTRACT.md");
     assert_eq!(
         expected, documented,
@@ -522,6 +529,7 @@ fn policy__contracts__fastq_science_docs_policy__scientific_spec_links_governed_
         "METRIC_SEMANTICS.md".to_string(),
         "REFERENCES.md".to_string(),
     ]);
+    let expected = expected_link_targets("docs/20-science/fastq/SCIENTIFIC_SPEC.md", &expected);
     let documented = markdown_link_targets("docs/20-science/fastq/SCIENTIFIC_SPEC.md");
     assert_eq!(
         expected, documented,
@@ -537,6 +545,7 @@ fn policy__contracts__fastq_science_docs_policy__stage_taxonomy_links_governed_s
         "../../../domain/fastq/execution_support.yaml".to_string(),
         "STAGE_CATALOG.md".to_string(),
     ]);
+    let expected = expected_link_targets("docs/20-science/fastq/STAGE_TAXONOMY.md", &expected);
     let documented = markdown_link_targets("docs/20-science/fastq/STAGE_TAXONOMY.md");
     assert_eq!(
         expected, documented,
@@ -552,6 +561,8 @@ fn policy__contracts__fastq_science_docs_policy__reference_governance_links_gove
         "../../../domain/fastq/route_policies.toml".to_string(),
         "../../../domain/fastq/docs/DEFAULT_SETTINGS.md".to_string(),
     ]);
+    let expected =
+        expected_link_targets("docs/20-science/fastq/REFERENCE_GOVERNANCE.md", &expected);
     let documented = markdown_link_targets("docs/20-science/fastq/REFERENCE_GOVERNANCE.md");
     assert_eq!(
         expected, documented,
