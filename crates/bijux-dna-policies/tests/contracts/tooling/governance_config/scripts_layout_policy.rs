@@ -8,12 +8,48 @@ fn workspace_root() -> PathBuf {
 }
 
 fn contains_root_automation_reference(raw: &str) -> bool {
-    let automation_segment = ["scr", "ipts/"].concat();
-    raw.match_indices(&automation_segment).any(|(index, _)| {
-        let prefix = &raw[..index];
-        ![".github/", "bijux-makes/", "bijux-makes-rs/"]
-            .iter()
-            .any(|governed_parent| prefix.ends_with(governed_parent))
+    static PATHS: std::sync::OnceLock<regex::Regex> = std::sync::OnceLock::new();
+    if !raw.contains("scripts/") {
+        return false;
+    }
+    // Keep the entire path token: a nested scripts directory and a javascripts
+    // asset have distinct owners from the repository's root automation directory.
+    let paths = PATHS.get_or_init(|| {
+        regex::Regex::new(
+            r"(?:\$\([A-Za-z_][A-Za-z0-9_]*\)|\$\{[A-Za-z_][A-Za-z0-9_]*\}|[A-Za-z0-9_.$~/\\-])+",
+        )
+        .expect("automation path token expression")
+    });
+    paths.find_iter(raw).any(|candidate| {
+        let path = candidate.as_str();
+        if !path.contains("scripts/") {
+            return false;
+        }
+        let path = [
+            "$(CURDIR)/",
+            "$(REPO_ROOT)/",
+            "${REPO_ROOT}/",
+            "${repo_root}/",
+            "${PWD}/",
+            "$PWD/",
+            "$REPO_ROOT/",
+        ]
+        .iter()
+        .find_map(|prefix| path.strip_prefix(prefix))
+        .unwrap_or(path);
+        let mut components = Vec::new();
+        for component in path.split('/') {
+            match component {
+                "" | "." => {}
+                ".." => {
+                    if components.pop().is_none() {
+                        return false;
+                    }
+                }
+                part => components.push(part),
+            }
+        }
+        components.len() > 1 && components[0] == "scripts"
     })
 }
 
@@ -104,6 +140,31 @@ fn policy__contracts__scripts_layout_policy__governed_script_libraries_are_not_r
         "$(BIJUX_MAKES_SHARED_ROOT)/bijux-makes-rs/scripts/nextest_expr.sh"
     ));
     assert!(contains_root_automation_reference("python3 scripts/check_workflow_prerequisites.py"));
+}
+
+#[test]
+fn policy__contracts__scripts_layout_policy__path_context_preserves_nested_owners() {
+    for reference in [
+        "assets/javascripts/navigation-sync.js",
+        "assets/vendor/mathjax/scripts/render.js",
+        "$(DOCS_PUBLICATION_SHARED)/tooling/scripts/docs_source_authority.sh",
+        ".bijux/shared/bijux-checks/scripts/validate-shared-contracts.sh",
+        "https://example.org/scripts/render.js",
+        "~/scripts/local-tool.sh",
+    ] {
+        assert!(!contains_root_automation_reference(reference), "nested owner: {reference}");
+    }
+    for reference in [
+        "python3 './scripts/check.py'",
+        "bash ${REPO_ROOT}/scripts/check.sh",
+        "bash $(CURDIR)/scripts/check.sh",
+        "bash $REPO_ROOT/scripts/check.sh",
+        "[old automation](scripts/check.sh)",
+        ".github/../scripts/check.py",
+        "makes/../scripts/check.sh",
+    ] {
+        assert!(contains_root_automation_reference(reference), "root owner: {reference}");
+    }
 }
 
 #[test]
