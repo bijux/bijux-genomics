@@ -30,6 +30,24 @@ layer = "analysis"
 public_surfaces = ["crates/bijux-dna-bench/src/lib.rs", "crates/bijux-dna-bench/docs/PUBLIC_API.md"]
 
 [[crates]]
+name = "bijux-dna-bench-campaign"
+family = "analysis"
+layer = "analysis"
+public_surfaces = ["crates/bijux-dna-bench-campaign/src/lib.rs", "crates/bijux-dna-bench-campaign/docs/PUBLIC_API.md"]
+
+[[crates]]
+name = "bijux-dna-bench-parser-proofs"
+family = "analysis"
+layer = "analysis"
+public_surfaces = ["crates/bijux-dna-bench-parser-proofs/src/lib.rs", "crates/bijux-dna-bench-parser-proofs/docs/PUBLIC_API.md"]
+
+[[crates]]
+name = "bijux-dna-bench-stage"
+family = "analysis"
+layer = "analysis"
+public_surfaces = ["crates/bijux-dna-bench-stage/src/lib.rs", "crates/bijux-dna-bench-stage/docs/PUBLIC_API.md"]
+
+[[crates]]
 name = "bijux-dna-bench-hpc"
 family = "analysis"
 layer = "analysis"
