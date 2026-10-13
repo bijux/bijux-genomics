@@ -63,7 +63,7 @@ Rust gate artifact layout:
 - `make github-all` records its one-time workspace compilation under
   `artifacts/github-all/workspace-compile.log`
 - `make test-all` runs the complete workspace, all-target, all-feature suite (including ignored
-  tests) as four exact hash partitions through the event-driven Rust supervisor; shard logs and
+  tests) as five exact hash partitions through the event-driven Rust supervisor; shard logs and
   the timing receipt remain under `ARTIFACT_ROOT`. Archives, isolated workspaces, build targets,
   and shard runtime products use the disjoint `BIJUX_CI_FULL_SHARD_SCRATCH_ROOT` when supplied and
   are removed before return. This keeps bounded evidence governed while permitting high-volume
@@ -76,7 +76,16 @@ Rust gate artifact layout:
 - exhaustive workspace governance, domain, container, and Rust lint checks remain available through `make lint-governance`
 - `make test` is the fast Rust lane: it excludes named plus rostered slow tests above the 1-second threshold
 - `make test-slow` is the lane for tests that exceed the fast-lane budget
-- `make test-all` is the complete, unbounded, concurrently sharded full-suite lane
+- `make test-all` is the complete, concurrently sharded full-suite lane with bounded worker admission
+
+The complete executor accepts larger complete partition rosters, including hundreds of shards.
+It admits preparation and test execution together within a detected CPU allocation. Set
+`BIJUX_CI_FULL_WORKER_BUDGET` to the allocated total case workers,
+`BIJUX_CI_FULL_SHARD_JOBS` to the maximum active shard processes, and
+`BIJUX_CI_FULL_SHARD_TEST_THREADS` to each process’s case threads. Positive decimal values
+are required; the admitted process/thread product cannot exceed the worker budget. Archive
+compilation has a separate contract budget. Scratch storage and memory still need capacity
+for the selected roster; declaring more partitions does not provide more resources.
 
 CI profile automation:
 - Fast: `cargo run -q -p bijux-dna-dev -- tooling run ci-fast`

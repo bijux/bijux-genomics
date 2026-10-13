@@ -1,4 +1,5 @@
 mod fast_execution;
+mod full_execution;
 
 use super::super::suite_selection::governed_slow_expression;
 use std::collections::{BTreeMap, BTreeSet};
@@ -1022,6 +1023,8 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
         &receipt_path,
         serde_json::json!({
             "schema_version": "bijux.ci.full_gate_timing.v4",
+            "execution_resources": {"state": "pending_admission"},
+            "archive_build_jobs": contract.archive_build_jobs,
             "state": "running",
             "source_commit": source_identity,
             "source_worktree_clean": source_clean,
@@ -1031,6 +1034,9 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
         started,
         &mut session,
         |session, receipt| {
+            let execution_budget = full_execution::admit_budget(receipt, || {
+                full_execution::ExecutionBudget::resolve(selected_shards.len())
+            })?;
             let contract_sha256 = bijux_dna_infra::hash_file_sha256(&contract_path)?;
             let archive_roots = full_archive_roots(&storage, &contract)?;
             validate_full_archive_roots(&storage, &archive_roots)?;
@@ -1145,6 +1151,8 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
             if !archive_passed {
                 *receipt = serde_json::json!({
                     "schema_version": "bijux.ci.full_gate_timing.v4",
+                    "execution_resources": execution_budget,
+                    "archive_build_jobs": contract.archive_build_jobs,
                 "state": "complete",
                 "source_commit": source_identity,
                 "source_worktree_clean": source_clean,
@@ -1255,38 +1263,25 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
                     Ok(plan)
                 })
                 .collect::<Result<Vec<_>>>()?;
-            let preparation_started = Instant::now();
-            let shard_workspaces = selected_shards
-                .iter()
-                .map(|shard| {
-                    materialize_full_shard_workspace(
-                        &source_snapshot,
-                        &storage.scratch_root,
-                        &shard.id,
-                    )
-                })
-                .collect::<Result<Vec<_>>>()?;
-            let shard_preparation = preparation_started.elapsed();
-            let specs = selected_shards
-                .iter()
-                .zip(&shard_workspaces)
-                .zip(&shard_roots)
-                .zip(&shard_plans)
-                .map(|(((shard, shard_workspace), roots), plan)| {
-                    let mut args = full_shard_args(shard, reuse_inputs, shard_workspace)?;
-                    args.extend(["--filterset".to_string(), plan.filterset.clone()]);
-                    let mut envs = full_shard_env(roots, shard_workspace)?;
-                    envs.extend(executables.remapped_environment(&compiled_target)?);
-                    Ok(ParallelProcessSpec {
-                        label: shard.id.clone(),
-                        program: "cargo".to_string(),
-                        args,
-                        envs,
-                        current_dir: Some(shard_workspace.clone()),
-                    })
-                })
-                .collect::<Result<Vec<_>>>()?;
-            let outputs = ProcessRunner::new(workspace).run_parallel_logged(specs, &report_root)?;
+            let full_execution::ShardExecution {
+                workspaces: shard_workspaces,
+                outputs,
+                preparation_milliseconds: shard_preparation,
+            } = full_execution::run_shards(
+                full_execution::ShardInputs {
+                    workspace,
+                    shards: &selected_shards,
+                    roots: &shard_roots,
+                    plans: &shard_plans,
+                    snapshot: &source_snapshot,
+                    scratch_root: &storage.scratch_root,
+                    report_root: &report_root,
+                    reuse: reuse_inputs,
+                    executables: &executables,
+                    compiled_target: &compiled_target,
+                },
+                &execution_budget,
+            )?;
             let coverage = CoverageAttestation::reconcile_planned(
                 &expected_inventory,
                 outputs.iter().zip(&shard_plans).map(|(completed, plan)| {
@@ -1321,6 +1316,8 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
             "workspace": workspace.rel(shard_workspace).to_string_lossy(),
             "environment_roots": environment_roots,
             "duration_milliseconds": completed.duration.as_millis(),
+            "duration_scope": "preparation_and_execution",
+            "preparation_milliseconds": shard_preparation.get(&shard.id),
             "exit_code": exit_code,
             "log": workspace.rel(&log_path).to_string_lossy(),
             "stdout_log": workspace.rel(&report_root.join(format!("{}.stdout.log", shard.id))).to_string_lossy(),
@@ -1346,6 +1343,8 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
             }
             *receipt = serde_json::json!({
                 "schema_version": "bijux.ci.full_gate_timing.v4",
+                "execution_resources": execution_budget,
+                "archive_build_jobs": contract.archive_build_jobs,
                 "state": "complete",
                 "source_commit": source_identity,
                 "source_worktree_clean": source_clean,
@@ -1371,7 +1370,8 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
                 "execution_scope": full_shard_execution_scope(&contract, &selected_shards, coverage.complete),
                 "source_preparation": {
                     "archive_milliseconds": archive_preparation.as_millis(),
-                    "shards_milliseconds": shard_preparation.as_millis(),
+                    "shards_milliseconds": shard_preparation.values().map(|&value| u128::from(value)).sum::<u128>(),
+                    "shards_measurement": "sum_of_overlapping_slot_preparation_durations",
                 },
                 "discovery_plans": selected_shards.iter().zip(&shard_plans).map(|(shard, plan)| {
                     serde_json::json!({"shard_id": shard.id, "plan": plan})
@@ -1651,7 +1651,9 @@ fn full_shard_args(
     shard: &FullShard,
     reuse: &NextestReuseInputs,
     workspace_remap: &Path,
+    test_threads: usize,
 ) -> Result<Vec<String>> {
+    anyhow::ensure!(test_threads > 0, "full-shard case threads must be positive");
     let mut args = vec![
         "nextest".to_string(),
         "run".to_string(),
@@ -1671,6 +1673,8 @@ fn full_shard_args(
         "0".to_string(),
         "--partition".to_string(),
         shard.partition.clone(),
+        "--test-threads".to_string(),
+        test_threads.to_string(),
     ];
     args.extend(reuse.arguments(workspace_remap)?);
     Ok(args)
@@ -2032,7 +2036,7 @@ fn validate_full_shard_contract(contract: &FullShardContract) -> Result<()> {
         || contract.build_authority != "configs/ci/build-authority.json"
         || contract.runtime_dependencies.is_empty()
         || !(1..=16).contains(&contract.archive_build_jobs)
-        || !(2..=16).contains(&contract.shards.len())
+        || contract.shards.len() < 2
     {
         anyhow::bail!("full shard coverage contract is incomplete");
     }
@@ -2691,6 +2695,27 @@ mod tests {
     }
 
     #[test]
+    fn full_shard_contract_admits_hundreds_of_complete_hash_partitions() {
+        for count in [100, 256] {
+            let mut contract = contract();
+            contract.shards = (1..=count)
+                .map(|index| FullShard {
+                    id: format!("hash-{index}-of-{count}"),
+                    partition: format!("hash:{index}/{count}"),
+                })
+                .collect();
+            assert!(validate_full_shard_contract(&contract).is_ok());
+            contract.shards[0].partition = format!("hash:2/{count}");
+            assert!(validate_full_shard_contract(&contract).is_err());
+            contract.shards[0].partition = format!("hash:1/{}", count + 1);
+            assert!(validate_full_shard_contract(&contract).is_err());
+            contract.shards[0].partition = format!("hash:1/{count}");
+            contract.archive_build_jobs = 17;
+            assert!(validate_full_shard_contract(&contract).is_err());
+        }
+    }
+
+    #[test]
     fn full_shard_selection_supports_exact_affected_recovery() -> anyhow::Result<()> {
         let contract = contract();
         assert_eq!(select_full_shards(&contract, &[])?.len(), 5);
@@ -3018,7 +3043,9 @@ mod tests {
                 shard,
                 &super::archive_reuse_inputs(&archive.archive_extract)?,
                 &remap,
+                3,
             )?;
+            assert!(args.windows(2).any(|pair| pair[0] == "--test-threads" && pair[1] == "3"));
             for forbidden in [
                 "--workspace",
                 "--all-targets",

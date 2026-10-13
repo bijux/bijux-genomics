@@ -103,25 +103,65 @@ impl<'a> ProcessRunner<'a> {
         specs: Vec<ParallelProcessSpec>,
         log_directory: &Path,
     ) -> Result<Vec<ParallelProcessOutput>> {
-        let mut labels = BTreeSet::new();
-        for spec in &specs {
-            ensure!(
-                !spec.label.is_empty()
-                    && spec.label.bytes().all(|byte| {
-                        byte.is_ascii_lowercase() || byte.is_ascii_digit() || b"-_".contains(&byte)
-                    }),
-                "parallel process log label must contain only lowercase letters, digits, '-' or '_': {}",
-                spec.label
-            );
-            ensure!(
-                labels.insert(&spec.label),
-                "duplicate parallel process log label: {}",
-                spec.label
-            );
-        }
-        bijux_dna_infra::ensure_dir(log_directory)
-            .with_context(|| format!("create process log directory {}", log_directory.display()))?;
+        prepare_log_directory(specs.iter().map(|spec| spec.label.as_str()), log_directory)?;
         self.collect_parallel(specs, log_directory)
+    }
+
+    /// Prepare and run independent logged children within the same bounded admission slots.
+    ///
+    /// Preparation starts only after admission. A completed child releases its slot immediately;
+    /// its duration includes preparation. Labels and capacity are admitted before any preparation.
+    /// Launch/preparation errors stop further admission and drain active peers, preserving logs.
+    ///
+    /// # Errors
+    /// Returns an error for invalid labels/budget, preparation failure or child launch/collection.
+    pub fn run_prepared_parallel_logged<F>(
+        &self,
+        labels: Vec<String>,
+        max_parallelism: usize,
+        log_directory: &Path,
+        prepare: F,
+    ) -> Result<Vec<ParallelProcessOutput>>
+    where
+        F: Fn(&str) -> Result<ParallelProcessSpec> + Sync,
+    {
+        ensure!(max_parallelism > 0, "prepared process parallelism must be positive");
+        prepare_log_directory(labels.iter().map(String::as_str), log_directory)?;
+        let specs = labels
+            .into_iter()
+            .map(|label| DependentProcessSpec {
+                process: ParallelProcessSpec {
+                    label,
+                    program: String::new(),
+                    args: Vec::new(),
+                    envs: Vec::new(),
+                    current_dir: None,
+                },
+                dependencies: Vec::new(),
+            })
+            .collect();
+        dependency_graph::collect(specs, max_parallelism, |admitted| {
+            let spec = prepare(&admitted.label)?;
+            ensure!(
+                spec.label == admitted.label,
+                "prepared process changed its admitted log label"
+            );
+            let mut command = std::process::Command::new(&spec.program);
+            command
+                .args(&spec.args)
+                .envs(spec.envs.iter().map(|(key, value)| (key, value)))
+                .current_dir(spec.current_dir.as_ref().unwrap_or(&self.workspace.root));
+            run_with_logs(&mut command, log_directory, &spec.label)
+                .with_context(|| format!("run prepared process {}", spec.label))
+        })?
+        .into_iter()
+        .map(|output| match output {
+            DependencyProcessOutput::Completed(output) => Ok(output),
+            DependencyProcessOutput::BlockedDependency { label } => {
+                anyhow::bail!("independent prepared process {label} was blocked")
+            }
+        })
+        .collect()
     }
 
     /// Run a dependency graph with a bounded number of active children.
@@ -201,6 +241,21 @@ impl<'a> ProcessRunner<'a> {
     }
 }
 
+fn prepare_log_directory<'a>(
+    labels: impl Iterator<Item = &'a str>,
+    directory: &Path,
+) -> Result<()> {
+    let mut seen = BTreeSet::new();
+    for label in labels {
+        ensure!(!label.is_empty() && label.bytes().all(|byte| {
+            byte.is_ascii_lowercase() || byte.is_ascii_digit() || b"-_".contains(&byte)
+        }), "parallel process log label must contain only lowercase letters, digits, '-' or '_': {label}");
+        ensure!(seen.insert(label), "duplicate parallel process log label: {label}");
+    }
+    bijux_dna_infra::ensure_dir(directory)
+        .with_context(|| format!("create process log directory {}", directory.display()))
+}
+
 fn run_with_logs(
     command: &mut std::process::Command,
     directory: &Path,
@@ -225,6 +280,8 @@ fn run_with_logs(
 
 #[cfg(test)]
 mod tests {
+    use std::time::Duration;
+
     use super::{
         DependencyProcessOutput, DependentProcessSpec, ParallelProcessOutput, ParallelProcessSpec,
         ProcessRunner,
@@ -303,6 +360,96 @@ mod tests {
             envs: Vec::new(),
             current_dir: None,
         }
+    }
+
+    #[test]
+    fn prepared_logged_children_refill_slots_without_waiting_for_peer_preparation(
+    ) -> anyhow::Result<()> {
+        use std::sync::{Condvar, Mutex};
+
+        let root = tempfile::tempdir()?;
+        let workspace = Workspace { root: root.path().to_path_buf() };
+        let logs = workspace.root.join("artifacts/logs");
+        let signal = (Mutex::new(false), Condvar::new());
+        let outputs = ProcessRunner::new(&workspace).run_prepared_parallel_logged(
+            ["first", "peer", "consumer"].into_iter().map(String::from).collect(),
+            2,
+            &logs,
+            |label| {
+                if label == "peer" {
+                    let (ready, _) = signal
+                        .1
+                        .wait_timeout_while(
+                            signal.0.lock().unwrap(),
+                            Duration::from_secs(10),
+                            |ready| !*ready,
+                        )
+                        .unwrap();
+                    anyhow::ensure!(*ready, "prepared consumer waited for an independent peer");
+                } else if label == "consumer" {
+                    *signal.0.lock().unwrap() = true;
+                    signal.1.notify_all();
+                }
+                Ok(shell_spec(label, &format!("printf '%s' {label}")))
+            },
+        )?;
+        assert_eq!(
+            outputs.iter().map(|output| output.label.as_str()).collect::<Vec<_>>(),
+            ["first", "peer", "consumer"]
+        );
+        for output in outputs {
+            assert!(output.output.status.success());
+            assert_eq!(
+                std::fs::read(logs.join(format!("{}.stdout.log", output.label)))?,
+                output.label.as_bytes()
+            );
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn invalid_prepared_admission_never_calls_preparation() -> anyhow::Result<()> {
+        let root = tempfile::tempdir()?;
+        let workspace = Workspace { root: root.path().to_path_buf() };
+        let logs = workspace.root.join("artifacts/logs");
+        for (labels, capacity) in
+            [(vec!["same", "same"], 2), (vec!["../escaped"], 1), (vec!["valid"], 0)]
+        {
+            assert!(ProcessRunner::new(&workspace)
+                .run_prepared_parallel_logged(
+                    labels.into_iter().map(String::from).collect(),
+                    capacity,
+                    &logs,
+                    |_| panic!("invalid prepared admission ran"),
+                )
+                .is_err());
+            assert!(!logs.exists());
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn preparation_errors_and_panics_drain_peers_and_retain_their_logs() -> anyhow::Result<()> {
+        let root = tempfile::tempdir()?;
+        let workspace = Workspace { root: root.path().to_path_buf() };
+        for panic in [false, true] {
+            let logs = workspace.root.join(format!("artifacts/logs-{panic}"));
+            let result = ProcessRunner::new(&workspace).run_prepared_parallel_logged(
+                vec!["failed".into(), "peer".into()],
+                2,
+                &logs,
+                |label| {
+                    if label == "failed" {
+                        assert!(!panic, "synthetic preparation panic");
+                        anyhow::bail!("synthetic preparation error");
+                    }
+                    Ok(shell_spec(label, "printf retained"))
+                },
+            );
+            assert!(result.is_err());
+            assert_eq!(std::fs::read(logs.join("peer.stdout.log"))?, b"retained");
+        }
+        Ok(())
     }
 
     #[test]
