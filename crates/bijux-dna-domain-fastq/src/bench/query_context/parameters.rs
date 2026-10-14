@@ -30,6 +30,12 @@ impl BenchQueryContext {
     pub fn match_against_parameters(&self, parameters: &JsonValue) -> BenchQueryContextMatch {
         match Self::from_parameters(parameters) {
             Some(stored) => self.match_against_stored(&stored),
+            None if parameters
+                .as_object()
+                .is_some_and(|object| object.contains_key(Self::PARAMETERS_KEY)) =>
+            {
+                BenchQueryContextMatch::NoMatch
+            }
             None => BenchQueryContextMatch::LegacyCompatible,
         }
     }
@@ -73,5 +79,31 @@ mod tests {
             .with_bank_hash("adapter_bank", "bank-b");
 
         assert_eq!(requested.match_against_stored(&stored), BenchQueryContextMatch::NoMatch);
+    }
+
+    #[test]
+    fn bench_query_context_refuses_present_malformed_metadata() {
+        let requested = BenchQueryContext::new().with_stage_contract_hash("contract-a");
+        for encoded in [
+            serde_json::json!(null),
+            serde_json::json!("contract-a"),
+            serde_json::json!([]),
+            serde_json::json!({"stage_contract_hash": 7}),
+            serde_json::json!({"stage_contract_hash": "contract-a", "bank_hashes": {"adapter": 7}}),
+        ] {
+            let parameters = serde_json::json!({"bench_query_context": encoded});
+            assert_eq!(BenchQueryContext::from_parameters(&parameters), None);
+            assert_eq!(
+                requested.match_against_parameters(&parameters),
+                BenchQueryContextMatch::NoMatch
+            );
+        }
+        let future_compatible = serde_json::json!({"bench_query_context": {
+            "stage_contract_hash": "contract-a", "future_field": "retained-compatibility"
+        }});
+        assert_eq!(
+            requested.match_against_parameters(&future_compatible),
+            BenchQueryContextMatch::Exact
+        );
     }
 }
