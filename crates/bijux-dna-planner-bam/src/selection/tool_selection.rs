@@ -24,7 +24,10 @@ pub fn canonical_tools_for_stage(stage: BamStage) -> Vec<ToolId> {
     canonical_tools_from_registry(stage, registry.as_ref())
 }
 
-fn canonical_tools_from_registry(stage: BamStage, registry: Option<&toml::Value>) -> Vec<ToolId> {
+pub(super) fn canonical_tools_from_registry(
+    stage: BamStage,
+    registry: Option<&toml::Value>,
+) -> Vec<ToolId> {
     let mut tools = domain_tools_for_stage(stage).into_iter().collect::<BTreeSet<_>>();
     let Some(parsed) = registry else {
         let mut tools = tools.into_iter().collect::<Vec<_>>();

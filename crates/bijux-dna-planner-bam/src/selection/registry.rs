@@ -1,6 +1,57 @@
+use std::cell::OnceCell;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, ensure, Context, Result};
+use bijux_dna_core::ids::ToolId;
+use bijux_dna_domain_bam::BamStage;
+
+/// A lazy successful registry observation bound to one explicit repository request.
+///
+/// Stability: additive planner contract. Legacy selection calls retain fresh reads.
+#[derive(Debug)]
+pub struct BamToolRegistryObservation {
+    repo_root: PathBuf,
+    registry: OnceCell<toml::Value>,
+}
+
+impl BamToolRegistryObservation {
+    /// Capture a repository path without reading or admitting any files.
+    #[must_use]
+    pub fn new(repo_root: &Path) -> Self {
+        Self { repo_root: repo_root.to_path_buf(), registry: OnceCell::new() }
+    }
+
+    /// Return the canonical candidate union from this request's admitted registry.
+    ///
+    /// The first successful demand validates the complete repository authority and
+    /// registry. Later demands retain that observation; a new request observes changes.
+    /// Failed admission remains retryable and never falls back to another root.
+    ///
+    /// # Errors
+    /// Returns source-root, filesystem, TOML or registry-shape admission errors.
+    pub fn allowed_tools_for_stage(&self, stage: BamStage) -> Result<Vec<ToolId>> {
+        if self.registry.get().is_none() {
+            ensure!(
+                !self.repo_root.as_os_str().is_empty(),
+                "BAM registry observation must identify a repository root"
+            );
+            let root =
+                validate_root(&self.repo_root).context("validate BAM registry observation root")?;
+            let path = bijux_dna_infra::configs_file(&root, "ci/registry/tool_registry.toml");
+            let parsed = load_registry_toml(&path)?;
+            ensure!(
+                parsed.get("tools").and_then(toml::Value::as_array).is_some(),
+                "BAM tool registry {} must declare tools",
+                path.display()
+            );
+            self.registry
+                .set(parsed)
+                .map_err(|_| anyhow!("BAM registry observation was already admitted"))?;
+        }
+        let registry = self.registry.get().context("BAM registry observation was not admitted")?;
+        Ok(super::tool_selection::canonical_tools_from_registry(stage, Some(registry)))
+    }
+}
 
 pub(super) fn tool_registry_toml() -> Result<Option<toml::Value>> {
     let explicit = std::env::var_os("BIJUX_REPO_ROOT");

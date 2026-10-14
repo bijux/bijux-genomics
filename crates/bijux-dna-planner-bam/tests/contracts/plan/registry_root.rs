@@ -3,7 +3,9 @@ use std::process::Command;
 
 use anyhow::{Context, Result};
 use bijux_dna_domain_bam::BamStage;
-use bijux_dna_planner_bam::stage_api::{allowed_tools_for_stage, default_tool_for_stage};
+use bijux_dna_planner_bam::stage_api::{
+    allowed_tools_for_stage, default_tool_for_stage, BamToolRegistryObservation,
+};
 
 fn parent_directory() -> Result<PathBuf> {
     let root = Path::new(env!("CARGO_MANIFEST_DIR"))
@@ -174,5 +176,134 @@ fn bam_unbound_optional_registry_retains_domain_fallback() -> Result<()> {
         "mod_contracts_plan_rs::registry_root::bam_unbound_optional_registry_retains_domain_fallback",
         root.path(), None, "unbound-optional-registry",
     )?;
+    Ok(())
+}
+
+#[test]
+fn owned_registry_observations_keep_opposite_roots_and_refresh_new_requests() -> Result<()> {
+    let parent = parent_directory()?;
+    let alpha = repository(&parent, "request_alpha_tool")?;
+    let beta = repository(&parent, "request_beta_tool")?;
+    let observed_alpha = BamToolRegistryObservation::new(alpha.path());
+    let observed_beta = BamToolRegistryObservation::new(beta.path());
+    let alpha_tools = observed_alpha.allowed_tools_for_stage(BamStage::Align)?;
+    let beta_tools = observed_beta.allowed_tools_for_stage(BamStage::Align)?;
+    assert!(alpha_tools.iter().any(|tool| tool.as_str() == "request_alpha_tool"));
+    assert!(!alpha_tools.iter().any(|tool| tool.as_str() == "request_beta_tool"));
+    assert!(beta_tools.iter().any(|tool| tool.as_str() == "request_beta_tool"));
+    assert!(!beta_tools.iter().any(|tool| tool.as_str() == "request_alpha_tool"));
+    assert!(alpha_tools.windows(2).all(|pair| pair[0].as_str() < pair[1].as_str()));
+    assert!(alpha_tools.iter().any(|tool| tool.as_str() == "bwa"));
+    assert!(alpha_tools.iter().any(|tool| tool.as_str() == "bowtie2"));
+
+    set_primary(
+        &alpha.path().join("configs/ci/registry/tool_registry.toml"),
+        "request_changed_tool",
+    )?;
+    assert_eq!(observed_alpha.allowed_tools_for_stage(BamStage::Align)?, alpha_tools);
+    let fresh =
+        BamToolRegistryObservation::new(alpha.path()).allowed_tools_for_stage(BamStage::Align)?;
+    assert!(fresh.iter().any(|tool| tool.as_str() == "request_changed_tool"));
+    assert!(!fresh.iter().any(|tool| tool.as_str() == "request_alpha_tool"));
+    assert_eq!(observed_beta.allowed_tools_for_stage(BamStage::Align)?, beta_tools);
+    Ok(())
+}
+
+#[test]
+fn admitted_registry_snapshot_survives_source_removal_while_fresh_requests_refuse() -> Result<()> {
+    let parent = parent_directory()?;
+    let root = repository(&parent, "bwa")?;
+    let observed = BamToolRegistryObservation::new(root.path());
+    let admitted = observed.allowed_tools_for_stage(BamStage::Align)?;
+    for path in
+        ["Cargo.toml", "crates/bijux-dna/Cargo.toml", "configs/ci/registry/tool_registry.toml"]
+    {
+        std::fs::remove_file(root.path().join(path))?;
+    }
+    assert_eq!(observed.allowed_tools_for_stage(BamStage::Align)?, admitted);
+    assert!(!observed.allowed_tools_for_stage(BamStage::QcPre)?.is_empty());
+    let error = BamToolRegistryObservation::new(root.path())
+        .allowed_tools_for_stage(BamStage::Align)
+        .err()
+        .context("new request accepted removed complete source authority")?;
+    assert!(format!("{error:#}").contains("not a Bijux Genomics repository root"));
+    Ok(())
+}
+
+#[test]
+fn failed_registry_demand_remains_lazy_and_retryable_after_source_repair() -> Result<()> {
+    let parent = parent_directory()?;
+    let root = repository(&parent, "bwa")?;
+    let registry = root.path().join("configs/ci/registry/tool_registry.toml");
+    let original = std::fs::read(&registry)?;
+    let observed = BamToolRegistryObservation::new(root.path());
+    std::fs::write(&registry, "tools = 'invalid schema'\n")?;
+    let error = observed
+        .allowed_tools_for_stage(BamStage::Align)
+        .err()
+        .context("constructor acquired a previous registry observation")?;
+    assert!(error.to_string().contains("must declare tools"));
+    std::fs::write(&registry, "not valid toml = [")?;
+    let error = observed
+        .allowed_tools_for_stage(BamStage::Align)
+        .err()
+        .context("failed registry parse incorrectly used a successful cached observation")?;
+    assert!(format!("{error:#}").contains("parse BAM tool registry"));
+    std::fs::write(&registry, original)?;
+    let tools = observed.allowed_tools_for_stage(BamStage::Align)?;
+    assert!(tools.iter().any(|tool| tool.as_str() == "bwa"));
+    Ok(())
+}
+
+#[test]
+fn explicit_registry_observation_requires_complete_valid_root_and_registry() -> Result<()> {
+    let parent = parent_directory()?;
+    let absent = parent.join("absent-owned-registry-root");
+    for path in [Path::new(""), absent.as_path()] {
+        assert!(BamToolRegistryObservation::new(path)
+            .allowed_tools_for_stage(BamStage::Align)
+            .is_err());
+    }
+    for (relative, replacement, rejection) in [
+        (
+            "Cargo.toml",
+            "[package]\nname = 'unrelated'\n",
+            "repository root must declare a Cargo workspace",
+        ),
+        ("Cargo.toml", "not valid toml = [", "parse"),
+        (
+            "crates/bijux-dna/Cargo.toml",
+            "[package]\nname = 'unrelated'\n",
+            "repository root must contain the bijux-dna package",
+        ),
+        ("crates/bijux-dna/Cargo.toml", "not valid toml = [", "parse"),
+        (
+            "configs/ci/registry/tool_registry.toml",
+            "tools = 'invalid schema'\n",
+            "must declare tools",
+        ),
+        ("configs/ci/registry/tool_registry.toml", "not valid toml = [", "parse BAM tool registry"),
+    ] {
+        let root = repository(&parent, "bwa")?;
+        std::fs::write(root.path().join(relative), replacement)?;
+        let error = BamToolRegistryObservation::new(root.path())
+            .allowed_tools_for_stage(BamStage::Align)
+            .err()
+            .context("invalid declared source used ambient domain fallback")?;
+        assert!(format!("{error:#}").contains(rejection), "{relative}: {error:#}");
+    }
+    for directory in [false, true] {
+        let root = repository(&parent, "bwa")?;
+        let registry = root.path().join("configs/ci/registry/tool_registry.toml");
+        std::fs::remove_file(&registry)?;
+        if directory {
+            std::fs::create_dir(&registry)?;
+        }
+        let error = BamToolRegistryObservation::new(root.path())
+            .allowed_tools_for_stage(BamStage::Align)
+            .err()
+            .context("explicit missing or directory registry used domain fallback")?;
+        assert!(format!("{error:#}").contains("read BAM tool registry"));
+    }
     Ok(())
 }

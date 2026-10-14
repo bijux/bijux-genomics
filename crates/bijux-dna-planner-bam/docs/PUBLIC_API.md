@@ -53,3 +53,16 @@ closure. A recognized report must occur in both the stage output contract and
 tool-specific expected artifacts. Missing outputs and duplicate declarations
 are rejected or reported explicitly; stage defaults cannot invent a tool output.
 The result describes declarations, not payload validity or scientific substitution.
+
+`stage_api::BamToolRegistryObservation::new(root)` captures an explicit repository
+path without acquisition. `allowed_tools_for_stage(stage)` returns the canonical
+domain/registry union as `Result<Vec<ToolId>>`, using one successful observation
+for that request. Its first demand requires complete repository authority,
+readable TOML and an array of registry tools. Admission errors propagate without
+ambient-root fallback and can be retried after repair. Creating a new observation
+reads changed configuration on demand; existing observations retain admitted
+bytes, without promising atomic capture of concurrently modified files.
+
+The type is used by the CLI serving adapter. It owns no command execution or
+serialized report fields. Existing allowed/default selection entrypoints retain
+their fresh reads, sorting, optional unbound fallback and error dispositions.
