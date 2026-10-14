@@ -26,6 +26,9 @@ pub fn normalize_read_names(
                 right.len()
             ));
         }
+        let out_r2 = output_r2.ok_or_else(|| {
+            anyhow!("fastq.normalize_read_names requires output_r2 for paired-end input")
+        })?;
         for (idx, (l, r)) in left.iter_mut().zip(right.iter_mut()).enumerate() {
             let original_left = l.header.trim_start_matches('@').to_string();
             let original_right = r.header.trim_start_matches('@').to_string();
@@ -33,9 +36,6 @@ pub fn normalize_read_names(
             r.header = format!("@bijux:{}/2 orig:{}", idx + 1, original_right);
         }
         write_fastq_records(output_r1, &left)?;
-        let out_r2 = output_r2.ok_or_else(|| {
-            anyhow!("fastq.normalize_read_names requires output_r2 for paired-end input")
-        })?;
         write_fastq_records(out_r2, &right)?;
         (left.len() + right.len()) as u64
     } else {
@@ -107,6 +107,39 @@ mod tests {
 
         let result = normalize_read_names(&r1, Some(&r2), &out_r1, Some(&out_r2));
         assert!(result.is_err());
+        Ok(())
+    }
+
+    #[test]
+    fn normalize_read_names_refuses_missing_paired_output_before_publication() -> anyhow::Result<()>
+    {
+        let root = bijux_dna_infra::temp_dir("bijux-normalize-read-names-output-admission")?;
+        let r1 = root.path().join("r1.fastq");
+        let r2 = root.path().join("r2.fastq");
+        write_fastq(&r1, &[("A/1", "ACGT", "!!!!")])?;
+        write_fastq(&r2, &[("A/2", "TGCA", "####")])?;
+        let input_left = std::fs::read(&r1)?;
+        let input_right = std::fs::read(&r2)?;
+        let sentinel = b"retained original output bytes\n";
+        for retained in [true, false] {
+            let parent = root.path().join(if retained { "retained" } else { "absent-parent" });
+            let output = parent.join("output.fastq");
+            if retained {
+                std::fs::create_dir(&parent)?;
+                std::fs::write(&output, sentinel)?;
+            }
+            let error = normalize_read_names(&r1, Some(&r2), &output, None)
+                .err()
+                .ok_or_else(|| anyhow::anyhow!("missing paired destination was accepted"))?;
+            assert!(error.to_string().contains("requires output_r2 for paired-end input"));
+            if retained {
+                assert_eq!(std::fs::read(&output)?, sentinel);
+            } else {
+                assert!(!parent.exists());
+            }
+            assert_eq!(std::fs::read(&r1)?, input_left);
+            assert_eq!(std::fs::read(&r2)?, input_right);
+        }
         Ok(())
     }
 }
