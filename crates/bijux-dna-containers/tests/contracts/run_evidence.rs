@@ -206,3 +206,70 @@ fn repository_root() -> PathBuf {
         .unwrap_or_else(|| panic!("container crate must live under repository crates/"))
         .to_path_buf()
 }
+
+#[test]
+fn existing_attempt_history_rejects_duplicate_run_ids_and_preserves_refresh() -> Result<()> {
+    for conflicting in [false, true] {
+        let root = tempfile::tempdir()?;
+        let results = root.path().join("results");
+        make_result(&results, "run-1001", "passed")?;
+        make_result(&results, "run-1002", "failed")?;
+        let runs = root.path().join("runs");
+        let ledger_path = runs.join("attempt-ledger.json");
+        assert_eq!(
+            import_run_evidence(&RunEvidenceImportRequest {
+                result_root: results,
+                output_root: runs.clone(),
+                minimum_run: None,
+                maximum_run: None,
+            })?,
+            2
+        );
+        let original = plan_final_run_evidence(&runs, &ledger_path)?;
+        apply_final_run_evidence_plan(&runs, &ledger_path, &original)?;
+        let healthy_ledger = fs::read(&ledger_path)?;
+        let lock_path = runs.join("run-1001-adapterremoval/evidence.lock.json");
+        let original_lock = fs::read(&lock_path)?;
+        let mut ledger: serde_json::Value = serde_json::from_slice(&healthy_ledger)?;
+        let retained = ledger["attempts"][0].clone();
+        let mut earlier = retained.clone();
+        if conflicting {
+            earlier["tool"] = serde_json::json!("contradictory-tool");
+        }
+        ledger["attempts"] = serde_json::json!([earlier, retained]);
+        ledger["summary"]["superseded_attempt_count"] = serde_json::json!(2);
+        ledger["summary"]["execution_status"]["failed"] = serde_json::json!(2);
+        fs::write(&ledger_path, serde_json::to_vec(&ledger)?)?;
+        let duplicate_bytes = fs::read(&ledger_path)?;
+        let error = plan_final_run_evidence(&runs, &ledger_path)
+            .err()
+            .ok_or_else(|| anyhow::anyhow!("duplicate persisted history was admitted"))?;
+        assert!(error.to_string().contains("run identity is duplicated"));
+        assert_eq!(fs::read(&ledger_path)?, duplicate_bytes);
+        assert_eq!(fs::read(&lock_path)?, original_lock);
+        assert!(runs.join("run-1001-adapterremoval").is_dir());
+        fs::write(&ledger_path, &healthy_ledger)?;
+        let next = root.path().join("next-results");
+        make_result(&next, "run-1003", "passed")?;
+        assert_eq!(
+            import_run_evidence(&RunEvidenceImportRequest {
+                result_root: next,
+                output_root: runs.clone(),
+                minimum_run: None,
+                maximum_run: None,
+            })?,
+            1
+        );
+        let refreshed = plan_final_run_evidence(&runs, &ledger_path)?;
+        assert_eq!(refreshed.selected_run_count, 1);
+        assert_eq!(refreshed.ledger.attempts.len(), 2);
+        assert!(refreshed.ledger.attempts.iter().all(|row| row.superseded_by == "run-1003"));
+        assert!(refreshed
+            .ledger
+            .attempts
+            .iter()
+            .any(|row| row.run_id == "run-1002" && row.failures == ["governed failure"]));
+        assert_eq!(fs::read(&ledger_path)?, healthy_ledger);
+    }
+    Ok(())
+}
