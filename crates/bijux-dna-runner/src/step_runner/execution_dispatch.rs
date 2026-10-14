@@ -22,9 +22,15 @@ pub(super) fn execute_step_outcome(
     match runner {
         RuntimeKind::Local => execute_local_step(step, out_dir, timeout),
         RuntimeKind::Docker => execute_docker_step(step, inputs, input_root, out_dir, timeout),
-        RuntimeKind::Apptainer | RuntimeKind::Singularity => {
-            execute_apptainer_step(step, runner, inputs, input_root, out_dir, runtime_executable)
-        }
+        RuntimeKind::Apptainer | RuntimeKind::Singularity => execute_apptainer_step(
+            step,
+            runner,
+            inputs,
+            input_root,
+            out_dir,
+            timeout,
+            runtime_executable,
+        ),
     }
 }
 

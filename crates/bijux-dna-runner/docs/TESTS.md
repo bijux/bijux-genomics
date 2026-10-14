@@ -18,6 +18,7 @@ This file maps runner tests to their contract purpose. Directory-local README fi
 - `tests/boundaries/backend/process_guardrail.rs` checks process spawning stays confined.
 
 ## Contracts Suite
+- `src/step_runner/internal_contracts.rs` checks Apptainer/Singularity stage deadlines, inherited pipe cancellation and untimed/completed provider controls through the shared process owner.
 - `tests/contracts/backend.rs` checks backend contract behavior visible to crate consumers.
 
 ## Determinism Suite

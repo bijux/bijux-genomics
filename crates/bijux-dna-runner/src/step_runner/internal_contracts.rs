@@ -430,3 +430,71 @@ fn execution_step_fixture(
     }))
     .unwrap_or_else(|err| panic!("execution step fixture must deserialize: {err}"))
 }
+
+#[cfg(unix)]
+#[test]
+fn container_stage_deadlines_refuse_live_providers_and_inherited_pipes() -> anyhow::Result<()> {
+    use std::os::unix::fs::PermissionsExt as _;
+    use std::time::Duration;
+
+    let root = bijux_dna_testkit::tempdir_for("container-stage-deadline");
+    let provider = root.path().join("runtime-provider");
+    std::fs::write(
+        &provider,
+        b"#!/bin/sh\nfor last do :; done\nprintf provider-ready >&2\ncase \"$last\" in hold) exec /bin/sleep 2;; inherited) /bin/sleep 2 & exit 0;; *) printf completed; exit 0;; esac\n",
+    )?;
+    std::fs::set_permissions(&provider, std::fs::Permissions::from_mode(0o700))?;
+    for runtime in [RuntimeKind::Apptainer, RuntimeKind::Singularity] {
+        for mode in ["hold", "inherited"] {
+            let out_dir = root.path().join(format!("{runtime:?}-{mode}"));
+            let step = execution_step_fixture(
+                "deadline-probe",
+                "fastq.trim_reads",
+                &[mode.to_string()],
+                "private-provider-fixture.sif",
+                Vec::new(),
+                Vec::new(),
+                out_dir.to_str().ok_or_else(|| anyhow!("fixture root is not UTF-8"))?,
+            );
+            // Keep the deadline below the finite provider lifetime while allowing process startup.
+            let error = super::execute_verified_step_with_runtime_executable(
+                &step,
+                runtime,
+                Some(Duration::from_secs(1)),
+                Some(&provider),
+            )
+            .err()
+            .ok_or_else(|| anyhow!("stage deadline accepted {runtime:?} {mode}"))?;
+            let message = format!("{error:#}");
+            assert!(message.contains("[runner_effect:container_lifecycle]"), "{message}");
+            assert!(message.contains("provider-ready"), "{message}");
+            assert!(message.contains("local command exceeded timeout"), "{message}");
+            assert!(!out_dir.join("run_artifacts").exists());
+        }
+        let out_dir = root.path().join(format!("{runtime:?}-completed"));
+        let step = execution_step_fixture(
+            "completed-probe",
+            "fastq.trim_reads",
+            &["complete".to_string()],
+            "private-provider-fixture.sif",
+            Vec::new(),
+            Vec::new(),
+            out_dir.to_str().ok_or_else(|| anyhow!("fixture root is not UTF-8"))?,
+        );
+        for timeout in [None, Some(Duration::from_secs(5))] {
+            let completed = super::execute_verified_step_with_runtime_executable(
+                &step,
+                runtime,
+                timeout,
+                Some(&provider),
+            )?;
+            assert_eq!(completed.exit_code, 0);
+            assert_eq!(completed.stdout, "completed");
+            assert_eq!(completed.stderr, "provider-ready");
+            assert!(completed
+                .command
+                .contains(provider.to_str().ok_or_else(|| anyhow!("provider is not UTF-8"))?));
+        }
+    }
+    Ok(())
+}
