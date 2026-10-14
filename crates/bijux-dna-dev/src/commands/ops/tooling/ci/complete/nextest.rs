@@ -12,10 +12,11 @@ pub(super) fn nextest_lane(
     started: Instant,
 ) -> Result<LaneReceipt> {
     let mut environment = lane_environment(plan, owner)?;
-    environment.extend([
-        ("BIJUX_CI_FULL_SHARD_SCRATCH_ROOT".into(), plan.scratch.display().to_string()),
-        ("BIJUX_CI_FULL_WORKER_BUDGET".into(), lane.resource_units.to_string()),
-    ]);
+    let native = super::execution::native_environment(plan)?;
+    environment.retain(|(key, _)| !native.iter().any(|(name, _)| name == key));
+    environment.extend(native);
+    environment
+        .push(("BIJUX_CI_FULL_SHARD_SCRATCH_ROOT".into(), plan.scratch.display().to_string()));
     let mut inputs = input_manifest(workspace, lane, plan, vec![])?;
     verify_inputs(&workspace.root, &inputs)?;
     let output = native_command(
@@ -33,6 +34,11 @@ pub(super) fn nextest_lane(
             && full["source_patch_sha256"] == plan.source.patch_sha256,
         "Nextest receipt source differs from admitted source"
     );
+    let allocation_error = verify_native_allocation(
+        &full,
+        plan.native_execution.as_ref().context("native plan absent")?,
+    )
+    .err();
     let contract: Value =
         serde_json::from_slice(&std::fs::read(workspace.path("configs/ci/full-shards.json"))?)?;
     let report_root = owner.join(
@@ -78,6 +84,9 @@ pub(super) fn nextest_lane(
     {
         evidence.errors.push("Nextest terminal acceptance failed".into());
     }
+    if let Some(error) = allocation_error {
+        evidence.errors.push(format!("{error:#}"));
+    }
     inputs.expected = evidence.expected;
     verify_inputs(&workspace.root, &inputs)?;
     terminal(
@@ -90,4 +99,52 @@ pub(super) fn nextest_lane(
         output.status.code().unwrap_or(1),
         started,
     )
+}
+
+fn verify_native_allocation(full: &Value, plan: &super::NativeExecutionPlan) -> Result<()> {
+    ensure!(
+        full["execution_resources"]["worker_budget"] == plan.worker_units
+            && full["execution_resources"]["process_jobs"] == plan.process_jobs
+            && full["execution_resources"]["test_threads_per_process"] == plan.case_threads
+            && full["execution_resources"]["selected_shards"] == plan.partitions
+            && full["archive_build_jobs"] == plan.compiler_jobs
+            && full["compiler_admission"]["configured_jobs"] == plan.configured_compiler_jobs
+            && full["compiler_admission"]["effective_jobs"] == plan.compiler_jobs
+            && full["compiler_admission"]["state"] == "admitted",
+        "Nextest terminal resource allocation differs from sealed coordinator plan"
+    );
+    Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn terminal_native_resource_mismatch_cannot_inherit_green_acceptance() -> Result<()> {
+        let plan = super::super::NativeExecutionControls::default().admit(9, 8, 5)?;
+        let full = serde_json::json!({"all_passed":true,
+            "execution_resources":{"worker_budget":8,"process_jobs":4,
+                "test_threads_per_process":2,"selected_shards":5},
+            "archive_build_jobs":8,"compiler_admission":{"configured_jobs":8,
+                "effective_jobs":8,"state":"admitted"}});
+        verify_native_allocation(&full, &plan)?;
+        for (object, field) in [
+            ("execution_resources", "worker_budget"),
+            ("execution_resources", "process_jobs"),
+            ("execution_resources", "test_threads_per_process"),
+            ("execution_resources", "selected_shards"),
+            ("compiler_admission", "configured_jobs"),
+            ("compiler_admission", "effective_jobs"),
+            ("compiler_admission", "state"),
+        ] {
+            let mut changed = full.clone();
+            changed[object][field] = Value::Null;
+            assert!(verify_native_allocation(&changed, &plan).is_err(), "{object}/{field}");
+        }
+        let mut changed = full;
+        changed["archive_build_jobs"] = serde_json::json!(2);
+        assert!(verify_native_allocation(&changed, &plan).is_err());
+        Ok(())
+    }
 }

@@ -1052,6 +1052,13 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
             })?;
             full_execution::admit_native_transport(receipt, &execution_budget, local_products)?;
             let native_worker_admission = receipt["native_worker_admission"].clone();
+            let archive_build_jobs = full_execution::resolve_compiler_jobs(
+                receipt,
+                contract.archive_build_jobs,
+                execution_budget.worker_budget,
+                local_products,
+            )?;
+            let compiler_admission = receipt["compiler_admission"].clone();
             let contract_sha256 = bijux_dna_infra::hash_file_sha256(&contract_path)?;
             let archive_roots = full_archive_roots(&storage, &contract)?;
             validate_full_archive_roots(&storage, &archive_roots)?;
@@ -1097,7 +1104,7 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
                         workspace,
                         &archive_workspace,
                         compilation_cache.target(),
-                        &full_archive_env(&archive_roots, contract.archive_build_jobs)?,
+                        &full_archive_env(&archive_roots, archive_build_jobs)?,
                         &report_root,
                     )?)
                 } else {
@@ -1108,7 +1115,7 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
                         label: "archive-build".to_string(),
                         program: "cargo".to_string(),
                         args: full_archive_args(&archive_roots.archive_file),
-                        envs: full_archive_env(&archive_roots, contract.archive_build_jobs)?,
+                        envs: full_archive_env(&archive_roots, archive_build_jobs)?,
                         current_dir: Some(archive_workspace.clone()),
                     };
                     let mut archive_outputs = ProcessRunner::new(workspace)
@@ -1156,7 +1163,7 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
         "artifact_sha256": archive_sha256,
         "artifact_present": archive_roots.archive_file.is_file(),
         "cargo_target_dir": archive_roots.cargo_target.display().to_string(),
-        "build_jobs": contract.archive_build_jobs,
+        "build_jobs": archive_build_jobs,
         "duration_milliseconds": output.duration.as_millis(),
         "exit_code": archive_exit_code,
         "log": workspace.rel(&archive_roots.build_log).to_string_lossy(),
@@ -1183,7 +1190,8 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
                     "schema_version": "bijux.ci.full_gate_timing.v4",
                     "execution_resources": execution_budget,
                     "native_worker_admission": native_worker_admission,
-                    "archive_build_jobs": contract.archive_build_jobs,
+                    "compiler_admission": compiler_admission,
+                    "archive_build_jobs": archive_build_jobs,
                 "state": "complete",
                 "source_commit": source_identity,
                 "source_worktree_clean": source_clean,
@@ -1236,7 +1244,7 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
                         label: "archive-extract".to_string(),
                         program: "cargo".to_string(),
                         args: extraction_args.clone(),
-                        envs: full_archive_env(&archive_roots, contract.archive_build_jobs)?,
+                        envs: full_archive_env(&archive_roots, archive_build_jobs)?,
                         current_dir: Some(archive_workspace.clone()),
                     }],
                     &report_root,
@@ -1281,7 +1289,7 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
                 products.discover_inventory(
                     workspace,
                     &archive_workspace,
-                    &full_archive_env(&archive_roots, contract.archive_build_jobs)?,
+                    &full_archive_env(&archive_roots, archive_build_jobs)?,
                     &report_root,
                     execution_budget.worker_budget,
                 )?
@@ -1290,7 +1298,7 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
                     workspace,
                     &archive_workspace,
                     reuse_inputs,
-                    &full_archive_env(&archive_roots, contract.archive_build_jobs)?,
+                    &full_archive_env(&archive_roots, archive_build_jobs)?,
                     &report_root,
                     execution_budget.worker_budget,
                 )?
@@ -1448,7 +1456,8 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
                 "schema_version": "bijux.ci.full_gate_timing.v4",
                 "execution_resources": execution_budget,
                     "native_worker_admission": native_worker_admission,
-                "archive_build_jobs": contract.archive_build_jobs,
+                    "compiler_admission": compiler_admission,
+                "archive_build_jobs": archive_build_jobs,
                 "state": "complete",
                 "source_commit": source_identity,
                 "source_worktree_clean": source_clean,

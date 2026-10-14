@@ -3,8 +3,9 @@
 use super::{
     admit_lane, ensure, json, lane_inputs, nextest, python, reference, rustdoc, write_value,
     AdmittedResources, ArtifactReference, BTreeSet, CaseOutcome, Context, Deserialize, Instant,
-    LaneDefinition, LaneInputs, LaneReceipt, OpsCommandOutcome, ParallelProcessSpec, Path, PathBuf,
-    ProcessRunner, Result, Serialize, SourceIdentity, ToolIdentity, Workspace, LANE_SCHEMA,
+    LaneDefinition, LaneInputs, LaneReceipt, NativeExecutionPlan, OpsCommandOutcome,
+    ParallelProcessSpec, Path, PathBuf, ProcessRunner, Result, Serialize, SourceIdentity,
+    ToolIdentity, Workspace, LANE_SCHEMA,
 };
 
 #[derive(Serialize, Deserialize)]
@@ -21,6 +22,8 @@ pub(super) struct ExecutionPlan {
     pub(super) tool_errors: Vec<(String, String)>,
     pub(super) environment: Vec<(String, String)>,
     pub(super) worker_budget: usize,
+    #[serde(default)]
+    pub(super) native_execution: Option<NativeExecutionPlan>,
     #[serde(default)]
     pub(super) provisioned_resources: Option<AdmittedResources>,
     #[serde(default)]
@@ -51,18 +54,26 @@ pub(super) fn input_manifest(
     inputs.environment.insert("PYTHONPYCACHEPREFIX".into(), "$LANE_ARTIFACTS/pycache".into());
     inputs.environment.insert("TMPDIR".into(), "$LANE_ARTIFACTS/scratch".into());
     if lane.id == "rust-nextest" {
-        inputs
-            .environment
-            .insert("BIJUX_CI_FULL_WORKER_BUDGET".into(), lane.resource_units.to_string());
-        for name in ["BIJUX_CI_FULL_SHARD_JOBS", "BIJUX_CI_FULL_SHARD_TEST_THREADS"] {
-            let value = plan.environment.iter().find(|(key, _)| key == name).map_or_else(
-                || std::env::var(name).unwrap_or_default(),
-                |(_, value)| value.clone(),
-            );
-            inputs.environment.insert(name.into(), value);
-        }
+        inputs.environment.extend(native_environment(plan)?);
     }
     Ok(inputs)
+}
+
+/// Native controls come from the sealed coordinator plan, never worker ambient state.
+pub(super) fn native_environment(plan: &ExecutionPlan) -> Result<Vec<(String, String)>> {
+    let native =
+        plan.native_execution.as_ref().context("sealed native execution allocation absent")?;
+    native.validate(plan.worker_budget)?;
+    let lane = plan
+        .lanes
+        .iter()
+        .find(|lane| lane.id == "rust-nextest")
+        .context("native lane absent from sealed plan")?;
+    ensure!(
+        lane.resource_units == native.worker_units,
+        "native allocation differs from admitted lane weight"
+    );
+    Ok(native.environment())
 }
 
 pub(super) fn execute_lane(
@@ -70,6 +81,7 @@ pub(super) fn execute_lane(
     id: &str,
     plan: &ExecutionPlan,
 ) -> Result<OpsCommandOutcome> {
+    native_environment(plan)?;
     let lane = plan.lanes.iter().find(|lane| lane.id == id).context("worker lane absent")?;
     let owner = plan.output.join(id);
     std::fs::create_dir(&owner)?;
@@ -169,4 +181,98 @@ pub(super) fn native_command(
         owner,
     )?;
     Ok(results.pop().context("native lane command completion missing")?.output)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn plan(root: &Path) -> ExecutionPlan {
+        ExecutionPlan {
+            schema_version: "bijux.ci.local_test_execution.v1".into(),
+            source: SourceIdentity {
+                sha: "source".into(),
+                tree: "tree".into(),
+                patch_sha256: "patch".into(),
+            },
+            workspace: root.to_path_buf(),
+            output: root.join("artifacts/output"),
+            scratch: root.join("artifacts/products"),
+            cache: root.join("artifacts/python"),
+            lanes: vec![LaneDefinition {
+                id: "rust-nextest".into(),
+                harness: "nextest".into(),
+                discovery_roots: vec![],
+                explicit_modules: vec![],
+                excluded_modules: vec![],
+                input_files: vec![],
+                input_trees: vec![],
+                tools: vec![],
+                resource_units: 4,
+            }],
+            tools: vec![],
+            tool_errors: vec![],
+            environment: vec![("CARGO_BUILD_JOBS".into(), "2".into())],
+            worker_budget: 6,
+            native_execution: Some(NativeExecutionPlan {
+                worker_units: 4,
+                process_jobs: 2,
+                case_threads: 2,
+                compiler_jobs: 2,
+                configured_compiler_jobs: 8,
+                partitions: 5,
+            }),
+            provisioned_resources: None,
+            resource_request: None,
+        }
+    }
+
+    #[test]
+    fn native_controls_survive_plan_serialization_and_terminal_seal() -> Result<()> {
+        let owner = tempfile::tempdir()?;
+        let workspace = Workspace { root: owner.path().canonicalize()? };
+        let mut admitted = plan(&workspace.root);
+        let path = workspace.path("artifacts/execution-plan.json");
+        write_value(&path, &admitted)?;
+        let seal = reference(&path)?;
+        let decoded: ExecutionPlan = serde_json::from_slice(&std::fs::read(&path)?)?;
+        let environment = native_environment(&decoded)?;
+        assert_eq!(
+            environment,
+            vec![
+                ("BIJUX_CI_FULL_WORKER_BUDGET".into(), "4".into()),
+                ("BIJUX_CI_FULL_SHARD_JOBS".into(), "2".into()),
+                ("BIJUX_CI_FULL_SHARD_TEST_THREADS".into(), "2".into()),
+                ("CARGO_BUILD_JOBS".into(), "2".into()),
+            ]
+        );
+        crate::runtime::local_tests::verify_execution_plan(&workspace, &seal)?;
+        admitted.native_execution.as_mut().context("native plan")?.compiler_jobs = 3;
+        write_value(&path, &admitted)?;
+        assert!(crate::runtime::local_tests::verify_execution_plan(&workspace, &seal).is_err());
+        admitted.lanes[0].resource_units = 8;
+        assert!(native_environment(&admitted).is_err());
+        admitted.native_execution = None;
+        assert!(native_environment(&admitted).is_err());
+        Ok(())
+    }
+
+    #[test]
+    fn default_native_compiler_is_independent_of_python_fixture_compiler() -> Result<()> {
+        let mut admitted = plan(Path::new("/owned/source"));
+        admitted.worker_budget = 9;
+        admitted.lanes[0].resource_units = 8;
+        admitted.native_execution =
+            Some(super::super::NativeExecutionControls::default().admit(9, 8, 5)?);
+        assert_eq!(admitted.environment, vec![("CARGO_BUILD_JOBS".into(), "2".into())]);
+        assert_eq!(
+            native_environment(&admitted)?
+                .into_iter()
+                .find(|(name, _)| name == "CARGO_BUILD_JOBS")
+                .context("native compiler control")?
+                .1,
+            "8"
+        );
+        Ok(())
+    }
 }

@@ -157,10 +157,36 @@ failed, truncated, changed or unqualified lane evidence prevents successful acce
 A failed Nextest assertion remains failed while its terminal dependency permits doctests.
 
 The default CPU budget reserves one hardware worker for foreground work.
-`BIJUX_CI_COMPLETE_WORKER_BUDGET` may reduce that positive budget; it must fit every declared
-lane and remain below detected hardware capacity. The five-lane process limit and weighted
-admission bound active CPU units. Full Nextest retains its separate build/job/case-thread
-controls and must fit its admitted lane allocation. The default records CPU-only admission.
+`BIJUX_CI_COMPLETE_WORKER_BUDGET` may reduce that positive budget and must remain below
+hardware capacity. Every effective lane allocation must fit it. Full Nextest defaults to
+eight native worker units, four commands with two case threads, and the configured eight
+compiler jobs. Existing full-shard and Cargo controls can explicitly reduce those allocations
+without changing the five partitions or case roster. The five-lane process limit and weighted
+admission bound active known worker demand. The default records CPU-only admission.
+
+For six complete worker units, admit four native units, two Nextest commands with two case
+threads each, and two compiler jobs:
+
+```sh
+BIJUX_CI_COMPLETE_WORKER_BUDGET=6 \
+BIJUX_CI_FULL_WORKER_BUDGET=4 \
+BIJUX_CI_FULL_SHARD_JOBS=2 \
+BIJUX_CI_FULL_SHARD_TEST_THREADS=2 \
+CARGO_BUILD_JOBS=2 bijux-dna-dev tooling run ci-test-complete
+```
+
+A provisioned request for this invocation must also declare six CPU worker units and bind
+the current clean source and catalog. If native capacity is explicitly reduced and command
+count is absent, the default command count is reduced to fit; explicit conflicting settings
+are refused. Positive decimal controls are captured before setup, sealed in the execution
+plan and lane inputs, forwarded to the native executor, and compared with terminal receipts.
+An inherited eight-unit native control is refused under a six-unit complete budget.
+Compiler overrides apply to local products, cannot exceed the configured producer authority
+or native allocation, and leave archive transport controls unchanged. Python fixture builds
+retain their separate two-job allocation. Known native demand includes two listing children
+per binary and declared case slots; parent runtimes and threads spawned inside test bodies
+are not a hard OS CPU or process guarantee.
+
 For explicit resource accounting, pass `--resource-request artifacts/ci/provisioned-resources.json`
 to the developer command. The request binds the clean candidate SHA, tree, empty-patch digest
 and actual catalog digest to caller-provisioned allocations for every required lane.

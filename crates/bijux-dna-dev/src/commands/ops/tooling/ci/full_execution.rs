@@ -100,6 +100,45 @@ pub(super) fn admit_budget(
     }
 }
 
+/// Local producers may reduce configured Cargo parallelism, but cannot expand its authority.
+pub(super) fn admit_compiler_jobs(
+    configured: usize,
+    native_workers: usize,
+    local_products: bool,
+    control: Option<&str>,
+) -> Result<usize> {
+    let jobs = if local_products {
+        positive_decimal("CARGO_BUILD_JOBS", control)?.unwrap_or(configured)
+    } else {
+        configured
+    };
+    anyhow::ensure!(
+        (1..=16).contains(&configured) && jobs > 0 && jobs <= configured,
+        "compiler jobs exceed configured producer authority"
+    );
+    anyhow::ensure!(
+        !local_products || jobs <= native_workers,
+        "compiler jobs exceed admitted local native worker allocation"
+    );
+    Ok(jobs)
+}
+
+pub(super) fn resolve_compiler_jobs(
+    receipt: &mut serde_json::Value,
+    configured: usize,
+    native_workers: usize,
+    local_products: bool,
+) -> Result<usize> {
+    receipt["compiler_admission"] =
+        serde_json::json!({"state":"admission_failed", "configured_jobs":configured});
+    let control = if local_products { optional_environment("CARGO_BUILD_JOBS")? } else { None };
+    let jobs = admit_compiler_jobs(configured, native_workers, local_products, control.as_deref())?;
+    receipt["compiler_admission"] = serde_json::json!({"state":"admitted", "configured_jobs":configured,
+        "effective_jobs":jobs,"origin":if control.is_some() {"caller_local_products"} else {"configured_authority"}});
+    receipt["archive_build_jobs"] = serde_json::json!(jobs);
+    Ok(jobs)
+}
+
 /// The pinned executor admits two native list children for each binary and hardware-wide zstd.
 pub(super) fn admit_native_transport(
     receipt: &mut serde_json::Value,
@@ -172,6 +211,52 @@ pub(super) fn run_shards(
 mod tests {
     use super::*;
     use std::time::Instant;
+
+    #[test]
+    fn local_compiler_control_refuses_invalid_and_over_authority_before_production() -> Result<()> {
+        assert_eq!(admit_compiler_jobs(8, 8, true, None)?, 8);
+        assert_eq!(admit_compiler_jobs(8, 4, true, Some("2"))?, 2);
+        assert_eq!(admit_compiler_jobs(8, 4, false, Some("invalid"))?, 8);
+        for control in [
+            Some(""),
+            Some("0"),
+            Some("+2"),
+            Some(" 2"),
+            Some("5"),
+            Some("9"),
+            Some("99999999999999999999999999999999"),
+            None,
+        ] {
+            assert!(admit_compiler_jobs(8, 4, true, control).is_err(), "{control:?}");
+        }
+        assert!(admit_compiler_jobs(17, 32, true, Some("2")).is_err());
+        let owner = tempfile::tempdir()?;
+        let path = owner.path().join("compiler-receipt.json");
+        std::fs::write(&path, serde_json::to_vec(&serde_json::json!({"all_passed":true}))?)?;
+        let mut producers = 0;
+        let refused = crate::runtime::gate_receipt::run_reported::<(), _>(
+            &path,
+            serde_json::json!({"all_passed":false}),
+            Instant::now(),
+            &mut producers,
+            |count, _| {
+                admit_compiler_jobs(8, 4, true, Some("5"))?;
+                *count += 1;
+                Ok(())
+            },
+            |_, _| Ok(()),
+        );
+        assert!(refused.is_err());
+        assert_eq!(producers, 0);
+        let terminal: serde_json::Value = serde_json::from_slice(&std::fs::read(path)?)?;
+        assert_eq!(terminal["all_passed"], false);
+        assert_eq!(terminal["state"], "complete");
+        assert!(terminal["execution_error"]
+            .as_str()
+            .context("compiler admission error absent")?
+            .contains("compiler jobs exceed admitted local native worker allocation"));
+        Ok(())
+    }
 
     #[test]
     fn pinned_archive_compression_and_minimum_native_listing_refuse_before_production() -> Result<()>

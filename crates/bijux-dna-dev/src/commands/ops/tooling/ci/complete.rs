@@ -14,10 +14,11 @@ use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 
 use crate::application::ci::local_tests::{
-    admit_archive_build_jobs, admit_lane, admit_python_cases, doctest_inventory, doctest_outcomes,
-    doctest_targets, nextest_membership, reconcile_lanes, AdmittedResources, ArtifactReference,
-    CaseOutcome, LaneDefinition, LaneInputs, LaneReceipt, SourceIdentity, ToolIdentity,
-    LANE_SCHEMA, REQUIRED_LANES,
+    admit_complete_worker_budget, admit_lane, admit_python_cases, doctest_inventory,
+    doctest_outcomes, doctest_targets, nextest_membership, reconcile_lanes, AdmittedResources,
+    ArtifactReference, CaseOutcome, LaneDefinition, LaneInputs, LaneReceipt,
+    NativeExecutionControls, NativeExecutionPlan, SourceIdentity, ToolIdentity, LANE_SCHEMA,
+    REQUIRED_LANES,
 };
 use crate::model::ops::OpsCommandOutcome;
 use crate::runtime::compilation_cache::CompilationCache;
@@ -84,20 +85,13 @@ pub(in super::super::super) fn tooling_ci_test_complete(
             ensure!(snapshot.is_clean(), "complete local tests require committed clean source for reusable Cargo fingerprints");
             let mut catalog = load_catalog(&workspace.root)?;
             let hardware = std::thread::available_parallelism()?.get();
-            let initial_budget = std::env::var("BIJUX_CI_COMPLETE_WORKER_BUDGET").map_or(
-                Ok(hardware.saturating_sub(1).max(1)),
-                |value| {
-                    value
-                        .parse::<usize>()
-                        .context("complete worker budget must be a positive integer")
-                },
-            )?;
-            ensure!(
-                initial_budget > 0
-                    && initial_budget < hardware
-                    && catalog.lanes.iter().all(|lane| lane.resource_units <= initial_budget),
-                "complete lane exceeds admitted CPU budget"
-            );
+            let complete_control = match std::env::var("BIJUX_CI_COMPLETE_WORKER_BUDGET") {
+                Ok(value) => Some(value),
+                Err(std::env::VarError::NotPresent) => None,
+                Err(error) => return Err(error).context("read complete worker budget"),
+            };
+            let initial_budget =
+                admit_complete_worker_budget(hardware, complete_control.as_deref())?;
             let (provisioned_resources, resource_request) = if let Some(path) =
                 resource_request_path
             {
@@ -126,30 +120,34 @@ pub(in super::super::super) fn tooling_ci_test_complete(
             let budget = provisioned_resources
                 .as_ref()
                 .map_or(initial_budget, |admitted| admitted.request.cpu_worker_units);
+            let full: Value = serde_json::from_slice(&std::fs::read(
+                workspace.path("configs/ci/full-shards.json"),
+            )?)?;
+            let controls = NativeExecutionControls::read(|key| match std::env::var(key) {
+                Ok(value) => Ok(Some(value)),
+                Err(std::env::VarError::NotPresent) => Ok(None),
+                Err(error) => {
+                    Err(error).with_context(|| format!("read complete native control {key}"))
+                }
+            })?;
+            let native_execution = controls.admit(
+                budget,
+                usize::try_from(
+                    full["archive_build_jobs"].as_u64().context("archive build jobs absent")?,
+                )?,
+                full["shards"].as_array().context("full partitions absent")?.len(),
+            )?;
+            catalog
+                .lanes
+                .iter_mut()
+                .find(|lane| lane.id == "rust-nextest")
+                .context("Nextest lane absent")?
+                .resource_units = native_execution.worker_units;
             ensure!(
                 catalog.lanes.iter().all(|lane| lane.resource_units <= budget),
                 "lane exceeds provisioned CPU allocation"
             );
-            let python_units = catalog
-                .lanes
-                .iter()
-                .filter(|lane| lane.id.starts_with("python-"))
-                .map(|lane| lane.resource_units)
-                .sum::<usize>();
-            let rust_lane = catalog
-                .lanes
-                .iter_mut()
-                .find(|lane| lane.id == "rust-nextest")
-                .context("Nextest lane absent")?;
-            rust_lane.resource_units =
-                budget.saturating_sub(python_units).max(rust_lane.resource_units);
-            let full: Value = serde_json::from_slice(&std::fs::read(
-                workspace.path("configs/ci/full-shards.json"),
-            )?)?;
-            admit_archive_build_jobs(
-                full["archive_build_jobs"].as_u64().context("archive build jobs absent")?,
-                rust_lane.resource_units,
-            )?;
+            receipt["native_execution"] = json!(native_execution);
             let isolated_root = owner.join("source");
             snapshot.materialize_cached_clean(&isolated_root)?;
             let isolated = Workspace { root: isolated_root };
@@ -199,19 +197,6 @@ pub(in super::super::super) fn tooling_ci_test_complete(
                 ("RUSTC_WRAPPER".into(), String::new()),
                 ("CARGO_BUILD_JOBS".into(), "2".into()),
             ];
-            for (key, default) in
-                [("BIJUX_CI_FULL_SHARD_JOBS", "4"), ("BIJUX_CI_FULL_SHARD_TEST_THREADS", "2")]
-            {
-                let value = match std::env::var(key) {
-                    Ok(value) => value,
-                    Err(std::env::VarError::NotPresent) => default.into(),
-                    Err(error) => {
-                        return Err(error)
-                            .with_context(|| format!("read complete native worker control {key}"))
-                    }
-                };
-                environment.push((key.into(), value));
-            }
             for (key, name) in [
                 ("PYTHON", "python"),
                 ("BIJUX_GATE_TEST_BASH", "bash"),
@@ -235,6 +220,7 @@ pub(in super::super::super) fn tooling_ci_test_complete(
                 tool_errors,
                 environment,
                 worker_budget: budget,
+                native_execution: Some(native_execution),
                 provisioned_resources,
                 resource_request,
             };
