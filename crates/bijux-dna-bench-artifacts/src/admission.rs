@@ -6,6 +6,9 @@ use anyhow::{ensure, Result};
 use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
 
+mod report_identity;
+pub(super) use report_identity::admit_report_identity;
+
 /// # Errors
 /// Rejects symlinked execution-store ancestry.
 pub fn execution_parent(destination: &Path) -> Result<PathBuf> {
@@ -62,6 +65,7 @@ impl PublicationPlan {
                 && !files.iter().any(|file| file.starts_with(EXECUTIONS)),
             "benchmark execution contains reserved publication paths"
         );
+        admit_report_identity(&execution.join(owner.report_name), owner)?;
         let stage_result = files
             .contains(Path::new("stage-result.json"))
             .then(|| {
