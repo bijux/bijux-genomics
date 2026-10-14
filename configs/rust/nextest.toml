@@ -44,6 +44,15 @@ package(bijux-dna) and binary(=benchmark_readiness) and ( \
 )"""
 test-group = '@global'
 
+# Adapter coverage owns selected fixture inputs, private Git authority and runtime roots.
+[[profile.full.overrides]]
+filter = """
+package(bijux-dna) and binary(=benchmark_readiness) and ( \
+    test(=readiness::adapters::bench_readiness_all_domain_adapter_coverage_reports_complete_active_rows) or \
+    test(=readiness::adapters_tsv::bench_readiness_all_domain_adapter_coverage_writes_governed_tsv_file) \
+)"""
+test-group = '@global'
+
 [[profile.full.overrides]]
 filter = """
 package(bijux-dna) and binary(=bench_readiness_bam) and ( \
