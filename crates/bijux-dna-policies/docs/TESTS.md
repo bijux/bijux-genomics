@@ -40,3 +40,9 @@ build, dev and target-specific declarations remain in the observation. Physical 
 lookups refuse missing or foreign packages. Fixture mutation controls intentionally capture
 fresh observations; no process-global cache or per-package Cargo invocation is used by the
 workspace map guards.
+
+Mandatory guardrails check source acquisition, namespace structure and configured panic or
+stage-identifier rules. Equivalent public aliases retain the same outcome whether their
+reexports are grouped or separate statements. The public-item count field remains serialized
+for configuration compatibility and does not impose a mandatory lexical quota. The separate
+public-use count rule remains an explicit opt-in policy with its scoped-reexport negative.
