@@ -867,11 +867,15 @@ fn prune_merge_tool_payload(
         for entry in
             fs::read_dir(&dir).with_context(|| format!("read merge tool dir {}", dir.display()))?
         {
-            let path = entry.with_context(|| format!("read entry in {}", dir.display()))?.path();
+            let entry = entry.with_context(|| format!("read entry in {}", dir.display()))?;
+            let file_type = entry
+                .file_type()
+                .with_context(|| format!("read entry type in {}", dir.display()))?;
+            let path = entry.path();
             if path == run_artifacts_dir || path.starts_with(&run_artifacts_dir) {
                 continue;
             }
-            if path.is_dir() {
+            if file_type.is_dir() {
                 dirs.push(path);
                 continue;
             }
@@ -1008,9 +1012,25 @@ mod tests {
             raw_backend_report_format: Some("pear_log".to_string()),
         };
 
+        #[cfg(unix)]
+        let outside_sentinel = {
+            let outside = temp.path().join("outside-tool-payload");
+            fs::create_dir(&outside).expect("create outside payload");
+            let sentinel = outside.join("retained.txt");
+            fs::write(&sentinel, b"retained outside tool custody").expect("write outside sentinel");
+            std::os::unix::fs::symlink(&outside, out_dir.join("payload-link"))
+                .expect("create outside directory link");
+            sentinel
+        };
+
         prune_merge_tool_payload(&out_dir, &report_path, &metrics_path, &report)
             .expect("prune merge payload");
 
+        #[cfg(unix)]
+        assert_eq!(
+            fs::read(&outside_sentinel).expect("outside bytes must survive pruning"),
+            b"retained outside tool custody",
+        );
         assert!(report_path.is_file());
         assert!(metrics_path.is_file());
         assert!(raw_backend_report.is_file());
