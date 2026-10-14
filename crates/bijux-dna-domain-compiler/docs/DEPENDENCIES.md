@@ -6,12 +6,12 @@ graph must stay pointed at schema/domain truth and repository IO helpers, not at
 ## Allowed production dependencies
 
 - `anyhow`: error context for validation and generation failures.
-- `clap`: binary argument parsing for the two crate-owned commands.
-- `serde`, `serde_json`, `toml`: parsing and rendering authored/generated config structures.
+- `clap`: binary argument parsing for the four crate-owned commands.
+- `serde`, `serde_json`, `serde_yaml`, `toml`: parsing and rendering authored/generated config structures.
 - `sha2`: deterministic source-content hash generation.
 - `bijux-dna-infra`: repository filesystem helpers and YAML parsing.
-- `bijux-dna-domain-fastq`, `bijux-dna-domain-bam`: canonical domain vocabulary contracts used by
-  compiler validation.
+- `bijux-dna-domain-fastq`, `bijux-dna-domain-bam`, `bijux-dna-domain-vcf`: canonical domain
+  vocabulary contracts used by compiler validation.
 
 ## Allowed test dependencies
 
