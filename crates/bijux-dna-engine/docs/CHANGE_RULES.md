@@ -41,10 +41,11 @@ The following are normally non-breaking when existing behavior remains stable:
 ## Required Updates
 
 - Managed operations: update `docs/COMMANDS.md`.
-- Source or test layout: update `docs/ARCHITECTURE.md`, `docs/TESTS.md`, and
-  `tests/boundaries/architecture_tree.rs`.
-- Dependency changes: update `docs/DEPENDENCIES.md` and dependency tests.
-- Effects or recording truth: update `docs/EFFECTS.md` and contract tests.
+- Source or test layout: update `docs/ARCHITECTURE.md` and `docs/TESTS.md`.
+- Dependency changes: update `docs/DEPENDENCIES.md` and
+  `tests/boundaries/dependency_graph.rs`.
+- Effects or recording truth: update `docs/EFFECTS.md`,
+  `tests/boundaries/effect_boundary.rs`, and the affected contract tests.
 - Public API changes: update `docs/PUBLIC_API.md`, `README.md`, and public API
   coverage.
 - Determinism changes: update `docs/DETERMINISM.md` and determinism tests.
