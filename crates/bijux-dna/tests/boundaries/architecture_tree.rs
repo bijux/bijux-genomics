@@ -55,6 +55,7 @@ fn dna_tree_matches_architecture_contract() {
         "ci.rs",
         "cli/",
         "corpus/",
+        "crates/",
         "crates.rs",
         "ena/",
         "example/",
