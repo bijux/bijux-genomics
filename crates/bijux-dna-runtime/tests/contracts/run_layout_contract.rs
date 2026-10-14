@@ -442,3 +442,28 @@ fn storage_isolation_rejects_paths_outside_run_root_or_workspace() {
     assert!(!invalid.valid);
     assert!(invalid.refusal_codes.iter().any(|item| item == "layout_path_outside_run_dir"));
 }
+
+#[cfg(unix)]
+#[test]
+fn storage_isolation_refuses_live_and_dangling_declared_symlinks() -> anyhow::Result<()> {
+    let owned = bijux_dna_testkit::tempdir_for("storage-link-custody");
+    let root = owned.path();
+    let (_, layout) = create_run_layout(root)?;
+    assert!(validate_run_layout_storage_isolation(&layout, root).valid);
+    let target = root.join("owned-log-target");
+    std::fs::create_dir(&target)?;
+    std::fs::remove_dir(&layout.logs_dir)?;
+    std::os::unix::fs::symlink(&target, &layout.logs_dir)?;
+    let live = validate_run_layout_storage_isolation(&layout, root);
+    assert!(!live.valid);
+    assert!(live.refusal_codes.iter().any(|code| code == "symlink_ancestor_detected"));
+    std::fs::remove_file(&layout.logs_dir)?;
+    std::os::unix::fs::symlink(root.join("absent-log-target"), &layout.logs_dir)?;
+    assert!(std::fs::symlink_metadata(&layout.logs_dir)?.file_type().is_symlink());
+    assert!(!layout.logs_dir.exists());
+    let dangling = validate_run_layout_storage_isolation(&layout, root);
+    eprintln!("dangling storage report={dangling:?}");
+    assert!(!dangling.valid, "declared dangling link was admitted as isolated storage");
+    assert!(dangling.refusal_codes.iter().any(|code| code == "symlink_ancestor_detected"));
+    Ok(())
+}
