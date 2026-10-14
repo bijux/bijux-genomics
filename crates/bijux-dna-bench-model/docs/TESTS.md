@@ -48,3 +48,9 @@ CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-bench-model --al
 - Do not add Markdown files under `tests/`; update this guide instead.
 
 Shared guardrail parser regressions are owned and executed by the policy crate. The empty boundary aggregator is retired; existing contract suites retain model schema and architecture checks. Constructor-only guardrail wrappers provide no source-check coverage and are retired.
+
+`tests/contracts/campaign_confidentiality.rs` covers semantic TOML confidentiality
+through the public raw-source validator, including equivalent typed Slurm input,
+escaped and nested sensitive keys, array members, reference controls, private-key
+markers and malformed-source diagnostics. Repository campaign acquisition and
+its pre-effect ordering remain covered by the benchmark owner's campaign tests.

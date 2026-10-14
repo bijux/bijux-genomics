@@ -185,3 +185,6 @@ mod hpc_submission_script;
 
 #[path = "contracts/hpc_submission_report.rs"]
 mod hpc_submission_report;
+
+#[path = "contracts/campaign_confidentiality.rs"]
+mod campaign_confidentiality;
