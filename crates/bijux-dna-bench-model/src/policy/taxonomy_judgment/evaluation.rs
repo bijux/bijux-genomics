@@ -10,7 +10,8 @@ use bijux_dna_core::prelude::numeric::rounded_f64_to_u64;
 use std::collections::BTreeSet;
 
 /// Evaluate decoded observations using corpus-admitted declarations and matrix rows.
-/// Declared sample and expected-row order, display labels and legacy verdicts are retained.
+/// Declared sample and expected-row order and display labels are retained.
+/// Aggregate validity requires every admitted sample judgment to be valid.
 ///
 /// # Errors
 /// Rejects a missing declared sample observation or an invalid inferred read count.
@@ -95,7 +96,7 @@ pub fn evaluate_benchmark_taxonomy_outputs(
         expectation_count: expected_rows.len(),
         matched_expectation_count,
         mismatched_expectation_count,
-        valid: mismatched_expectation_count == 0,
+        valid: samples.iter().all(|sample| sample.valid),
         samples,
     })
 }

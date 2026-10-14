@@ -116,3 +116,80 @@ fn taxonomy_evaluation_preserves_declared_order_counts_and_missing_sample_refusa
     );
     Ok(())
 }
+
+#[test]
+fn taxonomy_aggregate_requires_every_sample_verdict() -> anyhow::Result<()> {
+    let manifest = corpus_declaration();
+    let rows = [
+        ("sample-z", 1, "alpha", EdnaExpectedPresence::Present),
+        ("sample-z", 2, "beta", EdnaExpectedPresence::Absent),
+        ("sample-a", 1, "alpha", EdnaExpectedPresence::Absent),
+        ("sample-a", 2, "beta", EdnaExpectedPresence::Present),
+    ]
+    .into_iter()
+    .map(|(sample_id, taxon_id, name, expected_presence)| EdnaExpectedTaxonRow {
+        sample_id: sample_id.to_string(),
+        taxon_id,
+        name: name.to_string(),
+        rank: "species".to_string(),
+        expected_presence,
+    })
+    .collect::<Vec<_>>();
+    let mut observations = BTreeMap::from([
+        (
+            "sample-z".to_string(),
+            (
+                "z.json".to_string(),
+                decode_benchmark_taxonomy_observation(
+                    r#"{"summary_entries":[{"label":"alpha","percent":100}]}"#,
+                    "z.json",
+                )?,
+            ),
+        ),
+        (
+            "sample-a".to_string(),
+            (
+                "a.json".to_string(),
+                decode_benchmark_taxonomy_observation(
+                    r#"{"summary_entries":[{"label":"beta","percent":100}]}"#,
+                    "a.json",
+                )?,
+            ),
+        ),
+    ]);
+    let control = evaluate_benchmark_taxonomy_outputs(BenchmarkTaxonomyJudgmentInput {
+        manifest_path: "manifest.toml",
+        expected_taxa_path: "expected.tsv",
+        manifest: &manifest,
+        expected_rows: &rows,
+        observed_reports: observations.clone(),
+    })?;
+    assert!(control.valid);
+    assert!(control.samples.iter().all(|sample| sample.valid));
+    assert_eq!(control.matched_expectation_count, 4);
+    observations.insert("sample-z".to_string(), ("z.json".to_string(),
+        decode_benchmark_taxonomy_observation(
+            r#"{"summary_entries":[{"label":"alpha","percent":99},{"label":"undeclared","percent":1}]}"#, "z.json")?));
+    let report = evaluate_benchmark_taxonomy_outputs(BenchmarkTaxonomyJudgmentInput {
+        manifest_path: "manifest.toml",
+        expected_taxa_path: "expected.tsv",
+        manifest: &manifest,
+        expected_rows: &rows,
+        observed_reports: observations,
+    })?;
+    assert_eq!(report.expectation_count, 4);
+    assert_eq!(report.matched_expectation_count, 4);
+    assert_eq!(report.mismatched_expectation_count, 0);
+    let invalid = report
+        .samples
+        .iter()
+        .find(|sample| sample.sample_id == "sample-z")
+        .ok_or_else(|| anyhow::anyhow!("missing admitted sample judgment"))?;
+    assert!(!invalid.valid);
+    assert_eq!(invalid.false_positive_count, 1);
+    assert_eq!(invalid.unexpected_taxa.len(), 1);
+    assert_eq!(invalid.unexpected_taxa[0].name, "undeclared");
+    assert_eq!(report.samples.iter().filter(|sample| sample.valid).count(), 1);
+    assert!(!report.valid, "an invalid sample must not produce a valid aggregate judgment");
+    Ok(())
+}
