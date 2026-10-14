@@ -37,10 +37,7 @@ fn policy__contracts__cli_runtime_dependency_policy__cli_source_does_not_spawn_p
             continue;
         }
         let content = std::fs::read_to_string(entry.path()).expect("read cli source");
-        if content.contains("std::process::Command")
-            || content.contains("tokio::process::Command")
-            || content.contains("Command::new(")
-        {
+        if production_spawns_processes(&content) {
             offenders.push(entry.path().display().to_string());
         }
     }
@@ -50,4 +47,42 @@ fn policy__contracts__cli_runtime_dependency_policy__cli_source_does_not_spawn_p
         "cli source must not spawn processes directly (move behind api/runtime):\n{}",
         offenders.join("\n")
     );
+}
+
+fn production_spawns_processes(source: &str) -> bool {
+    let production = bijux_dna_testkit::workspace_support::strip_rust_test_modules(source);
+    ["std::process::Command", "tokio::process::Command", "Command::new("]
+        .iter()
+        .any(|needle| production.contains(needle))
+}
+
+#[test]
+fn policy__contracts__cli_runtime_dependency_policy__test_gates_preserve_production_effect_refusal()
+{
+    let command = "use std::process::Command; fn execute() { Command::new(\"git\"); }";
+    assert!(production_spawns_processes(command));
+    assert!(!production_spawns_processes(&format!("#![cfg(test)]\n{command}")));
+    assert!(!production_spawns_processes(&format!(
+        "pub fn route() {{}}\n#[cfg(test)]\nmod contracts {{ {command} }}"
+    )));
+    assert!(production_spawns_processes(&format!(
+        "{command}\n#[cfg(test)]\nmod contracts {{ fn fixture() {{}} }}"
+    )));
+}
+
+#[test]
+fn policy__contracts__cli_runtime_dependency_policy__literal_and_comment_gates_cannot_hide_process_effects(
+) {
+    for marker in [
+        "// #![cfg(test)]",
+        "const EXAMPLE: &str = \"#![cfg(test)]\";",
+        "const EXAMPLE: &str = r#\"\n#![cfg(test)]\n\"#;",
+    ] {
+        for command in ["std::process::Command", "tokio::process::Command", "Command::new(\"git\")"]
+        {
+            assert!(production_spawns_processes(&format!(
+                "{marker}\nfn execute() {{ {command}; }}"
+            )));
+        }
+    }
 }
