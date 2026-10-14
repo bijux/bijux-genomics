@@ -29,6 +29,7 @@ minimal, and appropriate for helper code used by other crates' tests.
 
 ## Enforcement
 
-- `tests/boundaries.rs` locks layout, dependency, docs, and effect boundaries.
+- `tests/boundaries.rs` checks dependencies, forbidden effects, documented
+  environment inputs, and temporary path containment.
 - `tests/guardrails.rs` runs the workspace guardrail policy.
 - `tests/schemas.rs` locks public API and snapshot normalization behavior.

@@ -50,6 +50,14 @@ Parallel runners must finalize executable provenance and feature compatibility
 before binding worker environments. An unbound Cargo path requires exclusive
 ownership of its build output for the duration of execution.
 
+## Lexical Source Policy Helpers
+
+`workspace_support::{strip_rust_test_modules, select_rust_test_modules, rust_block_ranges}`
+partition declared test modules and locate braced scopes while ignoring comments
+and literals. A leading inner `#![cfg(test)]` governs a whole test-only file.
+These helpers support lexical repository scans; they do not parse Rust semantics.
+They remain module exports rather than expanding the curated root mirror.
+
 ## Compatibility Rules
 
 - Removing or renaming a stable root export is breaking.

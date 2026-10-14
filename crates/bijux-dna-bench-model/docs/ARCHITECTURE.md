@@ -24,8 +24,8 @@ and decision records, and statistical helpers.
 
 ## Test Map
 
-- `tests/boundaries.rs` checks crate layout, docs allowance, dependency shape,
-  and source/test taxonomy.
+- Repository policy checks enforce general source, documentation and dependency
+  boundaries. The retired empty boundary target supplies no model coverage.
 - `tests/contracts.rs` checks validation behavior.
 - `tests/determinism.rs` protects seeded and non-random behavior.
 - `tests/schemas.rs` locks public exports and docs-linked API expectations.
