@@ -57,7 +57,7 @@ fn execute_plan_stops_on_failure() {
 }
 
 #[test]
-fn execute_plan_respects_resume_cache() {
+fn execute_plan_invokes_each_chain_step() {
     let stages = vec![plan_for("A"), plan_for("B")];
     let plan = build_graph(stages, vec![ExecutionEdge::new(StepId::new("A"), StepId::new("B"))]);
     let runner = FakeRunner::new();
@@ -66,4 +66,11 @@ fn execute_plan_respects_resume_cache() {
         .execute(&plan, &runner, &layout, None, None)
         .unwrap_or_else(|err| panic!("run: {err}"));
     assert_eq!(result.stages.len(), 2);
+    assert_eq!(runner.calls(), vec!["A:0".to_string(), "B:0".to_string()]);
+    let stages = result
+        .stages
+        .iter()
+        .map(|stage| (stage.stage_id.as_str(), stage.attempt, stage.success, stage.cached))
+        .collect::<Vec<_>>();
+    assert_eq!(stages, vec![("A", 0, true, false), ("B", 0, true, false)]);
 }
