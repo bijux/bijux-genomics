@@ -100,6 +100,7 @@ pub(crate) mod hpc_array;
 
 pub(crate) mod hpc_resources;
 
+pub(crate) mod bam_campaign;
 pub(crate) mod hardening_campaign;
 
 pub(crate) mod hpc_inputs;
@@ -115,3 +116,5 @@ pub(crate) mod runtime_probe;
 pub(crate) mod tool_execution_modes;
 
 pub mod alignment_fixture;
+
+pub(crate) mod taxonomy_judgment;

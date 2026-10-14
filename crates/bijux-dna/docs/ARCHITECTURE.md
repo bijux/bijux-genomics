@@ -42,3 +42,5 @@ for declared effects. Lower-level crates must not depend on the CLI.
 `docs/COMMANDS.md` is the SSOT for commands managed by this crate. Update it
 with command routing, help snapshots, and command contract tests in the same
 change.
+
+Benchmark taxonomy judgment separates declared corpus truth from classifier summary observation. `bijux-dna-bench-model` owns typed output records, the supported summary codec and pure expected-presence/count evaluation. `bijux-dna-bench` acquires explicit manifest/table/report files and publishes the existing JSON result. The CLI requests those services through the API benchmark facade. Summary aliases and legacy verdicts remain compatible; summary admission does not validate the full classifier stage report or establish biological truth.

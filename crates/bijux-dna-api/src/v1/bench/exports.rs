@@ -666,3 +666,11 @@ pub use bijux_dna_bench::{
     RESOLUTION_KIND_EXTERNAL_ARTIFACT, RESOLUTION_KIND_HOST_BINARY, RESOLUTION_KIND_UNAVAILABLE,
     TOOL_EXECUTION_MODES_VALIDATION_SCHEMA_VERSION,
 };
+
+pub use bijux_dna_bench::{
+    judge_edna_taxonomy_outputs, judge_edna_taxonomy_outputs_with_expected_rows,
+    publish_edna_taxonomy_output_judgment, BenchmarkTaxonomyExpectationRowJudgment,
+    BenchmarkTaxonomyObservedTaxon, BenchmarkTaxonomyOutputJudgmentReport,
+    BenchmarkTaxonomySampleJudgment, TaxonomyObservedReportArg,
+    BENCHMARK_TAXONOMY_OUTPUT_JUDGMENT_SCHEMA_VERSION,
+};

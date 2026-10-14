@@ -54,3 +54,7 @@ through the public raw-source validator, including equivalent typed Slurm input,
 escaped and nested sensitive keys, array members, reference controls, private-key
 markers and malformed-source diagnostics. Repository campaign acquisition and
 its pre-effect ordering remain covered by the benchmark owner's campaign tests.
+
+`tests/contracts/bam_campaign/` supplies direct private policy coverage of source/goal admission, row/finding/queue projection, summary counters and all twenty BAM goal check branches. It is registered by `policy/bam_campaign/mod.rs` in the native library target; repository IO roundtrip coverage remains in the benchmark crate.
+
+`tests/contracts/taxonomy_judgment/` supplies direct pure codec and evaluation contracts through the native library registration. Alias precedence, ambiguous summary refusal, declaration/row order, inferred counts and missing observations are tested without repository IO.

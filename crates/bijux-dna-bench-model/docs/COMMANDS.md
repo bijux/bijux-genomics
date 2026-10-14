@@ -10,6 +10,8 @@ not own CLI commands or process execution.
 
 | Operation | Rust entrypoint | Purpose |
 | --- | --- | --- |
+| `decode-benchmark-taxonomy-observation` | `decode_benchmark_taxonomy_observation(raw_json, source_label)` | Decode a supported classifier summary into a typed observation without IO. |
+| `evaluate-benchmark-taxonomy-outputs` | `evaluate_benchmark_taxonomy_outputs(input)` | Compare decoded observations with corpus-admitted expected rows and derive the existing judgment. |
 | `validate-all-domain-expected-result-rows` | `validate_all_domain_expected_result_rows` | Admit expected result projection against acquired source counts and governed baseline outputs, metrics and report sections. |
 | `validate-all-domain-rendered-command-rows` | `validate_all_domain_rendered_command_rows` | Admit complete, unique governed result bindings with executable command steps and required adapter sources. |
 | `validate-all-domain-stage-tool-table-rows` | `validate_all_domain_stage_tool_table_rows` | Admit unique stage/tool coverage and required columns against acquired domain-ready bindings and VCF row counts. |
@@ -41,6 +43,7 @@ not own CLI commands or process execution.
 | `hardening-queue-report-schema` | `hardening_queue_report_schema` | Generate the persisted hardening-queue JSON Schema from its Rust model. |
 | `validate-cross-benchmark-campaign-report` | `contract::validate_cross_benchmark_campaign_report` | Validate cross-domain campaign identity, selected-goal closure, nested evidence links, status semantics, and exact summary totals. |
 | `cross-benchmark-campaign-report-schema` | `cross_benchmark_campaign_report_schema` | Generate the persisted cross-domain benchmark-campaign JSON Schema from its Rust model. |
+| `derive-bam-benchmark-campaign` | `derive_bam_benchmark_campaign(matrix, appraisal, queue, requested_goals)` | Derive a BAM campaign from admitted typed source products without IO. |
 | `validate-domain-benchmark-campaign-reports` | `validate_fastq_benchmark_campaign_report`, `validate_bam_benchmark_campaign_report`, `validate_vcf_benchmark_campaign_report`, `validate_hardening_benchmark_campaign_report` | Validate domain campaign identity, selected-goal closure, nested evidence links, status semantics, and exact summary totals. |
 | `domain-benchmark-campaign-report-schemas` | `fastq_benchmark_campaign_report_schema`, `bam_benchmark_campaign_report_schema`, `vcf_benchmark_campaign_report_schema`, `hardening_benchmark_campaign_report_schema` | Generate the four persisted domain and hardening campaign schemas from their Rust models. |
 | `validate-benchmark-matrix-report` | `contract::validate_benchmark_matrix_report` | Validate persisted matrix identity, unique rows, readiness semantics, surface matches, and exact summary closure. |

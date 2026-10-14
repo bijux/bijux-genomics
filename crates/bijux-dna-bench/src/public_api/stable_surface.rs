@@ -871,3 +871,13 @@ pub use bijux_dna_bench_model::{
 pub use crate::repo::alignment_fixture as alignment_fixtures;
 
 pub use crate::repo::simulation::parser::load_all_domain_simulation_parser_row;
+
+pub use crate::repo::taxonomy_judgment::{
+    judge_edna_taxonomy_outputs, judge_edna_taxonomy_outputs_with_expected_rows,
+    publish_edna_taxonomy_output_judgment, TaxonomyObservedReportArg,
+};
+pub use bijux_dna_bench_model::{
+    BenchmarkTaxonomyExpectationRowJudgment, BenchmarkTaxonomyObservedTaxon,
+    BenchmarkTaxonomyOutputJudgmentReport, BenchmarkTaxonomySampleJudgment,
+    BENCHMARK_TAXONOMY_OUTPUT_JUDGMENT_SCHEMA_VERSION,
+};

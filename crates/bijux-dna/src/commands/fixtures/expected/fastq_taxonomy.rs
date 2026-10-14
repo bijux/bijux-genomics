@@ -11,8 +11,9 @@ use crate::commands::benchmark::local_corpus_fixture::edna::{
     load_edna_corpus_fixture_manifest_path, load_validated_edna_expected_taxa_rows,
     validate_edna_corpus_fixture_manifest_contract,
 };
-use crate::commands::benchmark::local_taxonomy_output_judgment::{
-    judge_edna_taxonomy_outputs_with_expected_rows, LocalTaxonomyObservedReportArg,
+use bijux_dna_api::v1::api::bench::{
+    judge_edna_taxonomy_outputs_with_expected_rows, BenchmarkTaxonomySampleJudgment,
+    TaxonomyObservedReportArg,
 };
 
 pub(crate) const FASTQ_TAXONOMY_TRUTH_FIXTURE_ID: &str = "fastq-taxonomy-truth";
@@ -86,7 +87,7 @@ pub(crate) fn validate_fastq_taxonomy_truth_manifest_path(
     let report_args = manifest
         .samples
         .iter()
-        .map(|sample| LocalTaxonomyObservedReportArg {
+        .map(|sample| TaxonomyObservedReportArg {
             sample_id: sample.sample_id.clone(),
             report_path: resolve_repo_relative_path(repo_root, &sample.observed_report_path),
         })
@@ -217,7 +218,7 @@ fn validate_manifest_contract(
 
 fn validate_sample_expectations(
     manifest: &FastqTaxonomyTruthManifest,
-    sample_judgments: &[crate::commands::benchmark::local_taxonomy_output_judgment::LocalTaxonomySampleJudgment],
+    sample_judgments: &[BenchmarkTaxonomySampleJudgment],
 ) -> Result<()> {
     if sample_judgments.len() != manifest.samples.len() {
         return Err(anyhow!(

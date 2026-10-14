@@ -75,3 +75,7 @@ Micro-report coverage policy independently tests expected-source and current-evi
 Micro-report admission compares the exact multiset of component/execution/domain/stage/tool/status identities against source results for result, runtime and memory sections. The existing two-row fixture rejects substituted identities and equal-total forged status/source distributions, clears stale passing verdicts, and accepts a harmless section permutation. No additional workflow fixture is needed.
 
 Shared guardrail parser regressions are owned and executed by the policy crate. This boundary suite retains its crate-specific architecture checks; it does not compile another crate's test source. Constructor-only guardrail wrappers provide no source-check coverage and are retired.
+
+BAM campaign pure goal selection, checks, source identity and evidence projection are covered directly by `bijux-dna-bench-model` policy tests. The benchmark repository retains the admitted derive/publish/load roundtrip under `repo/bam_campaign.rs`. All existing campaign behavior cases remain registered once.
+
+The three taxonomy judgment repository oracles are registered once under `repo/taxonomy_judgment/`: governed matrix agreement, missing-sample refusal and false-positive evidence. Pure summary/evaluation contracts belong to the model tests; the CLI retains its JSON and persisted-output compatibility case.

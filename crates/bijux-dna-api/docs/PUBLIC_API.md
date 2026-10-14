@@ -123,6 +123,8 @@ and caller-relative path rendering. This service owns report composition and
 publication; it does not implement cycle-admission policy. Cargo metadata retains
 its existing lockfile and dependency-resolution effects.
 
+Benchmark taxonomy services expose explicit corpus/report acquisition and publication through `v1::api::bench`. Typed benchmark judgment records describe expectation matches, unexpected taxa and inferred unclassified counts. The semantic model evaluates caller-admitted truth; the API does not execute a classifier or establish biological validity.
+
 ## Image QA Compatibility Hook
 
 `v1::api::env::run_image_qa` retains a compatibility success result without

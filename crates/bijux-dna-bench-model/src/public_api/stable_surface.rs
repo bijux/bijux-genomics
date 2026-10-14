@@ -935,6 +935,7 @@ pub use crate::policy::hpc_resources::{
     project_hpc_job_resources, resolve_hpc_job_resources, HpcJobResourceHints,
 };
 
+pub use crate::policy::bam_campaign::derive_bam_benchmark_campaign;
 pub use crate::policy::hardening_campaign::derive_hardening_benchmark_campaign;
 
 pub use crate::policy::hpc_asset_staging::{
@@ -1001,3 +1002,13 @@ pub use crate::policy::operational_readiness::harness;
 pub use crate::contract::project_all_domain_simulation_parser_row;
 
 pub use crate::model::scope_views::DEFAULT_ALL_DOMAIN_ACTIVE_STAGE_TOOL_MATRIX_PATH;
+
+pub use crate::model::taxonomy_judgment::{
+    AdmittedBenchmarkTaxonomyObservation, BenchmarkTaxonomyExpectationRowJudgment,
+    BenchmarkTaxonomyJudgmentInput, BenchmarkTaxonomyObservedTaxon,
+    BenchmarkTaxonomyOutputJudgmentReport, BenchmarkTaxonomySampleJudgment,
+    BENCHMARK_TAXONOMY_OUTPUT_JUDGMENT_SCHEMA_VERSION,
+};
+pub use crate::policy::taxonomy_judgment::{
+    decode_benchmark_taxonomy_observation, evaluate_benchmark_taxonomy_outputs,
+};

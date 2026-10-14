@@ -9,6 +9,9 @@ These operations are exported through the crate root and `public_api`.
 
 | Operation | Rust entrypoint | Purpose |
 | --- | --- | --- |
+| `judge-edna-taxonomy-outputs` | `judge_edna_taxonomy_outputs(repo_root, manifest_path, reports)` | Acquire corpus truth and observed classifier summaries before pure evaluation. |
+| `judge-edna-taxonomy-with-expected-rows` | `judge_edna_taxonomy_outputs_with_expected_rows(repo_root, manifest_path, manifest, expected_taxa_path, expected_rows, reports)` | Acquire summaries using the caller-admitted corpus matrix. |
+| `publish-edna-taxonomy-output-judgment` | `publish_edna_taxonomy_output_judgment(repo_root, manifest_path, reports, output_path)` | Publish the existing JSON judgment, including invalid semantic verdicts. |
 | `validate-pipeline-profiles` | `validate_benchmark_pipeline_profiles(config, evidence)` | Check selected scientific benchmark profile handoffs against a typed evidence provider. |
 | `load-fastq-tool-score-evidence` | `load_fastq_tool_score_evidence(repository_root)` | Read optional observed FASTQ reports into typed evidence without inferring successful observations from truth fixture references. |
 | `load-suite` | `load_suite(path)` | Load and validate a benchmark suite TOML file. |
