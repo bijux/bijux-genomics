@@ -35,3 +35,6 @@ fn vcf_mini_manifest_path_validates_fixture_assets() {
         .iter()
         .any(|row| row.variant_role == "phased" && row.phased_genotypes_only));
 }
+
+#[path = "vcf/filter_truth.rs"]
+mod filter_truth;

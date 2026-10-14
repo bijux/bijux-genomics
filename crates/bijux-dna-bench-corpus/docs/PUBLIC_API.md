@@ -54,3 +54,11 @@ Manifest, expected bundle and corpus admission precede complete observed record
 comparison. Report fields, rejection order, path resolution and schema identities
 are preserved. Declared absolute paths remain supported; this read-only service
 does not establish external provenance or publish new truth.
+
+With `variants`, `vcf::validate_vcf_filter_truth_manifest_path` accepts an explicit
+repository root and declaration path and returns `VcfFilterTruthValidationReport`.
+`VCF_FILTER_TRUTH_FIXTURE_ID` and `VCF_FILTER_TRUTH_MANIFEST_SCHEMA_VERSION` retain
+the governed identities. This read-only fixture service preserves its complete
+comparison, schema fields, support/error ordering, optional output evidence and
+slash-normalized report paths. [VCF filter truth](VCF_FILTER_TRUTH.md) documents
+the supported combinations and retained expected-row set/map limitations.

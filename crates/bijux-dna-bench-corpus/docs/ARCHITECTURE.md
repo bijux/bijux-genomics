@@ -57,3 +57,13 @@ BAM domain's canonical native alignment summary. The facade compares complete
 expected and observed records and returns the original validation report. It does
 not launch tools, print output, write fixtures or orchestrate benchmarks. The CLI
 fixture entrypoints delegate to this owner through their existing import path.
+
+## VCF filter fixture truth
+
+`vcf/filter_truth` admits declared filter and damage-filter expectations against
+canonical parser and native VCF observations. Its private model, admission and
+observation modules separate wire records, local reference/support checks and
+evidence reads. The facade compares complete case records without publication
+or execution. Domain parsing/interpretation and CLI presentation retain their
+owners. [VCF filter truth](VCF_FILTER_TRUTH.md) records schemas, error ordering,
+path normalization and the existing expected-case set/map semantics.
