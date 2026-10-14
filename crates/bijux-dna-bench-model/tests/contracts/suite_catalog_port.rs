@@ -160,3 +160,28 @@ fn suite_catalog_port_does_not_require_unused_contracts() -> anyhow::Result<()> 
     }
     Ok(())
 }
+
+#[test]
+fn suite_catalog_port_rejects_stage_and_tool_nodes_sharing_one_identity() -> anyhow::Result<()> {
+    let catalog =
+        FixtureCatalog { stage: true, ports: true, parameters: true, missing_contract: None };
+    let mut request = suite();
+    validate_suite_with_catalog(&request, &catalog)?;
+    let collision = request.stages[0].tool_node_id("fixture");
+    request.stages[1].stage_instance_id = Some(collision.clone());
+    request.edges[0].to = collision.clone();
+    let nodes = request.graph_nodes();
+    assert!(nodes.iter().any(|node| {
+        node.node_id == collision
+            && node.kind == bijux_dna_bench_model::BenchmarkGraphNodeKind::Stage
+    }));
+    assert!(nodes.iter().any(|node| {
+        node.node_id == collision
+            && node.kind == bijux_dna_bench_model::BenchmarkGraphNodeKind::StageTool
+    }));
+    assert!(
+        validate_suite_with_catalog(&request, &catalog).is_err(),
+        "suite admitted one identity for a declared stage and another stage's tool node"
+    );
+    Ok(())
+}
