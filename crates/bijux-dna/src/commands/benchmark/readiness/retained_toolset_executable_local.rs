@@ -75,6 +75,13 @@ pub(crate) fn run_render_retained_toolset_executable_local(
     } else {
         println!("{}", report.output_path);
     }
+    if !report.ok {
+        return Err(anyhow!(
+            "retained toolset execution gate failed {} required checks; inspect {}",
+            report.failed_goal_count,
+            report.output_path
+        ));
+    }
     Ok(())
 }
 
