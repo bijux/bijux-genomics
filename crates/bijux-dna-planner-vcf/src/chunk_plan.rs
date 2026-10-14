@@ -64,7 +64,7 @@ pub fn plan_region_chunks(
         let mut start = 1u64;
         let mut idx = 0usize;
         while start <= contig.length_bp {
-            let end = std::cmp::min(start + chunking.window_size_bp - 1, contig.length_bp);
+            let end = start.saturating_add(chunking.window_size_bp - 1).min(contig.length_bp);
             chunks.push(RegionChunkPlan {
                 chunk_id: format!("{}:{idx:05}", contig.name),
                 contig: contig.name.clone(),
@@ -99,4 +99,36 @@ fn validate_unique_filter_names(label: &str, names: &[String]) -> Result<()> {
         }
     }
     Ok(())
+}
+
+#[cfg(test)]
+mod endpoint_tests {
+    use super::*;
+    use bijux_dna_domain_vcf::contracts::ContigSpec;
+
+    #[test]
+    fn bounded_two_chunk_plan_reaches_the_largest_contig_endpoint() -> Result<()> {
+        let species = SpeciesContext {
+            species_id: "Homo sapiens".into(),
+            build_id: "GRCh38".into(),
+            contig_set_digest: "a".repeat(64),
+            contigs: vec![ContigSpec { name: "1".into(), length_bp: u64::MAX }],
+            sex_system: "xy".into(),
+            par_policy: "grch38_par".into(),
+            default_coverage_regime: None,
+        };
+        let settings = ChunkPlanSettings {
+            window_size_bp: u64::MAX - 1,
+            overlap_bp: 0,
+            chr_include: Vec::new(),
+            chr_exclude: Vec::new(),
+            max_parallel_chunks: 1,
+        };
+        let chunks = plan_region_chunks(&species, &settings)?;
+        assert_eq!(
+            chunks.iter().map(|chunk| (chunk.start, chunk.end)).collect::<Vec<_>>(),
+            vec![(1, u64::MAX - 1), (u64::MAX, u64::MAX)]
+        );
+        Ok(())
+    }
 }
