@@ -96,3 +96,20 @@ under the supplied root and expected paths under the declaration directory; disp
 paths retain slash normalization. Wire records keep their closed fields and optional
 serde behavior. Expected set/map duplicate semantics remain unchanged. This read-only
 service does not certify independent provenance, backend execution or new science.
+
+With `variants`, `vcf::validate_population_structure_truth_manifest_path` accepts
+an explicit repository root and declaration path and returns
+`PopulationStructureTruthValidationReport`. `POPULATION_STRUCTURE_TRUTH_FIXTURE_ID`
+and `POPULATION_STRUCTURE_TRUTH_MANIFEST_SCHEMA_VERSION` retain the governed identities.
+The report keeps schema/fixture/manifest/expected fields, case count, sorted unique
+stage/tool inventories and validity. Complete records retain arbitrary nested native
+metrics plus canonical metadata-aware PCA, admixture and population truth summaries.
+
+plink2 supports `vcf.pca`, `vcf.admixture` and `vcf.population_structure`; eigensoft
+supports PCA and population structure. Absolute paths remain supported. Relative
+source/artifact/metadata paths resolve under the supplied root and expected paths
+under the declaration directory; displayed paths retain slash normalization.
+Source references accept existing files and directories. Closed wire fields,
+optional serde behavior, error/read ordering and expected-row set/map duplicate
+semantics remain unchanged. This read-only service does not certify fresh backend
+execution, scientific equivalence or independent provenance.

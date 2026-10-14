@@ -51,3 +51,9 @@ pub use phasing_imputation_truth::{
     validate_phasing_imputation_truth_manifest_path, PhasingImputationTruthValidationReport,
     PHASING_IMPUTATION_TRUTH_FIXTURE_ID, PHASING_IMPUTATION_TRUTH_MANIFEST_SCHEMA_VERSION,
 };
+
+mod population_structure_truth;
+pub use population_structure_truth::{
+    validate_population_structure_truth_manifest_path, PopulationStructureTruthValidationReport,
+    POPULATION_STRUCTURE_TRUTH_FIXTURE_ID, POPULATION_STRUCTURE_TRUTH_MANIFEST_SCHEMA_VERSION,
+};

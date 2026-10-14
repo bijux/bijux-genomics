@@ -99,3 +99,20 @@ precedes output/truth VCF interpretation for each case. Expected identities rema
 set-based and comparison remains map-based: order is ignored and the last duplicate
 expected row wins; duplicate manifest IDs reject. Complete typed comparison and the
 existing metrics-family preference preserve the original scientific record fields.
+
+## VCF population fixture truth
+
+`vcf/population_structure_truth` owns the declared manifest, expected bundle and
+read-only population fixture validation report. Private wire, admission and
+observation modules keep local reference/support checks beside their records.
+Observations delegate plink2/eigensoft metrics parsing and metadata-aware PCA,
+admixture and population summaries to domain-vcf. The facade compares complete
+case records; CLI fixture commands retain presentation and whole-root composition.
+
+Declared source references intentionally accept existing files and directories.
+Per-case artifact and metadata admission precede support checks and expected-bundle
+acquisition. Native metrics acquisition precedes scientific metadata joins.
+Expected identities remain set-based and comparison remains map-based: ordering
+is ignored, the last duplicate expected record wins, and duplicate manifest IDs
+reject. Dynamic nested metrics and the existing metrics-family preference remain
+unchanged. The service does not write fixtures, launch tools or establish new science.
