@@ -277,6 +277,8 @@ fn crate_tree_matches_domain_fastq_boundary() {
     );
 
     let expected_stages: BTreeSet<_> = [
+        "abundance_normalization.rs",
+        "abundance_normalization/",
         "contract.rs",
         "contract/",
         "ids.rs",

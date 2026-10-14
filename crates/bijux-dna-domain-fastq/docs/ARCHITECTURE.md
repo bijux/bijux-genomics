@@ -36,6 +36,8 @@ src/
   run/                    FASTQ input discovery and benchmark corpus helpers
   stage_tool_governance/  tool layout, readiness, maturity, and input layout policy
   stages/                 stage IDs, specs, ports, semantics, and contract JSON
+    abundance_normalization.rs pure table-text normalization and observations
+    abundance_normalization/   unit, ordering, and text-admission contracts
     primer_normalization.rs deterministic native primer-prefix computation on record values
     primer_normalization/   scientific computation contracts without filesystem setup
     contract/             contract catalog, export helpers, and runtime policy
@@ -49,6 +51,13 @@ src/
 ## Ownership Rules
 
 - `stages/` is the authority for FASTQ stage IDs, semantics, IO, and contract JSON.
+- `stages/abundance_normalization` owns the borrowed-text normalization and table
+  observation capability used by API artifact composition. It preserves six-decimal
+  output, sorted sample grouping, duplicate row contributions, declared scaling,
+  and existing malformed/non-finite observation semantics. API adapters retain
+  acquisition, publication, execution, and benchmark persistence. The existing
+  eight-decimal `stages::contract::normalize_abundance` path operation retains its
+  separate behavior; this capability does not reconcile the two algorithms.
 - `stages/primer_normalization` owns the pure native local-smoke prefix transform and its typed
   admission error. It keeps the two exact primer motifs, overlap threshold, and paired fraction
   semantics. Orientation, primer-bank, mismatch, and IUPAC metadata do not add algorithm behavior.

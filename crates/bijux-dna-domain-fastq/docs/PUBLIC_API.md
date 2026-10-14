@@ -54,3 +54,24 @@ They reuse the same selection and provenance authority as the existing current-d
 entrypoints. All contaminant reference reads use the supplied root. These functions
 perform repository IO without changing process CWD; they do not execute tools or
 claim atomic observation across concurrently modified source files.
+
+## Abundance Table Truth
+
+`stages::abundance_normalization::normalize_abundance_table_text` accepts borrowed
+TSV text and `AbundanceNormalizationEffectiveParams`, returning
+`AbundanceTableNormalization` with output text and `AbundanceTableObservation`.
+`observe_normalized_abundance_table_text` observes a normalized table without
+rewriting it. Both operations are pure; callers own file acquisition and publication.
+
+Present headers must match the declared columns. Short rows are skipped; malformed
+numeric cells become zero. Samples are trimmed and sorted, rows within each sample
+retain their input order, and duplicate rows contribute individually. Normalization
+uses the declared scale factor only when sample totals are positive and emits six
+decimal places. Method labels remain metadata. Observations retain arithmetic
+values and non-finite values for existing caller composition admission rather than
+silently tightening numeric acceptance.
+
+These contracts preserve the API artifact-composition behavior. The existing
+`stages::contract::normalize_abundance` path operation retains its separate
+eight-decimal formatting and computation. Neither this ownership separation nor
+the local smoke envelope establishes scientific correctness or backend execution.
