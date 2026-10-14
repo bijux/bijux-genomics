@@ -1,5 +1,4 @@
 #![allow(
-    clippy::duplicate_mod,
     clippy::expect_used,
     clippy::missing_errors_doc,
     clippy::missing_panics_doc,
@@ -50,8 +49,6 @@ mod mod_contracts_no_raw_json_rs;
 mod mod_contracts_pipeline_cross_handoff_rs;
 #[path = "contracts/pipeline/pipeline_e2e.rs"]
 mod mod_contracts_pipeline_pipeline_e2e_rs;
-#[path = "contracts/pipeline.rs"]
-mod mod_contracts_pipeline_rs;
 #[path = "contracts/pipeline/ssot_stage_ids.rs"]
 mod mod_contracts_pipeline_ssot_stage_ids_rs;
 #[path = "contracts/pipeline/stable_ordering.rs"]
@@ -82,5 +79,3 @@ mod mod_contracts_report_report_privacy_rs;
 mod mod_contracts_report_report_rs;
 #[path = "contracts/report/report_size_budget.rs"]
 mod mod_contracts_report_report_size_budget_rs;
-#[path = "contracts/report.rs"]
-mod mod_contracts_report_rs;
