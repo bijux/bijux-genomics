@@ -67,6 +67,13 @@ CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna --test contracts
 CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna --no-default-features
 ```
 
+The retained-toolset execution gate has one successful sandboxed workflow. Its
+text path is checked against the default relative output path, and the real
+persisted report owns the full schema, tool/count, per-goal and output-audit
+assertions. The failed-report case separately exercises JSON stdout equality
+with its physical diagnostic report and text path presentation before failure.
+Successful JSON presentation is not a separate complete workflow invocation.
+
 ## Snapshot Rules
 Update snapshots only when the command surface, output format, or public export intentionally
 changes. Snapshot diffs must be reviewed as contract changes, not accepted mechanically.

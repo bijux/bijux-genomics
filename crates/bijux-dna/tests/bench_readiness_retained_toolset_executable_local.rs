@@ -193,7 +193,7 @@ fn bench_readiness_retained_toolset_executable_local_reports_goal_430_gate() {
         .env("BIJUX_SKIP_QA", "1")
         .env("BIJUX_ALLOW_SILVER", "1")
         .env("BIJUX_SKIP_IMAGE_CHECK", "1")
-        .args(["bench", "readiness", "render-retained-toolset-executable-local", "--json"])
+        .args(["bench", "readiness", "render-retained-toolset-executable-local"])
         .output()
         .expect("run cli");
 
@@ -205,8 +205,16 @@ fn bench_readiness_retained_toolset_executable_local_reports_goal_430_gate() {
         String::from_utf8_lossy(&output.stderr)
     );
 
-    let payload: serde_json::Value =
-        serde_json::from_slice(&output.stdout).expect("parse stdout as json");
+    let rendered_path = String::from_utf8(output.stdout).expect("stdout utf8");
+    assert_eq!(
+        rendered_path.trim(),
+        "artifacts/benchmark-smoke/readiness/tools/RETAINED_TOOLSET_EXECUTABLE_LOCAL.json"
+    );
+
+    let payload: serde_json::Value = serde_json::from_slice(
+        &std::fs::read(repo_root.join(rendered_path.trim())).expect("read retained gate"),
+    )
+    .expect("parse retained gate");
     assert_eq!(
         payload.get("schema_version").and_then(serde_json::Value::as_str),
         Some("bijux.bench.readiness.retained_toolset_executable_local.v1")
@@ -276,54 +284,6 @@ fn bench_readiness_retained_toolset_executable_local_reports_goal_430_gate() {
         }),
         "goal 428 must report the exact governed output audit counts: {payload:#}"
     );
-}
-
-#[test]
-fn bench_readiness_retained_toolset_executable_local_writes_gate_file() {
-    let _cwd_guard = support::CWD_LOCK.lock().expect("cwd lock");
-    let _env_guard = support::EnvGuard::new().expect("capture env");
-    let _crate_root = support::crate_root("bijux-dna").expect("crate root");
-    let sandbox =
-        support::RepoSandbox::new("retained-toolset-executable-file-").expect("repo sandbox");
-    let repo_root = sandbox.path();
-    let home = tempfile::tempdir().expect("tempdir");
-    seed_tool_smoke_manifests(repo_root);
-
-    let output = sandbox
-        .bijux_dna_command()
-        .env("HOME", home.path())
-        .env("BIJUX_SKIP_QA", "1")
-        .env("BIJUX_ALLOW_SILVER", "1")
-        .env("BIJUX_SKIP_IMAGE_CHECK", "1")
-        .args(["bench", "readiness", "render-retained-toolset-executable-local"])
-        .output()
-        .expect("run cli");
-
-    assert!(
-        output.status.success(),
-        "command failed: {}\nstdout:\n{}\nstderr:\n{}",
-        output.status,
-        String::from_utf8_lossy(&output.stdout),
-        String::from_utf8_lossy(&output.stderr)
-    );
-
-    let rendered_path = String::from_utf8(output.stdout).expect("stdout utf8");
-    assert_eq!(
-        rendered_path.trim(),
-        "artifacts/benchmark-smoke/readiness/tools/RETAINED_TOOLSET_EXECUTABLE_LOCAL.json"
-    );
-
-    let payload: serde_json::Value = serde_json::from_slice(
-        &std::fs::read(repo_root.join(rendered_path.trim())).expect("read retained gate"),
-    )
-    .expect("parse retained gate");
-
-    assert_eq!(
-        payload.get("schema_version").and_then(serde_json::Value::as_str),
-        Some("bijux.bench.readiness.retained_toolset_executable_local.v1")
-    );
-    assert_eq!(payload.get("ok").and_then(serde_json::Value::as_bool), Some(true));
-    assert_eq!(payload.get("failed_goal_count").and_then(serde_json::Value::as_u64), Some(0));
 }
 
 #[test]
