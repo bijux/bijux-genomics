@@ -14,11 +14,12 @@ original path is visible.
 ## Container Run Protocols
 
 `QualificationRunRegistry` owns the permanent container namespace independently of attempts and
-Slurm jobs. The generated v2 registry closes `run-1000..run-1157`, retains historical and current
+Slurm jobs. The generated v3 registry closes `run-1000..run-1158`, retains historical and current
 tool ownership, reserves 1081 and 1085 permanently, and gives every identity a purpose, operation,
 contract/corpus requirements, acceptance rule, supersession links, and citation anchor. Allocated
 protocols remain non-publishable until a terminal attempt is admitted; historical records are never
-promoted merely because they remain replayable.
+promoted merely because they remain replayable. Historical v2 registries remain supported inputs
+under their existing compatibility contract.
 
 ## Owned Contracts
 

@@ -6,6 +6,8 @@ stay small and must not point at higher orchestration layers.
 ## Allowed Production Dependencies
 
 - `anyhow`: caller-facing context for shell and smoke helper errors.
+- `bijux-dna-process`: bounded external-artifact version observation.
+- `chrono`: timestamp admission in campaign and security evidence.
 - `bijux-dna-infra`: repository config lookup, atomic file operations, directory creation, and TOML
   parsing with the `yaml` feature already used elsewhere in the crate family.
 - `regex`: Dockerfile version parsing and contract-owned smoke admission.
@@ -16,14 +18,15 @@ stay small and must not point at higher orchestration layers.
 - `sha2`: reference content digests.
 - `thiserror`: typed `EnvError`.
 - `toml`: strict loading of the canonical container catalog during build preparation.
+- `walkdir`: archive/freeze filesystem traversal, also reused by boundary source scans.
 
 ## Allowed Test Dependencies
 
 - `bijux-dna-core`: canonical JSON helpers used by schema snapshots.
 - `bijux-dna-policies`: workspace guardrails.
+- `bijux-dna-stage-contract`: external-artifact contract fixtures.
 - `bijux-dna-testkit`: fixture, stable JSON, and artifact-aware temp helpers.
 - `tempfile`: lifecycle ownership for contract-build test artifacts.
-- `walkdir`: boundary source scans.
 
 ## Forbidden Dependencies
 

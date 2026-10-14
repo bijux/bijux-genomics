@@ -20,8 +20,9 @@ library can manage when callers invoke the matching API.
   indexes.
 - `verify_apptainer_tool_contract()`: runs `apptainer exec --cleanenv --containall` to read the
   embedded contract and `apptainer inspect --json` to compare its immutable labels.
-- `build_apptainer_image()`: runs `apptainer build --force` with append-only attempt logs and
-  retries only failures classified as transient OCI transport failures.
+- `build_apptainer_image()`: runs one `apptainer build --force` per invocation with append-only
+  attempt logs and explicit transient/permanent failure classification. A retry requires a new
+  caller invocation.
 - `publish_canonical_apptainer_image()`: owns the complete retained-image transaction: requires a
   clean Git commit, verifies the embedded contract and labels, and no-clobber publishes a
   digest-named SIF plus build evidence. The active destination uses `<study>/containers/apptainer`;
@@ -113,7 +114,8 @@ library can manage when callers invoke the matching API.
   repository publications.
 - `src/execution_contract/pipeline/admission.rs`: execution-site repository identity and clean-state
   inspection before immutable pipeline inputs are admitted.
-- `src/build/apptainer.rs`: immutable Apptainer build attempts and bounded transport retries.
+- `src/build/apptainer.rs`: immutable one-shot Apptainer build attempts and explicit transport
+  failure classification.
 - `src/build/publication.rs`: builder host, Apptainer version, pinned base, embedded identity, and
   canonical image publication.
 

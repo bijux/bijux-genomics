@@ -20,8 +20,8 @@ TEST_TMP_DIR=artifacts/test-tmp CARGO_TARGET_DIR=artifacts/cargo-target cargo te
 
 ## Contracts Suite
 
-- `tests/contracts/apptainer_build_and_smoke.rs`: immutable build attempts, transient retry
-  classification, contract-regex smoke admission, and command failure behavior.
+- `tests/contracts/apptainer_build.rs`: immutable one-shot build attempts, explicit transport
+  classification, concurrent cache/TMP isolation, and recipe/wrapper contracts.
 - `tests/contracts/tool_contract.rs`: complete catalog loading, embedded image identity,
   retained-roster closure, label binding, and runtime inspection.
 - `tests/contracts/build_dockerfile.rs`: Dockerfile version ARG parsing.
