@@ -56,6 +56,22 @@ pub fn demultiplex_reads(
         }
     }
 
+    for rule in rules {
+        let relative_output = format!("{}.fastq.gz", rule.sample_id);
+        if Path::new(&relative_output).components().any(|component| {
+            matches!(
+                component,
+                std::path::Component::ParentDir
+                    | std::path::Component::RootDir
+                    | std::path::Component::Prefix(_)
+            )
+        }) {
+            return Err(anyhow!(
+                "fastq.demultiplex_reads sample output must stay within output_dir"
+            ));
+        }
+    }
+
     let reads = read_fastq_records(input)?;
     let mut assigned = BTreeMap::<String, Vec<FastqRecord>>::new();
     let mut undetermined = Vec::<FastqRecord>::new();
@@ -195,6 +211,44 @@ mod tests {
         );
 
         assert!(result.is_err());
+        Ok(())
+    }
+
+    #[test]
+    fn demultiplex_reads_refuses_escaping_sample_outputs_before_publication() -> anyhow::Result<()>
+    {
+        let root = bijux_dna_infra::temp_dir("bijux-demultiplex-output-admission")?;
+        let input = root.path().join("input.fastq");
+        write_fastq(&input, &[("r1", "ACGTAAAA", "!!!!!!!!")])?;
+        let original_input = std::fs::read(&input)?;
+        for absolute in [false, true] {
+            let fixture = root.path().join(if absolute { "absolute" } else { "traversal" });
+            std::fs::create_dir(&fixture)?;
+            let output_dir = fixture.join("demux");
+            let undetermined = fixture.join("undetermined.fastq");
+            let retained = fixture.join("retained.fastq.gz");
+            let sentinel = b"retained sibling evidence\n";
+            std::fs::write(&retained, sentinel)?;
+            let sample_id = if absolute {
+                fixture.join("retained").display().to_string()
+            } else {
+                "../retained".to_string()
+            };
+            let error = demultiplex_reads(
+                &input,
+                &[DemultiplexRule { sample_id: &sample_id, barcode: "ACGT" }],
+                0,
+                &output_dir,
+                &undetermined,
+            )
+            .err()
+            .ok_or_else(|| anyhow::anyhow!("escaping sample output was accepted"))?;
+            assert!(error.to_string().contains("sample output must stay within output_dir"));
+            assert_eq!(std::fs::read(&retained)?, sentinel);
+            assert!(!output_dir.exists());
+            assert!(!undetermined.exists());
+            assert_eq!(std::fs::read(&input)?, original_input);
+        }
         Ok(())
     }
 }
