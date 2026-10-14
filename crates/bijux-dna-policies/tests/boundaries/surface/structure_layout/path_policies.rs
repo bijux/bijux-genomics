@@ -104,7 +104,9 @@ fn policy__boundaries__path_policies__src_test_paths_are_explicitly_test_only() 
         if rel == "crates/bijux-dna-testkit/src/temp/test_paths.rs" {
             continue;
         }
-        if name.contains("test") && !is_explicit_private_test_path(path) {
+        if reserved_test_module_name(name, entry.file_type().is_dir())
+            && !is_explicit_private_test_path(path)
+        {
             offenders.push(path.display().to_string());
         }
     }
@@ -114,6 +116,18 @@ fn policy__boundaries__path_policies__src_test_paths_are_explicitly_test_only() 
         "src test paths must contain only explicitly test-gated Rust modules:\n{}",
         offenders.join("\n")
     );
+}
+
+// These names designate Rust test-only modules. Execution domains and tool names
+// such as local_tests, nextest and latest do not designate a compilation cfg.
+fn reserved_test_module_name(name: &str, directory: bool) -> bool {
+    if directory {
+        return matches!(name, "tests" | "test_support");
+    }
+    let Some(stem) = name.strip_suffix(".rs") else { return false };
+    matches!(stem, "tests" | "test_support")
+        || stem.starts_with("test_")
+        || stem.ends_with("_tests")
 }
 
 fn is_explicit_private_test_source(path: &Path) -> bool {
@@ -312,4 +326,63 @@ fn policy__boundaries__path_policies__developer_effects_have_exact_runtime_owner
             "/workspace/crates/bijux-dna-dev/src/{relative}"
         ))));
     }
+}
+
+#[test]
+fn policy__boundaries__path_policies__reserved_test_names_distinguish_execution_domains() {
+    for (name, directory) in [
+        ("tests", true),
+        ("test_support", true),
+        ("tests.rs", false),
+        ("test_support.rs", false),
+        ("test_contract.rs", false),
+        ("contract_tests.rs", false),
+    ] {
+        assert!(reserved_test_module_name(name, directory), "{name}");
+    }
+    for (name, directory) in [
+        ("local_tests", true),
+        ("nextest", true),
+        ("latest", true),
+        ("nextest.rs", false),
+        ("latest.rs", false),
+        ("test_contract.toml", false),
+        ("contract_tests.json", false),
+        ("testing.rs", false),
+        ("tests.toml", false),
+    ] {
+        assert!(!reserved_test_module_name(name, directory), "{name}");
+    }
+}
+
+#[test]
+fn policy__boundaries__path_policies__nested_reserved_test_modules_retain_cfg_obligations(
+) -> anyhow::Result<()> {
+    let root = bijux_dna_testkit::temp::tempdir_for("reserved-test-module-ownership");
+    let production = root.path().join("local_tests");
+    std::fs::create_dir(&production)?;
+    std::fs::write(production.join("nextest.rs"), "pub fn execute() {}\n")?;
+    assert!(!reserved_test_module_name("local_tests", true));
+    assert!(!reserved_test_module_name("nextest.rs", false));
+    let tests = production.join("tests");
+    std::fs::create_dir(&tests)?;
+    assert!(reserved_test_module_name("tests", true));
+    assert!(!is_explicit_private_test_path(&tests));
+    let file = tests.join("case.rs");
+    std::fs::write(&file, "#![cfg(test)]\nfn fixture() {}\n")?;
+    assert!(is_explicit_private_test_path(&tests));
+    let mixed = tests.join("production.rs");
+    std::fs::write(&mixed, "pub fn execute() {}\n")?;
+    assert!(!is_explicit_private_test_path(&tests));
+    for name in ["test_contract.rs", "contract_tests.rs", "tests.rs", "test_support.rs"] {
+        let file = production.join(name);
+        assert!(reserved_test_module_name(name, false));
+        std::fs::write(&file, "pub fn execute() {}\n")?;
+        assert!(!is_explicit_private_test_path(&file));
+        std::fs::write(&file, "const MARKER: &str = \"#![cfg(test)]\";\n")?;
+        assert!(!is_explicit_private_test_path(&file));
+        std::fs::write(&file, "#![cfg(test)]\nfn fixture() {}\n")?;
+        assert!(is_explicit_private_test_path(&file));
+    }
+    Ok(())
 }
