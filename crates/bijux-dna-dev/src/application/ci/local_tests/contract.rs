@@ -3,7 +3,7 @@ use std::collections::BTreeMap;
 use serde::{Deserialize, Serialize};
 
 pub(crate) const LANE_SCHEMA: &str = "bijux.ci.local_test_lane.v1";
-pub(crate) const INPUT_SCHEMA: &str = "bijux.ci.local_test_inputs.v1";
+pub(crate) const INPUT_SCHEMA: &str = "bijux.ci.local_test_inputs.v2";
 pub(crate) const REQUIRED_LANES: [&str; 5] = [
     "rust-nextest",
     "rust-doctests",
@@ -31,6 +31,31 @@ pub(crate) struct FileIdentity {
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
+pub(crate) struct DirectoryEntryIdentity {
+    pub name: String,
+    pub kind: String,
+    pub mode: u32,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub(crate) struct DirectoryIdentity {
+    pub path: String,
+    pub sha256: String,
+    pub mode: u32,
+    pub entries: Vec<DirectoryEntryIdentity>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub(crate) struct NativeProviderIdentity {
+    pub system_build: String,
+    pub closure_sha256: String,
+    pub seed_paths: Vec<String>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub(crate) struct ToolIdentity {
     pub name: String,
     pub path: String,
@@ -38,6 +63,7 @@ pub(crate) struct ToolIdentity {
     pub sha256: String,
     pub version: String,
     pub components: Vec<FileIdentity>,
+    pub native_provider: NativeProviderIdentity,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
@@ -46,6 +72,7 @@ pub(crate) struct LaneInputs {
     pub schema_version: String,
     pub lane: String,
     pub files: Vec<FileIdentity>,
+    pub directories: Vec<DirectoryIdentity>,
     pub tools: Vec<ToolIdentity>,
     pub environment: BTreeMap<String, String>,
     pub harness: String,

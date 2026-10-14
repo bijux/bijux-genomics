@@ -70,6 +70,15 @@ pub(crate) fn admit_lane(
     ensure!(
         inputs.tools.iter().all(|tool| !tool.version.is_empty()
             && digest(&tool.sha256, &[64])
+            && !tool.native_provider.system_build.is_empty()
+            && digest(&tool.native_provider.closure_sha256, &[64])
+            && !tool.native_provider.seed_paths.is_empty()
+            && tool.native_provider.seed_paths.iter().any(|path| path == &tool.resolved_path)
+            && tool.native_provider.seed_paths.iter().all(|path| {
+                !path.is_empty() && tool.components.iter().any(|file| &file.path == path)
+            })
+            && tool.native_provider.seed_paths.iter().collect::<BTreeSet<_>>().len()
+                == tool.native_provider.seed_paths.len()
             && tool
                 .components
                 .iter()
@@ -139,7 +148,7 @@ pub(crate) fn reconcile_lanes(
 mod tests {
     use super::*;
     use crate::application::ci::local_tests::{
-        ArtifactReference, CaseOutcome, FileIdentity, ToolIdentity,
+        ArtifactReference, CaseOutcome, FileIdentity, NativeProviderIdentity, ToolIdentity,
     };
 
     fn fixture(lane: &str) -> (SourceIdentity, LaneInputs, LaneReceipt) {
@@ -157,12 +166,18 @@ mod tests {
                 bytes: 1,
                 mode: 0o444,
             }],
+            directories: vec![],
             tools: vec![ToolIdentity {
                 name: "python".into(),
                 path: "/qualified/python".into(),
                 resolved_path: "/qualified/python".into(),
                 sha256: "b".repeat(64),
                 version: "bound".into(),
+                native_provider: NativeProviderIdentity {
+                    system_build: "bound".into(),
+                    closure_sha256: "e".repeat(64),
+                    seed_paths: vec!["/qualified/python".into()],
+                },
                 components: vec![FileIdentity {
                     path: "/qualified/python".into(),
                     sha256: "b".repeat(64),
@@ -249,6 +264,40 @@ mod tests {
         };
         admit_lane(&receipt, &candidate, &inputs)?;
         assert_eq!(receipt.source.sha, "a".repeat(40));
+        Ok(())
+    }
+
+    #[test]
+    fn native_provider_binding_is_required_even_with_an_executable_digest() -> Result<()> {
+        let (source, inputs, receipt) = fixture("python-ordinary");
+        admit_lane(&receipt, &source, &inputs)?;
+        for missing in ["system", "closure", "seeds", "empty-seed", "duplicate-seed"] {
+            let mut changed_inputs = inputs.clone();
+            let provider = &mut changed_inputs.tools[0].native_provider;
+            match missing {
+                "system" => provider.system_build.clear(),
+                "closure" => provider.closure_sha256.clear(),
+                "seeds" => provider.seed_paths.clear(),
+                "empty-seed" => provider.seed_paths[0].clear(),
+                "duplicate-seed" => provider.seed_paths.push(provider.seed_paths[0].clone()),
+                _ => unreachable!(),
+            }
+            let mut changed_receipt = receipt.clone();
+            changed_receipt.inputs = changed_inputs.clone();
+            assert!(admit_lane(&changed_receipt, &source, &changed_inputs).is_err(), "{missing}");
+        }
+        let mut value = serde_json::to_value(&inputs)?;
+        value["tools"][0]
+            .as_object_mut()
+            .ok_or_else(|| anyhow::anyhow!("serialized tool identity must be an object"))?
+            .remove("native_provider");
+        assert!(serde_json::from_value::<LaneInputs>(value).is_err());
+        let mut value = serde_json::to_value(&inputs)?;
+        value
+            .as_object_mut()
+            .ok_or_else(|| anyhow::anyhow!("serialized lane inputs must be an object"))?
+            .remove("directories");
+        assert!(serde_json::from_value::<LaneInputs>(value).is_err());
         Ok(())
     }
 }

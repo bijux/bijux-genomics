@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 import argparse
+import contextvars
 import json
 import os
+import stat
 from pathlib import Path
 import shutil
 import sys
@@ -105,31 +107,102 @@ def membership(expected, outcomes):
             "expected_duplicates": expected_duplicates, "all_passed": passed}
 
 
-def run(args):
-    root = Path(args.source_root).resolve()
-    reads = set()
-    external_reads = set()
-    calls = []
+class SourceReadAudit:
+    """Preserve descriptor-relative physical read ownership for native receipts."""
 
-    def audit(event, values):
-        if event == "open" and values and isinstance(values[0], (str, bytes, os.PathLike)):
-            path = Path(os.fsdecode(values[0]))
+    def __init__(self, root, output):
+        if root.is_relative_to(output) or (
+            output.is_relative_to(root) and not output.is_relative_to(root / "artifacts")
+        ):
+            raise ValueError("receipt output owner cannot cover authored source inputs")
+        self.root = root
+        self.output = output
+        self.files = set()
+        self.directories = set()
+        self.external_files = set()
+        self.external_directories = set()
+        self.calls = []
+        self.errors = []
+        self.stream_descriptors = set()
+        self.active = True
+        self.open_context = contextvars.ContextVar("receipt_open_context", default=None)
+        self.original_open = os.open
+
+    @staticmethod
+    def descriptor_path(descriptor):
+        if sys.platform == "darwin":
+            import fcntl
+            # Darwin F_GETPATH returns the physical path associated with a live descriptor.
+            value = fcntl.fcntl(descriptor, 50, bytes(1024))
+            return Path(os.fsdecode(value.split(b"\0", 1)[0]))
+        return Path(os.readlink(f"/proc/self/fd/{descriptor}"))
+
+    def open(self, path, flags, mode=0o777, *, dir_fd=None):
+        context = None
+        if dir_fd is not None and not Path(os.fsdecode(path)).is_absolute():
             try:
-                path = path.resolve()
-                if path.is_relative_to(root / "artifacts") or path.is_relative_to(Path(args.output).resolve().parent):
-                    return
-                if path.is_relative_to(root):
-                    reads.add(path.relative_to(root).as_posix())
-                elif path.is_file():
-                    external_reads.add(str(path))
-            except (OSError, ValueError):
-                pass
+                context = self.descriptor_path(dir_fd) / os.fsdecode(path)
+            except (OSError, ValueError) as error:
+                self.errors.append(f"unresolved directory descriptor {dir_fd}: {error}")
+        token = self.open_context.set((context, dir_fd is not None))
+        try:
+            return self.original_open(path, flags, mode, dir_fd=dir_fd)
+        finally:
+            self.open_context.reset(token)
+
+    def observe(self, value, directory=False):
+        try:
+            context = self.open_context.get()
+            if value is None and directory:
+                lexical = Path.cwd()
+            elif isinstance(value, int):
+                metadata = os.fstat(value)
+                if not directory and (stat.S_ISFIFO(metadata.st_mode) or stat.S_ISSOCK(metadata.st_mode)):
+                    self.stream_descriptors.add(value)
+                    return  # A validated process stream has no filesystem input path.
+                lexical = self.descriptor_path(value)
+            elif context and context[0] is not None:
+                lexical = context[0]
+            elif context and context[1] and not Path(os.fsdecode(value)).is_absolute():
+                return  # An unresolved descriptor was recorded; receipt acceptance must refuse.
+            else:
+                lexical = Path(os.fsdecode(value)).absolute()
+            physical = lexical.resolve()
+            lexical_generated = lexical.is_relative_to(self.root / "artifacts") or lexical.is_relative_to(self.output)
+            physical_generated = physical.is_relative_to(self.root / "artifacts") or physical.is_relative_to(self.output)
+            if lexical.is_relative_to(self.root) and not lexical_generated and physical != lexical:
+                self.errors.append(f"source read redirected: {lexical} -> {physical}")
+            if lexical_generated and physical_generated:
+                return
+            is_directory = directory or physical.is_dir()
+            if physical.is_relative_to(self.root):
+                name = physical.relative_to(self.root).as_posix()
+                (self.directories if is_directory else self.files).add(name)
+            elif is_directory:
+                self.external_directories.add(str(physical))
+            elif physical.is_file():
+                self.external_files.add(str(physical))
+        except (OSError, ValueError, TypeError) as error:
+            self.errors.append(f"read ownership unresolved for {value!r}: {error}")
+
+    def audit(self, event, values):
+        if not self.active:
+            return
+        if event == "open" and values and isinstance(values[0], (str, bytes, os.PathLike, int)):
+            self.observe(values[0])
+        elif event in ("os.listdir", "os.scandir") and values:
+            self.observe(values[0], directory=True)
         elif event == "subprocess.Popen":
             program = str(values[0])
             environment = values[3] or os.environ
-            calls.append(shutil.which(program, path=environment.get("PATH")) or program)
+            self.calls.append(shutil.which(program, path=environment.get("PATH")) or program)
 
-    sys.addaudithook(audit)
+
+def run(args):
+    root = Path(args.source_root).resolve()
+    audit = SourceReadAudit(root, Path(args.output).resolve().parent)
+    os.open = audit.open
+    sys.addaudithook(audit.audit)
     sys.path.insert(0, str(root))
     os.chdir(root)
     collection_errors = []
@@ -166,16 +239,22 @@ def run(args):
     facts = membership(expected, outcomes) if not args.discover else {"all_passed": False}
     record = {"schema_version": "bijux.ci.python_cases.v1", "source_root": str(root), "harness": args.harness,
               "discovery_only": args.discover, "expected": expected, "outcomes": outcomes,
-              "collection_errors": collection_errors, "source_reads": sorted(reads),
-              "external_reads": sorted(external_reads),
-              "subprocess_programs": sorted(set(calls)), "exit_code": exit_code,
+              "collection_errors": collection_errors, "source_reads": sorted(audit.files),
+              "source_directory_reads": sorted(audit.directories),
+              "external_reads": sorted(audit.external_files),
+              "external_directory_reads": sorted(audit.external_directories),
+              "audit_errors": sorted(set(audit.errors)),
+              "process_stream_descriptors": sorted(audit.stream_descriptors),
+              "subprocess_programs": sorted(set(audit.calls)), "exit_code": exit_code,
               "membership": facts}
+    audit.active = False
+    os.open = audit.original_open
     output = Path(args.output)
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(json.dumps(record, indent=2) + "\n")
     if args.discover:
-        return exit_code if expected and not collection_errors else 1
-    return 0 if exit_code == 0 and not collection_errors and facts["all_passed"] else 1
+        return exit_code if expected and not collection_errors and not audit.errors else 1
+    return 0 if exit_code == 0 and not collection_errors and not audit.errors and facts["all_passed"] else 1
 
 
 def main():

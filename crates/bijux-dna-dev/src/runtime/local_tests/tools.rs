@@ -100,10 +100,10 @@ pub(crate) fn bind_tools(workspace: &Workspace, names: &[String]) -> Result<Vec<
                 }
             }
         }
-        let system=super::native_libraries::bind_native_libraries(workspace,&path,&mut components)?;
-        version.push_str(&format!("; system {system}"));
+        let native_provider=super::native_libraries::bind_native_libraries(workspace,&path,&mut components)?;
+        version.push_str(&format!("; system {}", native_provider.system_build));
         components.sort_by(|left, right| left.path.cmp(&right.path));
-        Ok(ToolIdentity { name: name.clone(), path: path.display().to_string(), resolved_path:resolved.display().to_string(), sha256: bijux_dna_infra::hash_file_sha256(&path)?, version, components })
+        Ok(ToolIdentity { name: name.clone(), path: path.display().to_string(), resolved_path:resolved.display().to_string(), sha256: bijux_dna_infra::hash_file_sha256(&path)?, version, components, native_provider })
     }).collect()
 }
 
@@ -113,4 +113,12 @@ pub(crate) fn tool_path<'a>(tools: &'a [ToolIdentity], name: &str) -> Result<&'a
         .find(|tool| tool.name == name)
         .map(|tool| tool.path.as_str())
         .with_context(|| format!("bound tool missing: {name}"))
+}
+
+/// Re-admit the declared native loader context and absent weak providers.
+///
+/// # Errors
+/// Rejects changed system, seed, loader, provider or captured-absence identities.
+pub(crate) fn verify_native_binding(workspace: &Workspace, tool: &ToolIdentity) -> Result<()> {
+    super::native_libraries::verify_native_binding(workspace, tool)
 }

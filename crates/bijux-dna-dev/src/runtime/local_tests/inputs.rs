@@ -10,6 +10,8 @@ use crate::application::ci::local_tests::{
 };
 use crate::runtime::{process::ProcessRunner, workspace::Workspace};
 
+mod directory_membership;
+
 pub(crate) fn write_value(path: &Path, value: &impl serde::Serialize) -> Result<()> {
     if let Some(parent) = path.parent() {
         bijux_dna_infra::ensure_dir(parent)?;
@@ -116,6 +118,13 @@ pub(super) fn file_identity(path: &Path, name: String) -> Result<FileIdentity> {
     })
 }
 
+fn source_file_identity(root: &Path, name: String) -> Result<FileIdentity> {
+    directory_membership::source_name(&name)?;
+    let path = root.join(&name);
+    ensure!(path.canonicalize()? == path, "lane source input path redirected");
+    file_identity(&path, name)
+}
+
 fn tracked_files(workspace: &Workspace) -> Result<BTreeSet<String>> {
     let output = ProcessRunner::new(workspace).run(&["git", "ls-files", "-z"])?;
     ensure!(output.status.success(), "cannot discover tracked lane inputs");
@@ -178,7 +187,11 @@ pub(crate) fn lane_inputs(
     }
     let files = paths
         .into_iter()
-        .map(|name| file_identity(&workspace.root.join(&name), name))
+        .map(|name| source_file_identity(&workspace.root, name))
+        .collect::<Result<Vec<_>>>()?;
+    let directories = directory_membership::paths(&files, &tools)?
+        .into_iter()
+        .map(|name| directory_membership::identity(&workspace.root, name))
         .collect::<Result<Vec<_>>>()?;
     let environment = [
         "PATH",
@@ -214,6 +227,7 @@ pub(crate) fn lane_inputs(
         schema_version: INPUT_SCHEMA.into(),
         lane: lane.id.clone(),
         files,
+        directories,
         tools,
         environment,
         harness: lane.harness.clone(),
@@ -231,10 +245,40 @@ pub(crate) fn verify_source_reads(
     inputs: &LaneInputs,
     facts: &Value,
 ) -> Result<()> {
+    ensure!(
+        facts["audit_errors"].as_array().context("Python read ownership audit absent")?.is_empty(),
+        "Python read ownership audit failed: {}",
+        facts["audit_errors"]
+    );
     let admitted = inputs.files.iter().map(|file| file.path.as_str()).collect::<BTreeSet<_>>();
     for file in facts["source_reads"].as_array().context("Python source-read audit absent")? {
         let name = file.as_str().context("source read must be a path")?;
         ensure!(admitted.contains(name), "Python lane read an undeclared source input: {name}");
+    }
+    let admitted_directories =
+        inputs.directories.iter().map(|directory| directory.path.as_str()).collect::<BTreeSet<_>>();
+    for name in facts["source_directory_reads"]
+        .as_array()
+        .context("Python source directory audit absent")?
+    {
+        let name = name.as_str().context("source directory read must be a path")?;
+        if name != "." {
+            directory_membership::source_name(name)?;
+        }
+        ensure!(
+            admitted_directories.contains(name),
+            "Python lane enumerated an undeclared source directory: {name}"
+        );
+    }
+    for name in facts["external_directory_reads"]
+        .as_array()
+        .context("Python provider directory audit absent")?
+    {
+        let name = name.as_str().context("provider directory read must be a path")?;
+        ensure!(
+            Path::new(name).is_absolute() && admitted_directories.contains(name),
+            "Python lane enumerated an undeclared provider directory: {name}"
+        );
     }
     let external = inputs
         .tools
@@ -285,8 +329,23 @@ pub(crate) fn verify_inputs(root: &Path, inputs: &LaneInputs) -> Result<()> {
             "lane source path is not normalized relative input"
         );
         ensure!(
-            file_identity(&root.join(&file.path), file.path.clone())? == *file,
+            source_file_identity(root, file.path.clone())? == *file,
             "lane source inputs changed"
+        );
+    }
+    let expected_directories = directory_membership::paths(&inputs.files, &inputs.tools)?;
+    let supplied_directories =
+        inputs.directories.iter().map(|directory| directory.path.clone()).collect::<BTreeSet<_>>();
+    ensure!(
+        supplied_directories == expected_directories
+            && supplied_directories.len() == inputs.directories.len(),
+        "lane directory inputs are not the exact governed source/provider namespace"
+    );
+    for directory in &inputs.directories {
+        ensure!(
+            directory_membership::identity(root, directory.path.clone())? == *directory,
+            "lane directory membership or ownership changed: {}",
+            directory.path
         );
     }
     for tool in &inputs.tools {
@@ -304,6 +363,7 @@ pub(crate) fn verify_inputs(root: &Path, inputs: &LaneInputs) -> Result<()> {
                 "bound runtime component changed"
             );
         }
+        super::tools::verify_native_binding(&Workspace { root: root.to_owned() }, tool)?;
     }
     Ok(())
 }
@@ -403,23 +463,37 @@ mod tests {
         let alternate = root.join("alternate-interpreter");
         let alias = root.join("selected-interpreter");
         for path in [&original, &alternate] {
-            std::fs::write(path, b"#!/bin/sh\nexit 0\n")?;
+            std::fs::copy("/bin/sh", path)?;
             std::fs::set_permissions(path, std::fs::Permissions::from_mode(0o755))?;
         }
         symlink(&original, &alias)?;
         let physical = file_identity(&original, original.display().to_string())?;
+        let mut components = vec![physical.clone()];
+        let workspace = Workspace { root: root.clone() };
+        let native_provider = super::super::native_libraries::bind_native_libraries(
+            &workspace,
+            &original,
+            &mut components,
+        )?;
+        let tools = vec![ToolIdentity {
+            name: "sh".into(),
+            path: alias.display().to_string(),
+            resolved_path: original.display().to_string(),
+            sha256: physical.sha256.clone(),
+            version: "copied native shell".into(),
+            components,
+            native_provider,
+        }];
+        let directories = directory_membership::paths(&[], &tools)?
+            .into_iter()
+            .map(|name| directory_membership::identity(&root, name))
+            .collect::<Result<Vec<_>>>()?;
         let inputs = LaneInputs {
             schema_version: INPUT_SCHEMA.into(),
             lane: "python-ordinary".into(),
             files: vec![],
-            tools: vec![ToolIdentity {
-                name: "python".into(),
-                path: alias.display().to_string(),
-                resolved_path: original.display().to_string(),
-                sha256: physical.sha256.clone(),
-                version: "fixture executable".into(),
-                components: vec![physical],
-            }],
+            directories,
+            tools,
             environment: Default::default(),
             harness: "pytest".into(),
             selections: vec![],
@@ -475,6 +549,55 @@ mod tests {
     }
 
     #[test]
+    fn directory_admission_cannot_promote_child_bytes_or_hide_changed_membership() -> Result<()> {
+        let owner = tempfile::tempdir()?;
+        let root = owner.path().canonicalize()?;
+        std::fs::create_dir(root.join("governed"))?;
+        std::fs::write(root.join("governed/retained.txt"), b"retained")?;
+        std::fs::write(root.join("governed/undeclared.txt"), b"undeclared")?;
+        let files = vec![file_identity(
+            &root.join("governed/retained.txt"),
+            "governed/retained.txt".into(),
+        )?];
+        let directories = directory_membership::paths(&files, &[])?
+            .into_iter()
+            .map(|name| directory_membership::identity(&root, name))
+            .collect::<Result<Vec<_>>>()?;
+        let inputs = LaneInputs {
+            schema_version: INPUT_SCHEMA.into(),
+            lane: "python-workflow".into(),
+            files,
+            directories,
+            tools: vec![],
+            environment: Default::default(),
+            harness: "unittest".into(),
+            selections: vec![],
+            expected: vec![],
+            os: std::env::consts::OS.into(),
+            architecture: std::env::consts::ARCH.into(),
+            closure_qualified: true,
+        };
+        let facts = serde_json::json!({"source_reads":["governed/retained.txt"],
+            "source_directory_reads":["governed"],"external_reads":[],
+            "external_directory_reads":[],"audit_errors":[],"subprocess_programs":[]});
+        verify_inputs(&root, &inputs)?;
+        verify_source_reads(&root, &root.join("artifacts"), &inputs, &facts)?;
+        let mut undeclared = facts.clone();
+        undeclared["source_reads"] = serde_json::json!(["governed/undeclared.txt"]);
+        assert!(verify_source_reads(&root, &root.join("artifacts"), &inputs, &undeclared).is_err());
+        let mut foreign = facts.clone();
+        foreign["external_directory_reads"] = serde_json::json!(["/undeclared-provider"]);
+        assert!(verify_source_reads(&root, &root.join("artifacts"), &inputs, &foreign).is_err());
+        std::fs::write(root.join("governed/retained.txt"), b"changed")?;
+        assert!(verify_inputs(&root, &inputs).is_err());
+        std::fs::write(root.join("governed/retained.txt"), b"retained")?;
+        verify_inputs(&root, &inputs)?;
+        std::fs::write(root.join("governed/late.txt"), b"late")?;
+        assert!(verify_inputs(&root, &inputs).is_err());
+        Ok(())
+    }
+
+    #[test]
     fn source_reads_and_external_provider_callbacks_require_declared_inputs() -> Result<()> {
         let owner = tempfile::tempdir()?;
         let root = owner.path().canonicalize()?;
@@ -488,6 +611,7 @@ mod tests {
                 bytes: 1,
                 mode: 0,
             }],
+            directories: vec![directory_membership::identity(&root, ".".into())?],
             tools: vec![],
             environment: Default::default(),
             harness: "pytest".into(),
@@ -497,7 +621,7 @@ mod tests {
             architecture: "x86_64".into(),
             closure_qualified: false,
         };
-        let valid = serde_json::json!({"source_reads":["retained.py"],"external_reads":[],"subprocess_programs":[generated]});
+        let valid = serde_json::json!({"source_reads":["retained.py"],"source_directory_reads":["."],"external_reads":[],"external_directory_reads":[],"audit_errors":[],"subprocess_programs":[generated]});
         verify_source_reads(&root, &root.join("artifacts/lane"), &inputs, &valid)?;
         let mut undeclared = valid.clone();
         undeclared["source_reads"] = serde_json::json!(["uncaptured.py"]);
