@@ -35,7 +35,6 @@ Welcome to the Bijux Genomics documentation. Start with the overview and then di
 ## Policy checks
 - [CLI conventions and snapshot](cli/index.md)
 - `api_boundaries.rs`
-- `architecture_pointer_policy.rs`
 - `benchmark_dependency_policy.rs`
 - `boundary_enforcement.rs`
 - `cli_dependency_policy.rs`

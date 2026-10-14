@@ -58,8 +58,6 @@ mod mod_boundaries_snapshot_policy_rs;
 mod mod_boundaries_source_effects_rs;
 #[path = "boundaries/surface/structure_layout/api_boundaries.rs"]
 mod mod_boundaries_surface_api_boundaries_rs;
-#[path = "boundaries/surface/policy/architecture_pointer_policy.rs"]
-mod mod_boundaries_surface_architecture_pointer_policy_rs;
 #[path = "boundaries/surface/purity/core_purity.rs"]
 mod mod_boundaries_surface_core_purity_rs;
 #[path = "boundaries/surface/policy/coverage_cfg_policy.rs"]

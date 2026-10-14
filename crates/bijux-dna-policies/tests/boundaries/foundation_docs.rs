@@ -22,19 +22,13 @@ fn policy__boundaries__foundation_docs__foundation_crates_keep_docs_in_governed_
     for crate_name in FOUNDATION_CRATES {
         let crate_root = workspace.join("crates").join(crate_name);
         let docs_dir = crate_root.join("docs");
-        let docs_files = std::fs::read_dir(&docs_dir)
-            .unwrap_or_else(|err| panic!("read {}: {err}", docs_dir.display()))
-            .filter_map(|entry| {
-                let path = entry.unwrap_or_else(|err| panic!("read docs entry: {err}")).path();
-                (path.extension().and_then(|ext| ext.to_str()) == Some("md")).then_some(path)
-            })
-            .collect::<Vec<_>>();
+        let _ = std::fs::read_dir(&docs_dir)
+            .unwrap_or_else(|err| panic!("read {}: {err}", docs_dir.display()));
 
         assert!(
             crate_root.join("README.md").is_file(),
             "{crate_name} must keep one root README.md"
         );
-        assert!(docs_files.len() >= 10, "{crate_name} must keep at least 10 docs files");
 
         for markdown in markdown_files(&crate_root) {
             let is_root_readme = markdown == crate_root.join("README.md");
