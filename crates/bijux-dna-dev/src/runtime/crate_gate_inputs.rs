@@ -1,8 +1,6 @@
 //! Bind the crate gate's two proofs to finalized native inventory without changing producer inputs.
 
 use std::collections::BTreeMap;
-use std::fs::OpenOptions;
-use std::io::Write;
 use std::path::{Component, Path, PathBuf};
 
 use anyhow::{ensure, Context, Result};
@@ -424,9 +422,7 @@ fn fingerprint(path: &Path) -> Result<PhysicalInput> {
 fn publish_readonly(path: &Path, value: &impl Serialize) -> Result<PhysicalInput> {
     let mut bytes = serde_json::to_vec_pretty(value)?;
     bytes.push(b'\n');
-    let mut file = OpenOptions::new().write(true).create_new(true).open(path)?;
-    file.write_all(&bytes)?;
-    drop(file);
+    bijux_dna_infra::atomic_create_bytes(path, &bytes)?;
     let mut permissions = path.metadata()?.permissions();
     permissions.set_readonly(true);
     std::fs::set_permissions(path, permissions)?;

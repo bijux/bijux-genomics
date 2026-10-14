@@ -62,7 +62,7 @@ pub(crate) fn publish_native_metadata(path: &Path, bytes: &[u8]) -> Result<Metad
             path.symlink_metadata()?.is_file() && path.canonicalize()? == path,
             "native subset output owner is redirected"
         );
-        std::fs::remove_file(path)?;
+        bijux_dna_infra::remove_file(path)?;
     }
     bijux_dna_infra::write_bytes(path, bytes)?;
     let mut permissions = path.metadata()?.permissions();
