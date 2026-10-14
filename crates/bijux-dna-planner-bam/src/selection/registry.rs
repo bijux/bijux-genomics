@@ -102,7 +102,7 @@ fn is_repository_root(root: &Path) -> bool {
     root.join("Cargo.toml").is_file()
         && root.join("Cargo.lock").is_file()
         && root.join("crates/bijux-dna/Cargo.toml").is_file()
-        && root.join("configs").is_dir()
+        && bijux_dna_infra::configs_dir(root).is_dir()
 }
 
 fn validate_root(root: &Path) -> Result<PathBuf> {
