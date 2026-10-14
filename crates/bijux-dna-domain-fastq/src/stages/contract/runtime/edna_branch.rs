@@ -417,14 +417,17 @@ pub fn normalize_abundance(
         *sample_sums.entry(sample.clone()).or_insert(0.0) += *value;
     }
 
+    let scale_factor = params.scale_factor.unwrap_or(1.0);
+    let mut normalized_sums = BTreeMap::<String, f64>::new();
     let mut normalized_rows = Vec::<(String, String, f64)>::new();
     let mut zero_count = 0_u64;
     for (sample, feature, value) in &rows {
         let sum = sample_sums.get(sample).copied().unwrap_or(0.0);
-        let norm = if sum == 0.0 { 0.0 } else { value / sum };
+        let norm = if sum == 0.0 { 0.0 } else { (value * scale_factor) / sum };
         if norm == 0.0 {
             zero_count += 1;
         }
+        *normalized_sums.entry(sample.clone()).or_insert(0.0) += norm;
         normalized_rows.push((sample.clone(), feature.clone(), norm));
     }
 
@@ -462,7 +465,7 @@ pub fn normalize_abundance(
         } else {
             zero_count as f64 / normalized_rows.len() as f64
         },
-        per_sample_sums: sample_sums.into_iter().map(|(s, _)| (s, 1.0)).collect(),
+        per_sample_sums: normalized_sums.into_iter().collect(),
         runtime_s: None,
         memory_mb: None,
         raw_backend_report: None,
@@ -814,6 +817,99 @@ mod tests {
         assert!(chimera_fasta.contains("AAACCTACGGGTTTGACTACCC"));
         let uchime = std::fs::read_to_string(temp.path().join("uchime.tsv"))?;
         assert!(uchime.contains("amplicon_chimera_1\tyes"));
+        Ok(())
+    }
+
+    fn abundance_parameters() -> AbundanceNormalizationEffectiveParams {
+        AbundanceNormalizationEffectiveParams {
+            schema_version: "bijux.params.edna.v1".to_string(),
+            method: "relative_abundance".to_string(),
+            expected_columns: vec!["sample_id".into(), "feature_id".into(), "abundance".into()],
+            input_value_column: "abundance".to_string(),
+            normalized_value_column: "normalized_abundance".to_string(),
+            compositional_rule: "per_sample_sum_to_one".to_string(),
+            scale_factor: None,
+            report_artifact: "report_json".to_string(),
+        }
+    }
+
+    #[test]
+    fn normalize_abundance_honors_declared_counts_per_million_units() -> anyhow::Result<()> {
+        let temp = bijux_dna_infra::temp_dir("bijux-abundance-declared-scale")?;
+        let input = temp.path().join("input.tsv");
+        let output = temp.path().join("normalized.tsv");
+        let original = "sample_id\tfeature_id\tabundance\ns\tf1\t25\ns\tf2\t75\n";
+        std::fs::write(&input, original)?;
+        let mut params = abundance_parameters();
+        params.method = "counts_per_million".to_string();
+        params.normalized_value_column = "counts_per_million".to_string();
+        params.compositional_rule = "per_sample_sum_to_one_million".to_string();
+        params.scale_factor = Some(1_000_000.0);
+
+        let report = normalize_abundance(&input, &params, &output)?;
+        assert_eq!(
+            std::fs::read_to_string(&output)?,
+            "sample_id\tfeature_id\tcounts_per_million\ns\tf1\t250000.00000000\ns\tf2\t750000.00000000\n"
+        );
+        assert_eq!(report.per_sample_sums, vec![("s".to_string(), 1_000_000.0)]);
+        assert_eq!(report.method, params.method);
+        assert_eq!(report.normalized_value_column, params.normalized_value_column);
+        assert_eq!(report.compositional_rule, params.compositional_rule);
+        assert_eq!(report.scale_factor, params.scale_factor);
+        assert_eq!(report.table_rows, 2);
+        assert_eq!(report.sample_count, 1);
+        assert_eq!(report.feature_count, 2);
+        assert_eq!(report.tool_id, "bijux");
+        assert_eq!(std::fs::read_to_string(&input)?, original);
+        Ok(())
+    }
+
+    #[test]
+    fn normalize_abundance_relative_output_retains_order_and_eight_decimal_format(
+    ) -> anyhow::Result<()> {
+        let temp = bijux_dna_infra::temp_dir("bijux-abundance-relative-order")?;
+        let input = temp.path().join("input.tsv");
+        let output = temp.path().join("normalized.tsv");
+        let original =
+            "sample_id\tfeature_id\tabundance\nb\tf1\t25\na\tf1\t1\nb\tf2\t75\na\tf2\t3\n";
+        std::fs::write(&input, original)?;
+        let params = abundance_parameters();
+
+        let report = normalize_abundance(&input, &params, &output)?;
+        assert_eq!(
+            std::fs::read_to_string(&output)?,
+            "sample_id\tfeature_id\tnormalized_abundance\nb\tf1\t0.25000000\na\tf1\t0.25000000\nb\tf2\t0.75000000\na\tf2\t0.75000000\n"
+        );
+        assert_eq!(report.per_sample_sums, vec![("a".to_string(), 1.0), ("b".to_string(), 1.0)]);
+        assert_eq!(report.table_rows, 4);
+        assert_eq!(report.sample_count, 2);
+        assert_eq!(report.feature_count, 2);
+        assert_eq!(report.method, "relative_abundance");
+        assert_eq!(report.scale_factor, None);
+        assert_eq!(report.input_table, input.display().to_string());
+        assert_eq!(report.normalized_abundance_tsv, output.display().to_string());
+        assert_eq!(std::fs::read_to_string(&input)?, original);
+        Ok(())
+    }
+
+    #[test]
+    fn normalize_abundance_zero_total_reports_observed_zero_sum() -> anyhow::Result<()> {
+        let temp = bijux_dna_infra::temp_dir("bijux-abundance-zero-total")?;
+        let input = temp.path().join("input.tsv");
+        let output = temp.path().join("normalized.tsv");
+        let original = "sample_id\tfeature_id\tabundance\nz\tf1\t0\nz\tf2\t0\n";
+        std::fs::write(&input, original)?;
+
+        let report = normalize_abundance(&input, &abundance_parameters(), &output)?;
+        assert_eq!(
+            std::fs::read_to_string(&output)?,
+            "sample_id\tfeature_id\tnormalized_abundance\nz\tf1\t0.00000000\nz\tf2\t0.00000000\n"
+        );
+        assert_eq!(report.per_sample_sums, vec![("z".to_string(), 0.0)]);
+        assert_eq!(report.zero_fraction, 1.0);
+        assert_eq!(report.table_rows, 2);
+        assert_eq!(report.sample_count, 1);
+        assert_eq!(std::fs::read_to_string(&input)?, original);
         Ok(())
     }
 }
