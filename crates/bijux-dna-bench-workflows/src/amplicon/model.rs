@@ -94,6 +94,7 @@ pub struct AmpliconMicroPipelineRow {
 
 #[derive(Debug, Clone, Serialize)]
 // Keep independent artifact observations as separate wire fields.
+#[allow(clippy::struct_excessive_bools)]
 pub struct AmpliconMicroPipelineHandoff {
     pub handoff_id: String,
     pub source_stage_id: String,
@@ -240,6 +241,7 @@ pub(crate) struct NormalizeAbundanceStageEvidence {
 
 #[derive(Debug, Clone, Serialize)]
 // Keep independent artifact observations as separate wire fields.
+#[allow(clippy::struct_excessive_bools)]
 pub(crate) struct AmpliconOutputJudgmentEvidence {
     pub(crate) schema_version: &'static str,
     pub(crate) stage_id: String,

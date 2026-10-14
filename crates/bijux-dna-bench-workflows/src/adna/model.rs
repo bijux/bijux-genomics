@@ -76,6 +76,7 @@ pub struct AdnaMicroPipelineRow {
 
 #[derive(Debug, Clone, Serialize)]
 // Keep independent artifact observations as separate wire fields.
+#[allow(clippy::struct_excessive_bools)]
 pub struct AdnaMicroPipelineHandoff {
     pub handoff_id: String,
     pub source_stage_id: String,
