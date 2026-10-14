@@ -41,6 +41,8 @@ src/
     primer_normalization.rs deterministic native primer-prefix computation on record values
     primer_normalization/   scientific computation contracts without filesystem setup
     contract/             contract catalog, export helpers, and runtime policy
+    otu_clustering.rs     pure native representative membership and aligned abundances
+    otu_clustering/       order, threshold and record-retention contracts
     ports/                governed manifest ports and query helpers
     semantics/            semantic catalog and query helpers
   types/                  shared FASTQ domain value types
@@ -64,6 +66,12 @@ src/
   The module and shared record value are crate-private. The existing path-based
   `stages::contract::normalize_primers` operation retains acquisition, publication, and report
   projection; this separation does not relocate its filesystem effects.
+- `stages/otu_clustering` owns crate-private native local-smoke membership on
+  admitted FASTQ records. It preserves input-order representative selection, first-match
+  assignment, common-prefix identity and direct threshold comparison behavior. The
+  existing `stages::contract::cluster_otus` operation retains filesystem acquisition,
+  table/FASTA/FASTQ formatting, sequential publication and report projection. This
+  kernel does not execute vsearch or replace its scientific clustering algorithm.
 - `params/`, `metrics/`, and `invariants/` must stay aligned; changing one usually requires tests
   for the others.
 - `banks/` owns bank content, preset resolution, provenance, and deterministic hashes.

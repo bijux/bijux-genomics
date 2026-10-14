@@ -284,6 +284,8 @@ fn crate_tree_matches_domain_fastq_boundary() {
         "ids.rs",
         "mod.rs",
         "ports/",
+        "otu_clustering.rs",
+        "otu_clustering/",
         "primer_normalization.rs",
         "primer_normalization/",
         "semantics.rs",

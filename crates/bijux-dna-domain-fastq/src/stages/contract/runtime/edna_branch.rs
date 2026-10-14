@@ -17,6 +17,7 @@ use crate::params::edna::{
 use crate::params::PairedMode;
 
 use super::fastq_io::{read_fastq_records, write_fastq_records, FastqRecord};
+use crate::stages::otu_clustering::{cluster_otu_records, OtuClusters};
 use crate::stages::primer_normalization::{
     normalize_primer_records, validate_primer_read_counts, PrimerNormalizationRequest,
 };
@@ -294,15 +295,6 @@ pub fn infer_asvs(
     })
 }
 
-fn sequence_identity(a: &str, b: &str) -> f64 {
-    let min_len = a.len().min(b.len());
-    if min_len == 0 {
-        return 0.0;
-    }
-    let matches = a.chars().zip(b.chars()).take(min_len).filter(|(x, y)| x == y).count();
-    matches as f64 / min_len as f64
-}
-
 /// Cluster OTUs from reads at a configured identity threshold.
 ///
 /// # Errors
@@ -318,22 +310,7 @@ pub fn cluster_otus(
 ) -> Result<ClusterOtusReportV1> {
     let reads = read_fastq_records(input_reads)?;
 
-    let mut representatives = Vec::<String>::new();
-    let mut counts = Vec::<u64>::new();
-    for record in &reads {
-        let mut assigned = false;
-        for (idx, rep) in representatives.iter().enumerate() {
-            if sequence_identity(rep, &record.sequence) >= params.identity_threshold {
-                counts[idx] += 1;
-                assigned = true;
-                break;
-            }
-        }
-        if !assigned {
-            representatives.push(record.sequence.clone());
-            counts.push(1);
-        }
-    }
+    let OtuClusters { representatives, counts } = cluster_otu_records(&reads, params);
 
     let mut table = String::from("sample_id\tfeature_id\tabundance\n");
     let mut fasta = String::new();
@@ -817,6 +794,124 @@ mod tests {
         assert!(chimera_fasta.contains("AAACCTACGGGTTTGACTACCC"));
         let uchime = std::fs::read_to_string(temp.path().join("uchime.tsv"))?;
         assert!(uchime.contains("amplicon_chimera_1\tyes"));
+        Ok(())
+    }
+
+    fn otu_parameters() -> OtuClusteringEffectiveParams {
+        OtuClusteringEffectiveParams {
+            schema_version: "v1".to_string(),
+            identity_threshold: 2.0 / 3.0,
+            threads: 2,
+            output_table_kind: "otu_abundance_table".to_string(),
+            report_artifact: "cluster_otus_report".to_string(),
+            raw_backend_report_artifact: Some("declared-backend-report".to_string()),
+            raw_backend_report_format: Some("retained-backend-format".to_string()),
+        }
+    }
+
+    #[test]
+    fn otu_publication_preserves_exact_native_vectors_and_report_fields() -> anyhow::Result<()> {
+        let temp = bijux_dna_infra::temp_dir("bijux-otu-native-publication")?;
+        let input = temp.path().join("input.fastq");
+        write_fastq(&input, &[("a", "AAA", "!!!"), ("b", "AAT", "###"), ("c", "ATT", "$$$")])?;
+        let table = temp.path().join("table.tsv");
+        let representatives = temp.path().join("representatives.fasta");
+        let taxonomy_fasta = temp.path().join("taxonomy.fasta");
+        let taxonomy_fastq = temp.path().join("taxonomy.fastq");
+        let report_path = temp.path().join("report.json");
+        let original = std::fs::read(&input)?;
+        let params = otu_parameters();
+        let report = cluster_otus(
+            &input,
+            &params,
+            &table,
+            &representatives,
+            &taxonomy_fasta,
+            &taxonomy_fastq,
+            &report_path,
+        )?;
+        assert_eq!(
+            std::fs::read_to_string(&table)?,
+            "sample_id\tfeature_id\tabundance\nsample_1\tOTU00001\t2\nsample_1\tOTU00002\t1\n"
+        );
+        assert_eq!(std::fs::read_to_string(&representatives)?, ">OTU00001\nAAA\n>OTU00002\nATT\n");
+        assert_eq!(std::fs::read(&taxonomy_fasta)?, std::fs::read(&representatives)?);
+        assert_eq!(
+            std::fs::read_to_string(&taxonomy_fastq)?,
+            "@OTU00001\nAAA\n+\nIII\n@OTU00002\nATT\n+\nIII\n"
+        );
+        assert_eq!(
+            std::fs::read_to_string(&report_path)?,
+            "{\n  \"otu_count\": 2,\n  \"sample_count\": 1\n}"
+        );
+        assert_eq!(
+            serde_json::to_value(&report)?,
+            serde_json::json!({
+                "schema_version": "bijux.fastq.cluster_otus.report.v2",
+                "stage": "fastq.cluster_otus", "stage_id": "fastq.cluster_otus", "tool_id": "bijux",
+                "otu_identity": params.identity_threshold, "threads": 2,
+                "input_reads": input.display().to_string(), "otu_table": table.display().to_string(),
+                "otu_representatives": representatives.display().to_string(),
+                "taxonomy_ready_fasta": taxonomy_fasta.display().to_string(),
+                "taxonomy_ready_fastq": taxonomy_fastq.display().to_string(),
+                "report_json": report_path.display().to_string(),
+                "otu_count": 2, "sample_count": 1, "representative_sequence_count": 2,
+                "output_table_kind": "otu_abundance_table", "used_fallback": false,
+                "runtime_s": null, "memory_mb": null, "exit_code": 0,
+                "raw_backend_report": "declared-backend-report",
+                "raw_backend_report_format": "retained-backend-format",
+                "backend_metrics": {"cluster_memberships": 3}
+            })
+        );
+        assert_eq!(std::fs::read(&input)?, original);
+        Ok(())
+    }
+
+    #[test]
+    fn otu_acquisition_and_partial_publication_keep_existing_failure_order() -> anyhow::Result<()> {
+        let temp = bijux_dna_infra::temp_dir("bijux-otu-publication-order")?;
+        let input = temp.path().join("input.fastq");
+        let table = temp.path().join("table.tsv");
+        let representatives = temp.path().join("representatives.fasta");
+        let taxonomy_fasta = temp.path().join("taxonomy.fasta");
+        let taxonomy_fastq = temp.path().join("taxonomy.fastq");
+        let report_path = temp.path().join("report.json");
+        std::fs::create_dir(&taxonomy_fasta)?;
+        std::fs::write(&input, "invalid-header\nAAA\n+\nIII\n")?;
+        let error = cluster_otus(
+            &input,
+            &otu_parameters(),
+            &table,
+            &representatives,
+            &taxonomy_fasta,
+            &taxonomy_fastq,
+            &report_path,
+        )
+        .expect_err("FASTQ admission precedes every output");
+        assert_eq!(
+            error.to_string(),
+            format!("invalid FASTQ header at {} line 1", input.display())
+        );
+        assert!(!table.exists());
+        assert!(!representatives.exists());
+        write_fastq(&input, &[("a", "AAA", "III")])?;
+        assert!(cluster_otus(
+            &input,
+            &otu_parameters(),
+            &table,
+            &representatives,
+            &taxonomy_fasta,
+            &taxonomy_fastq,
+            &report_path
+        )
+        .is_err());
+        assert_eq!(
+            std::fs::read_to_string(&table)?,
+            "sample_id\tfeature_id\tabundance\nsample_1\tOTU00001\t1\n"
+        );
+        assert_eq!(std::fs::read_to_string(&representatives)?, ">OTU00001\nAAA\n");
+        assert!(!taxonomy_fastq.exists());
+        assert!(!report_path.exists());
         Ok(())
     }
 

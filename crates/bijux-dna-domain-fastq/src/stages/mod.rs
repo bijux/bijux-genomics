@@ -4,6 +4,7 @@
 pub mod abundance_normalization;
 pub mod contract;
 pub mod ids;
+pub(crate) mod otu_clustering;
 pub mod ports;
 pub(crate) mod primer_normalization;
 pub mod semantics;

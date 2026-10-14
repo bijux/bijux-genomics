@@ -75,3 +75,18 @@ These contracts preserve the API artifact-composition behavior. The existing
 `stages::contract::normalize_abundance` path operation retains its separate
 eight-decimal formatting and computation. Neither this ownership separation nor
 the local smoke envelope establishes scientific correctness or backend execution.
+
+
+## Native OTU Membership
+
+`stages::contract::cluster_otus` retains its seven-argument path interface and
+`ClusterOtusReportV1` schema. Its internal crate-private membership kernel accepts
+admitted FASTQ records and effective clustering parameters; only the identity
+threshold changes membership. Representatives retain first-observed input order,
+and the first matching representative receives each count. Threshold comparisons
+and prefix-identity arithmetic keep their existing direct-call behavior.
+
+The kernel owns no filesystem or backend execution. The path operation retains
+FASTQ acquisition, OTU IDs, output codecs, write/error order and report fields.
+Neither this separation nor a local smoke observation establishes vsearch execution
+or scientific correctness. No new public module, type or function is exported.
