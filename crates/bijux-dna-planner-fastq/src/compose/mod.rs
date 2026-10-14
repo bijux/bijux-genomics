@@ -459,9 +459,13 @@ where
                     &params,
                 )?;
                 let next_r1 = plan.io.outputs[0].path.clone();
-                let next_r2 = stage_r2
-                    .as_ref()
-                    .and_then(|_| plan.io.outputs.get(1).map(|artifact| artifact.path.clone()));
+                let next_r2 = stage_r2.as_ref().and_then(|_| {
+                    plan.io
+                        .outputs
+                        .iter()
+                        .find(|artifact| artifact.name.as_str() == "corrected_reads_r2")
+                        .map(|artifact| artifact.path.clone())
+                });
                 (plan, next_r1, next_r2, inherited.feature_table.clone())
             }
             stage if stage == STAGE_EXTRACT_UMIS.as_str() => {

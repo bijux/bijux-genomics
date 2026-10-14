@@ -255,7 +255,7 @@ pub fn plan_fastq_stage_binding_with_explicit_inputs(
     let synthetic_node_id = format!("{}.explicit_inputs", binding.stage_id);
     let mut explicit_stage_inputs = crate::compose::StageArtifactInputPolicy::new();
     explicit_stage_inputs.insert(
-        binding.stage_id.clone(),
+        PipelineSpec::stage_node_id(&binding.stage_id, binding.stage_instance_id.as_deref()),
         explicit_inputs
             .iter()
             .map(|input| crate::compose::StageArtifactInputBinding {

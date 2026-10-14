@@ -418,3 +418,173 @@ fn compose_rejects_single_end_input_for_paired_only_tool() -> anyhow::Result<()>
         .contains("does not admit SingleEnd inputs under the governed FASTQ layout contract"));
     Ok(())
 }
+
+#[test]
+fn correction_read_lineage_preserves_declared_mates_and_excludes_reports() -> anyhow::Result<()> {
+    for r2 in [None, Some(std::path::Path::new("raw_R2.fastq"))] {
+        let bindings = [
+            FastqStageBinding {
+                stage_id: "fastq.correct_errors".into(),
+                stage_instance_id: Some("fastq.correct_errors.corrected".into()),
+                tool: tool_for_stage("fastq.correct_errors"),
+                reason: None,
+                params: None,
+            },
+            FastqStageBinding {
+                stage_id: "fastq.validate_reads".into(),
+                stage_instance_id: Some("fastq.validate_reads.corrected".into()),
+                tool: tool_for_stage("fastq.validate_reads"),
+                reason: None,
+                params: None,
+            },
+        ];
+        let plans = compose_fastq_stage_bindings(
+            &bindings,
+            &BTreeMap::new(),
+            None,
+            None,
+            None,
+            false,
+            std::path::Path::new("raw_R1.fastq"),
+            r2,
+            None,
+            None,
+            |binding, _, _| Ok(std::path::PathBuf::from("out").join(&binding.stage_id)),
+        )?;
+        assert_eq!(plans.len(), 2);
+        let correction = &plans[0];
+        let validation = &plans[1];
+        for (input_id, output_id) in
+            [("reads_r1", "corrected_reads_r1"), ("reads_r2", "corrected_reads_r2")]
+        {
+            let output =
+                correction.io.outputs.iter().find(|artifact| artifact.name.as_str() == output_id);
+            let input =
+                validation.io.inputs.iter().find(|artifact| artifact.name.as_str() == input_id);
+            if input_id == "reads_r2" && r2.is_none() {
+                assert!(output.is_none());
+                assert!(input.is_none());
+            } else {
+                let output = output
+                    .ok_or_else(|| anyhow::anyhow!("correction output {output_id} missing"))?;
+                let input =
+                    input.ok_or_else(|| anyhow::anyhow!("validation input {input_id} missing"))?;
+                assert_eq!(
+                    input.path, output.path,
+                    "{input_id} must preserve its declared read artifact"
+                );
+            }
+        }
+        for report in
+            correction.io.outputs.iter().filter(|artifact| {
+                artifact.role == bijux_dna_core::prelude::ArtifactRole::ReportJson
+            })
+        {
+            assert!(
+                validation
+                    .io
+                    .inputs
+                    .iter()
+                    .filter(|artifact| matches!(artifact.name.as_str(), "reads_r1" | "reads_r2"))
+                    .all(|artifact| artifact.path != report.path),
+                "report artifact must never become a read mate"
+            );
+        }
+    }
+    Ok(())
+}
+
+fn explicitly_bound_validation(
+    instance: Option<&str>,
+    inputs: &[bijux_dna_planner_fastq::FastqStageExplicitInput],
+) -> anyhow::Result<bijux_dna_stage_contract::StagePlanV1> {
+    bijux_dna_planner_fastq::plan_fastq_stage_binding_with_explicit_inputs(
+        FastqStageBinding {
+            stage_id: "fastq.validate_reads".into(),
+            stage_instance_id: instance.map(str::to_owned),
+            tool: tool_for_stage("fastq.validate_reads"),
+            reason: None,
+            params: None,
+        },
+        &BTreeMap::new(),
+        None,
+        None,
+        None,
+        false,
+        std::path::Path::new("fallback.fastq"),
+        None,
+        None,
+        inputs,
+        std::path::Path::new("out"),
+    )
+}
+
+fn explicit_reads(
+    artifact: bijux_dna_core::prelude::ArtifactRef,
+) -> bijux_dna_planner_fastq::FastqStageExplicitInput {
+    bijux_dna_planner_fastq::FastqStageExplicitInput {
+        input_id: "reads_r1".into(),
+        artifact,
+        source_tool_id: Some("rcorrector".into()),
+    }
+}
+
+#[test]
+fn explicit_input_binding_selects_reads_for_both_stage_identity_forms() -> anyhow::Result<()> {
+    use bijux_dna_core::prelude::{ArtifactId, ArtifactRef, ArtifactRole};
+    for instance in [None, Some("fastq.validate_reads.selected")] {
+        let input = explicit_reads(ArtifactRef::required(
+            ArtifactId::from_static("corrected_reads_r1"),
+            "selected.fastq".into(),
+            ArtifactRole::Reads,
+        ));
+        let plan = explicitly_bound_validation(instance, &[input])?;
+        let observed = plan
+            .io
+            .inputs
+            .iter()
+            .find(|artifact| artifact.name.as_str() == "reads_r1")
+            .ok_or_else(|| anyhow::anyhow!("validation reads_r1 missing"))?;
+        assert_eq!(observed.path, std::path::Path::new("selected.fastq"));
+        assert_ne!(observed.path, std::path::Path::new("fallback.fastq"));
+        if let Some(instance) = instance {
+            assert_eq!(
+                plan.stage_instance_id.as_ref().map(bijux_dna_core::contract::StepId::as_str),
+                Some(instance)
+            );
+        }
+    }
+    Ok(())
+}
+
+#[test]
+fn explicit_input_binding_refuses_reports_and_duplicate_reads_for_both_stage_identity_forms(
+) -> anyhow::Result<()> {
+    use bijux_dna_core::prelude::{ArtifactId, ArtifactRef, ArtifactRole};
+    for instance in [None, Some("fastq.validate_reads.selected")] {
+        let report = explicit_reads(ArtifactRef::required(
+            ArtifactId::from_static("correction_report"),
+            "correction.json".into(),
+            ArtifactRole::ReportJson,
+        ));
+        let error = explicitly_bound_validation(instance, &[report])
+            .err()
+            .ok_or_else(|| anyhow::anyhow!("report artifact accepted as reads for {instance:?}"))?;
+        assert!(error.to_string().contains("has role report_json"), "{error}");
+        let left = explicit_reads(ArtifactRef::required(
+            ArtifactId::from_static("corrected_reads_left"),
+            "left.fastq".into(),
+            ArtifactRole::Reads,
+        ));
+        let right = explicit_reads(ArtifactRef::required(
+            ArtifactId::from_static("corrected_reads_right"),
+            "right.fastq".into(),
+            ArtifactRole::Reads,
+        ));
+        let error = explicitly_bound_validation(instance, &[left, right])
+            .err()
+            .ok_or_else(|| anyhow::anyhow!("duplicate singular reads accepted for {instance:?}"))?;
+        assert!(error.to_string().contains("multiple explicit artifact bindings"), "{error}");
+    }
+    Ok(())
+}

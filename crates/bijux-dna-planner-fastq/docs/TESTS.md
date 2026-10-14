@@ -22,6 +22,7 @@ Planner tests protect deterministic plan output, graph topology, command specs, 
 - `tests/contracts/explain/` — explain payload shape and docs anchors.
 - `tests/contracts/graph/` — graph topology snapshots.
 - `tests/contracts/plan/` — stage plan JSON, params, artifacts, graph policy, and purity.
+- `tests/contracts/plan/contract_handshake.rs` — strict plan validation, tool and parameter admission, artifact roles, paired correction read lineage, and explicit-input identity and cardinality.
 - `tests/contracts/preprocess_contract.rs` — preprocess policy handoff.
 - `tests/contracts/stage_instance_ids.rs` — stage instance identity.
 - `tests/contracts/tool_maturity.rs` — stage-tool maturity surface.
