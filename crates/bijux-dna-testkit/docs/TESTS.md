@@ -29,3 +29,8 @@ CARGO_TARGET_DIR=artifacts/cargo-target cargo check -p bijux-dna-testkit --no-de
 - `tests/schemas.rs` locks public API and snapshot normalization behavior.
 - `tests/guardrails.rs` runs the workspace guardrail policy.
 - `tests/snapshots/` stores public surface snapshots.
+
+The exact normal-dependency set check rejects every additional product or external
+dependency. It replaces the narrower duplicated forbidden-product roster; the
+independent dev-dependency set check remains. This retires one case in the existing
+boundary target without changing its supported dependency policy.
