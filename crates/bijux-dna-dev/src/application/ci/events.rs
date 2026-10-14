@@ -21,7 +21,10 @@ struct WireRecord {
 
 struct SuiteState {
     declared_count: usize,
+    // Lifetime membership is bounded by the inventory, while each frame has its own slots.
     started: BTreeMap<String, Option<bool>>,
+    started_in_frame: usize,
+    completed_in_frame: Vec<bool>,
     closed: bool,
 }
 
@@ -47,38 +50,48 @@ pub(super) fn admit_shard_events(
                                 .test_count
                                 .context("suite start has no test count")?,
                             started: BTreeMap::new(),
+                            started_in_frame: 0,
+                            completed_in_frame: Vec::new(),
                             closed: false,
                         };
                         ensure!(
                             state.declared_count <= facts.case_count,
                             "suite declares more cases than its inventory"
                         );
-                        if let Some(previous) = suites.get(&identity) {
-                            // Nextest 0.9.100 can close and reopen a suite when ignored tests run.
-                            // Reopened blocks never reset the global observed-case identities.
+                        if let Some(previous) = suites.get_mut(&identity) {
+                            // The pinned reporter decrements an ordinary-only running count for
+                            // ignored completions too. Its frame can close while a test is live;
+                            // a later frame contains that terminal event without another start.
                             ensure!(
                                 previous.closed
                                     && facts.ignored_count > 0
                                     && previous.declared_count == state.declared_count,
                                 "unexpected repeated suite start"
                             );
+                            previous.started_in_frame = 0;
+                            previous.completed_in_frame.clear();
+                            previous.closed = false;
+                        } else {
+                            suites.insert(identity, state);
                         }
-                        suites.insert(identity, state);
                     }
                     "ok" | "failed" => {
                         let state =
                             suites.get_mut(&identity).context("suite finished without starting")?;
                         ensure!(!state.closed, "suite finished more than once");
                         ensure!(
-                            state.started.len() <= state.declared_count
+                            state.started.len() <= facts.case_count
+                                && state.started_in_frame <= state.declared_count
+                                && state.completed_in_frame.len() <= state.declared_count
                                 && (facts.ignored_count > 0
-                                    || state.started.len() == state.declared_count)
-                                && state.started.values().all(Option::is_some),
+                                    || (state.started_in_frame == state.declared_count
+                                        && state.completed_in_frame.len() == state.declared_count
+                                        && state.started.values().all(Option::is_some))),
                             "suite closed with missing test events"
                         );
                         let passed =
-                            state.started.values().filter(|value| **value == Some(true)).count();
-                        let failed = state.started.len() - passed;
+                            state.completed_in_frame.iter().filter(|passed| **passed).count();
+                        let failed = state.completed_in_frame.len() - passed;
                         ensure!(
                             event.passed == Some(passed)
                                 && event.failed == Some(failed)
@@ -99,13 +112,28 @@ pub(super) fn admit_shard_events(
                 let name = event.name.context("test event has no name")?;
                 let (identity, suite) =
                     inventory.cases.get(&name).context("unexpected test identity")?;
+                let facts = inventory.suites.get(suite).context("unexpected suite identity")?;
                 let state = suites.get_mut(suite).context("test event has no started suite")?;
                 ensure!(!state.closed, "test event occurs after suite completion");
                 match event.event.as_str() {
-                    "started" => ensure!(
-                        state.started.insert(name, None).is_none(),
-                        "test started more than once"
-                    ),
+                    "started" => {
+                        ensure!(
+                            state.started.insert(name, None).is_none(),
+                            "test started more than once"
+                        );
+                        state.started_in_frame = state
+                            .started_in_frame
+                            .checked_add(1)
+                            .context("frame start count overflow")?;
+                        ensure!(
+                            state.started.len() <= facts.case_count,
+                            "suite lifetime starts exceed its inventory"
+                        );
+                        ensure!(
+                            state.started_in_frame <= state.declared_count,
+                            "frame starts exceed its declared count"
+                        );
+                    }
                     "ok" | "failed" => {
                         let result = state
                             .started
@@ -114,6 +142,11 @@ pub(super) fn admit_shard_events(
                         ensure!(result.is_none(), "test finished more than once");
                         let passed = event.event == "ok";
                         *result = Some(passed);
+                        state.completed_in_frame.push(passed);
+                        ensure!(
+                            state.completed_in_frame.len() <= state.declared_count,
+                            "frame completions exceed its declared count"
+                        );
                         ensure!(
                             observed.insert(identity.clone(), passed).is_none(),
                             "duplicate test result"
@@ -127,5 +160,12 @@ pub(super) fn admit_shard_events(
     }
     ensure!(!observed.is_empty(), "shard produced no observed test results");
     ensure!(suites.values().all(|suite| suite.closed), "shard has unfinished suites");
+    ensure!(
+        suites.values().all(|suite| suite.started.values().all(Option::is_some)),
+        "shard has unfinished test cases across reporter frames"
+    );
     Ok(observed)
 }
+
+#[cfg(test)]
+mod pinned_frames;

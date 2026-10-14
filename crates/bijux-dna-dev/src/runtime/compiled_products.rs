@@ -144,6 +144,8 @@ pub(crate) fn inventory_arguments(
         "full",
         "--message-format",
         "json",
+        "--run-ignored",
+        "all",
     ]
     .map(str::to_owned)
     .to_vec();

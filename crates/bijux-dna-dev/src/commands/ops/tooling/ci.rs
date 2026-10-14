@@ -3209,6 +3209,9 @@ mod tests {
             &storage.scratch_root.join("producer"),
         )?;
         assert!(native_inventory.iter().any(|arg| arg == "--cargo-metadata"));
+        assert!(native_inventory
+            .windows(2)
+            .any(|pair| pair[0] == "--run-ignored" && pair[1] == "all"));
         assert!(!native_inventory.iter().any(|arg| [
             "--archive-file",
             "--extract-to",
