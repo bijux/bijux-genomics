@@ -122,3 +122,11 @@ using the existing `bijux.crates.dependency_map.v1` schema, field names, orderin
 and caller-relative path rendering. This service owns report composition and
 publication; it does not implement cycle-admission policy. Cargo metadata retains
 its existing lockfile and dependency-resolution effects.
+
+## Image QA Compatibility Hook
+
+`v1::api::env::run_image_qa` retains a compatibility success result without
+loading a platform, probing tools, or publishing QA evidence. Its optional
+platform argument is not validated. A successful return does not certify an
+image or tool. Explicit QA execution and pass-record validation belong to
+`bijux-dna-containers-qa`; its `image_qa` binary is the image QA entrypoint.

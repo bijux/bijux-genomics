@@ -2452,3 +2452,16 @@ CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna --test contracts
 ```text
 CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna --test boundaries --no-default-features
 ```
+
+## Image QA Compatibility Command
+
+In debug builds, `bijux-dna image-qa` invokes the API compatibility hook and
+returns success without loading the selected platform, running probes, or
+publishing QA evidence. That success does not certify an image or tool. This
+command is hidden and its debug handler is absent in release builds.
+
+For explicit image QA, use the `image_qa` binary owned by
+`bijux-dna-containers-qa`, for example
+`cargo run -p bijux-dna-containers-qa --bin image_qa -- --platform <platform>`.
+This operation executes the QA owner's configured probes and may require its
+container runtime and datasets.

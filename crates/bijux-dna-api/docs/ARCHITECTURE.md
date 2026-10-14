@@ -43,8 +43,10 @@
   reject metadata resolved from another workspace. Crate-cycle policy remains in
   `bijux-dna-policies`; the CLI retains cycle-report and effect-audit entrypoints.
 - `src/support/` contains API-local support for benchmark runtime selection,
-  QA gates, reference resolution, tool selection, and workspace registry/root
-  resolution.
+  QA compatibility hooks, reference resolution, tool selection, and workspace
+  registry/root resolution. The compatibility hooks validate a nonempty stage
+  identity but do not enforce image or tool QA records. Explicit QA probes and
+  their persisted evidence belong to `bijux-dna-containers-qa`.
 - `src/internal/` contains private cross-domain and FASTQ handler wiring.
 
 ## Test Layout
