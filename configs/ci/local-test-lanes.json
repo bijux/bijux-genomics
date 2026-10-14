@@ -16,7 +16,8 @@
         "rustc",
         "cargo-nextest",
         "bcftools",
-        "rustdoc"
+        "rustdoc",
+        "mkfifo"
       ],
       "resource_units": 8
     },

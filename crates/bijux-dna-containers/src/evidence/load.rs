@@ -8,8 +8,8 @@ use super::inventory::ImageInventoryScan;
 use super::model::{
     ContainerDetachedImage, ContainerImageCandidate, ContainerImageInventoryPublication,
     ContainerImageInventorySummary, ContainerImageInventoryTool, ContainerImageState,
-    ContainerStagedImage, ImageInventoryPublicationIdentity, RuntimeVerificationPublication,
-    CONTAINER_IMAGE_INVENTORY_PUBLICATION_SCHEMA_V1,
+    ContainerStagedImage, EvidenceSourceIdentity, ImageInventoryPublicationIdentity,
+    RuntimeVerificationPublication, CONTAINER_IMAGE_INVENTORY_PUBLICATION_SCHEMA_V1,
     CONTAINER_IMAGE_INVENTORY_PUBLICATION_SCHEMA_V2,
     CONTAINER_IMAGE_INVENTORY_PUBLICATION_SCHEMA_V3,
 };
@@ -38,6 +38,31 @@ pub fn load_image_inventory_scan(path: &Path) -> Result<ImageInventoryScan> {
 /// # Errors
 /// Returns an error when the publication cannot be read, parsed, or admitted.
 pub fn load_image_inventory_publication(path: &Path) -> Result<ContainerImageInventoryPublication> {
+    Ok(load_image_inventory_source(path)?.0)
+}
+
+pub(super) struct ImageInventoryObservation {
+    pub(super) publication: ContainerImageInventoryPublication,
+    pub(super) source: EvidenceSourceIdentity,
+}
+
+pub(super) fn observe_image_inventory_publication(
+    path: &Path,
+) -> Result<ImageInventoryObservation> {
+    let (publication, raw) = load_image_inventory_source(path)?;
+    Ok(ImageInventoryObservation {
+        publication,
+        source: EvidenceSourceIdentity {
+            path: path.display().to_string(),
+            sha256: bijux_dna_infra::hash_bytes_sha256(raw.as_bytes()),
+        },
+    })
+}
+
+// Both projections share one source acquisition and the same legacy/schema admission order.
+fn load_image_inventory_source(
+    path: &Path,
+) -> Result<(ContainerImageInventoryPublication, String)> {
     let raw = fs::read_to_string(path)
         .with_context(|| format!("read image-inventory publication {}", path.display()))?;
     let schema_version = serde_json::from_str::<serde_json::Value>(&raw)
@@ -59,7 +84,7 @@ pub fn load_image_inventory_publication(path: &Path) -> Result<ContainerImageInv
     };
     validate_image_inventory_publication(&publication)
         .with_context(|| format!("validate image-inventory publication {}", path.display()))?;
-    Ok(publication)
+    Ok((publication, raw))
 }
 
 #[derive(Deserialize)]

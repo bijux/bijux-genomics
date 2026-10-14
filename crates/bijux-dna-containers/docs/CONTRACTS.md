@@ -173,3 +173,11 @@ for compatibility with archived run contracts and is derived from `ContainerCred
 - Empty tool names, image prefixes, architectures, versions, or digests return `EnvError::Image`.
 - Missing Dockerfile version ARGs return `EnvError::Dockerfile`.
 - Missing local config files surface as `EnvError::Io`.
+
+An image-storage preview binds its move decisions and `inventory.sha256` to the same acquired
+inventory bytes. The digest is the original publication identity, including legacy v1/v2 input
+formatting, rather than a reserialization of normalized v3 data. A pathname replacement after
+acquisition cannot substitute a different source digest into the preview. Later application
+rechecks the current inventory identity and refuses retained drift before changing the plan state
+or moving images. This observation does not lock the inventory or establish a simultaneous
+snapshot of its referenced images and other authorities.
