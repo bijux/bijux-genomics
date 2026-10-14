@@ -83,6 +83,7 @@ Welcome to the Bijux Genomics documentation. Start with the overview and then di
 - `readme_policy.rs`
 - `runner_tree_policy.rs`
 - `snapshot_policy.rs`
+- `source_admission.rs` — core-layering source authority and required-source refusal contracts.
 - `ssot_catalog_authority.rs`
 - `stage_specs_purity.rs`
 - `style_policy.rs`
