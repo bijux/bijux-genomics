@@ -9,7 +9,16 @@ fn workspace_root() -> PathBuf {
 
 fn allowed_test_command_arg(relative_path: &Path, arg: &str) -> bool {
     let normalized = arg.trim();
-    normalized.contains("env!(\"CARGO_BIN_EXE_")
+    let prebuilt = normalized
+        .strip_prefix("env!(\"CARGO_BIN_EXE_")
+        .and_then(|name| name.strip_suffix("\")"))
+        .is_some_and(|name| {
+            !name.is_empty()
+                && name.chars().all(|character| {
+                    character.is_ascii_alphanumeric() || matches!(character, '_' | '-')
+                })
+        });
+    prebuilt
         || normalized == "\"cargo\""
         || normalized == "\"bash\""
         || normalized == "\"git\""
@@ -18,26 +27,244 @@ fn allowed_test_command_arg(relative_path: &Path, arg: &str) -> bool {
 }
 
 fn owned_harness_command(relative_path: &Path, arg: &str) -> bool {
-    // These owners exercise checked-in cross-language entrypoints using local synthetic inputs.
-    // Grant the harness command at its exact source path, never to the entire crate.
+    // These owners exercise governed native and cross-language entrypoints with owned fixtures.
+    // Grant each constructor expression at its exact source path, never to the entire crate.
     match relative_path.to_str() {
         Some("crates/bijux-dna-science/tests/contracts/archive_sync.rs") => arg == "\"python3\"",
         Some("crates/bijux-dna-dev/tests/bootstrap.rs") => arg == "\"sh\"" || arg == "&binary",
         Some("crates/bijux-dna-process/tests/contracts.rs") => {
             matches!(arg, "\"sh\"" | "\"unavailable-capture-contract-executable\"")
         }
+        Some("crates/bijux-dna-testkit/tests/schemas/public_api_surface.rs") => {
+            matches!(arg, "std::env::current_exe()?" | "&executable")
+        }
+        Some(
+            "crates/bijux-dna-db-ref/tests/contracts/runtime_root.rs"
+            | "crates/bijux-dna-planner-bam/tests/contracts/plan/registry_root.rs",
+        ) => arg == "std::env::current_exe()?",
+        Some("crates/bijux-dna/tests/contracts/support/repository_sandbox/mod.rs") => {
+            arg == "executable"
+        }
         _ => false,
     }
 }
 
 fn content_spawns_forbidden_test_command(relative_path: &Path, content: &str) -> bool {
-    content.lines().any(|line| {
-        if !line.contains("Command::new(") {
-            return false;
+    let Some(tokens) = source_tokens(content) else { return true };
+    let mut index = 0;
+    while index + 2 < tokens.len() {
+        let constructor = ["Command", "::", "new"];
+        if tokens[index..index + 3]
+            .iter()
+            .zip(constructor)
+            .all(|(token, expected)| !token.literal && token.text == expected)
+        {
+            if tokens.get(index + 3).is_none_or(|token| token.literal || token.text != "(") {
+                return true;
+            }
+            let Some((argument, after)) = constructor_argument(&tokens, index + 3) else {
+                return true;
+            };
+            if !allowed_test_command_arg(relative_path, &argument) {
+                return true;
+            }
+            index = after;
+        } else {
+            index += 1;
         }
-        let arg = line.split("Command::new(").nth(1).and_then(|rest| rest.split(')').next());
-        arg.is_none_or(|arg| !allowed_test_command_arg(relative_path, arg))
-    })
+    }
+    false
+}
+
+struct SourceToken<'a> {
+    text: &'a str,
+    literal: bool,
+}
+
+fn quoted_end(bytes: &[u8], start: usize, quote: u8) -> Option<usize> {
+    let mut index = start + 1;
+    while index < bytes.len() {
+        if bytes[index] == b'\\' {
+            index += 2;
+        } else if bytes[index] == quote {
+            return Some(index + 1);
+        } else {
+            index += 1;
+        }
+    }
+    None
+}
+
+enum RawLiteralEnd {
+    NotRaw,
+    Closed(usize),
+    Unterminated,
+}
+
+fn raw_literal_end(bytes: &[u8], start: usize) -> RawLiteralEnd {
+    let mut quote = start + 1;
+    while bytes.get(quote) == Some(&b'#') {
+        quote += 1;
+    }
+    if bytes.get(quote) != Some(&b'"') {
+        return RawLiteralEnd::NotRaw;
+    }
+    let hashes = quote - start - 1;
+    let mut index = quote + 1;
+    while index < bytes.len() {
+        if bytes[index] == b'"'
+            && (0..hashes).all(|offset| bytes.get(index + 1 + offset) == Some(&b'#'))
+        {
+            return RawLiteralEnd::Closed(index + hashes + 1);
+        }
+        index += 1;
+    }
+    RawLiteralEnd::Unterminated
+}
+
+fn character_literal_end(content: &str, start: usize) -> Option<usize> {
+    let bytes = content.as_bytes();
+    let mut end = start + 1;
+    if bytes.get(end) == Some(&b'\\') {
+        end += 1;
+        match bytes.get(end)? {
+            b'x' => end += 3,
+            b'u' if bytes.get(end + 1) == Some(&b'{') => {
+                end += 2;
+                while bytes.get(end).is_some_and(|byte| byte.is_ascii_hexdigit() || *byte == b'_') {
+                    end += 1;
+                }
+                if bytes.get(end) != Some(&b'}') {
+                    return None;
+                }
+                end += 1;
+            }
+            _ => end += 1,
+        }
+    } else {
+        end += content.get(end..)?.chars().next()?.len_utf8();
+    }
+    (bytes.get(end) == Some(&b'\'')).then_some(end + 1)
+}
+
+// This bounded source scan preserves literal bytes and complete argument boundaries;
+// runtime resolver contracts remain responsible for executable provenance.
+fn source_tokens(content: &str) -> Option<Vec<SourceToken<'_>>> {
+    let bytes = content.as_bytes();
+    let mut tokens = Vec::new();
+    let mut index = 0;
+    while index < bytes.len() {
+        let start = index;
+        let character = content.get(index..)?.chars().next()?;
+        if character.is_whitespace() {
+            index += character.len_utf8();
+            continue;
+        }
+        if bytes.get(index..index + 2) == Some(b"//") {
+            while bytes.get(index).is_some_and(|byte| *byte != b'\n') {
+                index += 1;
+            }
+            continue;
+        }
+        if bytes.get(index..index + 2) == Some(b"/*") {
+            let mut depth = 1_usize;
+            index += 2;
+            while depth > 0 {
+                match bytes.get(index..index + 2)? {
+                    b"/*" => {
+                        depth = depth.checked_add(1)?;
+                        index += 2;
+                    }
+                    b"*/" => {
+                        depth -= 1;
+                        index += 2;
+                    }
+                    _ => index += 1,
+                }
+            }
+            continue;
+        }
+        let prefix = if matches!(bytes[index], b'b' | b'c') { index + 1 } else { index };
+        let raw = if bytes.get(prefix) == Some(&b'r') {
+            match raw_literal_end(bytes, prefix) {
+                RawLiteralEnd::NotRaw => None,
+                RawLiteralEnd::Closed(end) => Some(end),
+                RawLiteralEnd::Unterminated => return None,
+            }
+        } else {
+            None
+        };
+        let literal = raw.or_else(|| match bytes.get(prefix) {
+            Some(b'"') => quoted_end(bytes, prefix, b'"'),
+            Some(b'\'') => character_literal_end(content, prefix),
+            _ => None,
+        });
+        if let Some(end) = literal {
+            index = end;
+            tokens.push(SourceToken { text: content.get(start..end)?, literal: true });
+            continue;
+        }
+        if bytes[index] == b'"' || bytes.get(prefix) == Some(&b'"') {
+            return None;
+        }
+        if bytes.get(index..index + 2) == Some(b"::") {
+            index += 2;
+        } else if character.is_alphanumeric() || character == '_' {
+            index += character.len_utf8();
+            while let Some(character) = content.get(index..)?.chars().next() {
+                if !character.is_alphanumeric() && character != '_' {
+                    break;
+                }
+                index += character.len_utf8();
+            }
+        } else {
+            index += character.len_utf8();
+        }
+        tokens.push(SourceToken { text: content.get(start..index)?, literal: false });
+    }
+    Some(tokens)
+}
+
+fn constructor_argument(tokens: &[SourceToken<'_>], opening: usize) -> Option<(String, usize)> {
+    let mut delimiters = vec!["("];
+    let mut argument = String::new();
+    for (index, token) in tokens.iter().enumerate().skip(opening + 1) {
+        if !token.literal {
+            match token.text {
+                "(" | "[" | "{" => delimiters.push(token.text),
+                ")" | "]" | "}" => {
+                    let expected = match token.text {
+                        ")" => "(",
+                        "]" => "[",
+                        _ => "{",
+                    };
+                    if delimiters.pop()? != expected {
+                        return None;
+                    }
+                    if delimiters.is_empty() {
+                        return (!argument.is_empty()).then_some((argument, index + 1));
+                    }
+                }
+                "," if delimiters.len() == 1 => return None,
+                _ => {}
+            }
+        }
+        if !token.literal
+            && argument
+                .chars()
+                .last()
+                .is_some_and(|character| character.is_alphanumeric() || character == '_')
+            && token
+                .text
+                .chars()
+                .next()
+                .is_some_and(|character| character.is_alphanumeric() || character == '_')
+        {
+            argument.push(' ');
+        }
+        argument.push_str(token.text);
+    }
+    None
 }
 
 fn is_allowed_command_path(path: &Path) -> bool {
@@ -182,6 +409,93 @@ fn policy__contracts__command_spawn_policy__harness_commands_stay_with_their_exa
             &invocation
         ));
     }
+}
+
+#[test]
+fn policy__contracts__command_spawn_policy__native_harnesses_require_exact_complete_bindings() {
+    for (owner, expression) in [
+        (
+            "crates/bijux-dna-testkit/tests/schemas/public_api_surface.rs",
+            "std::env::current_exe()?",
+        ),
+        ("crates/bijux-dna-testkit/tests/schemas/public_api_surface.rs", "&executable"),
+        ("crates/bijux-dna-db-ref/tests/contracts/runtime_root.rs", "std::env::current_exe()?"),
+        (
+            "crates/bijux-dna-planner-bam/tests/contracts/plan/registry_root.rs",
+            "std::env::current_exe()?",
+        ),
+        ("crates/bijux-dna/tests/contracts/support/repository_sandbox/mod.rs", "executable"),
+    ] {
+        let invocation = format!("std::process::Command::new({expression}).output()?");
+        assert!(!content_spawns_forbidden_test_command(Path::new(owner), &invocation), "{owner}");
+        let adjacent = Path::new(owner).with_file_name("unrelated.rs");
+        assert!(content_spawns_forbidden_test_command(&adjacent, &invocation));
+        assert!(content_spawns_forbidden_test_command(
+            &Path::new("foreign-checkout").join(owner),
+            &invocation
+        ));
+        for command in ["curl", "rustc", "arbitrary-unbound-command"] {
+            assert!(content_spawns_forbidden_test_command(
+                Path::new(owner),
+                &format!("Command::new(\"{command}\")")
+            ));
+        }
+    }
+}
+
+#[test]
+fn policy__contracts__command_spawn_policy__constructor_literals_do_not_change_call_boundaries() {
+    let owner = Path::new("crates/bijux-dna-db-ref/tests/contracts/runtime_root.rs");
+    for source in [
+        "// Command::new(\"curl\")\nCommand::new(std::env::current_exe()?)",
+        "/* outer /* Command::new(\"curl\") */ nested */ Command::new(std::env::current_exe()?)",
+        r#"let quoted = "Command::new(\"curl\")"; Command::new(std::env::current_exe()?)"#,
+        r###"let raw = r##"Command::new("curl")"##; Command::new(std::env::current_exe()?)"###,
+        "let character = ')'; let byte = b'('; Command :: new(\nstd::env::current_exe(/* close ) */)?\n)",
+        "let character = '\\u{29}'; Command::new(std::env::current_exe()?)",
+        "let character = 'é';\u{200e}Command::new(std::env::current_exe()?)",
+    ] {
+        assert!(!content_spawns_forbidden_test_command(owner, source), "{source}");
+    }
+    for source in [
+        "Command::new(std::env::current_exe()?).output()?; Command::new(\"curl\")",
+        r###"Command::new(r##"std::env::current_exe()?)"##)"###,
+        "Command::new(\"cargo)\")",
+        "Command::new(b'(')",
+    ] {
+        assert!(content_spawns_forbidden_test_command(owner, source), "{source}");
+    }
+}
+
+#[test]
+fn policy__contracts__command_spawn_policy__redirected_or_malformed_constructor_arguments_refuse() {
+    let owner = Path::new("crates/bijux-dna-db-ref/tests/contracts/runtime_root.rs");
+    for source in [
+        "Command::new(std::env::current_exe()?.with_file_name(\"curl\"))",
+        "Command::new(std::env::current_exe().with_file_name(\"curl\")?)",
+        "Command::new(std::env::current_exe().unwrap())",
+        "Command::new(std::env::current_exe()?, \"curl\")",
+        "Command::new(std::env::current_exe()?,)",
+        "Command::new()",
+        "Command::new(std::env::current_exe()?",
+        "Command::new(std::env::current_exe(?))",
+        "Command::new({std::env::current_exe()?])",
+        "Command::new(\"unterminated)",
+        "Command::new(r##\"unterminated)",
+        "Command::new(std::env::current_exe()? /* unterminated)",
+        "Command::new::<&str>(\"curl\")",
+        "let constructor = Command::new; constructor(\"curl\")",
+        "Command::new(env!(\"CARGO_BIN_EXE_bijux-dna\").with_file_name(\"curl\"))",
+    ] {
+        assert!(content_spawns_forbidden_test_command(owner, source), "{source}");
+    }
+    let sandbox = Path::new("crates/bijux-dna/tests/contracts/support/repository_sandbox/mod.rs");
+    assert!(content_spawns_forbidden_test_command(sandbox, "Command::new(exe cutable)"));
+    assert!(content_spawns_forbidden_test_command(sandbox, "Command::new(executable, foreign)"));
+    assert!(!content_spawns_forbidden_test_command(
+        sandbox,
+        "Command::new(env!(\"CARGO_BIN_EXE_bijux-dna\"))"
+    ));
 }
 
 #[test]
