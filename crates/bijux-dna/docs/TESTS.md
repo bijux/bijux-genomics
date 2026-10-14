@@ -103,7 +103,13 @@ The scratch-layout publication suite retains one private manifest for schema/roo
 Shared guardrail parser regressions are owned and executed by the policy crate. This boundary suite retains its crate-specific architecture checks; it does not compile another crate's test source. Constructor-only guardrail wrappers provide no source-check coverage and are retired.
 
 Variant truth admission and expected/observed JSON/text output cases share the
-`fixtures_vcf` target, grouped by scientific truth family. Pipeline validation JSON
+`fixtures_vcf` target, grouped by scientific truth family. Its `vcf/mini` subtree
+also owns generation JSON and persisted-asset contracts in `generation_json.rs`
+and `generation_file.rs`. Both retain their original function names, CLI arguments
+and assertions under the `vcf::mini` namespace, using the executable's shared
+environment/cwd guard. Select these contracts with
+`cargo test -p bijux-dna --test fixtures_vcf fixtures_build_vcf_mini`; the
+`science-fixtures-fast` lane selects them through that same target. Pipeline validation JSON
 and file-publication cases share `plan_validate_pipelines`, grouped by declared pipeline.
 Both retain the repository-mutator nextest group and original per-command guards.
 These are command boundary contracts; scientific truth semantics remain owner-tested.
