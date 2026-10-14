@@ -28,7 +28,14 @@ planning.
 
 - Read-only TOML loading from repository-controlled `configs/runtime/*`,
   `configs/vcf/panels/*`, and `configs/vcf/maps/*`.
+- Reading the declared `BIJUX_REPO_ROOT` binding to select repository authority.
 - Deterministic in-memory transformations into typed contracts.
+
+An explicit repository must declare a Cargo workspace and the `bijux-dna`
+package. Empty or invalid bindings and absent selected catalogs fail without
+consulting the build checkout. Without a binding, a valid same-repository working
+location selects that repository; an external working location uses the validated
+repository default associated with the build.
 
 ## Forbidden Dependencies
 

@@ -7,7 +7,7 @@ use crate::{MapCatalogEntry, MapLockEntry};
 /// # Errors
 /// Returns an error if map resolution fails.
 pub fn resolve_map(species: &str, build: &str, map_id: Option<&str>) -> Result<MapCatalogEntry> {
-    let path = workspace_root().join("configs/vcf/maps/maps.toml");
+    let path = workspace_root()?.join("configs/vcf/maps/maps.toml");
     let cfg: MapsConfig = load_toml(&path)?;
     let mut candidates = cfg
         .map
@@ -43,7 +43,7 @@ fn validate_map_catalog(map: &MapCatalogEntry) -> Result<()> {
 /// Returns an error if map lock metadata is missing or malformed.
 pub fn resolve_map_lock(map: &MapCatalogEntry) -> Result<MapLockEntry> {
     let (lock_path, key) = crate::resolution::parse_lock_ref(&map.lock_ref)?;
-    let path = workspace_root().join("configs/vcf/maps").join(lock_path);
+    let path = workspace_root()?.join("configs/vcf/maps").join(lock_path);
     let cfg: MapLocksConfig = load_toml(&path)?;
     let entry = cfg
         .locks

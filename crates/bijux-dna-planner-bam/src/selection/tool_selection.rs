@@ -18,8 +18,15 @@ pub fn default_tool_for_stage(stage: BamStage) -> ToolId {
 
 #[must_use]
 pub fn canonical_tools_for_stage(stage: BamStage) -> Vec<ToolId> {
+    let Ok(registry) = tool_registry_toml() else {
+        return Vec::new();
+    };
+    canonical_tools_from_registry(stage, registry.as_ref())
+}
+
+fn canonical_tools_from_registry(stage: BamStage, registry: Option<&toml::Value>) -> Vec<ToolId> {
     let mut tools = domain_tools_for_stage(stage).into_iter().collect::<BTreeSet<_>>();
-    let Some(parsed) = tool_registry_toml() else {
+    let Some(parsed) = registry else {
         let mut tools = tools.into_iter().collect::<Vec<_>>();
         tools.sort_by(|a, b| a.as_str().cmp(b.as_str()));
         return tools;
@@ -65,14 +72,17 @@ pub fn canonical_tools_for_stage(stage: BamStage) -> Vec<ToolId> {
 
 #[must_use]
 pub fn default_tool(stage: BamStage) -> ToolId {
-    let allowed = canonical_tools_for_stage(stage);
+    let registry = tool_registry_toml().unwrap_or_else(|error| {
+        panic!("BAM tool registry admission failed: {error:#}");
+    });
+    let allowed = canonical_tools_from_registry(stage, registry.as_ref());
     if allowed.is_empty() {
         panic!(
             "no configured tool candidates for stage {}; planner must not silently fallback",
             stage.as_str()
         );
     }
-    if let Some(parsed) = tool_registry_toml() {
+    if let Some(parsed) = registry.as_ref() {
         if let Some(stages) = parsed.get("stages").and_then(toml::Value::as_array) {
             for stage_entry in stages {
                 let Some(id) = stage_entry.get("id").and_then(toml::Value::as_str) else {

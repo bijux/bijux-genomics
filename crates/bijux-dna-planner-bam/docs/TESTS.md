@@ -26,6 +26,10 @@ Planner tests protect deterministic plan output, graph topology, command specs, 
 - `tests/contracts/plan/params_complete.rs` — params coverage.
 - `tests/contracts/plan/contract_handshake.rs` — stage contract handoff.
 - `tests/contracts/plan/no_parsing_execution.rs` — planner purity.
+- `tests/contracts/plan/registry_root.rs` — private registry primary choice,
+  refreshed observations, explicit root admission, and missing, malformed, or
+  unreadable provider refusal. Independent child processes keep environment and
+  filesystem state private under repository artifacts.
 - `tests/contracts/explain/explainability.rs` — explain payload contract.
 
 ## Fixtures and Snapshots

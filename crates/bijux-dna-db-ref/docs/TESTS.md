@@ -5,6 +5,10 @@
 - `tests/boundaries.rs` locks the documented crate tree, docs placement,
   command inventory, public API docs, and dependency graph.
 - `tests/contracts.rs` exercises deterministic provider and resolution behavior.
+- `tests/contracts/runtime_root.rs` exercises private catalog and lock identities,
+  conflicting repository roots, invalid bindings, missing files, and unreadable
+  file shapes through independent child processes. Tests bind their writable
+  runtime directories under repository artifacts.
 - Unit tests under `src/resolution/` cover lock parsing, checksum validation,
   contig normalization, catalog file validation, and compatibility failures.
 

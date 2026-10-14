@@ -5,8 +5,20 @@
 ## Allowed
 - Pure plan construction.
 - Reading repository-owned tool registry configuration.
+- Reading an explicit `BIJUX_REPO_ROOT` binding to select validated Cargo workspace
+  and `bijux-dna` package authority. An invalid binding or missing or malformed
+  explicitly bound registry admits no candidates. Default selection refuses
+  those failures rather than consulting the build checkout.
 - Deterministic serialization and snapshot generation during tests.
 - Tracing plan graph metadata.
+
+Without a binding, a valid same-repository working location selects that
+repository; an external working location uses the validated repository default
+associated with the build. Each default selection uses one owned registry
+observation for both candidate admission and primary choice. Registry state is
+not cached across roots or operations. Without an explicit binding, an absent,
+unreadable, or unparsable optional registry retains canonical domain fallback.
+Explicit bindings always require readable, parseable registry authority.
 
 ## Forbidden
 - Process spawning.
