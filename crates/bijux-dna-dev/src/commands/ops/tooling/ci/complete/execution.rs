@@ -55,7 +55,11 @@ pub(super) fn input_manifest(
             .environment
             .insert("BIJUX_CI_FULL_WORKER_BUDGET".into(), lane.resource_units.to_string());
         for name in ["BIJUX_CI_FULL_SHARD_JOBS", "BIJUX_CI_FULL_SHARD_TEST_THREADS"] {
-            inputs.environment.insert(name.into(), std::env::var(name).unwrap_or_default());
+            let value = plan.environment.iter().find(|(key, _)| key == name).map_or_else(
+                || std::env::var(name).unwrap_or_default(),
+                |(_, value)| value.clone(),
+            );
+            inputs.environment.insert(name.into(), value);
         }
     }
     Ok(inputs)

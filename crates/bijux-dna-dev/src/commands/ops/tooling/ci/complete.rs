@@ -199,6 +199,19 @@ pub(in super::super::super) fn tooling_ci_test_complete(
                 ("RUSTC_WRAPPER".into(), String::new()),
                 ("CARGO_BUILD_JOBS".into(), "2".into()),
             ];
+            for (key, default) in
+                [("BIJUX_CI_FULL_SHARD_JOBS", "4"), ("BIJUX_CI_FULL_SHARD_TEST_THREADS", "2")]
+            {
+                let value = match std::env::var(key) {
+                    Ok(value) => value,
+                    Err(std::env::VarError::NotPresent) => default.into(),
+                    Err(error) => {
+                        return Err(error)
+                            .with_context(|| format!("read complete native worker control {key}"))
+                    }
+                };
+                environment.push((key.into(), value));
+            }
             for (key, name) in [
                 ("PYTHON", "python"),
                 ("BIJUX_GATE_TEST_BASH", "bash"),

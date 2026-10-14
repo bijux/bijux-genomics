@@ -25,7 +25,7 @@ use crate::application::ci::{
 };
 use crate::runtime::compilation_cache::CompilationCache;
 use crate::runtime::compiled_products::{
-    inventory_arguments, ExecutableSeal, LocalCompiledProducts,
+    discover_native_inventory, ExecutableSeal, LocalCompiledProducts,
 };
 use crate::runtime::owned_artifacts::{
     owned_children, remove_empty_owned_directory, remove_owned_tree as remove_full_shard_ephemera,
@@ -1047,6 +1047,8 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
             let execution_budget = full_execution::admit_budget(receipt, || {
                 full_execution::ExecutionBudget::resolve(selected_shards.len())
             })?;
+            full_execution::admit_native_transport(receipt, &execution_budget, local_products)?;
+            let native_worker_admission = receipt["native_worker_admission"].clone();
             let contract_sha256 = bijux_dna_infra::hash_file_sha256(&contract_path)?;
             let archive_roots = full_archive_roots(&storage, &contract)?;
             validate_full_archive_roots(&storage, &archive_roots)?;
@@ -1162,6 +1164,7 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
                 *receipt = serde_json::json!({
                     "schema_version": "bijux.ci.full_gate_timing.v4",
                     "execution_resources": execution_budget,
+                    "native_worker_admission": native_worker_admission,
                     "archive_build_jobs": contract.archive_build_jobs,
                 "state": "complete",
                 "source_commit": source_identity,
@@ -1204,14 +1207,8 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
             receipt["compiled_products"] =
                 serde_json::to_value(local_compiled.as_ref().map(|products| &products.receipt))?;
             let mut archive_seal = None;
-            let (reuse_inputs, compiled_target, inventory_args) = if let Some(products) =
-                &local_compiled
-            {
-                (
-                    None,
-                    compilation_cache.target().to_path_buf(),
-                    products.inventory_arguments(&archive_workspace)?,
-                )
+            let (reuse_inputs, compiled_target) = if local_compiled.is_some() {
+                (None, compilation_cache.target().to_path_buf())
             } else {
                 prepare_full_archive_extraction(&archive_roots.archive_extract)?;
                 let extraction_args = full_archive_extraction_args(&archive_roots);
@@ -1252,8 +1249,7 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
                 archive_seal = Some(seal);
                 let target = archive_roots.archive_extract.join("target");
                 let reuse = archive_reuse_inputs(&archive_roots.archive_extract)?;
-                let args = inventory_arguments(&reuse, &archive_workspace)?;
-                (Some(reuse), target, args)
+                (Some(reuse), target)
             };
             let reuse_inputs = local_compiled
                 .as_ref()
@@ -1266,25 +1262,17 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
                     &archive_workspace,
                     &full_archive_env(&archive_roots, contract.archive_build_jobs)?,
                     &report_root,
-                    contract.archive_build_jobs.min(5),
+                    execution_budget.worker_budget,
                 )?
             } else {
-                let inventory_spec = ParallelProcessSpec {
-                    label: "test-inventory".to_string(),
-                    program: "cargo".to_string(),
-                    args: inventory_args,
-                    envs: full_archive_env(&archive_roots, contract.archive_build_jobs)?,
-                    current_dir: Some(archive_workspace.clone()),
-                };
-                let mut inventory_outputs = ProcessRunner::new(workspace)
-                    .run_parallel_logged(vec![inventory_spec], &report_root)?;
-                let inventory_output =
-                    inventory_outputs.pop().context("test inventory was not collected")?;
-                anyhow::ensure!(
-                    inventory_output.output.status.success(),
-                    "full test inventory failed; see test-inventory.stderr.log"
-                );
-                (inventory_output.output.stdout, inventory_output.duration)
+                discover_native_inventory(
+                    workspace,
+                    &archive_workspace,
+                    reuse_inputs,
+                    &full_archive_env(&archive_roots, contract.archive_build_jobs)?,
+                    &report_root,
+                    execution_budget.worker_budget,
+                )?
             };
             let expected_inventory = ExpectedTestInventory::parse(&inventory_bytes)?;
             let executables = CompiledWorkspaceExecutables::parse(&inventory_bytes)?;
@@ -1297,7 +1285,8 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
                 "expected_case_count": expected_inventory.case_count(),
                 "expected_ignored_case_count": expected_inventory.ignored_case_count(),
                 "duration_milliseconds": inventory_duration.as_millis(),
-                "discovery_mode": if local_compiled.is_some() { "parallel_native_groups" } else { "archive_native_inventory" },
+                "discovery_mode": "bounded_native_binary_subsets",
+                "native_worker_budget": execution_budget.worker_budget,
                 "source_commit": source_identity,
                 "source_patch_sha256": source_patch_sha256,
                 "archive_sha256": archive_sha256,
@@ -1343,6 +1332,7 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
                     shards: &selected_shards,
                     roots: &shard_roots,
                     plans: &shard_plans,
+                    inventory: &expected_inventory,
                     snapshot: &source_snapshot,
                     scratch_root: &storage.scratch_root,
                     report_root: &report_root,
@@ -1387,7 +1377,7 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
             "workspace": workspace.rel(shard_workspace).to_string_lossy(),
             "environment_roots": environment_roots,
             "duration_milliseconds": completed.duration.as_millis(),
-            "duration_scope": "preparation_and_execution",
+            "duration_scope": "sum_of_terminally_sequenced_native_chunk_preparation_and_execution",
             "preparation_milliseconds": shard_preparation.get(&shard.id),
             "crate_gate_proof_inputs": shard_proof_inputs.get(&shard.id),
             "exit_code": exit_code,
@@ -1429,6 +1419,7 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
             *receipt = serde_json::json!({
                 "schema_version": "bijux.ci.full_gate_timing.v4",
                 "execution_resources": execution_budget,
+                    "native_worker_admission": native_worker_admission,
                 "archive_build_jobs": contract.archive_build_jobs,
                 "state": "complete",
                 "source_commit": source_identity,
@@ -3182,7 +3173,7 @@ mod tests {
         assert!(extraction
             .windows(2)
             .any(|pair| pair[0] == "--list-type" && pair[1] == "binaries-only"));
-        let native_inventory = super::inventory_arguments(
+        let native_inventory = crate::runtime::compiled_products::inventory_arguments(
             &super::archive_reuse_inputs(&archive.archive_extract)?,
             &storage.scratch_root.join("producer"),
         )?;

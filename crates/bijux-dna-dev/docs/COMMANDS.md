@@ -438,10 +438,12 @@ ci-install-tools
 ci-slow
 ci-test
 ci-test-all-sharded
+ci-test-complete
 ci-test-slow
 clean-docs
 config-inventory
 coverage-summary
+crate-gate-proofs
 crash-triage
 deprecate-vcf-knob
 deprecate-vcf-panel
@@ -468,6 +470,34 @@ scientific-caveat-propagation
 setup-docs-venv
 simulate-coverage-regime
 validate-frontend-mini-domain-stacks
+```
+
+`ci-test-complete` executes the declared local Rust, doctest, and Python lanes from admitted
+source and catalog inputs, records exact case membership and terminal outcomes, and publishes
+`artifacts/ci/local-test-gate.json`. Its CPU admission respects
+`BIJUX_CI_COMPLETE_WORKER_BUDGET`; `--resource-request <artifact-owned JSON>` supplies an explicit
+source/catalog-bound allocation for RAM, disk, IO, processes, and worker units. Invalid inputs
+replace stale successful aggregate evidence with a failed receipt. Unsupported or incomplete
+lanes cannot establish a complete-suite pass.
+
+```sh
+CARGO_TARGET_DIR=artifacts/target cargo run -p bijux-dna-dev --locked -- tooling run ci-test-complete -- --resource-request artifacts/ci/local-tests/resource-request.json
+```
+
+`crate-gate-proofs` is the machine protocol for the exact typed-artifact-handoff and VCF metric
+registry proofs. It requires `--request-stdin` and a `bijux.crates.proof_request.v1` JSON request
+containing the source root, admitted Cargo target directory, and selected proof. A request with
+`finalized_inputs` supplies the inventory and native executable paths with their SHA-256 digests;
+the source, package, suite, non-ignored case, executable identity, and exactly selected case must
+agree. Missing, duplicate, ignored, or foreign case bindings are refused. A finalized developer
+executable binding requires those inputs and refuses compilation fallback. An ordinary local
+invocation without finalized inputs may compile its selected proof through the developer-owned
+writer lease and locked Cargo dependency resolution. The response is a
+`bijux.crates.proof_result.v1` record with selected case identities, status, diagnostic, and exit
+code; only a passed exact proof returns success.
+
+```sh
+CARGO_TARGET_DIR=artifacts/target cargo run -p bijux-dna-dev --locked -- tooling run crate-gate-proofs -- --request-stdin < artifacts/ci/crate-gate/proof-request.json
 ```
 
 `ci-test-all-sharded` executes every shard in the checked-in coverage contract when no arguments

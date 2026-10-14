@@ -406,15 +406,14 @@ mod tests {
     }
 
     #[test]
-    fn compilation_requires_one_executable_from_the_owned_package() {
+    fn compilation_requires_one_executable_from_the_owned_package() -> Result<()> {
         let source = Path::new("/workspace");
         let proof = ProofId::TypedArtifactHandoff;
         let artifact = serde_json::json!({"reason":"compiler-artifact","profile":{"test":true},
             "target":{"name":"bijux_dna_api","src_path":"/workspace/crates/bijux-dna-api/src/lib.rs"},
             "executable":"/workspace/artifacts/native-api-tests"});
         assert_eq!(
-            compiled_executable(artifact.to_string().as_bytes(), source, proof)
-                .expect("owned target"),
+            compiled_executable(artifact.to_string().as_bytes(), source, proof)?,
             PathBuf::from("/workspace/artifacts/native-api-tests")
         );
         assert!(compiled_executable(
@@ -428,5 +427,6 @@ mod tests {
         let mut foreign = artifact;
         foreign["target"]["src_path"] = "/other/crates/bijux-dna-api/src/lib.rs".into();
         assert!(compiled_executable(foreign.to_string().as_bytes(), source, proof).is_err());
+        Ok(())
     }
 }

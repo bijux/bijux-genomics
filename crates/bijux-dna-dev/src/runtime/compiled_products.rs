@@ -6,14 +6,16 @@ use std::path::{Path, PathBuf};
 use anyhow::{ensure, Result};
 use serde_json::{json, Value};
 
-use crate::application::ci::{
-    admit_compiled_executable_paths, BinaryDiscoveryPlan, NextestReuseInputs,
-};
+use crate::application::ci::{admit_compiled_executable_paths, NextestReuseInputs};
 use crate::runtime::process::{ParallelProcessOutput, ParallelProcessSpec, ProcessRunner};
 use crate::runtime::workspace::Workspace;
 
 mod executable_seal;
+mod native_inventory;
 pub(crate) use executable_seal::ExecutableSeal;
+pub(crate) use native_inventory::{
+    discover_native_inventory, native_child_records, publish_native_metadata, MetadataInput,
+};
 
 pub(crate) struct LocalCompiledProducts {
     pub(crate) reuse: NextestReuseInputs,
@@ -102,65 +104,22 @@ impl LocalCompiledProducts {
         })
     }
 
-    pub(crate) fn inventory_arguments(&self, source: &Path) -> Result<Vec<String>> {
-        inventory_arguments(&self.reuse, source)
-    }
-
     pub(crate) fn discover_inventory(
         &self,
         workspace: &Workspace,
         source: &Path,
         envs: &[(String, String)],
         reports: &Path,
-        concurrency: usize,
+        native_worker_budget: usize,
     ) -> Result<(Vec<u8>, std::time::Duration)> {
-        let started = std::time::Instant::now();
-        let metadata = std::fs::read(reports.join("compiled-binaries.stdout.log"))?;
-        let plan = BinaryDiscoveryPlan::new(&metadata, concurrency)?;
-        let mut specs = Vec::with_capacity(plan.groups.len());
-        let mut metadata_inputs = BTreeMap::new();
-        for group in &plan.groups {
-            let path = reports.join(format!("{}.binaries.json", group.label));
-            bijux_dna_infra::write_bytes(&path, &group.metadata)?;
-            metadata_inputs
-                .insert(path.clone(), bijux_dna_infra::hash_bytes_sha256(&group.metadata));
-            let reuse = self.reuse.with_binaries_metadata(path)?;
-            let args = inventory_arguments(&reuse, source)?;
-            specs.push(ParallelProcessSpec {
-                label: group.label.clone(),
-                program: "cargo".to_owned(),
-                args,
-                envs: envs.to_vec(),
-                current_dir: Some(source.to_path_buf()),
-            });
-        }
-        let outputs = ProcessRunner::new(workspace).run_parallel_logged(specs, reports)?;
-        let observations = outputs.iter().map(producer_receipt).collect::<Vec<_>>();
-        let metadata_unchanged =
-            fingerprint_files(&metadata_inputs.keys().cloned().collect())? == metadata_inputs;
-        bijux_dna_infra::write_bytes(
-            reports.join("test-inventory-groups.receipt.json"),
-            &serde_json::to_vec_pretty(&json!({
-                "schema_version":"bijux.ci.parallel_test_discovery.v1",
-                "groups": observations,
-                "binary_metadata_sha256":metadata_inputs,
-                "binary_metadata_unchanged":metadata_unchanged,
-                "binary_selection":"disjoint_metadata",
-                "duration_milliseconds":started.elapsed().as_millis(),
-                "all_processes_passed":outputs.iter().all(|output| output.output.status.success()),
-            }))?,
-        )?;
-        ensure!(
-            outputs.iter().all(|output| output.output.status.success()),
-            "test inventory group failed; see test-inventory-group logs"
-        );
-        ensure!(metadata_unchanged, "discovery binary metadata changed during execution");
-        let merged = plan.merge(
-            outputs.iter().map(|output| (output.label.as_str(), output.output.stdout.as_slice())),
-        )?;
-        bijux_dna_infra::write_bytes(reports.join("test-inventory.stdout.log"), &merged)?;
-        bijux_dna_infra::write_bytes(reports.join("test-inventory.stderr.log"), b"")?;
-        Ok((merged, started.elapsed()))
+        discover_native_inventory(
+            workspace,
+            source,
+            &self.reuse,
+            envs,
+            reports,
+            native_worker_budget,
+        )
     }
 
     pub(crate) fn verify_unchanged(&mut self) -> bool {

@@ -31,6 +31,20 @@ src/
 ├── main.rs
 ├── model/
 └── runtime/
+    ├── compilation_cache.rs
+    ├── compiled_products.rs
+    ├── compiled_products/
+    ├── crate_gate_inputs.rs
+    ├── crate_gate_inputs/
+    ├── gate_receipt.rs
+    ├── local_tests/
+    ├── mod.rs
+    ├── owned_artifacts.rs
+    ├── process.rs
+    ├── process/
+    ├── source_snapshot.rs
+    ├── workspace.rs
+    └── workspace_root.rs
 ```
 
 Layer responsibilities:
@@ -40,6 +54,12 @@ Layer responsibilities:
 - `application/` coordinates catalogs, commands, and runtime adapters into stable workflows.
 - `catalog/` and `model/` define the durable command vocabulary and typed outcomes.
 - `runtime/` owns workspace discovery, artifact path admission, and process boundaries. Environment-selected output roots and declared CI destinations share the same workspace boundary checks.
+  `compiled_products/` admits native executable inventories and seals finalized products.
+  `crate_gate_inputs.rs` and its contracts capture immutable proof inputs, preserve producer
+  provenance, and publish exact source-bound consumer bindings. `local_tests/` owns physical
+  inputs, pinned tools, capacity observations, and typed resource requests. `process/` owns
+  dependency-aware launches, weighted admission, terminal collection, and process evidence.
+  `source_snapshot.rs` captures and materializes admitted tracked source snapshots.
 - `commands/` owns repository-scoped effects and enforcement logic. New side effects belong there behind typed catalog entries, not in `cli/` or `application/`.
 
 Command boundaries:

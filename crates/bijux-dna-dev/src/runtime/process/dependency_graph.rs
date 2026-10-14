@@ -400,15 +400,23 @@ mod tests {
                         let (ready, _) = signal
                             .1
                             .wait_timeout_while(
-                                signal.0.lock().unwrap(),
+                                signal.0.lock().map_err(|_| {
+                                    anyhow::anyhow!("scheduler test mutex was poisoned")
+                                })?,
                                 Duration::from_secs(10),
                                 |ready| !*ready,
                             )
-                            .unwrap();
+                            .map_err(|_| {
+                                anyhow::anyhow!("scheduler test condition mutex was poisoned")
+                            })?;
                         ensure!(*ready, "consumer failed to refill reserved slot");
                     } else if spec.label == "consumer" {
                         completed.store(true, Ordering::SeqCst);
-                        *signal.0.lock().unwrap() = true;
+                        *signal
+                            .0
+                            .lock()
+                            .map_err(|_| anyhow::anyhow!("scheduler test mutex was poisoned"))? =
+                            true;
                         signal.1.notify_all();
                     } else if spec.label == "fitting" {
                         ensure!(
@@ -478,9 +486,7 @@ mod tests {
                 }),
                 |spec| {
                     if spec.label == "failed" {
-                        if panicked {
-                            panic!("executor failure")
-                        };
+                        assert!(!panicked, "executor failure");
                         anyhow::bail!("launcher failure");
                     }
                     finished.store(true, Ordering::SeqCst);
@@ -557,14 +563,21 @@ mod tests {
                     let (ready, _) = signal
                         .1
                         .wait_timeout_while(
-                            signal.0.lock().unwrap(),
+                            signal.0.lock().map_err(|_| {
+                                anyhow::anyhow!("scheduler test mutex was poisoned")
+                            })?,
                             Duration::from_secs(10),
                             |value| !*value,
                         )
-                        .unwrap();
+                        .map_err(|_| {
+                            anyhow::anyhow!("scheduler test condition mutex was poisoned")
+                        })?;
                     ensure!(*ready, "fitting consumer waited for peer");
                 } else if spec.label == "consumer" {
-                    *signal.0.lock().unwrap() = true;
+                    *signal
+                        .0
+                        .lock()
+                        .map_err(|_| anyhow::anyhow!("scheduler test mutex was poisoned"))? = true;
                     signal.1.notify_all();
                 }
                 let result = output(true);
@@ -595,14 +608,21 @@ mod tests {
                     let (ready, _) = signal
                         .1
                         .wait_timeout_while(
-                            signal.0.lock().unwrap(),
+                            signal.0.lock().map_err(|_| {
+                                anyhow::anyhow!("scheduler test mutex was poisoned")
+                            })?,
                             Duration::from_secs(10),
                             |ready| !*ready,
                         )
-                        .unwrap();
+                        .map_err(|_| {
+                            anyhow::anyhow!("scheduler test condition mutex was poisoned")
+                        })?;
                     ensure!(*ready, "consumer waited for the independent peer batch barrier");
                 } else if spec.label == "consumer" {
-                    *signal.0.lock().unwrap() = true;
+                    *signal
+                        .0
+                        .lock()
+                        .map_err(|_| anyhow::anyhow!("scheduler test mutex was poisoned"))? = true;
                     signal.1.notify_all();
                 }
                 output(true)
@@ -629,7 +649,10 @@ mod tests {
             ],
             2,
             |spec| {
-                launched.lock().unwrap().push(spec.label.clone());
+                launched
+                    .lock()
+                    .map_err(|_| anyhow::anyhow!("scheduler test mutex was poisoned"))?
+                    .push(spec.label.clone());
                 output(spec.label != "failed")
             },
         )?;
@@ -639,7 +662,9 @@ mod tests {
         assert!(
             matches!(&outputs[2], DependencyProcessOutput::BlockedDependency { label } if label == "descendant")
         );
-        let mut launched = launched.into_inner().unwrap();
+        let mut launched = launched
+            .into_inner()
+            .map_err(|_| anyhow::anyhow!("scheduler test mutex was poisoned"))?;
         launched.sort();
         assert_eq!(launched, ["failed", "independent"]);
         Ok(())
@@ -667,36 +692,56 @@ mod tests {
             vec![spec("missing", &[]), spec("peer", &[]), spec("pending", &[])],
             2,
             |spec| {
-                launched.lock().unwrap().push(spec.label.clone());
+                launched
+                    .lock()
+                    .map_err(|_| anyhow::anyhow!("scheduler test mutex was poisoned"))?
+                    .push(spec.label.clone());
                 if spec.label == "missing" {
                     anyhow::bail!("executable missing");
                 }
                 let result = output(true);
-                completed.lock().unwrap().push(spec.label.clone());
+                completed
+                    .lock()
+                    .map_err(|_| anyhow::anyhow!("scheduler test mutex was poisoned"))?
+                    .push(spec.label.clone());
                 result
             },
         );
         assert!(result.is_err());
-        let mut launched = launched.into_inner().unwrap();
+        let mut launched = launched
+            .into_inner()
+            .map_err(|_| anyhow::anyhow!("scheduler test mutex was poisoned"))?;
         launched.sort();
         // A completed peer may release a slot before the launch error is observed.
         assert!(launched.contains(&"peer".to_string()));
         assert!(launched.contains(&"missing".to_string()));
-        assert!(completed.into_inner().unwrap().contains(&"peer".to_string()));
+        assert!(completed
+            .into_inner()
+            .map_err(|_| anyhow::anyhow!("scheduler test mutex was poisoned"))?
+            .contains(&"peer".to_string()));
         Ok(())
     }
 
     #[test]
-    fn panicked_executor_returns_an_error_after_draining_peers() {
+    fn panicked_executor_returns_an_error_after_draining_peers() -> Result<()> {
         let completed = Mutex::new(Vec::new());
         let result = collect(vec![spec("panicked", &[]), spec("peer", &[])], 2, |spec| {
             assert_ne!(spec.label, "panicked", "synthetic executor panic");
             let result = output(true);
-            completed.lock().unwrap().push(spec.label.clone());
+            completed
+                .lock()
+                .map_err(|_| anyhow::anyhow!("scheduler test mutex was poisoned"))?
+                .push(spec.label.clone());
             result
         });
         assert!(result.is_err());
-        assert_eq!(completed.into_inner().unwrap(), ["peer"]);
+        assert_eq!(
+            completed
+                .into_inner()
+                .map_err(|_| anyhow::anyhow!("scheduler test mutex was poisoned"))?,
+            ["peer"]
+        );
+        Ok(())
     }
 
     #[test]
@@ -716,12 +761,19 @@ mod tests {
             maximum.fetch_max(current, Ordering::SeqCst);
             if spec.label == "join" {
                 ensure!(
-                    completed.lock().unwrap().len() == 20,
+                    completed
+                        .lock()
+                        .map_err(|_| anyhow::anyhow!("scheduler test mutex was poisoned"))?
+                        .len()
+                        == 20,
                     "join started before all producers passed"
                 );
             }
             let result = output(true);
-            completed.lock().unwrap().insert(spec.label.clone());
+            completed
+                .lock()
+                .map_err(|_| anyhow::anyhow!("scheduler test mutex was poisoned"))?
+                .insert(spec.label.clone());
             active.fetch_sub(1, Ordering::SeqCst);
             result
         })?;

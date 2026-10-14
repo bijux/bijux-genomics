@@ -1,17 +1,15 @@
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
-use std::sync::Mutex;
-use std::time::Instant;
 
 use crate::runtime::crate_gate_inputs::CrateGateProofInputs;
 use crate::runtime::process::ParallelProcessOutput;
 
 use super::{
-    full_shard_args, full_shard_env, materialize_full_shard_workspace,
-    CompiledWorkspaceExecutables, Context, FullShard, FullShardRoots, NextestReuseInputs,
-    ParallelProcessSpec, ProcessRunner, Result, ShardDiscoveryPlan, TrackedSourceSnapshot,
-    Workspace,
+    CompiledWorkspaceExecutables, Context, FullShard, FullShardRoots, NextestReuseInputs, Result,
+    ShardDiscoveryPlan, TrackedSourceSnapshot, Workspace,
 };
+
+mod native_chunks;
 
 const WORKER_BUDGET_ENV: &str = "BIJUX_CI_FULL_WORKER_BUDGET";
 const SHARD_JOBS_ENV: &str = "BIJUX_CI_FULL_SHARD_JOBS";
@@ -102,6 +100,23 @@ pub(super) fn admit_budget(
     }
 }
 
+/// The pinned executor admits two native list children for each binary and hardware-wide zstd.
+pub(super) fn admit_native_transport(
+    receipt: &mut serde_json::Value,
+    budget: &ExecutionBudget,
+    local_products: bool,
+) -> Result<()> {
+    let compression_workers = if local_products { 0 } else { budget.detected_cpu_capacity };
+    let admitted = budget.worker_budget >= 2 && compression_workers <= budget.worker_budget;
+    receipt["native_worker_admission"] = serde_json::json!({
+        "state":if admitted {"admitted"} else {"blocked"}, "native_worker_budget":budget.worker_budget,
+        "minimum_listing_children_per_binary":2,"archive_compression_worker_demand":compression_workers,
+        "transport":if local_products {"local_metadata"} else {"archive"},"executor":"cargo-nextest0.9.100",
+        "scope":"native listing and declared case workers; parent runtimes/nested tools have no hard physical CPU/process cap"});
+    anyhow::ensure!(admitted,"pinned native discovery/compression exceeds allocation: budget {}, compression {}, minimum native listing 2",budget.worker_budget,compression_workers);
+    Ok(())
+}
+
 fn optional_environment(name: &str) -> Result<Option<String>> {
     match std::env::var(name) {
         Ok(value) => Ok(Some(value)),
@@ -129,6 +144,7 @@ pub(super) struct ShardInputs<'a> {
     pub shards: &'a [FullShard],
     pub roots: &'a [FullShardRoots],
     pub plans: &'a [ShardDiscoveryPlan],
+    pub inventory: &'a crate::application::ci::ExpectedTestInventory,
     pub snapshot: &'a TrackedSourceSnapshot,
     pub scratch_root: &'a Path,
     pub report_root: &'a Path,
@@ -149,92 +165,49 @@ pub(super) fn run_shards(
     inputs: ShardInputs<'_>,
     budget: &ExecutionBudget,
 ) -> Result<ShardExecution> {
-    anyhow::ensure!(
-        inputs.shards.len() == inputs.roots.len()
-            && inputs.shards.len() == inputs.plans.len()
-            && inputs.shards.len() == budget.selected_shards,
-        "full-shard execution inputs differ from admitted roster"
-    );
-    let labels = inputs.shards.iter().map(|shard| shard.id.clone()).collect::<Vec<_>>();
-    let indices = labels
-        .iter()
-        .enumerate()
-        .map(|(index, label)| (label.as_str(), index))
-        .collect::<BTreeMap<_, _>>();
-    let workspaces = labels
-        .iter()
-        .map(|label| inputs.scratch_root.join("workspaces").join(label))
-        .collect::<Vec<_>>();
-    let preparation = Mutex::new(BTreeMap::new());
-    let proof_handles = Mutex::new(BTreeMap::new());
-    let outputs = ProcessRunner::new(inputs.workspace).run_prepared_parallel_logged(
-        labels.clone(),
-        budget.process_jobs,
-        inputs.report_root,
-        |label| {
-            let index = indices[label];
-            let started = Instant::now();
-            let shard = &inputs.shards[index];
-            let workspace =
-                materialize_full_shard_workspace(inputs.snapshot, inputs.scratch_root, label)?;
-            anyhow::ensure!(
-                workspace == workspaces[index],
-                "full-shard materialization changed its admitted workspace"
-            );
-            let mut args =
-                full_shard_args(shard, inputs.reuse, &workspace, budget.test_threads_per_process)?;
-            args.extend(["--filterset".to_string(), inputs.plans[index].filterset.clone()]);
-            let mut envs = full_shard_env(&inputs.roots[index], &workspace)?;
-            envs.extend(inputs.executables.remapped_environment(inputs.compiled_target)?);
-            let published = inputs.crate_gate_inputs.publish_for_consumer(&workspace)?;
-            envs.push(published.environment()?);
-            proof_handles
-                .lock()
-                .map_err(|_| anyhow::anyhow!("crate proof publication receipt lock poisoned"))?
-                .insert(label.to_string(), published);
-            preparation
-                .lock()
-                .map_err(|_| anyhow::anyhow!("full-shard preparation receipt lock poisoned"))?
-                .insert(label.to_string(), super::duration_milliseconds(started.elapsed()));
-            Ok(ParallelProcessSpec {
-                label: label.to_string(),
-                program: "cargo".to_string(),
-                args,
-                envs,
-                current_dir: Some(workspace),
-            })
-        },
-    );
-    // Physical input verification also runs after a preparation/launch error.
-    let handles = proof_handles
-        .into_inner()
-        .map_err(|_| anyhow::anyhow!("crate proof publication receipt lock poisoned"))?;
-    let mut crate_gate_proof_inputs = BTreeMap::new();
-    let mut proof_failures = Vec::new();
-    for (label, published) in handles {
-        if let Err(error) = published.verify_unchanged() {
-            proof_failures.push(format!("{label}: {error:#}"));
-        }
-        crate_gate_proof_inputs.insert(label, published.provenance);
-    }
-    if let Err(error) = inputs.crate_gate_inputs.verify_unchanged() {
-        proof_failures.push(format!("producer: {error:#}"));
-    }
-    anyhow::ensure!(
-        proof_failures.is_empty(),
-        "crate proof physical inputs changed: {}",
-        proof_failures.join("; ")
-    );
-    let outputs = outputs?;
-    let preparation_milliseconds = preparation
-        .into_inner()
-        .map_err(|_| anyhow::anyhow!("full-shard preparation receipt lock poisoned"))?;
-    Ok(ShardExecution { workspaces, outputs, preparation_milliseconds, crate_gate_proof_inputs })
+    native_chunks::run_shards(inputs, budget)
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::time::Instant;
+
+    #[test]
+    fn pinned_archive_compression_and_minimum_native_listing_refuse_before_production() -> Result<()>
+    {
+        let budget = ExecutionBudget::admit(5, 10, Some("8"), Some("4"), Some("2"))?;
+        let mut receipt = serde_json::json!({"all_passed":false});
+        assert!(admit_native_transport(&mut receipt, &budget, false).is_err());
+        assert_eq!(receipt["native_worker_admission"]["archive_compression_worker_demand"], 10);
+        assert_eq!(receipt["native_worker_admission"]["state"], "blocked");
+        let owner = tempfile::tempdir()?;
+        let path = owner.path().join("transport-receipt.json");
+        std::fs::write(&path, serde_json::to_vec(&serde_json::json!({"all_passed":true}))?)?;
+        let mut producers = 0;
+        let refused = crate::runtime::gate_receipt::run_reported::<(), _>(
+            &path,
+            serde_json::json!({"all_passed":false}),
+            Instant::now(),
+            &mut producers,
+            |count, receipt| {
+                admit_native_transport(receipt, &budget, false)?;
+                *count += 1;
+                Ok(())
+            },
+            |_, _| Ok(()),
+        );
+        assert!(refused.is_err());
+        assert_eq!(producers, 0);
+        let terminal: serde_json::Value = serde_json::from_slice(&std::fs::read(path)?)?;
+        assert_eq!(terminal["all_passed"], false);
+        assert_eq!(terminal["native_worker_admission"]["state"], "blocked");
+        admit_native_transport(&mut receipt, &budget, true)?;
+        assert_eq!(receipt["native_worker_admission"]["state"], "admitted");
+        let minimum = ExecutionBudget::admit(5, 10, Some("1"), None, None)?;
+        assert!(admit_native_transport(&mut receipt, &minimum, true).is_err());
+        Ok(())
+    }
 
     #[test]
     fn hundreds_of_partitions_share_a_small_admitted_worker_allocation() -> Result<()> {

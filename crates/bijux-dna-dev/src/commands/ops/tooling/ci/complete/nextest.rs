@@ -21,7 +21,7 @@ pub(super) fn nextest_lane(
     let output = native_command(
         workspace,
         std::env::current_exe()?.to_str().context("developer executable path")?,
-        &["tooling".into(), "run".into(), "ci-test-all-sharded".into()],
+        &["tooling".into(), "run".into(), "ci-test-all-sharded".into(), "--local-products".into()],
         &environment,
         owner,
         "execution",

@@ -128,61 +128,57 @@ impl<'a> ProcessRunner<'a> {
         self.collect_parallel(specs, log_directory)
     }
 
-    /// Prepare and run independent logged children within the same bounded admission slots.
+    /// Prepare logged dependency children after weighted admission, retaining terminal edges.
     ///
-    /// Preparation starts only after admission. A completed child releases its slot immediately;
-    /// its duration includes preparation. Labels and capacity are admitted before any preparation.
-    /// Launch/preparation errors stop further admission and drain active peers, preserving logs.
+    /// The existing collector validates the graph and weights, refills on completion and drains
+    /// launched peers after preparation/launch errors or panics. Logs and child verdicts persist.
     ///
     /// # Errors
-    /// Returns an error for invalid labels/budget, preparation failure or child launch/collection.
-    pub fn run_prepared_parallel_logged<F>(
+    /// Returns an error for invalid labels/weights/dependencies, preparation, launch or log IO.
+    pub fn run_prepared_weighted_parallel_logged<F>(
         &self,
-        labels: Vec<String>,
+        specs: Vec<WeightedProcessSpec>,
         max_parallelism: usize,
+        resource_capacity: usize,
         log_directory: &Path,
         prepare: F,
     ) -> Result<Vec<ParallelProcessOutput>>
     where
-        F: Fn(&str) -> Result<ParallelProcessSpec> + Sync,
+        F: Fn(&ParallelProcessSpec) -> Result<ParallelProcessSpec> + Sync,
     {
         ensure!(max_parallelism > 0, "prepared process parallelism must be positive");
-        prepare_log_directory(labels.iter().map(String::as_str), log_directory)?;
-        let specs = labels
-            .into_iter()
-            .map(|label| DependentProcessSpec {
-                process: ParallelProcessSpec {
-                    label,
-                    program: String::new(),
-                    args: Vec::new(),
-                    envs: Vec::new(),
-                    current_dir: None,
-                },
-                dependencies: Vec::new(),
-            })
-            .collect();
-        dependency_graph::collect(specs, max_parallelism, |admitted| {
-            let spec = prepare(&admitted.label)?;
-            ensure!(
-                spec.label == admitted.label,
-                "prepared process changed its admitted log label"
-            );
-            let mut command = std::process::Command::new(&spec.program);
-            command
-                .args(&spec.args)
-                .envs(spec.envs.iter().map(|(key, value)| (key, value)))
-                .current_dir(spec.current_dir.as_ref().unwrap_or(&self.workspace.root));
-            run_with_logs(&mut command, log_directory, &spec.label)
-                .with_context(|| format!("run prepared process {}", spec.label))
-        })?
-        .into_iter()
-        .map(|output| match output {
+        ensure!(resource_capacity > 0, "weighted resource capacity must be positive");
+        prepare_log_directory(
+            specs.iter().map(|spec| spec.process.process.label.as_str()),
+            log_directory,
+        )?;
+        for spec in &specs {
+            let receipt = serde_json::json!({"schema_version":"bijux.ci.logged_weighted_child.v1","label":spec.process.process.label,"state":"not_started","terminal":false,"all_passed":false});
+            bijux_dna_infra::write_bytes(
+                log_directory.join(format!("{}.receipt.json", spec.process.process.label)),
+                &serde_json::to_vec_pretty(&receipt)?,
+            )?;
+        }
+        dependency_graph::collect_weighted(specs, max_parallelism, resource_capacity, |admitted| {
+            let preparing=serde_json::json!({"schema_version":"bijux.ci.logged_weighted_child.v1","label":admitted.label,"state":"preparing","terminal":false,"all_passed":false});
+            bijux_dna_infra::write_bytes(log_directory.join(format!("{}.receipt.json",admitted.label)),&serde_json::to_vec_pretty(&preparing)?)?;
+            let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| -> Result<Output> {
+                let spec = prepare(admitted)?;
+                ensure!(spec.label == admitted.label, "prepared weighted process changed admitted identity");
+                let mut command = std::process::Command::new(&spec.program);
+                command.args(&spec.args).envs(spec.envs.iter().map(|(key, value)| (key, value))).current_dir(spec.current_dir.as_ref().unwrap_or(&self.workspace.root));
+                run_with_logs(&mut command, log_directory, &spec.label)
+            })).unwrap_or_else(|_|Err(anyhow::anyhow!("prepared weighted process {} panicked",admitted.label)));
+            let receipt = serde_json::json!({"schema_version":"bijux.ci.logged_weighted_child.v1","label":admitted.label,
+                "terminal":true,"state":if result.is_ok() {"complete"} else {"error"},"exit_code":result.as_ref().ok().and_then(|output|output.status.code()),
+                "execution_error":result.as_ref().err().map(|error|format!("{error:#}")),
+                "all_passed":result.as_ref().is_ok_and(|output|output.status.success())});
+            bijux_dna_infra::write_bytes(log_directory.join(format!("{}.receipt.json", admitted.label)), &serde_json::to_vec_pretty(&receipt)?)?;
+            result
+        })?.into_iter().map(|result| match result {
             DependencyProcessOutput::Completed(output) => Ok(output),
-            DependencyProcessOutput::BlockedDependency { label } => {
-                anyhow::bail!("independent prepared process {label} was blocked")
-            }
-        })
-        .collect()
+            DependencyProcessOutput::BlockedDependency { label } => anyhow::bail!("weighted logged process {label} was blocked"),
+        }).collect()
     }
 
     /// Run a dependency graph with a bounded number of active children.
@@ -381,6 +377,67 @@ mod tests {
     use crate::runtime::workspace::Workspace;
 
     #[test]
+    fn prepared_weighted_logs_preserve_terminal_failure_and_drain_preparation_error(
+    ) -> anyhow::Result<()> {
+        use super::WeightedProcessSpec;
+        let owner = tempfile::tempdir()?;
+        let workspace = Workspace { root: owner.path().canonicalize()? };
+        let directory = workspace.path("artifacts/native-children");
+        let specs = [("failed", 2, Vec::new()), ("terminal", 2, vec!["failed".into()])]
+            .into_iter()
+            .map(|(label, resource_units, terminal_dependencies)| WeightedProcessSpec {
+                process: DependentProcessSpec {
+                    process: shell_spec(
+                        label,
+                        if label == "failed" { "exit 7" } else { "printf terminal" },
+                    ),
+                    dependencies: vec![],
+                },
+                resource_units,
+                terminal_dependencies,
+            })
+            .collect();
+        let outputs = ProcessRunner::new(&workspace).run_prepared_weighted_parallel_logged(
+            specs,
+            2,
+            2,
+            &directory,
+            |spec| Ok(spec.clone()),
+        )?;
+        assert!(!outputs[0].output.status.success());
+        assert_eq!(outputs[1].output.stdout, b"terminal");
+        assert!(directory.join("terminal.receipt.json").is_file());
+        let specs = ["preparation-error", "peer"]
+            .into_iter()
+            .map(|label| WeightedProcessSpec {
+                process: DependentProcessSpec {
+                    process: shell_spec(label, "printf drained"),
+                    dependencies: vec![],
+                },
+                resource_units: 2,
+                terminal_dependencies: vec![],
+            })
+            .collect();
+        assert!(ProcessRunner::new(&workspace)
+            .run_prepared_weighted_parallel_logged(specs, 2, 4, &directory, |spec| {
+                if spec.label == "preparation-error" {
+                    anyhow::bail!("native subset preparation error");
+                }
+                Ok(spec.clone())
+            })
+            .is_err());
+        assert_eq!(std::fs::read(directory.join("peer.stdout.log"))?, b"drained");
+        let terminal: serde_json::Value = serde_json::from_slice(&std::fs::read(
+            directory.join("preparation-error.receipt.json"),
+        )?)?;
+        assert_eq!(terminal["all_passed"], false);
+        assert!(terminal["execution_error"]
+            .as_str()
+            .is_some_and(|message| message.contains("preparation error")));
+        Ok(())
+    }
+
+    #[test]
     fn parallel_runner_collects_every_child_in_declaration_order() -> anyhow::Result<()> {
         let root = tempfile::tempdir()?;
         let workspace = Workspace { root: root.path().to_path_buf() };
@@ -454,6 +511,20 @@ mod tests {
         }
     }
 
+    fn unit_weighted_specs(labels: &[&str]) -> Vec<super::WeightedProcessSpec> {
+        labels
+            .iter()
+            .map(|label| super::WeightedProcessSpec {
+                process: DependentProcessSpec {
+                    process: shell_spec(label, ""),
+                    dependencies: Vec::new(),
+                },
+                resource_units: 1,
+                terminal_dependencies: Vec::new(),
+            })
+            .collect()
+    }
+
     #[test]
     fn prepared_logged_children_refill_slots_without_waiting_for_peer_preparation(
     ) -> anyhow::Result<()> {
@@ -463,23 +534,32 @@ mod tests {
         let workspace = Workspace { root: root.path().to_path_buf() };
         let logs = workspace.root.join("artifacts/logs");
         let signal = (Mutex::new(false), Condvar::new());
-        let outputs = ProcessRunner::new(&workspace).run_prepared_parallel_logged(
-            ["first", "peer", "consumer"].into_iter().map(String::from).collect(),
+        let outputs = ProcessRunner::new(&workspace).run_prepared_weighted_parallel_logged(
+            unit_weighted_specs(&["first", "peer", "consumer"]),
+            2,
             2,
             &logs,
-            |label| {
+            |spec| {
+                let label = spec.label.as_str();
                 if label == "peer" {
                     let (ready, _) = signal
                         .1
                         .wait_timeout_while(
-                            signal.0.lock().unwrap(),
+                            signal.0.lock().map_err(|_| {
+                                anyhow::anyhow!("scheduler test mutex was poisoned")
+                            })?,
                             Duration::from_secs(10),
                             |ready| !*ready,
                         )
-                        .unwrap();
+                        .map_err(|_| {
+                            anyhow::anyhow!("scheduler test condition mutex was poisoned")
+                        })?;
                     anyhow::ensure!(*ready, "prepared consumer waited for an independent peer");
                 } else if label == "consumer" {
-                    *signal.0.lock().unwrap() = true;
+                    *signal
+                        .0
+                        .lock()
+                        .map_err(|_| anyhow::anyhow!("scheduler test mutex was poisoned"))? = true;
                     signal.1.notify_all();
                 }
                 Ok(shell_spec(label, &format!("printf '%s' {label}")))
@@ -508,8 +588,9 @@ mod tests {
             [(vec!["same", "same"], 2), (vec!["../escaped"], 1), (vec!["valid"], 0)]
         {
             assert!(ProcessRunner::new(&workspace)
-                .run_prepared_parallel_logged(
-                    labels.into_iter().map(String::from).collect(),
+                .run_prepared_weighted_parallel_logged(
+                    unit_weighted_specs(&labels),
+                    capacity,
                     capacity,
                     &logs,
                     |_| panic!("invalid prepared admission ran"),
@@ -526,11 +607,13 @@ mod tests {
         let workspace = Workspace { root: root.path().to_path_buf() };
         for panic in [false, true] {
             let logs = workspace.root.join(format!("artifacts/logs-{panic}"));
-            let result = ProcessRunner::new(&workspace).run_prepared_parallel_logged(
-                vec!["failed".into(), "peer".into()],
+            let result = ProcessRunner::new(&workspace).run_prepared_weighted_parallel_logged(
+                unit_weighted_specs(&["failed", "peer"]),
+                2,
                 2,
                 &logs,
-                |label| {
+                |spec| {
+                    let label = spec.label.as_str();
                     if label == "failed" {
                         assert!(!panic, "synthetic preparation panic");
                         anyhow::bail!("synthetic preparation error");

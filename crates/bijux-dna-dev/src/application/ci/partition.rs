@@ -18,6 +18,10 @@ pub(crate) struct ShardDiscoveryPlan {
 }
 
 impl ShardDiscoveryPlan {
+    pub(crate) fn selected_binary_ids(&self) -> BTreeSet<String> {
+        self.expected.iter().map(|case| case.binary_id.clone()).collect()
+    }
+
     pub(crate) fn from_inventory(
         inventory: &ExpectedTestInventory,
         partition: &str,

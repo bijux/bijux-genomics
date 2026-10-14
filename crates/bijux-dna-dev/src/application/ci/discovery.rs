@@ -1,5 +1,6 @@
 //! Complete binary discovery partitions and admission of their native inventories.
 use std::collections::{BTreeMap, BTreeSet};
+use std::path::{Component, Path};
 
 use anyhow::{ensure, Context, Result};
 use serde_json::{json, Value};
@@ -14,16 +15,45 @@ pub(crate) struct BinaryDiscoveryPlan {
 pub(crate) struct BinaryDiscoveryGroup {
     pub(crate) label: String,
     pub(crate) metadata: Vec<u8>,
-    binaries: BTreeSet<String>,
+    pub(crate) binaries: BTreeSet<String>,
+}
+
+impl BinaryDiscoveryGroup {
+    pub(crate) fn worker_demand(
+        &self,
+        case_threads: usize,
+        native_worker_budget: usize,
+    ) -> Result<usize> {
+        let demand = self
+            .binaries
+            .len()
+            .checked_mul(2)
+            .context("native listing worker demand overflow")?
+            .max(case_threads);
+        ensure!(
+            !self.binaries.is_empty() && demand <= native_worker_budget,
+            "native listing/case demand exceeds allocation"
+        );
+        Ok(demand)
+    }
 }
 
 impl BinaryDiscoveryPlan {
-    pub(crate) fn new(bytes: &[u8], concurrency: usize) -> Result<Self> {
+    pub(crate) fn new(bytes: &[u8], native_worker_budget: usize) -> Result<Self> {
+        Self::selected(bytes, None, native_worker_budget)
+    }
+
+    /// Select whole binaries, keeping ignored and ordinary discovery in the same identity.
+    pub(crate) fn selected(
+        bytes: &[u8],
+        selected: Option<&BTreeSet<String>>,
+        native_worker_budget: usize,
+    ) -> Result<Self> {
         ensure!(
-            (1..=5).contains(&concurrency),
-            "discovery concurrency must be between one and five"
+            native_worker_budget >= 2,
+            "pinned native discovery requires two worker slots per binary"
         );
-        let metadata: Value =
+        let mut metadata: Value =
             serde_json::from_slice(bytes).context("parse compiled binary metadata")?;
         let binaries =
             metadata["rust-binaries"].as_object().context("compiled binary map is absent")?;
@@ -35,28 +65,79 @@ impl BinaryDiscoveryPlan {
                 "compiled binary identity disagrees with map key"
             );
         }
-        let mut selections = vec![BTreeSet::new(); concurrency.min(binaries.len())];
-        let count = selections.len();
-        for (index, id) in binaries.keys().enumerate() {
-            selections[index % count].insert(id.clone());
+        if let Some(selected) = selected {
+            ensure!(
+                !selected.is_empty() && selected.iter().all(|id| binaries.contains_key(id)),
+                "selected native binary universe is empty or absent from producer"
+            );
+            metadata["rust-binaries"]
+                .as_object_mut()
+                .context("compiled binary map is absent")?
+                .retain(|id, _| selected.contains(id));
         }
-        let groups = selections
-            .into_iter()
-            .enumerate()
-            .map(|(index, binaries)| {
+        let ids = metadata["rust-binaries"]
+            .as_object()
+            .context("compiled binary map is absent")?
+            .keys()
+            .cloned()
+            .collect::<Vec<_>>();
+        let groups = ids
+            .chunks(native_worker_budget / 2)
+            .map(|ids| {
+                let binaries = ids.iter().cloned().collect::<BTreeSet<_>>();
+                let digest = bijux_dna_infra::hash_bytes_sha256(&serde_json::to_vec(&binaries)?);
                 let mut selected = metadata.clone();
                 selected["rust-binaries"]
                     .as_object_mut()
                     .context("compiled binary map is absent")?
                     .retain(|id, _| binaries.contains(id));
                 Ok(BinaryDiscoveryGroup {
-                    label: format!("test-inventory-group-{index}"),
+                    label: format!("native-binaries-{digest}"),
                     metadata: serde_json::to_vec(&selected)?,
                     binaries,
                 })
             })
             .collect::<Result<Vec<_>>>()?;
         Ok(Self { metadata, groups })
+    }
+
+    /// Expected observed paths follow the explicit metadata-only target remap. Input subset
+    /// bytes remain producer-bound; all other metadata and executable identities remain exact.
+    pub(crate) fn admit_target_remapping(mut self, target: &Path) -> Result<Self> {
+        let producer = Path::new(
+            self.metadata["rust-build-meta"]["target-directory"]
+                .as_str()
+                .context("producer target root is absent")?,
+        )
+        .to_owned();
+        for root in [&producer, target] {
+            ensure!(
+                root.is_absolute()
+                    && root
+                        .components()
+                        .all(|part| !matches!(part, Component::ParentDir | Component::CurDir)),
+                "native discovery target is not normalized absolute authority"
+            );
+        }
+        for binary in self.metadata["rust-binaries"]
+            .as_object_mut()
+            .context("compiled binary map absent")?
+            .values_mut()
+        {
+            let path =
+                Path::new(binary["binary-path"].as_str().context("producer binary path absent")?);
+            let relative =
+                path.strip_prefix(&producer).context("producer binary escapes admitted target")?;
+            ensure!(
+                relative.components().all(|part| matches!(part, Component::Normal(_))),
+                "producer binary path contains traversal"
+            );
+            binary["binary-path"] =
+                json!(target.join(relative).to_str().context("discovery path encoding")?);
+        }
+        self.metadata["rust-build-meta"]["target-directory"] =
+            json!(target.to_str().context("discovery target encoding")?);
+        Ok(self)
     }
 
     pub(crate) fn merge<'a>(
