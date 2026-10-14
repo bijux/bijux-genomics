@@ -1,3 +1,5 @@
+use crate::cargo_dependency_authority::CargoDependencySnapshot;
+
 fn workspace_root() -> PathBuf {
     bijux_dna_testkit::workspace_root_from_manifest(env!("CARGO_MANIFEST_DIR"))
 }
@@ -83,31 +85,7 @@ fn collect_workspace_crates() -> BTreeMap<String, PathBuf> {
 }
 
 fn parse_dependencies(manifest: &Path, known: &BTreeSet<String>) -> BTreeSet<String> {
-    let content = std::fs::read_to_string(manifest)
-        .unwrap_or_else(|err| panic!("read {}: {err}", manifest.display()));
-    let mut deps = BTreeSet::new();
-    let mut in_deps = false;
-    for line in content.lines() {
-        let line = line.trim();
-        if line.starts_with('[') {
-            in_deps = matches!(
-                line,
-                "[dependencies]" | "[dev-dependencies]" | "[build-dependencies]"
-            );
-            continue;
-        }
-        if !in_deps || line.is_empty() || line.starts_with('#') {
-            continue;
-        }
-        if let Some((name, _rest)) = line.split_once('=') {
-            let name = name.trim().trim_matches('"');
-            let name = name.strip_suffix(".workspace").unwrap_or(name);
-            if !name.is_empty() && known.contains(name) {
-                deps.insert(name.to_string());
-            }
-        }
-    }
-    deps
+    CargoDependencySnapshot::capture(manifest).known_names(manifest, known)
 }
 
 fn parse_boundary_contract() -> BTreeMap<String, BTreeSet<String>> {
@@ -200,4 +178,68 @@ fn assert_no_domain_terms(crate_root: &Path, denylist: &[&str]) {
             }
         }
     }
+}
+
+fn workspace_boundary_dependency_fixture(
+    root: &Path,
+    section: &str,
+    dependency: &str,
+) -> anyhow::Result<PathBuf> {
+    std::fs::create_dir_all(root.join("src"))?;
+    std::fs::create_dir_all(root.join("planner/src"))?;
+    std::fs::write(root.join("src/lib.rs"), "pub fn fixture() {}\n")?;
+    std::fs::write(root.join("planner/src/lib.rs"), "pub fn fixture() {}\n")?;
+    std::fs::write(
+        root.join("planner/Cargo.toml"),
+        "[package]\nname = \"bijux-dna-planner-bam\"\nversion = \"0.1.0\"\nedition = \"2021\"\n",
+    )?;
+    let manifest = root.join("Cargo.toml");
+    let source = format!("[package]\nname = \"dependency-observer\"\nversion = \"0.1.0\"\nedition = \"2021\"\n[workspace]\nmembers = [\"planner\"]\n[package.metadata.observer]\nlabel = \"permitted selective metadata\"\n[{section}]\n{dependency}\n");
+    let _: toml::Value = toml::from_str(&source)?;
+    std::fs::write(&manifest, source)?;
+    Ok(manifest)
+}
+
+#[test]
+fn workspace_boundary_dependency_reader_resolves_aliased_package_identity() -> anyhow::Result<()> {
+    let owned = bijux_dna_testkit::tempdir_for("workspace_boundary-dependency-authority");
+    let known = BTreeSet::from(["bijux-dna-planner-bam".to_string()]);
+    let manifest = workspace_boundary_dependency_fixture(
+        owned.path(),
+        "dependencies",
+        "bijux-dna-planner-bam = { path = \"planner\" }",
+    )?;
+    assert!(parse_dependencies(&manifest, &known).contains("bijux-dna-planner-bam"));
+    let manifest = workspace_boundary_dependency_fixture(
+        owned.path(),
+        "dependencies",
+        "planner_alias = { package = \"bijux-dna-planner-bam\", path = \"planner\" }",
+    )?;
+    assert!(
+        parse_dependencies(&manifest, &known).contains("bijux-dna-planner-bam"),
+        "supported Cargo dependency must retain package identity through aliased_package_identity"
+    );
+    Ok(())
+}
+
+#[test]
+fn workspace_boundary_dependency_reader_resolves_target_specific_edges() -> anyhow::Result<()> {
+    let owned = bijux_dna_testkit::tempdir_for("workspace_boundary-dependency-authority");
+    let known = BTreeSet::from(["bijux-dna-planner-bam".to_string()]);
+    let manifest = workspace_boundary_dependency_fixture(
+        owned.path(),
+        "dependencies",
+        "bijux-dna-planner-bam = { path = \"planner\" }",
+    )?;
+    assert!(parse_dependencies(&manifest, &known).contains("bijux-dna-planner-bam"));
+    let manifest = workspace_boundary_dependency_fixture(
+        owned.path(),
+        "target.'cfg(unix)'.dependencies",
+        "bijux-dna-planner-bam = { path = \"planner\" }",
+    )?;
+    assert!(
+        parse_dependencies(&manifest, &known).contains("bijux-dna-planner-bam"),
+        "supported Cargo dependency must retain package identity through target_specific_edges"
+    );
+    Ok(())
 }

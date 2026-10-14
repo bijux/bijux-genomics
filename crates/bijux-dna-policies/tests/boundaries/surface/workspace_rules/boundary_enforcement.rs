@@ -2,13 +2,14 @@
 #[allow(clippy::expect_used, clippy::unwrap_used)]
 fn policy__boundaries__workspace__workspace_boundary_contract_matches_docs() {
     let crates = collect_workspace_crates();
+    let authority = CargoDependencySnapshot::capture(&workspace_root().join("Cargo.toml"));
     let known: BTreeSet<String> = crates.keys().cloned().collect();
     let contract = parse_boundary_contract();
     for (crate_name, path) in &crates {
         let Some(allowed) = contract.get(crate_name) else {
             bijux_dna_policies::policy_panic!("missing boundaries entry for {crate_name}");
         };
-        let deps = parse_dependencies(&path.join("Cargo.toml"), &known);
+        let deps = authority.known_names(&path.join("Cargo.toml"), &known);
         for dep in deps {
             if dep == "bijux-dna-policies" || dep == "bijux-dna-testkit" {
                 continue;

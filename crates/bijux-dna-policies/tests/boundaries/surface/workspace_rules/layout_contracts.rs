@@ -81,6 +81,7 @@ fn policy__boundaries__workspace__runner_has_no_domain_terms() {
 #[allow(clippy::expect_used, clippy::unwrap_used)]
 fn policy__boundaries__workspace__engine_and_runner_have_no_domain_deps() {
     let crates = collect_workspace_crates();
+    let authority = CargoDependencySnapshot::capture(&workspace_root().join("Cargo.toml"));
     let known: BTreeSet<String> = crates.keys().cloned().collect();
     let forbidden = [
         "bijux-dna-domain-fastq",
@@ -94,7 +95,7 @@ fn policy__boundaries__workspace__engine_and_runner_have_no_domain_deps() {
         let crate_dir = crates
             .get(name)
             .unwrap_or_else(|| bijux_dna_policies::policy_panic!("missing crate {name}"));
-        let deps = parse_dependencies(&crate_dir.join("Cargo.toml"), &known);
+        let deps = authority.known_names(&crate_dir.join("Cargo.toml"), &known);
         for banned in &forbidden {
             bijux_dna_policies::policy_assert!(
                 !deps.contains(*banned),
@@ -336,11 +337,12 @@ fn policy__boundaries__workspace__workspace_stages_layout_contract() {
 #[allow(clippy::expect_used, clippy::unwrap_used)]
 fn policy__boundaries__workspace__workspace_no_orphan_crates() {
     let crates = collect_workspace_crates();
+    let authority = CargoDependencySnapshot::capture(&workspace_root().join("Cargo.toml"));
     let known: BTreeSet<String> = crates.keys().cloned().collect();
     let mut dependents: BTreeMap<String, usize> =
         crates.keys().map(|name| (name.clone(), 0)).collect();
     for (name, path) in &crates {
-        let deps = parse_dependencies(&path.join("Cargo.toml"), &known);
+        let deps = authority.known_names(&path.join("Cargo.toml"), &known);
         for dep in deps {
             if let Some(count) = dependents.get_mut(&dep) {
                 *count += 1;

@@ -32,3 +32,11 @@
 Run the package test command from `COMMANDS.md` before handoff. For narrow changes, run the matching `--test` entrypoint plus the full package test before final handoff.
 
 Shared guardrail parser regressions are owned and executed by the policy crate. This boundary suite retains its crate-specific architecture checks; it does not compile another crate's test source. Constructor-only guardrail wrappers provide no source-check coverage and are retired.
+
+Dependency boundary readers share `tests/support/cargo_dependency_authority.rs`. Each actual
+workspace guard captures one explicit-manifest Cargo metadata observation and reuses its
+package-indexed dependencies for the complete guard. Aliases retain package identity; normal,
+build, dev and target-specific declarations remain in the observation. Physical manifest
+lookups refuse missing or foreign packages. Fixture mutation controls intentionally capture
+fresh observations; no process-global cache or per-package Cargo invocation is used by the
+workspace map guards.

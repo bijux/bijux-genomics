@@ -1,43 +1,25 @@
 #![allow(non_snake_case)]
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
+
+use crate::cargo_dependency_authority::{
+    read_dependency_names as parse_dependency_names, CargoDependencySnapshot,
+};
 
 fn repo_root() -> PathBuf {
     bijux_dna_testkit::workspace_root_from_manifest(env!("CARGO_MANIFEST_DIR"))
 }
 
-fn parse_dependency_names(manifest: &Path) -> Vec<String> {
-    let metadata = cargo_metadata::MetadataCommand::new()
-        .manifest_path(manifest)
-        .no_deps()
-        .other_options(vec!["--locked".to_string()])
-        .exec()
-        .unwrap_or_else(|error| {
-            panic!("read Cargo dependency authority {}: {error}", manifest.display())
-        });
-    let expected =
-        manifest.canonicalize().unwrap_or_else(|error| panic!("resolve manifest: {error}"));
-    let package = metadata
-        .packages
-        .iter()
-        .find(|package| {
-            package.manifest_path.as_std_path().canonicalize().is_ok_and(|path| path == expected)
-        })
-        .unwrap_or_else(|| {
-            panic!("Cargo did not return requested manifest {}", manifest.display())
-        });
-    package.dependencies.iter().map(|dependency| dependency.name.clone()).collect()
-}
-
 #[test]
 fn policy__boundaries__dependency_boundaries__stages_do_not_depend_on_environment() {
     let root = repo_root();
+    let authority = CargoDependencySnapshot::capture(&root.join("Cargo.toml"));
     let manifests = [
         root.join("crates/bijux-dna-stages-fastq/Cargo.toml"),
         root.join("crates/bijux-dna-stages-bam/Cargo.toml"),
     ];
     let mut offenders = Vec::new();
     for manifest in manifests {
-        let deps = parse_dependency_names(&manifest);
+        let deps = authority.dependency_names(&manifest);
         if deps.iter().any(|dep| dep == "bijux-dna-containers") {
             offenders.push(format!("{} depends on bijux-dna-containers", manifest.display()));
         }
@@ -53,6 +35,7 @@ fn policy__boundaries__dependency_boundaries__stages_do_not_depend_on_environmen
 fn policy__boundaries__dependency_boundaries__stages_and_planners_do_not_depend_on_runner_or_engine(
 ) {
     let root = repo_root();
+    let authority = CargoDependencySnapshot::capture(&root.join("Cargo.toml"));
     let manifests = [
         root.join("crates/bijux-dna-stages-fastq/Cargo.toml"),
         root.join("crates/bijux-dna-stages-bam/Cargo.toml"),
@@ -62,7 +45,7 @@ fn policy__boundaries__dependency_boundaries__stages_and_planners_do_not_depend_
     let denylist = ["bijux-dna-runner", "bijux-dna-engine"];
     let mut offenders = Vec::new();
     for manifest in manifests {
-        let deps = parse_dependency_names(&manifest);
+        let deps = authority.dependency_names(&manifest);
         for denied in denylist {
             if deps.iter().any(|dep| dep == denied) {
                 offenders.push(format!("{} depends on {}", manifest.display(), denied));
@@ -79,6 +62,7 @@ fn policy__boundaries__dependency_boundaries__stages_and_planners_do_not_depend_
 #[test]
 fn policy__boundaries__dependency_boundaries__analyze_and_benchmark_do_not_depend_on_engine() {
     let root = repo_root();
+    let authority = CargoDependencySnapshot::capture(&root.join("Cargo.toml"));
     let manifests = [
         root.join("crates/bijux-dna-analyze/Cargo.toml"),
         root.join("crates/bijux-dna-bench/Cargo.toml"),
@@ -86,7 +70,7 @@ fn policy__boundaries__dependency_boundaries__analyze_and_benchmark_do_not_depen
     ];
     let mut offenders = Vec::new();
     for manifest in manifests {
-        let deps = parse_dependency_names(&manifest);
+        let deps = authority.dependency_names(&manifest);
         if deps.iter().any(|dep| dep == "bijux-dna-engine") {
             offenders.push(format!("{} depends on bijux-dna-engine", manifest.display()));
         }
@@ -101,8 +85,9 @@ fn policy__boundaries__dependency_boundaries__analyze_and_benchmark_do_not_depen
 #[test]
 fn policy__boundaries__dependency_boundaries__engine_has_no_domain_or_stage_dependencies() {
     let root = repo_root();
+    let authority = CargoDependencySnapshot::capture(&root.join("Cargo.toml"));
     let manifest = root.join("crates/bijux-dna-engine/Cargo.toml");
-    let deps = parse_dependency_names(&manifest);
+    let deps = authority.dependency_names(&manifest);
     let denylist = [
         "bijux-dna-domain-fastq",
         "bijux-dna-domain-bam",
@@ -127,8 +112,9 @@ fn policy__boundaries__dependency_boundaries__engine_has_no_domain_or_stage_depe
 #[test]
 fn policy__boundaries__dependency_boundaries__runner_has_no_domain_or_stage_dependencies() {
     let root = repo_root();
+    let authority = CargoDependencySnapshot::capture(&root.join("Cargo.toml"));
     let manifest = root.join("crates/bijux-dna-runner/Cargo.toml");
-    let deps = parse_dependency_names(&manifest);
+    let deps = authority.dependency_names(&manifest);
     let denylist = [
         "bijux-dna-domain-fastq",
         "bijux-dna-domain-bam",
@@ -153,8 +139,9 @@ fn policy__boundaries__dependency_boundaries__runner_has_no_domain_or_stage_depe
 #[test]
 fn policy__boundaries__dependency_boundaries__runner_does_not_depend_on_engine() {
     let root = repo_root();
+    let authority = CargoDependencySnapshot::capture(&root.join("Cargo.toml"));
     let manifest = root.join("crates/bijux-dna-runner/Cargo.toml");
-    let deps = parse_dependency_names(&manifest);
+    let deps = authority.dependency_names(&manifest);
     bijux_dna_policies::policy_assert!(
         deps.iter().all(|dep| dep != "bijux-dna-engine"),
         "bijux-dna-runner must not depend on bijux-dna-engine"
@@ -164,8 +151,9 @@ fn policy__boundaries__dependency_boundaries__runner_does_not_depend_on_engine()
 #[test]
 fn policy__boundaries__dependency_boundaries__infra_has_no_domain_or_stage_dependencies() {
     let root = repo_root();
+    let authority = CargoDependencySnapshot::capture(&root.join("Cargo.toml"));
     let manifest = root.join("crates/bijux-dna-infra/Cargo.toml");
-    let deps = parse_dependency_names(&manifest);
+    let deps = authority.dependency_names(&manifest);
     let denylist = [
         "bijux-dna-domain-fastq",
         "bijux-dna-domain-bam",
@@ -190,8 +178,9 @@ fn policy__boundaries__dependency_boundaries__infra_has_no_domain_or_stage_depen
 #[test]
 fn policy__boundaries__dependency_boundaries__pipelines_do_not_depend_on_stages_or_execution() {
     let root = repo_root();
+    let authority = CargoDependencySnapshot::capture(&root.join("Cargo.toml"));
     let manifest = root.join("crates/bijux-dna-pipelines/Cargo.toml");
-    let deps = parse_dependency_names(&manifest);
+    let deps = authority.dependency_names(&manifest);
     let denylist = [
         "bijux-dna-stages-fastq",
         "bijux-dna-stages-bam",
@@ -214,8 +203,9 @@ fn policy__boundaries__dependency_boundaries__pipelines_do_not_depend_on_stages_
 #[test]
 fn policy__boundaries__dependency_boundaries__environment_has_no_engine_or_runner_dependencies() {
     let root = repo_root();
+    let authority = CargoDependencySnapshot::capture(&root.join("Cargo.toml"));
     let manifest = root.join("crates/bijux-dna-containers/Cargo.toml");
-    let deps = parse_dependency_names(&manifest);
+    let deps = authority.dependency_names(&manifest);
     let denylist = ["bijux-dna-engine", "bijux-dna-runner"];
     let offenders: Vec<String> = denylist
         .iter()

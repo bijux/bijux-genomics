@@ -120,3 +120,6 @@ mod mod_boundaries_surface_tool_id_uniqueness_rs;
 mod mod_boundaries_surface_workspace_rs;
 #[path = "boundaries/tests_taxonomy_policy.rs"]
 mod mod_boundaries_tests_taxonomy_policy_rs;
+
+#[path = "support/cargo_dependency_authority.rs"]
+mod cargo_dependency_authority;
