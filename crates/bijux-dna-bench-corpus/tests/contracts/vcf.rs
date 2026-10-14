@@ -47,3 +47,6 @@ mod phasing_imputation_truth;
 
 #[path = "vcf/population_structure_truth.rs"]
 mod population_structure_truth;
+
+#[path = "vcf/segments_demography_truth.rs"]
+mod segments_demography_truth;

@@ -116,3 +116,20 @@ Expected identities remain set-based and comparison remains map-based: ordering
 is ignored, the last duplicate expected record wins, and duplicate manifest IDs
 reject. Dynamic nested metrics and the existing metrics-family preference remain
 unchanged. The service does not write fixtures, launch tools or establish new science.
+
+## VCF segment and demography fixture truth
+
+`vcf/segments_demography_truth` owns declared fixture wire records, reference and
+support admission, and read-only native observations. The facade compares complete
+expected and observed ROH, IBD and demography case records. Segment parsers and
+scientific interval, relatedness and inference rules remain in domain-vcf. CLI
+fixture commands retain defaults, presentation and whole-root composition.
+
+Source references intentionally accept existing files and directories. Case artifact
+admission precedes tool/stage support and expected-bundle acquisition; expected case
+identity admission precedes native parsing and canonical output-truth summaries.
+Expected identities remain set-based and comparison remains map-based: ordering is
+ignored and the final duplicate expected record wins; duplicate manifest IDs reject
+after per-case admission. Arbitrary nested metrics, optional output families and
+complete/insufficient observations remain unchanged. This service reads local
+fixtures without launching tools, publishing products or establishing new science.

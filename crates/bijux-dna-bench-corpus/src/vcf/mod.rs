@@ -57,3 +57,9 @@ pub use population_structure_truth::{
     validate_population_structure_truth_manifest_path, PopulationStructureTruthValidationReport,
     POPULATION_STRUCTURE_TRUTH_FIXTURE_ID, POPULATION_STRUCTURE_TRUTH_MANIFEST_SCHEMA_VERSION,
 };
+
+mod segments_demography_truth;
+pub use segments_demography_truth::{
+    validate_segments_demography_truth_manifest_path, SegmentsDemographyTruthValidationReport,
+    SEGMENTS_DEMOGRAPHY_TRUTH_FIXTURE_ID, SEGMENTS_DEMOGRAPHY_TRUTH_MANIFEST_SCHEMA_VERSION,
+};

@@ -113,3 +113,20 @@ Source references accept existing files and directories. Closed wire fields,
 optional serde behavior, error/read ordering and expected-row set/map duplicate
 semantics remain unchanged. This read-only service does not certify fresh backend
 execution, scientific equivalence or independent provenance.
+
+With `variants`, `vcf::validate_segments_demography_truth_manifest_path` accepts an
+explicit repository root and declaration path and returns
+`SegmentsDemographyTruthValidationReport`. `SEGMENTS_DEMOGRAPHY_TRUTH_FIXTURE_ID`
+and `SEGMENTS_DEMOGRAPHY_TRUTH_MANIFEST_SCHEMA_VERSION` retain the governed identities.
+The report keeps schema/fixture/manifest/expected fields, case count, sorted unique
+stage/tool inventories and validity. Complete records retain dynamic native metrics
+and canonical ROH interval, IBD relatedness and demography inference truth, including
+insufficient marker-overlap and insufficient-data observations.
+
+plink2 supports `vcf.roh`; germline, ibdseq and ibdhap support `vcf.ibd`; ibdne supports
+`vcf.demography`. Absolute paths remain supported. Relative source/artifact paths
+resolve under the supplied root and expected paths under the declaration directory;
+displayed paths retain slash normalization. Source references accept existing files
+and directories. Closed wire fields, optional serde behavior, acquisition/error
+ordering and expected-row set/map duplicate semantics remain unchanged. This
+read-only service does not certify fresh native execution or independent provenance.
