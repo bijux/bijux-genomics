@@ -65,3 +65,10 @@ frequencies. The typed request's source path is diagnostic metadata. The caller
 retains text acquisition, expected-truth document construction, validation and
 publication. Strict fixture syntax intentionally differs from the aggregate
 `genotype_truth` projection; neither capability substitutes the other's semantics.
+
+`artifacts/fixture_genotypes/homozygosity.rs` owns runs of at least two adjacent
+homozygous observations and paired runs over the same per-contig flags. Contig
+boundaries, existing record order and paired-vector truncation are retained.
+The expected-truth caller keeps ROH/IBD document schemas, state admission,
+independent equal-dosage site counts, acquisition and publication. These fixture
+run counts do not claim physical interval alignment or matching genotype alleles.

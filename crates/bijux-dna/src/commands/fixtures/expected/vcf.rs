@@ -8,7 +8,6 @@ use anyhow::{anyhow, Context, Result};
 use bijux_dna_domain_vcf::{
     summarize_fixture_genotypes, VcfFixtureGenotypeInput,
     VcfFixtureGenotypeSummary as VcfVariantTruthSummary,
-    VcfFixtureSampleGenotypes as ObservedGenotypeState,
 };
 use serde::{Deserialize, Serialize};
 
@@ -618,7 +617,7 @@ fn build_roh_expected_truth(
             Ok(RohExpectedTruthRow {
                 sample_id: sample_id.clone(),
                 homozygous_variant_count: state.hom_ref + state.hom_alt,
-                expected_roh_segment_count: count_roh_segments(state),
+                expected_roh_segment_count: state.homozygous_run_count(),
             })
         })
         .collect::<Result<Vec<_>>>()?;
@@ -655,7 +654,7 @@ fn build_ibd_expected_truth(
                 left_sample_id,
                 right_sample_id,
                 shared_genotype_site_count,
-                expected_ibd_segment_count: count_shared_dosage_segments(left, right),
+                expected_ibd_segment_count: left.shared_homozygous_run_count(right),
             })
         })
         .collect::<Result<Vec<_>>>()?;
@@ -1032,7 +1031,7 @@ fn validate_roh_expected_truth(
             .genotype_states
             .get(sample_id)
             .ok_or_else(|| anyhow!("missing observed genotype state for `{sample_id}`"))?;
-        let observed_roh_segments = count_roh_segments(observed);
+        let observed_roh_segments = observed.homozygous_run_count();
         let observed_homozygous_variant_count = observed.hom_ref + observed.hom_alt;
         if expected.expected_roh_segment_count != observed_roh_segments
             || expected.homozygous_variant_count != observed_homozygous_variant_count
@@ -1094,7 +1093,7 @@ fn validate_ibd_expected_truth(
             .zip(right.dosages.iter())
             .filter(|(left_dosage, right_dosage)| left_dosage == right_dosage)
             .count() as u64;
-        let observed_segments = count_shared_dosage_segments(left, right);
+        let observed_segments = left.shared_homozygous_run_count(right);
         if expected.shared_genotype_site_count != observed_shared_sites
             || expected.expected_ibd_segment_count != observed_segments
         {
@@ -1165,49 +1164,6 @@ fn pairwise_squared_distances(
         distances.insert((left_sample_id, right_sample_id), distance_sq);
     }
     Ok(distances)
-}
-
-fn count_roh_segments(state: &ObservedGenotypeState) -> u64 {
-    state.contig_is_homozygous.values().map(|flags| count_true_runs(flags)).sum::<u64>()
-}
-
-fn count_shared_dosage_segments(
-    left: &ObservedGenotypeState,
-    right: &ObservedGenotypeState,
-) -> u64 {
-    left.contig_is_homozygous
-        .iter()
-        .map(|(contig, left_flags)| {
-            let Some(right_flags) = right.contig_is_homozygous.get(contig) else {
-                return 0;
-            };
-            let shared_flags = left_flags
-                .iter()
-                .zip(right_flags.iter())
-                .map(|(left_flag, right_flag)| *left_flag && *right_flag)
-                .collect::<Vec<_>>();
-            count_true_runs(&shared_flags)
-        })
-        .sum::<u64>()
-}
-
-fn count_true_runs(flags: &[bool]) -> u64 {
-    let mut run_length = 0usize;
-    let mut count = 0u64;
-    for flag in flags {
-        if *flag {
-            run_length += 1;
-        } else {
-            if run_length >= 2 {
-                count += 1;
-            }
-            run_length = 0;
-        }
-    }
-    if run_length >= 2 {
-        count += 1;
-    }
-    count
 }
 
 fn pair_keys(sample_ids: &[String]) -> Vec<(String, String)> {

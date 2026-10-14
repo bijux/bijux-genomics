@@ -3,6 +3,7 @@ use std::collections::BTreeMap;
 use std::path::Path;
 
 mod genotypes;
+mod homozygosity;
 mod summary;
 pub use summary::summarize_fixture_genotypes;
 
