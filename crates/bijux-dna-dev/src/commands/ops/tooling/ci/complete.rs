@@ -26,8 +26,9 @@ use crate::runtime::compilation_cache::CompilationCache;
 use crate::runtime::gate_receipt::run_reported;
 use crate::runtime::local_tests::{
     bind_tools, lane_inputs, load_catalog, observe_capacity, read_resource_request, reference,
-    selections, source_identity, tool_path, verify_artifacts, verify_execution_plan, verify_inputs,
-    verify_producer_manifest, verify_resource_request, verify_source_reads, write_value,
+    selections, source_identity, tool_path, tool_search_path, verify_artifacts,
+    verify_execution_plan, verify_inputs, verify_producer_manifest, verify_resource_request,
+    verify_source_reads, write_value,
 };
 use crate::runtime::process::{
     DependencyProcessOutput, DependentProcessSpec, ParallelProcessSpec, ProcessRunner,
@@ -175,17 +176,10 @@ pub(in super::super::super) fn tooling_ci_test_complete(
                     Err(error) => tool_errors.push((name, format!("{error:#}"))),
                 }
             }
-            let directories = tools
-                .iter()
-                .filter_map(|tool| Path::new(&tool.path).parent())
-                .collect::<BTreeSet<_>>();
-            let mut search = directories.into_iter().map(Path::to_path_buf).collect::<Vec<_>>();
-            search.extend(std::env::split_paths(&std::env::var_os("PATH").unwrap_or_default()));
+            let inherited_path = std::env::var_os("PATH").unwrap_or_default();
+            let search_path = tool_search_path(&tools, &inherited_path)?;
             let mut environment = vec![
-                (
-                    "PATH".into(),
-                    std::env::join_paths(search)?.to_str().context("tool PATH encoding")?.into(),
-                ),
+                ("PATH".into(), search_path.to_str().context("tool PATH encoding")?.into()),
                 ("PYTHONNOUSERSITE".into(), "1".into()),
                 ("PYTHONDONTWRITEBYTECODE".into(), "1".into()),
                 ("PYTEST_DISABLE_PLUGIN_AUTOLOAD".into(), "1".into()),

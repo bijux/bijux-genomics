@@ -7,6 +7,9 @@ use anyhow::{ensure, Context, Result};
 use serde_json::Value;
 use std::path::{Path, PathBuf};
 
+mod search;
+pub(crate) use search::tool_search_path;
+
 fn find_program(workspace: &Workspace, name: &str) -> Result<PathBuf> {
     if name == "python" {
         if let Some(path) = std::env::var_os("PYTHON") {
