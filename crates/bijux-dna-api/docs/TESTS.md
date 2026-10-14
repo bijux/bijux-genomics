@@ -51,6 +51,11 @@ README files are intentionally not allowed under `tests/`.
 - `tests/contracts/fastq_amplicon_governance_contract.rs` checks governed FASTQ
   amplicon inputs and locks.
 
+- Inline BAM contracts in `src/internal/handlers/cross/bam_exec_contracts.rs` check
+  resumed alignment continuation, summary/manifest projection, and downstream
+  binding refusals using accepted synthetic receipts in a bounded private child.
+  These checks do not qualify cold aligner execution or scientific BAM outputs.
+
 ## Recommended Commands
 
 Run from the `bijux-genomics` repository root:

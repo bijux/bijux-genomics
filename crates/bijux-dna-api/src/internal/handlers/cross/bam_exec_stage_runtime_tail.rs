@@ -339,7 +339,7 @@ pub(crate) fn run_bam_align_and_truth_stages<S: std::hash::BuildHasher>(
         }),
     )
     .with_context(|| format!("write {}", alignment_parameters_path.display()))?;
-    if let Some(summary) = maybe_resume_bam_stage(
+    let align_summary = if let Some(summary) = maybe_resume_bam_stage(
         bijux_dna_planner_bam::stage_api::BamStage::Align,
         &align_out,
         &align_step,
@@ -351,76 +351,70 @@ pub(crate) fn run_bam_align_and_truth_stages<S: std::hash::BuildHasher>(
             &align_plan,
             &summary.result,
         )?;
-        return Ok(vec![summary]);
-    }
-    let align_context = ToolContext {
-        run_id: format!("bam-{}-{}", align_step.step_id, tool_id.as_str()),
-        stage_id: align_step.step_id.to_string(),
-        tool_id: tool_id.as_str().to_string(),
-        sample_id: Some(sample_id.clone()),
-        stage_root: bijux_dna_runtime::recording::run_artifacts_dir_for_out(&align_out),
-        input_root: r1
-            .parent()
-            .map_or_else(|| out_dir.to_path_buf(), Path::to_path_buf),
-        output_root: align_out.clone(),
-        tmp_root: align_out.join("tmp"),
-        threads: align_plan.resources.threads.max(1),
-        memory_hint_mb: Some(u64::from(align_plan.resources.mem_gb).saturating_mul(1024)),
-        compression_threads: Some(1),
-        seed: None,
-        network_policy: NetworkPolicy::Allow,
-    };
-    let align_result = crate::execution_kernel::ToolExec::invoke(&ToolInvocationRequest {
-        step: align_step.clone(),
-        runner: platform.runner,
-        context: align_context,
-        timeout: None,
-        mode: crate::execution_kernel::ToolExecMode::Execute,
-    })?
-    .stage_result;
-    write_stage_accounting(&align_out, align_step.step_id.as_str(), &align_result)?;
-    write_bam_output_contract(
-        bijux_dna_planner_bam::stage_api::BamStage::Align,
-        &align_plan,
-        &align_out,
-    )?;
-    enforce_bam_output_contract(
-        bijux_dna_planner_bam::stage_api::BamStage::Align,
-        &align_out,
-    )?;
-    write_normalized_bam_metrics(
-        bijux_dna_planner_bam::stage_api::BamStage::Align,
-        &align_out,
-        &align_plan,
-        &align_result,
-    )?;
-    write_bam_alignment_provenance(&align_out, &align_plan, align_sample_identity)?;
-    let header_normalization = serde_json::json!({
-        "stage_id": align_step.step_id,
-        "regime": regime,
-        "policy": "read_group_normalization",
-        "rg_id": align_args.rg_id.as_deref().unwrap_or("auto"),
-        "rg_sm": align_args.rg_sm.as_deref().unwrap_or(&sample_id),
-        "rg_pl": align_args.rg_pl.as_deref().unwrap_or("ILLUMINA"),
-        "rg_lb": align_args.rg_lb.as_deref().unwrap_or("lib1"),
-    });
-    let header_norm_path = align_out.join("header_normalization.json");
-    bijux_dna_infra::atomic_write_json(&header_norm_path, &header_normalization)
-        .with_context(|| format!("write {}", header_norm_path.display()))?;
-    let regime_path = align_out.join("alignment_regime.json");
-    bijux_dna_infra::atomic_write_json(
-        &regime_path,
-        &serde_json::json!({
+        summary
+    } else {
+        let align_context = ToolContext {
+            run_id: format!("bam-{}-{}", align_step.step_id, tool_id.as_str()),
+            stage_id: align_step.step_id.to_string(),
+            tool_id: tool_id.as_str().to_string(),
+            sample_id: Some(sample_id.clone()),
+            stage_root: bijux_dna_runtime::recording::run_artifacts_dir_for_out(&align_out),
+            input_root: r1.parent().map_or_else(|| out_dir.to_path_buf(), Path::to_path_buf),
+            output_root: align_out.clone(),
+            tmp_root: align_out.join("tmp"),
+            threads: align_plan.resources.threads.max(1),
+            memory_hint_mb: Some(u64::from(align_plan.resources.mem_gb).saturating_mul(1024)),
+            compression_threads: Some(1),
+            seed: None,
+            network_policy: NetworkPolicy::Allow,
+        };
+        let align_result = crate::execution_kernel::ToolExec::invoke(&ToolInvocationRequest {
+            step: align_step.clone(),
+            runner: platform.runner,
+            context: align_context,
+            timeout: None,
+            mode: crate::execution_kernel::ToolExecMode::Execute,
+        })?
+        .stage_result;
+        write_stage_accounting(&align_out, align_step.step_id.as_str(), &align_result)?;
+        write_bam_output_contract(
+            bijux_dna_planner_bam::stage_api::BamStage::Align,
+            &align_plan,
+            &align_out,
+        )?;
+        enforce_bam_output_contract(bijux_dna_planner_bam::stage_api::BamStage::Align, &align_out)?;
+        write_normalized_bam_metrics(
+            bijux_dna_planner_bam::stage_api::BamStage::Align,
+            &align_out,
+            &align_plan,
+            &align_result,
+        )?;
+        write_bam_alignment_provenance(&align_out, &align_plan, align_sample_identity)?;
+        let header_normalization = serde_json::json!({
+            "stage_id": align_step.step_id,
             "regime": regime,
-            "profile_id": profile.id,
-            "source": "explicit_or_profile_inference",
-        }),
-    )
-    .with_context(|| format!("write {}", regime_path.display()))?;
-    let mut runs = vec![StageExecutionSummary {
-        plan: align_step,
-        result: align_result,
-    }];
+            "policy": "read_group_normalization",
+            "rg_id": align_args.rg_id.as_deref().unwrap_or("auto"),
+            "rg_sm": align_args.rg_sm.as_deref().unwrap_or(&sample_id),
+            "rg_pl": align_args.rg_pl.as_deref().unwrap_or("ILLUMINA"),
+            "rg_lb": align_args.rg_lb.as_deref().unwrap_or("lib1"),
+        });
+        let header_norm_path = align_out.join("header_normalization.json");
+        bijux_dna_infra::atomic_write_json(&header_norm_path, &header_normalization)
+            .with_context(|| format!("write {}", header_norm_path.display()))?;
+        let regime_path = align_out.join("alignment_regime.json");
+        bijux_dna_infra::atomic_write_json(
+            &regime_path,
+            &serde_json::json!({
+                "regime": regime,
+                "profile_id": profile.id,
+                "source": "explicit_or_profile_inference",
+            }),
+        )
+        .with_context(|| format!("write {}", regime_path.display()))?;
+        StageExecutionSummary { plan: align_step, result: align_result }
+    };
+    let mut runs = vec![align_summary];
 
     let boundary = AlignmentBoundary {
         bam_path: align_out.join("align.bam").display().to_string(),

@@ -1,11 +1,15 @@
 #[cfg(test)]
 #[allow(clippy::expect_used, clippy::too_many_lines, clippy::unreadable_literal)]
+#[path = "bam_exec/contracts"]
 mod tests {
     use super::*;
     use bijux_dna_core::contract::{ArtifactRef, ArtifactRole, StageIO, ToolConstraints};
     use bijux_dna_core::ids::{StageId, StageVersion, ToolId};
     use bijux_dna_core::prelude::{ArtifactId, CommandSpecV1, ContainerImageRefV1};
     use bijux_dna_stage_contract::{PlanDecisionReason, PlanReasonKind, StagePlanV1};
+
+    #[path = "resume_continuation.rs"]
+    mod resume_continuation;
 
     fn mock_plan(stage: bijux_dna_planner_bam::stage_api::BamStage) -> StagePlanV1 {
         StagePlanV1 {
