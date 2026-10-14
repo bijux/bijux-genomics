@@ -169,32 +169,120 @@ fn fastq_stage_plugin_trims_tool_version_in_metrics_envelope() -> anyhow::Result
 
 #[test]
 fn fastq_stage_plugin_uses_reported_outputs_for_metrics() -> anyhow::Result<()> {
+    use flate2::{write::GzEncoder, Compression};
+    use std::io::Write as _;
+
     let plugin = FastqStagePlugin;
     let temp = bijux_dna_infra::temp_dir("bijux-fastq-plugin-output-metrics")?;
-    let input_path = temp.path().join("input.fastq");
-    let actual_output_path = temp.path().join("actual-output.fastq");
-    bijux_dna_infra::write_bytes(&input_path, b"@a\nACGT\n+\n####\n")?;
-    bijux_dna_infra::write_bytes(&actual_output_path, b"@a\nAC\n+\n##\n")?;
+    let non_read_path = temp.path().join("observation.log");
+    bijux_dna_infra::write_bytes(&non_read_path, b"not a FASTQ record\n")?;
+    let write_reads =
+        |path: &std::path::Path, bytes: &[u8], compressed: bool| -> anyhow::Result<()> {
+            let bytes = if compressed {
+                let mut encoder = GzEncoder::new(Vec::new(), Compression::default());
+                encoder.write_all(bytes)?;
+                encoder.finish()?
+            } else {
+                bytes.to_vec()
+            };
+            Ok(bijux_dna_infra::write_bytes(path, bytes)?)
+        };
 
-    let mut plan = plan("fastq.trim_reads");
-    plan.io.inputs =
-        vec![ArtifactRef::required(ArtifactId::new("reads_r1"), input_path, ArtifactRole::Reads)];
-    plan.io.outputs = vec![ArtifactRef::required(
-        ArtifactId::new("trimmed_reads_r1"),
-        temp.path().join("planned-output.fastq"),
-        ArtifactRole::Reads,
-    )];
-    let outputs = vec![ArtifactRef::required(
-        ArtifactId::new("trimmed_reads_r1"),
-        actual_output_path,
-        ArtifactRole::Reads,
-    )];
+    for (suffix, compressed) in [("fastq", false), ("fastq.gz", true)] {
+        let input_path = temp.path().join(format!("input.{suffix}"));
+        let actual_output_path = temp.path().join(format!("actual-output.{suffix}"));
+        let planned_output_path = temp.path().join(format!("planned-output.{suffix}"));
+        write_reads(&input_path, b"@a\nACGT\n+\nIIII\n", compressed)?;
+        write_reads(&actual_output_path, b"@a\nAC\n+\n??\n", compressed)?;
 
-    let output = plugin.parse_outputs(&plan, &outputs)?;
+        for (input_role, output_role) in [
+            (ArtifactRole::Reads, ArtifactRole::Reads),
+            (ArtifactRole::Reads, ArtifactRole::TrimmedReads),
+            (ArtifactRole::TrimmedReads, ArtifactRole::Reads),
+            (ArtifactRole::TrimmedReads, ArtifactRole::TrimmedReads),
+        ] {
+            let mut plan = plan("fastq.trim_reads");
+            // A non-read first entry must neither become FASTQ input nor affect ordering.
+            plan.io.inputs = vec![
+                ArtifactRef::required(
+                    ArtifactId::new("input_log"),
+                    non_read_path.clone(),
+                    ArtifactRole::Log,
+                ),
+                ArtifactRef::required(ArtifactId::new("reads_r1"), input_path.clone(), input_role),
+            ];
+            plan.io.outputs = vec![
+                ArtifactRef::required(
+                    ArtifactId::new("output_log"),
+                    non_read_path.clone(),
+                    ArtifactRole::Log,
+                ),
+                ArtifactRef::required(
+                    ArtifactId::new("trimmed_reads_r1"),
+                    planned_output_path.clone(),
+                    output_role,
+                ),
+            ];
+            let outputs = vec![
+                ArtifactRef::required(
+                    ArtifactId::new("output_log"),
+                    non_read_path.clone(),
+                    ArtifactRole::Log,
+                ),
+                ArtifactRef::required(
+                    ArtifactId::new("trimmed_reads_r1"),
+                    actual_output_path.clone(),
+                    output_role,
+                ),
+            ];
 
-    assert_eq!(output.metrics.metrics["reads_in"], 1);
-    assert_eq!(output.metrics.metrics["reads_out"], 1);
-    assert_eq!(output.artifacts, outputs);
+            let output = plugin.parse_outputs(&plan, &outputs)?;
+            assert_eq!(output.metrics.metrics["reads_in"], 1);
+            assert_eq!(output.metrics.metrics["reads_out"], 1);
+            assert_eq!(output.metrics.metrics["bases_in"], 4);
+            assert_eq!(output.metrics.metrics["bases_out"], 2);
+            assert_eq!(output.metrics.metrics["mean_q_before"], serde_json::json!(40.0));
+            assert_eq!(output.metrics.metrics["mean_q_after"], serde_json::json!(30.0));
+            assert_eq!(
+                output.metrics.metrics["delta_metrics"]["mean_q_delta"],
+                serde_json::json!(-10.0)
+            );
+            assert_eq!(output.metrics.input_hashes.len(), 1);
+            assert_eq!(output.artifacts, outputs);
+            assert!(
+                !planned_output_path.exists(),
+                "reported outputs must not read the absent planned path"
+            );
+        }
+
+        write_reads(&input_path, b"", compressed)?;
+        write_reads(&actual_output_path, b"", compressed)?;
+        let mut plan = plan("fastq.trim_reads");
+        plan.io.inputs = vec![ArtifactRef::required(
+            ArtifactId::new("reads_r1"),
+            input_path,
+            ArtifactRole::TrimmedReads,
+        )];
+        plan.io.outputs = vec![ArtifactRef::required(
+            ArtifactId::new("trimmed_reads_r1"),
+            planned_output_path,
+            ArtifactRole::TrimmedReads,
+        )];
+        let outputs = vec![ArtifactRef::required(
+            ArtifactId::new("trimmed_reads_r1"),
+            actual_output_path,
+            ArtifactRole::TrimmedReads,
+        )];
+        let output = plugin.parse_outputs(&plan, &outputs)?;
+        for field in ["reads_in", "reads_out", "bases_in", "bases_out"] {
+            assert_eq!(output.metrics.metrics[field], 0, "empty FASTQ must retain zero {field}");
+        }
+        for field in ["mean_q_before", "mean_q_after"] {
+            assert_eq!(output.metrics.metrics[field], serde_json::json!(0.0));
+        }
+        assert_eq!(output.metrics.metrics["delta_metrics"]["mean_q_delta"], serde_json::json!(0.0));
+        assert_eq!(output.artifacts, outputs);
+    }
     Ok(())
 }
 
