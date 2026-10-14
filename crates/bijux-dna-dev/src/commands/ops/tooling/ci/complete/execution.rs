@@ -109,7 +109,13 @@ pub(super) fn execute_lane(
         Err(error) => {
             write_value(
                 &receipt_path,
-                &json!({"schema_version":"bijux.ci.local_test_lane_error.v1","lane":id,"source":plan.source,"state":"error","all_passed":false,"native_evidence_root":owner,"execution_error":format!("{error:#}"),"elapsed_milliseconds":started.elapsed().as_millis()}),
+                &super::terminal_evidence::error_receipt(
+                    lane,
+                    plan,
+                    &owner,
+                    &error,
+                    u64::try_from(started.elapsed().as_millis())?,
+                ),
             )?;
             Ok(OpsCommandOutcome::failure(format!("{id}: {error:#}\n")))
         }
@@ -184,10 +190,10 @@ pub(super) fn native_command(
 }
 
 #[cfg(test)]
-mod tests {
+pub(super) mod tests {
     use super::*;
 
-    fn plan(root: &Path) -> ExecutionPlan {
+    pub(in super::super) fn plan(root: &Path) -> ExecutionPlan {
         ExecutionPlan {
             schema_version: "bijux.ci.local_test_execution.v1".into(),
             source: SourceIdentity {

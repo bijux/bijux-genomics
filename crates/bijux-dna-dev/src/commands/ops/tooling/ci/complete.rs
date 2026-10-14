@@ -4,6 +4,7 @@ mod execution;
 mod nextest;
 mod python;
 mod rustdoc;
+mod terminal_evidence;
 
 use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
@@ -327,10 +328,18 @@ pub(in super::super::super) fn tooling_ci_test_complete(
             for lane in &plan.lanes {
                 let path = output.join(&lane.id).join("receipt.json");
                 let acceptance = (|| -> Result<(LaneReceipt, LaneInputs)> {
-                    let bytes = std::fs::read(&path)
-                        .with_context(|| format!("missing terminal lane: {}", lane.id))?;
-                    terminal_records.push(json!({"lane":lane.id,"receipt":reference(&path)?,"terminal":serde_json::from_slice::<Value>(&bytes)?}));
-                    let evidence: LaneReceipt = serde_json::from_slice(&bytes)?;
+                    let terminal = terminal_evidence::read_terminal(&path, lane, &plan)
+                        .with_context(|| format!("terminal lane: {}", lane.id))?;
+                    let evidence = match terminal.terminal {
+                        terminal_evidence::LaneTerminal::Outcomes(evidence) => {
+                            terminal_records.push(json!({"lane":lane.id,"receipt":terminal.receipt,"kind":"case_outcomes","terminal":evidence}));
+                            *evidence
+                        }
+                        terminal_evidence::LaneTerminal::Error(error) => {
+                            terminal_records.push(json!({"lane":lane.id,"receipt":terminal.receipt,"kind":"execution_error","terminal":error}));
+                            anyhow::bail!("{}", error.execution_error);
+                        }
+                    };
                     verify_artifacts(&evidence)?;
                     verify_inputs(&isolated.root, &evidence.inputs)?;
                     let mut admitted =
