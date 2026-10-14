@@ -1,16 +1,17 @@
-use anyhow::{anyhow, Result};
+use anyhow::Result;
+
+use super::policy_observations::CargoTestObservation;
 
 use crate::model::check::{CheckDefinition, CheckOutcome, CheckStatus};
 use crate::runtime::process::ProcessRunner;
 use crate::runtime::workspace::Workspace;
 
-pub(super) fn run_cargo_test(
+pub(super) fn observe_cargo_test(
     workspace: &Workspace,
-    check: &CheckDefinition,
     package: &str,
     test_bin: &str,
     filter: &str,
-) -> Result<CheckOutcome> {
+) -> Result<CargoTestObservation> {
     let runner = ProcessRunner::new(workspace);
     let output =
         runner.run(&["cargo", "test", "-p", package, "--test", test_bin, filter, "--quiet"])?;
@@ -18,10 +19,10 @@ pub(super) fn run_cargo_test(
     let stderr = String::from_utf8_lossy(&output.stderr);
     let combined = format!("{stdout}{stderr}");
     if combined.contains("running 0 tests") {
-        return Err(anyhow!("check `{}` matched no tests for filter `{filter}`", check.id));
+        return Ok(CargoTestObservation::NoTests { filter: filter.to_string() });
     }
     let status = if output.status.success() { CheckStatus::Passed } else { CheckStatus::Failed };
-    Ok(CheckOutcome::leaf(check.id, status, combined))
+    Ok(CargoTestObservation::Completed { status, detail: combined })
 }
 
 pub(super) fn run_process(

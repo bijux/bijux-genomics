@@ -86,6 +86,18 @@ Test ownership is detailed in [TESTS.md](TESTS.md):
 - `tests/boundaries/dependencies.rs` protects the dependency graph so
   development automation remains outside production crates.
 
+`application/checks/policy_observations.rs` owns observations for one checks request. It shares
+only exact `bijux-dna-policies` / `contracts` commands for the audited read-only groups
+`assets_governance_policy`, `generated_configs_policy`, `contract_authority_policy`,
+`tool_registry_reproducibility_policy`, `vcf_support_gate_policy`,
+`examples_golden_hygiene_policy`, `examples_cli_command_policy`, `stage_executor_parity_policy`,
+`opentelemetry_version_policy`, and `error_boundary_policy`. Every native operation, process,
+unknown Cargo group and composite clears observations before and after dispatch. Each new
+request starts fresh; the catalog IDs, primary and alias modes, result order, composite children,
+failed statuses and per-check diagnostics remain intact. This reduces duplicate requests without
+caching effectful policy work or changing Cargo resource provisioning. Its maintained contracts
+live once in the private test-only `checks/request_observation_contracts.rs` module.
+
 `application/ci/` separates expected test inventory admission, pinned Nextest event admission, and exact cross-shard coverage reconciliation. These modules have no filesystem or process effects. The tooling CI command owns producer/shard execution, logs, hashes and receipt publication.
 
 `runtime/source_snapshot.rs` captures the tracked worktree once as a pinned commit plus a binary Git patch. Archive and shard workspaces materialize that same input with one checkout and, only for changed sources, one patch application. Untracked evidence is excluded. CI commands own scratch lifetimes; snapshot materialization refuses existing destinations.
