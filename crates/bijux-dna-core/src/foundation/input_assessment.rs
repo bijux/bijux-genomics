@@ -220,9 +220,21 @@ fn atomic_write_bytes(path: &Path, bytes: &[u8]) -> std::io::Result<()> {
     std::fs::create_dir_all(parent)?;
 
     let temp_path = create_temp_path(parent, path);
-    let result = write_and_rename(&temp_path, path, bytes);
+    publish_staged_bytes(&temp_path, path, bytes)
+}
+
+fn publish_staged_bytes(temp_path: &Path, path: &Path, bytes: &[u8]) -> std::io::Result<()> {
+    // Exclusive creation establishes custody before cleanup is permitted.
+    let mut temp = OpenOptions::new().write(true).create_new(true).open(temp_path)?;
+    let result = (|| {
+        temp.write_all(bytes)?;
+        temp.sync_all()?;
+        drop(temp);
+        std::fs::rename(temp_path, path)?;
+        sync_parent_dir(path)
+    })();
     if result.is_err() {
-        let _ = std::fs::remove_file(&temp_path);
+        let _ = std::fs::remove_file(temp_path);
     }
     result
 }
@@ -232,15 +244,6 @@ fn create_temp_path(parent: &Path, target: &Path) -> PathBuf {
     let counter = TEMP_FILE_COUNTER.fetch_add(1, Ordering::Relaxed);
     let process_id = std::process::id();
     parent.join(format!(".{file_name}.{process_id}.{counter}.tmp"))
-}
-
-fn write_and_rename(temp_path: &Path, target: &Path, bytes: &[u8]) -> std::io::Result<()> {
-    let mut temp = OpenOptions::new().write(true).create_new(true).open(temp_path)?;
-    temp.write_all(bytes)?;
-    temp.sync_all()?;
-    drop(temp);
-    std::fs::rename(temp_path, target)?;
-    sync_parent_dir(target)
 }
 
 fn sync_parent_dir(path: &Path) -> std::io::Result<()> {
@@ -272,4 +275,61 @@ fn hash_file_sha256(path: &Path) -> Result<String> {
         let _ = write!(&mut hex, "{byte:02x}");
     }
     Ok(hex)
+}
+
+#[cfg(test)]
+mod publication_contracts {
+    use super::publish_staged_bytes;
+
+    #[test]
+    fn publication_retains_preexisting_staging_sibling() -> std::io::Result<()> {
+        let dir = tempfile::tempdir()?;
+        let target = dir.path().join("input-assessment.json");
+        let staging = dir.path().join(".input-assessment.staging");
+        let previous = b"previous assessment";
+        let foreign = b"unrelated staging owner";
+        std::fs::write(&target, previous)?;
+        std::fs::write(&staging, foreign)?;
+
+        let error =
+            publish_staged_bytes(&staging, &target, b"replacement").err().ok_or_else(|| {
+                std::io::Error::other("exclusive creation must refuse an existing sibling")
+            })?;
+
+        assert_eq!(error.kind(), std::io::ErrorKind::AlreadyExists);
+        assert_eq!(std::fs::read(&target)?, previous);
+        assert_eq!(std::fs::read(&staging)?, foreign);
+        Ok(())
+    }
+
+    #[test]
+    fn publication_replaces_payload_and_retires_owned_staging() -> std::io::Result<()> {
+        let dir = tempfile::tempdir()?;
+        let target = dir.path().join("input-assessment.json");
+        let staging = dir.path().join(".input-assessment.staging");
+        let replacement = b"{\"schema_version\":1,\"samples\":[]}";
+        std::fs::write(&target, b"previous assessment")?;
+
+        publish_staged_bytes(&staging, &target, replacement)?;
+
+        assert_eq!(std::fs::read(&target)?, replacement);
+        assert!(!staging.exists());
+        Ok(())
+    }
+
+    #[test]
+    fn publication_failure_removes_only_owned_staging() -> std::io::Result<()> {
+        let dir = tempfile::tempdir()?;
+        let target = dir.path().join("input-assessment.json");
+        let staging = dir.path().join(".input-assessment.staging");
+        let retained = target.join("retained.txt");
+        std::fs::create_dir(&target)?;
+        std::fs::write(&retained, b"unrelated directory contents")?;
+
+        assert!(publish_staged_bytes(&staging, &target, b"replacement").is_err());
+
+        assert!(!staging.exists());
+        assert_eq!(std::fs::read(&retained)?, b"unrelated directory contents");
+        Ok(())
+    }
 }
