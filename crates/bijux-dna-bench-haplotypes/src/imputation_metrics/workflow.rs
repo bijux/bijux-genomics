@@ -7,6 +7,7 @@ use crate::imputation_metrics::model::DEFAULT_VCF_IMPUTATION_METRICS_SMOKE_ROOT;
 use crate::imputation_metrics::observations::reports::read_json;
 use crate::imputation_metrics::observations::variants::summarize_imputation_metrics;
 use crate::inputs::HaplotypeBenchmarkInputs;
+use crate::panel_contracts::resolve_governed_vcf_panel_workflow_smoke_contract;
 use anyhow::Context;
 use anyhow::Result;
 use bijux_dna_bench_model::validate_benchmark_local_vcf_imputation_metrics_smoke_report;
@@ -24,6 +25,12 @@ pub fn run_local_vcf_imputation_metrics_smoke(
     repo_root: &Path,
     tool_id: &str,
 ) -> Result<LocalVcfImputationMetricsSmokeReport> {
+    resolve_governed_vcf_panel_workflow_smoke_contract(
+        inputs,
+        super::model::LOCAL_VCF_IMPUTATION_METRICS_STAGE_ID,
+        tool_id,
+        "imputation_metrics_json",
+    )?;
     let source_report = run_local_vcf_impute_smoke(inputs, repo_root, tool_id)?;
     let published_output_root =
         repo_root.join(DEFAULT_VCF_IMPUTATION_METRICS_SMOKE_ROOT).join(&source_report.tool_id);
