@@ -39,3 +39,9 @@ pub use filter_truth::{
     validate_vcf_filter_truth_manifest_path, VcfFilterTruthValidationReport,
     VCF_FILTER_TRUTH_FIXTURE_ID, VCF_FILTER_TRUTH_MANIFEST_SCHEMA_VERSION,
 };
+
+mod genotype_truth;
+pub use genotype_truth::{
+    validate_vcf_genotype_truth_manifest_path, VcfGenotypeTruthValidationReport,
+    VCF_GENOTYPE_TRUTH_FIXTURE_ID, VCF_GENOTYPE_TRUTH_MANIFEST_SCHEMA_VERSION,
+};

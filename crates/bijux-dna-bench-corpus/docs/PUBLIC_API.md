@@ -62,3 +62,18 @@ the governed identities. This read-only fixture service preserves its complete
 comparison, schema fields, support/error ordering, optional output evidence and
 slash-normalized report paths. [VCF filter truth](VCF_FILTER_TRUTH.md) documents
 the supported combinations and retained expected-row set/map limitations.
+
+With `variants`, `vcf::validate_vcf_genotype_truth_manifest_path` accepts an explicit
+repository root and declaration path and returns `VcfGenotypeTruthValidationReport`.
+`VCF_GENOTYPE_TRUTH_FIXTURE_ID` and `VCF_GENOTYPE_TRUTH_MANIFEST_SCHEMA_VERSION`
+retain the governed identities. The report keeps its schema, fixture/path fields,
+case count, sorted unique stage/tool inventories and validity flag. Full comparison
+includes genotype/missingness/likelihood summaries, optional command seed metadata
+and calling-boundary records. Native interpretation stays in the VCF domain.
+
+Absolute declaration, source, expected and input paths remain supported. Expected
+paths resolve against the declaration directory; source/input/command paths resolve
+against the supplied repository root. Display paths retain slash normalization.
+Command metadata remains permissive about unknown fields; manifest and expected
+wire records retain their existing closed fields. The service is read-only and
+retains expected-row set/map duplicate semantics and original rejection ordering.

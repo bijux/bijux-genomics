@@ -67,3 +67,19 @@ evidence reads. The facade compares complete case records without publication
 or execution. Domain parsing/interpretation and CLI presentation retain their
 owners. [VCF filter truth](VCF_FILTER_TRUTH.md) records schemas, error ordering,
 path normalization and the existing expected-case set/map semantics.
+
+## VCF genotype fixture truth
+
+`vcf/genotype_truth` owns the declared genotype manifest, expected case bundle
+and read-only validation report. Private wire records, admission and observation
+modules retain schema checks, reference admission and native evidence acquisition.
+Observations reuse the VCF domain's canonical genotype summary and calling-boundary
+rules; command JSON is metadata and its argv is never executed. The facade compares
+complete expected and observed records. CLI entrypoints own presentation.
+
+Manifest reference and evaluation admission precede expected-bundle acquisition;
+bundle identity admission precedes VCF and command observations. Expected case
+identity remains set-based and comparison remains map-based: ordering is ignored,
+duplicate expected rows collapse to the last record, and duplicate manifest case
+IDs reject. This service preserves those limitations rather than certifying
+independent scientific provenance. It neither writes fixtures nor launches tools.

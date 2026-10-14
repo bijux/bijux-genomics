@@ -38,3 +38,6 @@ fn vcf_mini_manifest_path_validates_fixture_assets() {
 
 #[path = "vcf/filter_truth.rs"]
 mod filter_truth;
+
+#[path = "vcf/genotype_truth.rs"]
+mod genotype_truth;
