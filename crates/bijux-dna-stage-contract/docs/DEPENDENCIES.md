@@ -12,6 +12,7 @@ CLI surfaces.
 | `anyhow` | Fallible validation and projection errors. |
 | `bijux-dna-core` | Shared identifiers, artifact references, and command-contract primitives. |
 | `serde` | Public contract serialization derives. |
+| `schemars` | Closed JSON schemas for declarative binding transport objects. |
 | `serde_json` | Canonical JSON values used in params, schemas, and snapshots. |
 | `sha2` | Deterministic hashes for stage plans and execution plans. |
 

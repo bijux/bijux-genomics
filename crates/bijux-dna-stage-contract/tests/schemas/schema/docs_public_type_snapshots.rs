@@ -49,6 +49,13 @@ fn public_api_doc_uses_current_root_type_names() {
         "StageDomain",
         "ArtifactRef",
         "StageIO",
+        "BindingInputSourceV1",
+        "OutputSidecarDiscoveryV1",
+        "BindingStagePlanRequest",
+        "ToolParameterProjectionRequest",
+        "EffectiveToolParameterSourceV1",
+        "EffectiveToolParameterV1",
+        "EffectiveToolParametersV1",
     ] {
         assert!(
             content.contains(&format!("`{current_type}`")),

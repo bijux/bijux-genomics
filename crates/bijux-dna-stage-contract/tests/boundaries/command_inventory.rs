@@ -18,6 +18,21 @@ const OPERATIONS: &[&str] = &[
     "list-executor-entries",
     "has-stage-executor",
     "stage-executor-entry",
+    "evaluate-stage-admission",
+    "validate-stage-contract",
+    "validate-report-parts",
+    "canonical-tool-bindings",
+    "canonical-retained-tool-bindings",
+    "canonical-external-artifact-tool-bindings",
+    "validate-tool-binding",
+    "render-tool-command",
+    "project-tool-parameters",
+    "validate-effective-tool-parameters",
+    "build-binding-stage-plan",
+    "required-binding-output-paths",
+    "canonical-downstream-probes",
+    "downstream-probes-for-bindings",
+    "evaluate-downstream-probe",
 ];
 
 #[test]

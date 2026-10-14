@@ -73,15 +73,28 @@ CLI parsing, process execution, or environment control APIs.
 - `canonical_tool_bindings`
 - `ToolBindingRenderContext`
 - `ToolArtifactSourceV1`
+- `BindingInputSourceV1`
 - `BindingInputV1`
 - `BindingParameterV1`
 - `BindingOutputV1`
 - `OutputDiscoveryV1`
+- `OutputSidecarDiscoveryV1`
+- `BindingStagePlanRequest`
+- `ToolParameterProjectionRequest`
+- `EffectiveToolParameterSourceV1`
+- `EffectiveToolParameterV1`
+- `EffectiveToolParametersV1`
 - `ArtifactRef`
 - `ArtifactContractV1`
 - `ArtifactContractCatalogV1`
 - `ArtifactCompatibilityReportV1`
 - `StageIO`
+
+## Binding And Consumer Operations
+
+`project_tool_parameters` records parameter precedence and resource authority; `validate_effective_tool_parameters` checks that payload before `build_binding_stage_plan` combines it with typed artifacts and image/executable identity. `required_binding_output_paths` expands exact native output names without filesystem access.
+
+`evaluate_stage_admission` and `validate_stage_contract` check declared stage/tool requirements. `validate_report_parts` validates report payloads, while `evaluate_downstream_probe` returns consumer checks for domain-normalized outputs. Callers own acquisition, execution and publication. The complete managed operation roster is in [COMMANDS.md](COMMANDS.md).
 
 ## Shape Examples
 
