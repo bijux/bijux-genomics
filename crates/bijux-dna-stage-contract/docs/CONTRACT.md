@@ -48,20 +48,22 @@ For execution manifests and run contracts, `bijux-dna-core` is the authority.
 
 ## Example
 
-`docs/EXAMPLE_PLAN.json` is the raw fixture. Field notes:
+`docs/EXAMPLE_PLAN.json` is a complete serialized public `ExecutionPlan` and
+is decoded and strictly validated by the schema suite. Field notes:
 
-- `contract_version`: version of the contract; breaking changes require a major
-  bump.
-- `schema_version`: schema name for the serialized plan.
-- `plan_id`: unique ID for this plan instance.
+- `schema_version`: `bijux.execution_plan.v1` identifies this serialized plan.
 - `pipeline_id`: registry ID owned by `bijux-dna-pipelines`.
-- `planner_id`: planner that produced the plan.
-- `steps`: ordered list of planned stage steps.
-- `step_id`: unique step identifier, often equal to `stage_id`.
-- `stage_id`: canonical stage identifier from domain contracts.
-- `tool_id` and `tool_version`: selected tool metadata for planning only.
-- `inputs` and `outputs`: artifact IDs plus relative paths for each step.
-- `params`: explicit parameters for the step; hidden defaults are not allowed.
+- `planner_version`: the planner identity/version that produced the plan.
+- `policy`: the declared `PlanPolicy` used during planning.
+- `stages`: typed `StagePlanV1` values; `edges` bind their dependency handoffs.
+- `stage_id` and optional `stage_instance_id`: semantic stage and distinct node identity.
+- `tool_id`, `tool_version` and `image`: selected execution identity, not a tool invocation.
+- `io.inputs` and `io.outputs`: named typed artifacts with paths and roles.
+- `params` and `effective_params`: explicit and resolved parameter payloads.
+- `command`, `resources`, `out_dir` and `reason`: complete planned execution authority.
+
+The example keeps one FASTQ trimming stage with `min_len = 30` and the named
+read/trimmed-read paths. It models a plan; it does not qualify native tool execution.
 
 ## Canonical Stage Contract Fixtures
 
