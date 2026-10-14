@@ -17,6 +17,8 @@ engine behavior, and determinism tests guard replayable output.
 
 - `tests/boundaries/`: dependency and side-effect boundary assertions.
 - `tests/contracts/`: engine-facing behavior and documentation contracts.
+- `tests/contracts/architecture.rs`: resolved engine dependency checks bound to an
+  explicit repository, including independent workspace and invalid-root cases.
 - `tests/contracts/recording.rs`: execution truth-set documentation and recording completeness checks.
 - `tests/determinism/`: replay and run-manifest stability assertions.
 - `tests/support/`: shared engine fixtures, graph builders, and runner stubs.
