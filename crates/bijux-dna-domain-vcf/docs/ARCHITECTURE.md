@@ -50,3 +50,11 @@ strings retain equality; otherwise complete calls with at least two alleles are
 compared without allele order or phase separators. This operation does not
 validate genotype syntax. Science evidence and benchmark workflows share this
 domain contract without depending on one another.
+
+`artifacts/genotype_truth.rs` owns pure genotype, ploidy, phase and likelihood
+projection over an internal typed request. Declared input paths and caller labels
+are report metadata; the kernel does not read them. The public Path facade retains
+its existing document acquisition followed by statistics acquisition, including
+error order and supplied missingness. Native decoding and filesystem acquisition
+remain in that compatibility path. This boundary does not change the summary
+schema or claim that every domain artifact service is free of acquisition effects.
