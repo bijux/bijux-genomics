@@ -5,9 +5,6 @@ use bijux_dna_domain_compiler::{
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
-#[path = "resource_quantities/workspace.rs"]
-mod workspace;
-
 const STAGE: &str = "fastq.validate_reads";
 
 struct Observation {
@@ -202,7 +199,7 @@ fn require_disposition(
 
 fn exercise_quantity(section: &str, field: &str, controls: &[(&str, bool)]) -> Result<()> {
     let fixture = super::support::artifact_output_dir("resource-quantity-")?;
-    workspace::materialize(&super::support::repo_root(), fixture.path())?;
+    super::domain_workspace::materialize(&super::support::repo_root(), fixture.path())?;
     let root = fixture.path();
     let index = root.join("domain/fastq/index.yaml");
     let original = std::fs::read(&index)?;

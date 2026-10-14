@@ -12,3 +12,9 @@ fn validate_domain_accepts_governed_workspace_contracts() -> anyhow::Result<()> 
 
 #[path = "contracts/resource_quantities.rs"]
 mod resource_quantities;
+
+#[path = "support/domain_workspace.rs"]
+mod domain_workspace;
+
+#[path = "contracts/deprecations.rs"]
+mod deprecations;

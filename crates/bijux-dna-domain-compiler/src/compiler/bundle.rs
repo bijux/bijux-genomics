@@ -1,5 +1,6 @@
 use super::loading::artifact_vocabulary::load_artifacts;
 pub use super::loading::artifact_vocabulary::ArtifactRoleSnapshot;
+use super::validation::{validate_deprecation_entries, DeprecationEntry, DeprecationsDoc};
 
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
@@ -351,28 +352,6 @@ struct MetricDocEntry {
     id: String,
 }
 
-#[derive(Debug, Clone, Deserialize)]
-struct DeprecationsDoc {
-    #[serde(default)]
-    deprecations: Vec<DeprecationDocEntry>,
-}
-
-#[derive(Debug, Clone, Deserialize)]
-struct DeprecationDocEntry {
-    #[serde(default)]
-    stage: Option<String>,
-    #[serde(default)]
-    tool_id: Option<String>,
-    #[serde(default)]
-    deprecated_since: String,
-    #[serde(default)]
-    removal_after: String,
-    #[serde(default)]
-    rationale: String,
-    #[serde(default)]
-    replacement: String,
-}
-
 fn sort_and_dedup(mut values: Vec<String>) -> Vec<String> {
     values.sort();
     values.dedup();
@@ -456,7 +435,7 @@ fn load_metrics(domain_dir: &Path, domain_id: &str) -> Result<(String, Vec<Domai
     Ok((doc.schema_version, metrics))
 }
 
-fn load_deprecations(workspace_root: &Path) -> Result<Vec<DeprecationDocEntry>> {
+fn load_deprecations(workspace_root: &Path) -> Result<Vec<DeprecationEntry>> {
     let path = workspace_root.join("configs/ci/registry/deprecations.toml");
     let text =
         std::fs::read_to_string(&path).with_context(|| format!("read {}", path.display()))?;
@@ -554,7 +533,7 @@ fn build_deprecation_records(
     domain_id: &str,
     stage_ids: &[String],
     tool_ids: &[String],
-    entries: &[DeprecationDocEntry],
+    entries: &[DeprecationEntry],
 ) -> Vec<RegistryDeprecationRecord> {
     let stage_set = stage_ids.iter().cloned().collect::<std::collections::BTreeSet<_>>();
     let tool_set = tool_ids.iter().cloned().collect::<std::collections::BTreeSet<_>>();
@@ -670,7 +649,7 @@ fn build_single_domain_registry(
     domain_dir: &Path,
     domain_id: &str,
     source_commit: &str,
-    deprecations: &[DeprecationDocEntry],
+    deprecations: &[DeprecationEntry],
 ) -> Result<CompiledDomainRegistry> {
     let index_path = domain_dir.join(domain_id).join("index.yaml");
     let index: DomainIndex = read_yaml(&index_path)?;
@@ -741,10 +720,48 @@ pub fn build_domain_registry_bundle(
 ) -> Result<DomainRegistryReleaseBundle> {
     let workspace_root = domain_dir.parent().unwrap_or(domain_dir);
     let deprecations = load_deprecations(workspace_root)?;
+    build_bundle_from_deprecations(domain_dir, source_commit, &deprecations)
+}
+
+pub(super) fn build_admitted_domain_registry_bundle(
+    domain_dir: &Path,
+    source_commit: &str,
+) -> Result<DomainRegistryReleaseBundle> {
+    let workspace_root = domain_dir.parent().unwrap_or(domain_dir);
+    let deprecations = load_deprecations(workspace_root)?;
+    let bundle = build_bundle_from_deprecations(domain_dir, source_commit, &deprecations)?;
+    let stage_ids = bundle
+        .domains
+        .iter()
+        .flat_map(|domain| {
+            domain.stages.iter().map(|stage| (stage.stage_id.clone(), domain.domain_id.clone()))
+        })
+        .collect();
+    let tool_ids = bundle
+        .domains
+        .iter()
+        .flat_map(|domain| {
+            domain.tools.iter().map(|tool| (tool.tool_id.clone(), domain.domain_id.clone()))
+        })
+        .collect();
+    validate_deprecation_entries(
+        &workspace_root.join("configs/ci/registry/deprecations.toml"),
+        &deprecations,
+        &stage_ids,
+        &tool_ids,
+    )?;
+    Ok(bundle)
+}
+
+fn build_bundle_from_deprecations(
+    domain_dir: &Path,
+    source_commit: &str,
+    deprecations: &[DeprecationEntry],
+) -> Result<DomainRegistryReleaseBundle> {
     let mut domains = ["fastq", "bam", "vcf"]
         .into_iter()
         .map(|domain_id| {
-            build_single_domain_registry(domain_dir, domain_id, source_commit, &deprecations)
+            build_single_domain_registry(domain_dir, domain_id, source_commit, deprecations)
         })
         .collect::<Result<Vec<_>>>()?;
     domains.sort_by(|left, right| left.domain_id.cmp(&right.domain_id));

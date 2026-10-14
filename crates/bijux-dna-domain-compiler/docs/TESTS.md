@@ -14,6 +14,7 @@ surfaces, planned-tool behavior, and repository guardrails.
 | Generated bundle surfaces | `tests/generated_registry_bundle_contracts.rs` | Locks the generated JSON registry bundle artifacts and their stable contracts. |
 | Public API docs | `tests/public_api_contracts.rs` | Locks README and `docs/PUBLIC_API.md` coverage for the typed release-bundle surface. |
 | Domain validation contracts | `tests/domain_validate_contracts.rs` | Verifies strict schema, deprecation, and fixture validation accept the governed workspace sources. |
+| Deprecation source admission | `tests/contracts/deprecations.rs` in the domain validation target | Validation and compilation refuse unknown raw tool-only replacements after real known inventory, compiled bundle, persisted projection, and restoration controls. The private validator case preserves subject, date, rationale, and blank-replacement error priority. |
 | Planned-tool registry boundary | `tests/planned_tool_registry_boundaries.rs` | Planned-only FASTQ alternatives stay out of governed runtime registry entries while remaining visible in stage metadata. |
 | Architecture boundaries | `tests/boundaries.rs` and `tests/boundaries/*.rs` | Locks docs layout, command inventory, dependency shape, and source/test tree intent. |
 
@@ -48,3 +49,5 @@ should use `CARGO_TARGET_DIR=artifacts/cargo-target`.
 - Generated config drift, release-bundle drift, and planned-tool promotion into governed runtime registries.
 
 The `domain_validate_contracts` target owns public finite resource-quantity contracts. Each quantity family uses a private governed workspace and observes both validation and compilation, with fractional and tiny positive memory, nonnegative output estimates, existing sign/integer refusals, nonfinite refusals, and exact restored generated outputs.
+
+`tests/support/domain_workspace.rs` materializes the private governed input closure shared by the resource-quantity and deprecation contracts. Both consumers use the existing domain validation target; the fixture helper does not execute tools or copy reference payloads.
