@@ -805,15 +805,13 @@ fn crate_shape_gate_check_from_result<R>(
     goal_id: &'static str,
     command: String,
     result: Result<R>,
-    ok_detail: impl FnOnce(R) -> String,
+    outcome: impl FnOnce(R) -> (bool, String),
 ) -> CrateShapeGateCheckReport {
     match result {
-        Ok(report) => CrateShapeGateCheckReport {
-            goal_id: goal_id.to_string(),
-            ok: true,
-            command,
-            detail: ok_detail(report),
-        },
+        Ok(report) => {
+            let (ok, detail) = outcome(report);
+            CrateShapeGateCheckReport { goal_id: goal_id.to_string(), ok, command, detail }
+        }
         Err(err) => CrateShapeGateCheckReport {
             goal_id: goal_id.to_string(),
             ok: false,
@@ -832,7 +830,7 @@ fn collect_benchmarking_ready_crate_shape_gate_checks(
         "411",
         format!("bijux-dna dev crates graph --output {DEFAULT_CRATE_DEPENDENCY_MAP_PATH}"),
         write_dependency_map(cwd, &graph_path),
-        |report| report.output_path,
+        |report| (true, report.output_path),
     );
 
     let domain_no_execution_path = cwd.join(DEFAULT_DOMAIN_NO_EXECUTION_PATH);
@@ -842,7 +840,7 @@ fn collect_benchmarking_ready_crate_shape_gate_checks(
             "bijux-dna dev crates domain-no-execution --output {DEFAULT_DOMAIN_NO_EXECUTION_PATH}"
         ),
         write_domain_no_execution_report(cwd, &domain_no_execution_path),
-        |report| report.output_path,
+        |report| (report.ok, report.output_path),
     );
 
     let parser_no_execution_path = cwd.join(DEFAULT_PARSER_NO_EXECUTION_PATH);
@@ -852,7 +850,7 @@ fn collect_benchmarking_ready_crate_shape_gate_checks(
             "bijux-dna dev crates parser-no-execution --output {DEFAULT_PARSER_NO_EXECUTION_PATH}"
         ),
         write_parser_no_execution_report(cwd, &parser_no_execution_path),
-        |report| report.output_path,
+        |report| (report.ok, report.output_path),
     );
 
     let planner_no_parser_path = cwd.join(DEFAULT_PLANNER_NO_PARSER_PATH);
@@ -860,7 +858,7 @@ fn collect_benchmarking_ready_crate_shape_gate_checks(
         "414",
         format!("bijux-dna dev crates planner-no-parser --output {DEFAULT_PLANNER_NO_PARSER_PATH}"),
         write_planner_no_parser_report(cwd, &planner_no_parser_path),
-        |report| report.output_path,
+        |report| (report.ok, report.output_path),
     );
 
     let runner_process_execution_path = cwd.join(DEFAULT_RUNNER_OWNS_PROCESS_EXECUTION_PATH);
@@ -870,7 +868,7 @@ fn collect_benchmarking_ready_crate_shape_gate_checks(
             "bijux-dna dev crates runner-owns-process-execution --output {DEFAULT_RUNNER_OWNS_PROCESS_EXECUTION_PATH}"
         ),
         write_runner_owned_process_execution_report(cwd, &runner_process_execution_path),
-        |report| report.output_path,
+        |report| (report.ok, report.output_path),
     );
 
     let goal_416 = crate_shape_gate_check_from_result(
@@ -882,7 +880,7 @@ fn collect_benchmarking_ready_crate_shape_gate_checks(
             ProofId::TypedArtifactHandoff,
             TYPED_ARTIFACT_HANDOFF_TEST_COMMAND,
         ),
-        |()| "typed artifact handoff proof passed".to_string(),
+        |()| (true, "typed artifact handoff proof passed".to_string()),
     );
 
     let goal_417 = collect_metric_registry_gate_check(cwd, cargo_target_dir);
@@ -894,7 +892,7 @@ fn collect_benchmarking_ready_crate_shape_gate_checks(
             "bijux-dna dev crates result-id-stability --output {DEFAULT_RESULT_ID_STABILITY_PATH}"
         ),
         write_result_id_stability_report(cwd, &result_id_stability_path),
-        |report| report.output_path,
+        |report| (report.ok, report.output_path),
     );
 
     let no_crate_cycles_path = cwd.join(DEFAULT_NO_CRATE_CYCLES_PATH);
@@ -902,7 +900,7 @@ fn collect_benchmarking_ready_crate_shape_gate_checks(
         "419",
         format!("bijux-dna dev crates check-cycles --output {DEFAULT_NO_CRATE_CYCLES_PATH}"),
         write_no_crate_cycles_report(cwd, &no_crate_cycles_path),
-        |report| report.output_path,
+        |report| (report.ok, report.output_path),
     );
 
     vec![goal_411, goal_412, goal_413, goal_414, goal_415, goal_416, goal_417, goal_418, goal_419]
@@ -2558,5 +2556,123 @@ mod tests {
         );
 
         assert_eq!(resolved, Path::new("/tmp/custom-target"));
+    }
+
+    fn private_domain_audit_workspace(source: &str) -> anyhow::Result<tempfile::TempDir> {
+        let root = tempfile::tempdir()?;
+        let crate_root = root.path().join("crates/bijux-dna-domain-fastq");
+        std::fs::create_dir_all(crate_root.join("src"))?;
+        std::fs::write(
+            root.path().join("Cargo.toml"),
+            "[workspace]\nmembers = [\"crates/bijux-dna-domain-fastq\"]\nresolver = \"2\"\n",
+        )?;
+        std::fs::write(
+            crate_root.join("Cargo.toml"),
+            "[package]\nname = \"bijux-dna-domain-fastq\"\nversion = \"0.1.0\"\nedition = \"2021\"\n",
+        )?;
+        std::fs::write(crate_root.join("src/lib.rs"), source)?;
+        Ok(root)
+    }
+
+    #[test]
+    fn crate_gate_refuses_persisted_failed_domain_audit() -> anyhow::Result<()> {
+        let source = "pub fn forbidden_effect() { let _ = std::process::Command::new(\"sh\"); }\n";
+        let root = private_domain_audit_workspace(source)?;
+        let output = root.path().join("artifacts/domain-no-execution.json");
+        let audit = super::write_domain_no_execution_report(root.path(), &output)?;
+        assert_eq!(audit.audited_crate_count, 1);
+        assert_eq!(audit.crates[0].crate_name, "bijux-dna-domain-fastq");
+        assert!(!audit.ok, "the real writer must expose the admitted source violation");
+        assert!(!audit.crates[0].process_execution_refs.is_empty());
+        let persisted_before = std::fs::read(&output)?;
+        let persisted: serde_json::Value = serde_json::from_slice(&persisted_before)?;
+        assert_eq!(persisted["ok"], false);
+        let expected_detail = audit.output_path.clone();
+        let command = "domain-no-execution".to_string();
+        let check = super::crate_shape_gate_check_from_result(
+            "412",
+            command.clone(),
+            Ok(audit),
+            |report| (report.ok, report.output_path),
+        );
+        assert!(!check.ok, "an Ok audit with ok=false must fail the crate gate");
+        assert_eq!(check.goal_id, "412");
+        assert_eq!(check.command, command);
+        assert_eq!(check.detail, expected_detail);
+        let gate = super::build_benchmarking_ready_crate_shape_gate_report(
+            root.path(),
+            &root.path().join("artifacts/gate.json"),
+            &root.path().join("artifacts/gate-target"),
+            vec![check],
+        );
+        assert!(!gate.ok);
+        assert!(gate.passed_goal_ids.is_empty());
+        assert_eq!(gate.failed_goal_ids, ["412"]);
+        assert_eq!(std::fs::read(&output)?, persisted_before, "failed audit remains published");
+        assert_eq!(
+            std::fs::read_to_string(root.path().join("crates/bijux-dna-domain-fastq/src/lib.rs"))?,
+            source
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn crate_gate_accepts_persisted_clean_domain_audit() -> anyhow::Result<()> {
+        let root = private_domain_audit_workspace("pub fn pure_value() -> u64 { 7 }\n")?;
+        let output = root.path().join("artifacts/domain-no-execution.json");
+        let audit = super::write_domain_no_execution_report(root.path(), &output)?;
+        assert_eq!(audit.audited_crate_count, 1);
+        assert!(audit.ok);
+        let expected_detail = audit.output_path.clone();
+        let check = super::crate_shape_gate_check_from_result(
+            "412",
+            "domain-no-execution".to_string(),
+            Ok(audit),
+            |report| (report.ok, report.output_path),
+        );
+        assert!(check.ok);
+        assert_eq!(check.detail, expected_detail);
+        let gate = super::build_benchmarking_ready_crate_shape_gate_report(
+            root.path(),
+            &root.path().join("artifacts/gate.json"),
+            &root.path().join("artifacts/gate-target"),
+            vec![check],
+        );
+        assert!(gate.ok);
+        assert_eq!(gate.passed_goal_ids, ["412"]);
+        assert!(gate.failed_goal_ids.is_empty());
+        let persisted: serde_json::Value = serde_json::from_slice(&std::fs::read(output)?)?;
+        assert_eq!(persisted["ok"], true);
+        Ok(())
+    }
+
+    #[test]
+    fn crate_gate_refuses_domain_audit_acquisition_error() -> anyhow::Result<()> {
+        let root = private_domain_audit_workspace("pub fn pure_value() -> u64 { 7 }\n")?;
+        std::fs::write(root.path().join("Cargo.toml"), "[workspace\n")?;
+        let output = root.path().join("artifacts/domain-no-execution.json");
+        let result = super::write_domain_no_execution_report(root.path(), &output);
+        let expected_error = match &result {
+            Err(error) => error.to_string(),
+            Ok(_) => anyhow::bail!("malformed manifest unexpectedly produced an audit"),
+        };
+        let check = super::crate_shape_gate_check_from_result(
+            "412",
+            "domain-no-execution".to_string(),
+            result,
+            |report| (report.ok, report.output_path),
+        );
+        assert!(!check.ok);
+        assert_eq!(check.detail, expected_error);
+        assert!(!output.exists(), "failed acquisition does not publish a fabricated audit");
+        let gate = super::build_benchmarking_ready_crate_shape_gate_report(
+            root.path(),
+            &root.path().join("artifacts/gate.json"),
+            &root.path().join("artifacts/gate-target"),
+            vec![check],
+        );
+        assert!(!gate.ok);
+        assert_eq!(gate.failed_goal_ids, ["412"]);
+        Ok(())
     }
 }
