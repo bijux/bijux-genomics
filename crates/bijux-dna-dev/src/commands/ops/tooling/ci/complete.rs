@@ -14,21 +14,22 @@ use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 
 use crate::application::ci::local_tests::{
-    admit_lane, admit_python_cases, doctest_inventory, doctest_outcomes, doctest_targets,
-    nextest_membership, reconcile_lanes, CaseOutcome, LaneDefinition, LaneInputs, LaneReceipt,
-    SourceIdentity, ToolIdentity, LANE_SCHEMA, REQUIRED_LANES,
+    admit_archive_build_jobs, admit_lane, admit_python_cases, doctest_inventory, doctest_outcomes,
+    doctest_targets, nextest_membership, reconcile_lanes, AdmittedResources, ArtifactReference,
+    CaseOutcome, LaneDefinition, LaneInputs, LaneReceipt, SourceIdentity, ToolIdentity,
+    LANE_SCHEMA, REQUIRED_LANES,
 };
 use crate::model::ops::OpsCommandOutcome;
 use crate::runtime::compilation_cache::CompilationCache;
 use crate::runtime::gate_receipt::run_reported;
 use crate::runtime::local_tests::{
-    bind_tools, lane_inputs, load_catalog, observe_capacity, reference, selections,
-    source_identity, tool_path, verify_artifacts, verify_inputs, verify_producer_manifest,
-    verify_source_reads, write_value,
+    bind_tools, lane_inputs, load_catalog, observe_capacity, read_resource_request, reference,
+    selections, source_identity, tool_path, verify_artifacts, verify_execution_plan, verify_inputs,
+    verify_producer_manifest, verify_resource_request, verify_source_reads, write_value,
 };
 use crate::runtime::process::{
     DependencyProcessOutput, DependentProcessSpec, ParallelProcessSpec, ProcessRunner,
-    WeightedProcessSpec,
+    ProvisionedProcessSpec, ProvisionedResourceUnits, WeightedProcessSpec,
 };
 use crate::runtime::source_snapshot::TrackedSourceSnapshot;
 use crate::runtime::workspace::Workspace;
@@ -41,7 +42,7 @@ pub(in super::super::super) fn tooling_ci_test_complete(
     args: &[String],
 ) -> Result<OpsCommandOutcome> {
     if matches!(args, [arg] if arg == "--help" || arg == "-h") {
-        return Ok(OpsCommandOutcome::success("ci-test-complete: run all declared local Rust, doctest and Python test lanes; BIJUX_CI_COMPLETE_WORKER_BUDGET limits CPU units (one hardware worker reserved by default).\n"));
+        return Ok(OpsCommandOutcome::success("ci-test-complete: run all declared local Rust, doctest and Python test lanes; BIJUX_CI_COMPLETE_WORKER_BUDGET limits CPU units (one hardware worker reserved by default); --resource-request <artifact-owned JSON> adds source/catalog-bound logical RAM/disk/IO/process allocation admission.\n"));
     }
     if let [mode, lane, plan] = args {
         ensure!(
@@ -57,7 +58,11 @@ pub(in super::super::super) fn tooling_ci_test_complete(
         );
         return execute_lane(workspace, lane, &plan);
     }
-    ensure!(args.is_empty(), "ci-test-complete accepts no public positional arguments");
+    let resource_request_path = match args {
+        [] => None,
+        [option, path] if option == "--resource-request" => Some(Path::new(path)),
+        _ => anyhow::bail!("ci-test-complete accepts --resource-request <artifact-owned JSON>"),
+    };
     let started = Instant::now();
     let receipt_path =
         workspace.admit_artifact_path(Path::new("artifacts/ci/local-test-gate.json"))?;
@@ -79,7 +84,7 @@ pub(in super::super::super) fn tooling_ci_test_complete(
             ensure!(snapshot.is_clean(), "complete local tests require committed clean source for reusable Cargo fingerprints");
             let mut catalog = load_catalog(&workspace.root)?;
             let hardware = std::thread::available_parallelism()?.get();
-            let budget = std::env::var("BIJUX_CI_COMPLETE_WORKER_BUDGET").map_or(
+            let initial_budget = std::env::var("BIJUX_CI_COMPLETE_WORKER_BUDGET").map_or(
                 Ok(hardware.saturating_sub(1).max(1)),
                 |value| {
                     value
@@ -88,10 +93,42 @@ pub(in super::super::super) fn tooling_ci_test_complete(
                 },
             )?;
             ensure!(
-                budget > 0
-                    && budget < hardware
-                    && catalog.lanes.iter().all(|lane| lane.resource_units <= budget),
+                initial_budget > 0
+                    && initial_budget < hardware
+                    && catalog.lanes.iter().all(|lane| lane.resource_units <= initial_budget),
                 "complete lane exceeds admitted CPU budget"
+            );
+            let (provisioned_resources, resource_request) = if let Some(path) =
+                resource_request_path
+            {
+                let (admitted, seal) = read_resource_request(
+                    workspace,
+                    path,
+                    &source,
+                    &receipt["capacity_observation"],
+                    initial_budget,
+                )?;
+                receipt["provisioned_resource_admission"] = json!({
+                    "mode":"declared_logical_reservations",
+                    "request":seal, "admitted":admitted,
+                    "measurement_qualified":false,
+                    "os_memory_disk_io_enforcement":false,
+                    "nested_os_process_cap":false,
+                    "persistent_lane_disk_growth_reserved_for_entire_run":true,
+                    "scope":"one kernel capacity observation before setup; caller provisions declared envelopes; logical reservations do not restrict physical consumption"
+                });
+                (Some(admitted), Some(seal))
+            } else {
+                receipt["provisioned_resource_admission"] =
+                    json!({"mode":"cpu_only","memory_disk_io_process_demands_admitted":false});
+                (None, None)
+            };
+            let budget = provisioned_resources
+                .as_ref()
+                .map_or(initial_budget, |admitted| admitted.request.cpu_worker_units);
+            ensure!(
+                catalog.lanes.iter().all(|lane| lane.resource_units <= budget),
+                "lane exceeds provisioned CPU allocation"
             );
             let python_units = catalog
                 .lanes
@@ -109,11 +146,10 @@ pub(in super::super::super) fn tooling_ci_test_complete(
             let full: Value = serde_json::from_slice(&std::fs::read(
                 workspace.path("configs/ci/full-shards.json"),
             )?)?;
-            ensure!(
-                full["archive_build_jobs"].as_u64().context("archive build jobs absent")?
-                    <= budget as u64,
-                "archive producer exceeds complete CPU budget"
-            );
+            admit_archive_build_jobs(
+                full["archive_build_jobs"].as_u64().context("archive build jobs absent")?,
+                rust_lane.resource_units,
+            )?;
             let isolated_root = owner.join("source");
             snapshot.materialize_cached_clean(&isolated_root)?;
             let isolated = Workspace { root: isolated_root };
@@ -186,14 +222,17 @@ pub(in super::super::super) fn tooling_ci_test_complete(
                 tool_errors,
                 environment,
                 worker_budget: budget,
+                provisioned_resources,
+                resource_request,
             };
             let plan_path = output.join("execution-plan.json");
             write_value(&plan_path, &plan)?;
             receipt["source"] = json!(source);
-            receipt["execution_plan"] = json!(reference(&plan_path)?);
-            receipt["resources"] = json!({"cpu_units":budget,"hardware_workers":hardware,"foreground_reserve":hardware.saturating_sub(budget),"process_limit":5,"rust_writer_policy":"terminally_sequenced_shared_cache","memory_io_qualification":"external runner admission required; CPU units do not enforce RAM/disk/IO limits","shared_compilation_writers":1,"independent_python_fixture_compile_jobs":2,"memory_budget_enforced":false,"disk_io_budget_enforced":false});
+            let plan_seal = reference(&plan_path)?;
+            receipt["execution_plan"] = json!(plan_seal);
+            receipt["resources"] = json!({"cpu_units":budget,"hardware_workers":hardware,"foreground_reserve":hardware.saturating_sub(budget),"process_limit":plan.provisioned_resources.as_ref().map_or(5, |admitted| admitted.worker_process_slots),"rust_writer_policy":"terminally_sequenced_shared_cache","memory_io_qualification":"external runner admission required; CPU units do not enforce RAM/disk/IO limits","shared_compilation_writers":1,"independent_python_fixture_compile_jobs":2,"memory_budget_enforced":false,"disk_io_budget_enforced":false,"logical_provisioned_reservations_enforced":plan.provisioned_resources.is_some()});
             let executable = std::env::current_exe()?.canonicalize()?;
-            let specs = plan
+            let specs: Vec<WeightedProcessSpec> = plan
                 .lanes
                 .iter()
                 .map(|lane| {
@@ -226,8 +265,41 @@ pub(in super::super::super) fn tooling_ci_test_complete(
                     }
                 })
                 .collect();
-            let completed =
-                ProcessRunner::new(&isolated).run_weighted_dependency_graph(specs, 5, budget)?;
+            let runner = ProcessRunner::new(&isolated);
+            let completed = if let Some(admitted) = &plan.provisioned_resources {
+                let specs = specs
+                    .into_iter()
+                    .map(|process: WeightedProcessSpec| {
+                        let allocation = admitted
+                            .request
+                            .lanes
+                            .iter()
+                            .find(|allocation| allocation.lane == process.process.process.label)
+                            .context("admitted lane allocation absent")?
+                            .allocation;
+                        Ok(ProvisionedProcessSpec {
+                            process,
+                            resources: ProvisionedResourceUnits {
+                                memory_bytes: allocation.memory_bytes,
+                                scratch_bytes: allocation.scratch_bytes,
+                                io_slots: allocation.io_slots,
+                            },
+                        })
+                    })
+                    .collect::<Result<Vec<_>>>()?;
+                runner.run_provisioned_dependency_graph(
+                    specs,
+                    admitted.worker_process_slots,
+                    budget,
+                    ProvisionedResourceUnits {
+                        memory_bytes: admitted.worker_memory_bytes,
+                        scratch_bytes: admitted.worker_scratch_bytes,
+                        io_slots: admitted.worker_io_slots,
+                    },
+                )?
+            } else {
+                runner.run_weighted_dependency_graph(specs, 5, budget)?
+            };
             let mut failed_processes = Vec::new();
             for result in completed {
                 match result {
@@ -292,6 +364,10 @@ pub(in super::super::super) fn tooling_ci_test_complete(
                 "local lane receipt admission failed: {}",
                 acceptance_errors.join("; ")
             );
+            if let Some(seal) = &plan.resource_request {
+                verify_resource_request(workspace, seal)?;
+            }
+            verify_execution_plan(workspace, &plan_seal)?;
             reconcile_lanes(&receipts, &source, &inputs)?;
             ensure!(failed_processes.is_empty(), "local lane process failed");
             receipt["all_passed"] = json!(true);

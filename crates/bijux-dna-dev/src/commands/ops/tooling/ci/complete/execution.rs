@@ -2,9 +2,9 @@
 
 use super::{
     admit_lane, ensure, json, lane_inputs, nextest, python, reference, rustdoc, write_value,
-    BTreeSet, CaseOutcome, Context, Deserialize, Instant, LaneDefinition, LaneInputs, LaneReceipt,
-    OpsCommandOutcome, ParallelProcessSpec, Path, PathBuf, ProcessRunner, Result, Serialize,
-    SourceIdentity, ToolIdentity, Workspace, LANE_SCHEMA,
+    AdmittedResources, ArtifactReference, BTreeSet, CaseOutcome, Context, Deserialize, Instant,
+    LaneDefinition, LaneInputs, LaneReceipt, OpsCommandOutcome, ParallelProcessSpec, Path, PathBuf,
+    ProcessRunner, Result, Serialize, SourceIdentity, ToolIdentity, Workspace, LANE_SCHEMA,
 };
 
 #[derive(Serialize, Deserialize)]
@@ -21,6 +21,10 @@ pub(super) struct ExecutionPlan {
     pub(super) tool_errors: Vec<(String, String)>,
     pub(super) environment: Vec<(String, String)>,
     pub(super) worker_budget: usize,
+    #[serde(default)]
+    pub(super) provisioned_resources: Option<AdmittedResources>,
+    #[serde(default)]
+    pub(super) resource_request: Option<ArtifactReference>,
 }
 
 pub(super) fn input_manifest(

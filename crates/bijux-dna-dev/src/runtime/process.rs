@@ -24,6 +24,20 @@ pub struct WeightedProcessSpec {
     pub terminal_dependencies: Vec<String>,
 }
 
+/// Logical provisioned envelopes, not operating-system usage limits.
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+pub struct ProvisionedResourceUnits {
+    pub memory_bytes: u64,
+    pub scratch_bytes: u64,
+    pub io_slots: usize,
+}
+
+#[derive(Debug, Clone)]
+pub struct ProvisionedProcessSpec {
+    pub process: WeightedProcessSpec,
+    pub resources: ProvisionedResourceUnits,
+}
+
 #[derive(Debug)]
 pub enum DependencyProcessOutput {
     Completed(ParallelProcessOutput),
@@ -231,6 +245,38 @@ impl<'a> ProcessRunner<'a> {
         } else {
             dependency_graph::collect_weighted(specs, max_parallelism, resource_capacity, run)
         }
+    }
+
+    /// Reserve explicit RAM/disk/IO envelopes in the existing dependency collector.
+    /// CPU and top-level process limits retain the weighted API semantics. Nested OS
+    /// process counts and actual RAM/IO consumption are not hard-enforced by this API.
+    ///
+    /// # Errors
+    /// Returns an error for malformed, overflowing or individually unfit allocations,
+    /// invalid dependencies, or child launch/collection failure.
+    pub fn run_provisioned_dependency_graph(
+        &self,
+        specs: Vec<ProvisionedProcessSpec>,
+        max_parallelism: usize,
+        worker_budget: usize,
+        capacity: ProvisionedResourceUnits,
+    ) -> Result<Vec<DependencyProcessOutput>> {
+        let demands = specs.iter().map(|spec| spec.resources).collect();
+        let specs = specs.into_iter().map(|spec| spec.process).collect();
+        dependency_graph::collect_provisioned(
+            specs,
+            max_parallelism,
+            worker_budget,
+            Some(dependency_graph::AuxiliaryReservation { capacity, demands }),
+            |spec| {
+                let mut command = std::process::Command::new(&spec.program);
+                command
+                    .args(&spec.args)
+                    .envs(spec.envs.iter().map(|(key, value)| (key, value)))
+                    .current_dir(spec.current_dir.as_ref().unwrap_or(&self.workspace.root));
+                command.output().with_context(|| format!("run provisioned process {}", spec.label))
+            },
+        )
     }
 
     fn collect_parallel(

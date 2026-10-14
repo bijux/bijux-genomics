@@ -160,9 +160,23 @@ The default CPU budget reserves one hardware worker for foreground work.
 `BIJUX_CI_COMPLETE_WORKER_BUDGET` may reduce that positive budget; it must fit every declared
 lane and remain below detected hardware capacity. The five-lane process limit and weighted
 admission bound active CPU units. Full Nextest retains its separate build/job/case-thread
-controls and must fit its admitted lane allocation. These controls do not enforce RAM,
-disk space or IO limits; provision sufficient runner capacity for the recorded compilation
-and fixture assumptions.
+controls and must fit its admitted lane allocation. The default records CPU-only admission.
+For explicit resource accounting, pass `--resource-request artifacts/ci/provisioned-resources.json`
+to the developer command. The request binds the clean candidate SHA, tree, empty-patch digest
+and actual catalog digest to caller-provisioned allocations for every required lane.
+
+Provisioned admission checks available RAM and free artifact disk, reserves foreground and
+coordinator capacity plus retained cache/output growth, and delays CPU-ready work until its
+RAM, scratch and IO allocation fits. Top-level process slots include the coordinator.
+The request must use `bijux.ci.provisioned_resources.v1`, set `measurement_claim` to false,
+and name its provision authority; declared allocations are not measured workload peaks.
+Source/catalog drift, missing or duplicate lanes, arithmetic overflow, unavailable capacity
+and a changed request prevent acceptance. Regenerate the request after source/catalog changes.
+
+These reservations provide logical admission. They do not impose hard limits on actual RSS,
+disk writes, IO rates or nested OS processes; external load can change observed capacity.
+Cargo/test worker bounds remain separate. Qualify chosen allocations under the declared runner
+conditions, including possible cold doctest rebuilds and persistent logs and products.
 
 A command-wide lease protects the stable input checkout. Nextest and doctests take successive
 exclusive leases on the same retained compilation cache. Source and executable manifests

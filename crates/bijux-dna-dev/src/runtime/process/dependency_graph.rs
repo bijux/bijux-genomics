@@ -7,7 +7,7 @@ use anyhow::{ensure, Context, Result};
 
 use super::{
     DependencyProcessOutput, DependentProcessSpec, ParallelProcessOutput, ParallelProcessSpec,
-    WeightedProcessSpec,
+    ProvisionedResourceUnits, WeightedProcessSpec,
 };
 
 #[derive(Clone, Copy, PartialEq, Eq)]
@@ -100,6 +100,67 @@ pub(super) fn collect_weighted<F>(
 where
     F: Fn(&ParallelProcessSpec) -> Result<Output> + Sync,
 {
+    collect_provisioned(specs, max_parallelism, resource_capacity, None, run)
+}
+
+pub(super) struct AuxiliaryReservation {
+    pub capacity: ProvisionedResourceUnits,
+    pub demands: Vec<ProvisionedResourceUnits>,
+}
+
+impl ProvisionedResourceUnits {
+    fn checked_add(self, other: Self) -> Option<Self> {
+        Some(Self {
+            memory_bytes: self.memory_bytes.checked_add(other.memory_bytes)?,
+            scratch_bytes: self.scratch_bytes.checked_add(other.scratch_bytes)?,
+            io_slots: self.io_slots.checked_add(other.io_slots)?,
+        })
+    }
+    fn checked_sub(self, other: Self) -> Option<Self> {
+        Some(Self {
+            memory_bytes: self.memory_bytes.checked_sub(other.memory_bytes)?,
+            scratch_bytes: self.scratch_bytes.checked_sub(other.scratch_bytes)?,
+            io_slots: self.io_slots.checked_sub(other.io_slots)?,
+        })
+    }
+    fn fits(self, capacity: Self) -> bool {
+        self.memory_bytes <= capacity.memory_bytes
+            && self.scratch_bytes <= capacity.scratch_bytes
+            && self.io_slots <= capacity.io_slots
+    }
+}
+
+pub(super) fn collect_provisioned<F>(
+    specs: Vec<WeightedProcessSpec>,
+    max_parallelism: usize,
+    resource_capacity: usize,
+    auxiliary: Option<AuxiliaryReservation>,
+    run: F,
+) -> Result<Vec<DependencyProcessOutput>>
+where
+    F: Fn(&ParallelProcessSpec) -> Result<Output> + Sync,
+{
+    if let Some(reservation) = &auxiliary {
+        ensure!(
+            reservation.demands.len() == specs.len()
+                && reservation.capacity.memory_bytes > 0
+                && reservation.capacity.io_slots > 0,
+            "invalid provisioned resource roster/capacity"
+        );
+        for demand in &reservation.demands {
+            ensure!(
+                demand.memory_bytes > 0 && demand.io_slots > 0 && demand.fits(reservation.capacity),
+                "declared process does not fit provisioned resources"
+            );
+        }
+        reservation
+            .demands
+            .iter()
+            .try_fold(ProvisionedResourceUnits::default(), |total, demand| {
+                total.checked_add(*demand)
+            })
+            .context("declared provisioned resources overflow")?;
+    }
     ensure!(resource_capacity > 0, "weighted resource capacity must be positive");
     for spec in &specs {
         ensure!(
@@ -143,6 +204,7 @@ where
     std::thread::scope(|scope| {
         let mut active = 0usize;
         let mut occupied_units = 0usize;
+        let mut occupied_resources = ProvisionedResourceUnits::default();
         let mut first_error = None;
         loop {
             if first_error.is_none() {
@@ -178,8 +240,18 @@ where
                         || occupied_units
                             .checked_add(specs[index].resource_units)
                             .is_none_or(|units| units > resource_capacity)
+                        || auxiliary.as_ref().is_some_and(|reservation| {
+                            occupied_resources
+                                .checked_add(reservation.demands[index])
+                                .is_none_or(|total| !total.fits(reservation.capacity))
+                        })
                     {
                         continue;
+                    }
+                    if let Some(reservation) = &auxiliary {
+                        occupied_resources = occupied_resources
+                            .checked_add(reservation.demands[index])
+                            .context("admitted resource reservation overflow")?;
                     }
                     states[index] = State::Running;
                     active += 1;
@@ -215,6 +287,11 @@ where
                 receiver.recv().context("dependency process completion channel closed")?;
             active -= 1;
             occupied_units -= specs[index].resource_units;
+            if let Some(reservation) = &auxiliary {
+                occupied_resources = occupied_resources
+                    .checked_sub(reservation.demands[index])
+                    .context("resource reservation released more than once")?;
+            }
             match result {
                 Ok(output) => {
                     states[index] =
@@ -229,6 +306,10 @@ where
                 }
             }
         }
+        ensure!(
+            occupied_resources == ProvisionedResourceUnits::default(),
+            "provisioned reservations were not drained"
+        );
         if let Some(error) = first_error {
             return Err(error);
         }
@@ -278,6 +359,138 @@ mod tests {
             resource_units: weight,
             terminal_dependencies: terminal.iter().map(|value| (*value).to_string()).collect(),
         }
+    }
+
+    fn demand(memory_bytes: u64, scratch_bytes: u64, io_slots: usize) -> ProvisionedResourceUnits {
+        ProvisionedResourceUnits { memory_bytes, scratch_bytes, io_slots }
+    }
+
+    #[test]
+    fn provisioned_ram_disk_and_io_each_defer_cpu_ready_work_until_completion() -> Result<()> {
+        use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
+        for capacity in [demand(3, 10, 10), demand(10, 3, 10), demand(10, 10, 2)] {
+            let signal = (Mutex::new(false), Condvar::new());
+            let completed = AtomicBool::new(false);
+            let active = AtomicU64::new(0);
+            let maximum = AtomicU64::new(0);
+            let outputs = collect_provisioned(
+                vec![
+                    weighted("producer", 1, &[], &[]),
+                    weighted("peer", 1, &[], &[]),
+                    weighted("consumer", 1, &["producer"], &[]),
+                    weighted("fitting", 1, &[], &[]),
+                ],
+                4,
+                4,
+                Some(AuxiliaryReservation {
+                    capacity,
+                    demands: vec![
+                        demand(2, 2, 1),
+                        demand(1, 1, 1),
+                        demand(2, 2, 1),
+                        demand(1, 1, 1),
+                    ],
+                }),
+                |spec| {
+                    let weight =
+                        if spec.label == "producer" || spec.label == "consumer" { 2 } else { 1 };
+                    let current = active.fetch_add(weight, Ordering::SeqCst) + weight;
+                    maximum.fetch_max(current, Ordering::SeqCst);
+                    if spec.label == "peer" {
+                        let (ready, _) = signal
+                            .1
+                            .wait_timeout_while(
+                                signal.0.lock().unwrap(),
+                                Duration::from_secs(10),
+                                |ready| !*ready,
+                            )
+                            .unwrap();
+                        ensure!(*ready, "consumer failed to refill reserved slot");
+                    } else if spec.label == "consumer" {
+                        completed.store(true, Ordering::SeqCst);
+                        *signal.0.lock().unwrap() = true;
+                        signal.1.notify_all();
+                    } else if spec.label == "fitting" {
+                        ensure!(
+                            completed.load(Ordering::SeqCst),
+                            "CPU-only admission ignored RAM/IO reservations"
+                        );
+                    }
+                    let output = output(true);
+                    active.fetch_sub(weight, Ordering::SeqCst);
+                    output
+                },
+            )?;
+            assert_eq!(outputs.len(), 4);
+            assert!(maximum.load(Ordering::SeqCst) <= 3);
+            assert_eq!(active.load(Ordering::SeqCst), 0);
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn provisioned_unknown_zero_overcapacity_and_overflow_fail_before_launch() {
+        for reservation in [
+            AuxiliaryReservation { capacity: demand(10, 10, 2), demands: vec![demand(0, 1, 1)] },
+            AuxiliaryReservation { capacity: demand(10, 10, 2), demands: vec![demand(11, 1, 1)] },
+            AuxiliaryReservation { capacity: demand(10, 10, 2), demands: vec![demand(1, 11, 1)] },
+            AuxiliaryReservation { capacity: demand(10, 10, 2), demands: vec![demand(1, 1, 0)] },
+            AuxiliaryReservation { capacity: demand(10, 10, 2), demands: vec![demand(1, 1, 3)] },
+            AuxiliaryReservation { capacity: demand(10, 10, 2), demands: vec![] },
+        ] {
+            assert!(collect_provisioned(
+                vec![weighted("refused", 1, &[], &[])],
+                1,
+                1,
+                Some(reservation),
+                |_| panic!("invalid provisioned child launched")
+            )
+            .is_err());
+        }
+        for (capacity, demands) in [
+            (demand(u64::MAX, 0, 2), vec![demand(u64::MAX, 0, 1), demand(1, 0, 1)]),
+            (demand(2, u64::MAX, 2), vec![demand(1, u64::MAX, 1), demand(1, 1, 1)]),
+            (demand(2, 2, usize::MAX), vec![demand(1, 1, usize::MAX), demand(1, 1, 1)]),
+        ] {
+            assert!(collect_provisioned(
+                vec![weighted("large", 1, &[], &[]), weighted("small", 1, &[], &[])],
+                2,
+                2,
+                Some(AuxiliaryReservation { capacity, demands }),
+                |_| panic!("overflowed demand launched")
+            )
+            .is_err());
+        }
+    }
+
+    #[test]
+    fn provisioned_peers_drain_after_launch_error_and_executor_panic() -> Result<()> {
+        use std::sync::atomic::{AtomicBool, Ordering};
+        for panicked in [false, true] {
+            let finished = AtomicBool::new(false);
+            let result = collect_provisioned(
+                vec![weighted("failed", 1, &[], &[]), weighted("peer", 1, &[], &[])],
+                2,
+                2,
+                Some(AuxiliaryReservation {
+                    capacity: demand(2, 2, 2),
+                    demands: vec![demand(1, 1, 1), demand(1, 1, 1)],
+                }),
+                |spec| {
+                    if spec.label == "failed" {
+                        if panicked {
+                            panic!("executor failure")
+                        };
+                        anyhow::bail!("launcher failure");
+                    }
+                    finished.store(true, Ordering::SeqCst);
+                    output(true)
+                },
+            );
+            assert!(result.is_err());
+            assert!(finished.load(Ordering::SeqCst));
+        }
+        Ok(())
     }
 
     #[test]

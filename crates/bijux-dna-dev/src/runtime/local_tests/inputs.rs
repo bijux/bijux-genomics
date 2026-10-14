@@ -61,6 +61,17 @@ pub(crate) fn load_catalog(root: &Path) -> Result<LaneCatalog> {
     Ok(catalog)
 }
 
+/// Preserve the exact coordinator plan attested before worker launch through acceptance.
+pub(crate) fn verify_execution_plan(workspace: &Workspace, seal: &ArtifactReference) -> Result<()> {
+    let path = workspace.admit_artifact_path(Path::new(&seal.path))?;
+    ensure!(
+        path.symlink_metadata()?.is_file() && path.canonicalize()? == path,
+        "execution plan ownership changed during execution"
+    );
+    ensure!(reference(&path)?.sha256 == seal.sha256, "execution plan changed during execution");
+    Ok(())
+}
+
 pub(crate) fn source_identity(workspace: &Workspace) -> Result<SourceIdentity> {
     let runner = ProcessRunner::new(workspace);
     let head = runner.run(&["git", "rev-parse", "HEAD"])?;
@@ -347,6 +358,40 @@ pub(crate) fn verify_producer_manifest(descriptor: &Value) -> Result<()> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn changed_or_redirected_execution_plan_cannot_inherit_terminal_acceptance() -> Result<()> {
+        let owner = tempfile::tempdir()?;
+        let workspace = Workspace { root: owner.path().canonicalize()? };
+        let path = workspace.path("artifacts/execution-plan.json");
+        write_value(
+            &path,
+            &serde_json::json!({"schema_version":"owned-plan","uncharged_note":"original"}),
+        )?;
+        let seal = reference(&path)?;
+        verify_execution_plan(&workspace, &seal)?;
+        write_value(
+            &path,
+            &serde_json::json!({"schema_version":"owned-plan","uncharged_note":"changed"}),
+        )?;
+        assert!(verify_execution_plan(&workspace, &seal).is_err());
+        write_value(
+            &path,
+            &serde_json::json!({"schema_version":"owned-plan","uncharged_note":"original"}),
+        )?;
+        verify_execution_plan(&workspace, &seal)?;
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::symlink;
+            let alias = workspace.path("artifacts/identical-plan.json");
+            std::fs::copy(&path, &alias)?;
+            std::fs::remove_file(&path)?;
+            symlink(&alias, &path)?;
+            assert_eq!(reference(&path)?.sha256, seal.sha256);
+            assert!(verify_execution_plan(&workspace, &seal).is_err());
+        }
+        Ok(())
+    }
 
     #[cfg(unix)]
     #[test]
