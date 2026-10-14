@@ -10,6 +10,7 @@ use crate::readiness::declarations::CommandContext;
 use anyhow::anyhow;
 use anyhow::Result;
 use bijux_dna_core::id_catalog::FASTQ_PREFIX;
+use std::collections::btree_map::Entry;
 use std::collections::BTreeMap;
 use std::collections::BTreeSet;
 /// Collect canonical FASTQ declaration evidence.
@@ -21,13 +22,27 @@ pub fn collect_fastq_rendered_command_rows(
 ) -> Result<Vec<FastqRenderedCommandRow>> {
     let repo_root = context.repo_root;
     let active_rows = context.evidence.active(repo_root)?.rows;
-    let rendered_by_binding = context
+    let mut rendered_by_binding = BTreeMap::new();
+    for row in context
         .evidence
         .rendered(repo_root)?
         .into_iter()
         .filter(|row| row.stage_id.starts_with(FASTQ_PREFIX))
-        .map(|row| (binding_key(&row.stage_id, &row.tool_id), row))
-        .collect::<BTreeMap<_, _>>();
+    {
+        match rendered_by_binding.entry(binding_key(&row.stage_id, &row.tool_id)) {
+            Entry::Vacant(entry) => {
+                entry.insert(row);
+            }
+            Entry::Occupied(entry) => {
+                let binding = entry.key();
+                return Err(anyhow!(
+                    "FASTQ rendered commands contain duplicate `{}` / `{}` bindings",
+                    binding.stage_id,
+                    binding.tool_id
+                ));
+            }
+        }
+    }
 
     let mut rows = Vec::with_capacity(active_rows.len());
     let mut seen_bindings = BTreeSet::new();

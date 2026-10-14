@@ -101,3 +101,32 @@ fn argv_argument_boundaries_and_shell_text_remain_independent() -> Result<()> {
     );
     Ok(())
 }
+
+#[test]
+fn duplicate_rendered_observations_preserve_both_published_command_outputs() -> Result<()> {
+    for conflicting in [false, true] {
+        let root = tempfile::tempdir()?;
+        let output = root.path().join("commands.sh");
+        let argv_output = output.with_extension("argv.jsonl");
+        std::fs::write(&output, b"previous shell")?;
+        std::fs::write(&argv_output, b"previous argv")?;
+        let first = command();
+        let mut second = first.clone();
+        if conflicting {
+            second.argv.push("--foreign".into());
+            second.command.push_str(" --foreign");
+        }
+        let evidence = Evidence { active_count: 1, rendered: vec![first, second] };
+        let result = render_fastq_commands(
+            &CommandContext { repo_root: root.path(), evidence: &evidence },
+            &output,
+        );
+        assert!(
+            result.err().is_some_and(|error| error.to_string().contains("duplicate")),
+            "rendered multiplicity must not be lost before admission; conflicting={conflicting}"
+        );
+        assert_eq!(std::fs::read(&output)?, b"previous shell");
+        assert_eq!(std::fs::read(&argv_output)?, b"previous argv");
+    }
+    Ok(())
+}
