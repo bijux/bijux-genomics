@@ -18,8 +18,8 @@ use crate::application::ci::local_tests::{
     admit_complete_worker_budget, admit_lane, admit_python_cases, doctest_inventory,
     doctest_outcomes, doctest_targets, nextest_membership, reconcile_lanes, AdmittedResources,
     ArtifactReference, CaseOutcome, LaneDefinition, LaneInputs, LaneReceipt,
-    NativeExecutionControls, NativeLocalVerificationPlan, SourceIdentity, ToolIdentity,
-    LANE_SCHEMA, REQUIRED_LANES,
+    NativeExecutionControls, NativeExecutionPlan, SourceIdentity, ToolIdentity, LANE_SCHEMA,
+    REQUIRED_LANES,
 };
 use crate::model::ops::OpsCommandOutcome;
 use crate::runtime::compilation_cache::CompilationCache;
