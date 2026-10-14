@@ -32,6 +32,7 @@ fn owned_harness_command(relative_path: &Path, arg: &str) -> bool {
     match relative_path.to_str() {
         Some("crates/bijux-dna-science/tests/contracts/archive_sync.rs") => arg == "\"python3\"",
         Some("crates/bijux-dna-dev/tests/bootstrap.rs") => arg == "\"sh\"" || arg == "&binary",
+        Some("crates/bijux-dna-dev/tests/contracts/workflow_observations.rs") => arg == "binary",
         Some("crates/bijux-dna-process/tests/contracts.rs") => {
             matches!(arg, "\"sh\"" | "\"unavailable-capture-contract-executable\"")
         }
@@ -401,6 +402,7 @@ fn policy__contracts__command_spawn_policy__harness_commands_stay_with_their_exa
             "crates/bijux-dna-process/tests/contracts.rs",
             "\"unavailable-capture-contract-executable\"",
         ),
+        ("crates/bijux-dna-dev/tests/contracts/workflow_observations.rs", "binary"),
         ("crates/bijux-dna-api/tests/contracts/invocation_environment.rs", "mkfifo"),
         ("crates/bijux-dna-api/tests/contracts/invocation_environment.rs", "shell"),
         ("crates/bijux-dna-api/tests/contracts/invocation_environment.rs", "&self.executable"),
@@ -446,6 +448,7 @@ fn policy__contracts__command_spawn_policy__native_harnesses_require_exact_compl
             "std::env::current_exe()?",
         ),
         ("crates/bijux-dna/tests/contracts/support/repository_sandbox/mod.rs", "executable"),
+        ("crates/bijux-dna-dev/tests/contracts/workflow_observations.rs", "binary"),
         ("crates/bijux-dna-api/tests/contracts/invocation_environment.rs", "mkfifo"),
         ("crates/bijux-dna-api/tests/contracts/invocation_environment.rs", "shell"),
         ("crates/bijux-dna-api/tests/contracts/invocation_environment.rs", "&self.executable"),

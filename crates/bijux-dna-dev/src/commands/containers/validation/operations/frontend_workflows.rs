@@ -1,6 +1,7 @@
 use super::frontend_support::{
     ensure_not_compute_host, selected_apptainer_tools, write_frontend_sif_digests,
 };
+use super::reproducibility::observe_cache_scenarios;
 use super::{
     anyhow, append_named_outcome, artifact_env, check_apptainer_frontend_reproducibility,
     check_apptainer_frontend_security, check_apptainer_frontend_smoke_proof,
@@ -287,21 +288,20 @@ pub(in super::super::super) fn run_apptainer_frontend_reproducibility(
     for path in sample {
         let tool =
             path.file_stem().and_then(|value| value.to_str()).unwrap_or_default().to_string();
-        let outcome =
-            validation::check_apptainer_rebuild_repro(workspace, std::slice::from_ref(&tool))?;
-        let deterministic = outcome.is_success();
+        let observations = observe_cache_scenarios(workspace, &tool, &out_dir)?;
+        let deterministic = observations.deterministic();
         items.push(serde_json::json!({
             "tool": tool,
             "def_path": path.display().to_string(),
             "checks": {
-                "same_cache_twice": deterministic,
-                "clean_cache_match": deterministic,
-                "purge_cache_match": deterministic,
+                "same_cache_twice": observations.same_cache_twice,
+                "clean_cache_match": observations.clean_cache_match,
+                "purge_cache_match": observations.purge_cache_match,
             },
             "deterministic": deterministic,
             "nondeterministic_cause": if deterministic { "" } else { "rebuild_hash_mismatch" },
         }));
-        append_named_outcome(&mut aggregate, "check-apptainer-rebuild-repro", outcome);
+        append_named_outcome(&mut aggregate, "check-apptainer-rebuild-repro", observations.outcome);
     }
     let summary_path = out_dir.join("summary.json");
     let doc_report = workspace.path("containers/docs/APPTAINER_FRONTEND_REPRODUCIBILITY_REPORT.md");

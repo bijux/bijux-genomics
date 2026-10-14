@@ -2,6 +2,8 @@
 
 ## Coverage
 - `tests/bootstrap.rs` checks developer executable freshness after direct and transitive source changes.
+- `tests/contracts.rs` registers private workflow observation contracts under `tests/contracts/`: exact example golden-bundle transport and independently observed frontend cache comparisons. Scripted cache providers qualify control flow and report claims, not real SIF image or scientific reproducibility.
+- The private cache observation owner also checks that purging its own directories preserves caller/foreign roots and refuses substituted symlinks before either removal.
 - `src/runtime/workspace.rs` tests artifact root admission; CI destination contracts reuse that owner and cover nested symlink escapes.
 - `tests/boundaries.rs` is the integration-test entrypoint for boundary-oriented coverage.
 - `tests/boundaries/architecture.rs` enforces the documented crate tree and layout contract.
