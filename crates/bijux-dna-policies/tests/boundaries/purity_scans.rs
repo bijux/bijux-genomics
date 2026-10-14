@@ -32,6 +32,12 @@ fn production_tool_roster_hit_count(content: &str, roster_tokens: &[&str]) -> us
     roster_tokens.iter().filter(|token| production.contains(*token)).count()
 }
 
+fn production_builds_execution_step(content: &str) -> bool {
+    let production = bijux_dna_testkit::workspace_support::strip_rust_test_modules(content);
+    production.contains("ExecutionStep {")
+        && (production.contains("command:") || production.contains("image:"))
+}
+
 #[test]
 fn policy__boundaries__purity_scans__engine_has_no_domain_strings() {
     let root = repo_root();
@@ -237,12 +243,7 @@ fn policy__boundaries__purity_scans__planners_only_build_execution_steps() {
             continue;
         }
         let content = std::fs::read_to_string(path).expect("read source");
-        if content.contains("#[cfg(test)]") {
-            continue;
-        }
-        if content.contains("ExecutionStep {")
-            && (content.contains("command:") || content.contains("image:"))
-        {
+        if production_builds_execution_step(&content) {
             offenders.push(rel_str.to_string());
         }
     }
@@ -430,4 +431,64 @@ fn policy__boundaries__purity_scans__tool_roster_scan_ignores_test_modules_only(
 
     assert_eq!(production_tool_roster_hit_count(test_only, &roster_tokens), 0);
     assert_eq!(production_tool_roster_hit_count(production, &roster_tokens), 3);
+}
+
+#[test]
+fn policy__boundaries__purity_scans__execution_step_scan_detects_production_beside_inline_tests() {
+    let source = r"
+fn production() { let _ = ExecutionStep { command: make_command(), image: make_image() }; }
+
+#[cfg(test)]
+mod tests { fn innocent() {} }
+";
+    assert!(production_builds_execution_step(source));
+}
+
+#[test]
+fn policy__boundaries__purity_scans__execution_step_scan_detects_production_beside_literal_marker()
+{
+    let source = r##"
+const EXAMPLE_MARKER: &str = "#[cfg(test)]";
+fn production() { let _ = ExecutionStep { command: make_command(), image: make_image() }; }
+"##;
+    assert!(production_builds_execution_step(source));
+}
+
+#[test]
+fn policy__boundaries__purity_scans__execution_step_scan_ignores_inline_test_only_construction() {
+    let source = r"
+fn production() {}
+
+#[cfg(test)]
+mod tests {
+    fn sample() { let _ = ExecutionStep { command: make_command(), image: make_image() }; }
+}
+";
+    assert!(!production_builds_execution_step(source));
+}
+
+#[test]
+fn policy__boundaries__purity_scans__execution_step_scan_ignores_whole_file_test_construction() {
+    let source = "#![cfg(test)]\nfn sample() { let _ = ExecutionStep { command: make_command(), image: make_image() }; }\n";
+    assert!(!production_builds_execution_step(source));
+}
+
+#[test]
+fn policy__boundaries__purity_scans__execution_step_scan_detects_ordinary_production() {
+    let source = "fn production() { let _ = ExecutionStep { command: make_command(), image: make_image() }; }";
+    assert!(production_builds_execution_step(source));
+}
+
+#[test]
+fn policy__boundaries__purity_scans__execution_step_scan_retains_constructor_field_admission() {
+    for source in
+        ["ExecutionStep { command: make_command() }", "ExecutionStep { image: make_image() }"]
+    {
+        assert!(production_builds_execution_step(source));
+    }
+    for source in
+        ["ExecutionStep {}", "CommandSpec { command: make_command() }", "fn production() {}"]
+    {
+        assert!(!production_builds_execution_step(source));
+    }
 }
