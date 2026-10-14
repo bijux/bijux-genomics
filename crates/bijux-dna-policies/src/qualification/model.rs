@@ -477,7 +477,7 @@ mod tests {
     use super::{
         ArtifactAvailability, ArtifactDelivery, EvidenceDecision, EvidenceDimension,
         EvidenceVerdict, ProductSupport, PublicationDisposition, QualificationAssessment,
-        QualificationClaim, QUALIFICATION_ASSESSMENT_SCHEMA_V3,
+        QualificationClaim,
     };
     use crate::qualification::REQUIRED_EVIDENCE_DIMENSIONS;
 
@@ -689,15 +689,21 @@ mod tests {
     }
 
     #[test]
-    fn unknown_fields_fail_deserialization() {
-        let payload = serde_json::json!({
-            "schema_version": QUALIFICATION_ASSESSMENT_SCHEMA_V3,
-            "subject_id": "samtools",
-            "support_disposition": "retained",
-            "publication_disposition": "current",
-            "dimensions": {},
-            "qualification": "qualified"
-        });
-        assert!(serde_json::from_value::<QualificationAssessment>(payload).is_err());
+    fn unknown_fields_fail_deserialization() -> anyhow::Result<()> {
+        let assessment = supported(EvidenceVerdict::Passed)?;
+        assessment.validate()?;
+        let mut payload = serde_json::to_value(&assessment)?;
+        let decoded: QualificationAssessment = serde_json::from_value(payload.clone())?;
+        assert_eq!(decoded, assessment);
+        decoded.validate()?;
+        payload
+            .as_object_mut()
+            .ok_or_else(|| anyhow::anyhow!("assessment object"))?
+            .insert("qualification".to_string(), serde_json::json!("qualified"));
+        let Err(error) = serde_json::from_value::<QualificationAssessment>(payload) else {
+            anyhow::bail!("unknown qualification field was accepted");
+        };
+        assert!(error.to_string().contains("unknown field `qualification`"));
+        Ok(())
     }
 }

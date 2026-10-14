@@ -173,7 +173,7 @@ fn valid_sha256(value: &str) -> bool {
 mod tests {
     use std::collections::BTreeMap;
 
-    use super::{QualificationEvidenceSource, QualificationReport, QUALIFICATION_REPORT_SCHEMA_V4};
+    use super::{QualificationEvidenceSource, QualificationReport};
     use crate::qualification::{
         ArtifactAvailability, ArtifactDelivery, EvidenceDecision, EvidenceVerdict, ProductSupport,
         PublicationDisposition, QualificationAssessment, REQUIRED_EVIDENCE_DIMENSIONS,
@@ -298,14 +298,27 @@ mod tests {
     }
 
     #[test]
-    fn report_rejects_unknown_serialized_fields() {
-        let payload = serde_json::json!({
-            "schema_version": QUALIFICATION_REPORT_SCHEMA_V4,
-            "sources": {},
-            "summary": {},
-            "assessments": [],
-            "operator": "local"
-        });
-        assert!(serde_json::from_value::<QualificationReport>(payload).is_err());
+    fn report_rejects_unknown_serialized_fields() -> anyhow::Result<()> {
+        let report = QualificationReport::v4(
+            sources(),
+            vec![assessment(
+                "samtools",
+                ArtifactDelivery::RedistributableImage,
+                ArtifactAvailability::Admitted,
+            )?],
+        )?;
+        let mut payload = serde_json::to_value(&report)?;
+        let decoded: QualificationReport = serde_json::from_value(payload.clone())?;
+        assert_eq!(decoded, report);
+        decoded.validate()?;
+        payload
+            .as_object_mut()
+            .ok_or_else(|| anyhow::anyhow!("report object"))?
+            .insert("operator".to_string(), serde_json::json!("local"));
+        let Err(error) = serde_json::from_value::<QualificationReport>(payload) else {
+            anyhow::bail!("unknown operator field was accepted");
+        };
+        assert!(error.to_string().contains("unknown field `operator`"));
+        Ok(())
     }
 }
