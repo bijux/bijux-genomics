@@ -51,3 +51,8 @@ JSON stay governed in one location.
 
 ## Testkit patterns
 Use `bijux-dna-testkit` for shared fixture and snapshot helpers. Keep crate-local support helpers small and focused.
+
+`tests/contracts/parsers/bam_tool_parsers.rs` also checks acquired-text/path
+decoder parity after replacement, lenient contamination defaults and assumption
+filtering, and explicit/legacy sex classifications. Pure acquired-text decoding
+does not retain a path binding or create a persistent observation cache.

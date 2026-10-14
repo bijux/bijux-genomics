@@ -7,3 +7,6 @@ mod source_admission;
 
 #[path = "contracts/parser_probes.rs"]
 mod parser_probes;
+
+#[path = "contracts/parser_reports.rs"]
+mod parser_reports;

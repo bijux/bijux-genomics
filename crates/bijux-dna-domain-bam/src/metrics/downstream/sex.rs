@@ -41,7 +41,16 @@ impl SexInferenceV1 {
 /// Returns an error if the sex JSON cannot be read or parsed.
 pub fn parse_sex_json(path: &std::path::Path) -> anyhow::Result<SexInferenceV1> {
     let raw = std::fs::read_to_string(path).context("read sex json")?;
-    let value: serde_json::Value = serde_json::from_str(&raw)?;
+    parse_sex_json_contents(&raw)
+}
+
+/// Decode an acquired sex JSON document without reopening its source.
+///
+/// Preserves the path parser's defaults and legacy field interpretation.
+/// # Errors
+/// Returns an error when the acquired document is malformed JSON.
+pub fn parse_sex_json_contents(raw: &str) -> anyhow::Result<SexInferenceV1> {
+    let value: serde_json::Value = serde_json::from_str(raw)?;
     let x_to_y = value.get("x_to_y_ratio").and_then(serde_json::Value::as_f64).unwrap_or(0.0);
     let confidence = value.get("confidence").and_then(serde_json::Value::as_f64).unwrap_or(0.0);
     let declared_sufficient = value.get("sufficient_data").and_then(serde_json::Value::as_bool);
