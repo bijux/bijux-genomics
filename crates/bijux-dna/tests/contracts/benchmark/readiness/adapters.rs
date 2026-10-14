@@ -5,15 +5,23 @@ use std::collections::BTreeSet;
 use crate::support;
 
 fn run_cli_json(args: &[&str]) -> serde_json::Value {
-    let _cwd_guard = support::CWD_LOCK.lock().expect("cwd lock");
-    let _env_guard = support::EnvGuard::new().expect("capture env");
-    let _crate_root = support::crate_root("bijux-dna").expect("crate root");
-    let repo_root = support::repo_root().expect("repo root");
-    let home = tempfile::tempdir().expect("tempdir");
+    let sandbox =
+        support::RepoSandbox::new("all-domain-adapter-coverage-json-").expect("repo sandbox");
+    let runtime_root = sandbox.path().join("artifacts/test-runtime");
+    std::fs::create_dir_all(&runtime_root).expect("private runtime root");
+    let home = tempfile::Builder::new()
+        .prefix("adapter-runtime-")
+        .tempdir_in(&runtime_root)
+        .expect("private runtime directory");
 
-    let output = support::bijux_dna_command(&repo_root)
-        .current_dir(&repo_root)
-        .env("HOME", home.path())
+    let output = sandbox
+        .bijux_dna_command()
+        .envs([
+            ("HOME", home.path()),
+            ("TMPDIR", home.path()),
+            ("TMP", home.path()),
+            ("TEMP", home.path()),
+        ])
         .env("BIJUX_SKIP_QA", "1")
         .env("BIJUX_ALLOW_SILVER", "1")
         .env("BIJUX_SKIP_IMAGE_CHECK", "1")
