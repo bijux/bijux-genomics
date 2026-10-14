@@ -2,6 +2,8 @@ use anyhow::Result;
 use bijux_dna_containers::api::RuntimeKind;
 use bijux_dna_core::contract::ExecutionStep;
 use bijux_dna_core::prelude::hashing::run_id_from_hashes;
+use std::collections::BTreeMap;
+use std::ffi::OsString;
 
 use super::artifacts::write_minimum_run_artifacts;
 use super::identity::{execution_pipeline_identity, execution_sample_identity};
@@ -16,6 +18,7 @@ pub(super) fn materialize_execution_records(
     stdout: &str,
     stderr: &str,
     params_fingerprint: &str,
+    environment: Option<&BTreeMap<OsString, OsString>>,
 ) -> Result<String> {
     let pipeline_id = execution_pipeline_identity(step);
     let sample_id = execution_sample_identity(step);
@@ -31,6 +34,7 @@ pub(super) fn materialize_execution_records(
         stderr,
         &run_id,
         params_fingerprint,
+        environment,
     )?;
     Ok(run_id)
 }

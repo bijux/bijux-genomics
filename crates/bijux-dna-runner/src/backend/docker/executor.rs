@@ -14,6 +14,9 @@ use command_line::{build_docker_run_command, command_string};
 pub use lifecycle::{
     docker_logs, docker_rm, docker_stats_mb, docker_wait, docker_wait_timeout, parse_mem_to_mb,
 };
+pub(crate) use lifecycle::{
+    docker_logs_with_context, docker_wait_timeout_with_context, docker_wait_with_context,
+};
 
 #[derive(Debug, Clone)]
 pub struct StageExecutionPlan {

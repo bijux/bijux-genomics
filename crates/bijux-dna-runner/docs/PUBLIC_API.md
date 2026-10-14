@@ -166,3 +166,24 @@ plan digests, collection-level corpus identity, catalog precondition, command pr
 immutable evidence root. Version 2 isolates each selected collection by `corpus_id`, so multiple
 single-species catalogs in one benchmark portfolio can materialize without a portfolio-wide lock or
 catalog collision; version 1 remains loadable for historical replay.
+
+## Invocation-owned environment
+
+`step_runner::execute_step_with_context` accepts the existing optional
+`BTreeMap<OsString, OsString>` child environment overrides alongside the step, runtime
+and timeout. The same observation drives Local child construction, Docker
+arguments and lifecycle children, Apptainer host invocation and work directory,
+memory accounting and selected invocation provenance. Unspecified values retain
+inherited behavior. It never changes the calling process environment.
+
+`step_runner::execute_step` retains its three-argument inherited-environment
+contract. Neither entrypoint adds Local execution-binding admission or changes
+restricted-artifact refusal, required outputs, timeout supervision or failed
+stream handling. The API supplies a private effective observation per invocation;
+this does not introduce per-request repository switching or configuration reload.
+
+Native child environment values retain their original OS bytes. Existing command
+runner APIs accepting text maps retain their signatures and binding behavior.
+Text-only provenance and bind-root fields retain their existing non-text
+omission or refusal behavior; an owned non-text value never reveals an unrelated
+ambient value.

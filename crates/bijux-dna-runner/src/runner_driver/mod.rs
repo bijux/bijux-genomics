@@ -1,3 +1,5 @@
+use std::collections::BTreeMap;
+use std::ffi::OsString;
 use std::fmt::Write as _;
 use std::process::{Command, Stdio};
 use std::time::Duration;
@@ -103,6 +105,15 @@ pub(crate) fn run_local_command(
     current_dir: &std::path::Path,
     timeout: Option<Duration>,
 ) -> anyhow::Result<crate::command_runner::CommandOutputV1> {
+    run_local_command_with_context(template, current_dir, timeout, None)
+}
+
+pub(crate) fn run_local_command_with_context(
+    template: &[String],
+    current_dir: &std::path::Path,
+    timeout: Option<Duration>,
+    environment: Option<&BTreeMap<OsString, OsString>>,
+) -> anyhow::Result<crate::command_runner::CommandOutputV1> {
     let Some((command, args)) = template.split_first() else {
         bail!("local command template must not be empty");
     };
@@ -114,6 +125,9 @@ pub(crate) fn run_local_command(
         .stdin(Stdio::null())
         .stdout(Stdio::piped())
         .stderr(Stdio::piped());
+    if let Some(environment) = environment {
+        child.envs(environment);
+    }
     crate::process_supervision::isolate_process_group(&mut child);
     let mut child = child.spawn().with_context(|| format!("run local command {command}"))?;
     let (status, stdout, stderr, timed_out) = if let Some(timeout) = timeout {

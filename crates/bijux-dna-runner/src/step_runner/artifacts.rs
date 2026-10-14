@@ -1,3 +1,5 @@
+use std::collections::BTreeMap;
+use std::ffi::OsString;
 use std::path::Path;
 
 use anyhow::{Context, Result};
@@ -7,14 +9,18 @@ use bijux_dna_core::metrics::{ToolInvocationSpecV1, ToolInvocationV1};
 
 use super::effects::{runner_failure, RunnerEffectKind};
 use super::identity::{infer_tool_version_from_image, runtime_platform_identity};
+use super::runtime_policy::environment_value;
 
-fn selected_environment(out_dir: &Path) -> std::collections::BTreeMap<String, String> {
+fn selected_environment(
+    out_dir: &Path,
+    context: Option<&BTreeMap<OsString, OsString>>,
+) -> BTreeMap<String, String> {
     let mut environment = std::collections::BTreeMap::from([(
         "working_directory".to_string(),
         out_dir.display().to_string(),
     )]);
     for key in ["TMPDIR", "PATH", "BIJUX_ALLOW_NETWORK"] {
-        if let Ok(value) = std::env::var(key) {
+        if let Some(value) = environment_value(context, key) {
             environment.insert(key.to_string(), value);
         }
     }
@@ -32,6 +38,7 @@ pub(super) fn write_minimum_run_artifacts(
     stderr: &str,
     run_id: &str,
     params_fingerprint: &str,
+    environment: Option<&BTreeMap<OsString, OsString>>,
 ) -> Result<()> {
     let run_artifacts_dir = step.out_dir.join("run_artifacts");
     bijux_dna_infra::ensure_dir(&run_artifacts_dir)
@@ -63,6 +70,7 @@ pub(super) fn write_minimum_run_artifacts(
             output_hashes,
             command,
             &tool_invocation_path,
+            environment,
         )?;
     }
 
@@ -147,6 +155,7 @@ fn write_tool_invocation(
     output_hashes: &[String],
     command: &str,
     tool_invocation_path: &Path,
+    environment: Option<&BTreeMap<OsString, OsString>>,
 ) -> Result<()> {
     let inferred_tool_version = infer_tool_version_from_image(&step.image.image);
     let parameters_json = serde_json::json!({ "command": step.command.template });
@@ -175,7 +184,7 @@ fn write_tool_invocation(
         params_provenance,
         params_provenance_normalized,
         resources: step.resources.clone(),
-        environment: selected_environment(&step.out_dir),
+        environment: selected_environment(&step.out_dir, environment),
         input_hashes: input_hashes.to_vec(),
         output_hashes: output_hashes.to_vec(),
         executed_command: Some(command.to_string()),

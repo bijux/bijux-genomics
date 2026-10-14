@@ -19,7 +19,7 @@ pub(super) use contracts::{
 use models::validate_runtime_execution_config;
 #[cfg(test)]
 use models::StageResourceKnobs;
-pub(super) use models::{effective_runtime_policy, stage_matches};
+pub(super) use models::{effective_runtime_policy, stage_matches, EffectiveRuntimePolicy};
 use models::{DeterministicEnvKnobs, RuntimeExecutionConfig};
 pub(super) use resilience::{
     acquire_slot_lock, can_resume, mark_partial_failure_invalid, update_resume_report,

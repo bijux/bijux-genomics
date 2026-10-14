@@ -1,5 +1,4 @@
 use std::path::{Path, PathBuf};
-use std::time::Duration;
 
 use anyhow::Result;
 use bijux_dna_containers::api::RuntimeKind;
@@ -8,7 +7,8 @@ use bijux_dna_core::contract::ExecutionStep;
 use super::apptainer_execution::execute_apptainer_step;
 use super::docker_execution::execute_docker_step;
 use super::execution_outcome::StepExecutionOutcome;
-use crate::runner_driver::run_local_command;
+use super::runtime_policy::StepRuntimeContext;
+use crate::runner_driver::{run_local_command, run_local_command_with_context};
 
 pub(super) fn execute_step_outcome(
     step: &ExecutionStep,
@@ -16,30 +16,32 @@ pub(super) fn execute_step_outcome(
     inputs: &[PathBuf],
     input_root: &Path,
     out_dir: &Path,
-    timeout: Option<Duration>,
-    runtime_executable: Option<&Path>,
+    context: StepRuntimeContext<'_>,
 ) -> Result<StepExecutionOutcome> {
     match runner {
-        RuntimeKind::Local => execute_local_step(step, out_dir, timeout),
-        RuntimeKind::Docker => execute_docker_step(step, inputs, input_root, out_dir, timeout),
-        RuntimeKind::Apptainer | RuntimeKind::Singularity => execute_apptainer_step(
-            step,
-            runner,
-            inputs,
-            input_root,
-            out_dir,
-            timeout,
-            runtime_executable,
-        ),
+        RuntimeKind::Local => execute_local_step(step, out_dir, context),
+        RuntimeKind::Docker => execute_docker_step(step, inputs, input_root, out_dir, context),
+        RuntimeKind::Apptainer | RuntimeKind::Singularity => {
+            execute_apptainer_step(step, runner, inputs, input_root, out_dir, context)
+        }
     }
 }
 
 fn execute_local_step(
     step: &ExecutionStep,
     out_dir: &Path,
-    timeout: Option<Duration>,
+    context: StepRuntimeContext<'_>,
 ) -> Result<StepExecutionOutcome> {
-    let output = run_local_command(&step.command.template, out_dir, timeout)?;
+    let output = if let Some(environment) = context.environment {
+        run_local_command_with_context(
+            &step.command.template,
+            out_dir,
+            context.timeout,
+            Some(environment),
+        )?
+    } else {
+        run_local_command(&step.command.template, out_dir, context.timeout)?
+    };
     Ok(StepExecutionOutcome {
         exit_code: output.exit_code,
         runtime_s: output.runtime_s,
