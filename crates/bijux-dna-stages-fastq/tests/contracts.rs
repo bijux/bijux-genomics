@@ -13,7 +13,5 @@ mod mod_contracts_public_api_rs;
 mod mod_contracts_registry_completeness_rs;
 #[path = "contracts/stage_contract_docs.rs"]
 mod mod_contracts_stage_contract_docs_rs;
-#[path = "contracts/structure_contract.rs"]
-mod mod_contracts_structure_contract_rs;
 #[path = "contracts/symmetry.rs"]
 mod mod_contracts_symmetry_rs;
