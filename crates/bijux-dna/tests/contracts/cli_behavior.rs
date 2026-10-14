@@ -252,37 +252,7 @@ fn cli_pipelines_explain_profile_vcf_minimal_includes_invariants() {
 }
 
 #[test]
-fn cli_fastq_preprocess_dry_run_writes_artifacts() {
-    let workspace = CliWorkspace::new();
-    assert_removed_subcommand(
-        &workspace,
-        &["--platform", "test", "dna", "fastq", "preprocess", "--dry-run"],
-        "fastq",
-    );
-}
-
-#[test]
-fn cli_fastq_preprocess_dry_run_reports_manifests() {
-    let workspace = CliWorkspace::new();
-    assert_removed_subcommand(
-        &workspace,
-        &["--platform", "test", "dna", "fastq", "preprocess", "--dry-run"],
-        "fastq",
-    );
-}
-
-#[test]
-fn cli_fastq_preprocess_plan_falls_back_to_dry_run() {
-    let workspace = CliWorkspace::new();
-    assert_removed_subcommand(
-        &workspace,
-        &["--platform", "test", "dna", "fastq", "preprocess", "--dry-run"],
-        "fastq",
-    );
-}
-
-#[test]
-fn cli_dry_run_manifest_is_deterministic_after_path_scrub() {
+fn cli_rejects_removed_fastq_preprocess_command() {
     let workspace = CliWorkspace::new();
     assert_removed_subcommand(
         &workspace,
