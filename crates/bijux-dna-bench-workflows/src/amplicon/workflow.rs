@@ -49,8 +49,8 @@ pub fn render_amplicon_micro_pipeline(
         run_amplicon_truth_fixture_stage(repo_root, output_root, &truth_manifest_path)?;
     let normalize_stage = run_normalize_primers_stage(repo_root, output_root)?;
     let infer_stage = run_infer_asvs_stage(repo_root, output_root)?;
-    let chimera_stage = run_remove_chimeras_stage(repo_root, output_root)?;
-    let otu_stage = run_cluster_otus_stage(repo_root, output_root)?;
+    let chimera_stage = run_remove_chimeras_stage(repo_root, output_root, &infer_stage)?;
+    let otu_stage = run_cluster_otus_stage(repo_root, output_root, &chimera_stage)?;
     let abundance_stage =
         run_normalize_abundance_stage(repo_root, output_root, &corpus_manifest_path)?;
     let stages = super::execution::AmpliconStageArtifacts {

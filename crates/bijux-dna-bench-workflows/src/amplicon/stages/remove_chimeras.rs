@@ -3,8 +3,8 @@
 use super::super::{
     build_three_column_table, copy_absolute_file, copy_repo_relative_file, is_nonempty_file, json,
     load_json, path_relative_to_repo, row, stage_root, write_json_file, write_text_file,
-    AmpliconTruthBundle, BTreeMap, Path, RemoveChimerasStageArtifacts, RemoveChimerasStageEvidence,
-    Result, DEFAULT_AMPLICON_CHIMERA_CONTROL_FASTQ_PATH,
+    AmpliconTruthBundle, BTreeMap, InferAsvsStageArtifacts, Path, RemoveChimerasStageArtifacts,
+    RemoveChimerasStageEvidence, Result, DEFAULT_AMPLICON_CHIMERA_CONTROL_FASTQ_PATH,
     DEFAULT_AMPLICON_NON_CHIMERIC_REPRESENTATIVES_PATH, DEFAULT_AMPLICON_TRUTH_EXPECTED_PATH,
     REMOVE_CHIMERAS_STAGE_SCHEMA_VERSION,
 };
@@ -15,11 +15,12 @@ use std::fmt::Write as _;
 pub(crate) fn run_remove_chimeras_stage(
     repo_root: &Path,
     output_root: &Path,
+    inferred: &InferAsvsStageArtifacts,
 ) -> Result<RemoveChimerasStageArtifacts> {
     let source_report_path =
         repo_root.join("artifacts/runs/bench/local-smoke/fastq.remove_chimeras/report.json");
     if !is_nonempty_file(&source_report_path) {
-        return run_fixture_backed_remove_chimeras_stage(repo_root, output_root);
+        return run_fixture_backed_remove_chimeras_stage(repo_root, output_root, inferred);
     }
     let mut report: RemoveChimerasStageEvidence = load_json(&source_report_path)?;
     let stage_root = stage_root(output_root, stage::FASTQ_REMOVE_CHIMERAS);
@@ -81,8 +82,7 @@ Some(report.schema_version.clone()),
 BTreeMap::from([
             (
                 "asv_representatives".to_string(),
-                "artifacts/benchmark-smoke/micro/pipelines/amplicon/artifacts/fastq.infer_asvs/representatives.fasta"
-                    .to_string(),
+                path_relative_to_repo(repo_root, &inferred.representatives_fasta),
             ),
             (
                 "chimera_control_contract".to_string(),
@@ -101,6 +101,7 @@ stage_metrics(&report));
 pub(crate) fn run_fixture_backed_remove_chimeras_stage(
     repo_root: &Path,
     output_root: &Path,
+    inferred: &InferAsvsStageArtifacts,
 ) -> Result<RemoveChimerasStageArtifacts> {
     let truth_bundle: AmpliconTruthBundle =
         load_json(&repo_root.join(DEFAULT_AMPLICON_TRUTH_EXPECTED_PATH))?;
@@ -190,8 +191,7 @@ Some(report.schema_version.clone()),
 BTreeMap::from([
             (
                 "asv_representatives".to_string(),
-                "artifacts/benchmark-smoke/micro/pipelines/amplicon/artifacts/fastq.infer_asvs/representatives.fasta"
-                    .to_string(),
+                path_relative_to_repo(repo_root, &inferred.representatives_fasta),
             ),
             (
                 "chimera_control_contract".to_string(),

@@ -107,3 +107,69 @@ fn symbolic_output_declarations_do_not_retire_external_files() -> Result<()> {
     assert!(summary.is_file());
     Ok(())
 }
+
+#[test]
+fn selected_amplicon_output_parent_preserves_predecessor_handoffs() -> Result<()> {
+    use anyhow::Context;
+    fn copy_fixture(source: &Path, destination: &Path) -> Result<()> {
+        let metadata = source.symlink_metadata()?;
+        anyhow::ensure!(!metadata.file_type().is_symlink(), "fixture source must not be an alias");
+        if metadata.is_dir() {
+            std::fs::create_dir_all(destination)?;
+            for entry in std::fs::read_dir(source)? {
+                let entry = entry?;
+                copy_fixture(&entry.path(), &destination.join(entry.file_name()))?;
+            }
+        } else {
+            anyhow::ensure!(metadata.is_file(), "fixture source must be regular");
+            if let Some(parent) = destination.parent() {
+                std::fs::create_dir_all(parent)?;
+            }
+            std::fs::copy(source, destination)?;
+        }
+        Ok(())
+    }
+    let source = std::env::var_os("BIJUX_REPO_ROOT")
+        .map_or_else(|| PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../.."), PathBuf::from);
+    anyhow::ensure!(source.join("Cargo.lock").is_file(), "declare runtime repository fixture root");
+    let mut observations = Vec::new();
+    for (selected, relative) in [
+        (false, crate::amplicon::DEFAULT_AMPLICON_MICRO_PIPELINE_PATH),
+        (true, "selected-amplicon/summary.json"),
+    ] {
+        let root = tempfile::tempdir()?;
+        for fixture in [
+            "benchmarks/tests/fixtures/corpora/corpus-03-amplicon-mini",
+            "benchmarks/tests/fixtures/science/amplicon-truth",
+            "assets/reference/amplicon_governance.toml",
+            "assets/reference/primers/16S_universal_v1.fasta",
+            "assets/toy/core-v1/tables/otu_abundance_small.tsv",
+            "assets/toy/core-v1/fastq/reads_with_primers.fastq",
+            "assets/toy/corpus-03-amplicon-mini/fastq/merged_amplicon_reads.fastq",
+        ] {
+            copy_fixture(&source.join(fixture), &root.path().join(fixture))?;
+        }
+        let report = crate::amplicon::render_amplicon_micro_pipeline(root.path(), relative.into())?;
+        let judgment = report
+            .rows
+            .iter()
+            .find(|row| row.stage_id == "benchmark.amplicon_output_judgment")
+            .context("actual amplicon output judgment")?;
+        let default_exists =
+            root.path().join("artifacts/benchmark-smoke/micro/pipelines/amplicon").exists();
+        let truth_valid = judgment.metrics["valid"].clone();
+        observations.push((selected, report, truth_valid, default_exists));
+    }
+    for (selected, report, truth_valid, default_exists) in observations {
+        assert_eq!(truth_valid, serde_json::json!(true), "actual truth control must be valid");
+        assert!(
+            report.handoffs.iter().all(|handoff| handoff.accepted),
+            "caller-selected parent must preserve declared predecessor identities: {selected}"
+        );
+        assert!(report.passes_behavior_test);
+        if selected {
+            assert!(!default_exists, "selected output must not depend on prior default artifacts");
+        }
+    }
+    Ok(())
+}
