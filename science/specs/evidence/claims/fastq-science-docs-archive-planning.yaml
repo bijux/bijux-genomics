@@ -1,5 +1,5 @@
 schema_version: "bijux.science.claim.v1"
-claim_id: "claim.fastq.science/docs-archive-planning"
+claim_id: "claim.fastq.science.docs-archive-planning"
 statement: "FASTQ manual upstream evidence acquisition must be planned through the local science/docs contract, tool evidence map, paper map, and download backlogs before it is treated as available for review."
 scope: "fastq container evidence slice"
 subject: "fastq_manual_evidence_archive"
@@ -9,4 +9,4 @@ status: "accepted"
 owner: "bijux-genomics"
 review_due: "2026-10-01"
 supports:
-  - "evidence.fastq.science/docs-archive-governance"
+  - "evidence.fastq.science.docs-archive-governance"

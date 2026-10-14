@@ -25,7 +25,7 @@ pub fn cut_release(root: &Path, release_id: &str) -> Result<()> {
         .get(release_id)
         .ok_or_else(|| anyhow!("release manifest not found for {release_id}"))?;
     let compiled = compile_workspace(root)?;
-    let release_root = root.join("artifacts/science-releases").join(release_id);
+    let release_root = root.join("artifacts/science-releases").join(manifest.release_id.as_str());
     if release_root.exists() {
         return Err(anyhow!("release already exists at {}", release_root.display()));
     }

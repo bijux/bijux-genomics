@@ -1,5 +1,5 @@
 schema_version: "bijux.science.claim.v1"
-claim_id: "claim.science/docs.github-repo-evidence-archive-contract"
+claim_id: "claim.science.docs.github-repo-evidence-archive-contract"
 statement: "GitHub repository evidence used by bijux-genomics must be archived through the tracked upstream manifest and the local science/docs upstream mirror surface."
 scope: "science docs upstream evidence archive"
 subject: "github_repository_evidence_archive"
@@ -9,4 +9,4 @@ status: "accepted"
 owner: "bijux-genomics"
 review_due: "2026-10-01"
 supports:
-  - "evidence.science/docs.github-repo-archive-governance"
+  - "evidence.science.docs.github-repo-archive-governance"
