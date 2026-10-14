@@ -1357,4 +1357,131 @@ mod tests {
         assert!(!provenance_label_is_placeholder("76edc75c26504da94bbaee66584e107e76ee15de"));
         assert!(!provenance_label_is_placeholder("governed-by-build-evidence"));
     }
+    struct FrontendSummaryObservation {
+        publication: anyhow::Result<()>,
+        gate: Option<super::ContainerCommandOutcome>,
+    }
+
+    fn frontend_summary_observation(
+        root: &std::path::Path,
+        exit_code: i32,
+        stdout: &str,
+        stderr: &str,
+    ) -> anyhow::Result<FrontendSummaryObservation> {
+        use anyhow::Context as _;
+        let workspace = super::Workspace { root: root.to_path_buf() };
+        let out = workspace.path("artifacts/frontend-security");
+        std::fs::create_dir_all(&out)?;
+        let policy = workspace.path("configs/ci/tools/apptainer_security_policy.toml");
+        std::fs::create_dir_all(policy.parent().context("policy parent missing")?)?;
+        std::fs::write(policy, "fail_on_unallowlisted_critical = true\nrequire_scanner_in_ci = true\nrequire_scanner_local = true\n")?;
+        let license = workspace.path("containers/licenses/fastp.license.toml");
+        std::fs::create_dir_all(license.parent().context("license parent missing")?)?;
+        std::fs::write(license, "spdx = \"MIT\"\n")?;
+        let sbom = out.join("fastp.sbom.json");
+        let image = out.join("fastp.sif");
+        std::fs::write(&sbom, b"{\"packages\":[]}\n")?;
+        std::fs::write(&image, b"private owned image fixture\n")?;
+        std::fs::write(
+            out.join("fastp.json"),
+            serde_json::to_vec(&serde_json::json!({
+                "tool": "fastp", "sbom_path": sbom, "image": image,
+            }))?,
+        )?;
+        let observation_path = workspace.path("artifacts/scanner-observation.json");
+        std::fs::write(
+            &observation_path,
+            serde_json::to_vec(&serde_json::json!({
+                "exit_code": exit_code, "stdout": stdout, "stderr": stderr,
+            }))?,
+        )?;
+        let summary = out.join("security_summary.json");
+        let doc = workspace.path("artifacts/frontend-security-summary.md");
+        let result = super::frontend_proofs::write_frontend_security_summary_with_scanner(
+            &workspace,
+            &out,
+            &summary,
+            &doc,
+            || Some("grype"),
+            |scanner, sbom| {
+                assert_eq!(scanner, "grype");
+                assert_eq!(std::path::Path::new(sbom), out.join("fastp.sbom.json"));
+                let row: serde_json::Value =
+                    serde_json::from_slice(&std::fs::read(&observation_path)?)?;
+                Ok(super::ContainerCommandOutcome {
+                    exit_code: i32::try_from(
+                        row["exit_code"].as_i64().context("fixture exit missing")?,
+                    )?,
+                    stdout: row["stdout"].as_str().context("fixture stdout missing")?.to_string(),
+                    stderr: row["stderr"].as_str().context("fixture stderr missing")?.to_string(),
+                })
+            },
+        );
+        assert_eq!(std::fs::read_to_string(out.join("vuln/fastp.grype.json"))?, stdout);
+        let gate = if result.is_ok() {
+            Some(super::frontend_proofs::check_apptainer_frontend_security(
+                &workspace,
+                &[summary.display().to_string()],
+            )?)
+        } else {
+            None
+        };
+        Ok(FrontendSummaryObservation { publication: result, gate })
+    }
+
+    #[test]
+    fn frontend_security_empty_findings_keep_summary_and_gate_success() -> anyhow::Result<()> {
+        let owner = tempfile::tempdir()?;
+        let FrontendSummaryObservation { publication: result, gate } =
+            frontend_summary_observation(owner.path(), 0, "{\"matches\":[]}", "")?;
+        result?;
+        let gate =
+            gate.ok_or_else(|| anyhow::anyhow!("successful summary did not reach actual gate"))?;
+        assert!(gate.is_success());
+        assert!(gate.stdout.contains("frontend security check: OK"));
+        Ok(())
+    }
+
+    #[test]
+    fn frontend_security_failed_scanner_cannot_publish_an_accepted_summary() -> anyhow::Result<()> {
+        let owner = tempfile::tempdir()?;
+        let FrontendSummaryObservation { publication: result, gate } =
+            frontend_summary_observation(
+                owner.path(),
+                23,
+                "{\"matches\":[]}",
+                "scanner terminal failure",
+            )?;
+        if let Some(gate) = gate {
+            assert!(
+                !gate.is_success(),
+                "failed scanner produced an accepted frontend security summary"
+            );
+        }
+        let error = result
+            .err()
+            .ok_or_else(|| anyhow::anyhow!("failed scanner summary was not refused"))?;
+        assert!(format!("{error:#}").contains("exit=23"));
+        assert!(format!("{error:#}").contains("scanner terminal failure"));
+        Ok(())
+    }
+
+    #[test]
+    fn frontend_security_malformed_scanner_output_cannot_publish_an_accepted_summary(
+    ) -> anyhow::Result<()> {
+        let owner = tempfile::tempdir()?;
+        let FrontendSummaryObservation { publication: result, gate } =
+            frontend_summary_observation(owner.path(), 0, "not-json", "")?;
+        if let Some(gate) = gate {
+            assert!(
+                !gate.is_success(),
+                "malformed scanner output produced an accepted frontend security summary"
+            );
+        }
+        let error = result
+            .err()
+            .ok_or_else(|| anyhow::anyhow!("malformed scanner summary was not refused"))?;
+        assert!(format!("{error:#}").contains("fastp.grype.json"));
+        Ok(())
+    }
 }

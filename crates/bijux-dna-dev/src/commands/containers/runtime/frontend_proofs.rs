@@ -554,6 +554,53 @@ pub(crate) fn write_frontend_security_summary(
     summary_path: &Path,
     doc_path: &Path,
 ) -> Result<()> {
+    write_frontend_security_summary_with_scanner(
+        workspace,
+        out_dir,
+        summary_path,
+        doc_path,
+        || {
+            if command_exists("grype") {
+                Some("grype")
+            } else if command_exists("trivy") {
+                Some("trivy")
+            } else {
+                None
+            }
+        },
+        |scanner_name, sbom| {
+            Ok(if scanner_name == "grype" {
+                run_program_with_env(
+                    workspace,
+                    "grype",
+                    &[format!("sbom:{sbom}"), "-o".to_string(), "json".to_string()],
+                    &[],
+                )?
+            } else {
+                run_program_with_env(
+                    workspace,
+                    "trivy",
+                    &[
+                        "sbom".to_string(),
+                        "--format".to_string(),
+                        "json".to_string(),
+                        sbom.to_string(),
+                    ],
+                    &[],
+                )?
+            })
+        },
+    )
+}
+
+pub(super) fn write_frontend_security_summary_with_scanner(
+    workspace: &Workspace,
+    out_dir: &Path,
+    summary_path: &Path,
+    doc_path: &Path,
+    select_scanner: impl FnOnce() -> Option<&'static str>,
+    mut scan_sbom: impl FnMut(&str, &str) -> Result<ContainerCommandOutcome>,
+) -> Result<()> {
     let policy = load_toml(&workspace.path("configs/ci/tools/apptainer_security_policy.toml"))?;
     let allowlist_path = policy
         .get("vuln_allowlist_path")
@@ -581,13 +628,7 @@ pub(crate) fn write_frontend_security_summary(
     let require_scanner_local =
         policy.get("require_scanner_local").and_then(toml::Value::as_bool).unwrap_or(false);
     let is_ci = !env_or_empty("CI").is_empty();
-    let scanner = if command_exists("grype") {
-        Some("grype")
-    } else if command_exists("trivy") {
-        Some("trivy")
-    } else {
-        None
-    };
+    let scanner = select_scanner();
     if scanner.is_none() && ((is_ci && require_scanner_ci) || (!is_ci && require_scanner_local)) {
         return Err(anyhow!("frontend security summary requires grype or trivy per policy"));
     }
@@ -661,35 +702,20 @@ pub(crate) fn write_frontend_security_summary(
             ("unknown".to_string(), 0usize),
         ]);
         if let Some(scanner_name) = scanner {
-            let output = if scanner_name == "grype" {
-                run_program_with_env(
-                    workspace,
-                    "grype",
-                    &[format!("sbom:{sbom}"), "-o".to_string(), "json".to_string()],
-                    &[],
-                )?
-            } else {
-                run_program_with_env(
-                    workspace,
-                    "trivy",
-                    &[
-                        "sbom".to_string(),
-                        "--format".to_string(),
-                        "json".to_string(),
-                        sbom.to_string(),
-                    ],
-                    &[],
-                )?
-            };
-            let raw = if output.stdout.trim().is_empty() {
-                "{}".to_string()
-            } else {
-                output.stdout.clone()
-            };
+            let output = scan_sbom(scanner_name, sbom)?;
+            let raw = output.stdout.clone();
             let suffix = if scanner_name == "grype" { "grype" } else { "trivy" };
-            write_utf8(&vuln_dir.join(format!("{tool}.{suffix}.json")), &raw)?;
-            let payload = serde_json::from_str::<serde_json::Value>(&raw)
-                .unwrap_or_else(|_| serde_json::json!({}));
+            let raw_path = vuln_dir.join(format!("{tool}.{suffix}.json"));
+            write_utf8(&raw_path, &raw)?;
+            anyhow::ensure!(output.is_success(),
+                "frontend scanner {scanner_name} failed for {tool}: exit={} stdout={} stderr={} raw={}",
+                output.exit_code, output.stdout, output.stderr, raw_path.display());
+            let payload = serde_json::from_str::<serde_json::Value>(&raw).with_context(|| {
+                format!(
+                    "parse frontend scanner {scanner_name} output for {tool}: {}",
+                    raw_path.display()
+                )
+            })?;
             let mut parsed = Vec::new();
             if scanner_name == "grype" {
                 if let Some(matches) = payload.get("matches").and_then(serde_json::Value::as_array)
