@@ -182,3 +182,49 @@ fn assert_json_matches(observed: &serde_json::Value, expected: &serde_json::Valu
         "VCF phasing parser fixture mismatch for {tool_id}\nobserved: {observed:#}\nexpected: {expected:#}"
     );
 }
+
+#[test]
+fn vcf_phasing_parser_rejects_extra_and_missing_declared_sample_payloads() -> Result<()> {
+    let case = VCF_PHASING_FIXTURE_CASES
+        .iter()
+        .find(|case| case.tool_id == "shapeit5")
+        .context("maintained shapeit5 fixture")?;
+    let baseline = parse_phasing_stage_metrics(case.tool_id, &fixture_dir(case))?;
+    assert_eq!(baseline["sample_count"], serde_json::json!(2));
+    let mut observations = Vec::new();
+    for extra in [false, true] {
+        let root = bijux_dna_testkit::tempdir_for("vcf-phasing-sample-cardinality");
+        copy_fixture_dir(&fixture_dir(case), root.path())?;
+        let input = root.path().join("raw.phased.vcf");
+        let raw = fs::read_to_string(&input)?;
+        let altered = raw
+            .lines()
+            .map(|line| {
+                if line.starts_with('#') || line.is_empty() {
+                    return line.to_string();
+                }
+                let mut fields = line.split('\t').map(str::to_string).collect::<Vec<_>>();
+                if extra {
+                    fields.push(fields[9].clone());
+                } else {
+                    assert!(fields.pop().is_some(), "fixture sample payload must exist");
+                }
+                fields.join("\t")
+            })
+            .collect::<Vec<_>>()
+            .join("\n")
+            + "\n";
+        fs::write(&input, altered)?;
+        let refused_without_panic =
+            std::panic::catch_unwind(|| parse_phasing_stage_metrics(case.tool_id, root.path()))
+                .is_ok_and(|result| result.is_err());
+        observations.push((extra, refused_without_panic));
+    }
+    for (extra, refused) in observations {
+        assert!(
+            refused,
+            "raw phasing parser must return Err for sample cardinality drift; extra={extra}"
+        );
+    }
+    Ok(())
+}

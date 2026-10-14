@@ -400,6 +400,21 @@ fn parse_tiny_vcf(path: &Path) -> Result<TinyVcfDocument> {
     Ok(doc)
 }
 
+fn validate_sample_payload_counts(doc: &TinyVcfDocument) -> Result<()> {
+    for record in &doc.records {
+        if record.samples.len() != doc.samples.len() {
+            return Err(anyhow!(
+                "VCF row `{}:{}` has {} sample payloads but the #CHROM header declares {}",
+                record.chrom,
+                record.pos,
+                record.samples.len(),
+                doc.samples.len(),
+            ));
+        }
+    }
+    Ok(())
+}
+
 /// Execute fixture-safe VCF validation and return refusal reasons for malformed content.
 ///
 /// # Errors
@@ -588,9 +603,10 @@ fn mean_from_sum_and_count(sum: f64, count: usize) -> f64 {
 /// Build a bcftools-style stats summary for tiny fixture-safe VCF records.
 ///
 /// # Errors
-/// Returns an error when the VCF cannot be parsed.
+/// Returns an error when the VCF cannot be parsed or record sample counts disagree with its header.
 pub fn execute_vcf_stats_workflow(input_vcf: &Path) -> Result<VcfStatsWorkflowSummaryV1> {
     let doc = parse_tiny_vcf(input_vcf)?;
+    validate_sample_payload_counts(&doc)?;
     let mut snv_count = 0_u64;
     let mut indel_count = 0_u64;
     let mut transitions = 0_u64;
@@ -733,13 +749,14 @@ pub fn summarize_vcf_filter_output_truth(
 /// Summarize phased genotype counts and phase-set evidence from a phasing-output VCF.
 ///
 /// # Errors
-/// Returns an error when the VCF cannot be parsed.
+/// Returns an error when the VCF cannot be parsed or record sample counts disagree with its header.
 pub fn summarize_vcf_phasing_output_truth(
     input_vcf: &Path,
     stage_id: &str,
     tool_id: &str,
 ) -> Result<VcfPhasingOutputTruthSummaryV1> {
     let doc = parse_tiny_vcf(input_vcf)?;
+    validate_sample_payload_counts(&doc)?;
     let mut called_genotype_count = 0_u64;
     let mut phased_genotype_count = 0_u64;
     let mut unphased_genotype_count = 0_u64;
@@ -1549,7 +1566,9 @@ fn compare_imputed_truth(
     let output_records = doc
         .records
         .iter()
-        .map(|record| (format!("{}:{}", record.chrom, record.pos), record))
+        .map(|record| {
+            ((&record.chrom, record.pos, &record.ref_allele, &record.alt_alleles), record)
+        })
         .collect::<BTreeMap<_, _>>();
 
     let mut masked_sites = 0_u64;
@@ -1559,7 +1578,13 @@ fn compare_imputed_truth(
 
     for truth_record in &truth.records {
         let site_id = format!("{}:{}", truth_record.chrom, truth_record.pos);
-        let Some(output_record) = output_records.get(&site_id) else {
+        let variant = (
+            &truth_record.chrom,
+            truth_record.pos,
+            &truth_record.ref_allele,
+            &truth_record.alt_alleles,
+        );
+        let Some(output_record) = output_records.get(&variant) else {
             for truth_payload in &truth_record.samples {
                 let gt = truth_record
                     .format
@@ -1603,9 +1628,9 @@ fn compare_imputed_truth(
                 unresolved += 1;
                 continue;
             }
-            if canonicalize_genotype_for_truth(output_gt)
-                == canonicalize_genotype_for_truth(truth_gt)
-            {
+            let output_genotype = canonicalize_genotype_for_truth(output_gt);
+            let truth_genotype = canonicalize_genotype_for_truth(truth_gt);
+            if genotypes_equivalent_unphased(&output_genotype, &truth_genotype) {
                 matches += 1;
             } else {
                 mismatches += 1;
@@ -3961,3 +3986,6 @@ chr1\t30\t.\tG\tA\t55\tPASS\tDP=8\tGT\t0/1\n",
         assert_eq!(insufficient_summary.insufficient_data_probe.status, "insufficient_data");
     }
 }
+
+#[cfg(test)]
+mod output_truth_tests;

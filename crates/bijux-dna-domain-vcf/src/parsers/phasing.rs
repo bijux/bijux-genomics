@@ -156,6 +156,13 @@ fn summarize_phased_vcf(path: &Path) -> Result<PhasingSummary> {
         if fields.len() < 10 {
             bail!("phased VCF row is missing sample columns");
         }
+        if fields.len() - 9 != sample_ids.len() {
+            bail!(
+                "phased VCF row has {} sample payloads but the #CHROM header declares {}",
+                fields.len() - 9,
+                sample_ids.len(),
+            );
+        }
         let format_keys = fields[8].split(':').collect::<Vec<_>>();
         let ps_index = format_keys.iter().position(|field| *field == "PS");
         for (sample_index, sample_field) in fields.iter().skip(9).enumerate() {
