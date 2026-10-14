@@ -4,6 +4,10 @@ use super::{ToolBinding, ToolBindingRenderContext};
 
 /// Renders argv from a binding without process execution or tool-specific branches.
 ///
+/// Scalar values within single-quoted literals of the canonical shell command forms retain
+/// their literal bytes, including apostrophes. Other argument tokens retain raw projection;
+/// custom shell grammars are not interpreted here.
+///
 /// # Errors
 ///
 /// Returns an error for malformed placeholders or values missing from the render context.
@@ -12,7 +16,8 @@ pub fn render_tool_command(
     context: &ToolBindingRenderContext,
 ) -> Result<Vec<String>> {
     let mut command = Vec::new();
-    for token in binding.command_template() {
+    let script_index = shell_script_index(binding.command_template());
+    for (index, token) in binding.command_template().iter().enumerate() {
         if token.contains("${inputs:") {
             let name = token
                 .strip_prefix("${inputs:")
@@ -30,23 +35,96 @@ pub fn render_tool_command(
             }
             command.extend(values.iter().cloned());
         } else {
-            command.push(render_token(token, context)?);
+            let kind = if script_index == Some(index) {
+                TokenKind::ShellScript
+            } else {
+                TokenKind::Argument
+            };
+            command.push(render_token(token, context, kind)?);
         }
     }
     Ok(command)
 }
 
-fn render_token(token: &str, context: &ToolBindingRenderContext) -> Result<String> {
+#[derive(Clone, Copy)]
+enum TokenKind {
+    Argument,
+    ShellScript,
+}
+
+fn shell_script_index(template: &[String]) -> Option<usize> {
+    match template {
+        [shell, flag, _, ..]
+            if (shell == "/bin/sh" && flag == "-c") || (shell == "/bin/bash" && flag == "-lc") =>
+        {
+            Some(2)
+        }
+        [shell, option, setting, flag, _, ..]
+            if shell == "/bin/bash" && option == "-o" && setting == "pipefail" && flag == "-c" =>
+        {
+            Some(4)
+        }
+        _ => None,
+    }
+}
+
+#[derive(Default)]
+enum Quote {
+    #[default]
+    Unquoted,
+    Single,
+    Double,
+}
+
+#[derive(Default)]
+struct ShellLiteral {
+    quote: Quote,
+    escaped: bool,
+}
+
+impl ShellLiteral {
+    fn observe(&mut self, literal: &str) {
+        for character in literal.chars() {
+            if self.escaped {
+                self.escaped = false;
+                continue;
+            }
+            match (&self.quote, character) {
+                (Quote::Unquoted, '\'') => self.quote = Quote::Single,
+                (Quote::Single, '\'') | (Quote::Double, '"') => self.quote = Quote::Unquoted,
+                (Quote::Unquoted, '"') => self.quote = Quote::Double,
+                (Quote::Unquoted | Quote::Double, '\\') => self.escaped = true,
+                _ => {}
+            }
+        }
+    }
+}
+
+fn render_token(
+    token: &str,
+    context: &ToolBindingRenderContext,
+    kind: TokenKind,
+) -> Result<String> {
     let mut rendered = String::new();
     let mut remaining = token;
+    let mut literal = ShellLiteral::default();
     while let Some(start) = remaining.find("${") {
-        rendered.push_str(&remaining[..start]);
+        let prefix = &remaining[..start];
+        rendered.push_str(prefix);
+        literal.observe(prefix);
         let placeholder = &remaining[start + 2..];
         let end = placeholder
             .find('}')
             .ok_or_else(|| anyhow!("unterminated placeholder in `{token}`"))?;
         let key = &placeholder[..end];
-        rendered.push_str(resolve_placeholder(key, context)?);
+        let value = resolve_placeholder(key, context)?;
+        if matches!(kind, TokenKind::ShellScript) && matches!(literal.quote, Quote::Single) {
+            // Leave the surrounding literal open while quoting only embedded apostrophes.
+            // Projected values never become template syntax or change the quote observation.
+            rendered.push_str(&value.replace('\'', "'\\''"));
+        } else {
+            rendered.push_str(value);
+        }
         remaining = &placeholder[end + 1..];
     }
     rendered.push_str(remaining);

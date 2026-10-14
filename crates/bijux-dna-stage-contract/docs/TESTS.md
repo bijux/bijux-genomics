@@ -54,3 +54,12 @@ See `crates/bijux-dna-testkit/docs/PUBLIC_API.md` for shared helper exports and
 `crates/bijux-dna-testkit/docs/SNAPSHOT_POLICY.md` for snapshot stability rules.
 
 Shared guardrail parser regressions are owned and executed by the policy crate. This boundary suite retains its crate-specific architecture checks; it does not compile another crate's test source. Constructor-only guardrail wrappers provide no source-check coverage and are retired.
+
+`tests/contracts/tool_binding/shell_values.rs` exercises public stage-plan construction with
+the canonical BAM QC and direct complexity bindings, an owned argument recorder, and actual
+Unix shells. Plain shell/direct controls precede paths containing apostrophes and shell
+metacharacters; a declared Bash template checks suffix concatenation and pipefail behavior.
+The FastUniq login-shell template receives projection-only coverage so the test does not run
+host login startup files. This contract observes argument bytes and exit behavior, without
+claiming scientific tool, image, or container readiness. Its private observations remain under
+`artifacts/testing/stage-shell-values/`. The source contract crate still performs no execution.

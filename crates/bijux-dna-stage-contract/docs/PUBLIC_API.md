@@ -142,3 +142,13 @@ to executable typed truth instead of prose-only examples.
 - Stable: the public modules, root re-exports, and Public Types documented in this file.
 - Experimental: future contract helpers are experimental until listed here and covered by the public type/schema snapshots.
 - Internal: planner/runtime support code and any item not exposed through the documented public modules or root re-exports.
+
+## Binding command values
+
+`render_tool_command` projects values without execution. Direct argument tokens and complete
+`${inputs:name}` projections retain their supplied bytes. In the canonical `/bin/sh -c`,
+`/bin/bash -o pipefail -c` and `/bin/bash -lc` script forms, scalar projections inside
+single-quoted literals preserve apostrophes as literal characters, including assignment values
+and path suffixes. Values without apostrophes produce the same command vectors. The renderer
+does not interpret custom shell grammars or make unquoted or double-quoted custom templates
+safe for arbitrary values. Callers retain responsibility for admitting executable and path authority.

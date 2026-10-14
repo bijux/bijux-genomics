@@ -48,6 +48,9 @@ fn owned_harness_command(relative_path: &Path, arg: &str) -> bool {
         Some("crates/bijux-dna-api/tests/contracts/invocation_environment.rs") => {
             matches!(arg, "mkfifo" | "shell" | "&self.executable")
         }
+        Some("crates/bijux-dna-stage-contract/tests/contracts/tool_binding/shell_values.rs") => {
+            matches!(arg, "shell" | "provider")
+        }
         _ => false,
     }
 }
@@ -401,6 +404,11 @@ fn policy__contracts__command_spawn_policy__harness_commands_stay_with_their_exa
         ("crates/bijux-dna-api/tests/contracts/invocation_environment.rs", "mkfifo"),
         ("crates/bijux-dna-api/tests/contracts/invocation_environment.rs", "shell"),
         ("crates/bijux-dna-api/tests/contracts/invocation_environment.rs", "&self.executable"),
+        ("crates/bijux-dna-stage-contract/tests/contracts/tool_binding/shell_values.rs", "shell"),
+        (
+            "crates/bijux-dna-stage-contract/tests/contracts/tool_binding/shell_values.rs",
+            "provider",
+        ),
     ] {
         let invocation = format!("Command::new({command}).output()?");
         assert!(!content_spawns_forbidden_test_command(Path::new(owner), &invocation));
@@ -441,6 +449,11 @@ fn policy__contracts__command_spawn_policy__native_harnesses_require_exact_compl
         ("crates/bijux-dna-api/tests/contracts/invocation_environment.rs", "mkfifo"),
         ("crates/bijux-dna-api/tests/contracts/invocation_environment.rs", "shell"),
         ("crates/bijux-dna-api/tests/contracts/invocation_environment.rs", "&self.executable"),
+        ("crates/bijux-dna-stage-contract/tests/contracts/tool_binding/shell_values.rs", "shell"),
+        (
+            "crates/bijux-dna-stage-contract/tests/contracts/tool_binding/shell_values.rs",
+            "provider",
+        ),
     ] {
         let invocation = format!("std::process::Command::new({expression}).output()?");
         assert!(!content_spawns_forbidden_test_command(Path::new(owner), &invocation), "{owner}");
