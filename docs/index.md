@@ -83,7 +83,10 @@ Welcome to the Bijux Genomics documentation. Start with the overview and then di
 - `readme_policy.rs`
 - `runner_tree_policy.rs`
 - `snapshot_policy.rs`
-- `source_admission.rs` — core-layering source authority and required-source refusal contracts.
+- `source_admission.rs` — core, infrastructure, defaults, and snapshot source authority and required-input refusal contracts.
+- `rust_source_intake.rs` — shared required Rust source acquisition for policy contracts.
+- `macos_dotfiles_tests.rs` — governed source observation and output-directory pruning contracts.
+- `resource_forks_tests.rs` — resource-fork source observation and output-directory pruning contracts.
 - `ssot_catalog_authority.rs`
 - `stage_specs_purity.rs`
 - `style_policy.rs`
