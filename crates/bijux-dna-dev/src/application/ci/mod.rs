@@ -1,5 +1,7 @@
 //! Admission of declared test inventories and observed CI execution evidence.
 
+pub(crate) mod local_tests;
+
 mod compiled_files;
 mod coverage;
 mod discovery;

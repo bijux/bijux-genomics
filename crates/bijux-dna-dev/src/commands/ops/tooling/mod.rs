@@ -71,7 +71,7 @@ pub(super) use self::certification::{
 pub(super) use self::ci::{
     tooling_ci_audit, tooling_ci_clippy, tooling_ci_clippy_executors, tooling_ci_coverage,
     tooling_ci_fast, tooling_ci_fmt, tooling_ci_install_tools, tooling_ci_slow, tooling_ci_test,
-    tooling_ci_test_all_sharded, tooling_ci_test_slow,
+    tooling_ci_test_all_sharded, tooling_ci_test_complete, tooling_ci_test_slow,
 };
 pub(super) use self::config_docs::{
     tooling_check_config_paths, tooling_check_config_snapshot, tooling_clean_docs,

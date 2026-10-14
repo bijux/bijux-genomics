@@ -271,6 +271,11 @@ pub fn tooling_registry() -> Vec<OpsCommandDefinition> {
             NativeOpsCommandKey::ToolingCiTest,
         ),
         native(
+            "ci-test-complete",
+            "Run all declared local Rust, doctest and Python test lanes with exact terminal receipts.",
+            NativeOpsCommandKey::ToolingCiTestComplete,
+        ),
+        native(
             "ci-test-all-sharded",
             "Run complete workspace nextest partitions through the event-driven Rust supervisor.",
             NativeOpsCommandKey::ToolingCiTestAllSharded,

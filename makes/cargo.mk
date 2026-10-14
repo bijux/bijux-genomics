@@ -188,6 +188,10 @@ test-slow: ## Run Rust tests labeled as slow.
 	@$(ensure_artifact_env)
 	@$(MAKE) test-slow-rs
 
+test-complete: _dev-dna-bin ## Run all declared local Rust, doctest and Python test lanes.
+	@$(ensure_artifact_env)
+	@"$(DEV_DNA_BIN)" tooling run ci-test-complete
+
 test-all: ## Run the full Rust suite, including ignored tests.
 	@$(ensure_artifact_env)
 	@$(MAKE) test-all-rs
@@ -671,7 +675,7 @@ refresh-assets-toy: ## Regenerate deterministic toy datasets in assets/toy.
 refresh-assets-golden: ## Regenerate deterministic toy-run goldens in assets/golden.
 	@cargo run -q -p bijux-dna-dev -- assets run refresh-golden
 
-.PHONY: fmt fmt-rs lint lint-rs lint-workspace lint-governance lint-rustfmt lint-clippy lint-docs lint-configs lint-fast lint-automation lint-scripts test test-rs test-fast test-slow test-slow-rs test-all test-all-rs test-all-frozen lint-frozen audit-frozen audit audit-rs coverage coverage-rs coverage-workspace ci doctor github-all github-all-frozen _check _verify-artifact-env \
+.PHONY: fmt fmt-rs lint lint-rs lint-workspace lint-governance lint-rustfmt lint-clippy lint-docs lint-configs lint-fast lint-automation lint-scripts test test-rs test-fast test-slow test-slow-rs test-all test-all-rs test-all-frozen test-complete lint-frozen audit-frozen audit audit-rs coverage coverage-rs coverage-workspace ci doctor github-all github-all-frozen _check _verify-artifact-env \
 		_clean-artifact-scratch \
 		_domain-gates domain-validate examples-validate \
 		_examples-validate \

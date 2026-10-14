@@ -1,0 +1,147 @@
+{
+  "schema_version": "bijux.ci.local_test_catalog.v1",
+  "lanes": [
+    {
+      "id": "rust-nextest",
+      "harness": "nextest",
+      "discovery_roots": [],
+      "explicit_modules": [],
+      "excluded_modules": [],
+      "input_files": [],
+      "input_trees": [
+        "."
+      ],
+      "tools": [
+        "cargo",
+        "rustc",
+        "cargo-nextest",
+        "bcftools",
+        "rustdoc"
+      ],
+      "resource_units": 8
+    },
+    {
+      "id": "rust-doctests",
+      "harness": "rustdoc",
+      "discovery_roots": [],
+      "explicit_modules": [],
+      "excluded_modules": [],
+      "input_files": [],
+      "input_trees": [
+        "."
+      ],
+      "tools": [
+        "cargo",
+        "rustc",
+        "rustdoc"
+      ],
+      "resource_units": 2
+    },
+    {
+      "id": "python-ordinary",
+      "harness": "pytest",
+      "discovery_roots": [
+        "benchmarks/tests",
+        "benchmarks/adapters/tests",
+        "containers/contracts/tests"
+      ],
+      "explicit_modules": [],
+      "excluded_modules": [],
+      "input_files": [
+        "benchmarks/execution/fastq_profile_reads.awk",
+        "benchmarks/execution/fastq_read_lengths.awk",
+        "benchmarks/contracts/stage-interfaces.toml",
+        "benchmarks/contracts/stage-campaigns.toml",
+        "benchmarks/contracts/schemas/fastq-profile-read-lengths-result.schema.json",
+        "containers/apptainer/bijux_dna.def",
+        ".cargo/config.toml"
+      ],
+      "input_trees": [
+        "benchmarks/adapters",
+        "containers/tools"
+      ],
+      "tools": [
+        "python",
+        "awk",
+        "sh",
+        "env",
+        "dirname"
+      ],
+      "resource_units": 1
+    },
+    {
+      "id": "python-workflow",
+      "harness": "unittest",
+      "discovery_roots": [],
+      "explicit_modules": [
+        "makes.tests.test_github_workflow_gate"
+      ],
+      "excluded_modules": [],
+      "input_files": [
+        "makes/bin/github_workflow_gates.py",
+        "makes/bin/run_github_workflow_gate.sh",
+        ".github/scripts/workflow_execution/yaml_io.py",
+        ".github/workflows/ci.yml"
+      ],
+      "input_trees": [],
+      "tools": [
+        "python",
+        "ruby",
+        "bash",
+        "sh",
+        "env",
+        "dirname",
+        "basename",
+        "mkdir",
+        "mktemp",
+        "rm",
+        "cat",
+        "sleep",
+        "kill",
+        "date",
+        "sed",
+        "grep",
+        "awk"
+      ],
+      "resource_units": 1
+    },
+    {
+      "id": "python-developer-doc-assets",
+      "harness": "unittest",
+      "discovery_roots": [
+        "makes/tests",
+        "configs/docs/tests"
+      ],
+      "explicit_modules": [],
+      "excluded_modules": [
+        "makes.tests.test_github_workflow_gate"
+      ],
+      "input_files": [
+        "makes/bin/developer_build_artifact.py",
+        "makes/bin/dev_dna_bootstrap.sh",
+        "configs/docs/verify_mathjax_assets.py",
+        "configs/docs/mathjax-source.json",
+        "mkdocs.yml",
+        "makes/bin/python_test_receipt.py",
+        ".cargo/config.toml"
+      ],
+      "input_trees": [
+        "docs/assets/vendor/mathjax"
+      ],
+      "tools": [
+        "python",
+        "cargo",
+        "rustc",
+        "bash",
+        "sh",
+        "env",
+        "dirname",
+        "basename",
+        "mkdir",
+        "mktemp",
+        "rm"
+      ],
+      "resource_units": 2
+    }
+  ]
+}

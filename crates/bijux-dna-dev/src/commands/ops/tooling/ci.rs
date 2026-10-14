@@ -1,5 +1,8 @@
+mod complete;
 mod fast_execution;
 mod full_execution;
+
+pub(in super::super) use complete::tooling_ci_test_complete;
 
 use super::super::suite_selection::governed_slow_expression;
 use std::collections::{BTreeMap, BTreeSet};

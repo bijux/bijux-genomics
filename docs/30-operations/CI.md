@@ -139,3 +139,45 @@ time remain part of the measured command; no hosted timing claim follows from
 using local products.
 
 The full profile starts the seven isolated readiness/report suites at priority 100. Their long workflows begin early in the existing worker pool; ordinary cases remain priority 0. Prioritization preserves exact case selection, worker limits, retries and isolation groups, and expresses no dependency between tests. Full source-bound timings still include compilation, discovery and cleanup.
+
+## Complete local test acceptance
+
+`make test-complete` (or `bijux-dna-dev tooling run ci-test-complete`) runs the complete
+local test catalog in `configs/ci/local-test-lanes.json`: full Nextest membership including
+ignored cases, all Cargo doctest targets and examples, ordinary pytest cases, workflow
+unittest cases, and developer/docs-asset unittest cases. `test-all` retains its Rust-only
+meaning. This command does not include lint, release, remote HPC or site qualification.
+
+Run from committed clean source. The command refuses uncaptured untracked product inputs,
+records the candidate source and exact native membership, and replaces stale successful
+aggregate evidence before source/catalog/runtime/budget admission. Its terminal aggregate
+is `artifacts/ci/local-test-gate.json`; unique run logs and case receipts remain under
+`artifacts/ci/local-tests/source/artifacts/ci/local-tests/`. Missing, duplicated, skipped,
+failed, truncated, changed or unqualified lane evidence prevents successful acceptance.
+A failed Nextest assertion remains failed while its terminal dependency permits doctests.
+
+The default CPU budget reserves one hardware worker for foreground work.
+`BIJUX_CI_COMPLETE_WORKER_BUDGET` may reduce that positive budget; it must fit every declared
+lane and remain below detected hardware capacity. The five-lane process limit and weighted
+admission bound active CPU units. Full Nextest retains its separate build/job/case-thread
+controls and must fit its admitted lane allocation. These controls do not enforce RAM,
+disk space or IO limits; provision sufficient runner capacity for the recorded compilation
+and fixture assumptions.
+
+A command-wide lease protects the stable input checkout. Nextest and doctests take successive
+exclusive leases on the same retained compilation cache. Source and executable manifests
+must qualify reuse independently of assertion outcomes. If Nextest producer admission fails,
+doctests may rebuild under their own admitted lease; the reason and elapsed cost are recorded.
+The five-minute clock includes admission, source/runtime hashing, setup, compilation,
+execution and aggregation. A warm cache alone does not establish a five-minute result.
+
+Python discovery uses actual test files and native case identities; the roster is not a fixed
+count. The command binds the configured `PYTHON` interpreter or an existing repository-owned
+checks environment, and the configured `BIJUX_GATE_TEST_BASH` or an existing owned Bash.
+It does not install global tools. Ruby/Psych, compiler, interpreter packages, dynamic providers
+and operating-system build identities are recorded. Disable ambient pytest plugin/addopts
+selection and use a fresh owned bytecode/scratch root. Successful Python receipts can be
+adopted across unrelated source changes only when current native discovery, source/environment/
+provider manifests and unchanged native outcome artifacts establish equivalence. The original
+source receipt remains unchanged; candidate equivalence is a separate artifact. Older receipts
+without the required closure and provider evidence are rerun.
