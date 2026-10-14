@@ -45,3 +45,12 @@ sample/reference comparisons and kinship relationships remain unchanged.
 Duplicate compatibility stages and non-finite threshold comparisons reject explicitly.
 Source failure preserves the existing report; successful publication replaces it
 atomically. Assignment evidence does not certify fresh native tool execution.
+
+With `alignment`, `bam::validate_bam_alignment_truth_manifest_path` accepts an
+explicit repository root and truth manifest path and returns
+`BamAlignmentTruthValidationReport`. `BAM_ALIGNMENT_TRUTH_FIXTURE_ID` and
+`BAM_ALIGNMENT_TRUTH_MANIFEST_SCHEMA_VERSION` retain the governed identities.
+Manifest, expected bundle and corpus admission precede complete observed record
+comparison. Report fields, rejection order, path resolution and schema identities
+are preserved. Declared absolute paths remain supported; this read-only service
+does not establish external provenance or publish new truth.

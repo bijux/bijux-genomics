@@ -47,3 +47,13 @@ Canonical domain BAM assignment rules remain in their domain owner; core supplie
 stage identities. Core and infrastructure stay optional through `alignment`,
 leaving default corpus compilation free of specialized workspace dependencies.
 TSV publication uses infrastructure atomic replacement, with exact declared columns.
+
+## BAM alignment fixture truth
+
+`bam/truth` owns declared alignment-truth manifests and expected bundles. `model.rs`
+retains the wire records, `admission.rs` checks identity, ordering and independent
+aggregate invariants, and `observations.rs` reads declared files and consumes the
+BAM domain's canonical native alignment summary. The facade compares complete
+expected and observed records and returns the original validation report. It does
+not launch tools, print output, write fixtures or orchestrate benchmarks. The CLI
+fixture entrypoints delegate to this owner through their existing import path.

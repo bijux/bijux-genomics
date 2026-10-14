@@ -368,3 +368,6 @@ fn corpus_01_bam_mini_fixture_validation_refuses_header_sample_id_drift() {
         "validation error should explain sample-id drift: {error:#}"
     );
 }
+
+#[path = "bam/alignment_truth.rs"]
+mod alignment_truth;

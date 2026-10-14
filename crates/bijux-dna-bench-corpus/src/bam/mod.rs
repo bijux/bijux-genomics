@@ -35,3 +35,9 @@ pub use model::{
 };
 
 pub mod assignment;
+
+mod truth;
+pub use truth::{
+    validate_bam_alignment_truth_manifest_path, BamAlignmentTruthValidationReport,
+    BAM_ALIGNMENT_TRUTH_FIXTURE_ID, BAM_ALIGNMENT_TRUTH_MANIFEST_SCHEMA_VERSION,
+};
