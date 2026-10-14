@@ -45,8 +45,9 @@ Validation command:
 ## Enforcement
 
 - `tests/boundaries/effect_boundary.rs` rejects direct process/container effects.
-- `tests/boundaries/architecture_tree.rs` locks source, docs, and test layout.
+- `tests/boundaries/dependency_graph.rs` checks the declared dependency boundary.
 - `tests/contracts/architecture.rs` rejects a dependency edge to
   `bijux-dna-runner`.
-- Repository policy tests reject planner, domain, stage, runner, and environment
-  dependency edges.
+- The dependency boundary rejects planner, domain, stage, runner, and environment
+  edges. Engine tests do not enforce an exact source, documentation, or test-file
+  inventory.
