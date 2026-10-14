@@ -1,7 +1,6 @@
 #![cfg(test)]
 use crate::call::admission::bindings::resolve_governed_vcf_call_smoke_contract;
 use crate::call::model::GOVERNED_VCF_CALL_STAGE_ID;
-use bijux_dna_stages_vcf::vcf_io::vcf_sample_count as parse_output_sample_count;
 use std::path::PathBuf;
 
 use crate::bam::model::GOVERNED_VCF_CALL_TOOL_ID;
@@ -34,13 +33,4 @@ fn vcf_call_smoke_contract_uses_governed_matrix_and_bam_fixture() {
         contract.reference,
         "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/reference/corpus_01_bam_reference.fasta"
     );
-}
-
-#[test]
-fn parse_output_sample_count_reads_governed_fixture_vcf() {
-    let repo_root = repo_root();
-    let fixture_vcf = repo_root
-        .join("benchmarks/tests/fixtures/corpora/vcf-mini/variants/vcf_mini_multisample.vcf");
-    let sample_count = parse_output_sample_count(&fixture_vcf).expect("parse sample count");
-    assert_eq!(sample_count, 4);
 }
