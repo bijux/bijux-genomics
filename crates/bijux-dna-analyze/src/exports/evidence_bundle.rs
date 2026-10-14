@@ -414,7 +414,7 @@ pub fn build_evidence_bundle(
         summary.as_ref(),
         report.as_ref(),
     );
-    let artifacts = collect_artifacts(base_dir, manifest.as_ref());
+    let artifacts = collect_declared_artifacts(manifest.as_ref());
     let provenance_graph =
         build_provenance_graph(manifest.as_ref(), summary.as_ref(), facts.as_deref(), &artifacts);
     let health = build_health(
@@ -1572,10 +1572,8 @@ fn build_provenance_graph(
     EvidenceProvenanceGraphV1 { nodes, edges }
 }
 
-fn collect_artifacts(
-    base_dir: &Path,
-    manifest: Option<&serde_json::Value>,
-) -> Vec<EvidenceArtifactV1> {
+// Artifact provenance comes from declarations; publications do not add implicit sources.
+fn collect_declared_artifacts(manifest: Option<&serde_json::Value>) -> Vec<EvidenceArtifactV1> {
     let mut artifacts = Vec::new();
     if let Some(entries) = manifest
         .and_then(|manifest| manifest.get("output_artifacts"))
@@ -1602,16 +1600,6 @@ fn collect_artifacts(
         (left.name.as_str(), left.path.as_str()).cmp(&(right.name.as_str(), right.path.as_str()))
     });
     artifacts.dedup_by(|left, right| left.name == right.name && left.path == right.path);
-    if artifacts.is_empty() {
-        let bundle_path = base_dir.join("evidence_bundle.json");
-        if bundle_path.exists() {
-            artifacts.push(EvidenceArtifactV1 {
-                name: "evidence_bundle".to_string(),
-                path: "evidence_bundle.json".to_string(),
-                sha256: bijux_dna_infra::hash_file_sha256(&bundle_path).ok(),
-            });
-        }
-    }
     artifacts
 }
 

@@ -1,6 +1,6 @@
 use bijux_dna_runtime::*;
 use std::fs;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use bijux_dna_analyze::exports::{
     build_evidence_bundle, compare_evidence_bundles, list_reviewer_challenges,
@@ -759,5 +759,184 @@ fn reviewer_challenge_workflow_records_tied_references() -> anyhow::Result<()> {
     assert_eq!(listed[0].report_field, "completeness.missing_metrics");
     assert_eq!(listed[0].caveat, "advisory_missing_context");
     assert!(dir.path().join("reviewer_challenges.latest.json").exists());
+    Ok(())
+}
+
+fn evidence_publication_inputs(
+    base_dir: &Path,
+    declared_artifacts: Option<serde_json::Value>,
+) -> anyhow::Result<Vec<(PathBuf, Vec<u8>)>> {
+    let mut manifest = serde_json::json!({
+        "schema_version": "bijux.run_manifest.v3",
+        "run_id": "run-1",
+        "correlation_id": "corr-run-1",
+        "stages": [{ "stage_id": "fastq.trim_reads" }]
+    });
+    if let Some(artifacts) = declared_artifacts {
+        manifest["output_artifacts"] = artifacts;
+    }
+    for (path, value) in [
+        ("run_manifest.json", manifest),
+        (
+            "report.json",
+            serde_json::json!({
+                "schema_version": "bijux.run_report.v1",
+                "completeness": { "missing_metrics": [], "missing_reports": [] }
+            }),
+        ),
+        (
+            "artifact_inventory.json",
+            serde_json::json!({
+                "schema_version": "bijux.artifact_inventory.v1",
+                "run_id": "run-1",
+                "artifacts": []
+            }),
+        ),
+        (
+            "hash_ledger.json",
+            serde_json::json!({
+                "schema_version": "bijux.hash_ledger.v1",
+                "run_id": "run-1",
+                "entries": []
+            }),
+        ),
+    ] {
+        bijux_dna_infra::atomic_write_json(&base_dir.join(path), &value)?;
+    }
+    bijux_dna_infra::write_bytes(
+        base_dir.join("facts.jsonl"),
+        format!("{}\n", serde_json::to_string(&facts_row("ih"))?),
+    )?;
+    let telemetry = TelemetryEventV1 {
+        schema_version: "bijux.telemetry.v1".to_string(),
+        run_id: "run-1".to_string(),
+        stage_id: "fastq.trim_reads".to_string(),
+        tool_id: "fastp".to_string(),
+        event_name: TelemetryEventName::StageStart,
+        timestamp: chrono::DateTime::parse_from_rfc3339("2024-01-01T00:00:01Z")?
+            .with_timezone(&chrono::Utc),
+        duration_ms: Some(10),
+        status: "ok".to_string(),
+        trace_id: "trace-1".to_string(),
+        span_id: "span-1".to_string(),
+        attrs: AttrMap::new(),
+        failure_code: None,
+    };
+    let telemetry_path = base_dir.join("telemetry/events.jsonl");
+    bijux_dna_infra::ensure_dir(base_dir.join("telemetry"))?;
+    bijux_dna_infra::write_bytes(
+        &telemetry_path,
+        format!("{}\n", serde_json::to_string(&telemetry)?),
+    )?;
+    [
+        "run_manifest.json",
+        "report.json",
+        "artifact_inventory.json",
+        "hash_ledger.json",
+        "facts.jsonl",
+        "telemetry/events.jsonl",
+    ]
+    .into_iter()
+    .map(|relative| {
+        let path = base_dir.join(relative);
+        let bytes = fs::read(&path)?;
+        Ok((path, bytes))
+    })
+    .collect()
+}
+
+#[test]
+fn evidence_bundle_repeated_publication_preserves_bytes_and_integrity() -> anyhow::Result<()> {
+    let dir = bijux_dna_infra::temp_dir("bijux")?;
+    let inputs = evidence_publication_inputs(dir.path(), Some(serde_json::json!([])))?;
+    let path = write_evidence_bundle_json(dir.path(), None)?;
+    let first = fs::read(&path)?;
+    let first_verification = verify_evidence_bundle(&path)?;
+    assert!(first_verification.verified, "initial verification: {:?}", first_verification.checks);
+
+    assert_eq!(write_evidence_bundle_json(dir.path(), None)?, path);
+    let second_verification = verify_evidence_bundle(&path)?;
+    assert!(
+        second_verification.verified,
+        "republication must not invalidate its own artifact digest: {:?}",
+        second_verification.checks
+    );
+    assert_eq!(fs::read(&path)?, first, "unchanged inputs must publish unchanged evidence bytes");
+    for (path, bytes) in inputs {
+        assert_eq!(fs::read(path)?, bytes, "publication must preserve source inputs");
+    }
+    Ok(())
+}
+
+#[test]
+fn evidence_bundle_ignores_seeded_previous_generated_output() -> anyhow::Result<()> {
+    let dir = bijux_dna_infra::temp_dir("bijux")?;
+    let inputs = evidence_publication_inputs(dir.path(), None)?;
+    let expected = build_evidence_bundle(dir.path(), None)?;
+    assert!(expected.artifacts.is_empty());
+    let mut previous = expected.clone();
+    previous.run_id = "previous-generated-run".to_string();
+    previous.correlation_id = "previous-generated-correlation".to_string();
+    let path = dir.path().join("evidence_bundle.json");
+    bijux_dna_infra::atomic_write_json(&path, &previous)?;
+
+    assert_eq!(write_evidence_bundle_json(dir.path(), None)?, path);
+    let published: bijux_dna_analyze::exports::EvidenceBundleV1 =
+        serde_json::from_slice(&fs::read(&path)?)?;
+    assert_eq!(published.run_id, "run-1");
+    assert_eq!(published.correlation_id, "corr-run-1");
+    assert!(
+        published.artifacts.is_empty(),
+        "previous generated output must not become a declared source artifact: {:?}",
+        published.artifacts
+    );
+    assert_eq!(serde_json::to_value(published)?, serde_json::to_value(expected)?);
+    let verification = verify_evidence_bundle(&path)?;
+    assert!(verification.verified, "seeded output verification: {:?}", verification.checks);
+    for (path, bytes) in inputs {
+        assert_eq!(fs::read(path)?, bytes, "publication must preserve source inputs");
+    }
+    Ok(())
+}
+
+#[test]
+fn evidence_bundle_declared_artifact_hash_mismatch_remains_blocking() -> anyhow::Result<()> {
+    let dir = bijux_dna_infra::temp_dir("bijux")?;
+    let product = dir.path().join("validated.fastq");
+    bijux_dna_infra::write_bytes(&product, "@read\nACGT\n+\nIIII\n")?;
+    let expected_hash = bijux_dna_infra::hash_file_sha256(&product)?;
+    let inputs = evidence_publication_inputs(
+        dir.path(),
+        Some(serde_json::json!([
+            { "name": "validated_reads", "path": "validated.fastq", "sha256": expected_hash }
+        ])),
+    )?;
+    let path = write_evidence_bundle_json(dir.path(), None)?;
+    assert!(verify_evidence_bundle(&path)?.verified);
+    let bundle = build_evidence_bundle(dir.path(), None)?;
+    assert_eq!(bundle.artifacts.len(), 1);
+    assert_eq!(bundle.artifacts[0].name, "validated_reads");
+    assert_eq!(bundle.artifacts[0].path, "validated.fastq");
+    assert_eq!(bundle.artifacts[0].sha256.as_deref(), Some(expected_hash.as_str()));
+
+    bijux_dna_infra::write_bytes(&product, "@read\nTGCA\n+\nIIII\n")?;
+    write_evidence_bundle_json(dir.path(), None)?;
+    let verification = verify_evidence_bundle(&path)?;
+    assert!(!verification.verified);
+    assert!(verification.checks.iter().any(|check| {
+        check.check_id == "artifact:validated_reads"
+            && !check.ok
+            && check.message.contains("hash mismatch")
+    }));
+    let bundle = build_evidence_bundle(dir.path(), None)?;
+    assert!(bundle
+        .health
+        .gaps
+        .iter()
+        .any(|gap| { gap.code == "artifact_hash_mismatch" && gap.blocks_audit }));
+    assert_eq!(bundle.artifacts[0].sha256.as_deref(), Some(expected_hash.as_str()));
+    for (path, bytes) in inputs {
+        assert_eq!(fs::read(path)?, bytes, "integrity checking must preserve source metadata");
+    }
     Ok(())
 }
