@@ -71,7 +71,7 @@ pub fn reserve_attempt_sequence(
                     &bijux_dna_infra::read_to_end_bounded(&reservation_path, 1024 * 1024)?,
                 )
                 .with_context(|| format!("parse {}", reservation_path.display()))?;
-                validate_reservation(&reservation, owner, sequence)?;
+                validate_reservation(&reservation, owner, sequence, &attempt_id)?;
                 if root == &active
                     && reservation.reservation_key_sha256 == reservation_key_sha256
                     && retained.replace(reservation).is_some()
@@ -140,7 +140,7 @@ pub fn supersede_attempt_sequence(
             &bijux_dna_infra::read_to_end_bounded(&reservation_path, 1024 * 1024)?,
         )
         .with_context(|| format!("parse {}", reservation_path.display()))?;
-        validate_reservation(&reservation, owner, &sequence)?;
+        validate_reservation(&reservation, owner, &sequence, &identity.attempt_id)?;
         if reservation.identity != *identity {
             bail!("superseded attempt identity conflicts with its reservation");
         }
@@ -247,6 +247,7 @@ fn validate_reservation(
     reservation: &AttemptSequenceReservation,
     owner: bijux_dna_infra::AttemptEvidenceOwner,
     sequence: &AttemptSequenceIdentity,
+    physical_attempt_id: &str,
 ) -> Result<()> {
     if reservation.schema_version != ATTEMPT_SEQUENCE_RESERVATION_SCHEMA_V1
         || reservation.owner != owner
@@ -257,7 +258,13 @@ fn validate_reservation(
         bail!("attempt sequence reservation identity is invalid");
     }
     parse_attempt_id(&reservation.identity.attempt_id)?;
-    validate_request(sequence, &reservation.reservation_key_sha256, &reservation.reserved_at_utc)
+    validate_request(sequence, &reservation.reservation_key_sha256, &reservation.reserved_at_utc)?;
+    if reservation.identity.attempt_id != physical_attempt_id
+        || reservation.identity.execution_unit_id.is_some()
+    {
+        bail!("attempt sequence reservation does not match its physical series");
+    }
+    Ok(())
 }
 
 fn regular_file_exists(path: &Path) -> Result<bool> {
@@ -402,6 +409,47 @@ mod tests {
             supersede_attempt_sequence(root.path(), owner, &identity, "2026-08-13T20:01:00Z")?;
 
         assert!(archived.archive_dir.is_dir());
+        Ok(())
+    }
+
+    #[test]
+    fn retained_reservations_match_physical_attempt_and_series_layout() -> Result<()> {
+        let root = bijux_dna_infra::temp_dir("retained-reservation-custody")?;
+        let owner = bijux_dna_infra::AttemptEvidenceOwner::Containers;
+        let series = sequence();
+        let key = "1".repeat(64);
+        let timestamp = "2026-08-13T20:00:00Z";
+        let first = reserve_attempt_sequence(root.path(), owner, &series, &key, timestamp)?;
+        let replay = reserve_attempt_sequence(root.path(), owner, &series, &key, timestamp)?;
+        assert_eq!(first, replay);
+        let path = series_root(root.path(), &series, false)
+            .join(&first.identity.attempt_id)
+            .join("manifests")
+            .join(RESERVATION_FILE);
+        let original = fs::read(&path)?;
+        let mut admitted = Vec::new();
+        for mutation in ["physical-attempt", "execution-unit"] {
+            let mut changed = first.clone();
+            if mutation == "physical-attempt" {
+                changed.identity.attempt_id = "attempt-999".to_string();
+            } else {
+                changed.identity.execution_unit_id = Some("foreign-unit".to_string());
+            }
+            let changed = serde_json::to_vec(&changed)?;
+            fs::write(&path, &changed)?;
+            let outcome = reserve_attempt_sequence(root.path(), owner, &series, &key, timestamp);
+            eprintln!("reservation mutation={mutation}; outcome={outcome:?}");
+            assert_eq!(fs::read(&path)?, changed, "refusal must retain the existing receipt");
+            if outcome.is_ok() {
+                admitted.push(mutation);
+            }
+        }
+        fs::write(&path, &original)?;
+        assert_eq!(reserve_attempt_sequence(root.path(), owner, &series, &key, timestamp)?, first);
+        assert!(
+            admitted.is_empty(),
+            "retained reservation escaped its physical series: {admitted:?}"
+        );
         Ok(())
     }
 }
