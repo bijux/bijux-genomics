@@ -1,19 +1,50 @@
 const LAYOUT_EXCLUDE_DIRS: &[&str] = &[".git", "target", "artifacts", "site", "node_modules"];
 
-fn layout_is_excluded(path: &std::path::Path) -> bool {
-    path.components().any(|component| {
-        component.as_os_str().to_str().is_some_and(|name| LAYOUT_EXCLUDE_DIRS.contains(&name))
-    })
-}
-
 #[test]
 #[allow(clippy::expect_used, clippy::unwrap_used)]
-fn slow__policy__boundaries__workspace__workspace_no_macos_dotfiles() {
+fn slow__policy__boundaries__workspace__workspace_no_macos_dotfiles() -> anyhow::Result<()> {
     let root = workspace_root();
+    let offenders = inspect_macos_dotfiles(&root)?.offenders;
+    if !offenders.is_empty() {
+        bijux_dna_policies::policy_panic!(
+            "macOS dotfiles are forbidden in repo:\n{}",
+            offenders.join("\n")
+        );
+    }
+    Ok(())
+}
+#[derive(Debug)]
+struct MacosDotfileInspection {
+    offenders: Vec<String>,
+    entries_visited: usize,
+    entered_root_outputs: usize,
+}
+
+fn is_root_macos_output_path(root: &std::path::Path, path: &std::path::Path) -> bool {
+    path.strip_prefix(root).ok().and_then(|relative| relative.components().next()).is_some_and(
+        |component| {
+            component.as_os_str().to_str().is_some_and(|name| LAYOUT_EXCLUDE_DIRS.contains(&name))
+        },
+    )
+}
+
+fn inspect_macos_dotfiles(root: &std::path::Path) -> anyhow::Result<MacosDotfileInspection> {
+    anyhow::ensure!(
+        root.is_dir(),
+        "governed repository root is missing or not a directory: {}",
+        root.display()
+    );
+    let root = root.to_path_buf();
+    let mut entries_visited = 0usize;
+    let mut entered_root_outputs = 0usize;
     let mut offenders = Vec::new();
-    for entry in WalkDir::new(&root).into_iter().filter_map(Result::ok) {
-        if layout_is_excluded(entry.path()) {
-            continue;
+    for entry in WalkDir::new(&root).into_iter().filter_entry(|entry| {
+        !entry.file_type().is_dir() || !is_root_macos_output_path(&root, entry.path())
+    }) {
+        let entry = entry?;
+        entries_visited += 1;
+        if is_root_macos_output_path(&root, entry.path()) {
+            entered_root_outputs += 1;
         }
         if !entry.file_type().is_file() {
             continue;
@@ -23,13 +54,10 @@ fn slow__policy__boundaries__workspace__workspace_no_macos_dotfiles() {
             offenders.push(entry.path().display().to_string());
         }
     }
-    if !offenders.is_empty() {
-        bijux_dna_policies::policy_panic!(
-            "macOS dotfiles are forbidden in repo:\n{}",
-            offenders.join("\n")
-        );
-    }
+    Ok(MacosDotfileInspection { offenders, entries_visited, entered_root_outputs })
 }
+
+include!("metadata/macos_dotfiles_tests.rs");
 
 #[test]
 #[allow(clippy::expect_used, clippy::unwrap_used)]
