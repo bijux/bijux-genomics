@@ -71,19 +71,6 @@ pub fn repo_root() -> Result<PathBuf> {
 }
 
 #[allow(dead_code)]
-#[must_use]
-pub fn bijux_dna_command(root: &Path) -> Command {
-    let executable = bijux_dna_testkit::workspace_support::workspace_binary_path(
-        "bijux-dna",
-        Path::new(env!("CARGO_BIN_EXE_bijux-dna")),
-    )
-    .unwrap_or_else(|error| panic!("resolve finalized bijux-dna executable: {error}"));
-    let mut command = Command::new(executable);
-    command.current_dir(root);
-    command
-}
-
-#[allow(dead_code)]
 pub fn configure_isolated_runtime_resolution(command: &mut Command, root: &Path) {
     command
         .env("BIJUX_HPC_ROOT", root)
@@ -99,154 +86,12 @@ pub fn hpc_dry_run_test_directory(repo_root: &Path, label: &str) -> Result<tempf
     Ok(tempfile::Builder::new().prefix(label).tempdir_in(parent)?)
 }
 
-#[allow(dead_code)]
-pub struct RepoSandbox {
-    root: tempfile::TempDir,
-    git_dir: PathBuf,
-}
+#[path = "../support/repository_sandbox/mod.rs"]
+mod repository_sandbox;
 
-#[allow(dead_code)]
-impl RepoSandbox {
-    pub fn new(label: &str) -> Result<Self> {
-        let source_root = test_support::repo_root()?;
-        let git_dir = resolve_git_dir(&source_root)?;
-        let sandbox_parent = source_root.join("artifacts/readiness-sandboxes");
-        fs::create_dir_all(&sandbox_parent)?;
-        let root = tempfile::Builder::new().prefix(label).tempdir_in(sandbox_parent)?;
-        let checkout = Command::new("git")
-            .current_dir(&source_root)
-            .args(["checkout-index", "--all", "--force"])
-            .arg(format!("--prefix={}/", root.path().display()))
-            .output()
-            .map_err(|error| anyhow!("materialize repository sandbox: {error}"))?;
-        if !checkout.status.success() {
-            return Err(anyhow!(
-                "materialize repository sandbox: {}",
-                String::from_utf8_lossy(&checkout.stderr).trim()
-            ));
-        }
-        Ok(Self { root, git_dir })
-    }
-
-    #[must_use]
-    pub fn path(&self) -> &Path {
-        self.root.path()
-    }
-
-    #[must_use]
-    pub fn bijux_dna_command(&self) -> Command {
-        let mut command = bijux_dna_command(self.path());
-        command.envs(self.environment());
-        command
-    }
-
-    fn environment(&self) -> [(&'static str, PathBuf); 6] {
-        [
-            ("BIJUX_REPO_ROOT", self.path().to_path_buf()),
-            ("BIJUX_BENCHMARK_ROOT", self.path().join("benchmarks")),
-            ("ARTIFACT_ROOT", self.path().join("artifacts")),
-            ("ISO_ROOT", self.path().join("artifacts")),
-            ("GIT_DIR", self.git_dir.clone()),
-            ("GIT_WORK_TREE", self.path().to_path_buf()),
-        ]
-    }
-
-    pub fn materialize_vcf_score_evidence(&self, home: &Path) -> Result<()> {
-        const EVIDENCE_COMMANDS: &[&[&str]] = &[
-            &["bench", "local", "run-vcf-admixture-smoke"],
-            &["bench", "local", "run-vcf-call-smoke"],
-            &["bench", "local", "run-vcf-call-diploid-smoke"],
-            &["bench", "local", "run-vcf-call-gl-smoke"],
-            &["bench", "local", "run-vcf-call-pseudohaploid-smoke"],
-            &["bench", "local", "run-vcf-damage-filter-smoke"],
-            &["bench", "local", "run-vcf-demography-smoke"],
-            &["bench", "local", "run-vcf-filter-smoke"],
-            &["bench", "local", "run-vcf-gl-propagation-smoke"],
-            &["bench", "local", "run-vcf-ibd-smoke"],
-            &["bench", "local", "run-vcf-ibd-smoke", "--tool-id", "ibdseq"],
-            &["bench", "local", "run-vcf-impute-smoke"],
-            &["bench", "local", "run-vcf-imputation-metrics-smoke"],
-            &["bench", "local", "run-vcf-pca-smoke"],
-            &["bench", "local", "run-vcf-pca-smoke", "--tool-id", "eigensoft"],
-            &["bench", "local", "run-vcf-phasing-smoke"],
-            &["bench", "local", "run-vcf-population-structure-smoke"],
-            &["bench", "local", "run-vcf-postprocess-smoke"],
-            &["bench", "local", "run-vcf-prepare-reference-panel-smoke"],
-            &["bench", "local", "run-vcf-qc-smoke", "--tool-id", "bcftools"],
-            &["bench", "local", "run-vcf-qc-smoke", "--tool-id", "plink"],
-            &["bench", "local", "run-vcf-qc-smoke"],
-            &["bench", "local", "run-vcf-roh-smoke"],
-            &["bench", "local", "run-vcf-stats-smoke"],
-            &["bench", "run-micro"],
-        ];
-
-        for args in EVIDENCE_COMMANDS {
-            let output = self
-                .bijux_dna_command()
-                .env("HOME", home)
-                .env("BIJUX_SKIP_QA", "1")
-                .env("BIJUX_ALLOW_SILVER", "1")
-                .env("BIJUX_SKIP_IMAGE_CHECK", "1")
-                .args(*args)
-                .output()
-                .map_err(|error| anyhow!("run VCF score evidence command: {error}"))?;
-            if !output.status.success() {
-                return Err(anyhow!(
-                    "VCF score evidence command failed: {}\ncommand: {}\nstdout:\n{}\nstderr:\n{}",
-                    output.status,
-                    args.join(" "),
-                    String::from_utf8_lossy(&output.stdout),
-                    String::from_utf8_lossy(&output.stderr)
-                ));
-            }
-        }
-        Ok(())
-    }
-
-    pub fn materialize_bam_score_evidence(&self, home: &Path) -> Result<()> {
-        const EVIDENCE_COMMANDS: &[&[&str]] = &[
-            &["bench", "local", "run-bam-stage-smoke", "--stage-id", "bam.coverage"],
-            &["bench", "readiness", "render-bam-contamination-complete"],
-            &["bench", "local", "run-bam-stage-smoke", "--stage-id", "bam.gc_bias"],
-        ];
-
-        for args in EVIDENCE_COMMANDS {
-            let output = self
-                .bijux_dna_command()
-                .env("HOME", home)
-                .env("BIJUX_SKIP_QA", "1")
-                .env("BIJUX_ALLOW_SILVER", "1")
-                .env("BIJUX_SKIP_IMAGE_CHECK", "1")
-                .args(*args)
-                .output()?;
-            if !output.status.success() {
-                return Err(anyhow!(
-                    "BAM score evidence command `{}` failed: {}",
-                    args.join(" "),
-                    String::from_utf8_lossy(&output.stderr).trim()
-                ));
-            }
-        }
-        Ok(())
-    }
-}
-
-fn resolve_git_dir(source_root: &Path) -> Result<PathBuf> {
-    let output = Command::new("git")
-        .current_dir(source_root)
-        .args(["rev-parse", "--absolute-git-dir"])
-        .output()
-        .map_err(|error| anyhow!("resolve repository git directory: {error}"))?;
-    if !output.status.success() {
-        return Err(anyhow!(
-            "resolve repository git directory: {}",
-            String::from_utf8_lossy(&output.stderr).trim()
-        ));
-    }
-    let git_dir = String::from_utf8(output.stdout)
-        .map_err(|error| anyhow!("decode repository git directory: {error}"))?;
-    Ok(PathBuf::from(git_dir.trim()))
-}
+// Each integration target consumes its own subset of these shared support helpers.
+#[allow(unused_imports)]
+pub use repository_sandbox::{bijux_dna_command, RepoSandbox};
 
 #[allow(dead_code)]
 #[must_use]

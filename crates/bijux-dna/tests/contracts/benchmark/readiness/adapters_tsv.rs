@@ -1,11 +1,9 @@
 #![allow(clippy::expect_used, clippy::too_many_lines)]
 
-use crate::support;
-
 #[test]
 fn bench_readiness_all_domain_adapter_coverage_writes_governed_tsv_file() {
     let sandbox =
-        support::RepoSandbox::new("all-domain-adapter-coverage-tsv-").expect("repo sandbox");
+        super::adapter_fixture::new("all-domain-adapter-coverage-tsv-").expect("repo sandbox");
     let repo_root = sandbox.path();
     let runtime_root = sandbox.path().join("artifacts/test-runtime");
     std::fs::create_dir_all(&runtime_root).expect("private runtime root");

@@ -6,7 +6,7 @@ use crate::support;
 
 fn run_cli_json(args: &[&str]) -> serde_json::Value {
     let sandbox =
-        support::RepoSandbox::new("all-domain-adapter-coverage-json-").expect("repo sandbox");
+        super::adapter_fixture::new("all-domain-adapter-coverage-json-").expect("repo sandbox");
     let runtime_root = sandbox.path().join("artifacts/test-runtime");
     std::fs::create_dir_all(&runtime_root).expect("private runtime root");
     let home = tempfile::Builder::new()
