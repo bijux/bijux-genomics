@@ -32,6 +32,43 @@ failure-output = "immediate"
 success-output = "never"
 status-level = "pass"
 
+# Only these qualified cases own private repository/output and child runtime roots.
+# Keep adjacent readiness and CLI generators serialized until their effects are isolated.
+[[profile.full.overrides]]
+filter = """
+package(bijux-dna) and binary(=benchmark_readiness) and ( \
+    test(=parser_failures::fastq_bam::bench_readiness_parser_failure_audit_report_structures_parser_errors) or \
+    test(=parser_failures::fastq_bam::bench_readiness_parser_failure_audit_file_writes_self_describing_report) or \
+    test(=parser_failures::vcf::bench_readiness_vcf_parser_failure_audit_report_governed_failure_rows) or \
+    test(=parser_failures::vcf::bench_readiness_vcf_parser_failure_audit_writes_governed_json_file) \
+)"""
+test-group = '@global'
+
+[[profile.full.overrides]]
+filter = """
+package(bijux-dna) and binary(=bench_readiness_bam) and ( \
+    test(=bam::genotypes::genotyping_complete::bench_readiness_bam_genotyping_complete_reports_governed_row) or \
+    test(=bam::genotypes::genotyping_complete_file::bench_readiness_bam_genotyping_complete_writes_governed_json_file) or \
+    test(=bam::genotypes::kinship_complete::bench_readiness_bam_kinship_complete_reports_governed_rows) or \
+    test(=bam::genotypes::kinship_complete_file::bench_readiness_bam_kinship_complete_writes_governed_json_file) or \
+    test(=bam::genotypes::kinship_ready::bench_readiness_bam_kinship_ready_reports_complete_governed_rows) or \
+    test(=bam::genotypes::kinship_ready_file::bench_readiness_bam_kinship_ready_writes_governed_json_file) or \
+    test(=bam::genotypes::recalibration_complete::bench_readiness_bam_recalibration_complete_reports_governed_row) or \
+    test(=bam::genotypes::recalibration_complete_file::bench_readiness_bam_recalibration_complete_writes_governed_json_file) or \
+    test(=bam::genotypes::recalibration_genotyping_ready::bench_readiness_bam_recalibration_genotyping_ready_reports_complete_governed_rows) or \
+    test(=bam::genotypes::recalibration_genotyping_ready_file::bench_readiness_bam_recalibration_genotyping_ready_writes_governed_json_file) \
+)"""
+test-group = '@global'
+
+[[profile.full.overrides]]
+filter = """
+package(bijux-dna) and binary(=bijux_dna) and ( \
+    test(=commands::benchmark::local_hpc_asset_staging_manifest::tests::loaded_hpc_asset_staging_manifest_matches_governed_render) or \
+    test(=commands::benchmark::local_hpc_asset_staging_manifest::tests::rendered_hpc_asset_staging_manifest_covers_all_domain_jobs) or \
+    test(=commands::benchmark::local_hpc_asset_staging_manifest::tests::validated_hpc_asset_staging_manifest_rejects_stale_selected_job_count) \
+)"""
+test-group = '@global'
+
 # These suites create an independent RepoSandbox for every test and bind all CLI
 # repository/output roots to it. They can use the global worker pool within a shard.
 [[profile.full.overrides]]
