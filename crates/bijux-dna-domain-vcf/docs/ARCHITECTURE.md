@@ -58,3 +58,10 @@ its existing document acquisition followed by statistics acquisition, including
 error order and supplied missingness. Native decoding and filesystem acquisition
 remain in that compatibility path. This boundary does not change the summary
 schema or claim that every domain artifact service is free of acquisition effects.
+
+`artifacts/fixture_genotypes/` owns strict mini-fixture GT observations over borrowed
+VCF text: allele dosage, zygosity, phase, per-contig homozygosity and last-seen site
+frequencies. The typed request's source path is diagnostic metadata. The caller
+retains text acquisition, expected-truth document construction, validation and
+publication. Strict fixture syntax intentionally differs from the aggregate
+`genotype_truth` projection; neither capability substitutes the other's semantics.

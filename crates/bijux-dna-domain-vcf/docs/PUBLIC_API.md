@@ -45,3 +45,15 @@ private implementation details.
 - Generated registry output changes must update the committed config artifact in the same change.
 - Internal helper modules should stay private unless a downstream consumer needs a stable domain
   contract.
+
+## Strict mini-fixture genotype observations
+
+`summarize_fixture_genotypes(VcfFixtureGenotypeInput)` accepts caller-acquired
+text and a diagnostic source path, returning `VcfFixtureGenotypeSummary` with
+`VcfFixtureSampleGenotypes` and `VcfFixtureAlleleFrequency` observations. These
+Rust rows have no persisted schema. The operation does not acquire the path or
+publish expected-truth JSON. Sample/record order, duplicate sample aggregation,
+last-seen site frequencies and existing strict fixture errors are preserved.
+Malformed allele tokens and partial numeric calls such as `0/.` are refused;
+recognized missing encodings remain missing observations. The broader aggregate
+genotype summary remains a distinct contract.

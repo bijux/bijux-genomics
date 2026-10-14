@@ -10,6 +10,11 @@ use serde::{Deserialize, Serialize};
 
 mod sample_header;
 pub use sample_header::sample_count_from_vcf_text;
+mod fixture_genotypes;
+pub use fixture_genotypes::{
+    summarize_fixture_genotypes, VcfFixtureAlleleFrequency, VcfFixtureGenotypeInput,
+    VcfFixtureGenotypeSummary, VcfFixtureSampleGenotypes,
+};
 mod genotype_calls;
 mod genotype_truth;
 pub use genotype_calls::genotypes_equivalent_unphased;
