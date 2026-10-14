@@ -40,3 +40,15 @@ Cross-runtime parity:
   - `version_output`
   - `help/minimal/negative` actual exit codes
   using `cargo run -p bijux-dna-dev -- containers run check-cross-runtime-smoke`.
+
+Quick-smoke receipt reuse:
+- A weekly cache hit requires a decoded current-schema successful quick-smoke manifest for the
+  exact current tool, stage, build, repository, registry, SIF payload, version contract, and
+  effective version/help/additional probe commands and heap policy.
+- Both the observation time recorded in the receipt and the receipt file modification time must
+  be less than seven days old and cannot be in the future. Copying or touching failed, stale, or
+  foreign evidence never renews its observation.
+- Missing, malformed, unsupported, failed, incomplete, or mismatched receipts trigger a fresh
+  smoke through the existing execution path. `--force-smoke` still always executes.
+- This receipt records image and probe identity, not the Apptainer executable provider or bind-root
+  contents. Reuse does not certify that the runtime executable, external inputs, or host are unchanged.

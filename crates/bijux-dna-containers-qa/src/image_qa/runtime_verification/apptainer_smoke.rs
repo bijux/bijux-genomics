@@ -1,3 +1,7 @@
+mod receipt_reuse;
+
+pub use receipt_reuse::can_reuse_apptainer_smoke;
+
 use std::fmt::Write as _;
 use std::io::Read;
 use std::path::{Path, PathBuf};

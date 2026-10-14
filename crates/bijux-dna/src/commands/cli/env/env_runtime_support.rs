@@ -88,17 +88,15 @@ fn sha256_hex(bytes: &[u8]) -> String {
     out
 }
 
-fn should_run_weekly_quick_smoke(manifest_path: &Path) -> bool {
-    let Ok(meta) = std::fs::metadata(manifest_path) else {
-        return true;
-    };
-    let Ok(modified) = meta.modified() else {
-        return true;
-    };
-    let Ok(age) = SystemTime::now().duration_since(modified) else {
-        return true;
-    };
-    age >= Duration::from_hours(168)
+fn should_run_weekly_quick_smoke(
+    manifest_path: &Path,
+    request: &bijux_dna_api::v1::api::env::ApptainerSmokeRequest,
+) -> bool {
+    !bijux_dna_api::v1::api::env::can_reuse_apptainer_smoke(
+        manifest_path,
+        request,
+        SystemTime::now(),
+    )
 }
 
 fn now_unix_s() -> u64 {
@@ -354,5 +352,109 @@ mod env_runtime_support_tests {
         assert_ne!(digest, zero);
         assert_eq!(digest.len(), 64);
         assert!(digest.chars().all(|char| char.is_ascii_hexdigit()));
+    }
+
+    #[test]
+    fn weekly_smoke_reuse_requires_successful_current_receipt() -> anyhow::Result<()> {
+        let temp = bijux_dna_api::v1::api::run::temp_dir("weekly-smoke-receipt")?;
+        let path = temp.path().join("smoke_manifest.json");
+        let now = now_unix_s();
+        let image_path = temp.path().join("tool.sif");
+        std::fs::write(&image_path, b"private image identity fixture")?;
+        let request = bijux_dna_api::v1::api::env::ApptainerSmokeRequest {
+            executable: PathBuf::from("apptainer"),
+            image_path,
+            data_root: temp.path().to_path_buf(),
+            results_root: temp.path().to_path_buf(),
+            tool_id: "contract-tool".to_string(),
+            stage_id: "catalog.retained".to_string(),
+            build_evidence_id: "a".repeat(64),
+            repository_commit: "b".repeat(40),
+            registry_digest: "c".repeat(64),
+            image_sha256: "d".repeat(64),
+            version_command: "contract-tool --version".to_string(),
+            expected_version_regex: "contract-tool 1[.]0".to_string(),
+            help_command: "contract-tool --help".to_string(),
+            require_help: true,
+            probe_commands: Vec::new(),
+            java_heap_mb: None,
+            upstream: "catalog-declared".to_string(),
+            evidence_root: None,
+            timeout: Duration::from_secs(30),
+        };
+        assert!(should_run_weekly_quick_smoke(&path, &request), "missing receipt must run");
+        let success = serde_json::json!({
+            "schema_version": "bijux.apptainer.smoke_manifest.v6",
+            "tool_id": "contract-tool", "stage_id": "catalog.retained", "status": "ok",
+            "build_evidence_id": "a".repeat(64), "repository_commit": "b".repeat(40),
+            "registry_digest": "c".repeat(64), "sif_sha256": "d".repeat(64),
+            "version_cmd": "contract-tool --version",
+            "expected_version_regex": "contract-tool 1[.]0", "version_matches_contract": true,
+            "help_cmd": "contract-tool --help", "version": "contract-tool 1.0",
+            "version_output_first_line": "contract-tool 1.0", "help_ok": true,
+            "quick_smoke": true,
+            "probe_commands": ["contract-tool --version", "contract-tool --help"],
+            "probe_results": [
+                {"command": "contract-tool --version", "applied_command": "contract-tool --version",
+                 "ok": true, "exit_code": 0, "timed_out": false},
+                {"command": "contract-tool --help", "applied_command": "contract-tool --help",
+                 "ok": true, "exit_code": 0, "timed_out": false}
+            ],
+            "java_heap_mb": null, "upstream": "catalog-declared",
+            "image_build_timestamp_unix_s": now.saturating_sub(30), "checked_at_unix_s": now
+        });
+        // This physical fixture represents stored evidence; it never executes or qualifies a tool.
+        std::fs::write(&path, serde_json::to_vec(&success)?)?;
+        assert!(
+            !should_run_weekly_quick_smoke(&path, &request),
+            "fresh matching success may reuse"
+        );
+        let mut vectors = Vec::new();
+        vectors.push(("malformed".to_string(), b"{not a smoke manifest}".to_vec()));
+        for (field, value) in [
+            ("schema_version", serde_json::json!("bijux.apptainer.smoke_manifest.v5")),
+            ("status", serde_json::json!("wrapper_failed")),
+            ("tool_id", serde_json::json!("foreign-tool")),
+            ("stage_id", serde_json::json!("foreign.stage")),
+            ("build_evidence_id", serde_json::json!("e".repeat(64))),
+            ("repository_commit", serde_json::json!("e".repeat(40))),
+            ("registry_digest", serde_json::json!("e".repeat(64))),
+            ("sif_sha256", serde_json::json!("e".repeat(64))),
+            ("version_matches_contract", serde_json::json!(false)),
+            ("help_ok", serde_json::json!(false)),
+            ("quick_smoke", serde_json::json!(false)),
+            ("checked_at_unix_s", serde_json::json!(now.saturating_sub(604_800))),
+            ("checked_at_unix_s", serde_json::json!(now.saturating_add(3600))),
+        ] {
+            let mut receipt = success.clone();
+            receipt[field] = value;
+            vectors.push((field.to_string(), serde_json::to_vec(&receipt)?));
+        }
+        for (label, change) in [("missing-probe", 0), ("failed-probe", 1), ("timed-out-probe", 2)] {
+            let mut receipt = success.clone();
+            if change == 0 {
+                receipt["probe_results"] = serde_json::json!([]);
+            } else if change == 1 {
+                receipt["probe_results"][0]["exit_code"] = serde_json::json!(4);
+            } else {
+                receipt["probe_results"][0]["timed_out"] = serde_json::json!(true);
+            }
+            vectors.push((label.to_string(), serde_json::to_vec(&receipt)?));
+        }
+        let mut incorrectly_reused = Vec::new();
+        for (label, bytes) in vectors {
+            std::fs::write(&path, &bytes)?;
+            if !should_run_weekly_quick_smoke(&path, &request) {
+                incorrectly_reused.push(label);
+            }
+            assert_eq!(std::fs::read(&path)?, bytes, "admission must preserve stored evidence");
+        }
+        std::fs::write(&path, serde_json::to_vec(&success)?)?;
+        assert!(!should_run_weekly_quick_smoke(&path, &request), "restored success may reuse");
+        assert!(
+            incorrectly_reused.is_empty(),
+            "unqualified fresh receipts reused: {incorrectly_reused:?}"
+        );
+        Ok(())
     }
 }

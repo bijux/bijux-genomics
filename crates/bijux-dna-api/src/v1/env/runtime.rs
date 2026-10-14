@@ -20,6 +20,6 @@ pub use bijux_dna_containers::api::{
     ToolContractBuildRequest, ToolImageSpec,
 };
 pub use bijux_dna_containers_qa::api::{
-    run_apptainer_smoke, ApptainerSmokeManifest, ApptainerSmokeProbeResult, ApptainerSmokeRequest,
-    APPTAINER_SMOKE_MANIFEST_SCHEMA_V5,
+    can_reuse_apptainer_smoke, run_apptainer_smoke, ApptainerSmokeManifest,
+    ApptainerSmokeProbeResult, ApptainerSmokeRequest, APPTAINER_SMOKE_MANIFEST_SCHEMA_V5,
 };

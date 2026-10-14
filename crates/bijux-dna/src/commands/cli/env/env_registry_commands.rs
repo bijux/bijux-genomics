@@ -118,7 +118,7 @@ fn materialize_apptainer_build(
 }
 
 #[allow(clippy::too_many_arguments)]
-fn execute_contract_smoke(
+fn contract_smoke_request(
     sif_path: &Path,
     tool_id: &str,
     stage_id: &str,
@@ -135,30 +135,28 @@ fn execute_contract_smoke(
     upstream: &str,
     data_root: &Path,
     results_root: &Path,
-) -> Result<bijux_dna_api::v1::api::env::ApptainerSmokeManifest> {
-    bijux_dna_api::v1::api::env::run_apptainer_smoke(
-        &bijux_dna_api::v1::api::env::ApptainerSmokeRequest {
-            executable: PathBuf::from("apptainer"),
-            image_path: sif_path.to_path_buf(),
-            data_root: data_root.to_path_buf(),
-            results_root: results_root.to_path_buf(),
-            tool_id: tool_id.to_string(),
-            stage_id: stage_id.to_string(),
-            build_evidence_id: build_evidence_id.to_string(),
-            repository_commit: repository_commit.to_string(),
-            registry_digest: registry_digest.to_string(),
-            image_sha256: sif_sha256.to_string(),
-            version_command: version_command.to_string(),
-            expected_version_regex: expected_version_regex.to_string(),
-            help_command: help_command.to_string(),
-            require_help,
-            probe_commands: probe_commands.to_vec(),
-            java_heap_mb,
-            upstream: upstream.to_string(),
-            evidence_root: None,
-            timeout: std::time::Duration::from_secs(30),
-        },
-    )
+) -> bijux_dna_api::v1::api::env::ApptainerSmokeRequest {
+    bijux_dna_api::v1::api::env::ApptainerSmokeRequest {
+        executable: PathBuf::from("apptainer"),
+        image_path: sif_path.to_path_buf(),
+        data_root: data_root.to_path_buf(),
+        results_root: results_root.to_path_buf(),
+        tool_id: tool_id.to_string(),
+        stage_id: stage_id.to_string(),
+        build_evidence_id: build_evidence_id.to_string(),
+        repository_commit: repository_commit.to_string(),
+        registry_digest: registry_digest.to_string(),
+        image_sha256: sif_sha256.to_string(),
+        version_command: version_command.to_string(),
+        expected_version_regex: expected_version_regex.to_string(),
+        help_command: help_command.to_string(),
+        require_help,
+        probe_commands: probe_commands.to_vec(),
+        java_heap_mb,
+        upstream: upstream.to_string(),
+        evidence_root: None,
+        timeout: Duration::from_secs(30),
+    }
 }
 
 /// # Errors
@@ -303,7 +301,6 @@ fn ensure_apptainer_images_with_root_policy(
                 reused += 1;
             }
 
-            let do_quick_smoke = force_smoke || should_run_weekly_quick_smoke(&smoke_manifest_path);
             let version_cmd = tool
                 .smoke_version_cmd
                 .clone()
@@ -319,32 +316,32 @@ fn ensure_apptainer_images_with_root_policy(
                 .or_else(|| Some(format!("{tool_id} --help")))
                 .unwrap_or_else(|| format!("{tool_id} --help"));
             let require_help = tool.smoke_require_help.unwrap_or(true);
-            let probe_commands = if tool.smoke_probes.is_empty() {
-                Vec::new()
-            } else {
-                tool.smoke_probes.clone()
-            };
+            let probe_commands =
+                if tool.smoke_probes.is_empty() { Vec::new() } else { tool.smoke_probes.clone() };
+            let smoke_request = contract_smoke_request(
+                &sif_path,
+                &tool_id,
+                stage_id,
+                build_identity,
+                &repository_commit,
+                &registry_digest,
+                &sif_sha256,
+                &version_cmd,
+                &prepared.contract.expected_version_regex,
+                &help_cmd,
+                require_help,
+                &probe_commands,
+                tool.java_heap_mb,
+                declared_registry_text(tool.upstream.as_deref(), "not_declared"),
+                &data_root,
+                &results_root,
+            );
+            let do_quick_smoke =
+                force_smoke || should_run_weekly_quick_smoke(&smoke_manifest_path, &smoke_request);
             let mut status = "ok".to_string();
             if do_quick_smoke {
                 quick_smoked += 1;
-                let smoke = execute_contract_smoke(
-                    &sif_path,
-                    &tool_id,
-                    stage_id,
-                    build_identity,
-                    &repository_commit,
-                    &registry_digest,
-                    &sif_sha256,
-                    &version_cmd,
-                    &prepared.contract.expected_version_regex,
-                    &help_cmd,
-                    require_help,
-                    &probe_commands,
-                    tool.java_heap_mb,
-                    declared_registry_text(tool.upstream.as_deref(), "not_declared"),
-                    &data_root,
-                    &results_root,
-                )?;
+                let smoke = bijux_dna_api::v1::api::env::run_apptainer_smoke(&smoke_request)?;
                 if smoke.status != "ok" {
                     status = "wrapper_failed_auto_demoted".to_string();
                     failed += 1;
@@ -403,10 +400,8 @@ pub fn ensure_retained_apptainer_roster_at_root(
     let architecture = "linux/amd64";
     let catalog_sha256 =
         hash_file_sha256_hex(&repository_root.join("containers/contracts/catalog.toml"))?;
-    let tool_ids = bijux_dna_api::v1::api::env::retained_apptainer_tool_ids(
-        &repository_root,
-        architecture,
-    )?;
+    let tool_ids =
+        bijux_dna_api::v1::api::env::retained_apptainer_tool_ids(&repository_root, architecture)?;
     let roots = benchmark_env_roots_at_hpc_root(hpc_root);
     bijux_dna_api::v1::api::run::ensure_dir(&roots.containers_root)?;
     bijux_dna_api::v1::api::run::ensure_dir(&roots.corpus_root)?;
@@ -516,35 +511,33 @@ fn ensure_retained_apptainer_tool(
     let smoke_manifest_path = tool_dir.join(format!("{build_identity}.smoke_manifest.json"));
     let compat_smoke_manifest_path = tool_dir.join("smoke_manifest.json");
     quarantine_unexpected_sifs(&tool_dir, &build_identity, repair_mismatch, containers_root)?;
-    let (sif_sha256, built) = materialize_apptainer_build(
+    let (sif_sha256, built) =
+        materialize_apptainer_build(&sif_path, &prepared, repair_mismatch, containers_root)?;
+    let help_command = format!("{} --help", prepared.contract.expected_binary);
+    let smoke_request = contract_smoke_request(
         &sif_path,
-        &prepared,
-        repair_mismatch,
-        containers_root,
-    )?;
-    let quick_smoked = force_smoke || should_run_weekly_quick_smoke(&smoke_manifest_path);
+        tool_id,
+        "catalog.retained",
+        &build_identity,
+        repository_commit,
+        &prepared.contract.catalog_sha256,
+        &sif_sha256,
+        &prepared.contract.version_command,
+        &prepared.contract.expected_version_regex,
+        &help_command,
+        false,
+        &[],
+        None,
+        "catalog-declared",
+        data_root,
+        results_root,
+    );
+    let quick_smoked =
+        force_smoke || should_run_weekly_quick_smoke(&smoke_manifest_path, &smoke_request);
     let mut status = "passed".to_string();
     let mut error = None;
     if quick_smoked {
-        let help_command = format!("{} --help", prepared.contract.expected_binary);
-        let smoke = execute_contract_smoke(
-            &sif_path,
-            tool_id,
-            "catalog.retained",
-            &build_identity,
-            repository_commit,
-            &prepared.contract.catalog_sha256,
-            &sif_sha256,
-            &prepared.contract.version_command,
-            &prepared.contract.expected_version_regex,
-            &help_command,
-            false,
-            &[],
-            None,
-            "catalog-declared",
-            data_root,
-            results_root,
-        )?;
+        let smoke = bijux_dna_api::v1::api::env::run_apptainer_smoke(&smoke_request)?;
         if smoke.status != "ok" {
             status = "failed".to_string();
             error = Some(format!(
@@ -653,17 +646,8 @@ pub fn ensure_apptainer_tools(
         let smoke_manifest_path = tool_dir.join(format!("{build_identity}.smoke_manifest.json"));
         let compat_smoke_manifest_path = tool_dir.join("smoke_manifest.json");
         quarantine_unexpected_sifs(&tool_dir, build_identity, repair_mismatch, &containers_root)?;
-        let (sif_sha256, _built) = materialize_apptainer_build(
-            &sif_path,
-            &prepared,
-            repair_mismatch,
-            &containers_root,
-        )?;
-        let do_quick_smoke = force_smoke || should_run_weekly_quick_smoke(&smoke_manifest_path);
-        if !do_quick_smoke {
-            continue;
-        }
-
+        let (sif_sha256, _built) =
+            materialize_apptainer_build(&sif_path, &prepared, repair_mismatch, &containers_root)?;
         let version_cmd = tool
             .smoke_version_cmd
             .clone()
@@ -676,7 +660,7 @@ pub fn ensure_apptainer_tools(
             .or(tool.help_cmd.clone())
             .filter(|value| !value.trim().is_empty())
             .unwrap_or_else(|| format!("{tool_id} --help"));
-        let smoke = execute_contract_smoke(
+        let smoke_request = contract_smoke_request(
             &sif_path,
             tool_id,
             tool.stage_ids
@@ -695,7 +679,13 @@ pub fn ensure_apptainer_tools(
             declared_registry_text(tool.upstream.as_deref(), "not_declared"),
             &data_root,
             &results_root,
-        )?;
+        );
+        let do_quick_smoke =
+            force_smoke || should_run_weekly_quick_smoke(&smoke_manifest_path, &smoke_request);
+        if !do_quick_smoke {
+            continue;
+        }
+        let smoke = bijux_dna_api::v1::api::env::run_apptainer_smoke(&smoke_request)?;
         if smoke.status != "ok" {
             auto_demoted.push(tool_id.to_string());
         }
@@ -824,10 +814,7 @@ pub fn sif_inventory_at_root(root: &Path) -> Result<SifInventoryReport> {
     sif_inventory_with_root_policy(root, true)
 }
 
-fn sif_inventory_with_root_policy(
-    root: &Path,
-    exact_hpc_root: bool,
-) -> Result<SifInventoryReport> {
+fn sif_inventory_with_root_policy(root: &Path, exact_hpc_root: bool) -> Result<SifInventoryReport> {
     let cwd = std::env::current_dir().context("resolve current working directory")?;
     let containers_dir = if exact_hpc_root {
         benchmark_env_roots_at_hpc_root(root).containers_root
@@ -1064,12 +1051,13 @@ containers_root = "/remote/.cache/bijux-dna-container"
         let tracked = repository.path().join("catalog.toml");
         bijux_dna_infra::atomic_write_bytes(&tracked, b"version = 1\n")
             .expect("write tracked source");
-        bijux_dna_infra::atomic_write_bytes(&repository.path().join(".gitignore"), b"/artifacts/\n")
-            .expect("write artifact exclusion");
-        for args in [
-            vec!["add", "catalog.toml", ".gitignore"],
-            vec!["commit", "-m", "test source"],
-        ] {
+        bijux_dna_infra::atomic_write_bytes(
+            &repository.path().join(".gitignore"),
+            b"/artifacts/\n",
+        )
+        .expect("write artifact exclusion");
+        for args in [vec!["add", "catalog.toml", ".gitignore"], vec!["commit", "-m", "test source"]]
+        {
             let output = bijux_dna_api::v1::api::run::run_command(
                 "git",
                 &std::iter::once("-C".to_string())
@@ -1132,12 +1120,7 @@ pub fn lint_apptainer_defs(cwd: &Path) -> Result<()> {
             let raw = std::fs::read_to_string(&path)
                 .with_context(|| format!("read {}", path.display()))?;
             let lowered = raw.to_ascii_lowercase();
-            for banned in [
-                "apt-get purge",
-                "apt purge",
-                "apt-get autoremove",
-                "apt autoremove",
-            ] {
+            for banned in ["apt-get purge", "apt purge", "apt-get autoremove", "apt autoremove"] {
                 if lowered.contains(banned) {
                     offenders.push(format!("{}: contains banned `{banned}`", path.display()));
                 }
