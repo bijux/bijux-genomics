@@ -3,7 +3,7 @@ use super::format::render_fastq_report_map_tsv;
 use super::models::FastqReportMapReport;
 use super::paths::path_relative_to_repo;
 use super::paths::repo_relative_path;
-use super::projection::collect_fastq_report_map_rows;
+use super::projection::collect_report_map_rows_for_expected;
 use crate::readiness::declarations::ReportContext;
 use anyhow::Context;
 use anyhow::Result;
@@ -20,13 +20,14 @@ pub fn render_fastq_report_map(
 ) -> Result<FastqReportMapReport> {
     let repo_root = context.repo_root;
     let output_path = repo_relative_path(repo_root, output_path);
-    let expected_result_row_count = context
+    let expected_rows = context
         .evidence
         .expected(repo_root)?
         .into_iter()
         .filter(|row| row.domain == "fastq")
-        .count();
-    let rows = collect_fastq_report_map_rows(context)?;
+        .collect::<Vec<_>>();
+    let expected_result_row_count = expected_rows.len();
+    let rows = collect_report_map_rows_for_expected(context, &expected_rows)?;
     let stage_count = rows.iter().map(|row| row.stage_id.clone()).collect::<BTreeSet<_>>().len();
     let tool_count = rows.iter().map(|row| row.tool_id.clone()).collect::<BTreeSet<_>>().len();
     let section_count =
