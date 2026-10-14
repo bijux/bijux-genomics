@@ -96,6 +96,11 @@ pub(super) fn validate_index_defaults(
                 "index stage_resource_hints for {stage_id} must define positive memory_gb/time_minutes/threads"
             ));
         }
+        if !resources.memory_gb.is_finite() {
+            return Err(anyhow!(
+                "index stage_resource_hints for {stage_id} must define finite memory_gb"
+            ));
+        }
         let size_estimates =
             index.stage_output_size_estimates_mb.get(stage_id).ok_or_else(|| {
                 anyhow!("index missing stage_output_size_estimates_mb for stage {stage_id}")
@@ -108,6 +113,11 @@ pub(super) fn validate_index_defaults(
         if size_estimates.values().any(|value| *value < 0.0) {
             return Err(anyhow!(
                 "index stage_output_size_estimates_mb for {stage_id} contains negative estimate"
+            ));
+        }
+        if size_estimates.values().any(|value| !value.is_finite()) {
+            return Err(anyhow!(
+                "index stage_output_size_estimates_mb for {stage_id} must contain finite estimates"
             ));
         }
         let sanity = index

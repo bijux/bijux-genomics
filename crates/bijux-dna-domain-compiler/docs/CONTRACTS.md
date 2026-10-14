@@ -15,6 +15,11 @@ config files. The contracts below are the review checklist for any change to com
 - Container versions, source identities, runtime support, executable names, and recipe paths are
   read exclusively from `containers/contracts/catalog.toml`.
 
+FASTQ/BAM active defaults and supported stage matrices require finite positive `memory_gb`
+resource hints and finite nonnegative output size estimates in MB. Fractional and arbitrarily
+small positive memory values remain valid. Output estimates may be zero, including negative zero.
+`time_minutes` and `threads` retain their positive integer requirements.
+
 ## Output contracts
 
 `compile_domain_configs` writes only declared generated files under `CompileOptions::configs_dir`:

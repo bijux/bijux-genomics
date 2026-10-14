@@ -46,3 +46,5 @@ should use `CARGO_TARGET_DIR=artifacts/cargo-target`.
 - Binary commands that are not listed in [COMMANDS.md](COMMANDS.md).
 - Forbidden execution-layer dependencies.
 - Generated config drift, release-bundle drift, and planned-tool promotion into governed runtime registries.
+
+The `domain_validate_contracts` target owns public finite resource-quantity contracts. Each quantity family uses a private governed workspace and observes both validation and compilation, with fractional and tiny positive memory, nonnegative output estimates, existing sign/integer refusals, nonfinite refusals, and exact restored generated outputs.
