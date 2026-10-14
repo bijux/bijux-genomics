@@ -1045,3 +1045,40 @@ fn vcf_refusal_manifest_snapshot_is_stable() {
     });
     assert_snapshot_json("vcf_refusal_manifest", "manifest", &payload);
 }
+
+#[test]
+fn vcf_planner_rejects_invalid_empirical_depth_before_regime_selection() {
+    for depth in [None, Some(0.0), Some(0.3), Some(8.0)] {
+        let mut input = base_inputs(CoverageRegime::Diploid);
+        input.requested_stages = Some(vec!["vcf.stats".into()]);
+        input.mean_depth_x = depth;
+        assert!(plan_vcf_stage_plans(&input).is_ok(), "valid depth control {depth:?}");
+        assert!(
+            resolve_reference_context_report(&input).is_ok(),
+            "valid reference depth {depth:?}"
+        );
+    }
+    let observations = [f64::NAN, f64::INFINITY, f64::NEG_INFINITY, -0.1]
+        .into_iter()
+        .map(|depth| {
+            let mut input = base_inputs(CoverageRegime::Diploid);
+            input.requested_stages = Some(vec!["vcf.stats".into()]);
+            input.mean_depth_x = Some(depth);
+            (
+                depth,
+                plan_vcf_stage_plans(&input).err().map(|error| error.to_string()),
+                resolve_reference_context_report(&input).err().map(|error| error.to_string()),
+            )
+        })
+        .collect::<Vec<_>>();
+    for (depth, planning, reference) in observations {
+        assert!(
+            planning.is_some_and(|error| error.contains("mean_depth_x")),
+            "invalid empirical depth must not become a calling regime: {depth:?}"
+        );
+        assert!(
+            reference.is_some_and(|error| error.contains("mean_depth_x")),
+            "direct reference context must admit the same empirical depth: {depth:?}"
+        );
+    }
+}

@@ -2,7 +2,7 @@ use std::collections::BTreeMap;
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use anyhow::Result;
+use anyhow::{bail, Result};
 use bijux_dna_domain_vcf::taxonomy::CoverageRegime;
 
 #[derive(Debug, Clone)]
@@ -72,6 +72,9 @@ pub(crate) fn classify_coverage_regime(
             thresholds,
         ));
     };
+    if !depth.is_finite() || depth < 0.0 {
+        bail!("mean_depth_x must be finite and nonnegative, found {depth}");
+    }
     let resolved = if depth <= thresholds.gl_max_depth {
         CoverageRegime::LowCovGl
     } else if depth <= thresholds.pseudohaploid_max_depth {
