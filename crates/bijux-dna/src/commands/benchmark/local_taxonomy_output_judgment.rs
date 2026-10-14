@@ -4,6 +4,7 @@ use anyhow::{anyhow, Context, Result};
 use bijux_dna_api::v1::api::bench::{
     publish_edna_taxonomy_output_judgment, TaxonomyObservedReportArg,
 };
+use bijux_dna_api::v1::api::run::{CategorizedError, ErrorCategory};
 use std::path::{Path, PathBuf};
 
 pub(crate) const DEFAULT_TAXONOMY_OUTPUT_JUDGMENT_PATH: &str =
@@ -32,6 +33,14 @@ pub(crate) fn run_judge_taxonomy_output(
         let absolute_output_path =
             if output_path.is_absolute() { output_path } else { repo_root.join(output_path) };
         println!("{}", path_relative_to_repo(&repo_root, &absolute_output_path));
+    }
+    if !report.valid {
+        let invalid_sample_count = report.samples.iter().filter(|sample| !sample.valid).count();
+        let mismatched_count = report.mismatched_expectation_count;
+        return Err(anyhow!(CategorizedError::new(
+            ErrorCategory::ContractError,
+            format!("taxonomy output judgment is invalid: {invalid_sample_count} invalid samples, {mismatched_count} mismatched expected taxa; report retained"),
+        )));
     }
     Ok(())
 }

@@ -108,3 +108,76 @@ fn bench_local_judge_taxonomy_output_json_reports_governed_corpus_02_match() {
         serde_json::from_str(&written).expect("parse written report");
     assert_eq!(written_payload, payload);
 }
+
+#[test]
+fn bench_local_judge_taxonomy_output_refuses_declared_mismatch_after_publication(
+) -> anyhow::Result<()> {
+    let _guard = support::CWD_LOCK
+        .lock()
+        .map_err(|error| anyhow::anyhow!("lock current-directory fixture: {error}"))?;
+    let repo_root = support::repo_root()?;
+    let output_root = tempfile::tempdir()?;
+    let sample_a = output_root.path().join("sample-a.json");
+    let sample_b = output_root.path().join("sample-b.json");
+    let report_path = output_root.path().join("taxonomy-judgment.json");
+    std::fs::write(
+        &sample_a,
+        serde_json::to_vec(&serde_json::json!({
+            "summary_entries": [
+                {"label": "Escherichia coli", "percent": 100.0}
+            ]
+        }))?,
+    )?;
+    std::fs::write(
+        &sample_b,
+        serde_json::to_vec(&serde_json::json!({
+            "summary_entries": [
+                {"label": "Halobacterium salinarum", "percent": 100.0}
+            ]
+        }))?,
+    )?;
+    let output = Command::new(env!("CARGO_BIN_EXE_bijux-dna"))
+        .current_dir(&repo_root)
+        .env("HOME", output_root.path())
+        .env("BIJUX_SKIP_QA", "1")
+        .env("BIJUX_ALLOW_SILVER", "1")
+        .env("BIJUX_SKIP_IMAGE_CHECK", "1")
+        .args([
+            "bench",
+            "local",
+            "judge-taxonomy-output",
+            "--manifest",
+            "benchmarks/tests/fixtures/corpora/corpus-02-edna-mini/manifest.toml",
+            "--report",
+        ])
+        .arg(format!("mock_community_sample_a={}", sample_a.display()))
+        .arg("--report")
+        .arg(format!("mock_community_sample_b={}", sample_b.display()))
+        .arg("--output")
+        .arg(&report_path)
+        .arg("--json")
+        .output()?;
+    let written = std::fs::read(&report_path)?;
+    let report: serde_json::Value = serde_json::from_slice(&written)?;
+    assert_eq!(report["schema_version"], "bijux.bench.local_taxonomy_output_judgment.v1");
+    assert_eq!(report["sample_count"], 2);
+    assert_eq!(report["expectation_count"], 6);
+    assert_eq!(report["matched_expectation_count"], 5);
+    assert_eq!(report["mismatched_expectation_count"], 1);
+    assert_eq!(report["valid"], false);
+    assert!(
+        !output.status.success(),
+        "documented expected-presence refusal must return failure after retaining its report; status={} stdout={} stderr={}",
+        output.status,
+        String::from_utf8_lossy(&output.stdout),
+        String::from_utf8_lossy(&output.stderr)
+    );
+    let mut printed = written;
+    printed.push(b'\n');
+    assert_eq!(output.stdout, printed, "invalid report JSON must remain machine-readable");
+    assert_eq!(output.status.code(), Some(3), "semantic refusal must use the contract category");
+    let diagnostic = String::from_utf8_lossy(&output.stderr);
+    assert!(diagnostic.contains("operator_failure category=ContractError"), "{diagnostic}");
+    assert!(diagnostic.contains("taxonomy output judgment is invalid"), "{diagnostic}");
+    Ok(())
+}
