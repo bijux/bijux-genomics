@@ -30,9 +30,7 @@ use commands::{
 mod fixtures;
 use fixtures::materialize_panel_inputs;
 mod model;
-use model::{
-    MaterializedPanelInputs, RegistryToolContract, StageContract, GOVERNED_COHORT_VCF_PATH,
-};
+use model::{MaterializedPanelInputs, RegistryToolContract, StageContract};
 pub use model::{
     VcfPhasingFamilyAdapterArtifact, VcfPhasingFamilyAdapterCommandStep,
     VcfPhasingFamilyAdapterReport, VcfPhasingFamilyAdapterRow, DEFAULT_VCF_BEAGLE_ADAPTER_PATH,
