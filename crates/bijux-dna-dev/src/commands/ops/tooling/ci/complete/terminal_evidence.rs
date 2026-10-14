@@ -7,8 +7,8 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 
 use super::{
-    reference, ArtifactReference, ExecutionPlan, LaneDefinition, LaneReceipt, SourceIdentity,
-    LANE_SCHEMA,
+    reference, ArtifactReference, LaneDefinition, LaneReceipt, LocalVerificationPlan,
+    SourceIdentity, LANE_SCHEMA,
 };
 
 const ERROR_SCHEMA: &str = "bijux.ci.local_test_lane_error.v1";
@@ -109,7 +109,7 @@ fn evidence_paths(lane: &LaneDefinition, owner: &Path) -> Result<Vec<PathBuf>> {
 
 fn capture_unqualified(
     lane: &LaneDefinition,
-    plan: &ExecutionPlan,
+    plan: &LocalVerificationPlan,
     owner: &Path,
 ) -> Result<Vec<UnqualifiedArtifact>> {
     evidence_paths(lane, owner)?.into_iter().filter_map(|path| {
@@ -149,7 +149,7 @@ fn capture_unqualified(
 
 pub(super) fn error_receipt(
     lane: &LaneDefinition,
-    plan: &ExecutionPlan,
+    plan: &LocalVerificationPlan,
     owner: &Path,
     error: &anyhow::Error,
     elapsed_milliseconds: u64,
@@ -176,7 +176,7 @@ pub(super) fn error_receipt(
 pub(super) fn read_terminal(
     path: &Path,
     lane: &LaneDefinition,
-    plan: &ExecutionPlan,
+    plan: &LocalVerificationPlan,
 ) -> Result<TerminalEvidence> {
     let owner = plan.output.join(&lane.id);
     ensure!(
@@ -241,7 +241,7 @@ mod tests {
     use super::super::write_value;
     use super::*;
 
-    fn fixture() -> Result<(tempfile::TempDir, ExecutionPlan, LaneDefinition, PathBuf)> {
+    fn fixture() -> Result<(tempfile::TempDir, LocalVerificationPlan, LaneDefinition, PathBuf)> {
         let directory = tempfile::tempdir()?;
         let mut plan = super::super::execution::tests::plan(&directory.path().canonicalize()?);
         let mut lane = plan.lanes[0].clone();
@@ -254,7 +254,11 @@ mod tests {
         Ok((directory, plan, lane, owner))
     }
 
-    fn failure(lane: &LaneDefinition, plan: &ExecutionPlan, owner: &Path) -> LaneErrorReceipt {
+    fn failure(
+        lane: &LaneDefinition,
+        plan: &LocalVerificationPlan,
+        owner: &Path,
+    ) -> LaneErrorReceipt {
         error_receipt(
             lane,
             plan,

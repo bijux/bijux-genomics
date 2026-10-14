@@ -1,13 +1,13 @@
 use super::{
     ensure, input_manifest, lane_environment, native_command, nextest_membership, terminal,
-    verify_inputs, Context, ExecutionPlan, Instant, LaneDefinition, LaneReceipt, Path, Result,
-    Value, Workspace,
+    verify_inputs, Context, Instant, LaneDefinition, LaneReceipt, LocalVerificationPlan, Path,
+    Result, Value, Workspace,
 };
 
 pub(super) fn nextest_lane(
     workspace: &Workspace,
     lane: &LaneDefinition,
-    plan: &ExecutionPlan,
+    plan: &LocalVerificationPlan,
     owner: &Path,
     started: Instant,
 ) -> Result<LaneReceipt> {

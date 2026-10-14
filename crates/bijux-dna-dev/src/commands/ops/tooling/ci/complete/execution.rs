@@ -10,7 +10,7 @@ use super::{
 
 #[derive(Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
-pub(super) struct ExecutionPlan {
+pub(super) struct LocalVerificationPlan {
     pub(super) schema_version: String,
     pub(super) source: SourceIdentity,
     pub(super) workspace: PathBuf,
@@ -33,7 +33,7 @@ pub(super) struct ExecutionPlan {
 pub(super) fn input_manifest(
     workspace: &Workspace,
     lane: &LaneDefinition,
-    plan: &ExecutionPlan,
+    plan: &LocalVerificationPlan,
     expected: Vec<String>,
 ) -> Result<LaneInputs> {
     let tools = plan
@@ -60,7 +60,7 @@ pub(super) fn input_manifest(
 }
 
 /// Native controls come from the sealed coordinator plan, never worker ambient state.
-pub(super) fn native_environment(plan: &ExecutionPlan) -> Result<Vec<(String, String)>> {
+pub(super) fn native_environment(plan: &LocalVerificationPlan) -> Result<Vec<(String, String)>> {
     let native =
         plan.native_execution.as_ref().context("sealed native execution allocation absent")?;
     native.validate(plan.worker_budget)?;
@@ -79,7 +79,7 @@ pub(super) fn native_environment(plan: &ExecutionPlan) -> Result<Vec<(String, St
 pub(super) fn execute_lane(
     workspace: &Workspace,
     id: &str,
-    plan: &ExecutionPlan,
+    plan: &LocalVerificationPlan,
 ) -> Result<OpsCommandOutcome> {
     native_environment(plan)?;
     let lane = plan.lanes.iter().find(|lane| lane.id == id).context("worker lane absent")?;
@@ -124,7 +124,7 @@ pub(super) fn execute_lane(
 
 pub(super) fn terminal(
     lane: &LaneDefinition,
-    plan: &ExecutionPlan,
+    plan: &LocalVerificationPlan,
     inputs: LaneInputs,
     outcomes: Vec<CaseOutcome>,
     artifacts: Vec<PathBuf>,
@@ -151,7 +151,7 @@ pub(super) fn terminal(
 }
 
 pub(super) fn lane_environment(
-    plan: &ExecutionPlan,
+    plan: &LocalVerificationPlan,
     owner: &Path,
 ) -> Result<Vec<(String, String)>> {
     let scratch = owner.join("scratch");
@@ -193,8 +193,8 @@ pub(super) fn native_command(
 pub(super) mod tests {
     use super::*;
 
-    pub(in super::super) fn plan(root: &Path) -> ExecutionPlan {
-        ExecutionPlan {
+    pub(in super::super) fn plan(root: &Path) -> LocalVerificationPlan {
+        LocalVerificationPlan {
             schema_version: "bijux.ci.local_test_execution.v1".into(),
             source: SourceIdentity {
                 sha: "source".into(),
@@ -241,7 +241,7 @@ pub(super) mod tests {
         let path = workspace.path("artifacts/execution-plan.json");
         write_value(&path, &admitted)?;
         let seal = reference(&path)?;
-        let decoded: ExecutionPlan = serde_json::from_slice(&std::fs::read(&path)?)?;
+        let decoded: LocalVerificationPlan = serde_json::from_slice(&std::fs::read(&path)?)?;
         let environment = native_environment(&decoded)?;
         assert_eq!(
             environment,

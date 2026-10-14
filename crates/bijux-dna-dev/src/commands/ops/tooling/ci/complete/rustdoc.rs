@@ -1,14 +1,14 @@
 use super::{
     doctest_inventory, doctest_outcomes, doctest_targets, ensure, input_manifest, json,
     lane_environment, native_command, source_identity, terminal, tool_path, verify_inputs,
-    verify_producer_manifest, write_value, CompilationCache, Context, ExecutionPlan, Instant,
-    LaneDefinition, LaneReceipt, Path, Result, TrackedSourceSnapshot, Value, Workspace,
+    verify_producer_manifest, write_value, CompilationCache, Context, Instant, LaneDefinition,
+    LaneReceipt, LocalVerificationPlan, Path, Result, TrackedSourceSnapshot, Value, Workspace,
 };
 
 pub(super) fn doctest_lane(
     workspace: &Workspace,
     lane: &LaneDefinition,
-    plan: &ExecutionPlan,
+    plan: &LocalVerificationPlan,
     owner: &Path,
     started: Instant,
 ) -> Result<LaneReceipt> {

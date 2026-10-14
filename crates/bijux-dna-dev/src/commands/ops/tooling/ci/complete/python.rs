@@ -1,14 +1,14 @@
 use super::{
     admit_lane, admit_python_cases, ensure, input_manifest, json, lane_environment, native_command,
     reference, selections, terminal, tool_path, verify_artifacts, verify_inputs,
-    verify_source_reads, write_value, CaseOutcome, Context, ExecutionPlan, Instant, LaneDefinition,
-    LaneInputs, LaneReceipt, Path, Result, Value, Workspace,
+    verify_source_reads, write_value, CaseOutcome, Context, Instant, LaneDefinition, LaneInputs,
+    LaneReceipt, LocalVerificationPlan, Path, Result, Value, Workspace,
 };
 
 pub(super) fn python_lane(
     workspace: &Workspace,
     lane: &LaneDefinition,
-    plan: &ExecutionPlan,
+    plan: &LocalVerificationPlan,
     owner: &Path,
     started: Instant,
 ) -> Result<LaneReceipt> {
@@ -95,7 +95,7 @@ pub(super) fn python_lane(
 }
 
 pub(super) fn validate_native_cases(
-    plan: &ExecutionPlan,
+    plan: &LocalVerificationPlan,
     receipt: &LaneReceipt,
     inputs: &LaneInputs,
 ) -> Result<()> {

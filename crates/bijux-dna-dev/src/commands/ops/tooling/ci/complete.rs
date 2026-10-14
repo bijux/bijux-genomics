@@ -18,8 +18,8 @@ use crate::application::ci::local_tests::{
     admit_complete_worker_budget, admit_lane, admit_python_cases, doctest_inventory,
     doctest_outcomes, doctest_targets, nextest_membership, reconcile_lanes, AdmittedResources,
     ArtifactReference, CaseOutcome, LaneDefinition, LaneInputs, LaneReceipt,
-    NativeExecutionControls, NativeExecutionPlan, SourceIdentity, ToolIdentity, LANE_SCHEMA,
-    REQUIRED_LANES,
+    NativeExecutionControls, NativeLocalVerificationPlan, SourceIdentity, ToolIdentity,
+    LANE_SCHEMA, REQUIRED_LANES,
 };
 use crate::model::ops::OpsCommandOutcome;
 use crate::runtime::compilation_cache::CompilationCache;
@@ -36,7 +36,7 @@ use crate::runtime::process::{
 use crate::runtime::source_snapshot::TrackedSourceSnapshot;
 use crate::runtime::workspace::Workspace;
 use execution::{
-    execute_lane, input_manifest, lane_environment, native_command, terminal, ExecutionPlan,
+    execute_lane, input_manifest, lane_environment, native_command, terminal, LocalVerificationPlan,
 };
 
 pub(in super::super::super) fn tooling_ci_test_complete(
@@ -52,7 +52,7 @@ pub(in super::super::super) fn tooling_ci_test_complete(
             "invalid complete local test worker invocation"
         );
         let path = workspace.admit_artifact_path(Path::new(plan))?;
-        let plan: ExecutionPlan = serde_json::from_slice(&std::fs::read(path)?)?;
+        let plan: LocalVerificationPlan = serde_json::from_slice(&std::fs::read(path)?)?;
         ensure!(
             plan.schema_version == "bijux.ci.local_test_execution.v1"
                 && plan.workspace == workspace.root,
@@ -209,7 +209,7 @@ pub(in super::super::super) fn tooling_ci_test_complete(
                 }
             }
             let scratch = owner.join("rust-products");
-            let plan = ExecutionPlan {
+            let plan = LocalVerificationPlan {
                 schema_version: "bijux.ci.local_test_execution.v1".into(),
                 source: source.clone(),
                 workspace: isolated.root.clone(),
