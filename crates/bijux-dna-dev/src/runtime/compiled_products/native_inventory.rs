@@ -12,7 +12,7 @@ use crate::application::ci::{BinaryDiscoveryPlan, NextestReuseInputs};
 use crate::runtime::process::{
     DependentProcessSpec, ParallelProcessSpec, ProcessRunner, WeightedProcessSpec,
 };
-use crate::runtime::source_snapshot::TrackedSourceSnapshot;
+use crate::runtime::source_snapshot::{IsolatedSourceIdentity, TrackedSourceSnapshot};
 use crate::runtime::workspace::Workspace;
 
 use super::{fingerprint_files, inventory_arguments};
@@ -113,6 +113,9 @@ pub(crate) fn discover_native_inventory(
 ) -> Result<(Vec<u8>, std::time::Duration)> {
     let started = Instant::now();
     let source_workspace = Workspace { root: source.to_owned() };
+    let expected_source = IsolatedSourceIdentity::capture(workspace)?;
+    expected_source.require_snapshot(&TrackedSourceSnapshot::capture(workspace)?)?;
+    expected_source.verify(&source_workspace)?;
     let source_before = TrackedSourceSnapshot::capture(&source_workspace)?;
     let metadata = std::fs::read(reuse.binaries_metadata())?;
     let producer_sha256 = bijux_dna_infra::hash_bytes_sha256(&metadata);
@@ -143,6 +146,7 @@ pub(crate) fn discover_native_inventory(
     }
     let path = reports.join("test-inventory-groups.receipt.json");
     let mut receipt = json!({"schema_version":"bijux.ci.bounded_native_discovery.v1", "all_processes_passed":false,
+        "source_condition":expected_source.descriptor(),
         "source_commit":source_before.commit(),"source_patch_sha256":source_before.patch_sha256(),
         "producer_binary_metadata_sha256":producer_sha256,"native_worker_budget":native_worker_budget,
         "worker_scope":"ordinary/ignored native harness listing; parent runtimes and nested tools have no hard physical CPU/process cap",
@@ -156,6 +160,7 @@ pub(crate) fn discover_native_inventory(
         reports,
         |spec| Ok(spec.clone()),
     );
+    let source_postcondition = expected_source.postcondition(&source_workspace);
     let verified = (|| -> Result<()> {
         for input in inputs.values() {
             input.verify_unchanged()?;
@@ -164,14 +169,14 @@ pub(crate) fn discover_native_inventory(
             bijux_dna_infra::hash_file_sha256(reuse.binaries_metadata())? == producer_sha256,
             "producer binary metadata changed during native discovery"
         );
-        let after = TrackedSourceSnapshot::capture(&source_workspace)?;
         ensure!(
-            after.commit() == source_before.commit()
-                && after.patch_sha256() == source_before.patch_sha256(),
-            "native discovery source changed"
+            source_postcondition["unchanged"] == true,
+            "native discovery source changed: {}",
+            source_postcondition["error"]
         );
         Ok(())
     })();
+    receipt["source_postcondition"] = source_postcondition;
     receipt["terminal_groups"] =
         json!(native_child_records(plan.groups.iter().map(|group| group.label.as_str()), reports)?);
     receipt["physical_inputs_unchanged"] = json!(verified.is_ok());

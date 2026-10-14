@@ -32,7 +32,7 @@ use crate::runtime::owned_artifacts::{
     remove_owned_trees,
 };
 use crate::runtime::process::{ParallelProcessSpec, ProcessRunner};
-use crate::runtime::source_snapshot::TrackedSourceSnapshot;
+use crate::runtime::source_snapshot::{IsolatedSourceIdentity, TrackedSourceSnapshot};
 
 const FULL_SHARDS_SCHEMA_V5: &str = "bijux.ci.full_shards.v5";
 const FAST_GROUPS_SCHEMA_V3: &str = "bijux.ci.fast_groups.v3";
@@ -1044,6 +1044,9 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
         started,
         &mut session,
         |session, receipt| {
+            let expected_source = IsolatedSourceIdentity::capture(workspace)?;
+            expected_source.require_snapshot(&source_snapshot)?;
+            receipt["isolated_source_condition"] = expected_source.descriptor();
             let execution_budget = full_execution::admit_budget(receipt, || {
                 full_execution::ExecutionBudget::resolve(selected_shards.len())
             })?;
@@ -1084,32 +1087,47 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
                     "archive-build",
                 )?
             };
+            let compiled_source = Workspace { root: archive_workspace.clone() };
+            receipt["compiled_source_before_production"] =
+                expected_source.verify(&compiled_source)?;
             let archive_preparation = preparation_started.elapsed();
-            let mut local_compiled = if local_products {
-                Some(LocalCompiledProducts::build(
-                    workspace,
-                    &archive_workspace,
-                    compilation_cache.target(),
-                    &full_archive_env(&archive_roots, contract.archive_build_jobs)?,
-                    &report_root,
-                )?)
-            } else {
-                None
-            };
-            let archive_output = if local_compiled.is_none() {
-                let archive_spec = ParallelProcessSpec {
-                    label: "archive-build".to_string(),
-                    program: "cargo".to_string(),
-                    args: full_archive_args(&archive_roots.archive_file),
-                    envs: full_archive_env(&archive_roots, contract.archive_build_jobs)?,
-                    current_dir: Some(archive_workspace.clone()),
+            let producer_result = (|| -> Result<_> {
+                let local_compiled = if local_products {
+                    Some(LocalCompiledProducts::build(
+                        workspace,
+                        &archive_workspace,
+                        compilation_cache.target(),
+                        &full_archive_env(&archive_roots, contract.archive_build_jobs)?,
+                        &report_root,
+                    )?)
+                } else {
+                    None
                 };
-                let mut archive_outputs = ProcessRunner::new(workspace)
-                    .run_parallel_logged(vec![archive_spec], &report_root)?;
-                Some(archive_outputs.pop().context("archive build was not collected")?)
-            } else {
-                None
-            };
+                let archive_output = if local_compiled.is_none() {
+                    let archive_spec = ParallelProcessSpec {
+                        label: "archive-build".to_string(),
+                        program: "cargo".to_string(),
+                        args: full_archive_args(&archive_roots.archive_file),
+                        envs: full_archive_env(&archive_roots, contract.archive_build_jobs)?,
+                        current_dir: Some(archive_workspace.clone()),
+                    };
+                    let mut archive_outputs = ProcessRunner::new(workspace)
+                        .run_parallel_logged(vec![archive_spec], &report_root)?;
+                    Some(archive_outputs.pop().context("archive build was not collected")?)
+                } else {
+                    None
+                };
+                Ok((local_compiled, archive_output))
+            })();
+            let producer_source_postcondition = expected_source.postcondition(&compiled_source);
+            receipt["compiled_source_after_production"] = producer_source_postcondition.clone();
+            receipt["product_preparation_error"] =
+                serde_json::json!(producer_result.as_ref().err().map(|error| format!("{error:#}")));
+            let (mut local_compiled, archive_output) = producer_result?;
+            anyhow::ensure!(
+                producer_source_postcondition["unchanged"] == true,
+                "compiler source changed during product preparation"
+            );
             if let Some(output) = &archive_output {
                 let mut log = output.output.stdout.clone();
                 log.extend_from_slice(&output.output.stderr);
@@ -1189,11 +1207,12 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
                     "execution_scope": full_shard_execution_scope(&contract, &selected_shards, false),
                     "wall_time_milliseconds": started.elapsed().as_millis(),
                     "all_passed": false,
+                    "isolated_source_condition": expected_source.descriptor(),
+                    "compiled_source_after_production": producer_source_postcondition,
                     "shards": [],
                 });
                 return Ok(OpsCommandOutcome { exit_code: 1, stdout, stderr });
             }
-            let compiled_source = Workspace { root: archive_workspace.clone() };
             let source_seal = TrackedSourceSnapshot::capture(&compiled_source)?;
             anyhow::ensure!(
                 source_seal.commit() == source_identity
@@ -1256,6 +1275,8 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
                 .map(|products| &products.reuse)
                 .or(reuse_inputs.as_ref())
                 .context("compiled test reuse inputs are absent")?;
+            receipt["compiled_source_before_discovery"] =
+                expected_source.verify(&compiled_source)?;
             let (inventory_bytes, inventory_duration) = if let Some(products) = &local_compiled {
                 products.discover_inventory(
                     workspace,
@@ -1274,6 +1295,8 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
                     execution_budget.worker_budget,
                 )?
             };
+            receipt["compiled_source_after_discovery"] =
+                expected_source.verify(&compiled_source)?;
             let expected_inventory = ExpectedTestInventory::parse(&inventory_bytes)?;
             let executables = CompiledWorkspaceExecutables::parse(&inventory_bytes)?;
             let inventory_log = report_root.join("test-inventory.stdout.log");
@@ -1412,9 +1435,14 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
                 archive_receipt["producer_input_verification"] = producer.receipt;
                 receipt["archive"] = archive_receipt.clone();
             }
-            let observed_source = TrackedSourceSnapshot::capture(&compiled_source)?;
-            let source_unchanged = observed_source.commit() == source_seal.commit()
-                && observed_source.patch_sha256() == source_seal.patch_sha256();
+            let mut source_postconditions = vec![expected_source.postcondition(&compiled_source)];
+            source_postconditions.extend(
+                shard_workspaces
+                    .iter()
+                    .map(|root| expected_source.postcondition(&Workspace { root: root.clone() })),
+            );
+            let source_unchanged =
+                source_postconditions.iter().all(|observed| observed["unchanged"] == true);
             all_passed &= source_unchanged;
             *receipt = serde_json::json!({
                 "schema_version": "bijux.ci.full_gate_timing.v4",
@@ -1425,11 +1453,14 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
                 "source_commit": source_identity,
                 "source_worktree_clean": source_clean,
                 "source_patch_sha256": source_patch_sha256,
+                "isolated_source_condition": expected_source.descriptor(),
+                "isolated_source_postconditions": source_postconditions,
                 "compiled_source_verification": {
                     "workspace": archive_workspace,
-                    "source_commit_after_execution": observed_source.commit(),
-                    "source_patch_sha256_after_execution": observed_source.patch_sha256(),
-                    "unchanged": source_unchanged,
+                    "source_commit_after_execution": source_postconditions[0]["observed"]["sha"],
+                    "source_patch_sha256_after_execution": source_postconditions[0]["observed"]["patch_sha256"],
+                    "unchanged": source_postconditions[0]["unchanged"],
+                    "observation": source_postconditions[0],
                 },
                 "contract_sha256": contract_sha256,
                 "build_authority": workspace.rel(&build_authority_path).to_string_lossy(),

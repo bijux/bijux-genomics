@@ -1,5 +1,9 @@
 //! Immutable tracked input shared by an archive producer and its isolated consumers.
 
+mod isolation;
+
+pub(crate) use isolation::IsolatedSourceIdentity;
+
 use std::path::Path;
 
 use anyhow::{ensure, Context, Result};
@@ -151,7 +155,7 @@ fn git(workspace: &Workspace, args: &[&str]) -> Result<Vec<u8>> {
 mod tests {
     use super::*;
 
-    fn source_fixture() -> Result<(tempfile::TempDir, Workspace)> {
+    pub(super) fn source_fixture() -> Result<(tempfile::TempDir, Workspace)> {
         let root = tempfile::tempdir()?;
         let source = Workspace { root: root.path().join("source") };
         std::fs::create_dir(&source.root)?;

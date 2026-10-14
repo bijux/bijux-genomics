@@ -17,6 +17,9 @@ use crate::runtime::process::{
     WeightedProcessSpec,
 };
 
+use crate::runtime::source_snapshot::IsolatedSourceIdentity;
+use crate::runtime::workspace::Workspace;
+
 use super::super::{full_shard_args, full_shard_env, materialize_full_shard_workspace};
 use super::{ExecutionBudget, ShardExecution, ShardInputs};
 
@@ -150,6 +153,8 @@ pub(super) fn run_shards(
         inputs.shards.len() == inputs.roots.len() && inputs.shards.len() == inputs.plans.len(),
         "full-shard execution inputs differ from admitted roster"
     );
+    let expected_source = IsolatedSourceIdentity::capture(inputs.workspace)?;
+    expected_source.require_snapshot(inputs.snapshot)?;
     let shard_ids = inputs.shards.iter().map(|shard| shard.id.clone()).collect::<Vec<_>>();
     let original_metadata = std::fs::read(inputs.reuse.binaries_metadata())?;
     let producer_sha256 = bijux_dna_infra::hash_bytes_sha256(&original_metadata);
@@ -187,12 +192,14 @@ pub(super) fn run_shards(
         .collect();
     let receipt_path = inputs.report_root.join("native-execution-chunks.receipt.json");
     let mut receipt = json!({"schema_version":"bijux.ci.bounded_native_execution.v1","all_passed":false,
+        "source_condition":expected_source.descriptor(),
         "source_commit":inputs.snapshot.commit(),"source_patch_sha256":inputs.snapshot.patch_sha256(),
         "producer_binary_metadata_sha256":producer_sha256,"native_worker_budget":budget.worker_budget,
         "worker_scope":"ordinary/ignored native listing and declared case workers; parent runtimes and nested tools have no hard physical CPU/process cap",
         "metadata_inputs":metadata_inputs,
         "expected_chunks":plan.iter().map(|chunk|json!({"label":chunk.label,"shard":shard_ids[chunk.shard_index],"binaries":chunk.binaries,"resource_units":chunk.resource_units,"terminal_dependencies":chunk.terminal_dependencies})).collect::<Vec<_>>()});
     bijux_dna_infra::write_bytes(&receipt_path, &serde_json::to_vec_pretty(&receipt)?)?;
+    let materialized_sources = Mutex::new(BTreeSet::new());
     let preparation = Mutex::new(BTreeMap::new());
     let proof_handles = Mutex::new(BTreeMap::new());
     let outputs = ProcessRunner::new(inputs.workspace).run_prepared_weighted_parallel_logged(
@@ -208,6 +215,10 @@ pub(super) fn run_shards(
             let index = chunk.shard_index;
             let started = Instant::now();
             if chunk.terminal_dependencies.is_empty() {
+                materialized_sources
+                    .lock()
+                    .map_err(|_| anyhow::anyhow!("native source receipt lock poisoned"))?
+                    .insert(index);
                 let workspace = materialize_full_shard_workspace(
                     inputs.snapshot,
                     inputs.scratch_root,
@@ -217,6 +228,7 @@ pub(super) fn run_shards(
                     workspace == workspaces[index],
                     "native chunk preparation changed workspace authority"
                 );
+                expected_source.verify(&Workspace { root: workspace.clone() })?;
                 let published = inputs.crate_gate_inputs.publish_for_consumer(&workspace)?;
                 proof_handles
                     .lock()
@@ -264,6 +276,21 @@ pub(super) fn run_shards(
         .map_err(|_| anyhow::anyhow!("native proof receipt lock poisoned"))?;
     let mut crate_gate_proof_inputs = BTreeMap::new();
     let mut failures = Vec::new();
+    let materialized = materialized_sources
+        .into_inner()
+        .map_err(|_| anyhow::anyhow!("native source receipt lock poisoned"))?;
+    let source_postconditions = materialized
+        .into_iter()
+        .map(|index| {
+            let observed =
+                expected_source.postcondition(&Workspace { root: workspaces[index].clone() });
+            if observed["unchanged"] != true {
+                failures.push(format!("{} source: {}", shard_ids[index], observed["error"]));
+            }
+            observed
+        })
+        .collect::<Vec<_>>();
+    receipt["source_postconditions"] = json!(source_postconditions);
     for (index, published) in handles {
         if let Err(error) = published.verify_unchanged() {
             failures.push(format!("{}: {error:#}", shard_ids[index]));

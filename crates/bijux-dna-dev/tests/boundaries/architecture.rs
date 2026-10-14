@@ -187,6 +187,7 @@ fn dev_tree_matches_architecture_contract() {
         "process.rs",
         "process/",
         "source_snapshot.rs",
+        "source_snapshot/",
         "workspace.rs",
         "workspace_root.rs",
     ]

@@ -43,6 +43,8 @@ src/
     ├── process.rs
     ├── process/
     ├── source_snapshot.rs
+    ├── source_snapshot/
+    │   └── isolation.rs
     ├── workspace.rs
     └── workspace_root.rs
 ```
@@ -60,6 +62,9 @@ Layer responsibilities:
   inputs, pinned tools, capacity observations, and typed resource requests. `process/` owns
   dependency-aware launches, weighted admission, terminal collection, and process evidence.
   `source_snapshot.rs` captures and materializes admitted tracked source snapshots.
+  `source_snapshot/isolation.rs` admits and revalidates Git HEAD, tree, and tracked patch
+  identity for isolated native execution. It rejects nonignored untracked inputs and records
+  postconditions against the original identity instead of accepting changed worker source.
 - `commands/` owns repository-scoped effects and enforcement logic. New side effects belong there behind typed catalog entries, not in `cli/` or `application/`.
 
 Command boundaries:
