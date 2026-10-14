@@ -312,7 +312,6 @@ fn assert_test_layout(root: &Path) {
         dir_entries(&root.join("tests/schemas")),
         entries([
             "docs_public_api.rs",
-            "public_api_lock.rs",
             "public_module_tree.rs",
             "public_surface.rs",
             "public_surface_lock.rs",
