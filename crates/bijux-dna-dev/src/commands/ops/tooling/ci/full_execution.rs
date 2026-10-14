@@ -3,6 +3,7 @@ use std::path::{Path, PathBuf};
 use std::sync::Mutex;
 use std::time::Instant;
 
+use crate::runtime::crate_gate_inputs::CrateGateProofInputs;
 use crate::runtime::process::ParallelProcessOutput;
 
 use super::{
@@ -134,12 +135,14 @@ pub(super) struct ShardInputs<'a> {
     pub reuse: &'a NextestReuseInputs,
     pub executables: &'a CompiledWorkspaceExecutables,
     pub compiled_target: &'a Path,
+    pub crate_gate_inputs: &'a CrateGateProofInputs,
 }
 
 pub(super) struct ShardExecution {
     pub workspaces: Vec<PathBuf>,
     pub outputs: Vec<ParallelProcessOutput>,
     pub preparation_milliseconds: BTreeMap<String, u64>,
+    pub crate_gate_proof_inputs: BTreeMap<String, serde_json::Value>,
 }
 
 pub(super) fn run_shards(
@@ -163,6 +166,7 @@ pub(super) fn run_shards(
         .map(|label| inputs.scratch_root.join("workspaces").join(label))
         .collect::<Vec<_>>();
     let preparation = Mutex::new(BTreeMap::new());
+    let proof_handles = Mutex::new(BTreeMap::new());
     let outputs = ProcessRunner::new(inputs.workspace).run_prepared_parallel_logged(
         labels.clone(),
         budget.process_jobs,
@@ -182,6 +186,12 @@ pub(super) fn run_shards(
             args.extend(["--filterset".to_string(), inputs.plans[index].filterset.clone()]);
             let mut envs = full_shard_env(&inputs.roots[index], &workspace)?;
             envs.extend(inputs.executables.remapped_environment(inputs.compiled_target)?);
+            let published = inputs.crate_gate_inputs.publish_for_consumer(&workspace)?;
+            envs.push(published.environment()?);
+            proof_handles
+                .lock()
+                .map_err(|_| anyhow::anyhow!("crate proof publication receipt lock poisoned"))?
+                .insert(label.to_string(), published);
             preparation
                 .lock()
                 .map_err(|_| anyhow::anyhow!("full-shard preparation receipt lock poisoned"))?
@@ -194,11 +204,32 @@ pub(super) fn run_shards(
                 current_dir: Some(workspace),
             })
         },
-    )?;
+    );
+    // Physical input verification also runs after a preparation/launch error.
+    let handles = proof_handles
+        .into_inner()
+        .map_err(|_| anyhow::anyhow!("crate proof publication receipt lock poisoned"))?;
+    let mut crate_gate_proof_inputs = BTreeMap::new();
+    let mut proof_failures = Vec::new();
+    for (label, published) in handles {
+        if let Err(error) = published.verify_unchanged() {
+            proof_failures.push(format!("{label}: {error:#}"));
+        }
+        crate_gate_proof_inputs.insert(label, published.provenance);
+    }
+    if let Err(error) = inputs.crate_gate_inputs.verify_unchanged() {
+        proof_failures.push(format!("producer: {error:#}"));
+    }
+    anyhow::ensure!(
+        proof_failures.is_empty(),
+        "crate proof physical inputs changed: {}",
+        proof_failures.join("; ")
+    );
+    let outputs = outputs?;
     let preparation_milliseconds = preparation
         .into_inner()
         .map_err(|_| anyhow::anyhow!("full-shard preparation receipt lock poisoned"))?;
-    Ok(ShardExecution { workspaces, outputs, preparation_milliseconds })
+    Ok(ShardExecution { workspaces, outputs, preparation_milliseconds, crate_gate_proof_inputs })
 }
 
 #[cfg(test)]

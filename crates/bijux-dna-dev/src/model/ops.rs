@@ -48,6 +48,7 @@ pub enum NativeOpsCommandKey {
     TestFastqGoldRepro,
     TestToyRuns,
     ToolingCargoTargets,
+    ToolingCrateGateProofs,
     ToolingGenerateCompatibilityMatrix,
     ToolingCheckConfigSnapshot,
     ToolingCheckConfigPaths,

@@ -3,10 +3,12 @@ use std::fmt::Write as _;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, bail, Context, Result};
-use bijux_dna_api::v1::api::run::run_command_with_context;
 use bijux_dna_domain_vcf::{contracts::stage_metrics_contract, VcfDomainStage};
 use serde::{Deserialize, Serialize};
 use toml::Value;
+
+mod proof_transport;
+use proof_transport::{run_gate_proof, ProofId};
 
 const DOMAIN_CRATES: &[&str] =
     &["bijux-dna-domain-bam", "bijux-dna-domain-fastq", "bijux-dna-domain-vcf"];
@@ -795,25 +797,6 @@ fn gate_cargo_target_dir(cwd: &Path) -> PathBuf {
     )
 }
 
-fn run_gate_cargo_test(
-    cwd: &Path,
-    cargo_target_dir: &Path,
-    package: &str,
-    subcommand_args: &[&str],
-    command_text: &str,
-) -> Result<()> {
-    let mut envs = BTreeMap::new();
-    envs.insert("CARGO_TARGET_DIR".to_string(), cargo_target_dir.display().to_string());
-    let mut args = vec!["test".to_string(), "-p".to_string(), package.to_string()];
-    args.extend(subcommand_args.iter().map(|arg| (*arg).to_string()));
-    let status = run_command_with_context("cargo", &args, Some(cwd), Some(&envs))
-        .with_context(|| format!("run `{command_text}`"))?;
-    if status.exit_code != 0 {
-        bail!("`{command_text}` exited with status {}", status.exit_code);
-    }
-    Ok(())
-}
-
 fn build_benchmarking_ready_crate_shape_gate_report(
     cwd: &Path,
     output_path: &Path,
@@ -918,11 +901,10 @@ fn collect_benchmarking_ready_crate_shape_gate_checks(
     let goal_416 = crate_shape_gate_check_from_result(
         "416",
         TYPED_ARTIFACT_HANDOFF_TEST_COMMAND.to_string(),
-        run_gate_cargo_test(
+        run_gate_proof(
             cwd,
             cargo_target_dir,
-            "bijux-dna-api",
-            &["typed_artifact_handoff_rejects_wrong_stage_inputs", "--", "--nocapture"],
+            ProofId::TypedArtifactHandoff,
             TYPED_ARTIFACT_HANDOFF_TEST_COMMAND,
         ),
         |()| "typed artifact handoff proof passed".to_string(),
@@ -957,17 +939,10 @@ fn collect_metric_registry_gate_check(
 ) -> CrateShapeGateCheckReport {
     let metric_registry_path = cwd.join(DEFAULT_METRIC_REGISTRY_PATH);
     let metric_registry_report = write_metric_registry_report(cwd, &metric_registry_path);
-    let metric_registry_contract = run_gate_cargo_test(
+    let metric_registry_contract = run_gate_proof(
         cwd,
         cargo_target_dir,
-        "bijux-dna-domain-vcf",
-        &[
-            "--test",
-            "contracts",
-            "vcf_metric_registry_rejects_unregistered_stage_metrics",
-            "--",
-            "--nocapture",
-        ],
+        ProofId::VcfMetricRegistry,
         METRIC_REGISTRY_PROOF_TEST_COMMAND,
     );
     match (metric_registry_report, metric_registry_contract) {

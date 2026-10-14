@@ -1319,10 +1319,21 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
                     Ok(plan)
                 })
                 .collect::<Result<Vec<_>>>()?;
+            let crate_gate_inputs =
+                crate::runtime::crate_gate_inputs::CrateGateProofInputs::capture(
+                    &inventory_log,
+                    &archive_workspace,
+                    &compiled_target,
+                    crate::runtime::crate_gate_inputs::CrateGateProducerIdentity::new(
+                        source_identity,
+                        &source_patch_sha256,
+                    )?,
+                )?;
             let full_execution::ShardExecution {
                 workspaces: shard_workspaces,
                 outputs,
                 preparation_milliseconds: shard_preparation,
+                crate_gate_proof_inputs: shard_proof_inputs,
             } = full_execution::run_shards(
                 full_execution::ShardInputs {
                     workspace,
@@ -1335,6 +1346,7 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
                     reuse: reuse_inputs,
                     executables: &executables,
                     compiled_target: &compiled_target,
+                    crate_gate_inputs: &crate_gate_inputs,
                 },
                 &execution_budget,
             )?;
@@ -1374,6 +1386,7 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
             "duration_milliseconds": completed.duration.as_millis(),
             "duration_scope": "preparation_and_execution",
             "preparation_milliseconds": shard_preparation.get(&shard.id),
+            "crate_gate_proof_inputs": shard_proof_inputs.get(&shard.id),
             "exit_code": exit_code,
             "log": workspace.rel(&log_path).to_string_lossy(),
             "stdout_log": workspace.rel(&report_root.join(format!("{}.stdout.log", shard.id))).to_string_lossy(),

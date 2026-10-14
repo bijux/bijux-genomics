@@ -38,6 +38,7 @@ mod cargo_targets;
 mod certification;
 mod ci;
 mod config_docs;
+mod crate_gate_proofs;
 mod diagnostics;
 mod operator_workflow_maturity;
 mod policy_fast;
@@ -77,6 +78,7 @@ pub(super) use self::config_docs::{
     tooling_flake_hunt, tooling_generate_config_tree_snapshot, tooling_generate_tool_index,
     tooling_lint_fast,
 };
+pub(super) use self::crate_gate_proofs::tooling_crate_gate_proofs;
 pub(super) use self::diagnostics::{
     tooling_architecture_report, tooling_config_inventory, tooling_coverage_summary,
     tooling_crash_triage, tooling_deprecate_vcf_knob, tooling_deprecate_vcf_panel,

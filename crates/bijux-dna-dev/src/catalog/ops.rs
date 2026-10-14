@@ -211,6 +211,11 @@ pub fn tooling_registry() -> Vec<OpsCommandDefinition> {
             NativeOpsCommandKey::ToolingCargoTargets,
         ),
         native(
+            "crate-gate-proofs",
+            "Execute exact native artifact-handoff and metric-registry proofs for the crate gate.",
+            NativeOpsCommandKey::ToolingCrateGateProofs,
+        ),
+        native(
             "check-config-snapshot",
             "Validate configs/schema/config_tree.snapshot against the governed config tree.",
             NativeOpsCommandKey::ToolingCheckConfigSnapshot,

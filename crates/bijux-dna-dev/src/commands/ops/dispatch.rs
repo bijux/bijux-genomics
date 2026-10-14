@@ -77,6 +77,9 @@ pub(super) fn run_native_ops_command(
         }
         NativeOpsCommandKey::TestToyRuns => verification::test_toy_runs(workspace, args),
         NativeOpsCommandKey::ToolingCargoTargets => tooling::tooling_cargo_targets(workspace, args),
+        NativeOpsCommandKey::ToolingCrateGateProofs => {
+            tooling::tooling_crate_gate_proofs(workspace, args)
+        }
         NativeOpsCommandKey::ToolingCheckConfigSnapshot => {
             tooling::tooling_check_config_snapshot(workspace, args)
         }
