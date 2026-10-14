@@ -43,7 +43,6 @@ because execution records include wall-clock timestamps.
 ## Enforced by
 
 - `tests/determinism/replay_determinism.rs`
-- `tests/determinism/manifest_layout_snapshot.rs`
 - `tests/contracts/runner_tests.rs::execute_plan_orders_dag`
 
 ## Why
