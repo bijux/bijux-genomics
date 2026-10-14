@@ -418,16 +418,49 @@ fn policy__boundaries__workspace__engine_has_no_tool_normalization_policy() {
 }
 
 #[test]
-fn slow__policy__boundaries__workspace__workspace_bans_resource_fork_artifacts() {
+fn slow__policy__boundaries__workspace__workspace_bans_resource_fork_artifacts(
+) -> anyhow::Result<()> {
     let root = workspace_root();
+    let offenders = inspect_resource_forks(&root)?.offenders;
+    bijux_dna_policies::policy_assert!(
+        offenders.is_empty(),
+        "resource fork artifacts (._*) are not allowed: {offenders:?}"
+    );
+    Ok(())
+}
+#[derive(Debug)]
+struct ResourceForkInspection {
+    offenders: Vec<String>,
+    entries_visited: usize,
+    entered_root_outputs: usize,
+}
+
+fn is_root_resource_output_path(root: &std::path::Path, path: &std::path::Path) -> bool {
+    path.strip_prefix(root).ok().and_then(|relative| relative.components().next()).is_some_and(
+        |component| component.as_os_str().to_str().is_some_and(|name| EXCLUDE_DIRS.contains(&name)),
+    )
+}
+
+fn inspect_resource_forks(root: &std::path::Path) -> anyhow::Result<ResourceForkInspection> {
+    anyhow::ensure!(
+        root.is_dir(),
+        "governed repository root is missing or not a directory: {}",
+        root.display()
+    );
+    let root = root.to_path_buf();
+    let mut entries_visited = 0usize;
+    let mut entered_root_outputs = 0usize;
     let mut offenders = Vec::new();
-    for entry in walkdir::WalkDir::new(&root)
-        .into_iter()
-        .filter_map(Result::ok)
-        .filter(|entry| entry.file_type().is_file())
-    {
-        if is_excluded(entry.path()) {
+    for entry in walkdir::WalkDir::new(&root).into_iter().filter_entry(|entry| {
+        !entry.file_type().is_dir() || !is_root_resource_output_path(&root, entry.path())
+    }) {
+        let entry = entry?;
+        if !entry.file_type().is_file() {
             continue;
+        }
+        entries_visited += 1;
+        if is_root_resource_output_path(&root, entry.path()) {
+            entered_root_outputs += 1;
         }
         let name = entry.file_name().to_string_lossy();
         if name.starts_with("._") {
@@ -436,11 +469,10 @@ fn slow__policy__boundaries__workspace__workspace_bans_resource_fork_artifacts()
             );
         }
     }
-    bijux_dna_policies::policy_assert!(
-        offenders.is_empty(),
-        "resource fork artifacts (._*) are not allowed: {offenders:?}"
-    );
+    Ok(ResourceForkInspection { offenders, entries_visited, entered_root_outputs })
 }
+
+include!("metadata/resource_forks_tests.rs");
 
 #[test]
 fn policy__boundaries__workspace__workspace_has_no_legacy_bijux_packages() {
@@ -478,9 +510,3 @@ fn policy__boundaries__workspace__workspace_has_no_legacy_bijux_packages() {
     );
 }
 const EXCLUDE_DIRS: &[&str] = &[".git", "target", "artifacts", "site", "node_modules"];
-
-fn is_excluded(path: &std::path::Path) -> bool {
-    path.components().any(|component| {
-        component.as_os_str().to_str().is_some_and(|name| EXCLUDE_DIRS.contains(&name))
-    })
-}
