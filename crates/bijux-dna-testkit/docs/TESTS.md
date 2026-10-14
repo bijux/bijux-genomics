@@ -34,3 +34,7 @@ The exact normal-dependency set check rejects every additional product or extern
 dependency. It replaces the narrower duplicated forbidden-product roster; the
 independent dev-dependency set check remains. This retires one case in the existing
 boundary target without changing its supported dependency policy.
+
+The configured-clock contract keeps both 42-second and 1,234-second values in
+`tests/determinism.rs`. It replaces the duplicated clock assertion in the
+boundary target; path-containment and filesystem failure cases remain there.

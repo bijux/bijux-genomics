@@ -1,11 +1,12 @@
 #[test]
 fn fixed_clock_returns_configured_unix_time() {
-    let clock = bijux_dna_testkit::FixedClock::unix_s(1_234);
-
-    assert_eq!(
-        clock.now(),
-        std::time::SystemTime::UNIX_EPOCH + std::time::Duration::from_secs(1_234)
-    );
+    for secs in [42, 1_234] {
+        let clock = bijux_dna_testkit::FixedClock::unix_s(secs);
+        assert_eq!(
+            clock.now(),
+            std::time::SystemTime::UNIX_EPOCH + std::time::Duration::from_secs(secs)
+        );
+    }
 }
 
 #[test]
