@@ -65,7 +65,11 @@ pub use run_browser::browse_runs;
 pub use signed_bundle::{sign_bundle_prototype, verify_signed_bundle_prototype};
 pub use stable_output::{render_operator_diagnosis_output, render_run_browser_output};
 pub use status::status;
-pub use workspace_audit::{policy_audit, workspace_edges, write_workspace_audit};
+pub use workspace_audit::{
+    policy_audit, read_workspace_crate_manifests, workspace_edges, workspace_edges_at,
+    write_workspace_audit, write_workspace_dependency_map, CrateDependencyEdge,
+    CrateDependencyMapReport, CrateDependencyNode, WorkspaceCrateManifest,
+};
 
 /// # Errors
 /// Returns an error if the tool registry or profile are invalid for the run spec.

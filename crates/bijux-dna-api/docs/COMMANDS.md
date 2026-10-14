@@ -23,6 +23,9 @@ These v1 operations are exported through `bijux_dna_api::v1::api`.
 | `render-report` | `render_report(RenderReportRequest)` | Render an existing run report bundle. |
 | `render-report-html` | `render_report_bundle_html(...)` | Render the v1 HTML report bundle. |
 | `workspace-edges` | `workspace_edges(...)` | Inspect workspace dependency edges for audit/reporting flows. |
+| `workspace-edges-at` | `workspace_edges_at(source_root)` | Resolve dependency edges from the supplied workspace root and reject metadata resolved from another workspace. |
+| `read-workspace-crate-manifests` | `read_workspace_crate_manifests(source_root)` | Read declared member manifests in crate-name order while preserving their supplied paths and diagnostics. |
+| `write-workspace-dependency-map` | `write_workspace_dependency_map(source_root, output_path)` | Atomically publish the existing versioned dependency-map report for the supplied workspace root. |
 | `write-workspace-audit` | `write_workspace_audit(...)` | Persist workspace audit evidence for API-managed runs. |
 
 ## Namespace helpers

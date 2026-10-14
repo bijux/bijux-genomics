@@ -37,6 +37,11 @@
 - `src/runtime/run/reporting/` owns dry-run, execute, status, replay, report
   rendering, plan response materialization, summary artifacts, and workspace
   audit output.
+- `src/runtime/run/reporting/workspace_audit/` separates declared member-manifest
+  acquisition from typed dependency-map composition and publication. Cargo metadata
+  acquisition stays in `workspace_audit.rs`; source-bound callers supply a root and
+  reject metadata resolved from another workspace. Crate-cycle policy remains in
+  `bijux-dna-policies`; the CLI retains cycle-report and effect-audit entrypoints.
 - `src/support/` contains API-local support for benchmark runtime selection,
   QA gates, reference resolution, tool selection, and workspace registry/root
   resolution.

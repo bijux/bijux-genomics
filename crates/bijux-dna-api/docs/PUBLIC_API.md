@@ -102,3 +102,23 @@ The benchmark API re-exports normalized FASTQ corpus discovery and publication m
 The `v1::api::bench` facade exposes `BenchmarkLocalStageInventoryDomain`, `load_benchmark_local_stage_inventory` and `render_benchmark_all_domain_stage_inventory`. It delegates explicit-root matrix admission and validated aggregate publication to the benchmark owner; persisted inventory schema identities remain unchanged.
 
 `v1::api::env::delivery` exposes container-owned supported-tool selection and external-artifact declaration admission. The API forwards the canonical delivery view and contract records without adding another parser or projection authority.
+
+## Workspace Dependency Reports
+
+`read_workspace_crate_manifests` returns the named manifests declared by a root
+workspace in crate-name order through `WorkspaceCrateManifest`. It preserves
+caller-supplied manifest paths and the existing manifest read/parse diagnostics.
+
+`workspace_edges_at` resolves Cargo metadata from an explicit root and rejects
+metadata whose canonical workspace root differs. Relative paths and symlink
+aliases are accepted; a member directory resolved to its parent workspace is
+rejected. `workspace_edges` retains its existing current-directory contract.
+Both methods retain Cargo metadata's default dependency kinds, feature resolution,
+and strict output/error decoding.
+
+`write_workspace_dependency_map` returns and atomically publishes
+`CrateDependencyMapReport`, with `CrateDependencyNode` and `CrateDependencyEdge`,
+using the existing `bijux.crates.dependency_map.v1` schema, field names, ordering,
+and caller-relative path rendering. This service owns report composition and
+publication; it does not implement cycle-admission policy. Cargo metadata retains
+its existing lockfile and dependency-resolution effects.
