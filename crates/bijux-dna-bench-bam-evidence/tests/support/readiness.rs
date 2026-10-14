@@ -71,3 +71,6 @@ impl LocalProofWriter for RejectedSource {
         self.reject("native")
     }
 }
+
+// Acquired declaration fixtures distinguish content admission from source refusal.
+pub mod preflight;

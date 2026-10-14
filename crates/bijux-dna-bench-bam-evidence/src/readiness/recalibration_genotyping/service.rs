@@ -29,13 +29,13 @@ pub(in crate::readiness) fn build_bam_recalibration_genotyping_ready_report(
     let published = PublishedSources::acquire(context)?;
     let schema_contracts =
         collect_bam_stage_schema_contracts(&context.declarations.schema()?, expected_stage_ids())?;
-    let local_proofs_by_stage = collect_local_proofs(context)?;
 
     let scope = RetainedScope::new(
         "BAM recalibration/genotyping",
         bam_binding_specs().iter().map(|spec| (spec.stage_id, spec.tool_id)),
     );
     let indexed = IndexedSources::admit(&scope, published, schema_contracts)?;
+    let local_proofs_by_stage = collect_local_proofs(context)?;
 
     let mut rows = Vec::new();
     for spec in bam_binding_specs() {

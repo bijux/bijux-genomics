@@ -30,16 +30,16 @@ pub(in crate::readiness) fn build_bam_kinship_ready_report(
     let published = PublishedSources::acquire(context)?;
     let schema_contracts =
         collect_bam_stage_schema_contracts(&context.declarations.schema()?, expected_stage_ids())?;
-    #[cfg(feature = "bam_downstream")]
-    let local_proofs_by_stage = collect_local_proofs(context)?;
-    #[cfg(not(feature = "bam_downstream"))]
-    let local_proofs_by_stage = BTreeMap::<String, super::observations::LocalProof>::new();
 
     let scope = RetainedScope::new(
         "BAM kinship",
         bam_binding_specs().iter().map(|spec| (spec.stage_id, spec.tool_id)),
     );
     let indexed = IndexedSources::admit(&scope, published, schema_contracts)?;
+    #[cfg(feature = "bam_downstream")]
+    let local_proofs_by_stage = collect_local_proofs(context)?;
+    #[cfg(not(feature = "bam_downstream"))]
+    let local_proofs_by_stage = BTreeMap::<String, super::observations::LocalProof>::new();
 
     let mut rows = Vec::new();
     for spec in bam_binding_specs() {
