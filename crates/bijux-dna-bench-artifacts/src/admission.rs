@@ -40,14 +40,7 @@ impl PublicationPlan {
         owner: &ReportOwner<'_>,
         schema: &PublicationSchema,
     ) -> Result<Self> {
-        admit_relative(Path::new(schema.inventory_name))?;
-        ensure!(
-            Path::new(schema.inventory_name).components().count() == 1
-                && ![EXECUTIONS, "stage-result.json", owner.report_name]
-                    .contains(&schema.inventory_name)
-                && !schema.schema_version.trim().is_empty(),
-            "invalid benchmark publication schema"
-        );
+        schema.admit(owner)?;
         admit_ancestry(destination)?;
         admit_ancestry(execution)?;
         ensure!(

@@ -6,6 +6,7 @@ license.workspace = true
 rust-version.workspace = true
 
 [dependencies]
+bijux-dna-bench-artifacts.workspace = true
 bijux-dna-bench-vcf-evidence.workspace = true
 anyhow.workspace = true
 serde.workspace = true

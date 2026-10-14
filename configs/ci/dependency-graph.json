@@ -1773,6 +1773,11 @@
     },
     {
       "consumer": "crate:bijux-dna-bench-population",
+      "dependency": "crate:bijux-dna-bench-artifacts",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-bench-population",
       "dependency": "crate:bijux-dna-bench-corpus",
       "kind": "normal"
     },

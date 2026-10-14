@@ -11,6 +11,14 @@ optional typed benchmark stage-result projection before mutation of prior files.
 The caller must retain the immutable execution directory before `publish` so
 native manifest references survive a partial publication failure.
 
+`StagedPublicationPlan::admit` validates a disposable staging root, its current
+report identity and prior stable ownership before any replacement. Its `publish`
+consumes regular staged files through report-last renames and records ownership
+of stable files only. Stage-result paths must already be projected; their bytes
+remain unchanged. Both roots must be disjoint and exclusively owned between
+admission and publication. Individual replacements are atomic; the complete
+publication is not a filesystem transaction.
+
 ## Schema artifacts
 
 `schemas::publication` publishes canonical benchmark execution and normalized-result

@@ -15,3 +15,11 @@ File replacements are individually atomic, but the publication is not a multi-fi
 transaction. Concurrent mutation of one output root is unsupported. Admission
 rejects symlinked ancestry; callers must preserve exclusive ownership between
 admission and writes.
+
+`StagedPublicationPlan` owns disposable source roots used by population workflows.
+It admits the same bounded report identity and prior ownership, then consumes
+regular source files with report-last renames. Its inventory claims only stable
+files. Already projected stage-result bytes remain unchanged, and empty staging
+or retired directories stay with the caller's lifecycle. Source and destination
+roots must be disjoint. The retained-copy `PublicationPlan` continues to preserve
+original execution paths and project stage-result addresses.
