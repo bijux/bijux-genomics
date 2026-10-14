@@ -55,6 +55,8 @@ Commands listed here are owned by this crate even when their durable behavior is
   `artifacts/fixtures/vcf-mini-regeneration/manifest.json`. It fails closed if the regenerated
   fixture or truth bundle does not validate or if the regenerated sample, population, interval,
   variant, or cohort-pair counts drift from the governed fixture.
+  The governed source is validated before an existing generated directory is replaced.
+  Output paths that resolve to the repository root or an ancestor are refused before removal.
 - `bijux-dna fixtures validate`
   `fixtures validate --corpus vcf-mini` validates the governed
   `benchmarks/tests/fixtures/corpora/vcf-mini/manifest.toml` contract against the owned reference

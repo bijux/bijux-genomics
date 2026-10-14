@@ -146,11 +146,13 @@ pub(crate) fn build_vcf_mini_fixture(
     source_manifest_path: &Path,
     output_root: &Path,
 ) -> Result<VcfFixtureBuildReport> {
-    if output_root == repo_root {
-        return Err(anyhow!(
-            "refusing to overwrite repository root with regenerated fixture output"
-        ));
-    }
+    admit_fixture_output_root(repo_root, output_root)?;
+    // Admit the governed input before replacing any previously generated bundle.
+    let governed_fixture_validation =
+        validate_vcf_corpus_fixture_manifest_path(repo_root, source_manifest_path)?;
+    let governed_truth_validation =
+        validate_vcf_expected_truth_manifest_path(repo_root, source_manifest_path)?;
+
     if output_root.exists() {
         fs::remove_dir_all(output_root)
             .with_context(|| format!("remove {}", output_root.display()))?;
@@ -168,10 +170,6 @@ pub(crate) fn build_vcf_mini_fixture(
     let checksums_path = output_root.join("CHECKSUMS.sha256");
     write_checksums(output_root, &checksums_path)?;
 
-    let governed_fixture_validation =
-        validate_vcf_corpus_fixture_manifest_path(repo_root, source_manifest_path)?;
-    let governed_truth_validation =
-        validate_vcf_expected_truth_manifest_path(repo_root, source_manifest_path)?;
     let fixture_validation = validate_vcf_corpus_fixture_manifest_path(repo_root, &manifest_path)?;
     let expected_truth_validation =
         validate_vcf_expected_truth_manifest_path(repo_root, &manifest_path)?;
@@ -250,6 +248,28 @@ fn fixture_manifest() -> VcfCorpusFixtureManifest {
             .map(|value| (*value).to_string())
             .collect(),
     }
+}
+
+fn admit_fixture_output_root(repo_root: &Path, output_root: &Path) -> Result<()> {
+    if output_root == repo_root {
+        return Err(anyhow!(
+            "refusing to overwrite repository root with regenerated fixture output"
+        ));
+    }
+    if output_root.exists() {
+        let physical_repo_root = repo_root
+            .canonicalize()
+            .with_context(|| format!("resolve repository root {}", repo_root.display()))?;
+        let physical_output_root = output_root
+            .canonicalize()
+            .with_context(|| format!("resolve fixture output root {}", output_root.display()))?;
+        if physical_repo_root.starts_with(&physical_output_root) {
+            return Err(anyhow!(
+                "refusing to overwrite repository root with regenerated fixture output"
+            ));
+        }
+    }
+    Ok(())
 }
 
 fn create_fixture_layout(output_root: &Path) -> Result<()> {
@@ -521,5 +541,75 @@ mod tests {
         assert!(output_root.join("manifest.toml").exists());
         assert!(output_root.join("expected/variant_counts.json").exists());
         assert!(output_root.join("CHECKSUMS.sha256").exists());
+    }
+
+    #[test]
+    fn vcf_fixture_build_preserves_existing_output_when_governed_source_is_invalid() {
+        for (label, manifest_bytes) in
+            [("missing", None), ("malformed", Some(b"schema_version = [\n".as_slice()))]
+        {
+            let temp = tempfile::tempdir().expect("private fixture root");
+            let repo_root = temp.path().join("repository");
+            let output_root = repo_root.join("artifacts/fixtures/regenerated");
+            std::fs::create_dir_all(&output_root).expect("prior output root");
+            let source_manifest = repo_root.join("governed/manifest.toml");
+            if let Some(bytes) = manifest_bytes {
+                std::fs::create_dir_all(source_manifest.parent().expect("source parent"))
+                    .expect("governed input root");
+                std::fs::write(&source_manifest, bytes).expect("invalid governed manifest");
+            }
+            let sentinel = output_root.join("prior-bundle.txt");
+            let prior_report = output_root.join("manifest.json");
+            let sentinel_bytes = b"retain prior generated data\n";
+            let report_bytes = b"{\"previous_publication\":true}\n";
+            std::fs::write(&sentinel, sentinel_bytes).expect("prior data");
+            std::fs::write(&prior_report, report_bytes).expect("prior report");
+
+            let error = build_vcf_mini_fixture(&repo_root, &source_manifest, &output_root)
+                .expect_err("invalid governed source must refuse");
+            assert!(
+                format!("{error:#}").contains(source_manifest.to_string_lossy().as_ref()),
+                "{label} must retain source error context: {error:#}"
+            );
+            assert_eq!(
+                std::fs::read(&sentinel).ok(),
+                Some(sentinel_bytes.to_vec()),
+                "{label} governed source failure removed prior fixture data"
+            );
+            assert_eq!(std::fs::read(&prior_report).ok(), Some(report_bytes.to_vec()));
+        }
+    }
+
+    #[test]
+    fn vcf_fixture_build_refuses_repository_roots_and_ancestors_without_removal() {
+        for label in ["repository", "parent-component", "ancestor"] {
+            let fixture = tempfile::tempdir().expect("private repository root");
+            let repo_root = fixture.path().join("repository");
+            std::fs::create_dir_all(repo_root.join("child")).expect("physical alias child");
+            let sentinel = repo_root.join("repository-data.txt");
+            let bytes = b"retain repository data\n";
+            std::fs::write(&sentinel, bytes).expect("repository sentinel");
+            let output_root = match label {
+                "repository" => repo_root.clone(),
+                "parent-component" => repo_root.join("child").join(".."),
+                "ancestor" => fixture.path().to_path_buf(),
+                _ => unreachable!("declared private root vector"),
+            };
+            if label == "parent-component" {
+                assert_ne!(output_root, repo_root);
+                assert_eq!(
+                    output_root.canonicalize().expect("physical output"),
+                    repo_root.canonicalize().expect("physical repository")
+                );
+            }
+
+            build_vcf_mini_fixture(&repo_root, &repo_root.join("manifest.toml"), &output_root)
+                .expect_err("repository output must refuse");
+            assert_eq!(
+                std::fs::read(&sentinel).ok(),
+                Some(bytes.to_vec()),
+                "{label} refusal removed owned repository data"
+            );
+        }
     }
 }
