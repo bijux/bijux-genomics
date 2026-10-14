@@ -41,3 +41,6 @@ mod filter_truth;
 
 #[path = "vcf/genotype_truth.rs"]
 mod genotype_truth;
+
+#[path = "vcf/phasing_imputation_truth.rs"]
+mod phasing_imputation_truth;

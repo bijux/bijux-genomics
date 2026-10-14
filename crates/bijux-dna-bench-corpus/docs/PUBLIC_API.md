@@ -77,3 +77,22 @@ against the supplied repository root. Display paths retain slash normalization.
 Command metadata remains permissive about unknown fields; manifest and expected
 wire records retain their existing closed fields. The service is read-only and
 retains expected-row set/map duplicate semantics and original rejection ordering.
+
+With `variants`, `vcf::validate_phasing_imputation_truth_manifest_path` accepts
+an explicit repository root and declaration path and returns
+`PhasingImputationTruthValidationReport`. `PHASING_IMPUTATION_TRUTH_FIXTURE_ID` and
+`PHASING_IMPUTATION_TRUTH_MANIFEST_SCHEMA_VERSION` retain the governed identities.
+The report keeps schema/fixture/manifest/expected fields, case count, sorted unique
+stage/tool inventories and validity. Complete records retain optional phasing,
+impute and imputation-metrics projections plus canonical output and masked-site truth.
+
+Phasing declarations support shapeit5, eagle and beagle on `vcf.phasing` without a
+truth VCF. Imputation declarations support beagle, glimpse, impute5 and minimac4 on
+`vcf.impute` or `vcf.imputation_metrics` with required truth evidence. Existing
+support, reference, parser, schema and comparison errors retain their order.
+
+Absolute paths remain supported. Relative source/artifact/output/truth paths resolve
+under the supplied root and expected paths under the declaration directory; displayed
+paths retain slash normalization. Wire records keep their closed fields and optional
+serde behavior. Expected set/map duplicate semantics remain unchanged. This read-only
+service does not certify independent provenance, backend execution or new science.

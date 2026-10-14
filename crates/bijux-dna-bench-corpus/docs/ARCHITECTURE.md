@@ -83,3 +83,19 @@ identity remains set-based and comparison remains map-based: ordering is ignored
 duplicate expected rows collapse to the last record, and duplicate manifest case
 IDs reject. This service preserves those limitations rather than certifying
 independent scientific provenance. It neither writes fixtures nor launches tools.
+
+## VCF phasing/imputation fixture truth
+
+`vcf/phasing_imputation_truth` separates the declared wire records, source and
+supported-case admission, and native observations. The facade compares complete
+expected and observed records; canonical VCF parsers and scientific output-truth
+summaries remain in domain-vcf. CLI fixture routes retain presentation and whole-root
+validation composition. This corpus service reads local declarations and evidence
+without generating fixtures, launching tools or publishing products.
+
+Manifest references and tool/stage/truth combinations are admitted before expected
+bundle acquisition. Bundle identity admission precedes native metrics parsing, which
+precedes output/truth VCF interpretation for each case. Expected identities remain
+set-based and comparison remains map-based: order is ignored and the last duplicate
+expected row wins; duplicate manifest IDs reject. Complete typed comparison and the
+existing metrics-family preference preserve the original scientific record fields.
