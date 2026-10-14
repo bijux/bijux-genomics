@@ -1097,7 +1097,7 @@ fn generate_network_usage_content(workspace: &Workspace) -> Result<String> {
         .collect::<Vec<_>>();
     recipe_paths.sort();
     for path in recipe_paths {
-        let text = read_utf8(&path).unwrap_or_default();
+        let text = read_utf8(&path)?;
         let commands = text
             .lines()
             .filter_map(|line| {
@@ -1884,5 +1884,52 @@ mod tests {
     fn ghcr_runtime_package_slugs_are_runtime_scoped() {
         assert_eq!(GhcrRuntimeKind::DockerArm64.package_slug("fastp"), "docker-arm64-fastp");
         assert_eq!(GhcrRuntimeKind::Apptainer.package_slug("fastp"), "apptainer-fastp");
+    }
+    #[test]
+    fn network_usage_remote_fetch_inventory_remains_truthful() -> Result<()> {
+        let owner = tempfile::tempdir()?;
+        let workspace = Workspace { root: owner.path().to_path_buf() };
+        let recipe = workspace.path("containers/declared-input.def");
+        std::fs::create_dir_all(recipe.parent().ok_or_else(|| anyhow!("recipe parent missing"))?)?;
+        std::fs::write(
+            &recipe,
+            b"Bootstrap: scratch\n%post\ncurl https://fixture.invalid/declared-input\n",
+        )?;
+        let output = workspace.path("artifacts/network-usage.json");
+        let outcome = generate_network_usage(&workspace, &[output.display().to_string()])?;
+        assert!(outcome.is_success());
+        let report = read_json(&output)?;
+        let item = &report["items"][0];
+        assert_eq!(item["path"], "containers/declared-input.def");
+        assert_eq!(item["network_required"], true);
+        assert_eq!(
+            item["commands"],
+            serde_json::json!(["curl https://fixture.invalid/declared-input"])
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn unreadable_network_recipe_refuses_without_replacing_previous_inventory() -> Result<()> {
+        let owner = tempfile::tempdir()?;
+        let workspace = Workspace { root: owner.path().to_path_buf() };
+        let recipe = workspace.path("containers/declared-input.def");
+        std::fs::create_dir_all(recipe.parent().ok_or_else(|| anyhow!("recipe parent missing"))?)?;
+        let mut original =
+            b"Bootstrap: scratch\n%post\ncurl https://fixture.invalid/declared-input\n".to_vec();
+        original.push(0xff);
+        std::fs::write(&recipe, &original)?;
+        let output = workspace.path("artifacts/network-usage.json");
+        std::fs::create_dir_all(output.parent().ok_or_else(|| anyhow!("report parent missing"))?)?;
+        let previous = b"previous owned inventory remains available\n";
+        std::fs::write(&output, previous)?;
+        let error =
+            generate_network_usage(&workspace, &[output.display().to_string()]).err().ok_or_else(
+                || anyhow!("unreadable recipe was certified as an empty network inventory"),
+            )?;
+        assert!(format!("{error:#}").contains(&recipe.display().to_string()));
+        assert_eq!(std::fs::read(&recipe)?, original);
+        assert_eq!(std::fs::read(&output)?, previous);
+        Ok(())
     }
 }
