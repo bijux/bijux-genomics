@@ -35,9 +35,8 @@ fn bench_readiness_render_commands_writes_bash_parseable_script() {
 
     let script = std::fs::read_to_string(&script_path).expect("read rendered command script");
     assert!(script.starts_with("#!/usr/bin/env bash\nset -euo pipefail\n"));
-    assert!(
-        script.contains("repo_root=\"$(cd \"$(dirname \"${BASH_SOURCE[0]}\")/../..\" && pwd)\"")
-    );
+    // The renderer's real-shell contract verifies admitted CWD and literal argv at each depth.
+    // This public route retains the complete governed roster and Bash syntax checks.
     assert!(script.contains("# fastq.detect_adapters / "));
     assert!(script.contains("# bam.damage / mapdamage2"));
 

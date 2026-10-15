@@ -157,9 +157,10 @@ pub(crate) fn collect_selected_bam_command_rows(
 pub(crate) fn render_shell_command(argv: &[String]) -> String {
     argv.iter()
         .map(|arg| {
-            if arg
-                .chars()
-                .all(|ch| ch.is_ascii_alphanumeric() || matches!(ch, '-' | '_' | '.' | '/' | ':'))
+            if !arg.is_empty()
+                && arg.chars().all(|ch| {
+                    ch.is_ascii_alphanumeric() || matches!(ch, '-' | '_' | '.' | '/' | ':')
+                })
             {
                 arg.clone()
             } else {
