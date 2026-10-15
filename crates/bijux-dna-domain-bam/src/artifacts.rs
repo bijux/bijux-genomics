@@ -1042,6 +1042,11 @@ pub fn apply_duplicate_policy_tiny_bam(
     umi_policy: Option<&str>,
 ) -> Result<(BamDuplicatePolicyV1, BamDuplicateComparisonV1)> {
     let input = parse_tiny_sam(input_bam)?;
+    if !matches!(duplicate_action, "mark" | "remove") {
+        return Err(anyhow!(
+            "unsupported duplicate action {duplicate_action}; expected mark or remove"
+        ));
+    }
     let mut observed = HashMap::<String, usize>::new();
     let mut output_records = Vec::<TinySamRecord>::new();
     let mut additional_marked = 0_u64;

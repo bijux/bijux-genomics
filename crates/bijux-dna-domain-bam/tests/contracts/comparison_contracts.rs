@@ -224,3 +224,44 @@ fn acquired_overlap_outputs_refuse_incomplete_or_foreign_records() -> anyhow::Re
         "incomplete or foreign output membership must return an error without panic or invented pair truth");
     Ok(())
 }
+
+#[test]
+fn duplicate_action_refuses_before_replacing_output_for_every_input_shape() -> anyhow::Result<()> {
+    use bijux_dna_domain_bam::apply_duplicate_policy_tiny_bam;
+    let root = bijux_dna_infra::temp_dir("duplicate-action-admission")?;
+    let first = "first\t0\tchr1\t1\t60\t4M\t*\t0\t0\tACGT\tFFFF\tRG:Z:a";
+    let duplicate = "second\t0\tchr1\t1\t60\t4M\t*\t0\t0\tACGT\tFFFF\tRG:Z:a";
+    let unmapped = "unmapped\t4\t*\t0\t0\t*\t*\t0\t0\tACGT\tFFFF\tRG:Z:a";
+    let unique = write_observation_admission_sam(root.path(), "unique.sam", &[first])?;
+    let output = root.path().join("output.sam");
+    for action in ["mark", "remove"] {
+        apply_duplicate_policy_tiny_bam(&unique, &output, action, None)?;
+        assert!(std::fs::read_to_string(&output)?.contains("first\t0\tchr1"));
+    }
+    let mut observations = Vec::new();
+    for (name, rows) in [
+        ("duplicate.sam", vec![first, duplicate]),
+        ("unique.sam", vec![first]),
+        ("empty.sam", Vec::new()),
+        ("unmapped.sam", vec![unmapped]),
+    ] {
+        let input = write_observation_admission_sam(root.path(), name, &rows)?;
+        let input_before = std::fs::read(&input)?;
+        std::fs::write(&output, b"retained previous output\n")?;
+        let before = std::fs::metadata(&output)?.permissions();
+        let result = apply_duplicate_policy_tiny_bam(&input, &output, "unsupported-action", None);
+        let retained = std::fs::read(&output)? == b"retained previous output\n"
+            && std::fs::metadata(&output)?.permissions() == before;
+        assert_eq!(std::fs::read(&input)?, input_before);
+        eprintln!(
+            "duplicate_action_admission {name}: refused={} output_retained={retained}",
+            result.is_err()
+        );
+        observations.push(result.is_err() && retained);
+    }
+    assert!(
+        observations.into_iter().all(|refused| refused),
+        "unsupported duplicate action must refuse before publication independently of record shape"
+    );
+    Ok(())
+}
