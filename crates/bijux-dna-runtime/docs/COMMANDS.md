@@ -25,6 +25,8 @@ These are library functions, not shell commands:
 - `write_run_manifest`
 - `write_canonical_json`
 - `prepare_tool_run_dirs`
+- `write_profile_and_lock_manifests`
+- `ensure_attempt_lifecycle`
 - `initialize_attempt_lifecycle`
 - `append_attempt_lifecycle_transition`
 - `load_attempt_lifecycle`
