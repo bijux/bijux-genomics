@@ -236,7 +236,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&plan_manifest_payload(t
         "command": [
           "/bin/sh",
           "-c",
-          "samtools flagstat <TMPDIR>/<TMP>/sample.bam > <TMPDIR>/<TMP>/out/bam_filter/flagstat.before.txt && samtools idxstats <TMPDIR>/<TMP>/sample.bam > <TMPDIR>/<TMP>/out/bam_filter/idxstats.before.txt && samtools view -h -b -q 30 <TMPDIR>/<TMP>/sample.bam | awk 'BEGIN{OFS=\"\\t\"} /^@/{print; next} length($10)>=30' | samtools view -b - | samtools sort -@ 1 -l 6 -o <TMPDIR>/<TMP>/out/bam_filter/filtered.bam && samtools index -@ 1 <TMPDIR>/<TMP>/out/bam_filter/filtered.bam <TMPDIR>/<TMP>/out/bam_filter/filtered.bam.bai && samtools flagstat <TMPDIR>/<TMP>/out/bam_filter/filtered.bam > <TMPDIR>/<TMP>/out/bam_filter/flagstat.after.txt && samtools idxstats <TMPDIR>/<TMP>/out/bam_filter/filtered.bam > <TMPDIR>/<TMP>/out/bam_filter/idxstats.after.txt && python - <<'PY' > <TMPDIR>/<TMP>/out/bam_filter/filter.summary.json\nimport json\npayload = {\"action\": \"filter\", \"input_bam\": \"<TMPDIR>/<TMP>/sample.bam\", \"output_bam\": \"<TMPDIR>/<TMP>/out/bam_filter/filtered.bam\", \"params\": {\"mapq_threshold\": 30, \"min_length\": 30, \"remove_duplicates\": false}, \"artifacts\": {\"flagstat_before\": \"<TMPDIR>/<TMP>/out/bam_filter/flagstat.before.txt\", \"flagstat_after\": \"<TMPDIR>/<TMP>/out/bam_filter/flagstat.after.txt\", \"idxstats_before\": \"<TMPDIR>/<TMP>/out/bam_filter/idxstats.before.txt\", \"idxstats_after\": \"<TMPDIR>/<TMP>/out/bam_filter/idxstats.after.txt\"}}\nprint(json.dumps(payload, indent=2))\nPY"
+          "samtools flagstat <TMPDIR>/<TMP>/sample.bam > <TMPDIR>/<TMP>/out/bam_filter/flagstat.before.txt && samtools idxstats <TMPDIR>/<TMP>/sample.bam > <TMPDIR>/<TMP>/out/bam_filter/idxstats.before.txt && samtools view -h -b -q 30 <TMPDIR>/<TMP>/sample.bam | awk 'BEGIN{OFS=\"\\t\"} /^@/{print; next} length($10)>=30' | samtools view -b - | samtools sort -@ 1 -l 6 -o <TMPDIR>/<TMP>/out/bam_filter/filtered.bam && samtools index -@ 1 <TMPDIR>/<TMP>/out/bam_filter/filtered.bam <TMPDIR>/<TMP>/out/bam_filter/filtered.bam.bai && samtools flagstat <TMPDIR>/<TMP>/out/bam_filter/filtered.bam > <TMPDIR>/<TMP>/out/bam_filter/flagstat.after.txt && samtools idxstats <TMPDIR>/<TMP>/out/bam_filter/filtered.bam > <TMPDIR>/<TMP>/out/bam_filter/idxstats.after.txt && python - <<'PY' > <TMPDIR>/<TMP>/out/bam_filter/filter.summary.json\nimport json\npayload = {\"action\": \"filter\", \"input_bam\": \"<TMPDIR>/<TMP>/sample.bam\", \"output_bam\": \"<TMPDIR>/<TMP>/out/bam_filter/filtered.bam\", \"params\": {\"mapq_threshold\": 30, \"min_length\": 30, \"remove_duplicates\": False}, \"artifacts\": {\"flagstat_before\": \"<TMPDIR>/<TMP>/out/bam_filter/flagstat.before.txt\", \"flagstat_after\": \"<TMPDIR>/<TMP>/out/bam_filter/flagstat.after.txt\", \"idxstats_before\": \"<TMPDIR>/<TMP>/out/bam_filter/idxstats.before.txt\", \"idxstats_after\": \"<TMPDIR>/<TMP>/out/bam_filter/idxstats.after.txt\"}}\nprint(json.dumps(payload, indent=2))\nPY"
         ],
         "image": "bijux/bwa",
         "image_digest": "sha256:bwa",
@@ -441,7 +441,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&plan_manifest_payload(t
     }
   ],
   "pipeline_id": "bam-to-bam__default__v1",
-  "plan_fingerprint": "52d64e442e5dd88dd50032e30f3fe15447671030cac0e8898e39192891a98716",
+  "plan_fingerprint": "de891d424b42e05d4a6d9fff1cb909fe403d5a920deceed16d3c0a4ea14e9f8c",
   "planner_version": "bijux-dna-planner-bam.v1",
   "policy": "PreferAccuracy",
   "profile_id": "bam-to-bam__default__v1",

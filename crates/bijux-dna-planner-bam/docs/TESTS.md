@@ -45,3 +45,5 @@ CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-planner-bam --no
 ```
 
 Shared guardrail parser regressions are owned and executed by the policy crate. This boundary suite retains its crate-specific architecture checks; it does not compile another crate's test source. Constructor-only guardrail wrappers provide no source-check coverage and are retired.
+
+`tests/contracts/plan/samtools_report_language.rs` executes the exact Python report heredocs emitted by public samtools filter, markdup and endogenous-content argument producers. Genuine interpreter success/refusal and existing mapping-summary body controls precede boolean/optional-digest observations. It does not execute samtools, validate alignments, or certify backend science.

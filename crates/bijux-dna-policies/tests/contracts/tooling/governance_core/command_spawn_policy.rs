@@ -58,6 +58,7 @@ fn owned_harness_command(relative_path: &Path, arg: &str) -> bool {
             | "crates/bijux-dna-runtime/tests/contracts/manifest_integrity.rs",
         ) => matches!(arg, "&mkfifo" | "std::env::current_exe()?"),
         Some("crates/bijux-dna-containers/tests/contracts/resolve_runtime/reference_indexes.rs") => arg == "&executable",
+        Some("crates/bijux-dna-planner-bam/tests/contracts/plan/samtools_report_language.rs") => arg == "&python",
         Some("crates/bijux-dna-stage-contract/tests/contracts/tool_binding/shell_values.rs") => {
             matches!(arg, "shell" | "provider")
         }
@@ -478,6 +479,7 @@ fn policy__contracts__command_spawn_policy__native_harnesses_require_exact_compl
         ("crates/bijux-dna-containers/tests/support/inventory_capture.rs", "&mkfifo"),
         ("crates/bijux-dna-containers/tests/support/inventory_capture.rs", "std::env::current_exe()?"),
         ("crates/bijux-dna-containers/tests/contracts/resolve_runtime/reference_indexes.rs", "&executable"),
+        ("crates/bijux-dna-planner-bam/tests/contracts/plan/samtools_report_language.rs", "&python"),
     ] {
         let invocation = format!("std::process::Command::new({expression}).output()?");
         assert!(!content_spawns_forbidden_test_command(Path::new(owner), &invocation), "{owner}");
