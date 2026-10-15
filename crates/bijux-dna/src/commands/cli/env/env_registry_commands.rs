@@ -1084,6 +1084,56 @@ containers_root = "/remote/.cache/bijux-dna-container"
         assert!(current_clean_repository_commit(repository.path())
             .is_err_and(|error| error.to_string().contains("repository changes")));
     }
+    #[test]
+    fn definition_lint_reads_current_qa_smoke_source() -> anyhow::Result<()> {
+        let repository = Path::new(env!("CARGO_MANIFEST_DIR"))
+            .parent()
+            .and_then(Path::parent)
+            .ok_or_else(|| anyhow::anyhow!("CLI crate must be below its workspace"))?;
+        let scratch = bijux_dna_testkit::tempdir_for("definition-lint-smoke-source");
+        let root = scratch.path();
+        let definition = root.join("containers/apptainer/samtools.def");
+        std::fs::create_dir_all(
+            definition.parent().ok_or_else(|| anyhow::anyhow!("definition parent"))?,
+        )?;
+        std::fs::copy(repository.join("containers/apptainer/samtools.def"), &definition)?;
+        let source = repository.join(
+            "crates/bijux-dna-containers-qa/src/image_qa/runtime_verification/apptainer_smoke.rs",
+        );
+        let smoke_source = std::fs::read_to_string(source)?;
+        let selected = root.join(
+            "crates/bijux-dna-containers-qa/src/image_qa/runtime_verification/apptainer_smoke.rs",
+        );
+        std::fs::create_dir_all(
+            selected.parent().ok_or_else(|| anyhow::anyhow!("smoke source parent"))?,
+        )?;
+        std::fs::write(&selected, &smoke_source)?;
+        let observed = super::lint_apptainer_defs(root);
+        assert!(observed.is_ok(), "current QA-owned smoke source must be admitted: {observed:?}");
+
+        let missing_containment =
+            smoke_source.replace("\"--containall\"", "\"--foreign-containment\"");
+        assert_ne!(missing_containment, smoke_source);
+        std::fs::write(&selected, missing_containment)?;
+        let error = super::lint_apptainer_defs(root)
+            .expect_err("required containment marker must be checked");
+        assert!(error.to_string().contains(
+            "environment smoke policy is missing required Apptainer flag marker `--containall`"
+        ));
+
+        let retired = root.join("crates/bijux-dna-containers/src/evidence/tool_contract/smoke.rs");
+        std::fs::create_dir_all(
+            retired.parent().ok_or_else(|| anyhow::anyhow!("retired source parent"))?,
+        )?;
+        std::fs::write(retired, smoke_source)?;
+        std::fs::remove_file(selected)?;
+        assert!(
+            super::lint_apptainer_defs(root).is_err(),
+            "retired source must not substitute for the current QA authority"
+        );
+        Ok(())
+    }
+
 }
 
 fn requires_governed_oci_metadata(defs_root: &Path, path: &Path) -> bool {
@@ -1120,7 +1170,7 @@ pub fn lint_apptainer_defs(cwd: &Path) -> Result<()> {
     }
 
     let env_src = std::fs::read_to_string(
-        cwd.join("crates/bijux-dna-containers/src/evidence/tool_contract/smoke.rs"),
+        cwd.join("crates/bijux-dna-containers-qa/src/image_qa/runtime_verification/apptainer_smoke.rs"),
     )
     .context("read environment-owned Apptainer smoke policy")?;
     for required in ["--containall", "--cleanenv", "--bind", "--network", "none"] {
