@@ -4,7 +4,6 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::os::unix::fs::PermissionsExt as _;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Output};
-use std::time::{SystemTime, UNIX_EPOCH};
 
 use anyhow::{ensure, Context as _, Result};
 use bijux_dna_core::contract::{ArtifactRef, ArtifactRole};
@@ -26,13 +25,7 @@ enum Observation {
 
 #[test]
 fn binding_stage_plans_preserve_shell_literal_values_and_direct_argv() -> Result<()> {
-    let root =
-        crate::support::repo_root()?.join("artifacts/testing/stage-shell-values").join(format!(
-            "{}-{}",
-            std::process::id(),
-            SystemTime::now().duration_since(UNIX_EPOCH)?.as_nanos()
-        ));
-    std::fs::create_dir_all(&root)?;
+    let root = bijux_dna_testkit::tempdir_for("stage-shell-values").keep();
     let plain = observe(&root, "plain", Observation::CanonicalShell, false)?;
     let direct = observe(&root, "direct", Observation::Direct, true)?;
     let pipeline = observe(&root, "pipeline", Observation::SuffixAndPipefail, false)?;

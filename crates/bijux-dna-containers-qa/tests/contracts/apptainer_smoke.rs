@@ -5,7 +5,7 @@ mod descendant_deadline;
 
 use std::os::unix::fs::PermissionsExt as _;
 use std::path::{Path, PathBuf};
-use std::time::{Duration, SystemTime};
+use std::time::Duration;
 
 use bijux_dna_containers_qa::api::{
     can_reuse_apptainer_smoke, run_apptainer_smoke, ApptainerSmokeManifest, ApptainerSmokeRequest,
@@ -60,7 +60,7 @@ fn assert_produced_receipt_admission(
 ) -> anyhow::Result<()> {
     let path = root.join("smoke_manifest.json");
     let bytes = serde_json::to_vec(manifest)?;
-    let now = SystemTime::now();
+    let now = bijux_dna_testkit::FixedClock::unix_s(manifest.checked_at_unix_s).now();
     let write_receipt = |content: &[u8]| -> anyhow::Result<()> {
         std::fs::write(&path, content)?;
         std::fs::OpenOptions::new()

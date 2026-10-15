@@ -3,7 +3,6 @@ use std::ffi::OsStr;
 use std::os::unix::fs::PermissionsExt as _;
 use std::path::Path;
 use std::process::{Command, Output};
-use std::time::{SystemTime, UNIX_EPOCH};
 
 use anyhow::{ensure, Context as _, Result};
 use bijux_dna_core::prelude::{StageId, ToolId};
@@ -11,11 +10,7 @@ use bijux_dna_core::prelude::{StageId, ToolId};
 #[test]
 fn duplication_metrics_command_serializes_observed_counts_and_summary() -> Result<()> {
     let repository = bijux_dna_testkit::workspace_root_from_manifest(env!("CARGO_MANIFEST_DIR"));
-    let root = repository.join("artifacts/testing/bam-generated-command").join(format!(
-        "{}-{}",
-        std::process::id(),
-        SystemTime::now().duration_since(UNIX_EPOCH)?.as_nanos()
-    ));
+    let root = bijux_dna_testkit::tempdir_for("bam-generated-command").keep();
     let providers = root.join("providers");
     let output = root.join("output");
     std::fs::create_dir_all(&providers)?;

@@ -1,8 +1,10 @@
 use anyhow::Context as _;
 use std::os::unix::fs::PermissionsExt as _;
+use std::sync::atomic::{AtomicU64, Ordering};
 
 #[test]
 fn vcf_call_pipeline_preserves_literal_input_and_output_paths() -> anyhow::Result<()> {
+    static NEXT_OBSERVATION: AtomicU64 = AtomicU64::new(0);
     let owner = std::env::var_os("ISO_ROOT").map_or_else(
         || {
             PathBuf::from(env!("CARGO_MANIFEST_DIR"))
@@ -11,12 +13,18 @@ fn vcf_call_pipeline_preserves_literal_input_and_output_paths() -> anyhow::Resul
         PathBuf::from,
     );
     std::fs::create_dir_all(&owner)?;
-    let root = owner.canonicalize()?.join(format!(
-        "{}-{}",
-        std::process::id(),
-        std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH)?.as_nanos()
-    ));
-    std::fs::create_dir(&root)?;
+    let owner = owner.canonicalize()?;
+    let root = loop {
+        let sequence = NEXT_OBSERVATION
+            .fetch_update(Ordering::Relaxed, Ordering::Relaxed, |value| value.checked_add(1))
+            .map_err(|_| anyhow::anyhow!("VCF path observation sequence exhausted"))?;
+        let candidate = owner.join(format!("{}-{sequence}", std::process::id()));
+        match std::fs::create_dir(&candidate) {
+            Ok(()) => break candidate,
+            Err(error) if error.kind() == std::io::ErrorKind::AlreadyExists => {},
+            Err(error) => return Err(error).context("create private VCF path observation"),
+        }
+    };
     let ordinary = observe_vcf_call_paths(&root.join("ordinary"), "input.bam", "output")?;
     assert_eq!(ordinary["literal"], true, "ordinary recorder control failed: {ordinary:#}");
     std::io::Write::write_all(&mut std::io::stdout(), b"VCF_PLANNED_LITERAL_PATH_CONTROL_PASS\n")?;
