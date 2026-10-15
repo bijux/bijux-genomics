@@ -150,6 +150,24 @@ pub(super) fn terminal(
     })
 }
 
+/// Bind worker CLI admission to its future lane owner without creating that owner.
+pub(super) fn worker_environment(
+    workspace: &Workspace,
+    plan: &LocalVerificationPlan,
+    lane_id: &str,
+) -> Result<Vec<(String, String)>> {
+    let owner = workspace.admit_artifact_path(&plan.output.join(lane_id))?;
+    let mut environment = plan.environment.clone();
+    environment.retain(|(key, _)| {
+        !matches!(key.as_str(), "BIJUX_REPO_ROOT" | "ARTIFACT_ROOT" | "ISO_ROOT" | "ARTIFACT_DIR")
+    });
+    environment.push(("BIJUX_REPO_ROOT".into(), workspace.root.display().to_string()));
+    for key in ["ARTIFACT_ROOT", "ISO_ROOT", "ARTIFACT_DIR"] {
+        environment.push((key.into(), owner.display().to_string()));
+    }
+    Ok(environment)
+}
+
 pub(super) fn lane_environment(
     plan: &LocalVerificationPlan,
     owner: &Path,
@@ -279,6 +297,62 @@ pub(super) mod tests {
                 .1,
             "8"
         );
+        Ok(())
+    }
+
+    #[test]
+    fn complete_workers_admit_only_their_isolated_lane_output_roots() -> Result<()> {
+        let first = tempfile::tempdir()?;
+        let second = tempfile::tempdir()?;
+        let caller = tempfile::tempdir()?;
+        let foreign = caller.path().join("artifacts/caller-output");
+        let shared_target = caller.path().join("artifacts/shared-cargo-target");
+        for root in [first.path(), second.path()] {
+            let workspace = Workspace { root: root.canonicalize()? };
+            let mut admitted = plan(&workspace.root);
+            admitted.environment.extend([
+                ("BIJUX_REPO_ROOT".into(), caller.path().display().to_string()),
+                ("ARTIFACT_ROOT".into(), foreign.display().to_string()),
+                ("ISO_ROOT".into(), foreign.display().to_string()),
+                ("ARTIFACT_DIR".into(), foreign.display().to_string()),
+                ("CARGO_TARGET_DIR".into(), shared_target.display().to_string()),
+            ]);
+            let owner = admitted.output.join("rust-nextest");
+            assert!(!owner.exists(), "worker output belongs to execute_lane");
+            let environment = worker_environment(&workspace, &admitted, "rust-nextest")?;
+            for key in ["ARTIFACT_ROOT", "ISO_ROOT", "ARTIFACT_DIR", "BIJUX_REPO_ROOT"] {
+                assert_eq!(
+                    environment.iter().filter(|(name, _)| name == key).count(),
+                    1,
+                    "worker binding must replace inherited {key}"
+                );
+                let (_, value) = environment
+                    .iter()
+                    .find(|(name, _)| name == key)
+                    .with_context(|| format!("worker binding missing: {key}"))?;
+                if key == "BIJUX_REPO_ROOT" {
+                    assert_eq!(Path::new(value), workspace.root);
+                } else {
+                    assert_eq!(
+                        workspace.admit_artifact_path(Path::new(value))?,
+                        owner,
+                        "worker output must belong to its isolated lane"
+                    );
+                }
+            }
+            assert_eq!(
+                environment.iter().find(|(name, _)| name == "CARGO_TARGET_DIR"),
+                admitted.environment.iter().find(|(name, _)| name == "CARGO_TARGET_DIR")
+            );
+            assert_eq!(
+                environment.iter().find(|(name, _)| name == "CARGO_BUILD_JOBS"),
+                admitted.environment.iter().find(|(name, _)| name == "CARGO_BUILD_JOBS")
+            );
+            assert!(!owner.exists(), "launch binding must not materialize a lane owner");
+            assert!(!owner.join("scratch").exists());
+            assert!(!foreign.exists());
+            assert!(!shared_target.exists());
+        }
         Ok(())
     }
 }

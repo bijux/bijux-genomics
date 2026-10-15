@@ -37,7 +37,8 @@ use crate::runtime::process::{
 use crate::runtime::source_snapshot::TrackedSourceSnapshot;
 use crate::runtime::workspace::Workspace;
 use execution::{
-    execute_lane, input_manifest, lane_environment, native_command, terminal, LocalVerificationPlan,
+    execute_lane, input_manifest, lane_environment, native_command, terminal, worker_environment,
+    LocalVerificationPlan,
 };
 
 pub(in super::super::super) fn tooling_ci_test_complete(
@@ -230,9 +231,8 @@ pub(in super::super::super) fn tooling_ci_test_complete(
                 .lanes
                 .iter()
                 .map(|lane| {
-                    let mut envs = plan.environment.clone();
-                    envs.push(("BIJUX_REPO_ROOT".into(), isolated.root.display().to_string()));
-                    WeightedProcessSpec {
+                    let envs = worker_environment(&isolated, &plan, &lane.id)?;
+                    Ok(WeightedProcessSpec {
                         process: DependentProcessSpec {
                             process: ParallelProcessSpec {
                                 label: lane.id.clone(),
@@ -256,9 +256,9 @@ pub(in super::super::super) fn tooling_ci_test_complete(
                         } else {
                             vec![]
                         },
-                    }
+                    })
                 })
-                .collect();
+                .collect::<Result<Vec<_>>>()?;
             let runner = ProcessRunner::new(&isolated);
             let completed = if let Some(admitted) = &plan.provisioned_resources {
                 let specs = specs
