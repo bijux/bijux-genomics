@@ -68,6 +68,9 @@ requirements, and performance budgets owned by `bijux-dna-analyze`.
 - Typed trimming registries admit producer fields `trimmed_tail_count`, `trim_5p_bases`,
   `trim_3p_bases`, `reads_retained` and `bases_removed` without accepting unknown fields.
 
+- Supported metadata remains literal HTML text, attributes and script-contained JSON data; metadata
+  cannot create markup or terminate the embedded report data script.
+
 ## Determinism Rules
 - JSON output uses canonical ordering where the renderer owns canonicalization.
 - HTML table order is stable by stage and tool identity.

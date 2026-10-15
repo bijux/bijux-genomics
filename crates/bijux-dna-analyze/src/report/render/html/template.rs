@@ -9,6 +9,7 @@ pub(super) fn build_html_template(
     stage_plots_json: &str,
     repro_json: &str,
     command: &str,
+    command_json: &str,
 ) -> String {
     format!(
         r##"<!doctype html>
@@ -184,13 +185,22 @@ pub(super) fn build_html_template(
       plots.forEach(plot => {{
         const wrapper = document.createElement('div');
         wrapper.className = 'section';
-        wrapper.innerHTML = `<h4>${{plot.title}}</h4><div class="plot-bar"><span style="width:${{plot.value}}%"></span></div><small>${{plot.label}}</small>`;
+        const title = document.createElement('h4');
+        title.textContent = plot.title;
+        const bar = document.createElement('div');
+        bar.className = 'plot-bar';
+        const span = document.createElement('span');
+        span.style.width = `${{plot.value}}%`;
+        bar.appendChild(span);
+        const label = document.createElement('small');
+        label.textContent = plot.label;
+        wrapper.append(title, bar, label);
         container.appendChild(wrapper);
       }});
     }});
     document.querySelectorAll('.copy-btn').forEach(btn => {{
       btn.addEventListener('click', () => {{
-        const text = {command:?};
+        const text = {command_json};
         navigator.clipboard.writeText(text).catch(() => {{}});
       }});
     }});
@@ -204,6 +214,7 @@ pub(super) fn build_html_template(
         stage_panels = stage_panels,
         stage_plots_json = stage_plots_json,
         repro_json = repro_json,
-        command = command
+        command = command,
+        command_json = command_json
     )
 }

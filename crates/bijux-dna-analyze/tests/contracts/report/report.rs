@@ -644,3 +644,49 @@ fn report_acquires_declared_base_inputs_before_presentation_normalization() -> R
     }
     Ok(())
 }
+
+fn embedded_report_json(html: &str) -> Result<serde_json::Value> {
+    let start = html
+        .find("<script id=\"report-json\" type=\"application/json\">")
+        .ok_or_else(|| anyhow::anyhow!("report JSON script is absent"))?;
+    let body = html[start..].split_once('>').expect("matched complete opening tag").1;
+    let raw = body
+        .split_once("</script>")
+        .ok_or_else(|| anyhow::anyhow!("report JSON closing tag is absent"))?
+        .0;
+    Ok(serde_json::from_str(raw)?)
+}
+
+#[test]
+fn html_report_keeps_supported_metadata_as_literal_data() -> Result<()> {
+    let root = fixture_root()?;
+    let plain_dir = root.path().join("plain");
+    let plain_row = observation_fact(None, "plain-run")?;
+    write_report_fixture(root.path(), "plain", &[plain_row])?;
+    let plain = fs::read_to_string(plain_dir.join("report.html"))?;
+    assert_eq!(embedded_report_json(&plain)?["run_id"], "plain-run");
+    let literal = "literal </script><span id=\"literal-boundary-sentinel\">data & text</span><script> apostrophe '";
+    let mut row = observation_fact(None, literal)?;
+    row.tool_version =
+        "version <em id=\"version-boundary-sentinel\">literal</em> & \"quoted\"".to_string();
+    write_report_fixture(root.path(), "literal", &[row])?;
+    let rendered = fs::read_to_string(root.path().join("literal/report.html"))?;
+    eprintln!(
+        "html_literal_observation {}",
+        serde_json::json!({
+            "plain_html": plain, "literal_html": rendered,
+            "expected_run_id": literal, "expected_stage_id": "fastq.trim_reads",
+            "expected_version": "version <em id=\"version-boundary-sentinel\">literal</em> & \"quoted\""
+        })
+    );
+    let parsed = embedded_report_json(&rendered)?;
+    assert_eq!(
+        parsed["run_id"], literal,
+        "a literal script delimiter in supported metadata must not terminate report data"
+    );
+    assert!(
+        !rendered.contains("<em id=\"version-boundary-sentinel\">"),
+        "metadata must not become an HTML element"
+    );
+    Ok(())
+}
