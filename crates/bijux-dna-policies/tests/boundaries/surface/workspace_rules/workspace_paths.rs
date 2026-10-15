@@ -167,7 +167,7 @@ fn assert_no_domain_terms(crate_root: &Path, denylist: &[&str]) {
     for file in files {
         let content = std::fs::read_to_string(&file)
             .unwrap_or_else(|err| panic!("read {}: {err}", file.display()));
-        let lowered = content.to_lowercase();
+        let lowered = production_domain_source(&content);
         for term in denylist {
             if contains_term(&lowered, term) {
                 bijux_dna_policies::policy_panic!(
@@ -242,4 +242,26 @@ fn workspace_boundary_dependency_reader_resolves_target_specific_edges() -> anyh
         "supported Cargo dependency must retain package identity through target_specific_edges"
     );
     Ok(())
+}
+
+fn production_domain_source(source: &str) -> String {
+    bijux_dna_testkit::workspace_support::strip_rust_test_modules(source).to_lowercase()
+}
+
+#[test]
+fn policy__boundaries__workspace__domain_term_scan_preserves_production_refusals() {
+    for source in [
+        "fn execute() { let domain = \"fastq\"; }",
+        "const MARKER: &str = \"#![cfg(test)]\"; fn execute() { let domain = \"fastq\"; }",
+        "fn execute() { let domain = \"fastq\"; }\n#[cfg(test)]\nmod tests { fn harmless() {} }",
+    ] {
+        assert!(contains_term(&production_domain_source(source), "fastq"));
+    }
+    for source in [
+        "fn execute() { let domain = \"generic\"; }",
+        "#![cfg(test)]\nfn fixture() { let domain = \"fastq\"; }",
+        "#[cfg(test)]\nmod tests { fn fixture() { let domain = \"fastq\"; } }",
+    ] {
+        assert!(!contains_term(&production_domain_source(source), "fastq"));
+    }
 }

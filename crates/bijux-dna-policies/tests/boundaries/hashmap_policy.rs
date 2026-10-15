@@ -18,7 +18,7 @@ fn policy__boundaries__hashmap_policy__no_hashmap_in_contract_paths() {
                 continue;
             }
             let content = support::read_to_string(path);
-            if content.contains("HashMap") {
+            if production_contract_uses_hashmap(&content) {
                 offenders.push(path.display().to_string());
             }
         }
@@ -57,5 +57,27 @@ fn policy__boundaries__hashmap_policy__contract_scope_ignores_checkout_names() {
         }
         let contract_owner = std::path::Path::new(checkout).join("crates/owner-stage-contract");
         assert!(is_contract_source(&contract_owner, &contract_owner.join("src/model.rs")));
+    }
+}
+
+fn production_contract_uses_hashmap(source: &str) -> bool {
+    bijux_dna_testkit::workspace_support::strip_rust_test_modules(source).contains("HashMap")
+}
+
+#[test]
+fn policy__boundaries__hashmap_policy__production_scan_preserves_contract_refusals() {
+    for source in [
+        "pub struct Record { pub values: HashMap<String, String> }",
+        "const MARKER: &str = \"#![cfg(test)]\"; pub struct Record { values: HashMap<String, String> }",
+        "pub struct Record { values: HashMap<String, String> }\n#[cfg(test)]\nmod tests { fn harmless() {} }",
+    ] {
+        assert!(production_contract_uses_hashmap(source));
+    }
+    for source in [
+        "pub struct Record { pub values: BTreeMap<String, String> }",
+        "#![cfg(test)]\nfn fixture() { let values = HashMap::new(); }",
+        "#[cfg(test)]\nmod tests { fn fixture() { let values = HashMap::new(); } }",
+    ] {
+        assert!(!production_contract_uses_hashmap(source));
     }
 }
