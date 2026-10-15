@@ -2067,16 +2067,23 @@ fn seal_full_archive_extraction(path: &Path) -> Result<()> {
     Ok(())
 }
 
+fn artifact_root_environment(root: &Path) -> Vec<(String, String)> {
+    ["ARTIFACT_ROOT", "ISO_ROOT", "ARTIFACT_DIR"]
+        .into_iter()
+        .map(|key| (key.to_string(), root.display().to_string()))
+        .collect()
+}
+
 fn full_archive_env(roots: &FullArchiveRoots, build_jobs: usize) -> Result<Vec<(String, String)>> {
     bijux_dna_infra::ensure_dir(&roots.cargo_target)?;
-    Ok(vec![
-        ("ARTIFACT_ROOT".to_string(), roots.artifact_root.display().to_string()),
-        ("ISO_ROOT".to_string(), roots.artifact_root.display().to_string()),
+    let mut environment = artifact_root_environment(&roots.artifact_root);
+    environment.extend([
         ("CARGO_TARGET_DIR".to_string(), roots.cargo_target.display().to_string()),
         ("CARGO_BUILD_JOBS".to_string(), build_jobs.to_string()),
         ("TZ".to_string(), "UTC".to_string()),
         ("LC_ALL".to_string(), "C".to_string()),
-    ])
+    ]);
+    Ok(environment)
 }
 
 fn validate_full_shard_root_set(
@@ -2119,10 +2126,9 @@ fn full_shard_env(roots: &FullShardRoots, shard_workspace: &Path) -> Result<Vec<
     let workspace = Workspace { root: shard_workspace.to_path_buf() };
     let outputs = workspace.admit_artifact_path(&workspace.path("artifacts"))?;
     bijux_dna_infra::ensure_dir(&outputs)?;
-    Ok(vec![
-        ("NEXTEST_EXPERIMENTAL_LIBTEST_JSON".to_string(), "1".to_string()),
-        ("ARTIFACT_ROOT".to_string(), outputs.display().to_string()),
-        ("ISO_ROOT".to_string(), outputs.display().to_string()),
+    let mut environment = vec![("NEXTEST_EXPERIMENTAL_LIBTEST_JSON".to_string(), "1".to_string())];
+    environment.extend(artifact_root_environment(&outputs));
+    environment.extend([
         ("CARGO_TARGET_DIR".to_string(), roots.cargo_target.display().to_string()),
         ("TEST_TARGET_DIR".to_string(), roots.test_target.display().to_string()),
         ("COV_TARGET_DIR".to_string(), roots.coverage_target.display().to_string()),
@@ -2140,7 +2146,8 @@ fn full_shard_env(roots: &FullShardRoots, shard_workspace: &Path) -> Result<Vec<
         ("INSTA_UPDATE".to_string(), "no".to_string()),
         ("TZ".to_string(), "UTC".to_string()),
         ("LC_ALL".to_string(), "C".to_string()),
-    ])
+    ]);
+    Ok(environment)
 }
 
 fn full_shard_root_receipt(
@@ -3137,6 +3144,7 @@ mod tests {
         for name in [
             "ARTIFACT_ROOT",
             "ISO_ROOT",
+            "ARTIFACT_DIR",
             "CARGO_TARGET_DIR",
             "TEST_TARGET_DIR",
             "COV_TARGET_DIR",
@@ -3165,6 +3173,7 @@ mod tests {
         let outputs = std::path::Path::new(&first_env["ARTIFACT_ROOT"]);
         assert_eq!(consumer.admit_artifact_path(outputs)?, consumer.path("artifacts"));
         assert_eq!(first_env["ISO_ROOT"], first_env["ARTIFACT_ROOT"]);
+        assert_eq!(first_env["ARTIFACT_DIR"], first_env["ARTIFACT_ROOT"]);
         assert!(consumer.admit_artifact_path(&roots[0].artifact_root).is_err());
         assert_eq!(first_env["INSTA_UPDATE"], "no");
         assert!(!first_env.contains_key("INSTA_WORKSPACE_ROOT"));

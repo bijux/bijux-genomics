@@ -64,6 +64,7 @@ impl Fixture {
             .env("PATH", &self.path)
             .env("ARTIFACT_ROOT", self.root().join("artifacts"))
             .env("ISO_ROOT", self.root().join("artifacts"))
+            .env("ARTIFACT_DIR", self.root().join("artifacts"))
             .env("ISO_RUN_ID", "workflow-observation")
             .env(
                 "POLICY_TOML",
