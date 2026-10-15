@@ -414,3 +414,265 @@ fn run_artifact_envelope_has_required_keys() {
 
 #[path = "manifest_integrity/output_declarations.rs"]
 mod output_declarations;
+
+#[cfg(unix)]
+#[test]
+fn profile_and_lock_manifests_capture_one_source_observation() -> anyhow::Result<()> {
+    use anyhow::ensure;
+    use profile_lock_capture::{source_document, verify_reports, SourceWriter};
+
+    if profile_lock_capture::write_child_request()? {
+        return Ok(());
+    }
+    let fixture = bijux_dna_testkit::tempdir_for("runtime-profile-lock-observation");
+    let captured = source_document("captured-a");
+    let replacement = source_document("replacement-b");
+    let ordinary = fixture.path().join("ordinary");
+    std::fs::create_dir(&ordinary)?;
+    let ordinary_source = ordinary.join("run_manifest.json");
+    std::fs::write(&ordinary_source, &captured)?;
+    bijux_dna_runtime::write_profile_and_lock_manifests(&ordinary_source)?;
+    verify_reports(&ordinary, &captured, "captured-a")?;
+    std::fs::write(&ordinary_source, &replacement)?;
+    bijux_dna_runtime::write_profile_and_lock_manifests(&ordinary_source)?;
+    verify_reports(&ordinary, &replacement, "replacement-b")?;
+
+    let profile_before = std::fs::read(ordinary.join("profile_manifest.json"))?;
+    let lock_before = std::fs::read(ordinary.join("run_manifest.lock.json"))?;
+    for (bytes, context) in [(b"{malformed\n".as_slice(), "parse "), (b"\xff\xfe", "read ")] {
+        std::fs::write(&ordinary_source, bytes)?;
+        let error = bijux_dna_runtime::write_profile_and_lock_manifests(&ordinary_source)
+            .err()
+            .unwrap_or_else(|| panic!("malformed source must refuse before publication"));
+        ensure!(
+            error.to_string().starts_with(context)
+                && error.to_string().contains("run_manifest.json"),
+            "unexpected source failure context: {error:#}"
+        );
+        assert_eq!(std::fs::read(ordinary.join("profile_manifest.json"))?, profile_before);
+        assert_eq!(std::fs::read(ordinary.join("run_manifest.lock.json"))?, lock_before);
+    }
+    eprintln!(
+        "profile-lock controls: ordinary A, fresh B, malformed and non-UTF8 retained outputs"
+    );
+
+    let directory = fixture.path().join("profile-lock-observation");
+    std::fs::create_dir(&directory)?;
+    let source = directory.join("run_manifest.json");
+    let mut writer = SourceWriter::start(&source, &captured, &replacement)?;
+    let result = bijux_dna_runtime::write_profile_and_lock_manifests(&source);
+    writer.finish()?;
+    result?;
+    assert_eq!(std::fs::read(&source)?, replacement);
+    eprintln!("profile-lock custody: replacement B published before captured A descriptor EOF");
+    verify_reports(&directory, &captured, "captured-a")?;
+    Ok(())
+}
+
+#[cfg(unix)]
+mod profile_lock_capture {
+    use anyhow::{ensure, Context, Result};
+    use std::io::Write;
+    use std::os::unix::fs::{FileTypeExt, PermissionsExt};
+    use std::path::{Path, PathBuf};
+    use std::process::{Child, Command, ExitStatus, Stdio};
+    use std::time::{Duration, Instant};
+
+    const CASE: &str = "mod_contracts_manifest_integrity_rs::profile_and_lock_manifests_capture_one_source_observation";
+    const REQUEST_VARIABLE: &str = "BIJUX_RUNTIME_PROFILE_LOCK_WRITER_REQUEST";
+
+    #[derive(Debug, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+    #[serde(deny_unknown_fields)]
+    struct WriterInputs {
+        captured_sha256: String,
+        replacement_sha256: String,
+        executable_sha256: String,
+        executable_mode: u32,
+    }
+
+    pub(super) fn source_document(pipeline_id: &str) -> Vec<u8> {
+        format!(
+            "{{\n  \"schema_version\": \"bijux.run_manifest.v3\",\n  \"pipeline_id\": \"{pipeline_id}\",\n  \"stages\": [],\n  \"tool_invocations\": []\n}}\n"
+        )
+        .into_bytes()
+    }
+
+    pub(super) fn verify_reports(
+        directory: &Path,
+        captured: &[u8],
+        pipeline_id: &str,
+    ) -> Result<()> {
+        let profile: serde_json::Value =
+            serde_json::from_slice(&std::fs::read(directory.join("profile_manifest.json"))?)?;
+        let lock: serde_json::Value =
+            serde_json::from_slice(&std::fs::read(directory.join("run_manifest.lock.json"))?)?;
+        assert_eq!(profile["pipeline_id"], pipeline_id);
+        assert_eq!(
+            lock["run_manifest"]["sha256"],
+            bijux_dna_infra::hash_bytes_sha256(captured),
+            "profile-lock source hash must describe the same captured source as profile fields"
+        );
+        Ok(())
+    }
+
+    fn verify_executable(executable: &Path, inputs: &WriterInputs) -> Result<()> {
+        ensure!(
+            bijux_dna_infra::hash_file_sha256(executable)? == inputs.executable_sha256
+                && std::fs::metadata(executable)?.permissions().mode() == inputs.executable_mode
+                && inputs.executable_mode & 0o111 != 0,
+            "profile writer executable identity changed"
+        );
+        Ok(())
+    }
+
+    pub(super) fn write_child_request() -> Result<bool> {
+        let Some(request) = std::env::var_os(REQUEST_VARIABLE) else { return Ok(false) };
+        ensure!(
+            std::env::args().skip(1).collect::<Vec<_>>() == [CASE, "--exact", "--nocapture"],
+            "profile writer must be its exact isolated case"
+        );
+        let request = PathBuf::from(request);
+        ensure!(
+            request.is_absolute() && std::fs::symlink_metadata(&request)?.is_file(),
+            "profile writer request must be an absolute regular file"
+        );
+        let directory = request.parent().context("profile writer directory")?.canonicalize()?;
+        ensure!(
+            request == directory.join("writer-request.json")
+                && directory.file_name() == Some(std::ffi::OsStr::new("profile-lock-observation")),
+            "profile writer request must belong to its canonical fixture"
+        );
+        let inputs: WriterInputs = serde_json::from_slice(&std::fs::read(&request)?)?;
+        let captured = std::fs::read(directory.join("captured.json"))?;
+        let replacement = std::fs::read(directory.join("replacement.json"))?;
+        ensure!(
+            captured == source_document("captured-a")
+                && replacement == source_document("replacement-b")
+                && bijux_dna_infra::hash_bytes_sha256(&captured) == inputs.captured_sha256
+                && bijux_dna_infra::hash_bytes_sha256(&replacement) == inputs.replacement_sha256,
+            "profile writer source identity changed"
+        );
+        let source = directory.join("run_manifest.json");
+        ensure!(
+            std::fs::symlink_metadata(&source)?.file_type().is_fifo()
+                && !directory.join("writer-ready.json").try_exists()?
+                && !directory.join("writer-receipt.json").try_exists()?,
+            "profile writer requires its FIFO and fresh custody receipts"
+        );
+        verify_executable(&std::env::current_exe()?, &inputs)?;
+        // This watchdog belongs only to the exact one-case writer child. The parent has none.
+        let _watchdog = std::thread::spawn(|| {
+            std::thread::sleep(Duration::from_secs(3));
+            std::process::exit(124);
+        });
+        bijux_dna_infra::atomic_create_json(&directory.join("writer-ready.json"), &inputs)?;
+        let mut fifo = std::fs::OpenOptions::new().write(true).open(&source)?;
+        fifo.write_all(&captured)?;
+        std::fs::rename(directory.join("replacement.json"), &source)?;
+        assert_eq!(std::fs::read(&source)?, replacement);
+        bijux_dna_infra::atomic_create_json(&directory.join("writer-receipt.json"), &inputs)?;
+        drop(fifo);
+        Ok(true)
+    }
+
+    struct OwnedChild(Child);
+
+    impl OwnedChild {
+        fn finish(&mut self, timeout: Duration) -> Result<ExitStatus> {
+            let deadline = Instant::now() + timeout;
+            loop {
+                if let Some(status) = self.0.try_wait()? {
+                    return Ok(status);
+                }
+                if Instant::now() >= deadline {
+                    let _ = self.0.kill();
+                    let _ = self.0.wait();
+                    anyhow::bail!("profile observation child exceeded its owned wait deadline");
+                }
+                std::thread::sleep(Duration::from_millis(5));
+            }
+        }
+    }
+
+    impl Drop for OwnedChild {
+        fn drop(&mut self) {
+            let _ = self.0.kill();
+            let _ = self.0.wait();
+        }
+    }
+
+    pub(super) struct SourceWriter {
+        child: OwnedChild,
+        directory: PathBuf,
+        inputs: WriterInputs,
+        executable: PathBuf,
+    }
+
+    impl SourceWriter {
+        pub(super) fn start(source: &Path, captured: &[u8], replacement: &[u8]) -> Result<Self> {
+            let directory = source.parent().context("profile source directory")?.canonicalize()?;
+            ensure!(source == directory.join("run_manifest.json"), "profile source must be owned");
+            std::fs::write(directory.join("captured.json"), captured)?;
+            std::fs::write(directory.join("replacement.json"), replacement)?;
+            let executable = std::env::current_exe()?.canonicalize()?;
+            let inputs = WriterInputs {
+                captured_sha256: bijux_dna_infra::hash_bytes_sha256(captured),
+                replacement_sha256: bijux_dna_infra::hash_bytes_sha256(replacement),
+                executable_sha256: bijux_dna_infra::hash_file_sha256(&executable)?,
+                executable_mode: std::fs::metadata(&executable)?.permissions().mode(),
+            };
+            let request = directory.join("writer-request.json");
+            bijux_dna_infra::atomic_create_json(&request, &inputs)?;
+            let mkfifo = std::env::split_paths(&std::env::var_os("PATH").context("mkfifo PATH")?)
+                .map(|entry| entry.join("mkfifo"))
+                .find(|path| path.is_file())
+                .context("native mkfifo provider unavailable")?
+                .canonicalize()?;
+            let provider_sha256 = bijux_dna_infra::hash_file_sha256(&mkfifo)?;
+            let provider_mode = std::fs::metadata(&mkfifo)?.permissions().mode();
+            ensure!(provider_mode & 0o111 != 0, "mkfifo must be executable");
+            let mut setup = OwnedChild(Command::new(&mkfifo).arg(source).spawn()?);
+            ensure!(setup.finish(Duration::from_secs(1))?.success(), "mkfifo setup failed");
+            ensure!(
+                bijux_dna_infra::hash_file_sha256(&mkfifo)? == provider_sha256
+                    && std::fs::metadata(&mkfifo)?.permissions().mode() == provider_mode,
+                "mkfifo provider identity changed"
+            );
+            bijux_dna_infra::atomic_create_json(
+                &directory.join("mkfifo-provider.json"),
+                &serde_json::json!({"path":mkfifo,"sha256":provider_sha256,"mode":provider_mode}),
+            )?;
+            let log = std::fs::File::create(directory.join("writer.log"))?;
+            let mut command = Command::new(std::env::current_exe()?);
+            command
+                .args([CASE, "--exact", "--nocapture"])
+                .env(REQUEST_VARIABLE, &request)
+                .stdin(Stdio::null())
+                .stdout(log.try_clone()?)
+                .stderr(log);
+            // The writer inherits the owned parent group so an external cutoff covers both PIDs.
+            let child = OwnedChild(command.spawn()?);
+            let mut writer = Self { child, directory, inputs, executable };
+            let deadline = Instant::now() + Duration::from_secs(1);
+            while !writer.directory.join("writer-ready.json").try_exists()? {
+                ensure!(writer.child.0.try_wait()?.is_none(), "profile writer exited before ready");
+                ensure!(Instant::now() < deadline, "profile writer readiness deadline");
+                std::thread::sleep(Duration::from_millis(5));
+            }
+            let ready: WriterInputs = serde_json::from_slice(&std::fs::read(
+                writer.directory.join("writer-ready.json"),
+            )?)?;
+            assert_eq!(ready, writer.inputs);
+            Ok(writer)
+        }
+
+        pub(super) fn finish(&mut self) -> Result<()> {
+            ensure!(self.child.finish(Duration::from_secs(1))?.success(), "profile writer failed");
+            let receipt: WriterInputs = serde_json::from_slice(&std::fs::read(
+                self.directory.join("writer-receipt.json"),
+            )?)?;
+            assert_eq!(receipt, self.inputs);
+            verify_executable(&self.executable, &self.inputs)
+        }
+    }
+}

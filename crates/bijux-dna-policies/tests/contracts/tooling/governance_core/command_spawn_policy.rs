@@ -49,9 +49,14 @@ fn owned_harness_command(relative_path: &Path, arg: &str) -> bool {
         Some("crates/bijux-dna-api/tests/contracts/invocation_environment.rs") => {
             matches!(arg, "mkfifo" | "shell" | "&self.executable")
         }
-        Some("crates/bijux-dna-planner-bam/tests/contracts/plan/local_duplication_metrics_smoke/generated_command.rs") => arg == "\"/bin/sh\"",
-        Some("crates/bijux-dna-planner-vcf/tests/contracts/command_path_binding.rs") => arg == "\"/bin/sh\"",
-        Some("crates/bijux-dna-containers/tests/support/inventory_capture.rs") => matches!(arg, "&mkfifo" | "std::env::current_exe()?"),
+        Some(
+            "crates/bijux-dna-planner-bam/tests/contracts/plan/local_duplication_metrics_smoke/generated_command.rs"
+            | "crates/bijux-dna-planner-vcf/tests/contracts/command_path_binding.rs",
+        ) => arg == "\"/bin/sh\"",
+        Some(
+            "crates/bijux-dna-containers/tests/support/inventory_capture.rs"
+            | "crates/bijux-dna-runtime/tests/contracts/manifest_integrity.rs",
+        ) => matches!(arg, "&mkfifo" | "std::env::current_exe()?"),
         Some("crates/bijux-dna-containers/tests/contracts/resolve_runtime/reference_indexes.rs") => arg == "&executable",
         Some("crates/bijux-dna-stage-contract/tests/contracts/tool_binding/shell_values.rs") => {
             matches!(arg, "shell" | "provider")
@@ -408,6 +413,11 @@ fn policy__contracts__command_spawn_policy__harness_commands_stay_with_their_exa
         ),
         ("crates/bijux-dna-dev/tests/contracts/workflow_observations.rs", "binary"),
         ("crates/bijux-dna-api/tests/contracts/invocation_environment.rs", "mkfifo"),
+        ("crates/bijux-dna-runtime/tests/contracts/manifest_integrity.rs", "&mkfifo"),
+        (
+            "crates/bijux-dna-runtime/tests/contracts/manifest_integrity.rs",
+            "std::env::current_exe()?",
+        ),
         ("crates/bijux-dna-api/tests/contracts/invocation_environment.rs", "shell"),
         ("crates/bijux-dna-api/tests/contracts/invocation_environment.rs", "&self.executable"),
         ("crates/bijux-dna-stage-contract/tests/contracts/tool_binding/shell_values.rs", "shell"),
@@ -454,6 +464,8 @@ fn policy__contracts__command_spawn_policy__native_harnesses_require_exact_compl
         ("crates/bijux-dna/tests/contracts/support/repository_sandbox/mod.rs", "executable"),
         ("crates/bijux-dna-dev/tests/contracts/workflow_observations.rs", "binary"),
         ("crates/bijux-dna-api/tests/contracts/invocation_environment.rs", "mkfifo"),
+        ("crates/bijux-dna-runtime/tests/contracts/manifest_integrity.rs", "&mkfifo"),
+        ("crates/bijux-dna-runtime/tests/contracts/manifest_integrity.rs", "std::env::current_exe()?"),
         ("crates/bijux-dna-api/tests/contracts/invocation_environment.rs", "shell"),
         ("crates/bijux-dna-api/tests/contracts/invocation_environment.rs", "&self.executable"),
         ("crates/bijux-dna-stage-contract/tests/contracts/tool_binding/shell_values.rs", "shell"),
