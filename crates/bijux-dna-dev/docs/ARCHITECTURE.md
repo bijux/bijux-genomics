@@ -100,6 +100,8 @@ live once in the private test-only `checks/request_observation_contracts.rs` mod
 
 `application/ci/` separates expected test inventory admission, pinned Nextest event admission, and exact cross-shard coverage reconciliation. These modules have no filesystem or process effects. The tooling CI command owns producer/shard execution, logs, hashes and receipt publication.
 
+`commands/ops/tooling/ci.rs` is the registered command facade. `ci/fast.rs` composes the fast graph with private contract, compiler-cache and timing owners; its execution adapter uses the existing dependency-process runner. `ci/sharded.rs` keeps the full source/product transaction together, with contract, storage, archive and preflight owners beneath it. `ci/full_execution.rs` and `ci/full_execution/native_chunks.rs` retain bounded partition execution; `ci/complete.rs` owns the complete local-lane coordinator.
+
 `runtime/source_snapshot.rs` captures the tracked worktree once as a pinned commit plus a binary Git patch. Archive and shard workspaces materialize that same input with one checkout and, only for changed sources, one patch application. Untracked evidence is excluded. CI commands own scratch lifetimes; snapshot materialization refuses existing destinations.
 
 `application/ci/partition.rs` owns the qualified executor partition protocol and binary discovery filtersets. It consumes the producer inventory without IO. Coverage reconciliation checks each selected partition as well as the global case union. The existing locked `twox-hash` dependency supplies xxHash64 with only its 64-bit hash feature enabled.

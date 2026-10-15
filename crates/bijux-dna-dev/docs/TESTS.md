@@ -36,3 +36,5 @@
 CI coverage contracts replay captured Nextest 0.9.100 library and integration event streams from `tests/fixtures/ci/nextest/`. The fixture capture manifest binds their source/binary hashes and format version. Adversarial cases reject omissions, duplicate identities, incomplete event sequences, incorrect suite counters, unexpected cases, failed outcomes and filtered inventories.
 
 Private CI discovery tests live under `tests/boundaries/ci/` and compile into their owning developer binary. They do not add an integration executable or a second public test facade.
+
+Fast-gate contracts live with their contract, compiler-cache and timing owners under `src/commands/ops/tooling/ci/fast/`. Full-shard contract, storage, archive and preflight tests live with those owners under `ci/sharded/`. They remain private tests in the existing developer binary; execution-budget, native-chunk and complete-lane contracts keep their existing owners.

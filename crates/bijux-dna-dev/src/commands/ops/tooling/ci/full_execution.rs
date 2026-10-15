@@ -4,10 +4,14 @@ use std::path::{Path, PathBuf};
 use crate::runtime::crate_gate_inputs::CrateGateProofInputs;
 use crate::runtime::process::ParallelProcessOutput;
 
-use super::{
-    CompiledWorkspaceExecutables, Context, FullShard, FullShardRoots, NextestReuseInputs, Result,
-    ShardDiscoveryPlan, TrackedSourceSnapshot, Workspace,
+use super::sharded::contract::FullShard;
+use super::sharded::storage::FullShardRoots;
+use crate::application::ci::{
+    CompiledWorkspaceExecutables, NextestReuseInputs, ShardDiscoveryPlan,
 };
+use crate::runtime::source_snapshot::TrackedSourceSnapshot;
+use crate::runtime::workspace::Workspace;
+use anyhow::{Context, Result};
 
 mod native_chunks;
 

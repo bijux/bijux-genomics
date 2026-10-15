@@ -20,7 +20,8 @@ use crate::runtime::process::{
 use crate::runtime::source_snapshot::IsolatedSourceIdentity;
 use crate::runtime::workspace::Workspace;
 
-use super::super::{full_shard_args, full_shard_env, materialize_full_shard_workspace};
+use super::super::sharded::archive::full_shard_args;
+use super::super::sharded::storage::{full_shard_env, materialize_full_shard_workspace};
 use super::{ExecutionBudget, ShardExecution, ShardInputs, ShardTerminal};
 
 struct NativeChunk {
