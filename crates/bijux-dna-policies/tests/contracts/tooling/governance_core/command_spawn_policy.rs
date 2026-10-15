@@ -49,6 +49,7 @@ fn owned_harness_command(relative_path: &Path, arg: &str) -> bool {
         Some("crates/bijux-dna-api/tests/contracts/invocation_environment.rs") => {
             matches!(arg, "mkfifo" | "shell" | "&self.executable")
         }
+        Some("crates/bijux-dna-containers/tests/contracts/resolve_runtime/reference_indexes.rs") => arg == "&executable",
         Some("crates/bijux-dna-stage-contract/tests/contracts/tool_binding/shell_values.rs") => {
             matches!(arg, "shell" | "provider")
         }
@@ -457,6 +458,7 @@ fn policy__contracts__command_spawn_policy__native_harnesses_require_exact_compl
             "crates/bijux-dna-stage-contract/tests/contracts/tool_binding/shell_values.rs",
             "provider",
         ),
+        ("crates/bijux-dna-containers/tests/contracts/resolve_runtime/reference_indexes.rs", "&executable"),
     ] {
         let invocation = format!("std::process::Command::new({expression}).output()?");
         assert!(!content_spawns_forbidden_test_command(Path::new(owner), &invocation), "{owner}");

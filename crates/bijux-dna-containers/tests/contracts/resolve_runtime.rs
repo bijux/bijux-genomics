@@ -1,3 +1,7 @@
+#[cfg(unix)]
+#[path = "resolve_runtime/reference_indexes.rs"]
+mod reference_indexes;
+
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 use std::str::FromStr;

@@ -62,7 +62,7 @@ impl ReferenceRegistry {
         if !fasta_target.exists() {
             std::fs::copy(fasta, &fasta_target)?;
         }
-        let fai = fasta_target.with_extension("fai");
+        let fai = fasta_target.with_added_extension("fai");
         let dict = fasta_target.with_extension("dict");
         let bwa_prefix = fasta_target.clone();
         let bowtie2_prefix = fasta_target.clone();
