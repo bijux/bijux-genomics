@@ -103,7 +103,7 @@ fn source_tree_matches_architecture_contract() {
 
     assert_eq!(
         dir_entries(&root.join("src/image_qa/records")),
-        btree_set(&["builder.rs", "mod.rs", "pass_cache.rs", "store.rs"]),
+        btree_set(&["builder.rs", "builder/", "mod.rs", "pass_cache.rs", "store.rs"]),
         "record tree must stay split by persistence concern"
     );
 

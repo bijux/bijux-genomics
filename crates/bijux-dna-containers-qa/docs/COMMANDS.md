@@ -59,6 +59,7 @@ operations executes a tool or contacts a scheduler.
 
 - `src/bin/build_docker_images.rs`
 - `src/image_qa/datasets/hydration.rs`
+- `src/image_qa/records/builder/image_identity.rs`
 - `src/image_qa/qa_docker_images/runtime.rs`
 - `src/image_qa/support/docker_exec/inspection.rs`
 - `src/image_qa/support/docker_exec/merge.rs`

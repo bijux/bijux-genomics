@@ -19,6 +19,8 @@ TEST_TMP_DIR=artifacts/test-tmp CARGO_TARGET_DIR=artifacts/cargo-target cargo te
 
 ## Contracts Suite
 
+- `src/image_qa/records/builder/image_identity.rs`: real resolution, persisted record and cache/gate identity contracts in an isolated fixture child; synthetic pass rows do not qualify image execution.
+
 - `tests/contracts/qualification.rs`: source admission, required outputs, content identity, metrics and failure classes.
 - `tests/contracts/qa_contracts.rs`: shared QA support behavior with `verification-tools` enabled.
 - `tests/contracts/apptainer_smoke.rs` and `runtime_verification.rs`: verification tool behavior with the default feature enabled.
