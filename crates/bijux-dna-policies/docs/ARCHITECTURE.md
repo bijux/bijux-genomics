@@ -61,7 +61,7 @@ importing repository audit orchestration.
 7. Assertion macros and `policy_diagnostics` render failures with consistent repair guidance.
 
 ## Naming
-Policy test names use `policy__<suite>__<file>__<rule>` when they enforce workspace governance. Crate-local lock tests may use concise names when they only protect this crate's own tree or manifest.
+Test names describe the behavior they protect. Native test IDs retain the package, target, and module owner without repeating the source path in each function name.
 
 ## Dependency Direction
 

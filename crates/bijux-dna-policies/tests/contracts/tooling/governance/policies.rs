@@ -52,24 +52,6 @@ fn crate_dependencies(root: &Path, crate_name: &str) -> BTreeSet<String> {
     deps
 }
 
-fn policy_test_prefix(path: &Path, root: &Path) -> String {
-    let rel = path.strip_prefix(root).unwrap_or(path);
-    let mut parts = rel.iter().filter_map(|p| p.to_str()).collect::<Vec<_>>();
-    if parts.len() >= 2 && parts[0] == "tests" {
-        parts.remove(0);
-    }
-    if parts.len() >= 4
-        && parts[0] == "boundaries"
-        && parts[1] == "surface"
-        && parts[2] == "workspace_rules"
-    {
-        return "policy__boundaries__workspace__".to_string();
-    }
-    let suite = if parts.len() > 1 { parts[0] } else { "root" };
-    let stem = path.file_stem().and_then(|s| s.to_str()).unwrap_or("unknown");
-    format!("policy__{suite}__{stem}__")
-}
-
 fn configured_domains(root: &Path) -> Vec<String> {
     let path = root.join("configs").join("ci").join("registry").join("domains.toml");
     let raw = std::fs::read_to_string(&path)
@@ -198,49 +180,6 @@ fn policy__contracts__policies__public_modules_live_in_lib_rs() {
             }
         }
     }
-}
-
-#[test]
-fn policy__contracts__policies__policy_test_names_are_consistent() {
-    let root = workspace_root();
-    let tests_root = root.join("crates").join("bijux-dna-policies").join("tests");
-    let mut offenders = Vec::new();
-    for file in rs_files_under(&tests_root) {
-        if file.components().any(|c| c.as_os_str() == "support") {
-            continue;
-        }
-        let content = std::fs::read_to_string(&file).expect("read test file");
-        let expected_prefix = policy_test_prefix(&file, &tests_root);
-        let mut awaiting_fn = false;
-        for line in content.lines() {
-            let trimmed = line.trim();
-            if trimmed == "#[test]" {
-                awaiting_fn = true;
-                continue;
-            }
-            if awaiting_fn {
-                if let Some(rest) = trimmed.strip_prefix("fn ") {
-                    if let Some(name) = rest.split(['(', ' ']).next() {
-                        let normalized_name = name.strip_prefix("slow__").unwrap_or(name);
-                        if !normalized_name.starts_with(&expected_prefix) {
-                            offenders.push(format!(
-                                "{}: expected prefix {} but found {}",
-                                file.display(),
-                                expected_prefix,
-                                name
-                            ));
-                        }
-                    }
-                    awaiting_fn = false;
-                }
-            }
-        }
-    }
-    bijux_dna_policies::policy_assert!(
-        offenders.is_empty(),
-        "policy test names must follow policy__<suite>__<file>__<rule>: {:?}",
-        offenders
-    );
 }
 
 #[test]

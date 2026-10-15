@@ -16,7 +16,7 @@
 - Schema-style policy snapshots stay under `tests/snapshots/` until a materialized schemas suite exists.
 
 ## Naming
-- Policy tests use `policy__<suite>__<file>__<rule>` for stable search and failure triage.
+- Name tests for the behavior they protect; native test IDs include the package, target, and module owner.
 - Source-tree guardrails for this crate live in `tests/boundaries/architecture_tree.rs`.
 
 ## Policy Registry
