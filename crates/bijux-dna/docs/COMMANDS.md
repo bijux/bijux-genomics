@@ -166,6 +166,8 @@ Visible aliases are part of the operator surface:
 - `bijux-dna run validate` aliases `bijux-dna run validate-pre`.
 - `bijux-dna run stats` aliases `bijux-dna run stats-neutral`.
 
+- `bijux-dna run estimate-library-complexity-prealign`
+
 ### Pipeline Profiles
 - `bijux-dna plan list`
 - `bijux-dna plan explain`
@@ -194,6 +196,11 @@ Visible aliases are part of the operator surface:
 - `bijux-dna explain report`
 - `bijux-dna explain metrics`
 - `bijux-dna explain bench`
+
+- `bijux-dna analyze evidence compare`
+- `bijux-dna analyze evidence verify`
+- `bijux-dna explain evidence compare`
+- `bijux-dna explain evidence verify`
 
 ### Benchmarking
 - `bijux-dna bench config validate`
@@ -2367,6 +2374,35 @@ should prefer the long names above:
 - `stats` for `profile-reads`
 - `overrepresented` for `profile-overrepresented-sequences`
 
+- `bijux-dna bench cases admit`
+- `bijux-dna bench cases aggregate`
+- `bijux-dna bench cases plan`
+- `bijux-dna bench cycle admit`
+- `bijux-dna bench cycle advance`
+- `bijux-dna bench cycle book`
+- `bijux-dna bench cycle cite`
+- `bijux-dna bench cycle collect`
+- `bijux-dna bench cycle plan`
+- `bijux-dna bench cycle publish`
+- `bijux-dna bench cycle receipt`
+- `bijux-dna bench cycle replay`
+- `bijux-dna bench cycle retry`
+- `bijux-dna bench cycle select`
+- `bijux-dna bench cycle status`
+- `bijux-dna bench cycle supersede`
+- `bijux-dna bench local run-vcf-postprocess-smoke`
+- `bijux-dna bench local validate-cross-domain-sample-consistency`
+- `bijux-dna bench readiness render-all-domain-local-operational-benchmark-complete`
+- `bijux-dna bench readiness render-bam-tool-scores`
+- `bijux-dna bench readiness render-fastq-commands`
+- `bijux-dna bench readiness render-fastq-parser-fixture-coverage`
+- `bijux-dna bench readiness render-fastq-tool-scores`
+- `bijux-dna bench readiness render-vcf-imputation-metrics-ready`
+- `bijux-dna bench readiness render-vcf-tool-scores`
+- `bijux-dna bench readiness validate-bam-tool-scores`
+- `bijux-dna bench readiness validate-fastq-tool-scores`
+- `bijux-dna bench readiness validate-vcf-tool-scores`
+
 ## Debug And Repository-Control Commands
 
 These commands are hidden in non-debug builds or exist for repository control-plane work:
@@ -2390,6 +2426,20 @@ These commands are hidden in non-debug builds or exist for repository control-pl
   `write-campaign-profiles` defaults to `benchmarks/configs/hpc/campaign/`, so the generated
   local-ready and fixture campaign profiles stay in the tracked benchmark config root rather than
   the runtime HPC config tree.
+- `bijux-dna config appraise-matrix`
+- `bijux-dna config bam-benchmark-campaign`
+- `bijux-dna config benchmark-matrix`
+- `bijux-dna config cleanup-preparation`
+- `bijux-dna config cross-benchmark-campaign`
+- `bijux-dna config fastq-benchmark-campaign`
+- `bijux-dna config hardening-benchmark-campaign`
+- `bijux-dna config hardening-queue`
+- `bijux-dna config materialize-pipeline-assets`
+- `bijux-dna config pipeline-operations-report`
+- `bijux-dna config preparation-graph`
+- `bijux-dna config prepare-foundation`
+- `bijux-dna config vcf-benchmark-campaign`
+
 - `bijux-dna slurm submit-stage-benchmark`
 - `bijux-dna slurm submit-domain-benchmark`
 - `bijux-dna slurm submit-cross-benchmark`
@@ -2403,6 +2453,9 @@ These commands are hidden in non-debug builds or exist for repository control-pl
 - `bijux-dna slurm export-failure-bundle`
 - `bijux-dna slurm share-bundle`
 - `bijux-dna slurm verify-results-policy`
+- `bijux-dna slurm cancel`
+- `bijux-dna slurm monitor`
+
 - `bijux-dna bam run`
 - `bijux-dna bam list-stages`
 - `bijux-dna bam explain`
@@ -2416,6 +2469,12 @@ These commands are hidden in non-debug builds or exist for repository control-pl
 - `bijux-dna compare`
 - `bijux-dna policies audit`
 - `bijux-dna ci validate`
+- `bijux-dna ci audit`
+- `bijux-dna ci audit-features`
+- `bijux-dna ci budget-check`
+- `bijux-dna ci changed-paths`
+- `bijux-dna ci gate`
+
 - `bijux-dna dev ci validate`
 - `bijux-dna dev ci audit`
 - `bijux-dna dev ci changed-paths`

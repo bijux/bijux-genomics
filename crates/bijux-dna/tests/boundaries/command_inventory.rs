@@ -1,456 +1,7 @@
 use std::collections::BTreeSet;
 
-const CLI_COMMANDS: &[&str] = &[
-    "bijux-dna env images",
-    "bijux-dna env info",
-    "bijux-dna env doctor",
-    "bijux-dna env list",
-    "bijux-dna env export-json",
-    "bijux-dna env export-containers --json",
-    "bijux-dna env export-hpc",
-    "bijux-dna env sif-inventory",
-    "bijux-dna env ensure",
-    "bijux-dna env ensure-images",
-    "bijux-dna env lint-apptainer-defs",
-    "bijux-dna env smoke",
-    "bijux-dna env prep",
-    "bijux-dna env apptainer-qa-matrix",
-    "bijux-dna registry list-tools",
-    "bijux-dna registry list-stages",
-    "bijux-dna registry show-tool",
-    "bijux-dna registry show-stage",
-    "bijux-dna registry show",
-    "bijux-dna registry export-json",
-    "bijux-dna registry export-containers --json",
-    "bijux-dna registry coverage-matrix",
-    "bijux-dna registry validate-tool",
-    "bijux-dna registry audit",
-    "bijux-dna registry doctor",
-    "bijux-dna registry promote",
-    "bijux-dna registry lint",
-    "bijux-dna corpus materialize",
-    "bijux-dna corpus normalize",
-    "bijux-dna corpus validate",
-    "bijux-dna corpus list",
-    "bijux-dna corpus diff",
-    "bijux-dna fixtures build",
-    "bijux-dna fixtures validate",
-    "bijux-dna fixtures validate-expected",
-    "bijux-dna status",
-    "bijux-dna run list-stages",
-    "bijux-dna run stages",
-    "bijux-dna run doctor",
-    "bijux-dna run list-tools",
-    "bijux-dna run explain",
-    "bijux-dna run validate-pre",
-    "bijux-dna run trim",
-    "bijux-dna run filter",
-    "bijux-dna run merge",
-    "bijux-dna run contam",
-    "bijux-dna run stats-neutral",
-    "bijux-dna run umi",
-    "bijux-dna run error-correct",
-    "bijux-dna run qc",
-    "bijux-dna run align",
-    "bijux-dna run preprocess",
-    "bijux-dna run run",
-    "bijux-dna run compare",
-    "bijux-dna run validate",
-    "bijux-dna run stats",
-    "bijux-dna plan list",
-    "bijux-dna plan explain",
-    "bijux-dna plan explain-profile",
-    "bijux-dna pipeline validate",
-    "bijux-dna plan validate",
-    "bijux-dna plan validate-profile",
-    "bijux-dna plan profile-diff",
-    "bijux-dna plan audit",
-    "bijux-dna analyze runs",
-    "bijux-dna analyze summary",
-    "bijux-dna analyze compare",
-    "bijux-dna analyze rank",
-    "bijux-dna analyze report",
-    "bijux-dna analyze metrics",
-    "bijux-dna analyze bench",
-    "bijux-dna explain runs",
-    "bijux-dna explain summary",
-    "bijux-dna explain compare",
-    "bijux-dna explain rank",
-    "bijux-dna explain report",
-    "bijux-dna explain metrics",
-    "bijux-dna explain bench",
-    "bijux-dna bench config validate",
-    "bijux-dna bench active-scope validate --fast",
-    "bijux-dna bench paths validate",
-    "bijux-dna bench paths prove-disposable-root-cleanup",
-    "bijux-dna bench run",
-    "bijux-dna bench run-micro",
-    "bijux-dna bench data-index",
-    "bijux-dna bench catalog-registry publish",
-    "bijux-dna bench acquire-fastq-corpus",
-    "bijux-dna bench acquire-selected-fastq-collection",
-    "bijux-dna bench materialize-fastq-corpus",
-    "bijux-dna bench materialize-reference-bundle",
-    "bijux-dna bench corpus-materialization plan",
-    "bijux-dna bench corpus-materialization prepare",
-    "bijux-dna bench corpus-materialization submit",
-    "bijux-dna bench corpus-materialization status",
-    "bijux-dna bench corpus-materialization collect",
-    "bijux-dna bench corpus-materialization correct-evidence",
-    "bijux-dna bench status",
-    "bijux-dna bench workspace-value",
-    "bijux-dna bench config-json",
-    "bijux-dna bench repo-checks",
-    "bijux-dna bench write-screen-taxonomy-database-lineage",
-    "bijux-dna bench validate-matrix",
-    "bijux-dna bench validate-schemas",
-    "bijux-dna bench publication-targets",
-    "bijux-dna bench corpus-fastq",
-    "bijux-dna bench normalize-workspace-layout",
-    "bijux-dna bench corpus-fastq-report",
-    "bijux-dna bench corpus-fastq-publication-status",
-    "bijux-dna bench corpus-fastq-published-dossiers",
-    "bijux-dna bench readiness render-adapter-missing-input-tests",
-    "bijux-dna bench readiness render-expected-benchmark-results",
-    "bijux-dna bench readiness render-all-domain-expected-benchmark-results",
-    "bijux-dna bench readiness render-all-domain-local-harness-complete",
-    "bijux-dna bench readiness render-all-domain-failure-classification",
-    "bijux-dna bench readiness render-all-domain-completion-check",
-    "bijux-dna bench readiness render-all-domain-missing-result-test",
-    "bijux-dna bench readiness render-all-domain-parser-collector",
-    "bijux-dna bench readiness render-full-benchmark-result-collector",
-    "bijux-dna bench readiness render-full-benchmark-dashboard",
-    "bijux-dna bench readiness render-full-benchmark-report",
-    "bijux-dna bench readiness render-micro-benchmark-execution-ready",
-    "bijux-dna bench readiness render-operational-benchmark-ready",
-    "bijux-dna bench readiness render-all-domain-output-declarations",
-    "bijux-dna bench readiness render-all-domain-commands",
-    "bijux-dna bench readiness render-all-domain-parser-fixture-coverage",
-    "bijux-dna bench readiness render-all-domain-retained-tools",
-    "bijux-dna bench readiness render-executable-resolution",
-    "bijux-dna bench readiness render-apptainer-map",
-    "bijux-dna bench readiness render-input-preflight-tests",
-    "bijux-dna bench readiness render-output-contract-tests",
-    "bijux-dna bench readiness render-real-output-parser-smoke",
-    "bijux-dna bench readiness render-retained-toolset-executable-local",
-    "bijux-dna bench readiness render-version-probes",
-    "bijux-dna bench readiness run-container-tool-smoke",
-    "bijux-dna bench readiness run-host-tool-smoke",
-    "bijux-dna bench readiness render-stage-tool-alias-check",
-    "bijux-dna bench readiness render-parser-completeness-gate",
-    "bijux-dna bench readiness render-corpus-asset-coverage-gate",
-    "bijux-dna bench readiness render-essential-pipeline-corpus-assets",
-    "bijux-dna bench readiness render-essential-pipeline-partial-resume",
-    "bijux-dna bench readiness render-essential-pipeline-failure-isolation",
-    "bijux-dna bench readiness render-essential-pipeline-report-map",
-    "bijux-dna bench readiness render-essential-pipelines-local-complete",
-    "bijux-dna bench readiness render-essential-pipelines-ready",
-    "bijux-dna bench readiness render-essential-pipeline-commands",
-    "bijux-dna bench readiness render-parser-failure-tests",
-    "bijux-dna bench readiness render-commands",
-    "bijux-dna bench readiness render-command-argv",
-    "bijux-dna bench readiness render-vcf-commands",
-    "bijux-dna bench readiness render-stage-tool-containers",
-    "bijux-dna bench readiness render-stage-tool-assets",
-    "bijux-dna bench readiness render-stage-tool-resources",
-    "bijux-dna bench readiness render-bam-adapter-output-contract",
-    "bijux-dna bench readiness render-bam-stage-decision-table",
-    "bijux-dna bench readiness render-bam-command-adapter-coverage",
-    "bijux-dna bench readiness render-bam-commands",
-    "bijux-dna bench readiness render-bam-corpus-assignment",
-    "bijux-dna bench readiness render-bam-contamination-sex-haplogroups-ready",
-    "bijux-dna bench readiness render-bam-contamination-complete",
-    "bijux-dna bench readiness render-bam-haplogroups-complete",
-    "bijux-dna bench readiness render-bam-genotyping-complete",
-    "bijux-dna bench readiness render-bam-recalibration-complete",
-    "bijux-dna bench readiness render-bam-sex-complete",
-    "bijux-dna bench readiness render-bam-kinship-ready",
-    "bijux-dna bench readiness render-bam-active-row-consistency",
-    "bijux-dna bench readiness render-bam-kinship-complete",
-    "bijux-dna bench readiness render-bam-recalibration-genotyping-ready",
-    "bijux-dna bench readiness render-bam-authenticity-complete",
-    "bijux-dna bench readiness render-bam-damage-complete",
-    "bijux-dna bench readiness render-bam-damage-authenticity-ready",
-    "bijux-dna bench readiness render-bam-insert-size-gc-bias-ready",
-    "bijux-dna bench readiness render-bam-endogenous-content-complete",
-    "bijux-dna bench readiness render-bam-overlap-correction-complete",
-    "bijux-dna bench readiness render-bam-overlap-endogenous-ready",
-    "bijux-dna bench readiness render-corpus-incompatibility",
-    "bijux-dna bench readiness render-bam-comparable-metrics",
-    "bijux-dna bench readiness render-stage-scoring",
-    "bijux-dna bench readiness render-scientific-acceptance-thresholds",
-    "bijux-dna bench readiness render-science-truth-sets-complete",
-    "bijux-dna bench readiness render-bam-science-thresholds-ready",
-    "bijux-dna bench readiness render-bam-normalized-metrics-schema",
-    "bijux-dna bench readiness render-bam-parser-fixture-coverage",
-    "bijux-dna bench readiness render-bam-report-map",
-    "bijux-dna bench readiness render-bam-all-retained-tools-complete",
-    "bijux-dna bench readiness render-fastq-adapter-output-contract",
-    "bijux-dna bench readiness render-fastq-command-adapter-coverage",
-    "bijux-dna bench readiness render-fastq-comparable-metrics",
-    "bijux-dna bench readiness render-fastq-corpus-assignment",
-    "bijux-dna bench readiness render-fastq-normalized-metrics-schema",
-    "bijux-dna bench readiness render-fastq-parser-coverage",
-    "bijux-dna bench readiness render-fastq-report-map",
-    "bijux-dna bench readiness render-fastq-active-stage-tool-matrix",
-    "bijux-dna bench readiness render-fastq-local-container-smoke",
-    "bijux-dna bench readiness render-fastq-duplicate-stages-ready",
-    "bijux-dna bench readiness render-fastq-filter-stages-ready",
-    "bijux-dna bench readiness render-fastq-trim-stages-ready",
-    "bijux-dna bench readiness render-fastq-validate-reads-ready",
-    "bijux-dna bench readiness render-fastq-tool-serving-map",
-    "bijux-dna bench readiness render-bam-tool-serving-map",
-    "bijux-dna bench readiness render-bam-local-container-smoke",
-    "bijux-dna bench readiness render-vcf-tool-serving-map",
-    "bijux-dna bench readiness render-all-domain-active-stage-catalog",
-    "bijux-dna bench readiness render-all-domain-adapter-coverage",
-    "bijux-dna bench readiness render-all-domain-expected-result-coverage",
-    "bijux-dna bench readiness render-all-domain-active-scope-blockers",
-    "bijux-dna bench readiness render-all-domain-active-scope-complete",
-    "bijux-dna bench readiness render-all-domain-local-job-coverage",
-    "bijux-dna bench readiness render-all-domain-no-placeholder-command-check",
-    "bijux-dna bench readiness render-all-domain-report-map-coverage",
-    "bijux-dna bench readiness render-all-domain-output-contract-coverage",
-    "bijux-dna bench readiness render-all-domain-active-stage-tool-matrix",
-    "bijux-dna bench readiness render-all-domain-no-declared-only-rows",
-    "bijux-dna bench readiness render-all-domain-no-not-benchmark-ready-rows",
-    "bijux-dna bench readiness render-all-domain-no-planned-rows",
-    "bijux-dna bench readiness render-removed-from-scope",
-    "bijux-dna bench readiness render-all-domain-stage-tool-table",
-    "bijux-dna bench readiness render-vcf-comparable-metrics",
-    "bijux-dna bench readiness render-vcf-expected-benchmark-results",
-    "bijux-dna bench readiness render-vcf-missing-result-report",
-    "bijux-dna bench readiness render-vcf-report-map",
-    "bijux-dna bench readiness render-vcf-parsers-report-ready",
-    "bijux-dna bench readiness render-vcf-parser-fixture-coverage",
-    "bijux-dna bench readiness render-vcf-normalized-metrics-schema",
-    "bijux-dna bench readiness render-vcf-parser-failure-tests",
-    "bijux-dna bench readiness render-vcf-adapter-missing-input-tests",
-    "bijux-dna bench readiness render-vcf-adapters-ready",
-    "bijux-dna bench readiness render-vcf-active-stage-tool-matrix",
-    "bijux-dna bench readiness render-vcf-local-container-smoke",
-    "bijux-dna bench readiness render-vcf-damage-filter-ready",
-    "bijux-dna bench readiness render-vcf-filter-ready",
-    "bijux-dna bench readiness render-vcf-gl-propagation-ready",
-    "bijux-dna bench readiness render-vcf-call-gl-ready",
-    "bijux-dna bench readiness render-vcf-call-diploid-ready",
-    "bijux-dna bench readiness render-vcf-call-pseudohaploid-ready",
-    "bijux-dna bench readiness render-vcf-admixture-ready",
-    "bijux-dna bench readiness render-vcf-population-structure-ready",
-    "bijux-dna bench readiness render-vcf-all-retained-tools-complete",
-    "bijux-dna bench readiness render-vcf-pca-ready",
-    "bijux-dna bench readiness render-vcf-stats-ready",
-    "bijux-dna bench readiness render-vcf-qc-ready",
-    "bijux-dna bench readiness render-vcf-call-ready",
-    "bijux-dna bench readiness render-vcf-prepare-reference-panel-ready",
-    "bijux-dna bench readiness render-vcf-adapter-output-coverage",
-    "bijux-dna bench readiness render-vcf-angsd-adapter",
-    "bijux-dna bench readiness render-vcf-descent-family-adapter",
-    "bijux-dna bench readiness render-vcf-eigensoft-adapter",
-    "bijux-dna bench readiness render-vcf-shapeit5-adapter",
-    "bijux-dna bench readiness render-vcf-eagle-adapter",
-    "bijux-dna bench readiness render-vcf-beagle-adapter",
-    "bijux-dna bench readiness render-vcf-imputation-family-adapter",
-    "bijux-dna bench readiness render-vcf-plink-adapter",
-    "bijux-dna bench readiness render-vcf-plink2-adapter",
-    "bijux-dna bench readiness render-vcf-bcftools-adapter",
-    "bijux-dna bench readiness render-vcf-matrix-registry-consistency",
-    "bijux-dna bench readiness render-vcf-orphan-tools",
-    "bijux-dna bench readiness render-vcf-undercovered-stages",
-    "bijux-dna bench readiness render-missing-result-report",
-    "bijux-dna bench readiness render-pair-readiness",
-    "bijux-dna bench readiness render-corpus-centric-report",
-    "bijux-dna bench readiness render-benchmark-readiness-dashboard",
-    "bijux-dna bench readiness render-stage-tool-benchmark-ready",
-    "bijux-dna bench readiness render-stage-centric-report",
-    "bijux-dna bench readiness render-tool-centric-report",
-    "bijux-dna bench readiness render-missing-benchmark-pairs",
-    "bijux-dna bench readiness render-tool-id-normalization",
-    "bijux-dna bench readiness render-stage-registry-extra-pairs",
-    "bijux-dna bench readiness render-unregistered-benchmark-pairs",
-    "bijux-dna bench readiness render-orphan-tools",
-    "bijux-dna bench readiness render-undercovered-stages",
-    "bijux-dna bench readiness validate-stage-scoring",
-    "bijux-dna bench readiness validate-tool-execution-modes",
-    "bijux-dna bench readiness validate-tool-families",
-    "bijux-dna bench local list-stages",
-    "bijux-dna bench local render-vcf-stage-catalog",
-    "bijux-dna bench local render-vcf-stage-matrix",
-    "bijux-dna bench local render-vcf-smoke-root",
-    "bijux-dna bench local run-fastq-micro-smoke-subset",
-    "bijux-dna bench local run-bam-micro-smoke-subset",
-    "bijux-dna bench local run-vcf-micro-smoke-subset",
-    "bijux-dna bench local run-amplicon-micro-pipeline",
-    "bijux-dna bench local run-adna-micro-pipeline",
-    "bijux-dna bench local run-edna-micro-pipeline",
-    "bijux-dna bench local run-core-germline-micro-pipeline",
-    "bijux-dna bench local run-bam-stage-smoke",
-    "bijux-dna bench local run-vcf-call-smoke",
-    "bijux-dna bench local run-vcf-call-diploid-smoke",
-    "bijux-dna bench local run-vcf-call-gl-smoke",
-    "bijux-dna bench local run-vcf-damage-filter-smoke",
-    "bijux-dna bench local run-vcf-filter-smoke",
-    "bijux-dna bench local run-vcf-qc-smoke",
-    "bijux-dna bench local run-vcf-admixture-smoke",
-    "bijux-dna bench local run-vcf-population-structure-smoke",
-    "bijux-dna bench local run-vcf-ibd-smoke",
-    "bijux-dna bench local run-vcf-demography-smoke",
-    "bijux-dna bench local run-vcf-roh-smoke",
-    "bijux-dna bench local run-vcf-pca-smoke",
-    "bijux-dna bench local run-vcf-stats-smoke",
-    "bijux-dna bench local run-vcf-gl-propagation-smoke",
-    "bijux-dna bench local run-vcf-prepare-reference-panel-smoke",
-    "bijux-dna bench local run-vcf-phasing-smoke",
-    "bijux-dna bench local run-vcf-impute-smoke",
-    "bijux-dna bench local run-vcf-imputation-metrics-smoke",
-    "bijux-dna bench local run-vcf-call-pseudohaploid-smoke",
-    "bijux-dna bench local validate-vcf-no-empty-output",
-    "bijux-dna bench local validate-vcf-smoke-suite-ready",
-    "bijux-dna bench local validate-vcf-stage-catalog-ready",
-    "bijux-dna bench local validate-vcf-reference-compatibility",
-    "bijux-dna bench local validate-vcf-sample-compatibility",
-    "bijux-dna bench local validate-hpc-submission-ready",
-    "bijux-dna bench local simulate-dag-watchdog",
-    "bijux-dna bench local validate-pipeline-dag",
-    "bijux-dna bench local validate-corpus-fixture",
-    "bijux-dna bench local validate-corpus-stage-compatibility",
-    "bijux-dna bench local render-corpus-skip-report",
-    "bijux-dna bench local validate-taxonomy-database-fixture",
-    "bijux-dna bench local judge-taxonomy-output",
-    "bijux-dna bench local validate-slurm-dependencies",
-    "bijux-dna bench local validate-slurm-shell-syntax",
-    "bijux-dna bench local validate-all-domain-slurm-shell-syntax",
-    "bijux-dna bench local validate-slurm-script-bodies",
-    "bijux-dna bench local validate-all-domain-slurm-script-bodies",
-    "bijux-dna bench local validate-all-domain-slurm-result-paths",
-    "bijux-dna bench local validate-hpc-asset-staging-manifest",
-    "bijux-dna bench local render-hpc-asset-staging-manifest",
-    "bijux-dna bench local validate-hpc-candidate-run-manifest",
-    "bijux-dna bench local render-hpc-candidate-run-manifest",
-    "bijux-dna bench local validate-hpc-dry-run-ready",
-    "bijux-dna bench local render-hpc-dry-run-ready",
-    "bijux-dna bench local validate-hpc-scratch-layout",
-    "bijux-dna bench local render-hpc-scratch-layout",
-    "bijux-dna bench local validate-hpc-execution-resolver",
-    "bijux-dna bench local render-hpc-execution-resolver",
-    "bijux-dna bench local validate-hpc-dependency-simulation",
-    "bijux-dna bench local render-hpc-dependency-simulation",
-    "bijux-dna bench local validate-hpc-resume-simulation",
-    "bijux-dna bench local render-hpc-resume-simulation",
-    "bijux-dna bench local validate-hpc-result-collection-simulation",
-    "bijux-dna bench local render-hpc-result-collection-simulation",
-    "bijux-dna bench local validate-hpc-stage-benchmark-array",
-    "bijux-dna bench local render-hpc-stage-benchmark-array",
-    "bijux-dna bench local validate-hpc-pipeline-node-array",
-    "bijux-dna bench local render-hpc-pipeline-node-array",
-    "bijux-dna bench local render-all-domain-slurm-submit-manifest",
-    "bijux-dna bench local render-slurm-submit-manifest",
-    "bijux-dna bench local render-benchmark-summary",
-    "bijux-dna bench local check-manifest-completion",
-    "bijux-dna bench local check-output-completion",
-    "bijux-dna bench local collect-runtime-metrics",
-    "bijux-dna bench local render-tool-comparison-template",
-    "bijux-dna bench local validate-stage-result",
-    "bijux-dna bench local materialize-stage",
-    "bijux-dna bench local run-real-smoke-core-subset",
-    "bijux-dna bench local run-amplicon-micro-pipeline",
-    "bijux-dna bench local run-adna-micro-pipeline",
-    "bijux-dna bench local run-edna-micro-pipeline",
-    "bijux-dna bench local run-core-germline-micro-pipeline",
-    "bijux-dna bench local fake-run-all-domains",
-    "bijux-dna bench local fake-run-all-domain-failures",
-    "bijux-dna bench local execute-all-domain-benchmark-result",
-    "bijux-dna bench local execute-essential-pipeline-node",
-    "bijux-dna bench local fake-run-essential-pipelines",
-    "bijux-dna bench local fake-run-failures",
-    "bijux-dna bench local fake-run-stages",
-    "bijux-dna bench local render-all-domain-slurm-scripts",
-    "bijux-dna bench local render-slurm-scripts",
-    "bijux-dna bench local render-stage-commands",
-    "bijux-dna bench schema",
-    "bijux-dna bench fastq trim-reads",
-    "bijux-dna bench fastq trim-polyg-tails",
-    "bijux-dna bench fastq trim-terminal-damage",
-    "bijux-dna bench fastq validate-reads",
-    "bijux-dna bench fastq detect-adapters",
-    "bijux-dna bench fastq profile-read-lengths",
-    "bijux-dna bench fastq filter",
-    "bijux-dna bench fastq filter-low-complexity",
-    "bijux-dna bench fastq merge",
-    "bijux-dna bench fastq remove-duplicates",
-    "bijux-dna bench fastq remove-chimeras",
-    "bijux-dna bench fastq normalize-primers",
-    "bijux-dna bench fastq infer-asvs",
-    "bijux-dna bench fastq cluster-otus",
-    "bijux-dna bench fastq normalize-abundance",
-    "bijux-dna bench fastq correct",
-    "bijux-dna bench fastq report-qc",
-    "bijux-dna bench fastq umi",
-    "bijux-dna bench fastq index-reference",
-    "bijux-dna bench fastq screen-taxonomy",
-    "bijux-dna bench fastq deplete-host",
-    "bijux-dna bench fastq deplete-reference-contaminants",
-    "bijux-dna bench fastq deplete-rrna",
-    "bijux-dna bench fastq profile-reads",
-    "bijux-dna bench fastq profile-overrepresented-sequences",
-    "bijux-dna bench fastq preprocess",
-    "bijux-dna bench bam stage",
-    "bijux-dna bench bam pipeline",
-    "bijux-dna ena select",
-    "bijux-dna ena fetch",
-    "bijux-dna tool validate",
-    "bijux-dna domain validate",
-    "bijux-dna domain coverage",
-    "bijux-dna lab corpus list-fastq",
-    "bijux-dna config init-hpc",
-    "bijux-dna config doctor",
-    "bijux-dna config campaign-preflight",
-    "bijux-dna config campaign-dry-run",
-    "bijux-dna config write-campaign-profiles",
-    "bijux-dna slurm submit-stage-benchmark",
-    "bijux-dna slurm submit-domain-benchmark",
-    "bijux-dna slurm submit-cross-benchmark",
-    "bijux-dna slurm submit-campaign",
-    "bijux-dna slurm copy-back-manifest",
-    "bijux-dna slurm verify-bundle",
-    "bijux-dna slurm decrypt-bundle",
-    "bijux-dna slurm rewrap-bundle",
-    "bijux-dna slurm import-replay",
-    "bijux-dna slurm import-campaign",
-    "bijux-dna slurm export-failure-bundle",
-    "bijux-dna slurm share-bundle",
-    "bijux-dna slurm verify-results-policy",
-    "bijux-dna bam run",
-    "bijux-dna bam list-stages",
-    "bijux-dna bam explain",
-    "bijux-dna vcf plan",
-    "bijux-dna vcf explain",
-    "bijux-dna vcf run",
-    "bijux-dna validate-manifests",
-    "bijux-dna platform",
-    "bijux-dna image-qa",
-    "bijux-dna replay",
-    "bijux-dna compare",
-    "bijux-dna policies audit",
-    "bijux-dna ci validate",
-    "bijux-dna dev ci validate",
-    "bijux-dna dev ci audit",
-    "bijux-dna dev ci changed-paths",
-    "bijux-dna dev ci budget-check",
-    "bijux-dna dev ci audit-features",
-    "bijux-dna dev ci gate",
-    "bijux-dna dev crates graph",
-    "bijux-dna dev crates check-cycles",
-    "bijux-dna dev crates gate",
-    "bijux-dna dev crates metric-registry",
-    "bijux-dna dev crates result-id-stability",
-    "bijux-dna dev crates domain-no-execution",
-    "bijux-dna dev crates parser-no-execution",
-    "bijux-dna dev crates planner-no-parser",
-    "bijux-dna dev crates runner-owns-process-execution",
-    "bijux-dna debug",
-    "bijux-dna collect",
-];
+use bijux_dna::public_api::cli::Cli;
+use clap::{Command, CommandFactory};
 
 const REQUIRED_SECTIONS: &[&str] = &[
     "## Stable Operator Commands",
@@ -482,11 +33,47 @@ fn command_doc_is_complete_cli_inventory() {
     for section in REQUIRED_SECTIONS {
         assert!(commands.contains(section), "COMMANDS.md must include `{section}`");
     }
+    let mut cli = without_generated_help(Cli::command());
+    cli.build();
+    let mut declared = BTreeSet::new();
+    collect_leaf_commands(&cli, cli.get_name(), &mut declared);
+    assert!(!declared.is_empty(), "the public parser has no declared command leaves");
     assert_eq!(
-        documented_cli_commands(&commands),
-        CLI_COMMANDS.iter().map(|command| (*command).to_string()).collect(),
-        "docs/COMMANDS.md must list the exact CLI command inventory"
+        resolve_documented_command(&cli, "bijux-dna bench active-scope validate --fast"),
+        Ok("bijux-dna benchmark active-scope validate".to_string())
     );
+    assert_eq!(
+        resolve_documented_command(&cli, "bijux-dna environment export-containers --json"),
+        Ok("bijux-dna env export-containers".to_string())
+    );
+    assert_eq!(
+        resolve_documented_command(&cli, "bijux-dna run validate"),
+        Ok("bijux-dna run validate-pre".to_string())
+    );
+    assert!(resolve_documented_command(&cli, "bijux-dna env undeclared-command").is_err());
+    assert!(resolve_documented_command(&cli, "bijux-dna env info --undeclared-option").is_err());
+    let entries = documented_cli_commands(&commands);
+    for required in [
+        "bijux-dna env export-containers --json",
+        "bijux-dna registry export-containers --json",
+        "bijux-dna bench active-scope validate --fast",
+    ] {
+        assert!(entries.contains(required), "COMMANDS.md must retain option example `{required}`");
+    }
+    let documented = entries
+        .iter()
+        .map(|entry| {
+            resolve_documented_command(&cli, entry)
+                .unwrap_or_else(|error| panic!("invalid documented command `{entry}`: {error}"))
+        })
+        .collect::<BTreeSet<_>>();
+    let missing = declared.difference(&documented).collect::<Vec<_>>();
+    let foreign = documented.difference(&declared).collect::<Vec<_>>();
+    eprintln!(
+        "CLI_COMMAND_TREE_CONTROLS_PASS: declared={} documented={} missing={missing:?} foreign={foreign:?}",
+        declared.len(), documented.len()
+    );
+    assert_eq!(documented, declared, "COMMANDS.md must cover every public parser leaf");
     assert!(
         commands.contains("- `bijux-dna run validate` aliases `bijux-dna run validate-pre`."),
         "COMMANDS.md must document the visible validate alias"
@@ -501,6 +88,75 @@ fn command_doc_is_complete_cli_inventory() {
         ),
         "COMMANDS.md must list the focused command-inventory verification command"
     );
+}
+
+// Disable only generated help commands before building the real declaration tree.
+// Hidden application commands and explicitly declared commands remain governed.
+fn without_generated_help(command: Command) -> Command {
+    command.disable_help_subcommand(true).mut_subcommands(without_generated_help)
+}
+
+fn collect_leaf_commands(command: &Command, path: &str, leaves: &mut BTreeSet<String>) {
+    if command.get_subcommands().next().is_none() {
+        assert!(leaves.insert(path.to_string()), "duplicate parser leaf `{path}`");
+        return;
+    }
+    for child in command.get_subcommands() {
+        collect_leaf_commands(child, &format!("{path} {}", child.get_name()), leaves);
+    }
+}
+
+fn resolve_documented_command(cli: &Command, entry: &str) -> Result<String, String> {
+    let mut words = entry.split_whitespace().peekable();
+    if words.next() != Some(cli.get_name()) {
+        return Err("entry must start with the public executable name".to_string());
+    }
+    let mut command = cli;
+    let mut canonical = cli.get_name().to_string();
+    while words.peek().is_some_and(|word| !word.starts_with('-')) {
+        let name = words.next().ok_or("missing command token")?;
+        command = command
+            .get_subcommands()
+            .find(|child| {
+                child.get_name() == name || child.get_all_aliases().any(|alias| alias == name)
+            })
+            .ok_or_else(|| format!("undeclared subcommand `{name}` below `{canonical}`"))?;
+        canonical.push(' ');
+        canonical.push_str(command.get_name());
+    }
+    if command.get_subcommands().next().is_some() {
+        return Err(format!("`{canonical}` names a command group rather than a leaf"));
+    }
+    // Inventory entries name commands and optional flag markers, not complete invocations.
+    // Required positional inputs and option values belong to the command's usage documentation.
+    for option in words {
+        let (flag, value) =
+            option.split_once('=').map_or((option, None), |(flag, value)| (flag, Some(value)));
+        let argument = command
+            .get_arguments()
+            .find(|argument| {
+                if let Some(long) = flag.strip_prefix("--") {
+                    argument.get_long() == Some(long)
+                        || argument.get_all_aliases().is_some_and(|aliases| aliases.contains(&long))
+                } else if let Some(short) =
+                    flag.strip_prefix('-').filter(|short| short.chars().count() == 1)
+                {
+                    short.chars().next().is_some_and(|short| {
+                        argument.get_short() == Some(short)
+                            || argument
+                                .get_all_short_aliases()
+                                .is_some_and(|aliases| aliases.contains(&short))
+                    })
+                } else {
+                    false
+                }
+            })
+            .ok_or_else(|| format!("undeclared option `{option}` for `{canonical}`"))?;
+        if value.is_some() && !argument.get_action().takes_values() {
+            return Err(format!("flag `{flag}` does not accept an attached value"));
+        }
+    }
+    Ok(canonical)
 }
 
 fn documented_cli_commands(commands: &str) -> BTreeSet<String> {
