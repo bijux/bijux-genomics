@@ -17,6 +17,8 @@ fn is_allowed_writer_path(path: &Path) -> bool {
         // Developer process logs and immutable source materialization are runtime effects.
         || path_str.ends_with("/crates/bijux-dna-dev/src/runtime/process.rs")
         || path_str.ends_with("/crates/bijux-dna-dev/src/runtime/source_snapshot.rs")
+        // Output-root checks probe permissions only within their admitted owned artifact directory.
+        || path_str.ends_with("/crates/bijux-dna-dev/src/commands/repo_checks/artifacts.rs")
         || path_str.contains("/crates/bijux-dna-runner/src/backend/slurm/qualification/")
         || path_str.contains("/crates/bijux-dna-runner/src/step_runner/external_artifact.rs")
         || path_str.contains("/crates/bijux-dna-containers/src/build/")
@@ -310,7 +312,9 @@ fn policy__boundaries__path_policies__crates_do_not_reference_removed_fastq_test
 
 #[test]
 fn policy__boundaries__path_policies__developer_effects_have_exact_runtime_owners() {
-    for relative in ["runtime/process.rs", "runtime/source_snapshot.rs"] {
+    for relative in
+        ["runtime/process.rs", "runtime/source_snapshot.rs", "commands/repo_checks/artifacts.rs"]
+    {
         assert!(is_allowed_writer_path(&PathBuf::from(format!(
             "/workspace/crates/bijux-dna-dev/src/{relative}"
         ))));
@@ -321,6 +325,9 @@ fn policy__boundaries__path_policies__developer_effects_have_exact_runtime_owner
         "runtime/process.rs.disabled",
         "application/ci/executables.rs",
         "commands/ops/tooling/ci.rs",
+        "commands/repo_checks/artifacts.rs.disabled",
+        "commands/repo_checks/artifact_paths.rs",
+        "commands/repo_checks/artifacts/other.rs",
     ] {
         assert!(!is_allowed_writer_path(&PathBuf::from(format!(
             "/workspace/crates/bijux-dna-dev/src/{relative}"
