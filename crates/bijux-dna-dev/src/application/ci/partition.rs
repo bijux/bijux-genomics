@@ -13,11 +13,34 @@ pub(crate) struct ShardDiscoveryPlan {
     pub(crate) filterset: String,
     pub(crate) expected_case_count: usize,
     selected_binary_count: usize,
+    case_universe_sha256: String,
     #[serde(skip)]
     pub(super) expected: BTreeSet<TestIdentity>,
 }
 
 impl ShardDiscoveryPlan {
+    pub(crate) fn verify_inventory(&self, inventory: &ExpectedTestInventory) -> Result<()> {
+        self.require_partition(inventory, &self.partition)
+    }
+
+    pub(crate) fn require_partition(
+        &self,
+        inventory: &ExpectedTestInventory,
+        partition: &str,
+    ) -> Result<()> {
+        let expected = Self::from_inventory(inventory, partition, "0.9.100")?;
+        ensure!(
+            self.partition == expected.partition
+                && self.case_universe_sha256 == expected.case_universe_sha256
+                && self.expected == expected.expected
+                && self.filterset == expected.filterset
+                && self.expected_case_count == expected.expected_case_count
+                && self.selected_binary_count == expected.selected_binary_count,
+            "partition plan differs from admitted case inventory or assignment"
+        );
+        Ok(())
+    }
+
     pub(crate) fn selected_binary_ids(&self) -> BTreeSet<String> {
         self.expected.iter().map(|case| case.binary_id.clone()).collect()
     }
@@ -60,6 +83,9 @@ impl ShardDiscoveryPlan {
             filterset,
             expected_case_count: expected.len(),
             selected_binary_count: binaries.len(),
+            case_universe_sha256: bijux_dna_infra::hash_bytes_sha256(&serde_json::to_vec(
+                &inventory.cases.values().map(|(case, _)| case).collect::<Vec<_>>(),
+            )?),
             expected,
         })
     }

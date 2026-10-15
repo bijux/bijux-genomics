@@ -86,6 +86,13 @@ It admits preparation and test execution together within a detected CPU allocati
 are required; the admitted process/thread product cannot exceed the worker budget. Archive
 compilation has a separate contract budget. Scratch storage and memory still need capacity
 for the selected roster; declaring more partitions does not provide more resources.
+A partition whose exact source-bound inventory assignment contains no cases terminates as
+`expected_empty`, with no native process, case events, exit code, or copied workspace.
+Executed partitions retain their actual native exit and logs. An empty event stream for a
+nonempty assignment still fails; empty planned assignments never replace missing native evidence.
+The complete receipt retains the full inventory hash, exact plans, source identity, and union
+reconciliation. Consumers must distinguish an `expected_empty` row with a null exit from an
+executed row; a zero test count alone is not execution evidence.
 
 CI profile automation:
 - Fast: `cargo run -q -p bijux-dna-dev -- tooling run ci-fast`

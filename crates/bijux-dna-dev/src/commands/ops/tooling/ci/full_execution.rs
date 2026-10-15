@@ -184,6 +184,7 @@ pub(super) struct ShardInputs<'a> {
     pub roots: &'a [FullShardRoots],
     pub plans: &'a [ShardDiscoveryPlan],
     pub inventory: &'a crate::application::ci::ExpectedTestInventory,
+    pub inventory_bytes: &'a [u8],
     pub snapshot: &'a TrackedSourceSnapshot,
     pub scratch_root: &'a Path,
     pub report_root: &'a Path,
@@ -193,9 +194,64 @@ pub(super) struct ShardInputs<'a> {
     pub crate_gate_inputs: &'a CrateGateProofInputs,
 }
 
+/// A planned empty assignment is terminal without inventing a native process or case event.
+pub(super) enum ShardTerminal {
+    Executed(ParallelProcessOutput),
+    ExpectedEmpty { label: String },
+}
+
+impl ShardTerminal {
+    pub(super) fn label(&self) -> &str {
+        match self {
+            Self::Executed(output) => &output.label,
+            Self::ExpectedEmpty { label } => label,
+        }
+    }
+
+    pub(super) fn events(&self) -> Option<&[u8]> {
+        match self {
+            Self::Executed(output) => Some(&output.output.stdout),
+            Self::ExpectedEmpty { .. } => None,
+        }
+    }
+
+    pub(super) fn stdout(&self) -> &[u8] {
+        self.events().unwrap_or_default()
+    }
+
+    pub(super) fn stderr(&self) -> &[u8] {
+        match self {
+            Self::Executed(output) => &output.output.stderr,
+            Self::ExpectedEmpty { .. } => &[],
+        }
+    }
+
+    pub(super) fn duration(&self) -> std::time::Duration {
+        match self {
+            Self::Executed(output) => output.duration,
+            Self::ExpectedEmpty { .. } => std::time::Duration::ZERO,
+        }
+    }
+
+    pub(super) fn exit_code(&self) -> Option<i32> {
+        match self {
+            Self::Executed(output) => Some(output.output.status.code().unwrap_or(1)),
+            Self::ExpectedEmpty { .. } => None,
+        }
+    }
+
+    pub(super) fn succeeded(&self) -> bool {
+        self.exit_code().is_none_or(|code| code == 0)
+    }
+
+    pub(super) fn is_empty(&self) -> bool {
+        matches!(self, Self::ExpectedEmpty { .. })
+    }
+}
+
 pub(super) struct ShardExecution {
     pub workspaces: Vec<PathBuf>,
-    pub outputs: Vec<ParallelProcessOutput>,
+    pub outputs: Vec<ShardTerminal>,
     pub preparation_milliseconds: BTreeMap<String, u64>,
     pub crate_gate_proof_inputs: BTreeMap<String, serde_json::Value>,
 }

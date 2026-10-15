@@ -1334,11 +1334,6 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
                         &shard.partition,
                         &build_authority.test_executor.version,
                     )?;
-                    anyhow::ensure!(
-                        plan.expected_case_count > 0,
-                        "selected shard {} has no expected cases",
-                        shard.id
-                    );
                     Ok(plan)
                 })
                 .collect::<Result<Vec<_>>>()?;
@@ -1364,6 +1359,7 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
                     roots: &shard_roots,
                     plans: &shard_plans,
                     inventory: &expected_inventory,
+                    inventory_bytes: &inventory_bytes,
                     snapshot: &source_snapshot,
                     scratch_root: &storage.scratch_root,
                     report_root: &report_root,
@@ -1374,26 +1370,27 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
                 },
                 &execution_budget,
             )?;
-            let coverage = CoverageAttestation::reconcile_planned(
+            let coverage = CoverageAttestation::reconcile_terminals(
                 &expected_inventory,
-                outputs.iter().zip(&shard_plans).map(|(completed, plan)| {
-                    (completed.label.as_str(), completed.output.stdout.as_slice(), plan)
-                }),
+                outputs
+                    .iter()
+                    .zip(&shard_plans)
+                    .map(|(completed, plan)| (completed.label(), completed.events(), plan)),
             );
             let mut all_passed = coverage.selected_shards_valid
                 && (selected_shards.len() != contract.shards.len() || coverage.complete);
             let mut shard_receipts = Vec::with_capacity(outputs.len());
             for (((shard, shard_workspace), roots), completed) in
-                selected_shards.iter().zip(&shard_workspaces).zip(&shard_roots).zip(outputs)
+                selected_shards.iter().zip(&shard_workspaces).zip(&shard_roots).zip(&outputs)
             {
                 let log_path = report_root.join(format!("{}.log", shard.id));
-                let mut log = completed.output.stdout.clone();
-                log.extend_from_slice(&completed.output.stderr);
+                let mut log = completed.stdout().to_vec();
+                log.extend_from_slice(completed.stderr());
                 bijux_dna_infra::write_bytes(&log_path, &log)?;
-                let exit_code = completed.output.status.code().unwrap_or(1);
-                all_passed &= exit_code == 0;
-                stdout.push_str(&String::from_utf8_lossy(&completed.output.stdout));
-                stderr.push_str(&String::from_utf8_lossy(&completed.output.stderr));
+                let exit_code = completed.exit_code();
+                all_passed &= completed.succeeded();
+                stdout.push_str(&String::from_utf8_lossy(completed.stdout()));
+                stderr.push_str(&String::from_utf8_lossy(completed.stderr()));
                 let mut environment_roots =
                     full_shard_root_receipt(roots, &archive_roots, shard_workspace);
                 environment_roots["compiled_target_dir"] = serde_json::json!(compiled_target);
@@ -1403,11 +1400,13 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
                         serde_json::json!("local_compile_time_metadata");
                 }
                 shard_receipts.push(serde_json::json!({
-            "id": completed.label,
+            "id": completed.label(),
+            "state": if completed.is_empty() { "expected_empty" } else { "executed" },
+            "native_execution_observed": !completed.is_empty(),
             "partition": shard.partition,
-            "workspace": workspace.rel(shard_workspace).to_string_lossy(),
+            "workspace": (!completed.is_empty()).then(|| workspace.rel(shard_workspace).to_string_lossy()),
             "environment_roots": environment_roots,
-            "duration_milliseconds": completed.duration.as_millis(),
+            "duration_milliseconds": completed.duration().as_millis(),
             "duration_scope": "sum_of_terminally_sequenced_native_chunk_preparation_and_execution",
             "preparation_milliseconds": shard_preparation.get(&shard.id),
             "crate_gate_proof_inputs": shard_proof_inputs.get(&shard.id),
@@ -1447,7 +1446,11 @@ pub(in super::super) fn tooling_ci_test_all_sharded(
             source_postconditions.extend(
                 shard_workspaces
                     .iter()
-                    .map(|root| expected_source.postcondition(&Workspace { root: root.clone() })),
+                    .zip(&outputs)
+                    .filter(|(_, terminal)| !terminal.is_empty())
+                    .map(|(root, _)| {
+                        expected_source.postcondition(&Workspace { root: root.clone() })
+                    }),
             );
             let source_unchanged =
                 source_postconditions.iter().all(|observed| observed["unchanged"] == true);
