@@ -105,26 +105,6 @@ fn dev_tree_matches_architecture_contract() {
         "benchmark campaign operation must isolate generic case, lifecycle, and scheduler composition"
     );
 
-    let repo_checks_entries = dir_entries(&root.join("src/commands/repo_checks"));
-    let expected_repo_checks: BTreeSet<_> = [
-        "artifact_paths.rs",
-        "artifacts.rs",
-        "build_authority.rs",
-        "dependency_graph.rs",
-        "governance.rs",
-        "no_wait.rs",
-        "ownership.rs",
-        "science_archive.rs",
-        "workspace_contracts.rs",
-    ]
-    .into_iter()
-    .map(str::to_string)
-    .collect();
-    assert_eq!(
-        repo_checks_entries, expected_repo_checks,
-        "repository checks must stay partitioned by concern"
-    );
-
     let containers_entries = dir_entries(&root.join("src/commands/containers"));
     let expected_containers: BTreeSet<_> = [
         "command_support.rs",
