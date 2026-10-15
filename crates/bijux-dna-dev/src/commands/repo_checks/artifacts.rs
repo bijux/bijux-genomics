@@ -268,13 +268,11 @@ pub(crate) fn check_output_roots(
     check: &CheckDefinition,
 ) -> Result<CheckOutcome> {
     let mut offenders = Vec::new();
-    let sentinel = workspace.path(".sentinel-readonly");
-    if sentinel.exists() {
-        std::fs::remove_dir_all(&sentinel)
-            .with_context(|| format!("remove {}", sentinel.display()))?;
-    }
-    bijux_dna_infra::ensure_dir(&sentinel)
-        .with_context(|| format!("create {}", sentinel.display()))?;
+    let artifact_root =
+        workspace.admit_artifact_path(std::path::Path::new("artifacts/checks/output-roots"))?;
+    let probe = bijux_dna_infra::temp_dir_in(&artifact_root, "readonly-probe-")
+        .with_context(|| format!("create permission probe under {}", artifact_root.display()))?;
+    let sentinel = probe.path().to_path_buf();
     #[cfg(unix)]
     {
         use std::os::unix::fs::PermissionsExt;
@@ -283,8 +281,12 @@ pub(crate) fn check_output_roots(
         perms.set_mode(0o555);
         std::fs::set_permissions(&sentinel, perms)?;
     }
-    let touch_result = bijux_dna_infra::write_bytes(sentinel.join("forbidden"), b"blocked");
-    std::fs::remove_dir_all(&sentinel).with_context(|| format!("remove {}", sentinel.display()))?;
+    let touch_result = std::fs::OpenOptions::new()
+        .write(true)
+        .create_new(true)
+        .open(sentinel.join("forbidden"))
+        .and_then(|mut file| std::io::Write::write_all(&mut file, b"blocked"));
+    probe.close().with_context(|| format!("remove {}", sentinel.display()))?;
     if touch_result.is_ok() {
         offenders.push(".sentinel-readonly unexpectedly writable".to_string());
     }
@@ -293,3 +295,7 @@ pub(crate) fn check_output_roots(
     }
     fail(check, offenders.join("\n"))
 }
+
+#[cfg(test)]
+#[path = "artifacts/output_roots_tests.rs"]
+mod output_roots_tests;
