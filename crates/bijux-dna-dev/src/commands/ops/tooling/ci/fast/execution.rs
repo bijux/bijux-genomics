@@ -3,10 +3,13 @@ use std::path::Path;
 
 use crate::runtime::process::{DependencyProcessOutput, DependentProcessSpec};
 
-use super::{
-    cargo_lock_wait_events, ci_fast_group_env, duration_milliseconds, FastBuildAuthority,
-    FastGroupContract, ParallelProcessSpec, ProcessRunner, Result, Workspace,
-};
+use super::super::duration_milliseconds;
+use super::compiler_cache::{ci_fast_group_env, FastBuildAuthority};
+use super::contract::FastGroupContract;
+use super::timing::cargo_lock_wait_events;
+use crate::runtime::process::{ParallelProcessSpec, ProcessRunner};
+use crate::runtime::workspace::Workspace;
+use anyhow::Result;
 
 #[derive(Default)]
 pub(super) struct FastGroupExecution {

@@ -1,51 +1,65 @@
+//! Registered CI command facade and shared artifact admission.
 mod complete;
-mod fast_execution;
+mod fast;
 mod full_execution;
 
 pub(in super::super) use complete::tooling_ci_test_complete;
+pub(in super::super) use fast::tooling_ci_fast;
 
-use super::super::suite_selection::governed_slow_expression;
-use std::collections::{BTreeMap, BTreeSet};
-use std::path::{Component, Path, PathBuf};
-use std::time::{Duration, Instant};
-
-use bijux_dna_policies::{validate_ci_build_authority, CiBuildAuthority};
-use serde::{Deserialize, Serialize};
-
-use super::{
-    artifact_env, artifact_env_with_common_test_env, artifact_root_path, ci_test_env,
-    ensure_help_only, env_or_default, fs, merge_outcomes, read_coverage_runner_flag,
-    resolved_nextest_expression, resolved_nextest_profile, resolved_nextest_threads,
-    resolved_run_ignored, run_check_ids, run_make_target, run_program_with_env,
-    set_assets_readonly, write_json_pretty, Context, OpsCommandOutcome, Result, Workspace,
-};
-use crate::application::ci::{
-    admit_compiled_executable_paths, CompiledWorkspaceExecutables, CoverageAttestation,
-    ExpectedTestInventory, NextestReuseInputs, ShardDiscoveryPlan,
-};
+use crate::application::ci::admit_compiled_executable_paths;
+use crate::application::ci::CompiledWorkspaceExecutables;
+use crate::application::ci::CoverageAttestation;
+use crate::application::ci::ExpectedTestInventory;
+use crate::application::ci::NextestReuseInputs;
+use crate::application::ci::ShardDiscoveryPlan;
+use crate::commands::ops::suite_selection::governed_slow_expression;
+use crate::commands::ops::tooling::artifact_env;
+use crate::commands::ops::tooling::artifact_root_path;
+use crate::commands::ops::tooling::ci_test_env;
+use crate::commands::ops::tooling::ensure_help_only;
+use crate::commands::ops::tooling::env_or_default;
+use crate::commands::ops::tooling::merge_outcomes;
+use crate::commands::ops::tooling::read_coverage_runner_flag;
+use crate::commands::ops::tooling::resolved_nextest_expression;
+use crate::commands::ops::tooling::resolved_nextest_profile;
+use crate::commands::ops::tooling::resolved_nextest_threads;
+use crate::commands::ops::tooling::resolved_run_ignored;
+use crate::commands::ops::tooling::run_check_ids;
+use crate::commands::ops::tooling::run_make_target;
+use crate::commands::ops::tooling::run_program_with_env;
+use crate::commands::ops::tooling::set_assets_readonly;
+use crate::commands::ops::tooling::write_json_pretty;
+use crate::model::ops::OpsCommandOutcome;
 use crate::runtime::compilation_cache::CompilationCache;
-use crate::runtime::compiled_products::{
-    discover_native_inventory, ExecutableSeal, LocalCompiledProducts,
-};
-use crate::runtime::owned_artifacts::{
-    owned_children, remove_empty_owned_directory, remove_owned_tree as remove_full_shard_ephemera,
-    remove_owned_trees,
-};
-use crate::runtime::process::{ParallelProcessSpec, ProcessRunner};
-use crate::runtime::source_snapshot::{IsolatedSourceIdentity, TrackedSourceSnapshot};
+use crate::runtime::compiled_products::discover_native_inventory;
+use crate::runtime::compiled_products::ExecutableSeal;
+use crate::runtime::compiled_products::LocalCompiledProducts;
+use crate::runtime::owned_artifacts::owned_children;
+use crate::runtime::owned_artifacts::remove_empty_owned_directory;
+use crate::runtime::owned_artifacts::remove_owned_tree as remove_full_shard_ephemera;
+use crate::runtime::owned_artifacts::remove_owned_trees;
+use crate::runtime::process::ParallelProcessSpec;
+use crate::runtime::process::ProcessRunner;
+use crate::runtime::source_snapshot::IsolatedSourceIdentity;
+use crate::runtime::source_snapshot::TrackedSourceSnapshot;
+use crate::runtime::workspace::Workspace;
+use anyhow::Context;
+use anyhow::Result;
+use bijux_dna_policies::validate_ci_build_authority;
+use bijux_dna_policies::CiBuildAuthority;
+use serde::Deserialize;
+use std::collections::BTreeMap;
+use std::collections::BTreeSet;
+use std::fs;
+use std::path::Component;
+use std::path::Path;
+use std::path::PathBuf;
+use std::time::Duration;
+use std::time::Instant;
 
 const FULL_SHARDS_SCHEMA_V5: &str = "bijux.ci.full_shards.v5";
-const FAST_GROUPS_SCHEMA_V3: &str = "bijux.ci.fast_groups.v3";
-const FAST_TIMING_SCHEMA_V5: &str = "bijux.ci.fast_timing.v5";
-const CI_CRITICAL_PATH_BASELINE_SCHEMA_V1: &str = "bijux.ci.critical_path_baseline.v1";
-const FAST_TIMING_HISTORY_SCHEMA_V4: &str = "bijux.ci.fast_timing_history.v4";
+
 const FULL_SHARD_SCRATCH_ROOT_ENV: &str = "BIJUX_CI_FULL_SHARD_SCRATCH_ROOT";
-#[cfg(unix)]
-const SCCACHE_UNIX_SOCKET_PATH_MAX_BYTES: usize = 107;
-#[cfg(unix)]
-const SCCACHE_UNIX_RUNTIME_TMPDIR: &str = "/tmp";
-#[cfg(unix)]
-const SCCACHE_RUSTC_WRAPPER: &str = "#!/bin/sh\ncompiler=$1\nshift\nif [ \"$#\" -eq 1 ] && [ \"$1\" = -vV ]; then\n  exec \"$compiler\" \"$@\"\nfi\nexec \"$BIJUX_CI_SCCACHE\" \"$compiler\" \"$@\"\n";
 
 #[derive(Debug, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -117,23 +131,6 @@ struct ArchivedExecutableSeal {
     producer: ExecutableSeal,
 }
 
-#[derive(Debug)]
-struct OwnedSccacheServer<'a> {
-    workspace: &'a Workspace,
-    wrapper: String,
-    runtime_env: Vec<(String, String)>,
-}
-
-impl Drop for OwnedSccacheServer<'_> {
-    fn drop(&mut self) {
-        let _ = ProcessRunner::new(self.workspace).run_owned_with_env(
-            &self.wrapper,
-            &["--stop-server".to_string()],
-            &self.runtime_env,
-        );
-    }
-}
-
 #[derive(Debug, Clone, PartialEq, Eq)]
 struct FullShardStorageRoots {
     retained_report_root: PathBuf,
@@ -191,114 +188,6 @@ impl Drop for FullShardEphemera {
             let _ = self.retain_bounded_evidence();
         }
     }
-}
-
-#[derive(Debug, Deserialize)]
-#[serde(deny_unknown_fields)]
-struct FastGroupContract {
-    schema_version: String,
-    max_parallelism: usize,
-    warm_cache_target_milliseconds: u64,
-    minimum_cache_hit_ratio_basis_points: u64,
-    history_limit: usize,
-    report_root: String,
-    timing_report: String,
-    timing_history: String,
-    baseline_report: String,
-    reference_runner: FastReferenceRunner,
-    excluded_lanes: Vec<FastExcludedLane>,
-    groups: Vec<FastGroup>,
-}
-
-#[derive(Debug, Clone, Deserialize, Serialize)]
-#[serde(deny_unknown_fields)]
-struct FastExcludedLane {
-    id: String,
-    reason: String,
-    evidence_command: String,
-}
-
-#[derive(Debug, Deserialize)]
-#[serde(deny_unknown_fields)]
-struct FastReferenceRunner {
-    os: String,
-    architecture: String,
-    rust_toolchain: String,
-    compiler_wrapper: String,
-}
-
-#[derive(Debug, Deserialize)]
-#[serde(deny_unknown_fields)]
-struct FastGroup {
-    id: String,
-    dependencies: Vec<String>,
-    program: String,
-    args: Vec<String>,
-}
-
-#[derive(Debug, Deserialize, Serialize)]
-#[serde(deny_unknown_fields)]
-struct FastTimingHistory {
-    schema_version: String,
-    observations: Vec<FastTimingObservation>,
-}
-
-#[derive(Debug, Deserialize, Serialize)]
-#[serde(deny_unknown_fields)]
-struct FastTimingObservation {
-    observed_at_utc: String,
-    source_commit: String,
-    os: String,
-    architecture: String,
-    #[serde(default)]
-    rust_toolchain: String,
-    #[serde(default)]
-    compiler_wrapper: String,
-    cache_state: String,
-    #[serde(default)]
-    cache_authority: String,
-    #[serde(default)]
-    build_authority: String,
-    #[serde(default)]
-    cache_hit_ratio_basis_points: u64,
-    #[serde(default)]
-    cache_reuse_mode: String,
-    wall_time_milliseconds: u64,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-struct FastBuildAuthority {
-    target: PathBuf,
-    shared: bool,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-struct FastCacheStats {
-    cache_location: String,
-    compile_requests: u64,
-    requests_executed: u64,
-    cache_hits: u64,
-    cache_misses: u64,
-    cache_writes: u64,
-    cache_errors: u64,
-    cache_timeouts: u64,
-    cache_read_errors: u64,
-    cache_write_errors: u64,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-struct FastCacheDelta {
-    cache_location: String,
-    compile_requests: u64,
-    requests_executed: u64,
-    cache_hits: u64,
-    cache_misses: u64,
-    cache_writes: u64,
-    cache_errors: u64,
-    cache_timeouts: u64,
-    cache_read_errors: u64,
-    cache_write_errors: u64,
-    hit_ratio_basis_points: u64,
 }
 
 pub(in super::super) fn tooling_ci_fmt(
@@ -432,501 +321,6 @@ pub(in super::super) fn tooling_ci_install_tools(
         &artifact_env(workspace)?,
     )?;
     Ok(merge_outcomes(executor, supporting_tools))
-}
-
-pub(in super::super) fn tooling_ci_fast(
-    workspace: &Workspace,
-    args: &[String],
-) -> Result<OpsCommandOutcome> {
-    ensure_help_only("ci-fast", args)?;
-    let contract_path = workspace.path("configs/ci/fast-groups.json");
-    let contract: FastGroupContract = serde_json::from_slice(&fs::read(&contract_path)?)
-        .with_context(|| format!("parse {}", contract_path.display()))?;
-    validate_fast_group_contract(&contract)?;
-
-    let report_root = ci_output_path(workspace, &contract.report_root)?;
-    bijux_dna_infra::ensure_dir(&report_root)?;
-    let build_authority = ci_fast_build_authority(workspace)?;
-    let compiler_wrapper = compiler_wrapper_program(workspace)?;
-    let configured_sccache_socket = std::env::var_os("SCCACHE_SERVER_UDS").map(PathBuf::from);
-    let sccache_runtime_env = resolve_ci_fast_sccache_runtime_env(
-        compiler_wrapper.as_deref(),
-        configured_sccache_socket.clone(),
-    )?;
-    let _owned_sccache_server = start_owned_sccache_server(
-        workspace,
-        compiler_wrapper.as_deref(),
-        &sccache_runtime_env,
-        configured_sccache_socket.is_none(),
-    )?;
-    verify_sccache_compiler(workspace, compiler_wrapper.as_deref(), &sccache_runtime_env)?;
-    let group_compiler_env =
-        materialize_ci_fast_compiler_wrapper(&report_root, compiler_wrapper.as_deref())?;
-    let cache_before = compiler_wrapper.as_deref().and_then(|wrapper| {
-        read_sccache_stats(workspace, wrapper, &sccache_runtime_env).ok().flatten()
-    });
-    let started = Instant::now();
-    let fast_execution::FastGroupExecution {
-        passed,
-        failed,
-        receipts,
-        stdout,
-        stderr,
-        group_durations,
-        compiler_lock_wait_events,
-        compiler_lock_wait_duration_upper_bound_milliseconds,
-        compiler_lock_wait_targets,
-    } = fast_execution::run_groups(
-        workspace,
-        &contract,
-        &report_root,
-        &build_authority,
-        &sccache_runtime_env,
-        &group_compiler_env,
-    )?;
-
-    let wall_time_milliseconds = duration_milliseconds(started.elapsed());
-    let all_passed = failed.is_empty() && passed.len() == contract.groups.len();
-    let source_commit = source_commit(workspace)?;
-    let source_worktree_clean = source_worktree_clean(workspace)?;
-    let requested_cache_state = std::env::var("BIJUX_CI_CACHE_STATE")
-        .unwrap_or_else(|_| "unspecified".to_string())
-        .to_ascii_lowercase();
-    let actual_os = std::env::consts::OS.to_string();
-    let actual_architecture = std::env::consts::ARCH.to_string();
-    let actual_rust_toolchain = rust_toolchain_version(workspace)?;
-    let actual_compiler_wrapper = compiler_wrapper_identity(workspace)?;
-    let cache_after = compiler_wrapper.as_deref().and_then(|wrapper| {
-        read_sccache_stats(workspace, wrapper, &sccache_runtime_env).ok().flatten()
-    });
-    let cache_delta = cache_stats_delta(cache_before.as_ref(), cache_after.as_ref());
-    let shared_cache_authority =
-        cache_delta.as_ref().is_some_and(|delta| !delta.cache_location.contains(&source_commit));
-    let shared_build_authority = build_authority.shared
-        && !build_authority.target.to_string_lossy().contains(&source_commit);
-    let cache_reuse_mode = verified_warm_cache_mode(
-        &requested_cache_state,
-        shared_cache_authority,
-        shared_build_authority,
-        cache_delta.as_ref(),
-        contract.minimum_cache_hit_ratio_basis_points,
-    );
-    let observed_warm_cache = cache_reuse_mode.is_some();
-    let cache_state = if observed_warm_cache { "warm_verified" } else { "unverified" };
-    let eligible_reference_observation = all_passed
-        && source_worktree_clean
-        && observed_warm_cache
-        && actual_os == contract.reference_runner.os
-        && actual_architecture == contract.reference_runner.architecture
-        && actual_rust_toolchain == contract.reference_runner.rust_toolchain
-        && actual_compiler_wrapper.as_deref()
-            == Some(contract.reference_runner.compiler_wrapper.as_str());
-    let history_path = ci_output_path(workspace, &contract.timing_history)?;
-    let mut history = load_fast_timing_history(&history_path)?;
-    if eligible_reference_observation {
-        history.observations.push(FastTimingObservation {
-            observed_at_utc: chrono::Utc::now().to_rfc3339(),
-            source_commit: source_commit.clone(),
-            os: actual_os.clone(),
-            architecture: actual_architecture.clone(),
-            rust_toolchain: actual_rust_toolchain.clone(),
-            compiler_wrapper: actual_compiler_wrapper.clone().unwrap_or_default(),
-            cache_state: cache_state.to_string(),
-            cache_authority: cache_delta
-                .as_ref()
-                .map(|delta| delta.cache_location.clone())
-                .unwrap_or_default(),
-            build_authority: build_authority.target.display().to_string(),
-            cache_hit_ratio_basis_points: cache_delta
-                .as_ref()
-                .map_or(0, |delta| delta.hit_ratio_basis_points),
-            cache_reuse_mode: cache_reuse_mode.unwrap_or_default().to_string(),
-            wall_time_milliseconds,
-        });
-        if history.observations.len() > contract.history_limit {
-            let remove_count = history.observations.len() - contract.history_limit;
-            history.observations.drain(..remove_count);
-        }
-    }
-    write_json_pretty(&history_path, &serde_json::to_value(&history)?)?;
-    let samples = reference_timing_samples(&history, &contract.reference_runner);
-    let p50 = percentile(&samples, 50);
-    let p95 = percentile(&samples, 95);
-    let p95_within_target = if samples.len() >= 5 {
-        p95.map(|value| value <= contract.warm_cache_target_milliseconds)
-    } else {
-        None
-    };
-    let critical_path = ci_fast_critical_path(&contract.groups, &group_durations).map(
-        |(groups, duration_milliseconds)| {
-            serde_json::json!({
-                "groups": groups,
-                "duration_milliseconds": duration_milliseconds,
-            })
-        },
-    );
-    let observed_at_utc = chrono::Utc::now().to_rfc3339();
-    let contract_sha256 = bijux_dna_infra::hash_file_sha256(&contract_path)?;
-    let dependency_graph = contract
-        .groups
-        .iter()
-        .map(|group| {
-            serde_json::json!({
-                "id": group.id,
-                "dependencies": group.dependencies,
-                "command": std::iter::once(group.program.as_str())
-                    .chain(group.args.iter().map(String::as_str))
-                    .collect::<Vec<_>>(),
-            })
-        })
-        .collect::<Vec<_>>();
-    let compiler_lock_waits = serde_json::json!({
-        "measurement": "cargo diagnostic event count with conservative affected-target wall-time upper bound",
-        "event_count": compiler_lock_wait_events,
-        "affected_targets": compiler_lock_wait_targets,
-        "duration_upper_bound_milliseconds": compiler_lock_wait_duration_upper_bound_milliseconds,
-    });
-    let skipped_test_lanes = serde_json::to_value(&contract.excluded_lanes)?;
-    let runner = serde_json::json!({
-        "os": actual_os,
-        "architecture": actual_architecture,
-        "rust_toolchain": actual_rust_toolchain,
-        "compiler_wrapper": actual_compiler_wrapper,
-        "sccache_server_uds": sccache_runtime_env.iter().find_map(|(key, value)|
-            (key == "SCCACHE_SERVER_UDS").then_some(value)),
-        "sccache_runtime_tmpdir": sccache_runtime_env.iter().find_map(|(key, value)|
-            (key == "TMPDIR").then_some(value)),
-        "sccache_rustc_wrapper": group_compiler_env.iter().find_map(|(key, value)|
-            (key == "RUSTC_WRAPPER").then_some(value)),
-        "cache_state": cache_state,
-        "cache_reuse_mode": cache_reuse_mode,
-        "requested_cache_state": requested_cache_state,
-        "shared_cache_authority": shared_cache_authority,
-        "build_authority": build_authority.target,
-        "build_target_isolation": "per_group_under_shared_authority",
-        "shared_build_authority": shared_build_authority,
-        "cache_before": cache_before,
-        "cache_after": cache_after,
-        "cache_delta": cache_delta,
-        "source_worktree_clean": source_worktree_clean,
-    });
-    write_json_pretty(
-        &ci_output_path(workspace, &contract.timing_report)?,
-        &serde_json::json!({
-            "schema_version": FAST_TIMING_SCHEMA_V5,
-            "source_commit": source_commit.clone(),
-            "contract_sha256": contract_sha256.clone(),
-            "observed_at_utc": observed_at_utc.clone(),
-            "runner": runner.clone(),
-            "reference_runner": {
-                "os": contract.reference_runner.os,
-                "architecture": contract.reference_runner.architecture,
-                "rust_toolchain": contract.reference_runner.rust_toolchain,
-                "compiler_wrapper": contract.reference_runner.compiler_wrapper,
-            },
-            "warm_cache_target_milliseconds": contract.warm_cache_target_milliseconds,
-            "minimum_cache_hit_ratio_basis_points": contract.minimum_cache_hit_ratio_basis_points,
-            "eligible_reference_observation": eligible_reference_observation,
-            "wall_time_milliseconds": wall_time_milliseconds,
-            "all_passed": all_passed,
-            "critical_path": critical_path.clone(),
-            "dependency_graph": dependency_graph.clone(),
-            "compiler_lock_waits": compiler_lock_waits.clone(),
-            "skipped_test_lanes": skipped_test_lanes.clone(),
-            "groups": receipts.clone(),
-            "warm_reference_history": {
-                "sample_count": samples.len(),
-                "p50_milliseconds": p50,
-                "p95_milliseconds": p95,
-                "p95_within_target": p95_within_target,
-                "minimum_claim_sample_count": 5,
-            },
-        }),
-    )?;
-    write_json_pretty(
-        &ci_output_path(workspace, &contract.baseline_report)?,
-        &serde_json::json!({
-            "schema_version": CI_CRITICAL_PATH_BASELINE_SCHEMA_V1,
-            "source_commit": source_commit,
-            "contract_sha256": contract_sha256,
-            "observed_at_utc": observed_at_utc,
-            "runner": runner,
-            "wall_time_milliseconds": wall_time_milliseconds,
-            "all_passed": all_passed,
-            "critical_path": critical_path,
-            "dependency_graph": dependency_graph,
-            "compiler_lock_waits": compiler_lock_waits,
-            "skipped_test_lanes": skipped_test_lanes,
-            "per_target_timings": receipts,
-        }),
-    )?;
-    Ok(OpsCommandOutcome { exit_code: i32::from(!all_passed), stdout, stderr })
-}
-
-fn cargo_lock_wait_events(log: &[u8]) -> usize {
-    String::from_utf8_lossy(log)
-        .to_ascii_lowercase()
-        .matches("blocking waiting for file lock")
-        .count()
-}
-
-fn ci_fast_critical_path(
-    groups: &[FastGroup],
-    durations: &BTreeMap<String, u64>,
-) -> Option<(Vec<String>, u64)> {
-    fn visit(
-        id: &str,
-        groups: &BTreeMap<&str, &FastGroup>,
-        durations: &BTreeMap<String, u64>,
-        memo: &mut BTreeMap<String, (Vec<String>, u64)>,
-    ) -> (Vec<String>, u64) {
-        if let Some(cached) = memo.get(id) {
-            return cached.clone();
-        }
-        let group = groups[id];
-        let mut path = group
-            .dependencies
-            .iter()
-            .map(|dependency| visit(dependency, groups, durations, memo))
-            .max_by_key(|(_, duration)| *duration)
-            .unwrap_or_default();
-        path.0.push(id.to_string());
-        path.1 += durations.get(id).copied().unwrap_or_default();
-        memo.insert(id.to_string(), path.clone());
-        path
-    }
-
-    let groups_by_id =
-        groups.iter().map(|group| (group.id.as_str(), group)).collect::<BTreeMap<_, _>>();
-    let mut memo = BTreeMap::new();
-    groups
-        .iter()
-        .map(|group| visit(&group.id, &groups_by_id, durations, &mut memo))
-        .max_by_key(|(_, duration)| *duration)
-}
-
-fn ci_fast_group_env(
-    workspace: &Workspace,
-    authority: &FastBuildAuthority,
-    group_id: &str,
-    sccache_runtime_env: &[(String, String)],
-    group_compiler_env: &[(String, String)],
-) -> Result<Vec<(String, String)>> {
-    let mut envs = artifact_env_with_common_test_env(workspace)?;
-    envs.push((
-        "CARGO_TARGET_DIR".to_string(),
-        authority.target.join(group_id).display().to_string(),
-    ));
-    envs.push(("CARGO_NET_OFFLINE".to_string(), "true".to_string()));
-    envs.extend_from_slice(sccache_runtime_env);
-    envs.extend_from_slice(group_compiler_env);
-    Ok(envs)
-}
-
-fn materialize_ci_fast_compiler_wrapper(
-    report_root: &Path,
-    compiler_wrapper: Option<&str>,
-) -> Result<Vec<(String, String)>> {
-    let Some(wrapper) = compiler_wrapper.filter(|wrapper| {
-        Path::new(wrapper).file_name().and_then(|name| name.to_str()) == Some("sccache")
-    }) else {
-        return Ok(Vec::new());
-    };
-
-    #[cfg(unix)]
-    {
-        use std::os::unix::fs::PermissionsExt;
-
-        let proxy = report_root.join("sccache-rustc-wrapper");
-        bijux_dna_infra::write_bytes(&proxy, SCCACHE_RUSTC_WRAPPER.as_bytes())?;
-        std::fs::set_permissions(&proxy, std::fs::Permissions::from_mode(0o700))?;
-        Ok(vec![
-            ("BIJUX_CI_SCCACHE".to_string(), wrapper.to_string()),
-            ("RUSTC_WRAPPER".to_string(), proxy.display().to_string()),
-        ])
-    }
-
-    #[cfg(not(unix))]
-    {
-        let _ = report_root;
-        Ok(Vec::new())
-    }
-}
-
-fn resolve_ci_fast_sccache_runtime_env(
-    compiler_wrapper: Option<&str>,
-    configured_socket: Option<PathBuf>,
-) -> Result<Vec<(String, String)>> {
-    let uses_sccache = compiler_wrapper
-        .and_then(|wrapper| Path::new(wrapper).file_name())
-        .and_then(|name| name.to_str())
-        == Some("sccache");
-    if !uses_sccache {
-        return Ok(Vec::new());
-    }
-
-    #[cfg(unix)]
-    {
-        let socket = configured_socket.unwrap_or_else(|| {
-            PathBuf::from(format!("/tmp/bijux-sccache-{}.sock", std::process::id()))
-        });
-        if !socket.is_absolute()
-            || socket
-                .components()
-                .any(|component| matches!(component, Component::ParentDir | Component::CurDir))
-        {
-            anyhow::bail!("SCCACHE_SERVER_UDS must be absolute and normalized");
-        }
-        if socket.as_os_str().as_encoded_bytes().len() > SCCACHE_UNIX_SOCKET_PATH_MAX_BYTES {
-            anyhow::bail!(
-                "SCCACHE_SERVER_UDS exceeds the Unix socket path limit of \
-                {SCCACHE_UNIX_SOCKET_PATH_MAX_BYTES} bytes"
-            );
-        }
-        Ok(vec![
-            ("SCCACHE_SERVER_UDS".to_string(), socket.display().to_string()),
-            ("TMPDIR".to_string(), SCCACHE_UNIX_RUNTIME_TMPDIR.to_string()),
-        ])
-    }
-
-    #[cfg(not(unix))]
-    {
-        let _ = configured_socket;
-        Ok(Vec::new())
-    }
-}
-
-fn start_owned_sccache_server<'a>(
-    workspace: &'a Workspace,
-    compiler_wrapper: Option<&str>,
-    runtime_env: &[(String, String)],
-    manage_server: bool,
-) -> Result<Option<OwnedSccacheServer<'a>>> {
-    let Some(wrapper) = compiler_wrapper.filter(|wrapper| {
-        Path::new(wrapper).file_name().and_then(|name| name.to_str()) == Some("sccache")
-    }) else {
-        return Ok(None);
-    };
-    if !manage_server {
-        return Ok(None);
-    }
-
-    let output = ProcessRunner::new(workspace).run_owned_with_env(
-        wrapper,
-        &["--start-server".to_string()],
-        runtime_env,
-    )?;
-    if !output.status.success() {
-        anyhow::bail!(
-            "start ci-fast sccache server: {}",
-            String::from_utf8_lossy(&output.stderr).trim()
-        );
-    }
-    Ok(Some(OwnedSccacheServer {
-        workspace,
-        wrapper: wrapper.to_string(),
-        runtime_env: runtime_env.to_vec(),
-    }))
-}
-
-fn verify_sccache_compiler(
-    workspace: &Workspace,
-    compiler_wrapper: Option<&str>,
-    runtime_env: &[(String, String)],
-) -> Result<()> {
-    let Some(wrapper) = compiler_wrapper.filter(|wrapper| {
-        Path::new(wrapper).file_name().and_then(|name| name.to_str()) == Some("sccache")
-    }) else {
-        return Ok(());
-    };
-    let output = ProcessRunner::new(workspace).run_owned_with_env(
-        wrapper,
-        &["rustc".to_string(), "-vV".to_string()],
-        runtime_env,
-    )?;
-    if !output.status.success() {
-        anyhow::bail!(
-            "verify ci-fast sccache compiler handshake: {}",
-            String::from_utf8_lossy(&output.stderr).trim()
-        );
-    }
-    Ok(())
-}
-
-fn ci_fast_build_authority(workspace: &Workspace) -> Result<FastBuildAuthority> {
-    resolve_ci_fast_build_authority_with_scratch_roots(
-        workspace,
-        std::env::var_os("BIJUX_CI_FAST_TARGET_DIR").map(PathBuf::from),
-        &scheduler_scratch_roots(),
-    )
-}
-
-#[cfg(test)]
-fn resolve_ci_fast_build_authority(
-    workspace: &Workspace,
-    configured: Option<PathBuf>,
-) -> Result<FastBuildAuthority> {
-    resolve_ci_fast_build_authority_with_scratch_roots(workspace, configured, &[])
-}
-
-fn resolve_ci_fast_build_authority_with_scratch_roots(
-    workspace: &Workspace,
-    configured: Option<PathBuf>,
-    scratch_roots: &[PathBuf],
-) -> Result<FastBuildAuthority> {
-    let shared = configured.is_some();
-    let target = match configured {
-        Some(target) => target,
-        None => artifact_root_path(workspace)?.join("ci/ci-fast-target"),
-    };
-    if shared
-        && (!target.is_absolute()
-            || target
-                .components()
-                .any(|component| matches!(component, Component::ParentDir | Component::CurDir)))
-    {
-        anyhow::bail!("BIJUX_CI_FAST_TARGET_DIR must be absolute and normalized");
-    }
-    bijux_dna_infra::ensure_dir(&target)?;
-    let canonical_target = target.canonicalize().context("canonicalize ci-fast build authority")?;
-    if shared && canonical_target != target {
-        anyhow::bail!("BIJUX_CI_FAST_TARGET_DIR must not traverse symbolic path aliases");
-    }
-    let target = canonical_target;
-    if shared
-        && scratch_roots.iter().any(|root| {
-            let canonical_root = root.canonicalize().unwrap_or_else(|_| root.clone());
-            target.starts_with(canonical_root)
-        })
-    {
-        anyhow::bail!(
-            "BIJUX_CI_FAST_TARGET_DIR must not use scheduler-local scratch for warm-cache evidence"
-        );
-    }
-    let source = workspace.root.canonicalize().context("canonicalize ci-fast source root")?;
-    if shared
-        && scratch_roots.iter().any(|root| {
-            let canonical_root = root.canonicalize().unwrap_or_else(|_| root.clone());
-            source.starts_with(canonical_root)
-        })
-    {
-        anyhow::bail!(
-            "ci-fast source workspace must not use scheduler-local scratch for warm-cache evidence"
-        );
-    }
-    if shared && (target.starts_with(&source) || source.starts_with(&target)) {
-        anyhow::bail!("BIJUX_CI_FAST_TARGET_DIR must be disjoint from the source workspace");
-    }
-    Ok(FastBuildAuthority { target, shared })
-}
-
-fn scheduler_scratch_roots() -> Vec<PathBuf> {
-    ["SNIC_TMP", "SLURM_TMPDIR"]
-        .into_iter()
-        .filter_map(std::env::var_os)
-        .map(PathBuf::from)
-        .filter(|root| root.is_absolute())
-        .collect()
 }
 
 pub(in super::super) fn tooling_ci_slow(
@@ -2317,124 +1711,6 @@ fn validate_full_shard_runtime_dependency_catalog(
     Ok(())
 }
 
-fn validate_fast_group_contract(contract: &FastGroupContract) -> Result<()> {
-    if contract.schema_version != FAST_GROUPS_SCHEMA_V3
-        || !(2..=16).contains(&contract.max_parallelism)
-        || !(2..=16).contains(&contract.groups.len())
-        || !(5..=100).contains(&contract.history_limit)
-        || contract.warm_cache_target_milliseconds == 0
-        || !(1..=10_000).contains(&contract.minimum_cache_hit_ratio_basis_points)
-        || contract.reference_runner.os.is_empty()
-        || contract.reference_runner.architecture.is_empty()
-        || contract.reference_runner.rust_toolchain.is_empty()
-        || contract.reference_runner.compiler_wrapper != "sccache"
-    {
-        anyhow::bail!("ci-fast group contract is incomplete");
-    }
-    validate_artifact_relative_path(&contract.report_root)?;
-    validate_artifact_relative_path(&contract.timing_report)?;
-    validate_artifact_relative_path(&contract.timing_history)?;
-    validate_artifact_relative_path(&contract.baseline_report)?;
-    if BTreeSet::from([
-        contract.timing_report.as_str(),
-        contract.timing_history.as_str(),
-        contract.baseline_report.as_str(),
-    ])
-    .len()
-        != 3
-    {
-        anyhow::bail!("ci-fast report paths must be distinct");
-    }
-
-    let excluded_lane_ids =
-        contract.excluded_lanes.iter().map(|lane| lane.id.as_str()).collect::<BTreeSet<_>>();
-    if excluded_lane_ids
-        != BTreeSet::from(["full-workspace", "lunarc-integration", "nightly-release"])
-        || excluded_lane_ids.len() != contract.excluded_lanes.len()
-        || contract.excluded_lanes.iter().any(|lane| {
-            lane.reason.trim().is_empty()
-                || lane.evidence_command.trim().is_empty()
-                || lane.evidence_command.contains(['\n', '\0'])
-        })
-    {
-        anyhow::bail!("ci-fast excluded lanes are incomplete");
-    }
-
-    let mut ids = BTreeSet::new();
-    for group in &contract.groups {
-        if group.id.is_empty()
-            || !group.id.bytes().all(|byte| byte.is_ascii_alphanumeric() || byte == b'-')
-            || !ids.insert(group.id.as_str())
-            || group.program != "make"
-            || group.args.first().map(String::as_str) != Some("--no-print-directory")
-            || group.args.iter().any(|arg| arg.is_empty() || arg.contains(['\n', '\0']))
-        {
-            anyhow::bail!("ci-fast group identity or command is invalid");
-        }
-    }
-    for group in &contract.groups {
-        let mut dependencies = BTreeSet::new();
-        for dependency in &group.dependencies {
-            if dependency == &group.id
-                || !ids.contains(dependency.as_str())
-                || !dependencies.insert(dependency.as_str())
-            {
-                anyhow::bail!("ci-fast group dependency is invalid");
-            }
-        }
-    }
-    let mut resolved = BTreeSet::new();
-    while resolved.len() < contract.groups.len() {
-        let ready = contract
-            .groups
-            .iter()
-            .filter(|group| {
-                !resolved.contains(group.id.as_str())
-                    && group
-                        .dependencies
-                        .iter()
-                        .all(|dependency| resolved.contains(dependency.as_str()))
-            })
-            .map(|group| group.id.as_str())
-            .collect::<Vec<_>>();
-        if ready.is_empty() {
-            anyhow::bail!("ci-fast group dependencies contain a cycle");
-        }
-        resolved.extend(ready);
-    }
-    Ok(())
-}
-
-fn load_fast_timing_history(path: &Path) -> Result<FastTimingHistory> {
-    if !path.try_exists()? {
-        return Ok(FastTimingHistory {
-            schema_version: FAST_TIMING_HISTORY_SCHEMA_V4.to_string(),
-            observations: Vec::new(),
-        });
-    }
-    let mut history: FastTimingHistory = serde_json::from_slice(&fs::read(path)?)
-        .with_context(|| format!("parse {}", path.display()))?;
-    if matches!(
-        history.schema_version.as_str(),
-        "bijux.ci.fast_timing_history.v1"
-            | "bijux.ci.fast_timing_history.v2"
-            | "bijux.ci.fast_timing_history.v3"
-    ) {
-        history.schema_version = FAST_TIMING_HISTORY_SCHEMA_V4.to_string();
-    } else if history.schema_version != FAST_TIMING_HISTORY_SCHEMA_V4 {
-        anyhow::bail!("unsupported ci-fast timing history schema");
-    }
-    Ok(history)
-}
-
-fn source_commit(workspace: &Workspace) -> Result<String> {
-    let output = ProcessRunner::new(workspace).run(&["git", "rev-parse", "HEAD"])?;
-    if !output.status.success() {
-        anyhow::bail!("resolve ci-fast source commit");
-    }
-    Ok(String::from_utf8(output.stdout)?.trim().to_string())
-}
-
 fn source_worktree_clean(workspace: &Workspace) -> Result<bool> {
     let output = ProcessRunner::new(workspace).run(&[
         "git",
@@ -2448,190 +1724,8 @@ fn source_worktree_clean(workspace: &Workspace) -> Result<bool> {
     Ok(output.stdout.is_empty())
 }
 
-fn rust_toolchain_version(workspace: &Workspace) -> Result<String> {
-    let output = ProcessRunner::new(workspace).run(&["rustc", "--version"])?;
-    if !output.status.success() {
-        anyhow::bail!("resolve ci-fast Rust toolchain");
-    }
-    let version = String::from_utf8(output.stdout)?;
-    version
-        .split_whitespace()
-        .nth(1)
-        .filter(|value| !value.is_empty())
-        .map(ToOwned::to_owned)
-        .context("parse ci-fast Rust toolchain")
-}
-
-fn compiler_wrapper_identity(workspace: &Workspace) -> Result<Option<String>> {
-    let Some(wrapper) = compiler_wrapper_program(workspace)? else {
-        return Ok(None);
-    };
-    let output = ProcessRunner::new(workspace).run(&[wrapper.as_str(), "--version"])?;
-    if !output.status.success() {
-        return Ok(None);
-    }
-    let version = String::from_utf8(output.stdout)?;
-    Ok(parse_compiler_wrapper_identity(&version))
-}
-
-fn compiler_wrapper_program(workspace: &Workspace) -> Result<Option<String>> {
-    Ok(artifact_env_with_common_test_env(workspace)?
-        .into_iter()
-        .rev()
-        .find_map(|(key, value)| (key == "RUSTC_WRAPPER").then_some(value))
-        .filter(|value| !value.trim().is_empty()))
-}
-
-fn parse_compiler_wrapper_identity(version: &str) -> Option<String> {
-    version.split_whitespace().next().filter(|name| *name == "sccache").map(ToOwned::to_owned)
-}
-
-fn read_sccache_stats(
-    workspace: &Workspace,
-    wrapper: &str,
-    runtime_env: &[(String, String)],
-) -> Result<Option<FastCacheStats>> {
-    let output = ProcessRunner::new(workspace).run_owned_with_env(
-        wrapper,
-        &["--show-stats".to_string(), "--stats-format=json".to_string()],
-        runtime_env,
-    )?;
-    if !output.status.success() {
-        return Ok(None);
-    }
-    parse_sccache_stats(&serde_json::from_slice(&output.stdout)?).map(Some)
-}
-
-fn parse_sccache_stats(value: &serde_json::Value) -> Result<FastCacheStats> {
-    let stats = value.get("stats").unwrap_or(value);
-    let count = |name: &str| -> Result<u64> {
-        stats
-            .get(name)
-            .and_then(serde_json::Value::as_u64)
-            .with_context(|| format!("sccache statistics omit {name}"))
-    };
-    let grouped_count = |name: &str| -> Result<u64> {
-        let group = stats.get(name).context("sccache statistics omit grouped counter")?;
-        Ok(group
-            .get("counts")
-            .or_else(|| group.get("adv_counts"))
-            .and_then(serde_json::Value::as_object)
-            .into_iter()
-            .flat_map(|counts| counts.values())
-            .filter_map(serde_json::Value::as_u64)
-            .sum())
-    };
-    Ok(FastCacheStats {
-        cache_location: value
-            .get("cache_location")
-            .and_then(serde_json::Value::as_str)
-            .unwrap_or_default()
-            .to_string(),
-        compile_requests: count("compile_requests")?,
-        requests_executed: count("requests_executed")?,
-        cache_hits: grouped_count("cache_hits")?,
-        cache_misses: grouped_count("cache_misses")?,
-        cache_writes: count("cache_writes")?,
-        cache_errors: grouped_count("cache_errors")?,
-        cache_timeouts: count("cache_timeouts")?,
-        cache_read_errors: count("cache_read_errors")?,
-        cache_write_errors: count("cache_write_errors")?,
-    })
-}
-
-fn cache_stats_delta(
-    before: Option<&FastCacheStats>,
-    after: Option<&FastCacheStats>,
-) -> Option<FastCacheDelta> {
-    let (before, after) = (before?, after?);
-    if before.cache_location.is_empty() || before.cache_location != after.cache_location {
-        return None;
-    }
-    let delta = |end: u64, start: u64| end.checked_sub(start);
-    let requests_executed = delta(after.requests_executed, before.requests_executed)?;
-    let cache_hits = delta(after.cache_hits, before.cache_hits)?;
-    let cache_misses = delta(after.cache_misses, before.cache_misses)?;
-    let cacheable_requests = cache_hits.checked_add(cache_misses)?;
-    let hit_ratio_basis_points =
-        cache_hits.saturating_mul(10_000).checked_div(cacheable_requests).unwrap_or(0);
-    Some(FastCacheDelta {
-        cache_location: after.cache_location.clone(),
-        compile_requests: delta(after.compile_requests, before.compile_requests)?,
-        requests_executed,
-        cache_hits,
-        cache_misses,
-        cache_writes: delta(after.cache_writes, before.cache_writes)?,
-        cache_errors: delta(after.cache_errors, before.cache_errors)?,
-        cache_timeouts: delta(after.cache_timeouts, before.cache_timeouts)?,
-        cache_read_errors: delta(after.cache_read_errors, before.cache_read_errors)?,
-        cache_write_errors: delta(after.cache_write_errors, before.cache_write_errors)?,
-        hit_ratio_basis_points,
-    })
-}
-
-fn verified_warm_cache_mode(
-    requested_cache_state: &str,
-    shared_cache_authority: bool,
-    shared_build_authority: bool,
-    cache_delta: Option<&FastCacheDelta>,
-    minimum_cache_hit_ratio_basis_points: u64,
-) -> Option<&'static str> {
-    if requested_cache_state != "warm" || !shared_cache_authority || !shared_build_authority {
-        return None;
-    }
-    let delta = cache_delta?;
-    if delta.cache_errors != 0
-        || delta.cache_timeouts != 0
-        || delta.cache_read_errors != 0
-        || delta.cache_write_errors != 0
-    {
-        return None;
-    }
-    if delta.compile_requests == 0 && delta.requests_executed == 0 {
-        return Some("build_target");
-    }
-    (delta.requests_executed > 0
-        && delta.hit_ratio_basis_points >= minimum_cache_hit_ratio_basis_points)
-        .then_some("compiler_cache")
-}
-
 fn duration_milliseconds(duration: Duration) -> u64 {
     u64::try_from(duration.as_millis()).unwrap_or(u64::MAX)
-}
-
-fn percentile(values: &[u64], percentile: usize) -> Option<u64> {
-    if values.is_empty() {
-        return None;
-    }
-    let mut ordered = values.to_vec();
-    ordered.sort_unstable();
-    let rank = ordered.len().saturating_mul(percentile).div_ceil(100).saturating_sub(1);
-    ordered.get(rank).copied()
-}
-
-fn reference_timing_samples(
-    history: &FastTimingHistory,
-    reference: &FastReferenceRunner,
-) -> Vec<u64> {
-    history
-        .observations
-        .iter()
-        .filter(|observation| {
-            observation.os == reference.os
-                && observation.architecture == reference.architecture
-                && observation.rust_toolchain == reference.rust_toolchain
-                && observation.compiler_wrapper == reference.compiler_wrapper
-                && observation.cache_state == "warm_verified"
-                && !observation.cache_authority.is_empty()
-                && !observation.build_authority.is_empty()
-                && match observation.cache_reuse_mode.as_str() {
-                    "build_target" => true,
-                    "compiler_cache" | "" => observation.cache_hit_ratio_basis_points > 0,
-                    _ => false,
-                }
-        })
-        .map(|observation| observation.wall_time_milliseconds)
-        .collect()
 }
 
 fn validate_artifact_relative_path(value: &str) -> Result<()> {
@@ -2769,108 +1863,77 @@ pub(in super::super) fn tooling_ci_coverage(
 }
 
 #[cfg(test)]
-mod tests {
-    use std::collections::BTreeMap;
-
-    use anyhow::Context;
-
-    use super::{
-        artifact_root_path, cache_stats_delta, cargo_lock_wait_events, ci_fast_critical_path,
-        ci_fast_group_env, ci_output_path_under, full_archive_args, full_archive_roots,
-        full_shard_args, full_shard_env, full_shard_execution_scope, full_shard_root_receipt,
-        full_shard_roots, full_shard_storage_receipt, isolated_build_tree,
-        materialize_ci_fast_compiler_wrapper, materialize_full_shard_workspace,
-        observe_full_shard_runtime_dependencies, observe_full_shard_runtime_dependencies_with_env,
-        parse_compiler_wrapper_identity, parse_sccache_stats, percentile, read_ci_build_authority,
-        reference_timing_samples, remove_full_shard_ephemera, resolve_ci_fast_build_authority,
-        resolve_ci_fast_build_authority_with_scratch_roots, resolve_ci_fast_sccache_runtime_env,
-        resolve_full_shard_storage_roots, select_full_shards, set_full_archive_readonly,
-        start_owned_sccache_server, validate_ci_test_executor_observation,
-        validate_fast_group_contract, validate_full_archive_roots, validate_full_shard_contract,
-        validate_full_shard_root_set, validate_full_shard_runtime_dependency_catalog,
-        verified_warm_cache_mode, verify_sccache_compiler, FastCacheStats, FastExcludedLane,
-        FastGroup, FastGroupContract, FastReferenceRunner, FastTimingHistory,
-        FastTimingObservation, FullArchiveRoots, FullShard, FullShardContract, FullShardCoverage,
-        FullShardEphemera, FullShardRoots, FullShardRuntimeDependency,
-        FAST_TIMING_HISTORY_SCHEMA_V4, FULL_SHARD_SCRATCH_ROOT_ENV,
-    };
-    use crate::runtime::{process::ProcessRunner, workspace::Workspace};
-
-    fn contract() -> FullShardContract {
-        FullShardContract {
-            schema_version: "bijux.ci.full_shards.v5".to_string(),
-            coverage: FullShardCoverage {
-                workspace: true,
-                all_targets: true,
-                all_features: true,
-                run_ignored: "all".to_string(),
-                overlap_policy: "exactly_once".to_string(),
-            },
-            partition_strategy: "hash".to_string(),
-            workspace_isolation: "tracked_source_clones_with_shared_immutable_archive".to_string(),
-            build_authority: "configs/ci/build-authority.json".to_string(),
-            runtime_dependency_report: "artifacts/ci/full-shards/runtime-dependencies.json"
-                .to_string(),
-            runtime_dependencies: vec![FullShardRuntimeDependency {
-                id: "bcftools".to_string(),
-                executable: "bcftools".to_string(),
-                version_args: vec!["--version".to_string()],
-                expected_version_line: "bcftools 1.21".to_string(),
-                provisioning: "caller-supplied PATH".to_string(),
-            }],
-            archive_build_jobs: 4,
-            archive_root: "artifacts/ci/full-shards/archive".to_string(),
-            shard_artifact_root: "artifacts/ci/full-shards/shards".to_string(),
-            report_root: "artifacts/ci/full-shards".to_string(),
-            shards: (1..=5)
-                .map(|index| FullShard {
-                    id: format!("hash-{index}-of-5"),
-                    partition: format!("hash:{index}/5"),
-                })
-                .collect(),
-        }
-    }
-
-    fn fast_contract() -> FastGroupContract {
-        FastGroupContract {
-            schema_version: "bijux.ci.fast_groups.v3".to_string(),
-            max_parallelism: 2,
-            warm_cache_target_milliseconds: 300_000,
-            minimum_cache_hit_ratio_basis_points: 8_000,
-            history_limit: 40,
-            report_root: "artifacts/ci/ci-fast-groups".to_string(),
-            timing_report: "artifacts/ci/ci-fast-timing.json".to_string(),
-            timing_history: "artifacts/ci/ci-fast-timing-history.json".to_string(),
-            baseline_report: "artifacts/ci/baseline-timing.json".to_string(),
-            reference_runner: FastReferenceRunner {
-                os: "linux".to_string(),
-                architecture: "x86_64".to_string(),
-                rust_toolchain: "1.95.0".to_string(),
-                compiler_wrapper: "sccache".to_string(),
-            },
-            excluded_lanes: [
-                ("full-workspace", "full", "make _ci-slow"),
-                ("lunarc-integration", "heavy", "bijux-dna benchmark cycle advance"),
-                ("nightly-release", "release", "make _ci-slow"),
-            ]
-            .into_iter()
-            .map(|(id, reason, evidence_command)| FastExcludedLane {
-                id: id.to_string(),
-                reason: reason.to_string(),
-                evidence_command: evidence_command.to_string(),
+fn contract() -> FullShardContract {
+    FullShardContract {
+        schema_version: "bijux.ci.full_shards.v5".to_string(),
+        coverage: FullShardCoverage {
+            workspace: true,
+            all_targets: true,
+            all_features: true,
+            run_ignored: "all".to_string(),
+            overlap_policy: "exactly_once".to_string(),
+        },
+        partition_strategy: "hash".to_string(),
+        workspace_isolation: "tracked_source_clones_with_shared_immutable_archive".to_string(),
+        build_authority: "configs/ci/build-authority.json".to_string(),
+        runtime_dependency_report: "artifacts/ci/full-shards/runtime-dependencies.json".to_string(),
+        runtime_dependencies: vec![FullShardRuntimeDependency {
+            id: "bcftools".to_string(),
+            executable: "bcftools".to_string(),
+            version_args: vec!["--version".to_string()],
+            expected_version_line: "bcftools 1.21".to_string(),
+            provisioning: "caller-supplied PATH".to_string(),
+        }],
+        archive_build_jobs: 4,
+        archive_root: "artifacts/ci/full-shards/archive".to_string(),
+        shard_artifact_root: "artifacts/ci/full-shards/shards".to_string(),
+        report_root: "artifacts/ci/full-shards".to_string(),
+        shards: (1..=5)
+            .map(|index| FullShard {
+                id: format!("hash-{index}-of-5"),
+                partition: format!("hash:{index}/5"),
             })
             .collect(),
-            groups: ["metadata", "unit"]
-                .into_iter()
-                .map(|id| FastGroup {
-                    id: id.to_string(),
-                    dependencies: Vec::new(),
-                    program: "make".to_string(),
-                    args: vec!["--no-print-directory".to_string(), format!("_{id}")],
-                })
-                .collect(),
-        }
     }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::ci_output_path_under;
+    use super::contract;
+    use super::full_archive_args;
+    use super::full_archive_roots;
+    use super::full_shard_args;
+    use super::full_shard_env;
+    use super::full_shard_execution_scope;
+    use super::full_shard_root_receipt;
+    use super::full_shard_roots;
+    use super::full_shard_storage_receipt;
+    use super::isolated_build_tree;
+    use super::materialize_full_shard_workspace;
+    use super::observe_full_shard_runtime_dependencies;
+    use super::observe_full_shard_runtime_dependencies_with_env;
+    use super::read_ci_build_authority;
+    use super::resolve_full_shard_storage_roots;
+    use super::select_full_shards;
+    use super::set_full_archive_readonly;
+    use super::validate_ci_test_executor_observation;
+    use super::validate_full_archive_roots;
+    use super::validate_full_shard_contract;
+    use super::validate_full_shard_root_set;
+    use super::validate_full_shard_runtime_dependency_catalog;
+    use super::FullArchiveRoots;
+    use super::FullShard;
+    use super::FullShardContract;
+    use super::FullShardEphemera;
+    use super::FullShardRoots;
+    use super::FullShardRuntimeDependency;
+    use super::FULL_SHARD_SCRATCH_ROOT_ENV;
+    use crate::commands::ops::tooling::artifact_root_path;
+    use crate::runtime::owned_artifacts::remove_owned_tree as remove_full_shard_ephemera;
+    use crate::runtime::workspace::Workspace;
+    use anyhow::Context;
+    use std::collections::BTreeMap;
 
     #[test]
     fn full_shard_contract_covers_hash_space_exactly_once() {
@@ -3577,445 +2640,6 @@ mod tests {
     }
 
     #[test]
-    fn fast_group_contract_is_bounded_and_acyclic() {
-        assert!(validate_fast_group_contract(&fast_contract()).is_ok());
-
-        let mut cycle = fast_contract();
-        cycle.groups[0].dependencies = vec!["unit".to_string()];
-        cycle.groups[1].dependencies = vec!["metadata".to_string()];
-        assert!(validate_fast_group_contract(&cycle).is_err());
-
-        let mut escaping = fast_contract();
-        escaping.timing_report = "../ci-fast.json".to_string();
-        assert!(validate_fast_group_contract(&escaping).is_err());
-
-        let mut omitted_lane = fast_contract();
-        omitted_lane.excluded_lanes.pop();
-        assert!(validate_fast_group_contract(&omitted_lane).is_err());
-
-        let mut duplicate_lane = fast_contract();
-        duplicate_lane.excluded_lanes.push(duplicate_lane.excluded_lanes[0].clone());
-        assert!(validate_fast_group_contract(&duplicate_lane).is_err());
-
-        let mut colliding_report = fast_contract();
-        colliding_report.baseline_report = colliding_report.timing_report.clone();
-        assert!(validate_fast_group_contract(&colliding_report).is_err());
-    }
-
-    #[test]
-    fn cargo_lock_wait_measurement_counts_diagnostics_without_inference() {
-        let log = b"Blocking waiting for file lock on build directory\n\
-                    Compiling example v0.1.0\n\
-                    blocking waiting for file lock on package cache\n";
-        assert_eq!(cargo_lock_wait_events(log), 2);
-        assert_eq!(cargo_lock_wait_events(b"Compiling without contention\n"), 0);
-    }
-
-    #[test]
-    fn critical_path_accumulates_dependency_chain_durations() {
-        let groups = vec![
-            FastGroup {
-                id: "source".to_string(),
-                dependencies: Vec::new(),
-                program: "true".to_string(),
-                args: Vec::new(),
-            },
-            FastGroup {
-                id: "dependent".to_string(),
-                dependencies: vec!["source".to_string()],
-                program: "true".to_string(),
-                args: Vec::new(),
-            },
-            FastGroup {
-                id: "independent".to_string(),
-                dependencies: Vec::new(),
-                program: "true".to_string(),
-                args: Vec::new(),
-            },
-        ];
-        let durations = BTreeMap::from([
-            ("source".to_string(), 40),
-            ("dependent".to_string(), 30),
-            ("independent".to_string(), 60),
-        ]);
-
-        assert_eq!(
-            ci_fast_critical_path(&groups, &durations),
-            Some((vec!["source".to_string(), "dependent".to_string()], 70))
-        );
-    }
-
-    #[test]
-    fn fast_groups_isolate_targets_under_one_offline_build_authority() -> anyhow::Result<()> {
-        let workspace = Workspace::resolve()?;
-        let authority = resolve_ci_fast_build_authority(&workspace, None)?;
-        let runtime_env = resolve_ci_fast_sccache_runtime_env(Some("sccache"), None)?;
-        let first = ci_fast_group_env(&workspace, &authority, "metadata", &runtime_env, &[])?;
-        let second = ci_fast_group_env(&workspace, &authority, "unit", &runtime_env, &[])?;
-
-        assert!(first.iter().any(|(key, value)| key == "CARGO_NET_OFFLINE" && value == "true"));
-        assert!(first.iter().any(|(key, value)| key == "TZ" && value == "UTC"));
-        assert!(first.iter().any(|(key, value)| key == "LC_ALL" && value == "C"));
-        let first_target = first
-            .iter()
-            .rev()
-            .find(|(key, _)| key == "CARGO_TARGET_DIR")
-            .map(|(_, value)| value.as_str());
-        let second_target = second
-            .iter()
-            .rev()
-            .find(|(key, _)| key == "CARGO_TARGET_DIR")
-            .map(|(_, value)| value.as_str());
-        assert_ne!(first_target, second_target);
-        assert!(first_target.is_some_and(|value| value.ends_with("ci/ci-fast-target/metadata")));
-        assert!(second_target.is_some_and(|value| value.ends_with("ci/ci-fast-target/unit")));
-        assert!(first.iter().any(|(key, value)| {
-            key == "SCCACHE_SERVER_UDS" && value.starts_with("/tmp/bijux-sccache-")
-        }));
-        assert!(first.iter().any(|(key, value)| key == "TMPDIR" && value == "/tmp"));
-        Ok(())
-    }
-
-    #[cfg(unix)]
-    #[test]
-    fn sccache_transport_rejects_unix_socket_paths_that_cannot_bind() {
-        let too_long = std::path::PathBuf::from(format!("/tmp/{}.sock", "x".repeat(108)));
-        assert!(
-            resolve_ci_fast_sccache_runtime_env(Some("/usr/bin/sccache"), Some(too_long)).is_err()
-        );
-        assert!(resolve_ci_fast_sccache_runtime_env(
-            Some("/usr/bin/sccache"),
-            Some(std::path::PathBuf::from("relative.sock"))
-        )
-        .is_err());
-    }
-
-    #[cfg(unix)]
-    #[test]
-    fn sccache_transport_replaces_deep_inherited_runtime_tmpdir() -> anyhow::Result<()> {
-        let workspace = Workspace::resolve()?;
-        let authority = resolve_ci_fast_build_authority(&workspace, None)?;
-        let runtime_env = resolve_ci_fast_sccache_runtime_env(
-            Some("sccache"),
-            Some(std::path::PathBuf::from("/tmp/bijux-sccache-test.sock")),
-        )?;
-        let envs = ci_fast_group_env(&workspace, &authority, "metadata", &runtime_env, &[])?;
-
-        let tmpdirs = envs
-            .iter()
-            .filter(|(key, _)| key == "TMPDIR")
-            .map(|(_, value)| value.as_str())
-            .collect::<Vec<_>>();
-        assert_eq!(tmpdirs, vec!["/tmp"]);
-        Ok(())
-    }
-
-    #[cfg(unix)]
-    #[test]
-    fn ci_fast_owns_only_its_automatically_allocated_sccache_server() -> anyhow::Result<()> {
-        use std::os::unix::fs::PermissionsExt;
-
-        let root =
-            std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..").canonicalize()?;
-        let workspace = Workspace { root };
-        let artifact_root = workspace.path("artifacts");
-        bijux_dna_infra::ensure_dir(&artifact_root)?;
-        let fixture = tempfile::tempdir_in(&artifact_root)?;
-        let wrapper = fixture.path().join("sccache");
-        let log = fixture.path().join("server-events.log");
-        std::fs::write(
-            &wrapper,
-            "#!/bin/sh\nprintf '%s|%s\\n' \"$1\" \"$SCCACHE_SERVER_UDS\" >> \"$BIJUX_CI_TEST_SCCACHE_LOG\"\n",
-        )?;
-        std::fs::set_permissions(&wrapper, std::fs::Permissions::from_mode(0o700))?;
-        let runtime_env = vec![
-            ("SCCACHE_SERVER_UDS".to_string(), "/tmp/bijux-sccache-test.sock".to_string()),
-            ("BIJUX_CI_TEST_SCCACHE_LOG".to_string(), log.display().to_string()),
-        ];
-
-        let server = start_owned_sccache_server(&workspace, wrapper.to_str(), &runtime_env, true)?;
-        assert!(server.is_some());
-        verify_sccache_compiler(&workspace, wrapper.to_str(), &runtime_env)?;
-        drop(server);
-        assert_eq!(
-            std::fs::read_to_string(&log)?,
-            "--start-server|/tmp/bijux-sccache-test.sock\nrustc|/tmp/bijux-sccache-test.sock\n--stop-server|/tmp/bijux-sccache-test.sock\n"
-        );
-
-        std::fs::remove_file(&log)?;
-        assert!(start_owned_sccache_server(&workspace, wrapper.to_str(), &runtime_env, false,)?
-            .is_none());
-        verify_sccache_compiler(&workspace, wrapper.to_str(), &runtime_env)?;
-        assert_eq!(std::fs::read_to_string(&log)?, "rustc|/tmp/bijux-sccache-test.sock\n");
-        Ok(())
-    }
-
-    #[cfg(unix)]
-    #[test]
-    fn ci_fast_bypasses_sccache_only_for_parallel_cargo_version_probes() -> anyhow::Result<()> {
-        use std::os::unix::fs::PermissionsExt;
-
-        let root =
-            std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..").canonicalize()?;
-        let workspace = Workspace { root };
-        let artifact_root = workspace.path("artifacts");
-        bijux_dna_infra::ensure_dir(&artifact_root)?;
-        let fixture = tempfile::tempdir_in(&artifact_root)?;
-        let compiler = fixture.path().join("rustc");
-        let sccache = fixture.path().join("sccache");
-        let log = fixture.path().join("wrapper-events.log");
-        std::fs::write(
-            &compiler,
-            "#!/bin/sh\nprintf 'rustc|%s\\n' \"$*\" >> \"$BIJUX_CI_TEST_WRAPPER_LOG\"\n",
-        )?;
-        std::fs::write(
-            &sccache,
-            "#!/bin/sh\nprintf 'sccache|%s\\n' \"$*\" >> \"$BIJUX_CI_TEST_WRAPPER_LOG\"\n",
-        )?;
-        std::fs::set_permissions(&compiler, std::fs::Permissions::from_mode(0o700))?;
-        std::fs::set_permissions(&sccache, std::fs::Permissions::from_mode(0o700))?;
-        let envs = materialize_ci_fast_compiler_wrapper(fixture.path(), sccache.to_str())?;
-        let Some(proxy) =
-            envs.iter().find_map(|(key, value)| (key == "RUSTC_WRAPPER").then_some(value.as_str()))
-        else {
-            anyhow::bail!("generated sccache Rust compiler wrapper is missing");
-        };
-        let proxy = proxy.to_string();
-        let mut invocation_env = envs;
-        invocation_env.push(("BIJUX_CI_TEST_WRAPPER_LOG".to_string(), log.display().to_string()));
-
-        let version = ProcessRunner::new(&workspace).run_owned_with_env(
-            &proxy,
-            &[compiler.display().to_string(), "-vV".to_string()],
-            &invocation_env,
-        )?;
-        assert!(version.status.success());
-        let compile = ProcessRunner::new(&workspace).run_owned_with_env(
-            &proxy,
-            &[compiler.display().to_string(), "--crate-name".to_string(), "example".to_string()],
-            &invocation_env,
-        )?;
-        assert!(compile.status.success());
-        assert_eq!(
-            std::fs::read_to_string(log)?,
-            format!("rustc|-vV\nsccache|{} --crate-name example\n", compiler.display())
-        );
-        Ok(())
-    }
-
-    #[test]
-    fn explicit_fast_build_authority_is_stable_and_source_disjoint() -> anyhow::Result<()> {
-        let root = tempfile::tempdir()?;
-        let root = root.path().canonicalize()?;
-        let source = root.join("workspaces/commit/source");
-        std::fs::create_dir_all(&source)?;
-        let workspace = Workspace { root: source.clone() };
-        let shared = root.join("shared/ci-fast-target");
-
-        let authority = resolve_ci_fast_build_authority(&workspace, Some(shared))?;
-
-        assert!(authority.shared);
-        assert_eq!(authority.target, root.join("shared/ci-fast-target").canonicalize()?);
-        assert!(resolve_ci_fast_build_authority(
-            &workspace,
-            Some(source.join("artifacts/ci-fast-target"))
-        )
-        .is_err());
-        assert!(resolve_ci_fast_build_authority(
-            &workspace,
-            Some(std::path::PathBuf::from("relative-target"))
-        )
-        .is_err());
-
-        let scheduler_scratch = root.join("scheduler-scratch");
-        std::fs::create_dir_all(&scheduler_scratch)?;
-        let rejected = resolve_ci_fast_build_authority_with_scratch_roots(
-            &workspace,
-            Some(scheduler_scratch.join("ci-fast-target")),
-            std::slice::from_ref(&scheduler_scratch),
-        )
-        .err()
-        .ok_or_else(|| anyhow::anyhow!("scheduler-local build authority was accepted"))?;
-        assert!(rejected.to_string().contains("scheduler-local scratch"));
-
-        let volatile_source = scheduler_scratch.join("source");
-        std::fs::create_dir_all(&volatile_source)?;
-        let volatile_workspace = Workspace { root: volatile_source };
-        let rejected = resolve_ci_fast_build_authority_with_scratch_roots(
-            &volatile_workspace,
-            Some(root.join("shared/stable-target")),
-            std::slice::from_ref(&scheduler_scratch),
-        )
-        .err()
-        .ok_or_else(|| anyhow::anyhow!("scheduler-local source authority was accepted"))?;
-        assert!(rejected.to_string().contains("source workspace"));
-        Ok(())
-    }
-
-    #[test]
-    fn sccache_delta_proves_hits_without_trusting_a_label() -> anyhow::Result<()> {
-        let stats = |requests, executed, hits, misses, writes| FastCacheStats {
-            cache_location: "Local disk: /shared/sccache".to_string(),
-            compile_requests: requests,
-            requests_executed: executed,
-            cache_hits: hits,
-            cache_misses: misses,
-            cache_writes: writes,
-            cache_errors: 0,
-            cache_timeouts: 0,
-            cache_read_errors: 0,
-            cache_write_errors: 0,
-        };
-        let before = stats(20, 18, 12, 6, 6);
-        let after = stats(30, 28, 20, 8, 8);
-        let delta = cache_stats_delta(Some(&before), Some(&after))
-            .ok_or_else(|| anyhow::anyhow!("cache delta was unavailable"))?;
-
-        assert_eq!(delta.compile_requests, 10);
-        assert_eq!(delta.requests_executed, 10);
-        assert_eq!(delta.cache_hits, 8);
-        assert_eq!(delta.cache_misses, 2);
-        assert_eq!(delta.hit_ratio_basis_points, 8_000);
-        assert!(cache_stats_delta(Some(&after), Some(&before)).is_none());
-        Ok(())
-    }
-
-    #[test]
-    fn warm_cache_evidence_accepts_compiler_hits_or_a_reused_build_target() {
-        let delta =
-            |compile_requests, requests_executed, hit_ratio_basis_points| super::FastCacheDelta {
-                cache_location: "/shared/sccache".to_string(),
-                compile_requests,
-                requests_executed,
-                cache_hits: requests_executed,
-                cache_misses: 0,
-                cache_writes: 0,
-                cache_errors: 0,
-                cache_timeouts: 0,
-                cache_read_errors: 0,
-                cache_write_errors: 0,
-                hit_ratio_basis_points,
-            };
-        let compiler_cache = delta(10, 10, 10_000);
-        let build_target = delta(0, 0, 0);
-        let cold_compiler_cache = delta(10, 10, 0);
-
-        assert_eq!(
-            verified_warm_cache_mode("warm", true, true, Some(&compiler_cache), 8_000),
-            Some("compiler_cache")
-        );
-        assert_eq!(
-            verified_warm_cache_mode("warm", true, true, Some(&build_target), 8_000),
-            Some("build_target")
-        );
-        assert_eq!(
-            verified_warm_cache_mode("warm", true, true, Some(&cold_compiler_cache), 8_000),
-            None
-        );
-        assert_eq!(verified_warm_cache_mode("warm", false, true, Some(&build_target), 8_000), None);
-        assert_eq!(verified_warm_cache_mode("cold", true, true, Some(&build_target), 8_000), None);
-    }
-
-    #[test]
-    fn sccache_json_parser_accepts_current_stats_envelope() -> anyhow::Result<()> {
-        let stats = parse_sccache_stats(&serde_json::json!({
-            "stats": {
-                "compile_requests": 10,
-                "requests_executed": 9,
-                "cache_hits": {"counts": {"Rust": 7}, "adv_counts": {"rust": 7}},
-                "cache_misses": {"counts": {"Rust": 2}, "adv_counts": {"rust": 2}},
-                "cache_writes": 2,
-                "cache_errors": {"counts": {}, "adv_counts": {}},
-                "cache_timeouts": 0,
-                "cache_read_errors": 0,
-                "cache_write_errors": 0
-            },
-            "cache_location": "Local disk: /shared/sccache"
-        }))?;
-
-        assert_eq!(stats.cache_hits, 7);
-        assert_eq!(stats.cache_misses, 2);
-        assert_eq!(stats.cache_location, "Local disk: /shared/sccache");
-        Ok(())
-    }
-
-    #[test]
-    fn timing_percentiles_use_nearest_rank() {
-        assert_eq!(percentile(&[], 95), None);
-        assert_eq!(percentile(&[100, 20, 40, 60, 80], 50), Some(60));
-        assert_eq!(percentile(&[100, 20, 40, 60, 80], 95), Some(100));
-    }
-
-    #[test]
-    fn reference_wrapper_identity_requires_sccache_version_output() {
-        assert_eq!(
-            parse_compiler_wrapper_identity("sccache 0.10.0\n"),
-            Some("sccache".to_string())
-        );
-        assert_eq!(parse_compiler_wrapper_identity("mock wrapper\n"), None);
-        assert_eq!(parse_compiler_wrapper_identity(""), None);
-    }
-
-    #[test]
-    fn timing_samples_require_exact_warm_reference_runner() {
-        let reference = fast_contract().reference_runner;
-        let observation = |os: &str,
-                           architecture: &str,
-                           rust_toolchain: &str,
-                           compiler_wrapper: &str,
-                           cache_state: &str| {
-            FastTimingObservation {
-                observed_at_utc: "2026-08-10T00:00:00Z".to_string(),
-                source_commit: "0123456789abcdef".to_string(),
-                os: os.to_string(),
-                architecture: architecture.to_string(),
-                rust_toolchain: rust_toolchain.to_string(),
-                compiler_wrapper: compiler_wrapper.to_string(),
-                cache_state: cache_state.to_string(),
-                cache_authority: if cache_state == "warm_verified" {
-                    "/shared/sccache".to_string()
-                } else {
-                    String::new()
-                },
-                build_authority: if cache_state == "warm_verified" {
-                    "/shared/ci-fast-target".to_string()
-                } else {
-                    String::new()
-                },
-                cache_hit_ratio_basis_points: if cache_state == "warm_verified" {
-                    9_000
-                } else {
-                    0
-                },
-                cache_reuse_mode: if cache_state == "warm_verified" {
-                    "compiler_cache".to_string()
-                } else {
-                    String::new()
-                },
-                wall_time_milliseconds: 42,
-            }
-        };
-        let mut reused_build_target =
-            observation("linux", "x86_64", "1.95.0", "sccache", "warm_verified");
-        reused_build_target.cache_hit_ratio_basis_points = 0;
-        reused_build_target.cache_reuse_mode = "build_target".to_string();
-        reused_build_target.wall_time_milliseconds = 43;
-        let history = FastTimingHistory {
-            schema_version: FAST_TIMING_HISTORY_SCHEMA_V4.to_string(),
-            observations: vec![
-                observation("linux", "x86_64", "1.95.0", "sccache", "warm_verified"),
-                reused_build_target,
-                observation("linux", "x86_64", "1.95.0", "sccache", "warm"),
-                observation("macos", "aarch64", "1.95.0", "sccache", "warm_verified"),
-                observation("linux", "x86_64", "1.94.0", "sccache", "warm_verified"),
-                observation("linux", "x86_64", "1.95.0", "sccache", "cold"),
-                observation("linux", "x86_64", "1.95.0", "", "warm_verified"),
-            ],
-        };
-
-        assert_eq!(reference_timing_samples(&history, &reference), vec![42, 43]);
-    }
-    #[test]
     fn full_shard_receipt_includes_owned_cleanup_in_terminal_timing() -> anyhow::Result<()> {
         let root = tempfile::tempdir()?;
         let archive = root.path().join("archive");
@@ -4079,6 +2703,7 @@ mod tests {
         assert_eq!(std::fs::read(external.join("evidence"))?, b"retained");
         Ok(())
     }
+
     #[test]
     fn full_shard_cleanup_retains_exclusively_owned_compilation_products() -> anyhow::Result<()> {
         let root = tempfile::tempdir()?;
@@ -4106,6 +2731,7 @@ mod tests {
         assert_eq!(receipt["all_passed"], true);
         Ok(())
     }
+
     #[test]
     fn full_shard_archive_output_root_is_prepared_independently_of_the_cache() -> anyhow::Result<()>
     {
