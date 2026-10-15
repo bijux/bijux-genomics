@@ -1,3 +1,5 @@
+#![cfg(test)]
+
 //! Supported tag fallback must be recorded and queried under the image actually resolved.
 use std::collections::HashMap;
 use std::os::unix::fs::PermissionsExt as _;

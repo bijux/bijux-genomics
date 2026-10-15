@@ -1,3 +1,5 @@
+#![cfg(test)]
+
 use super::*;
 
 fn seed_bam_resume_receipt(

@@ -1,3 +1,5 @@
+#![cfg(test)]
+
 use std::io::Write;
 
 use anyhow::{Context, Result};

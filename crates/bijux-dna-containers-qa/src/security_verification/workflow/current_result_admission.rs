@@ -1,3 +1,5 @@
+#![cfg(test)]
+
 //! Collected current-result reuse must retain the same complete payload authority as publication admission.
 use std::collections::BTreeMap;
 use std::path::Path;

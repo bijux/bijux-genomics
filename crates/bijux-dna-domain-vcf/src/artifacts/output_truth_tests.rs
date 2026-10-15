@@ -1,3 +1,5 @@
+#![cfg(test)]
+
 //! Real acquired VCF observations must preserve sample and variant truth identities.
 use super::{
     execute_vcf_stats_workflow, summarize_vcf_imputation_output_truth,
