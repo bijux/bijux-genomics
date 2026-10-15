@@ -58,3 +58,21 @@ its pre-effect ordering remain covered by the benchmark owner's campaign tests.
 `tests/contracts/bam_campaign/` supplies direct private policy coverage of source/goal admission, row/finding/queue projection, summary counters and all twenty BAM goal check branches. It is registered by `policy/bam_campaign/mod.rs` in the native library target; repository IO roundtrip coverage remains in the benchmark crate.
 
 `tests/contracts/taxonomy_judgment/` supplies direct pure codec and evaluation contracts through the native library registration. Alias precedence, ambiguous summary refusal, declaration/row order, inferred counts and missing observations are tested without repository IO.
+
+`tests/contracts/fastq_campaign/` retains the25 pure campaign cases under the native
+library registration in `policy/fastq_campaign/mod.rs`: source/goal admission,
+evidence joins, counters and all20 existing goal-check branches. Cases are grouped
+by the same private policy concerns. The benchmark crate retains the existing
+derive/publish/load roundtrip; no case is duplicated.
+
+`tests/contracts/vcf_campaign/` retains the 25 pure campaign cases under the native
+library registration in `policy/vcf_campaign/mod.rs`: source/goal admission,
+evidence joins, counters and all 20 existing goal-check branches. Cases are grouped
+by the same private policy concerns. The benchmark crate retains the existing
+derive/publish/load roundtrip; no case is duplicated.
+
+`tests/contracts/cross_campaign/` retains the 15 pure campaign cases under the native
+library registration in `policy/cross_campaign/mod.rs`: source/goal admission,
+evidence joins, counters and all 10 existing goal-check branches. Cases are grouped
+by the same private policy concerns. The benchmark crate retains the existing
+derive/publish/load roundtrip; no case is duplicated.

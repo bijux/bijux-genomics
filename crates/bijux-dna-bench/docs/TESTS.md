@@ -79,3 +79,21 @@ Shared guardrail parser regressions are owned and executed by the policy crate. 
 BAM campaign pure goal selection, checks, source identity and evidence projection are covered directly by `bijux-dna-bench-model` policy tests. The benchmark repository retains the admitted derive/publish/load roundtrip under `repo/bam_campaign.rs`. All existing campaign behavior cases remain registered once.
 
 The three taxonomy judgment repository oracles are registered once under `repo/taxonomy_judgment/`: governed matrix agreement, missing-sample refusal and false-positive evidence. Pure summary/evaluation contracts belong to the model tests; the CLI retains its JSON and persisted-output compatibility case.
+
+FASTQ campaign pure cases execute once in `bijux-dna-bench-model` under
+`tests/contracts/fastq_campaign/`. The existing
+`workflow::fastq_campaign::tests::derives_publishes_and_loads_admitted_fastq_campaign`
+case stays with persisted report admission and atomic publication. Its body and
+public operation signatures remain unchanged.
+
+VCF campaign pure cases execute once in `bijux-dna-bench-model` under
+`tests/contracts/vcf_campaign/`. The existing
+`workflow::vcf_campaign::tests::derives_publishes_and_loads_admitted_vcf_campaign`
+case stays with persisted report admission and atomic publication. Its body and
+public operation signatures remain unchanged.
+
+Cross-domain campaign pure cases execute once in `bijux-dna-bench-model` under
+`tests/contracts/cross_campaign/`. The existing
+`workflow::cross_campaign::tests::derives_publishes_and_loads_admitted_cross_campaign`
+case stays with persisted report admission and atomic publication. Its body and
+public operation signatures remain unchanged.

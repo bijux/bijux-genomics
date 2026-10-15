@@ -936,7 +936,10 @@ pub use crate::policy::hpc_resources::{
 };
 
 pub use crate::policy::bam_campaign::derive_bam_benchmark_campaign;
+pub use crate::policy::cross_campaign::derive_cross_benchmark_campaign;
+pub use crate::policy::fastq_campaign::derive_fastq_benchmark_campaign;
 pub use crate::policy::hardening_campaign::derive_hardening_benchmark_campaign;
+pub use crate::policy::vcf_campaign::derive_vcf_benchmark_campaign;
 
 pub use crate::policy::hpc_asset_staging::{
     assemble_hpc_asset_staging_manifest, compare_hpc_asset_staging_manifest,
