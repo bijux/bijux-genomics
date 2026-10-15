@@ -3804,7 +3804,8 @@ pub fn correct_tiny_bam_overlaps(
 /// Summarize an existing tiny overlap-correction output bundle by comparing input/output pairs.
 ///
 /// # Errors
-/// Returns an error if either tiny alignment fixture cannot be parsed.
+/// Returns an error if either tiny alignment fixture cannot be parsed or the output does not
+/// retain the input record identities and order. Sequence and CIGAR changes are permitted.
 pub fn summarize_tiny_bam_overlap_correction_outputs(
     input_bam: &Path,
     output_bam: &Path,
@@ -3812,6 +3813,19 @@ pub fn summarize_tiny_bam_overlap_correction_outputs(
 ) -> Result<BamOverlapCorrectionSummaryV1> {
     let input = parse_tiny_sam(input_bam)?;
     let output = parse_tiny_sam(output_bam)?;
+    if input.records.len() != output.records.len()
+        || input.records.iter().zip(&output.records).any(|(before, after)| {
+            before.qname != after.qname
+                || before.flag != after.flag
+                || before.rname != after.rname
+                || before.pos != after.pos
+                || before.read_group_id != after.read_group_id
+        })
+    {
+        return Err(anyhow!(
+            "overlap correction output must retain input record identities and order"
+        ));
+    }
     let metrics = overlap_correction_metrics(&input.records, &output.records);
     let insufficiency_reason =
         if metrics.pair_count == 0 { Some("paired_read_pairs_required") } else { None };
@@ -6840,5 +6854,43 @@ r03\t0\tchr2\t2\t45\t3M\t*\t0\t0\tGGA\tFFF\tRG:Z:rg1\n",
         assert_eq!(sort.io_profile, "io_heavy_sequential_plus_temp_shuffle");
         assert_eq!(coverage.io_profile, "mixed_random_and_streaming_reads");
         assert_eq!(damage.io_profile, "streaming_reads_with_sidecar_metrics");
+    }
+
+    #[test]
+    fn overlap_output_membership_refuses_reordering_and_changed_mate_identity() -> Result<()> {
+        let root = unique_temp_dir("bam-overlap-record-identity");
+        let input = root.join("input.sam");
+        let output = root.join("corrected.sam");
+        std::fs::write(
+            &input,
+            "@HD\tVN:1.6\tSO:coordinate\n\
+@SQ\tSN:chr1\tLN:100\n\
+@RG\tID:rg1\tSM:sampleA\n\
+pair\t99\tchr1\t10\t60\t12M\t=\t15\t17\tACGTACGTACGT\tFFFFFFFFFFFF\tRG:Z:rg1\n\
+pair\t147\tchr1\t15\t60\t12M\t=\t10\t-17\tTTTTCCCCAAAA\tFFFFFFFFFFFF\tRG:Z:rg1\n",
+        )?;
+        correct_tiny_bam_overlaps(&input, &output, "bamutil")?;
+        let retained_input = std::fs::read(&input)?;
+        let retained_output = std::fs::read(&output)?;
+        let accepted = summarize_tiny_bam_overlap_correction_outputs(&input, &output, "bamutil")?;
+        assert_eq!(accepted.corrected_overlap_bases, Some(7));
+
+        let mut observation = parse_tiny_sam(&output)?;
+        observation.records.reverse();
+        let reordered = root.join("reordered.sam");
+        write_tiny_sam_from_document(&reordered, &observation, "coordinate")?;
+        assert!(
+            summarize_tiny_bam_overlap_correction_outputs(&input, &reordered, "bamutil").is_err()
+        );
+
+        observation.records.reverse();
+        observation.records[1].flag = observation.records[0].flag;
+        let changed_mate = root.join("changed-mate.sam");
+        write_tiny_sam_from_document(&changed_mate, &observation, "coordinate")?;
+        assert!(summarize_tiny_bam_overlap_correction_outputs(&input, &changed_mate, "bamutil")
+            .is_err());
+        assert_eq!(std::fs::read(input)?, retained_input);
+        assert_eq!(std::fs::read(output)?, retained_output);
+        Ok(())
     }
 }

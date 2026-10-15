@@ -171,3 +171,56 @@ fn bam_comparable_metrics_carry_governed_scientific_threshold_contracts() {
         BamScientificInsufficiencyPolicy::RefuseStageComparison
     );
 }
+
+fn write_observation_admission_sam(
+    root: &std::path::Path,
+    name: &str,
+    records: &[&str],
+) -> anyhow::Result<std::path::PathBuf> {
+    let path = root.join(name);
+    let mut content = "@HD\tVN:1.6\tSO:coordinate\n@SQ\tSN:chr1\tLN:100\n@RG\tID:a\tSM:sample_a\n@RG\tID:b\tSM:sample_b\n".to_string();
+    for record in records {
+        content.push_str(record);
+        content.push('\n');
+    }
+    std::fs::write(&path, content)?;
+    Ok(path)
+}
+
+#[test]
+fn acquired_overlap_outputs_refuse_incomplete_or_foreign_records() -> anyhow::Result<()> {
+    use bijux_dna_domain_bam::{
+        correct_tiny_bam_overlaps, summarize_tiny_bam_overlap_correction_outputs,
+    };
+    let root = bijux_dna_infra::temp_dir("overlap-record-admission")?;
+    let left = "pair\t99\tchr1\t10\t60\t12M\t=\t15\t17\tACGTACGTACGT\tFFFFFFFFFFFF\tRG:Z:a";
+    let right = "pair\t147\tchr1\t15\t60\t12M\t=\t10\t-17\tTTTTCCCCAAAA\tFFFFFFFFFFFF\tRG:Z:a";
+    let input = write_observation_admission_sam(root.path(), "input.sam", &[left, right])?;
+    let output = root.path().join("corrected.sam");
+    let positive = correct_tiny_bam_overlaps(&input, &output, "bamutil")?;
+    assert_eq!(positive.pair_count, Some(1));
+    assert_eq!(positive.corrected_overlap_bases, Some(7));
+    let observed = summarize_tiny_bam_overlap_correction_outputs(&input, &output, "bamutil")?;
+    assert_eq!(observed.corrected_overlap_bases, Some(7));
+    let before = std::fs::read(&input)?;
+    let missing = write_observation_admission_sam(root.path(), "missing.sam", &[left])?;
+    let foreign_left = left.replacen("pair", "foreign", 1);
+    let foreign_right = right.replacen("pair", "foreign", 1);
+    let foreign = write_observation_admission_sam(
+        root.path(),
+        "foreign.sam",
+        &[&foreign_left, &foreign_right],
+    )?;
+    let mut refusals = Vec::new();
+    for path in [&missing, &foreign] {
+        let result = std::panic::catch_unwind(|| {
+            summarize_tiny_bam_overlap_correction_outputs(&input, path, "bamutil")
+        });
+        eprintln!("overlap_output_admission {}: {result:?}", path.display());
+        refusals.push(matches!(result, Ok(Err(_))));
+    }
+    assert_eq!(std::fs::read(input)?, before);
+    assert!(refusals.into_iter().all(|refused| refused),
+        "incomplete or foreign output membership must return an error without panic or invented pair truth");
+    Ok(())
+}
