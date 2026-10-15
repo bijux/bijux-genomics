@@ -3510,8 +3510,8 @@ fn tiny_kinship_site_calls(
         for (offset, base) in record.seq.chars().enumerate() {
             let normalized = normalize_called_base(base);
             let site = (record.rname.clone(), record.pos + offset as u64);
-            match sample_calls.get(&site).copied().flatten() {
-                Some(existing) if existing != normalized => {
+            match sample_calls.get(&site).copied() {
+                Some(Some(existing)) if existing != normalized => {
                     sample_calls.insert(site, None);
                 }
                 Some(_) => {}

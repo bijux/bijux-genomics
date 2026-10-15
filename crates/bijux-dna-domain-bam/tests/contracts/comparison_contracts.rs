@@ -265,3 +265,34 @@ fn duplicate_action_refuses_before_replacing_output_for_every_input_shape() -> a
     );
     Ok(())
 }
+
+#[test]
+fn conflicting_kinship_site_calls_do_not_reappear_under_row_permutation() -> anyhow::Result<()> {
+    use bijux_dna_domain_bam::summarize_tiny_bam_kinship;
+    let root = bijux_dna_infra::temp_dir("kinship-conflict-admission")?;
+    let a = "a\t0\tchr1\t1\t60\t1M\t*\t0\t0\tA\tF\tRG:Z:a";
+    let conflict = "c\t0\tchr1\t1\t60\t1M\t*\t0\t0\tC\tF\tRG:Z:a";
+    let b = "b\t0\tchr1\t1\t60\t1M\t*\t0\t0\tA\tF\tRG:Z:b";
+    let positive_path = write_observation_admission_sam(root.path(), "positive.sam", &[a, b])?;
+    let positive =
+        summarize_tiny_bam_kinship(&positive_path, "king", "panel", "build", "diploid", 1, true)?;
+    assert_eq!(positive.pair_count, 1);
+    assert_eq!(positive.observed_max_overlap_snps, 1);
+    let mut observations = Vec::new();
+    for (name, rows) in
+        [("conflict-repeated.sam", [a, conflict, a, b]), ("conflict-last.sam", [a, a, conflict, b])]
+    {
+        let path = write_observation_admission_sam(root.path(), name, &rows)?;
+        let report =
+            summarize_tiny_bam_kinship(&path, "king", "panel", "build", "diploid", 1, true)?;
+        eprintln!("kinship_conflict_admission {name}: {report:?}");
+        observations.push((report.pair_count, report.observed_max_overlap_snps, report.status));
+    }
+    assert!(
+        observations.iter().all(|(pairs, overlap, status)| *pairs == 0
+            && *overlap == 0
+            && status == "insufficient"),
+        "a conflicting site stays unavailable independently of later duplicate observations"
+    );
+    Ok(())
+}
