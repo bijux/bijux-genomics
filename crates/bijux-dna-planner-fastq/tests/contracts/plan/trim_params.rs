@@ -44,10 +44,8 @@ fn default_adapter_preset_writes_effective_adapters() -> Result<()> {
         .parent()
         .and_then(|p| p.parent())
         .ok_or_else(|| anyhow::anyhow!("repo root not found"))?;
-    let prev_dir = std::env::current_dir()?;
-    std::env::set_current_dir(repo_root)?;
-    let bank_path = bijux_dna_domain_fastq::adapter_bank_path();
-    let presets_path = bijux_dna_domain_fastq::adapter_presets_path();
+    let bank_path = repo_root.join(bijux_dna_domain_fastq::adapter_bank_path());
+    let presets_path = repo_root.join(bijux_dna_domain_fastq::adapter_presets_path());
     let bank = bijux_dna_domain_fastq::load_adapter_bank(&bank_path)?;
     let presets = bijux_dna_domain_fastq::load_adapter_presets(&presets_path, &bank)?;
     let effective = bijux_dna_domain_fastq::resolve_adapter_preset(
@@ -66,6 +64,5 @@ fn default_adapter_preset_writes_effective_adapters() -> Result<()> {
     let payload = std::fs::read_to_string(&path)?;
     assert!(payload.contains("truseq_universal"));
     assert!(payload.contains("truseq_indexed"));
-    std::env::set_current_dir(prev_dir)?;
     Ok(())
 }

@@ -32,6 +32,7 @@ Planner tests protect deterministic plan output, graph topology, command specs, 
 ## Fixtures and Snapshots
 - Fixtures live under `tests/fixtures/`.
 - Snapshot outputs live under `tests/snapshots/`.
+- `tests/contracts/plan/trim_params.rs` anchors provider-owned adapter bank and preset paths to the manifest-derived repository root, writes effective adapters under its private output root, and never changes the process working directory.
 - Snapshot changes require review of plan, graph, command, benchmark, or explain contract intent.
 
 ## Standard Command
