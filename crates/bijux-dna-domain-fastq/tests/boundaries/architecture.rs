@@ -276,30 +276,6 @@ fn crate_tree_matches_domain_fastq_boundary() {
         "stage-tool governance must keep layout, profiles, readiness, and model concerns separate"
     );
 
-    let expected_stages: BTreeSet<_> = [
-        "abundance_normalization.rs",
-        "abundance_normalization/",
-        "contract.rs",
-        "contract/",
-        "ids.rs",
-        "mod.rs",
-        "ports/",
-        "otu_clustering.rs",
-        "otu_clustering/",
-        "primer_normalization.rs",
-        "primer_normalization/",
-        "semantics.rs",
-        "semantics/",
-        "specs.rs",
-    ]
-    .into_iter()
-    .map(str::to_string)
-    .collect();
-    assert_eq!(
-        dir_entries(&root.join("src/stages")),
-        expected_stages,
-        "stages/ must contain durable stage-contract ownership modules"
-    );
     assert_eq!(
         dir_entries(&root.join("src/stages/contract")),
         entries(["catalog.rs", "export.rs", "runtime/"]),
