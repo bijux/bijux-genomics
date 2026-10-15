@@ -9,7 +9,7 @@ fn command_inventory_declares_library_only_surface() {
         .unwrap_or_else(|err| panic!("read Cargo.toml: {err}"));
 
     assert!(
-        commands_doc.contains("pure library crate"),
+        commands_doc.contains("library crate"),
         "COMMANDS.md must explicitly state that this crate is library-only"
     );
     assert!(

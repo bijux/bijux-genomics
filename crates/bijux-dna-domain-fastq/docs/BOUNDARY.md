@@ -14,12 +14,18 @@ parameter schemas/defaults, metric semantics, pipeline ordering, and invariant e
 ## Allowed dependencies
 - Foundational workspace crates required to express domain data and parse governed assets.
 - `bijux-dna-core` for identifiers and shared domain primitives.
-- `bijux-dna-infra` for governed YAML/JSON parsing and content hashing.
+- `bijux-dna-infra` for governed YAML/JSON parsing, content hashing and the
+  filesystem operations used by retained path-based APIs.
 - No reverse-layer coupling to planners, stages, runners, engines, containers, or CLIs.
 
 ## Allowed effects
 - Read governed reference-bank, parameter, and test fixture files.
 - Hash governed bank/reference files for provenance.
+- Retained `stages::contract` path operations may acquire FASTQ/table/report
+  inputs, create caller-selected output directories, publish files and rename
+  normalized outputs. The `run` facade reexports input-assessment publication.
+  These library effects do not authorize generated configuration writes or
+  external tool execution.
 - No process spawning, network calls, container execution, mutable runtime state, or planner
   selection side effects.
 

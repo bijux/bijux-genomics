@@ -1,7 +1,9 @@
 # bijux-dna-domain-fastq Architecture
 
-`bijux-dna-domain-fastq` is a pure FASTQ domain library. It owns typed domain truth and contract
-queries; execution crates decide when and how to run tools.
+`bijux-dna-domain-fastq` owns FASTQ typed domain truth and contract queries. Its
+pure value kernels are separate from retained path-based library operations that
+acquire inputs, publish files and normalize output names. Execution crates decide
+when and how to run external tools.
 
 ## Layout
 
@@ -40,7 +42,8 @@ src/
     abundance_normalization/   unit, ordering, and text-admission contracts
     primer_normalization.rs deterministic native primer-prefix computation on record values
     primer_normalization/   scientific computation contracts without filesystem setup
-    contract/             contract catalog, export helpers, and runtime policy
+    contract/             contract catalog, export helpers, and path operations
+      runtime/            retained input acquisition, local transforms and output publication
     otu_clustering.rs     pure native representative membership and aligned abundances
     otu_clustering/       order, threshold and record-retention contracts
     ports/                governed manifest ports and query helpers
@@ -78,8 +81,12 @@ src/
 - `observer/` may parse governed tool reports, but it must not execute tools or own runtime policy.
 - `execution_support/`, `integration_matrix/`, and `stage_tool_governance/` expose domain readiness
   and compatibility metadata; they do not schedule execution.
-- `run/` may discover FASTQ inputs and benchmark corpus descriptors, but it must remain domain
-  discovery, not runner orchestration.
+- `run/` exposes FASTQ discovery and benchmark corpus descriptors. It also reexports
+  the core input-assessment publication helper; writing that assessment is an explicit
+  caller-selected filesystem effect, without runner orchestration.
+- `stages::contract` retains path-based FASTQ/table/report acquisition, local
+  transforms, directory creation, file publication and output renaming. These APIs
+  are distinct from the pure borrowed-value kernels; they do not launch tools.
 
 ## Data Flow
 

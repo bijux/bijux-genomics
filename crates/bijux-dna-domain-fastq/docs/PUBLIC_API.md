@@ -90,3 +90,16 @@ The kernel owns no filesystem or backend execution. The path operation retains
 FASTQ acquisition, OTU IDs, output codecs, write/error order and report fields.
 Neither this separation nor a local smoke observation establishes vsearch execution
 or scientific correctness. No new public module, type or function is exported.
+
+
+## Filesystem Operations
+
+The public `stages::contract` path facade retains FASTQ/table/report acquisition,
+local transforms, directory creation and caller-selected output publication.
+`normalize_outputs` can rename existing FASTQ outputs. The `run` facade also
+reexports core `write_input_assessment` for assessment-file publication.
+
+These operations retain their existing output codecs, error order and filesystem
+behavior. They are separate from pure borrowed-value kernels. They do not launch
+external tools, grant a CLI surface, or promise atomic input snapshots or
+transactional multi-file writes.

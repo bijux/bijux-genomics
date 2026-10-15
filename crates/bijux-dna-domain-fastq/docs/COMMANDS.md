@@ -1,7 +1,9 @@
 # bijux-dna-domain-fastq Commands
 
-`bijux-dna-domain-fastq` is a pure library crate. It owns FASTQ domain contracts, typed models,
+`bijux-dna-domain-fastq` is a library crate. It owns FASTQ domain contracts, typed models,
 catalogs, parsers, and validation helpers, but it owns no executable command surface.
+Some public path-based library operations read, publish or rename caller-selected
+files; their effects are described in `EFFECTS.md`.
 
 ## Managed command inventory
 
