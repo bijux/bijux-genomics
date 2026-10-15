@@ -55,7 +55,7 @@ struct ArtifactWritePolicy {
 
 impl ArtifactWritePolicy {
     fn new() -> Self {
-        let operations = r"\b(?:write|write_string|write_bytes|atomic_write_json|create_dir|create_dir_all|ensure_dir|open|create|create_file)\s*\(";
+        let operations = r"\b(?P<operation>write|write_string|write_bytes|atomic_write_json|create_dir|create_dir_all|ensure_dir|open|create|create_file)\s*\(";
         Self {
             direct_write: Regex::new(&format!(
                 r#"{operations}\s*&?\s*(?:(?:std::path::)?(?:PathBuf::from|Path::new)\(\s*)?"artifacts(?:/|")"#
@@ -73,7 +73,11 @@ impl ArtifactWritePolicy {
     }
 
     fn writes_to_shared_artifacts(&self, content: &str) -> bool {
-        if self.direct_write.is_match(content) {
+        if self
+            .direct_write
+            .captures_iter(content)
+            .any(|capture| is_filesystem_path_call(content, &capture))
+        {
             return true;
         }
         // Path values are also persisted plan metadata. A constructor alone is not a write.
@@ -93,16 +97,28 @@ impl ArtifactWritePolicy {
                 Some((name.as_str(), name.end(), scope))
             })
             .collect::<Vec<_>>();
-        self.write_argument.captures_iter(content).any(|capture| {
-            capture.name("name").is_some_and(|name| {
-                bound_paths.iter().any(|(bound, declared_at, scope)| {
-                    *bound == name.as_str()
-                        && *declared_at < name.start()
-                        && scope.contains(&name.start())
+        self.write_argument
+            .captures_iter(content)
+            .filter(|capture| is_filesystem_path_call(content, capture))
+            .any(|capture| {
+                capture.name("name").is_some_and(|name| {
+                    bound_paths.iter().any(|(bound, declared_at, scope)| {
+                        *bound == name.as_str()
+                            && *declared_at < name.start()
+                            && scope.contains(&name.start())
+                    })
                 })
             })
-        })
     }
+}
+
+// A receiver's write method is not a filesystem path constructor. File creation and
+// open methods still take paths and remain governed, as do static or imported fs writes.
+fn is_filesystem_path_call(content: &str, capture: &regex::Captures<'_>) -> bool {
+    let Some(operation) = capture.name("operation") else {
+        return true;
+    };
+    operation.as_str() != "write" || !content[..operation.start()].trim_end().ends_with('.')
 }
 
 #[test]
@@ -111,6 +127,9 @@ fn policy__contracts__test_determinism_policy__artifact_write_scan_distinguishes
     let policy = ArtifactWritePolicy::new();
     for source in [
         r#"std::fs::write("artifacts/report.json", data)?;"#,
+        r#"write("artifacts/report.json", data)?;"#,
+        r#"File::options().open("artifacts/report.json")?;"#,
+        r#"fixture.write("artifacts/metadata", data)?; std::fs::write("artifacts/report.json", data)?;"#,
         "std::fs::write(\n    \"artifacts/report.json\", data)?;",
         r#"File::create(PathBuf::from("artifacts/report.json"))?;"#,
         r#"let output = PathBuf::from("artifacts/report.json"); atomic_write_json(&output, &report)?;"#,
@@ -122,6 +141,8 @@ fn policy__contracts__test_determinism_policy__artifact_write_scan_distinguishes
     }
     for source in [
         r#"assert_eq!(plan.out_dir, PathBuf::from("artifacts/runs/bench/local-smoke"));"#,
+        r#"fixture.write("artifacts/cache/caller-owned", b"preserve caller cache")?;"#,
+        r#"let output = PathBuf::from("artifacts/relative.json"); fixture.write(&output, data)?;"#,
         r#"let output = PathBuf::from("artifacts/report.json"); render(root.path(), output)?;"#,
         r#"let output = paths.root.join("report.json"); std::fs::write(&output, "artifacts/metadata")?;"#,
         r#"std::fs::write(root.path().join("artifacts/report.json"), data)?;"#,
