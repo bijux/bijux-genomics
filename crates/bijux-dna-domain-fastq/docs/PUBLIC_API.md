@@ -103,3 +103,23 @@ These operations retain their existing output codecs, error order and filesystem
 behavior. They are separate from pure borrowed-value kernels. They do not launch
 external tools, grant a CLI surface, or promise atomic input snapshots or
 transactional multi-file writes.
+
+## Local Read Filtering
+
+`stages::read_filtering::local_read_filter_rejection` borrows a sequence and
+`FilterEffectiveParams`, returning `Option<ReadFilterRejection>` with `TooManyN` or
+`LowComplexity`. An absent rejection retains the read under this local rule.
+`max_n_count` takes precedence over `max_n`; uppercase/lowercase N counts are
+compared before complexity. Counts equal to the selected limit are retained.
+
+`low_complexity_threshold` takes precedence over `entropy_threshold`. The score is
+the percentage of adjacent bytes that differ, with zero for empty or one-byte
+sequences. It is a byte-transition proxy; the entropy parameter remains an alias
+for that threshold. The comparison is strictly less than, preserving equality,
+NaN and infinite-threshold behavior. A selected NaN does not fall back to an alias.
+Remaining parameters are metadata for this local decision.
+
+The function owns no record acquisition or publication. API composition keeps
+paired retention, removal counts, report schemas and FASTQ output codecs. This
+contract preserves the native local envelope rather than establishing external
+filter-tool equivalence.

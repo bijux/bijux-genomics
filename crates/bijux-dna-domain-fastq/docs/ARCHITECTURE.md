@@ -42,6 +42,7 @@ src/
     abundance_normalization/   unit, ordering, and text-admission contracts
     primer_normalization.rs deterministic native primer-prefix computation on record values
     primer_normalization/   scientific computation contracts without filesystem setup
+    read_filtering.rs       borrowed-sequence local rejection rules and typed reasons
     contract/             contract catalog, export helpers, and path operations
       runtime/            retained input acquisition, local transforms and output publication
     otu_clustering.rs     pure native representative membership and aligned abundances
@@ -69,6 +70,11 @@ src/
   The module and shared record value are crate-private. The existing path-based
   `stages::contract::normalize_primers` operation retains acquisition, publication, and report
   projection; this separation does not relocate its filesystem effects.
+- `stages/read_filtering` owns the pure native local read rejection decision from a
+  borrowed sequence and existing effective parameters. It preserves N-count alias
+  precedence, N-before-complexity priority and byte-transition percentage thresholds.
+  API composition retains record acquisition, paired retention, report fields and
+  FASTQ codecs. The local complexity rule is a transition proxy.
 - `stages/otu_clustering` owns crate-private native local-smoke membership on
   admitted FASTQ records. It preserves input-order representative selection, first-match
   assignment, common-prefix identity and direct threshold comparison behavior. The
