@@ -1,6 +1,7 @@
 mod receipt_reuse;
 
 pub use receipt_reuse::can_reuse_apptainer_smoke;
+pub(super) use receipt_reuse::validate_successful_manifest;
 
 use std::fmt::Write as _;
 use std::io::Read;

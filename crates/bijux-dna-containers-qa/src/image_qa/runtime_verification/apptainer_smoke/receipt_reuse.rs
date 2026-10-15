@@ -41,6 +41,14 @@ fn admit_receipt(path: &Path, request: &ApptainerSmokeRequest, now: SystemTime) 
         receipt.checked_at_unix_s != 0 && checked_age < Duration::from_hours(168),
         "smoke check is stale or absent"
     );
+    validate_successful_manifest(&receipt, request)
+}
+
+/// Admit successful probe semantics independently of weekly receipt freshness.
+pub(crate) fn validate_successful_manifest(
+    receipt: &ApptainerSmokeManifest,
+    request: &ApptainerSmokeRequest,
+) -> Result<()> {
     ensure!(
         receipt.status == "ok" && receipt.quick_smoke && receipt.version_matches_contract,
         "smoke receipt is not a successful quick smoke"
