@@ -1082,3 +1082,6 @@ fn vcf_planner_rejects_invalid_empirical_depth_before_regime_selection() {
         );
     }
 }
+
+#[cfg(unix)]
+include!("contracts/command_path_binding.rs");

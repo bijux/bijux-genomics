@@ -210,30 +210,14 @@ fn bcftools_stage_command(
             "-o".to_string(),
             output_path(outputs, "prepared_panel")?.display().to_string(),
         ],
-        VcfDomainStage::Call => shell_pipeline_command(
-            "bcftools mpileup -Ou -f '{reference}' '{bam}' | bcftools call -c -Oz -o '{output}'",
-            inputs,
-            outputs,
-            "called_vcf",
-        )?,
-        VcfDomainStage::CallDiploid => shell_pipeline_command(
-            "bcftools mpileup -Ou -f '{reference}' '{bam}' | bcftools call -mv -Oz -o '{output}'",
-            inputs,
-            outputs,
-            "diploid_vcf",
-        )?,
-        VcfDomainStage::CallGl => shell_pipeline_command(
-            "bcftools mpileup -Ou -f '{reference}' '{bam}' | bcftools call -Aim -Oz -o '{output}'",
-            inputs,
-            outputs,
-            "gl_sites_vcf",
-        )?,
-        VcfDomainStage::CallPseudohaploid => shell_pipeline_command(
-            "bcftools mpileup -Ou -f '{reference}' '{bam}' | bcftools call --ploidy 1 -mv -Oz -o '{output}'",
-            inputs,
-            outputs,
-            "pseudohaploid_vcf",
-        )?,
+        VcfDomainStage::Call => shell_pipeline_command("-c", inputs, outputs, "called_vcf")?,
+        VcfDomainStage::CallDiploid => {
+            shell_pipeline_command("-mv", inputs, outputs, "diploid_vcf")?
+        }
+        VcfDomainStage::CallGl => shell_pipeline_command("-Aim", inputs, outputs, "gl_sites_vcf")?,
+        VcfDomainStage::CallPseudohaploid => {
+            shell_pipeline_command("--ploidy 1 -mv", inputs, outputs, "pseudohaploid_vcf")?
+        }
         VcfDomainStage::DamageFilter => vec![
             "bcftools".to_string(),
             "filter".to_string(),
@@ -635,14 +619,17 @@ fn output_prefix_path(outputs: &[ArtifactSpec], artifact_id: &str) -> Result<Str
 }
 
 fn shell_pipeline_command(
-    template: &str,
+    call_arguments: &str,
     inputs: &[ArtifactSpec],
     outputs: &[ArtifactSpec],
     output_artifact_id: &str,
 ) -> Result<Vec<String>> {
-    let command = template
-        .replace("{reference}", &input_path(inputs, "reference_fasta")?.display().to_string())
-        .replace("{bam}", &input_path(inputs, "input_bam")?.display().to_string())
-        .replace("{output}", &output_path(outputs, output_artifact_id)?.display().to_string());
+    let path_contents = |path: &Path| path.display().to_string().replace('\'', "'\\''");
+    let reference = path_contents(input_path(inputs, "reference_fasta")?);
+    let bam = path_contents(input_path(inputs, "input_bam")?);
+    let output = path_contents(output_path(outputs, output_artifact_id)?);
+    let command = format!(
+        "bcftools mpileup -Ou -f '{reference}' '{bam}' | bcftools call {call_arguments} -Oz -o '{output}'"
+    );
     Ok(vec!["sh".to_string(), "-lc".to_string(), command])
 }
