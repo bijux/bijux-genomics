@@ -385,3 +385,24 @@ fn normalized_fixture_source_matches_declared_runtime_checkout() -> Result<()> {
     );
     Ok(())
 }
+
+#[test]
+fn source_cohort_target_overflow_is_a_typed_refusal() -> Result<()> {
+    let (_scratch, mut spec, _files) = corpus()?;
+    bijux_dna_bench_corpus::source::validate_fastq_corpus_source_spec(&spec)?;
+    assert_eq!(spec.target_total, 4);
+    spec.target_ancient_se = Some(usize::MAX);
+    spec.target_ancient_pe = Some(1);
+    spec.target_modern_se = Some(2);
+    spec.target_modern_pe = Some(2);
+    let observed = std::panic::catch_unwind(|| {
+        bijux_dna_bench_corpus::source::validate_fastq_corpus_source_spec(&spec)
+    });
+    let error = observed
+        .ok()
+        .context("cohort target aggregation must return a typed error without unwinding")?
+        .err()
+        .context("cohort targets beyond usize must not wrap to the declared four samples")?;
+    assert!(error.to_string().contains("cohort"), "{error}");
+    Ok(())
+}

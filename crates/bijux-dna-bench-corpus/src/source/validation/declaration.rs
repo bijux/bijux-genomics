@@ -60,11 +60,18 @@ pub fn validate_fastq_corpus_source_spec(
         spec.target_modern_se,
         spec.target_modern_pe,
     ];
-    if cohort_targets.iter().any(Option::is_some)
-        && (cohort_targets.iter().any(Option::is_none)
-            || cohort_targets.into_iter().flatten().sum::<usize>() != spec.target_total)
-    {
-        return Err(invalid("FASTQ corpus cohort targets do not close over target total"));
+    if cohort_targets.iter().any(Option::is_some) {
+        if cohort_targets.iter().any(Option::is_none) {
+            return Err(invalid("FASTQ corpus cohort targets do not close over target total"));
+        }
+        let total = cohort_targets
+            .into_iter()
+            .flatten()
+            .try_fold(0_usize, usize::checked_add)
+            .ok_or_else(|| invalid("FASTQ corpus cohort target count overflow"))?;
+        if total != spec.target_total {
+            return Err(invalid("FASTQ corpus cohort targets do not close over target total"));
+        }
     }
     let mut accessions = BTreeSet::new();
     for sample in &spec.samples {

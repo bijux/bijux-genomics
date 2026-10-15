@@ -146,12 +146,17 @@ fn validate_sample_truth_contract(
             sample.records.len()
         ));
     }
-    if sample.total_reads != sample.mapped_reads + sample.unmapped_reads {
+    let mapped_and_unmapped = checked_truth_count(
+        &sample.sample_id,
+        "mapped+unmapped",
+        [sample.mapped_reads, sample.unmapped_reads].into_iter(),
+    )?;
+    if sample.total_reads != mapped_and_unmapped {
         return Err(anyhow!(
             "BAM alignment truth sample `{}` total_reads {} does not equal mapped+unmapped {}",
             sample.sample_id,
             sample.total_reads,
-            sample.mapped_reads + sample.unmapped_reads
+            mapped_and_unmapped
         ));
     }
     let expected_mapped_contigs = sample
@@ -168,8 +173,11 @@ fn validate_sample_truth_contract(
             sample.sample_id
         ));
     }
-    let mapped_position_total =
-        sample.mapped_positions.iter().map(|row| row.read_count).sum::<u64>();
+    let mapped_position_total = checked_truth_count(
+        &sample.sample_id,
+        "mapped_positions",
+        sample.mapped_positions.iter().map(|row| row.read_count),
+    )?;
     if mapped_position_total != sample.mapped_reads {
         return Err(anyhow!(
             "BAM alignment truth sample `{}` mapped_positions count {} does not equal mapped_reads {}",
@@ -178,8 +186,11 @@ fn validate_sample_truth_contract(
             sample.mapped_reads
         ));
     }
-    let mapped_mapq_total =
-        sample.mapped_mapq_classes.iter().map(|row| row.read_count).sum::<u64>();
+    let mapped_mapq_total = checked_truth_count(
+        &sample.sample_id,
+        "mapped_mapq_classes",
+        sample.mapped_mapq_classes.iter().map(|row| row.read_count),
+    )?;
     if mapped_mapq_total != sample.mapped_reads {
         return Err(anyhow!(
             "BAM alignment truth sample `{}` mapped MAPQ class count {} does not equal mapped_reads {}",
@@ -188,7 +199,11 @@ fn validate_sample_truth_contract(
             sample.mapped_reads
         ));
     }
-    let cigar_total = sample.cigar_classes.iter().map(|row| row.read_count).sum::<u64>();
+    let cigar_total = checked_truth_count(
+        &sample.sample_id,
+        "cigar_classes",
+        sample.cigar_classes.iter().map(|row| row.read_count),
+    )?;
     if cigar_total != sample.total_reads {
         return Err(anyhow!(
             "BAM alignment truth sample `{}` cigar class count {} does not equal total_reads {}",
@@ -198,4 +213,16 @@ fn validate_sample_truth_contract(
         ));
     }
     Ok(())
+}
+
+fn checked_truth_count(
+    sample_id: &str,
+    field: &str,
+    mut counts: impl Iterator<Item = u64>,
+) -> Result<u64> {
+    counts.try_fold(0_u64, |total, count| {
+        total.checked_add(count).ok_or_else(|| {
+            anyhow!("BAM alignment truth sample `{sample_id}` {field} count overflow")
+        })
+    })
 }

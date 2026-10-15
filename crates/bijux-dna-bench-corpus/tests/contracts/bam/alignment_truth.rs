@@ -129,3 +129,53 @@ fn expected_record_substitution_cannot_pass_with_unchanged_aggregates() {
         serde_json::to_vec(&expected).expect("encode expected")
     );
 }
+
+#[test]
+fn expected_alignment_count_overflow_refuses_without_unwinding() -> anyhow::Result<()> {
+    use anyhow::Context as _;
+    let (root, _scratch, path, manifest, original) = isolated_truth();
+    write_truth(&path, &manifest, &original);
+    let control = validate_bam_alignment_truth_manifest_path(&root, &path)?;
+    assert!(control.valid);
+    assert_eq!((control.validated_sample_count, control.validated_record_count), (4, 14));
+    let mut observations = Vec::new();
+    for field in ["mapped_and_unmapped", "mapped_positions", "mapped_mapq_classes", "cigar_classes"]
+    {
+        let mut expected = original.clone();
+        let sample = &mut expected["sample_truths"][0];
+        if field == "mapped_and_unmapped" {
+            sample["mapped_reads"] = serde_json::json!(u64::MAX);
+            sample["unmapped_reads"] = serde_json::json!(3_u64);
+        } else {
+            let first = sample[field]
+                .as_array()
+                .context("governed aggregate rows")?
+                .first()
+                .context("governed aggregate row")?
+                .clone();
+            let mut largest = first.clone();
+            let mut remainder = first;
+            largest["read_count"] = serde_json::json!(u64::MAX);
+            remainder["read_count"] = serde_json::json!(3_u64);
+            sample[field] = serde_json::json!([largest, remainder]);
+        }
+        write_truth(&path, &manifest, &expected);
+        let observed =
+            std::panic::catch_unwind(|| validate_bam_alignment_truth_manifest_path(&root, &path));
+        observations.push((field, observed));
+    }
+    write_truth(&path, &manifest, &original);
+    let restored = validate_bam_alignment_truth_manifest_path(&root, &path)?;
+    assert!(restored.valid);
+    for (field, observed) in observations {
+        let error = observed
+            .ok()
+            .with_context(|| format!("{field} count overflow must return Err without unwinding"))?
+            .err()
+            .with_context(|| format!("{field} count overflow must not be accepted"))?;
+        let message = format!("{error:#}");
+        assert!(message.contains("overflow"), "{field}: {message}");
+        assert!(message.contains("human_like_validation"), "{field}: {message}");
+    }
+    Ok(())
+}
