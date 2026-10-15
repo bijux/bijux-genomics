@@ -81,7 +81,14 @@ fn parse_preprocess_effective_params(
         .ok()
         .map(EffectiveParams::RemoveDuplicates);
     }
-    if stage_id == &STAGE_FILTER_READS || stage_id == &STAGE_FILTER_LOW_COMPLEXITY {
+    if stage_id == &STAGE_FILTER_LOW_COMPLEXITY {
+        return serde_json::from_value::<
+            quality::filter_low_complexity::FilterLowComplexityEffectiveParams,
+        >(value.clone())
+        .ok()
+        .map(EffectiveParams::FilterLowComplexity);
+    }
+    if stage_id == &STAGE_FILTER_READS {
         return serde_json::from_value::<quality::filter::FilterEffectiveParams>(value.clone())
             .ok()
             .map(EffectiveParams::Filter);

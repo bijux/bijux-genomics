@@ -537,3 +537,61 @@ fn report_qc_params_roundtrip_with_multiqc_contract() {
     assert_eq!(decoded.aggregation_scope, QcAggregationScope::GovernedQcArtifacts);
     assert!(decoded.missing_required_fields().is_empty());
 }
+
+#[test]
+fn low_complexity_descriptor_payload_has_typed_retention_authority() -> anyhow::Result<()> {
+    use anyhow::{ensure, Context as _};
+    use bijux_dna_domain_fastq::params::quality::filter_low_complexity::{
+        FilterLowComplexityEffectiveParams, FILTER_LOW_COMPLEXITY_SCHEMA_VERSION,
+    };
+    let ordinary = bijux_dna_domain_fastq::params::defaults::filter_defaults(false);
+    let generic = parse_effective_params(
+        &StageId::from_static("fastq.filter_reads"),
+        &serde_json::to_value(&ordinary)?,
+    )
+    .context("retain ordinary filter parameter admission")?;
+    ensure!(
+        generic.retention_conditions() == ordinary.retention_conditions(),
+        "generic filter changed"
+    );
+    let stage = StageId::from_static("fastq.filter_low_complexity");
+    let descriptor =
+        stage_param_descriptor(&stage).context("published low complexity descriptor")?;
+    ensure!(descriptor.schema_version == FILTER_LOW_COMPLEXITY_SCHEMA_VERSION, "published schema");
+    let mut observations = Vec::new();
+    for paired_mode in [PairedMode::SingleEnd, PairedMode::PairedEnd] {
+        for polyx_threshold in [None, Some(8)] {
+            let params = FilterLowComplexityEffectiveParams {
+                schema_version: FILTER_LOW_COMPLEXITY_SCHEMA_VERSION.to_string(),
+                paired_mode,
+                threads: 1,
+                entropy_threshold: 0.6,
+                polyx_threshold,
+            };
+            ensure!(params.missing_required_fields().is_empty(), "valid declared params");
+            let value = serde_json::to_value(&params)?;
+            let mut wrong_type = value.clone();
+            wrong_type["threads"] = serde_json::json!("one");
+            ensure!(
+                parse_effective_params(&stage, &wrong_type).is_none(),
+                "wrong consumed scalar accepted"
+            );
+            let mut unknown = value.clone();
+            unknown["foreign_field"] = serde_json::json!(true);
+            ensure!(
+                parse_effective_params(&stage, &unknown).is_none(),
+                "dedicated unknown field accepted"
+            );
+            observations.push((params, parse_effective_params(&stage, &value)));
+        }
+    }
+    for (expected, observed) in observations {
+        let observed = observed.context("published dedicated low-complexity payload must parse")?;
+        ensure!(observed.missing_required_fields().is_empty(), "valid fields lost");
+        ensure!(
+            observed.retention_conditions() == expected.retention_conditions(),
+            "schema/polyx or other dedicated retention fields lost"
+        );
+    }
+    Ok(())
+}
