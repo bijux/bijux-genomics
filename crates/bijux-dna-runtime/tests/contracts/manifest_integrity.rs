@@ -1,5 +1,4 @@
 use std::collections::BTreeMap;
-use std::path::PathBuf;
 
 use bijux_dna_runtime::run_layout::RunManifest;
 use bijux_dna_runtime::{prepare_tool_run_dirs, write_canonical_json, write_run_manifest};
@@ -88,10 +87,8 @@ fn manifest_has_required_fields() {
 
 #[test]
 fn run_manifest_output_artifacts_include_hashes_for_runtime_files() {
-    let base = std::env::var("TEST_TMP_DIR")
-        .map_or_else(|_| std::env::temp_dir(), PathBuf::from)
-        .join("runtime_manifest_hash_contract");
-    let _ = std::fs::remove_dir_all(&base);
+    let fixture = bijux_dna_testkit::tempdir_for("runtime_manifest_hash_contract");
+    let base = fixture.path().to_path_buf();
     std::fs::create_dir_all(&base).unwrap_or_else(|e| panic!("create base dir: {e}"));
     let run_dirs = prepare_tool_run_dirs(&base, "fastp", "run-1")
         .unwrap_or_else(|e| panic!("prepare run dirs: {e}"));
@@ -133,8 +130,8 @@ fn run_manifest_output_artifacts_include_hashes_for_runtime_files() {
 
 #[test]
 fn prepare_tool_run_dirs_rejects_path_traversal_segments() {
-    let base = std::env::temp_dir().join("runtime_run_dirs_segment_contract");
-    let _ = std::fs::remove_dir_all(&base);
+    let fixture = bijux_dna_testkit::tempdir_for("runtime_run_dirs_segment_contract");
+    let base = fixture.path().to_path_buf();
     std::fs::create_dir_all(&base).unwrap_or_else(|e| panic!("create base dir: {e}"));
 
     for (tool, run_id) in [("../fastp", "run-1"), ("fastp", "../run-1"), ("", "run-1")] {
@@ -147,8 +144,8 @@ fn prepare_tool_run_dirs_rejects_path_traversal_segments() {
 
 #[test]
 fn stage_plan_writer_rejects_paths_outside_plans_dir() {
-    let base = std::env::temp_dir().join("runtime_stage_plan_path_contract");
-    let _ = std::fs::remove_dir_all(&base);
+    let fixture = bijux_dna_testkit::tempdir_for("runtime_stage_plan_path_contract");
+    let base = fixture.path().to_path_buf();
     std::fs::create_dir_all(&base).unwrap_or_else(|e| panic!("create base dir: {e}"));
     let run_dirs = prepare_tool_run_dirs(&base, "fastp", "run-1")
         .unwrap_or_else(|e| panic!("prepare run dirs: {e}"));
@@ -170,10 +167,8 @@ fn stage_plan_writer_rejects_paths_outside_plans_dir() {
 
 #[test]
 fn run_manifest_writes_reproducibility_report_artifact() {
-    let base = std::env::var("TEST_TMP_DIR")
-        .map_or_else(|_| std::env::temp_dir(), PathBuf::from)
-        .join("runtime_repro_report_contract");
-    let _ = std::fs::remove_dir_all(&base);
+    let fixture = bijux_dna_testkit::tempdir_for("runtime_repro_report_contract");
+    let base = fixture.path().to_path_buf();
     std::fs::create_dir_all(&base).unwrap_or_else(|e| panic!("create base dir: {e}"));
     let run_dirs = prepare_tool_run_dirs(&base, "fastp", "run-1")
         .unwrap_or_else(|e| panic!("prepare run dirs: {e}"));
@@ -216,10 +211,8 @@ fn run_manifest_writes_reproducibility_report_artifact() {
 
 #[test]
 fn run_manifest_writes_profile_and_lock_manifests() {
-    let base = std::env::var("TEST_TMP_DIR")
-        .map_or_else(|_| std::env::temp_dir(), PathBuf::from)
-        .join("runtime_profile_lock_contract");
-    let _ = std::fs::remove_dir_all(&base);
+    let fixture = bijux_dna_testkit::tempdir_for("runtime_profile_lock_contract");
+    let base = fixture.path().to_path_buf();
     std::fs::create_dir_all(&base).unwrap_or_else(|e| panic!("create base dir: {e}"));
     let run_dirs = prepare_tool_run_dirs(&base, "fastp", "run-1")
         .unwrap_or_else(|e| panic!("prepare run dirs: {e}"));
@@ -250,8 +243,8 @@ fn run_manifest_writes_profile_and_lock_manifests() {
 
 #[test]
 fn artifact_checksums_emit_deterministic_sha256_ledger() {
-    let dir = std::env::temp_dir().join("runtime_checksums_ledger_contract");
-    let _ = std::fs::remove_dir_all(&dir);
+    let fixture = bijux_dna_testkit::tempdir_for("runtime_checksums_ledger_contract");
+    let dir = fixture.path().to_path_buf();
     std::fs::create_dir_all(&dir).unwrap_or_else(|e| panic!("mkdir: {e}"));
     let a = dir.join("a.txt");
     let b = dir.join("b.txt");
@@ -271,8 +264,8 @@ fn artifact_checksums_emit_deterministic_sha256_ledger() {
 
 #[test]
 fn artifact_checksums_reject_declared_missing_artifacts() {
-    let dir = std::env::temp_dir().join("runtime_checksums_missing_contract");
-    let _ = std::fs::remove_dir_all(&dir);
+    let fixture = bijux_dna_testkit::tempdir_for("runtime_checksums_missing_contract");
+    let dir = fixture.path().to_path_buf();
     std::fs::create_dir_all(&dir).unwrap_or_else(|e| panic!("mkdir: {e}"));
     let missing = dir.join("missing.txt");
 
@@ -291,8 +284,8 @@ fn artifact_checksums_reject_declared_missing_artifacts() {
 
 #[test]
 fn artifact_checksums_reject_declared_directory_artifacts() {
-    let dir = std::env::temp_dir().join("runtime_checksums_directory_contract");
-    let _ = std::fs::remove_dir_all(&dir);
+    let fixture = bijux_dna_testkit::tempdir_for("runtime_checksums_directory_contract");
+    let dir = fixture.path().to_path_buf();
     std::fs::create_dir_all(&dir).unwrap_or_else(|e| panic!("mkdir: {e}"));
     let directory_artifact = dir.join("artifact_dir");
     std::fs::create_dir_all(&directory_artifact).unwrap_or_else(|e| panic!("mkdir artifact: {e}"));
@@ -312,8 +305,8 @@ fn artifact_checksums_reject_declared_directory_artifacts() {
 
 #[test]
 fn tool_invocation_writer_rejects_stage_id_path_separators() {
-    let dir = std::env::temp_dir().join("runtime_tool_invocation_path_contract");
-    let _ = std::fs::remove_dir_all(&dir);
+    let fixture = bijux_dna_testkit::tempdir_for("runtime_tool_invocation_path_contract");
+    let dir = fixture.path().to_path_buf();
     std::fs::create_dir_all(&dir).unwrap_or_else(|e| panic!("mkdir: {e}"));
 
     let err = bijux_dna_runtime::recording::write_tool_invocation_json(
@@ -329,8 +322,8 @@ fn tool_invocation_writer_rejects_stage_id_path_separators() {
 
 #[test]
 fn atomic_writer_preserves_existing_tmp_sibling_files() {
-    let dir = std::env::temp_dir().join("runtime_atomic_tmp_contract");
-    let _ = std::fs::remove_dir_all(&dir);
+    let fixture = bijux_dna_testkit::tempdir_for("runtime_atomic_tmp_contract");
+    let dir = fixture.path().to_path_buf();
     std::fs::create_dir_all(&dir).unwrap_or_else(|e| panic!("mkdir: {e}"));
     let target = dir.join("result.json");
     let sibling = dir.join("result.tmp");
@@ -376,8 +369,8 @@ fn tool_invocation_fixture() -> bijux_dna_core::metrics::ToolInvocationV1 {
 
 #[test]
 fn jsonl_append_creates_nested_parent_directories() {
-    let dir = std::env::temp_dir().join("runtime_jsonl_parent_contract");
-    let _ = std::fs::remove_dir_all(&dir);
+    let fixture = bijux_dna_testkit::tempdir_for("runtime_jsonl_parent_contract");
+    let dir = fixture.path().to_path_buf();
     let path = dir.join("run_artifacts").join("telemetry").join("events.jsonl");
 
     bijux_dna_runtime::recording::append_jsonl_line(&path, "{\"event\":\"started\"}")
@@ -391,8 +384,8 @@ fn jsonl_append_creates_nested_parent_directories() {
 
 #[test]
 fn run_artifact_envelope_has_required_keys() {
-    let dir = std::env::temp_dir().join("runtime_envelope_contract");
-    let _ = std::fs::remove_dir_all(&dir);
+    let fixture = bijux_dna_testkit::tempdir_for("runtime_envelope_contract");
+    let dir = fixture.path().to_path_buf();
     std::fs::create_dir_all(&dir).unwrap_or_else(|e| panic!("mkdir: {e}"));
     let path = bijux_dna_runtime::recording::write_run_artifact_envelope(
         &dir,
