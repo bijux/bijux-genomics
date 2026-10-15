@@ -33,15 +33,14 @@ use crate::types::artifact_reports::{
     BamEndogenousContentEstimateV1, BamEndogenousTruthSummaryV1, BamFilterSummaryV1,
     BamFlagstatCountsV1, BamGcBiasBinSummaryV1, BamGcBiasSummaryV1, BamGcBiasTruthSummaryV1,
     BamHaplogroupReadinessV1, BamHaplogroupTruthSummaryV1, BamInputOriginV1, BamInputScaleV1,
-    BamInsertSizeHistogramBinV1, BamInsertSizeSummaryV1, BamKinshipPairResultV1,
-    BamKinshipPrerequisitesV1, BamKinshipSummaryV1, BamLengthFilterSummaryV1, BamMappingSummaryV1,
-    BamMapqFilterSummaryV1, BamMapqRegimeV1, BamMarkdupSummaryV1, BamMergeCompatibilityV1,
-    BamMergeInputIdentityV1, BamOverlapCorrectionSummaryV1, BamPostAlignmentChainV1,
-    BamQcPreSummaryV1, BamReadGroupMappingCountV1, BamRecalibrationCoverageGateV1,
-    BamRecalibrationSummaryV1, BamSampleIdentityV1, BamScientificReportContractV1,
-    BamScientificReportIdV1, BamSexInferenceEvidenceV1, BamSexSummaryV1, BamStageResourcePlanV1,
-    BamValidationSummaryV1, BamWorkflowModeV1, BamWorkflowTemplateV1,
-    BAM_ADNA_CONTAMINATION_TRUTH_SUMMARY_SCHEMA_VERSION,
+    BamInsertSizeHistogramBinV1, BamInsertSizeSummaryV1, BamKinshipPrerequisitesV1,
+    BamKinshipSummaryV1, BamLengthFilterSummaryV1, BamMappingSummaryV1, BamMapqFilterSummaryV1,
+    BamMapqRegimeV1, BamMarkdupSummaryV1, BamMergeCompatibilityV1, BamMergeInputIdentityV1,
+    BamOverlapCorrectionSummaryV1, BamPostAlignmentChainV1, BamQcPreSummaryV1,
+    BamReadGroupMappingCountV1, BamRecalibrationCoverageGateV1, BamRecalibrationSummaryV1,
+    BamSampleIdentityV1, BamScientificReportContractV1, BamScientificReportIdV1,
+    BamSexInferenceEvidenceV1, BamSexSummaryV1, BamStageResourcePlanV1, BamValidationSummaryV1,
+    BamWorkflowModeV1, BamWorkflowTemplateV1, BAM_ADNA_CONTAMINATION_TRUTH_SUMMARY_SCHEMA_VERSION,
     BAM_ADNA_DAMAGE_TRUTH_SUMMARY_SCHEMA_VERSION, BAM_ADNA_WORKFLOW_SCHEMA_VERSION,
     BAM_ADVISORY_BOUNDARY_SCHEMA_VERSION, BAM_ALIGNMENT_PROVENANCE_SCHEMA_VERSION,
     BAM_ALIGNMENT_STRATEGY_SCHEMA_VERSION, BAM_ARTIFACT_INVENTORY_SCHEMA_VERSION,
@@ -56,15 +55,15 @@ use crate::types::artifact_reports::{
     BAM_FILTER_SUMMARY_SCHEMA_VERSION, BAM_GC_BIAS_SUMMARY_SCHEMA_VERSION,
     BAM_GC_BIAS_TRUTH_SUMMARY_SCHEMA_VERSION, BAM_HAPLOGROUP_READINESS_SCHEMA_VERSION,
     BAM_HAPLOGROUP_TRUTH_SUMMARY_SCHEMA_VERSION, BAM_INSERT_SIZE_SUMMARY_SCHEMA_VERSION,
-    BAM_KINSHIP_PREREQUISITES_SCHEMA_VERSION, BAM_KINSHIP_SUMMARY_SCHEMA_VERSION,
-    BAM_LENGTH_FILTER_SUMMARY_SCHEMA_VERSION, BAM_MAPPING_SUMMARY_SCHEMA_VERSION,
-    BAM_MAPQ_FILTER_SUMMARY_SCHEMA_VERSION, BAM_MARKDUP_SUMMARY_SCHEMA_VERSION,
-    BAM_MERGE_COMPATIBILITY_SCHEMA_VERSION, BAM_OVERLAP_CORRECTION_SUMMARY_SCHEMA_VERSION,
-    BAM_POST_ALIGNMENT_CHAIN_SCHEMA_VERSION, BAM_QC_PRE_SUMMARY_SCHEMA_VERSION,
-    BAM_RECALIBRATION_SUMMARY_SCHEMA_VERSION, BAM_RESOURCE_PLAN_SCHEMA_VERSION,
-    BAM_SAMPLE_IDENTITY_SCHEMA_VERSION, BAM_SCIENTIFIC_REPORT_SCHEMA_VERSION,
-    BAM_SEX_EVIDENCE_SCHEMA_VERSION, BAM_SEX_SUMMARY_SCHEMA_VERSION,
-    BAM_VALIDATION_SUMMARY_SCHEMA_VERSION, BAM_WORKFLOW_TEMPLATE_SCHEMA_VERSION,
+    BAM_KINSHIP_PREREQUISITES_SCHEMA_VERSION, BAM_LENGTH_FILTER_SUMMARY_SCHEMA_VERSION,
+    BAM_MAPPING_SUMMARY_SCHEMA_VERSION, BAM_MAPQ_FILTER_SUMMARY_SCHEMA_VERSION,
+    BAM_MARKDUP_SUMMARY_SCHEMA_VERSION, BAM_MERGE_COMPATIBILITY_SCHEMA_VERSION,
+    BAM_OVERLAP_CORRECTION_SUMMARY_SCHEMA_VERSION, BAM_POST_ALIGNMENT_CHAIN_SCHEMA_VERSION,
+    BAM_QC_PRE_SUMMARY_SCHEMA_VERSION, BAM_RECALIBRATION_SUMMARY_SCHEMA_VERSION,
+    BAM_RESOURCE_PLAN_SCHEMA_VERSION, BAM_SAMPLE_IDENTITY_SCHEMA_VERSION,
+    BAM_SCIENTIFIC_REPORT_SCHEMA_VERSION, BAM_SEX_EVIDENCE_SCHEMA_VERSION,
+    BAM_SEX_SUMMARY_SCHEMA_VERSION, BAM_VALIDATION_SUMMARY_SCHEMA_VERSION,
+    BAM_WORKFLOW_TEMPLATE_SCHEMA_VERSION,
 };
 
 /// Summarize duplicate burden and insert-size geometry for a tiny BAM/SAM fixture.
@@ -3432,177 +3431,18 @@ pub fn summarize_tiny_bam_kinship(
     requires_cohort_context: bool,
 ) -> Result<BamKinshipSummaryV1> {
     let document = parse_tiny_sam(input_bam)?;
-    let sample_site_calls = tiny_kinship_site_calls(&document);
-    let mut sample_ids = sample_site_calls.keys().cloned().collect::<Vec<_>>();
-    sample_ids.sort();
-    sample_ids.dedup();
-
-    let mut observed_max_overlap_snps = 0_u32;
-    let mut pairwise_results = Vec::new();
-    for (left_index, sample_a) in sample_ids.iter().enumerate() {
-        for sample_b in sample_ids.iter().skip(left_index + 1) {
-            let Some(calls_a) = sample_site_calls.get(sample_a) else {
-                continue;
-            };
-            let Some(calls_b) = sample_site_calls.get(sample_b) else {
-                continue;
-            };
-            let (overlap_snps, result) = build_tiny_kinship_pair_result(
-                sample_a,
-                sample_b,
-                calls_a,
-                calls_b,
-                min_overlap_snps,
-            );
-            observed_max_overlap_snps = observed_max_overlap_snps.max(overlap_snps);
-            if let Some(result) = result {
-                pairwise_results.push(result);
-            }
-        }
-    }
-
-    let insufficiency_reason = if pairwise_results.is_empty() {
-        if sample_ids.len() < 2 {
-            Some("insufficient_pair_manifest".to_string())
-        } else if observed_max_overlap_snps < min_overlap_snps {
-            Some("insufficient_overlap_snps".to_string())
-        } else {
-            Some("no_pairwise_results".to_string())
-        }
-    } else {
-        None
-    };
-
-    Ok(BamKinshipSummaryV1 {
-        schema_version: BAM_KINSHIP_SUMMARY_SCHEMA_VERSION.to_string(),
-        stage_id: "bam.kinship".to_string(),
-        method: method.to_string(),
-        input_bam: input_bam.to_path_buf(),
-        reference_panel: reference_panel.to_string(),
-        reference_build: reference_build.to_string(),
-        population_scope: population_scope.to_string(),
-        min_overlap_snps,
-        requires_cohort_context,
-        sample_count: sample_ids.len() as u32,
-        observed_max_overlap_snps,
-        pair_count: pairwise_results.len() as u32,
-        status: if pairwise_results.is_empty() {
-            "insufficient".to_string()
-        } else {
-            "ok".to_string()
+    Ok(observation::project_kinship(
+        &document,
+        observation::KinshipContext {
+            input_bam,
+            method,
+            reference_panel,
+            reference_build,
+            population_scope,
+            min_overlap_snps,
+            requires_cohort_context,
         },
-        insufficiency_reason,
-        pairwise_results,
-    })
-}
-
-fn tiny_kinship_site_calls(
-    document: &TinySamDocument,
-) -> HashMap<String, HashMap<(String, u64), Option<char>>> {
-    let mut calls = HashMap::<String, HashMap<(String, u64), Option<char>>>::new();
-    for record in document
-        .records
-        .iter()
-        .filter(|record| record.is_mapped() && record.pos > 0 && record.seq != "*")
-    {
-        let sample_id = kinship_sample_id_for_record(document, record);
-        let sample_calls = calls.entry(sample_id).or_default();
-        for (offset, base) in record.seq.chars().enumerate() {
-            let normalized = normalize_called_base(base);
-            let site = (record.rname.clone(), record.pos + offset as u64);
-            match sample_calls.get(&site).copied() {
-                Some(Some(existing)) if existing != normalized => {
-                    sample_calls.insert(site, None);
-                }
-                Some(_) => {}
-                None => {
-                    sample_calls.insert(site, Some(normalized));
-                }
-            }
-        }
-    }
-    calls
-}
-
-fn kinship_sample_id_for_record(document: &TinySamDocument, record: &TinySamRecord) -> String {
-    record
-        .read_group_id
-        .as_ref()
-        .and_then(|read_group_id| document.read_group_sample_map.get(read_group_id))
-        .cloned()
-        .or_else(|| document.read_group_samples.first().cloned())
-        .unwrap_or_else(|| "unknown".to_string())
-}
-
-fn normalize_called_base(base: char) -> char {
-    match base.to_ascii_uppercase() {
-        'A' | 'C' | 'G' | 'T' => base.to_ascii_uppercase(),
-        _ => 'N',
-    }
-}
-
-fn build_tiny_kinship_pair_result(
-    sample_a: &str,
-    sample_b: &str,
-    calls_a: &HashMap<(String, u64), Option<char>>,
-    calls_b: &HashMap<(String, u64), Option<char>>,
-    min_overlap_snps: u32,
-) -> (u32, Option<BamKinshipPairResultV1>) {
-    let mut overlap_snps = 0_u32;
-    let mut matching_sites = 0_u32;
-    for (site, base_a) in calls_a {
-        let Some(base_a) = *base_a else {
-            continue;
-        };
-        if base_a == 'N' {
-            continue;
-        }
-        let Some(Some(base_b)) = calls_b.get(site).copied() else {
-            continue;
-        };
-        if base_b == 'N' {
-            continue;
-        }
-        overlap_snps = overlap_snps.saturating_add(1);
-        if base_a == base_b {
-            matching_sites = matching_sites.saturating_add(1);
-        }
-    }
-
-    if overlap_snps < min_overlap_snps {
-        return (overlap_snps, None);
-    }
-
-    let mismatch_sites = overlap_snps.saturating_sub(matching_sites);
-    let concordance = round_metric(matching_sites as f64 / overlap_snps as f64);
-    let kinship_coefficient = round_metric(concordance / 2.0);
-    let relationship_label = classify_tiny_kinship_relationship(kinship_coefficient).to_string();
-
-    (
-        overlap_snps,
-        Some(BamKinshipPairResultV1 {
-            sample_a: sample_a.to_string(),
-            sample_b: sample_b.to_string(),
-            overlap_snps,
-            matching_sites,
-            mismatch_sites,
-            concordance,
-            kinship_coefficient,
-            relationship_label,
-        }),
-    )
-}
-
-fn classify_tiny_kinship_relationship(kinship_coefficient: f64) -> &'static str {
-    if kinship_coefficient >= 0.45 {
-        "duplicate_or_monozygotic"
-    } else if kinship_coefficient >= 0.177 {
-        "first_degree"
-    } else if kinship_coefficient >= 0.0884 {
-        "second_degree"
-    } else {
-        "unrelated"
-    }
+    ))
 }
 
 fn find_named_contig(
@@ -6342,40 +6182,6 @@ adna-y-snp2\tchrY\t15\tC\tT\tR1b1a\tscreening\n",
         assert!((insufficient.confidence - 0.0).abs() <= 1e-9);
         assert_eq!(insufficient.status, "coverage_gate_not_met");
         assert_eq!(insufficient.refusal_codes, vec!["coverage_below_haplogroup_minimum"]);
-    }
-
-    #[test]
-    fn bam_kinship_summary_round_trips() {
-        let summary = BamKinshipSummaryV1 {
-            schema_version: BAM_KINSHIP_SUMMARY_SCHEMA_VERSION.to_string(),
-            stage_id: "bam.kinship".to_string(),
-            method: "king".to_string(),
-            input_bam: PathBuf::from("input.sam"),
-            reference_panel: "human_like_relatedness_panel".to_string(),
-            reference_build: "grch38".to_string(),
-            population_scope: "human_diploid_panel".to_string(),
-            min_overlap_snps: 6,
-            requires_cohort_context: true,
-            sample_count: 2,
-            observed_max_overlap_snps: 6,
-            pair_count: 1,
-            status: "ok".to_string(),
-            insufficiency_reason: None,
-            pairwise_results: vec![BamKinshipPairResultV1 {
-                sample_a: "sample_a".to_string(),
-                sample_b: "sample_b".to_string(),
-                overlap_snps: 6,
-                matching_sites: 5,
-                mismatch_sites: 1,
-                concordance: 0.833_333,
-                kinship_coefficient: 0.416_667,
-                relationship_label: "first_degree".to_string(),
-            }],
-        };
-        let encoded = serde_json::to_string(&summary).expect("serialize kinship summary");
-        let decoded: BamKinshipSummaryV1 =
-            serde_json::from_str(&encoded).expect("deserialize kinship summary");
-        assert_eq!(decoded, summary);
     }
 
     #[test]

@@ -52,7 +52,7 @@ fn crate_tree_matches_domain_boundary() {
     .collect();
     assert_eq!(dir_entries(&root.join("src")), expected_src, "source tree changed");
 
-    assert_alignment_artifact_owners(root);
+    assert_miniature_artifact_owners(root);
 
     let report_models: BTreeSet<_> = [
         "mod.rs",
@@ -89,7 +89,7 @@ fn crate_tree_matches_domain_boundary() {
     );
 }
 
-fn assert_alignment_artifact_owners(root: &Path) {
+fn assert_miniature_artifact_owners(root: &Path) {
     assert_eq!(
         dir_entries(&root.join("src/artifacts")),
         ["alignment/", "observation/", "transformation/"].into_iter().map(str::to_string).collect()
@@ -103,11 +103,16 @@ fn assert_alignment_artifact_owners(root: &Path) {
     );
     assert_eq!(
         dir_entries(&root.join("src/artifacts/observation")),
-        ["mod.rs", "alignment.rs", "alignment/"]
+        ["mod.rs", "alignment.rs", "alignment/", "kinship.rs", "kinship/"]
             .into_iter()
             .map(str::to_string)
             .collect(),
-        "alignment observations must keep acquisition and scientific projection distinct from codecs"
+        "alignment and kinship observations must retain their scientific owners below acquisition facades"
+    );
+    assert_eq!(
+        dir_entries(&root.join("src/artifacts/observation/kinship")),
+        ["contracts.rs"].into_iter().map(str::to_string).collect(),
+        "kinship projection contracts must remain with their private observation owner"
     );
     assert_eq!(
         dir_entries(&root.join("src/artifacts/transformation")),
