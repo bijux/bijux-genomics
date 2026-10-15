@@ -58,23 +58,14 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
   "completeness": {
     "missing_metrics": [],
     "missing_reports": [
-      "fastq.detect_adapters:metrics_path",
       "fastq.detect_adapters:retention_report",
-      "fastq.filter_reads:metrics_path",
       "fastq.filter_reads:retention_report",
-      "fastq.profile_overrepresented_sequences:metrics_path",
       "fastq.profile_overrepresented_sequences:retention_report",
-      "fastq.profile_read_lengths:metrics_path",
       "fastq.profile_read_lengths:retention_report",
-      "fastq.profile_reads:metrics_path",
       "fastq.profile_reads:retention_report",
-      "fastq.report_qc:metrics_path",
       "fastq.report_qc:retention_report",
-      "fastq.trim_polyg_tails:metrics_path",
       "fastq.trim_polyg_tails:retention_report",
-      "fastq.trim_reads:metrics_path",
       "fastq.trim_reads:retention_report",
-      "fastq.validate_reads:metrics_path",
       "fastq.validate_reads:retention_report"
     ],
     "status": "incomplete"
@@ -508,23 +499,14 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
     "data_contract_validation": {
       "missing_metrics": [],
       "missing_reports": [
-        "fastq.detect_adapters:metrics_path",
         "fastq.detect_adapters:retention_report",
-        "fastq.filter_reads:metrics_path",
         "fastq.filter_reads:retention_report",
-        "fastq.profile_overrepresented_sequences:metrics_path",
         "fastq.profile_overrepresented_sequences:retention_report",
-        "fastq.profile_read_lengths:metrics_path",
         "fastq.profile_read_lengths:retention_report",
-        "fastq.profile_reads:metrics_path",
         "fastq.profile_reads:retention_report",
-        "fastq.report_qc:metrics_path",
         "fastq.report_qc:retention_report",
-        "fastq.trim_polyg_tails:metrics_path",
         "fastq.trim_polyg_tails:retention_report",
-        "fastq.trim_reads:metrics_path",
         "fastq.trim_reads:retention_report",
-        "fastq.validate_reads:metrics_path",
         "fastq.validate_reads:retention_report"
       ],
       "status": "incomplete"
@@ -561,7 +543,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "input_hash": "input",
           "missing_metrics": [],
           "missing_reports": [
-            "metrics_path",
             "retention_report"
           ],
           "params_hash": "params",
@@ -577,7 +558,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "input_hash": "input",
           "missing_metrics": [],
           "missing_reports": [
-            "metrics_path",
             "retention_report"
           ],
           "params_hash": "params",
@@ -593,7 +573,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "input_hash": "input",
           "missing_metrics": [],
           "missing_reports": [
-            "metrics_path",
             "retention_report"
           ],
           "params_hash": "params",
@@ -609,7 +588,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "input_hash": "input",
           "missing_metrics": [],
           "missing_reports": [
-            "metrics_path",
             "retention_report"
           ],
           "params_hash": "params",
@@ -625,7 +603,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "input_hash": "input",
           "missing_metrics": [],
           "missing_reports": [
-            "metrics_path",
             "retention_report"
           ],
           "params_hash": "params",
@@ -641,7 +618,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "input_hash": "input",
           "missing_metrics": [],
           "missing_reports": [
-            "metrics_path",
             "retention_report"
           ],
           "params_hash": "params",
@@ -657,7 +633,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "input_hash": "input",
           "missing_metrics": [],
           "missing_reports": [
-            "metrics_path",
             "retention_report"
           ],
           "params_hash": "params",
@@ -673,7 +648,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "input_hash": "input",
           "missing_metrics": [],
           "missing_reports": [
-            "metrics_path",
             "retention_report"
           ],
           "params_hash": "params",
@@ -689,7 +663,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "input_hash": "input",
           "missing_metrics": [],
           "missing_reports": [
-            "metrics_path",
             "retention_report"
           ],
           "params_hash": "params",
@@ -709,23 +682,14 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "completeness": {
         "missing_metrics": [],
         "missing_reports": [
-          "fastq.detect_adapters:metrics_path",
           "fastq.detect_adapters:retention_report",
-          "fastq.filter_reads:metrics_path",
           "fastq.filter_reads:retention_report",
-          "fastq.profile_overrepresented_sequences:metrics_path",
           "fastq.profile_overrepresented_sequences:retention_report",
-          "fastq.profile_read_lengths:metrics_path",
           "fastq.profile_read_lengths:retention_report",
-          "fastq.profile_reads:metrics_path",
           "fastq.profile_reads:retention_report",
-          "fastq.report_qc:metrics_path",
           "fastq.report_qc:retention_report",
-          "fastq.trim_polyg_tails:metrics_path",
           "fastq.trim_polyg_tails:retention_report",
-          "fastq.trim_reads:metrics_path",
           "fastq.trim_reads:retention_report",
-          "fastq.validate_reads:metrics_path",
           "fastq.validate_reads:retention_report"
         ],
         "status": "incomplete"
@@ -769,25 +733,16 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
     },
     "key_findings": [
       {
-        "count": 18,
+        "count": 9,
         "items": [
-          "fastq.detect_adapters:metrics_path",
           "fastq.detect_adapters:retention_report",
-          "fastq.filter_reads:metrics_path",
           "fastq.filter_reads:retention_report",
-          "fastq.profile_overrepresented_sequences:metrics_path",
           "fastq.profile_overrepresented_sequences:retention_report",
-          "fastq.profile_read_lengths:metrics_path",
           "fastq.profile_read_lengths:retention_report",
-          "fastq.profile_reads:metrics_path",
           "fastq.profile_reads:retention_report",
-          "fastq.report_qc:metrics_path",
           "fastq.report_qc:retention_report",
-          "fastq.trim_polyg_tails:metrics_path",
           "fastq.trim_polyg_tails:retention_report",
-          "fastq.trim_reads:metrics_path",
           "fastq.trim_reads:retention_report",
-          "fastq.validate_reads:metrics_path",
           "fastq.validate_reads:retention_report"
         ],
         "kind": "missing_reports"
@@ -826,63 +781,63 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       },
       "presets": [
         {
-          "effective_config_path": "",
+          "effective_config_path": "effective_config.json",
           "params_hash": "params",
           "stage_id": "fastq.detect_adapters",
           "tool_id": "fastqc",
           "tool_version": "99.99.99+fixture"
         },
         {
-          "effective_config_path": "",
+          "effective_config_path": "effective_config.json",
           "params_hash": "params",
           "stage_id": "fastq.filter_reads",
           "tool_id": "fastp",
           "tool_version": "99.99.99+fixture"
         },
         {
-          "effective_config_path": "",
+          "effective_config_path": "effective_config.json",
           "params_hash": "params",
           "stage_id": "fastq.profile_overrepresented_sequences",
           "tool_id": "fastqc",
           "tool_version": "99.99.99+fixture"
         },
         {
-          "effective_config_path": "",
+          "effective_config_path": "effective_config.json",
           "params_hash": "params",
           "stage_id": "fastq.profile_read_lengths",
           "tool_id": "seqkit",
           "tool_version": "99.99.99+fixture"
         },
         {
-          "effective_config_path": "",
+          "effective_config_path": "effective_config.json",
           "params_hash": "params",
           "stage_id": "fastq.profile_reads",
           "tool_id": "seqkit_stats",
           "tool_version": "99.99.99+fixture"
         },
         {
-          "effective_config_path": "",
+          "effective_config_path": "effective_config.json",
           "params_hash": "params",
           "stage_id": "fastq.report_qc",
           "tool_id": "multiqc",
           "tool_version": "99.99.99+fixture"
         },
         {
-          "effective_config_path": "",
+          "effective_config_path": "effective_config.json",
           "params_hash": "params",
           "stage_id": "fastq.trim_polyg_tails",
           "tool_id": "fastp",
           "tool_version": "99.99.99+fixture"
         },
         {
-          "effective_config_path": "",
+          "effective_config_path": "effective_config.json",
           "params_hash": "params",
           "stage_id": "fastq.trim_reads",
           "tool_id": "fastp",
           "tool_version": "99.99.99+fixture"
         },
         {
-          "effective_config_path": "",
+          "effective_config_path": "effective_config.json",
           "params_hash": "params",
           "stage_id": "fastq.validate_reads",
           "tool_id": "fastqvalidator",
@@ -2044,7 +1999,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         {
           "missing_metrics": [],
           "missing_reports": [
-            "metrics_path",
             "retention_report"
           ],
           "stage_id": "fastq.detect_adapters",
@@ -2053,7 +2007,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         {
           "missing_metrics": [],
           "missing_reports": [
-            "metrics_path",
             "retention_report"
           ],
           "stage_id": "fastq.filter_reads",
@@ -2062,7 +2015,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         {
           "missing_metrics": [],
           "missing_reports": [
-            "metrics_path",
             "retention_report"
           ],
           "stage_id": "fastq.profile_overrepresented_sequences",
@@ -2071,7 +2023,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         {
           "missing_metrics": [],
           "missing_reports": [
-            "metrics_path",
             "retention_report"
           ],
           "stage_id": "fastq.profile_read_lengths",
@@ -2080,7 +2031,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         {
           "missing_metrics": [],
           "missing_reports": [
-            "metrics_path",
             "retention_report"
           ],
           "stage_id": "fastq.profile_reads",
@@ -2089,7 +2039,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         {
           "missing_metrics": [],
           "missing_reports": [
-            "metrics_path",
             "retention_report"
           ],
           "stage_id": "fastq.report_qc",
@@ -2098,7 +2047,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         {
           "missing_metrics": [],
           "missing_reports": [
-            "metrics_path",
             "retention_report"
           ],
           "stage_id": "fastq.trim_polyg_tails",
@@ -2107,7 +2055,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         {
           "missing_metrics": [],
           "missing_reports": [
-            "metrics_path",
             "retention_report"
           ],
           "stage_id": "fastq.trim_reads",
@@ -2116,7 +2063,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         {
           "missing_metrics": [],
           "missing_reports": [
-            "metrics_path",
             "retention_report"
           ],
           "stage_id": "fastq.validate_reads",
@@ -2313,146 +2259,146 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
   "stages": [
     {
       "bank_report_path": null,
-      "effective_config_path": "",
+      "effective_config_path": "effective_config.json",
       "exit_code": 0,
       "input_hash": "input",
       "memory_mb": 64.0,
-      "metrics_path": "",
+      "metrics_path": "metrics.json",
       "params_hash": "params",
       "retention_report_path": null,
       "runtime_s": 1.0,
       "stage_id": "fastq.detect_adapters",
       "stage_report_path": "fastq.detect_adapters/stage_report.json",
       "tool_id": "fastqc",
-      "tool_invocation_path": "",
+      "tool_invocation_path": "tool_invocation.json",
       "tool_version": "99.99.99+fixture"
     },
     {
       "bank_report_path": null,
-      "effective_config_path": "",
+      "effective_config_path": "effective_config.json",
       "exit_code": 0,
       "input_hash": "input",
       "memory_mb": 64.0,
-      "metrics_path": "",
+      "metrics_path": "metrics.json",
       "params_hash": "params",
       "retention_report_path": null,
       "runtime_s": 1.0,
       "stage_id": "fastq.filter_reads",
       "stage_report_path": "fastq.filter_reads/stage_report.json",
       "tool_id": "fastp",
-      "tool_invocation_path": "",
+      "tool_invocation_path": "tool_invocation.json",
       "tool_version": "99.99.99+fixture"
     },
     {
       "bank_report_path": null,
-      "effective_config_path": "",
+      "effective_config_path": "effective_config.json",
       "exit_code": 0,
       "input_hash": "input",
       "memory_mb": 64.0,
-      "metrics_path": "",
+      "metrics_path": "metrics.json",
       "params_hash": "params",
       "retention_report_path": null,
       "runtime_s": 1.0,
       "stage_id": "fastq.profile_overrepresented_sequences",
       "stage_report_path": "fastq.profile_overrepresented_sequences/stage_report.json",
       "tool_id": "fastqc",
-      "tool_invocation_path": "",
+      "tool_invocation_path": "tool_invocation.json",
       "tool_version": "99.99.99+fixture"
     },
     {
       "bank_report_path": null,
-      "effective_config_path": "",
+      "effective_config_path": "effective_config.json",
       "exit_code": 0,
       "input_hash": "input",
       "memory_mb": 64.0,
-      "metrics_path": "",
+      "metrics_path": "metrics.json",
       "params_hash": "params",
       "retention_report_path": null,
       "runtime_s": 1.0,
       "stage_id": "fastq.profile_read_lengths",
       "stage_report_path": "fastq.profile_read_lengths/stage_report.json",
       "tool_id": "seqkit",
-      "tool_invocation_path": "",
+      "tool_invocation_path": "tool_invocation.json",
       "tool_version": "99.99.99+fixture"
     },
     {
       "bank_report_path": null,
-      "effective_config_path": "",
+      "effective_config_path": "effective_config.json",
       "exit_code": 0,
       "input_hash": "input",
       "memory_mb": 64.0,
-      "metrics_path": "",
+      "metrics_path": "metrics.json",
       "params_hash": "params",
       "retention_report_path": null,
       "runtime_s": 1.0,
       "stage_id": "fastq.profile_reads",
       "stage_report_path": "fastq.profile_reads/stage_report.json",
       "tool_id": "seqkit_stats",
-      "tool_invocation_path": "",
+      "tool_invocation_path": "tool_invocation.json",
       "tool_version": "99.99.99+fixture"
     },
     {
       "bank_report_path": null,
-      "effective_config_path": "",
+      "effective_config_path": "effective_config.json",
       "exit_code": 0,
       "input_hash": "input",
       "memory_mb": 64.0,
-      "metrics_path": "",
+      "metrics_path": "metrics.json",
       "params_hash": "params",
       "retention_report_path": null,
       "runtime_s": 1.0,
       "stage_id": "fastq.report_qc",
       "stage_report_path": "fastq.report_qc/stage_report.json",
       "tool_id": "multiqc",
-      "tool_invocation_path": "",
+      "tool_invocation_path": "tool_invocation.json",
       "tool_version": "99.99.99+fixture"
     },
     {
       "bank_report_path": null,
-      "effective_config_path": "",
+      "effective_config_path": "effective_config.json",
       "exit_code": 0,
       "input_hash": "input",
       "memory_mb": 64.0,
-      "metrics_path": "",
+      "metrics_path": "metrics.json",
       "params_hash": "params",
       "retention_report_path": null,
       "runtime_s": 1.0,
       "stage_id": "fastq.trim_polyg_tails",
       "stage_report_path": "fastq.trim_polyg_tails/stage_report.json",
       "tool_id": "fastp",
-      "tool_invocation_path": "",
+      "tool_invocation_path": "tool_invocation.json",
       "tool_version": "99.99.99+fixture"
     },
     {
       "bank_report_path": null,
-      "effective_config_path": "",
+      "effective_config_path": "effective_config.json",
       "exit_code": 0,
       "input_hash": "input",
       "memory_mb": 64.0,
-      "metrics_path": "",
+      "metrics_path": "metrics.json",
       "params_hash": "params",
       "retention_report_path": null,
       "runtime_s": 1.0,
       "stage_id": "fastq.trim_reads",
       "stage_report_path": "fastq.trim_reads/stage_report.json",
       "tool_id": "fastp",
-      "tool_invocation_path": "",
+      "tool_invocation_path": "tool_invocation.json",
       "tool_version": "99.99.99+fixture"
     },
     {
       "bank_report_path": null,
-      "effective_config_path": "",
+      "effective_config_path": "effective_config.json",
       "exit_code": 0,
       "input_hash": "input",
       "memory_mb": 64.0,
-      "metrics_path": "",
+      "metrics_path": "metrics.json",
       "params_hash": "params",
       "retention_report_path": null,
       "runtime_s": 1.0,
       "stage_id": "fastq.validate_reads",
       "stage_report_path": "fastq.validate_reads/stage_report.json",
       "tool_id": "fastqvalidator",
-      "tool_invocation_path": "",
+      "tool_invocation_path": "tool_invocation.json",
       "tool_version": "99.99.99+fixture"
     }
   ],
