@@ -13,6 +13,8 @@ Decision behavior is implemented in `src/decision/`. Public exports are curated 
 - Boundary: compare logic must not load through report renderers or mutate run artifacts.
 
 ## Ranking Modes
+A rank request validates the complete input facts first, then selects only facts for its requested stage. Other stages cannot add tools or ranking contributions.
+
 `src/decision/score/` owns three stable ranking modes:
 
 - `FastestAcceptable`: lower `runtime_s` wins; ties sort by `tool`.

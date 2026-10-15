@@ -26,8 +26,15 @@ pub(crate) fn compute_core(
     let facts_rows: Vec<FactsRowV1> =
         validated.facts.rows.iter().map(FactRow::to_facts_row_v1).collect();
 
-    let rankings = if matches!(options.mode, AnalyzeMode::Rank { .. }) {
-        Some(build_rankings(&rank_inputs_from_facts(&validated.facts.rows))?)
+    let rankings = if let AnalyzeMode::Rank { stage_id, .. } = &options.mode {
+        let selected = validated
+            .facts
+            .rows
+            .iter()
+            .filter(|row| row.stage_id.as_str() == stage_id.as_str())
+            .cloned()
+            .collect::<Vec<_>>();
+        Some(build_rankings(&rank_inputs_from_facts(&selected))?)
     } else {
         None
     };
