@@ -48,6 +48,9 @@ requirements, and performance budgets owned by `bijux-dna-analyze`.
 - Optional additions must be backward compatible and absent-safe.
 - Breaking field removals, type changes, or semantic changes require a new schema version.
 
+- Count validation refuses sums outside the representable `u64` range with validation errors in
+  every build profile; representable boundary values retain their existing invariants.
+
 ## Determinism Rules
 - JSON output uses canonical ordering where the renderer owns canonicalization.
 - HTML table order is stable by stage and tool identity.

@@ -275,7 +275,7 @@ impl StageMetricSchema for FastqValidateMetrics {
     const VERSION: i32 = 1;
 
     fn validate(&self) -> Result<()> {
-        if self.reads_valid + self.reads_invalid != self.reads_total {
+        if self.reads_valid.checked_add(self.reads_invalid) != Some(self.reads_total) {
             return Err(BenchError::Validation(
                 "reads_valid + reads_invalid must equal reads_total".to_string(),
             ));
@@ -414,18 +414,22 @@ impl StageMetricSchema for FastqFilterMetrics {
     const VERSION: i32 = 2;
 
     fn validate(&self) -> Result<()> {
-        if self.reads_out + self.reads_dropped != self.reads_in {
+        if self.reads_out.checked_add(self.reads_dropped) != Some(self.reads_in) {
             return Err(BenchError::Validation(
                 "reads_out + reads_dropped must equal reads_in".to_string(),
             ));
         }
-        let removed_breakdown = self.reads_removed_by_n
-            + self.reads_removed_by_entropy
-            + self.reads_removed_low_complexity
-            + self.reads_removed_by_kmer
-            + self.reads_removed_contaminant_kmer
-            + self.reads_removed_by_length;
-        if removed_breakdown > self.reads_dropped {
+        let removed_breakdown = [
+            self.reads_removed_by_n,
+            self.reads_removed_by_entropy,
+            self.reads_removed_low_complexity,
+            self.reads_removed_by_kmer,
+            self.reads_removed_contaminant_kmer,
+            self.reads_removed_by_length,
+        ]
+        .into_iter()
+        .try_fold(0_u64, u64::checked_add);
+        if removed_breakdown.is_none_or(|total| total > self.reads_dropped) {
             return Err(BenchError::Validation(
                 "reads_removed_by_* must be <= reads_dropped".to_string(),
             ));
@@ -461,7 +465,7 @@ impl StageMetricSchema for FastqLowComplexityMetrics {
     const VERSION: i32 = 1;
 
     fn validate(&self) -> Result<()> {
-        if self.reads_out + self.reads_removed_low_complexity != self.reads_in {
+        if self.reads_out.checked_add(self.reads_removed_low_complexity) != Some(self.reads_in) {
             return Err(BenchError::Validation(
                 "reads_out + reads_removed_low_complexity must equal reads_in".to_string(),
             ));
@@ -501,7 +505,8 @@ impl StageMetricSchema for FastqMergeMetrics {
 
     fn validate(&self) -> Result<()> {
         let min_reads = self.reads_r1.min(self.reads_r2);
-        if self.reads_merged + self.reads_unmerged > min_reads {
+        if self.reads_merged.checked_add(self.reads_unmerged).is_none_or(|total| total > min_reads)
+        {
             return Err(BenchError::Validation(
                 "reads_merged + reads_unmerged must be <= min(reads_r1, reads_r2)".to_string(),
             ));
