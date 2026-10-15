@@ -30,6 +30,7 @@ chrono.workspace = true
 walkdir.workspace = true
 
 [dev-dependencies]
+bijux-dna-process.workspace = true
 bijux-dna-policies.workspace = true
 bijux-dna-testkit = { path = "../bijux-dna-testkit" }
 

@@ -27,6 +27,8 @@ stable qualification facade.
 
 ## Allowed Test Dependencies
 
+- `bijux-dna-process`: bounded isolated QA contract fixture processes.
+
 - `bijux-dna-policies`: workspace guardrails.
 - `bijux-dna-testkit`: deterministic fixture and artifact-aware temp helpers.
 
