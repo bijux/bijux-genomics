@@ -16,6 +16,7 @@ fn dependency_graph_matches_environment_qa_boundary() {
         "bijux-dna-domain-fastq",
         "bijux-dna-containers",
         "bijux-dna-infra",
+        "bijux-dna-process",
         "bijux-dna-runtime",
         "bijux-dna-stage-contract",
         "chrono",

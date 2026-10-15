@@ -1,5 +1,8 @@
 #![cfg(unix)]
 
+#[path = "apptainer_smoke/descendant_deadline.rs"]
+mod descendant_deadline;
+
 use std::os::unix::fs::PermissionsExt as _;
 use std::path::{Path, PathBuf};
 use std::time::{Duration, SystemTime};
@@ -178,6 +181,9 @@ fn smoke_rejects_version_drift_invalid_regex_and_command_failure() -> anyhow::Re
 
 #[test]
 fn smoke_bounds_execution_and_persists_immutable_streams() -> anyhow::Result<()> {
+    if descendant_deadline::run_child_if_requested()? {
+        return Ok(());
+    }
     let temp = bijux_dna_testkit::tempdir_for("apptainer-smoke-timeout-evidence");
     let executable = temp.path().join("apptainer");
     write_executable(
@@ -193,5 +199,6 @@ fn smoke_bounds_execution_and_persists_immutable_streams() -> anyhow::Result<()>
     assert_eq!(manifest.status, "wrapper_failed");
     assert!(manifest.probe_results.iter().all(|probe| probe.timed_out));
     assert_eq!(std::fs::read_dir(temp.path().join("evidence"))?.count(), 4);
+    descendant_deadline::require_descendant_stream_deadline()?;
     Ok(())
 }

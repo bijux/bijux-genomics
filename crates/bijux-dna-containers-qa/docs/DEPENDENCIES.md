@@ -13,6 +13,7 @@ stable qualification facade.
 - `bijux-dna-containers`: platform, image, Docker tool, and smoke helper contracts.
 - `bijux-dna-infra`: directory creation, atomic writes, fixture IO, and config helpers.
 - `bijux-dna-runtime`: runtime manifest loading for QA stage/tool discovery.
+- `bijux-dna-process`: isolated process-group output collection under one EOF/exit deadline; enabled by `verification-tools`.
 - `bijux-dna-stage-contract`: canonical stage/tool bindings and pure command projection.
 - `schemars`: generated qualification specification source schema.
 - `clap`: binary argument parsing.
