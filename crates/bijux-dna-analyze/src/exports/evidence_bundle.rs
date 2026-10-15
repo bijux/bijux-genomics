@@ -556,7 +556,13 @@ pub fn verify_profile_bundle(
     let base_dir =
         profile_bundle_path.parent().ok_or_else(|| anyhow!("profile bundle path has no parent"))?;
 
-    let mut missing_paths = Vec::new();
+    let (current_inputs, aliases_valid) = profile_evidence_inputs(base_dir, &bundle);
+    let expected_paths = required_file_paths(base_dir, &current_inputs);
+    let declared_paths =
+        bundle.required_files.iter().map(|item| item.path.clone()).collect::<BTreeSet<_>>();
+    let membership_valid =
+        expected_paths == declared_paths && declared_paths.len() == bundle.required_files.len();
+    let mut missing_paths = expected_paths.difference(&declared_paths).cloned().collect::<Vec<_>>();
     let mut hash_mismatches = Vec::new();
     for item in &bundle.required_files {
         let full = base_dir.join(&item.path);
@@ -571,17 +577,25 @@ pub fn verify_profile_bundle(
         }
     }
 
-    let verified = missing_paths.is_empty()
+    let current_evidence = verify_evidence_bundle_inputs(&current_inputs, base_dir);
+    let current_profile = validate_evidence_bundle_profile(&bundle.evidence_bundle, bundle.profile);
+    missing_paths.extend(current_evidence.missing_paths);
+    missing_paths.sort();
+    missing_paths.dedup();
+    let evidence_verified = bundle.evidence_verification.verified && current_evidence.verified;
+    let profile_valid = bundle.profile_validation.ok && current_profile.ok && aliases_valid;
+    let verified = membership_valid
+        && missing_paths.is_empty()
         && hash_mismatches.is_empty()
-        && bundle.evidence_verification.verified
-        && bundle.profile_validation.ok;
+        && evidence_verified
+        && profile_valid;
     Ok(EvidenceProfileBundleVerificationV1 {
         schema_version: "bijux.profile_bundle_verification.v1".to_string(),
         verified,
         missing_paths,
         hash_mismatches,
-        evidence_verified: bundle.evidence_verification.verified,
-        profile_valid: bundle.profile_validation.ok,
+        evidence_verified,
+        profile_valid,
     })
 }
 
@@ -733,7 +747,6 @@ pub fn list_reviewer_challenges(base_dir: &Path) -> Result<Vec<ReviewerChallenge
 ///
 /// # Errors
 /// Returns an error if the bundle cannot be read or parsed.
-#[allow(clippy::too_many_lines)]
 pub fn verify_evidence_bundle(bundle_path: &Path) -> Result<EvidenceVerificationV1> {
     let bundle_raw = std::fs::read_to_string(bundle_path)
         .with_context(|| format!("read evidence bundle {}", bundle_path.display()))?;
@@ -741,7 +754,14 @@ pub fn verify_evidence_bundle(bundle_path: &Path) -> Result<EvidenceVerification
         .with_context(|| format!("parse evidence bundle {}", bundle_path.display()))?;
     let base_dir =
         bundle_path.parent().ok_or_else(|| anyhow!("evidence bundle missing parent directory"))?;
+    Ok(verify_evidence_bundle_inputs(&bundle, base_dir))
+}
 
+#[allow(clippy::too_many_lines)]
+fn verify_evidence_bundle_inputs(
+    bundle: &EvidenceBundleV1,
+    base_dir: &Path,
+) -> EvidenceVerificationV1 {
     let mut checks = Vec::new();
     let mut missing_paths = Vec::new();
     for (label, path) in [
@@ -854,13 +874,13 @@ pub fn verify_evidence_bundle(bundle_path: &Path) -> Result<EvidenceVerification
     }
 
     let verified = checks.iter().all(|check| check.ok) && bundle.health.auditable;
-    Ok(EvidenceVerificationV1 {
+    EvidenceVerificationV1 {
         schema_version: "bijux.evidence_verification.v1".to_string(),
         verified,
         checks,
         missing_paths,
         gap_count: bundle.health.gaps.len(),
-    })
+    }
 }
 
 /// Compare two evidence bundles to surface runtime, artifact, and audit drift.
@@ -1812,10 +1832,63 @@ fn build_profile_bundle(
     })
 }
 
-fn build_required_files(
+fn profile_evidence_inputs(
     base_dir: &Path,
-    bundle: &EvidenceBundleV1,
-) -> Result<Vec<EvidenceBundleFileDigestV1>> {
+    bundle: &EvidenceProfileBundleV1,
+) -> (EvidenceBundleV1, bool) {
+    let mut current = bundle.evidence_bundle.clone();
+    if !matches!(bundle.profile, EvidenceBundleProfileV1::CollaboratorRedacted) {
+        return (current, true);
+    }
+    let paths =
+        bundle.required_files.iter().map(|item| item.path.as_str()).collect::<BTreeSet<_>>();
+    let mut aliases_valid = true;
+    let mut resolve = |raw: &str| {
+        let candidates = paths
+            .iter()
+            .filter(|path| Path::new(path).file_name() == Path::new(raw).file_name())
+            .collect::<Vec<_>>();
+        if candidates.len() == 1 {
+            (*candidates[0]).to_string()
+        } else {
+            aliases_valid &= candidates.is_empty() && base_dir.join(raw).is_file();
+            raw.to_string()
+        }
+    };
+    // Redacted presentation names require an unambiguous retained physical binding.
+    for path in [
+        &mut current.sources.manifest_path,
+        &mut current.sources.plan_manifest_path,
+        &mut current.sources.report_path,
+        &mut current.sources.run_summary_path,
+        &mut current.sources.facts_path,
+        &mut current.sources.graph_path,
+        &mut current.sources.environment_path,
+        &mut current.sources.runtime_policy_path,
+        &mut current.sources.run_state_path,
+        &mut current.sources.executor_descriptor_path,
+        &mut current.sources.checkpoint_path,
+        &mut current.sources.failure_path,
+        &mut current.sources.artifact_inventory_path,
+        &mut current.sources.replay_manifest_path,
+        &mut current.sources.hash_ledger_path,
+        &mut current.sources.evidence_verification_path,
+    ]
+    .into_iter()
+    .flatten()
+    {
+        *path = resolve(path);
+    }
+    for path in &mut current.sources.telemetry_paths {
+        *path = resolve(path);
+    }
+    for artifact in &mut current.artifacts {
+        artifact.path = resolve(&artifact.path);
+    }
+    (current, aliases_valid)
+}
+
+fn required_file_paths(base_dir: &Path, bundle: &EvidenceBundleV1) -> BTreeSet<String> {
     let mut required = BTreeSet::new();
     for path in [
         bundle.sources.manifest_path.as_deref(),
@@ -1851,8 +1924,15 @@ fn build_required_files(
         required.insert("reviewer_challenges.latest.json".to_string());
     }
 
+    required
+}
+
+fn build_required_files(
+    base_dir: &Path,
+    bundle: &EvidenceBundleV1,
+) -> Result<Vec<EvidenceBundleFileDigestV1>> {
     let mut rows = Vec::new();
-    for rel in required {
+    for rel in required_file_paths(base_dir, bundle) {
         let full = base_dir.join(&rel);
         if !full.exists() {
             continue;

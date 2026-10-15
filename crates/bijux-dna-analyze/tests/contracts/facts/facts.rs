@@ -1,3 +1,6 @@
+#[path = "profile_verification.rs"]
+mod profile_verification;
+
 use bijux_dna_runtime::*;
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -672,6 +675,8 @@ fn profile_bundles_write_and_verify_for_release_surfaces() -> anyhow::Result<()>
         archive_json["archive_migration"]["manifest_schema_version"],
         "bijux.run_manifest.v3"
     );
+    profile_verification::require_live_profile_admission(&strict_path)?;
+    profile_verification::require_current_profile_evidence(&strict_path, &collaborator_path)?;
     Ok(())
 }
 

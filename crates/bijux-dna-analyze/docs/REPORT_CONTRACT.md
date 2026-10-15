@@ -71,6 +71,10 @@ requirements, and performance budgets owned by `bijux-dna-analyze`.
 - Supported metadata remains literal HTML text, attributes and script-contained JSON data; metadata
   cannot create markup or terminate the embedded report data script.
 
+- Profile verification re-observes current declared evidence, required-file membership and profile
+  policy. Retained success flags alone cannot qualify changed inputs; collaborator-redacted names
+  require unambiguous retained physical bindings.
+
 ## Determinism Rules
 - JSON output uses canonical ordering where the renderer owns canonicalization.
 - HTML table order is stable by stage and tool identity.
