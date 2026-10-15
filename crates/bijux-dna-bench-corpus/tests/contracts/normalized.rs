@@ -19,8 +19,7 @@ use std::{
 };
 
 fn source_path() -> PathBuf {
-    Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("../../benchmarks/corpora/human-short-read-diversity.toml")
+    crate::support::repo_root().join("benchmarks/corpora/human-short-read-diversity.toml")
 }
 
 fn corpus() -> Result<(tempfile::TempDir, CorpusSpec, BTreeMap<String, String>)> {
@@ -371,5 +370,18 @@ fn rejects_symlinked_manifest_reads_and_raw_directories() -> Result<()> {
             .expect_err("invalid corpus evidence must be rejected");
         assert!(err.to_string().contains("symlink"), "{err:#}");
     }
+    Ok(())
+}
+
+#[test]
+fn normalized_fixture_source_matches_declared_runtime_checkout() -> Result<()> {
+    let declared = crate::support::repo_root()
+        .join("benchmarks/corpora/human-short-read-diversity.toml")
+        .canonicalize()?;
+    assert_eq!(
+        source_path().canonicalize()?,
+        declared,
+        "normalized fixture source must follow the declared runtime checkout"
+    );
     Ok(())
 }
