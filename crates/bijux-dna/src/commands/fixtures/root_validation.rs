@@ -2,39 +2,33 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
+use bijux_dna_bench_corpus::amplicon::{
+    validate_amplicon_truth_manifest_path, AMPLICON_TRUTH_MANIFEST_SCHEMA_VERSION,
+};
+use bijux_dna_bench_corpus::bam::{
+    validate_adna_contamination_truth_manifest_path, validate_adna_damage_truth_manifest_path,
+    validate_bam_alignment_truth_manifest_path, validate_bam_duplicate_insert_truth_manifest_path,
+    validate_bam_endogenous_truth_manifest_path, validate_bam_gc_coverage_truth_manifest_path,
+    validate_bam_haplogroup_truth_manifest_path, validate_bam_sex_truth_manifest_path,
+    ADNA_CONTAMINATION_TRUTH_MANIFEST_SCHEMA_VERSION, ADNA_DAMAGE_TRUTH_MANIFEST_SCHEMA_VERSION,
+    BAM_ALIGNMENT_TRUTH_MANIFEST_SCHEMA_VERSION,
+    BAM_DUPLICATE_INSERT_TRUTH_MANIFEST_SCHEMA_VERSION,
+    BAM_ENDOGENOUS_TRUTH_MANIFEST_SCHEMA_VERSION, BAM_GC_COVERAGE_TRUTH_MANIFEST_SCHEMA_VERSION,
+    BAM_HAPLOGROUP_TRUTH_MANIFEST_SCHEMA_VERSION, BAM_SEX_TRUTH_MANIFEST_SCHEMA_VERSION,
+};
+use bijux_dna_bench_corpus::vcf::{
+    validate_phasing_imputation_truth_manifest_path,
+    validate_population_structure_truth_manifest_path,
+    validate_segments_demography_truth_manifest_path, validate_vcf_filter_truth_manifest_path,
+    validate_vcf_genotype_truth_manifest_path, PHASING_IMPUTATION_TRUTH_MANIFEST_SCHEMA_VERSION,
+    POPULATION_STRUCTURE_TRUTH_MANIFEST_SCHEMA_VERSION,
+    SEGMENTS_DEMOGRAPHY_TRUTH_MANIFEST_SCHEMA_VERSION, VCF_FILTER_TRUTH_MANIFEST_SCHEMA_VERSION,
+    VCF_GENOTYPE_TRUTH_MANIFEST_SCHEMA_VERSION,
+};
 use serde::{Deserialize, Serialize};
 
 use crate::commands::benchmark::local_corpus_fixture::{amplicon, bam, damage, edna, fastq, vcf};
 use crate::commands::benchmark::local_taxonomy_database_fixture::TAXONOMY_DATABASE_FIXTURE_SCHEMA_VERSION;
-use crate::commands::fixtures::expected::adna_contamination::{
-    validate_adna_contamination_truth_manifest_path,
-    ADNA_CONTAMINATION_TRUTH_MANIFEST_SCHEMA_VERSION,
-};
-use crate::commands::fixtures::expected::adna_damage::{
-    validate_adna_damage_truth_manifest_path, ADNA_DAMAGE_TRUTH_MANIFEST_SCHEMA_VERSION,
-};
-use crate::commands::fixtures::expected::amplicon::{
-    validate_amplicon_truth_manifest_path, AMPLICON_TRUTH_MANIFEST_SCHEMA_VERSION,
-};
-use crate::commands::fixtures::expected::bam_alignment::{
-    validate_bam_alignment_truth_manifest_path, BAM_ALIGNMENT_TRUTH_MANIFEST_SCHEMA_VERSION,
-};
-use crate::commands::fixtures::expected::bam_duplicate_insert::{
-    validate_bam_duplicate_insert_truth_manifest_path,
-    BAM_DUPLICATE_INSERT_TRUTH_MANIFEST_SCHEMA_VERSION,
-};
-use crate::commands::fixtures::expected::bam_endogenous::{
-    validate_bam_endogenous_truth_manifest_path, BAM_ENDOGENOUS_TRUTH_MANIFEST_SCHEMA_VERSION,
-};
-use crate::commands::fixtures::expected::bam_gc_coverage::{
-    validate_bam_gc_coverage_truth_manifest_path, BAM_GC_COVERAGE_TRUTH_MANIFEST_SCHEMA_VERSION,
-};
-use crate::commands::fixtures::expected::bam_haplogroups::{
-    validate_bam_haplogroup_truth_manifest_path, BAM_HAPLOGROUP_TRUTH_MANIFEST_SCHEMA_VERSION,
-};
-use crate::commands::fixtures::expected::bam_sex::{
-    validate_bam_sex_truth_manifest_path, BAM_SEX_TRUTH_MANIFEST_SCHEMA_VERSION,
-};
 use crate::commands::fixtures::expected::fastq_duplicates::{
     validate_fastq_duplicates_truth_manifest_path, FASTQ_DUPLICATES_TRUTH_MANIFEST_SCHEMA_VERSION,
 };
@@ -44,25 +38,7 @@ use crate::commands::fixtures::expected::fastq_taxonomy::{
 use crate::commands::fixtures::expected::fastq_trimming::{
     validate_fastq_trimming_truth_manifest_path, FASTQ_TRIMMING_TRUTH_MANIFEST_SCHEMA_VERSION,
 };
-use crate::commands::fixtures::expected::phasing_imputation::{
-    validate_phasing_imputation_truth_manifest_path,
-    PHASING_IMPUTATION_TRUTH_MANIFEST_SCHEMA_VERSION,
-};
-use crate::commands::fixtures::expected::population_structure::{
-    validate_population_structure_truth_manifest_path,
-    POPULATION_STRUCTURE_TRUTH_MANIFEST_SCHEMA_VERSION,
-};
-use crate::commands::fixtures::expected::segments_demography::{
-    validate_segments_demography_truth_manifest_path,
-    SEGMENTS_DEMOGRAPHY_TRUTH_MANIFEST_SCHEMA_VERSION,
-};
 use crate::commands::fixtures::expected::vcf::validate_vcf_expected_truth_manifest_path;
-use crate::commands::fixtures::expected::vcf_filter::{
-    validate_vcf_filter_truth_manifest_path, VCF_FILTER_TRUTH_MANIFEST_SCHEMA_VERSION,
-};
-use crate::commands::fixtures::expected::vcf_genotype::{
-    validate_vcf_genotype_truth_manifest_path, VCF_GENOTYPE_TRUTH_MANIFEST_SCHEMA_VERSION,
-};
 
 pub(crate) const DEFAULT_BENCHMARK_FIXTURE_ROOT_VALIDATION_REPORT_PATH: &str =
     "artifacts/benchmark-smoke/readiness/benchmark-fixture-root-validation.json";

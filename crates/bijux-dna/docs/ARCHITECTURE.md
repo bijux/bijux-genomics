@@ -21,6 +21,8 @@ operator-facing exit behavior.
 - `tests/contracts.rs` checks CLI behavior and dry-run output contracts.
 - `tests/support/workspace_paths.rs` contains workspace-root helpers shared by
   integration suites without making support code look like a standalone suite.
+- `tests/support/fixtures/process.rs` owns shared fixture-command process context
+  and JSON output decoding for the BAM and ancient-DNA integration suites.
 - `tests/contracts/` and `tests/snapshots/` hold focused contract fixtures and
   rendered help snapshots.
 

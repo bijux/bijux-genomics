@@ -1,38 +1,32 @@
 use std::path::Path;
 
 use anyhow::{anyhow, Result};
+use bijux_dna_bench_corpus::amplicon::{
+    validate_amplicon_truth_manifest_path, AMPLICON_TRUTH_FIXTURE_ID,
+};
+use bijux_dna_bench_corpus::bam::{
+    validate_adna_contamination_truth_manifest_path, validate_adna_damage_truth_manifest_path,
+    validate_bam_alignment_truth_manifest_path, validate_bam_duplicate_insert_truth_manifest_path,
+    validate_bam_endogenous_truth_manifest_path, validate_bam_gc_coverage_truth_manifest_path,
+    validate_bam_haplogroup_truth_manifest_path, validate_bam_sex_truth_manifest_path,
+    ADNA_CONTAMINATION_TRUTH_FIXTURE_ID, ADNA_DAMAGE_TRUTH_FIXTURE_ID,
+    BAM_ALIGNMENT_TRUTH_FIXTURE_ID, BAM_DUPLICATE_INSERT_TRUTH_FIXTURE_ID,
+    BAM_ENDOGENOUS_TRUTH_FIXTURE_ID, BAM_GC_COVERAGE_TRUTH_FIXTURE_ID,
+    BAM_HAPLOGROUP_TRUTH_FIXTURE_ID, BAM_SEX_TRUTH_FIXTURE_ID,
+};
+use bijux_dna_bench_corpus::vcf::{
+    validate_phasing_imputation_truth_manifest_path,
+    validate_population_structure_truth_manifest_path,
+    validate_segments_demography_truth_manifest_path, validate_vcf_filter_truth_manifest_path,
+    validate_vcf_genotype_truth_manifest_path, PHASING_IMPUTATION_TRUTH_FIXTURE_ID,
+    POPULATION_STRUCTURE_TRUTH_FIXTURE_ID, SEGMENTS_DEMOGRAPHY_TRUTH_FIXTURE_ID,
+    VCF_FILTER_TRUTH_FIXTURE_ID, VCF_GENOTYPE_TRUTH_FIXTURE_ID,
+};
 
 use crate::commands::benchmark::local_corpus_fixture::vcf::validate_vcf_corpus_fixture_manifest_path;
 use crate::commands::cli;
 use crate::commands::fixtures::build::vcf::{
     build_vcf_mini_fixture, DEFAULT_VCF_MINI_REGENERATION_ROOT,
-};
-use crate::commands::fixtures::expected::adna_contamination::{
-    validate_adna_contamination_truth_manifest_path, ADNA_CONTAMINATION_TRUTH_FIXTURE_ID,
-};
-use crate::commands::fixtures::expected::adna_damage::{
-    validate_adna_damage_truth_manifest_path, ADNA_DAMAGE_TRUTH_FIXTURE_ID,
-};
-use crate::commands::fixtures::expected::amplicon::{
-    validate_amplicon_truth_manifest_path, AMPLICON_TRUTH_FIXTURE_ID,
-};
-use crate::commands::fixtures::expected::bam_alignment::{
-    validate_bam_alignment_truth_manifest_path, BAM_ALIGNMENT_TRUTH_FIXTURE_ID,
-};
-use crate::commands::fixtures::expected::bam_duplicate_insert::{
-    validate_bam_duplicate_insert_truth_manifest_path, BAM_DUPLICATE_INSERT_TRUTH_FIXTURE_ID,
-};
-use crate::commands::fixtures::expected::bam_endogenous::{
-    validate_bam_endogenous_truth_manifest_path, BAM_ENDOGENOUS_TRUTH_FIXTURE_ID,
-};
-use crate::commands::fixtures::expected::bam_gc_coverage::{
-    validate_bam_gc_coverage_truth_manifest_path, BAM_GC_COVERAGE_TRUTH_FIXTURE_ID,
-};
-use crate::commands::fixtures::expected::bam_haplogroups::{
-    validate_bam_haplogroup_truth_manifest_path, BAM_HAPLOGROUP_TRUTH_FIXTURE_ID,
-};
-use crate::commands::fixtures::expected::bam_sex::{
-    validate_bam_sex_truth_manifest_path, BAM_SEX_TRUTH_FIXTURE_ID,
 };
 use crate::commands::fixtures::expected::fastq_duplicates::{
     validate_fastq_duplicates_truth_manifest_path, FASTQ_DUPLICATES_TRUTH_FIXTURE_ID,
@@ -43,22 +37,7 @@ use crate::commands::fixtures::expected::fastq_taxonomy::{
 use crate::commands::fixtures::expected::fastq_trimming::{
     validate_fastq_trimming_truth_manifest_path, FASTQ_TRIMMING_TRUTH_FIXTURE_ID,
 };
-use crate::commands::fixtures::expected::phasing_imputation::{
-    validate_phasing_imputation_truth_manifest_path, PHASING_IMPUTATION_TRUTH_FIXTURE_ID,
-};
-use crate::commands::fixtures::expected::population_structure::{
-    validate_population_structure_truth_manifest_path, POPULATION_STRUCTURE_TRUTH_FIXTURE_ID,
-};
-use crate::commands::fixtures::expected::segments_demography::{
-    validate_segments_demography_truth_manifest_path, SEGMENTS_DEMOGRAPHY_TRUTH_FIXTURE_ID,
-};
 use crate::commands::fixtures::expected::vcf::validate_vcf_expected_truth;
-use crate::commands::fixtures::expected::vcf_filter::{
-    validate_vcf_filter_truth_manifest_path, VCF_FILTER_TRUTH_FIXTURE_ID,
-};
-use crate::commands::fixtures::expected::vcf_genotype::{
-    validate_vcf_genotype_truth_manifest_path, VCF_GENOTYPE_TRUTH_FIXTURE_ID,
-};
 use crate::commands::fixtures::paths::{
     benchmark_corpus_manifest_path, benchmark_fixture_root_path, benchmark_science_manifest_path,
 };

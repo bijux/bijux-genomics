@@ -2,7 +2,7 @@ use std::fs;
 use std::path::Path;
 use std::process::{Command, Output};
 
-#[path = "../../support/workspace_paths.rs"]
+#[path = "../workspace_paths.rs"]
 mod workspace_paths;
 
 fn fixture_command(repo_root: &Path, owner: &Path) -> Command {

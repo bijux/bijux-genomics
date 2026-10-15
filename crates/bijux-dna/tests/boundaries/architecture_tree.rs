@@ -502,7 +502,7 @@ fn dna_tree_matches_architecture_contract() {
 
     let support_test_entries = dir_entries(&root.join("tests/support"));
     let expected_support_tests: BTreeSet<_> =
-        ["workspace_paths.rs"].into_iter().map(str::to_string).collect();
+        ["fixtures/", "workspace_paths.rs"].into_iter().map(str::to_string).collect();
     assert_eq!(
         support_test_entries, expected_support_tests,
         "dna test support must keep shared helpers out of suite roots"
