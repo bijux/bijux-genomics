@@ -36,3 +36,12 @@ helpers, records manifests, and parses stage metrics.
 - `TESTS.md` for verification expectations.
 
 `vcf_io/indexing.rs` owns the shared VCF-to-BGZF/index encoder and paired publication. Inputs up to 1 MiB use bounded encoding and retain existing regular files only when both newly encoded payloads match exactly. Larger inputs stream through the same encoder. Missing, changed, corrupt or symlink outputs are replaced through the existing staged publication path.
+
+`pipeline/imputation/chunk_regions.rs` projects imputation identifiers from acquired
+contig observations. Nonzero windows use `plan_regions_deterministic` for overlap
+admission and endpoint arithmetic, retaining the first declared contig length,
+selection filters and final lexical identifier order. `None` and `Some(0)` retain
+whole-contig planning. Invalid overlap is refused even for empty or fully filtered
+fixed-window selections. Planning remains at the existing execution-output call
+position, after earlier acquisition, validation and BGZF/QC publication; this
+boundary does not promise rollback of those earlier outputs.
