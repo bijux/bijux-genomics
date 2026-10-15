@@ -13,7 +13,7 @@ TEST_TMP_DIR=artifacts/test-tmp CARGO_TARGET_DIR=artifacts/cargo-target cargo te
 
 ## Boundaries Suite
 
-- `tests/boundaries/architecture.rs`: crate root, docs, source, and test layout.
+- `tests/boundaries/architecture.rs`: crate root, docs, source, and execution/evidence ownership.
 - `tests/boundaries/commands.rs`: `COMMANDS.md` and process-use inventory.
 - `tests/boundaries/dependencies.rs`: allowed direct dependency graph.
 - `tests/boundaries/guardrails/*.rs`: workspace and runtime guardrail checks.

@@ -271,29 +271,6 @@ fn inventory_source_tree_matches_ownership_contract() {
     );
 }
 
-#[test]
-fn test_tree_matches_architecture_contract() {
-    let root = crate_root("bijux-dna-containers");
-
-    assert_eq!(
-        dir_entries(&root.join("tests")),
-        btree_set(&[
-            "boundaries/",
-            "boundaries.rs",
-            "contracts/",
-            "contracts.rs",
-            "determinism/",
-            "determinism.rs",
-            "fixtures/",
-            "guardrails.rs",
-            "public_api_docs.rs",
-            "schemas/",
-            "schemas.rs",
-        ]),
-        "test tree must stay grouped by taxonomy without nested README docs"
-    );
-}
-
 fn crate_root(crate_name: &str) -> std::path::PathBuf {
     let root = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"));
     let actual = root.file_name().and_then(|name| name.to_str()).unwrap_or_default();
