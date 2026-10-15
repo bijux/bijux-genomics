@@ -8,7 +8,7 @@ reaching into internal compiler modules.
 - `compile_domain_configs(options: &CompileOptions) -> anyhow::Result<()>`
 - `validate_domain(options: &ValidateOptions) -> anyhow::Result<()>`
 - `domain_coverage_report(domain_dir: &Path) -> anyhow::Result<serde_json::Value>`
-- `build_domain_registry_bundle(domain_dir: &Path, source_ref: impl Into<String>) -> anyhow::Result<DomainRegistryReleaseBundle>`
+- `build_domain_registry_bundle(domain_dir: &Path, source_ref: &str) -> anyhow::Result<DomainRegistryReleaseBundle>`
 - `load_domain_registry_bundle(path: &Path) -> anyhow::Result<DomainRegistryReleaseBundle>`
 - `write_domain_registry_bundle(configs_dir: &Path, bundle: &DomainRegistryReleaseBundle) -> anyhow::Result<Vec<PathBuf>>`
 - `query_domain_registry_bundle(bundle: &DomainRegistryReleaseBundle, query: &DomainRegistryQuery) -> serde_json::Value`
