@@ -92,3 +92,71 @@ fn rank_request_excludes_facts_from_other_stages() -> anyhow::Result<()> {
     );
     Ok(())
 }
+
+#[test]
+fn summary_request_publishes_in_its_selected_output_directory() -> anyhow::Result<()> {
+    let root = bijux_dna_infra::temp_dir("summary-output-selection")?;
+    let rows = [selection_fact("fastq.trim_reads", "summary-tool")?];
+    let default_root = root.path().join("default-output");
+    let default_input =
+        selection_input(&default_root, &rows, bijux_dna_analyze::AnalyzeMode::Summary, None)?;
+    let default_output = bijux_dna_analyze::analyze_run(&default_input)?;
+    assert_eq!(default_output.summary_json, Some(default_root.join("run_summary.json")));
+    let source = root.path().join("facts-source");
+    let destination = root.path().join("selected-output");
+    bijux_dna_infra::ensure_dir(&destination)?;
+    let input = selection_input(
+        &source,
+        &rows,
+        bijux_dna_analyze::AnalyzeMode::Summary,
+        Some(destination.clone()),
+    )?;
+    let facts_before = std::fs::read(source.join("facts.jsonl"))?;
+    let output = bijux_dna_analyze::analyze_run(&input)?;
+    assert_eq!(std::fs::read(source.join("facts.jsonl"))?, facts_before);
+    eprintln!("summary_output_observation {output:?}");
+    assert_eq!(
+        output.summary_json,
+        Some(destination.join("run_summary.json")),
+        "explicit render output authority must select the published summary root"
+    );
+    assert!(!source.join("run_summary.json").exists());
+    assert!(destination.join("run_summary.json").is_file());
+    assert!(!destination.join("report.html").exists());
+    Ok(())
+}
+
+#[test]
+fn report_request_preserves_json_without_publishing_disabled_html() -> anyhow::Result<()> {
+    let root = bijux_dna_infra::temp_dir("report-format-selection")?;
+    let rows = [selection_fact("fastq.trim_reads", "report-tool")?];
+    for (name, html) in [("both-formats", true), ("json-only", false)] {
+        let directory = root.path().join(name);
+        let mut input =
+            selection_input(&directory, &rows, bijux_dna_analyze::AnalyzeMode::Report, None)?;
+        input.options.render.html = html;
+        bijux_dna_infra::write_bytes(
+            directory.join("defaults_ledger.json"),
+            serde_json::to_vec(&serde_json::json!({
+                "pipeline_id": "fastq-to-fastq__default__v1", "tools": {}, "params": {},
+                "thresholds": {}, "tool_provenance": {}, "param_provenance": {},
+                "assumptions": [], "citations": {}
+            }))?,
+        )?;
+        let output = bijux_dna_analyze::analyze_run(&input)?;
+        assert_eq!(output.report_json, Some(directory.join("report.json")));
+        let report: serde_json::Value =
+            serde_json::from_slice(&std::fs::read(directory.join("report.json"))?)?;
+        assert_eq!(report["run_id"], "selection-run");
+        eprintln!(
+            "report_format_observation {name}: html_exists={}",
+            directory.join("report.html").exists()
+        );
+        assert_eq!(
+            directory.join("report.html").exists(),
+            html,
+            "rendered HTML must follow the explicit format selection"
+        );
+    }
+    Ok(())
+}

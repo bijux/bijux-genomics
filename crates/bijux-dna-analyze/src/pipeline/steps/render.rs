@@ -31,22 +31,29 @@ pub(crate) fn render_outputs(
     options: &AnalyzeOptions,
 ) -> Result<RenderedArtifacts> {
     let mut rendered = RenderedArtifacts { summary: None, report: None, ranking: None };
+    let output_dir = options.render.output_dir.as_deref().unwrap_or(&core.base_dir);
+    if matches!(options.mode, AnalyzeMode::Summary | AnalyzeMode::Report) || core.rankings.is_some()
+    {
+        bijux_dna_infra::ensure_dir(output_dir)?;
+    }
 
     if matches!(options.mode, AnalyzeMode::Summary | AnalyzeMode::Report) {
-        let summary_path = core.base_dir.join("run_summary.json");
+        let summary_path = output_dir.join("run_summary.json");
         write_run_summary_json(&summary_path, &core.facts_rows)?;
         rendered.summary = Some(summary_path);
     }
 
     if matches!(options.mode, AnalyzeMode::Report) {
         if let Some(model) = report_model {
-            let report_path = core.base_dir.join("report.json");
+            let report_path = output_dir.join("report.json");
             write_report_json(&report_path, &model).context("write report.json")?;
-            let report_html_path = core.base_dir.join("report.html");
-            write_report_html(&report_html_path, &model).context("write report.html")?;
-            let report_md_path = core.base_dir.join("report.md");
+            if options.render.html {
+                let report_html_path = output_dir.join("report.html");
+                write_report_html(&report_html_path, &model).context("write report.html")?;
+            }
+            let report_md_path = output_dir.join("report.md");
             write_report_markdown(&report_md_path, &model).context("write report.md")?;
-            let bundle_dir = core.base_dir.join("report_bundle");
+            let bundle_dir = output_dir.join("report_bundle");
             write_report_bundle(&bundle_dir, &model).context("write report bundle")?;
             rendered.report = Some(report_path);
         } else {
@@ -56,7 +63,7 @@ pub(crate) fn render_outputs(
     }
 
     if let Some(rankings) = &core.rankings {
-        let rank_path = core.base_dir.join("ranking.json");
+        let rank_path = output_dir.join("ranking.json");
         atomic_write_bytes(&rank_path, &serde_json::to_vec_pretty(rankings)?)
             .map_err(anyhow::Error::from)
             .context("write ranking.json")?;

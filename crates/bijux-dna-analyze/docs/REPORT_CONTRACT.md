@@ -54,6 +54,10 @@ requirements, and performance budgets owned by `bijux-dna-analyze`.
 - Semantic integrity base counts project typed `bases_in` and `bases_out`; read counts and the
   established retention formulas remain separate.
 
+- An explicit render output directory selects summary, report and ranking publication. Input
+  acquisition stays rooted at the input base. The HTML flag selects standalone `report.html`;
+  existing canonical JSON, Markdown and bundle publication remains unchanged.
+
 ## Determinism Rules
 - JSON output uses canonical ordering where the renderer owns canonicalization.
 - HTML table order is stable by stage and tool identity.
