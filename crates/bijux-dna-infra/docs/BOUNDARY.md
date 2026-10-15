@@ -13,6 +13,8 @@ Validation command:
 
 - Deterministic path construction that only joins confined path segments.
 - Generic filesystem reads, writes, removals, temporary directories, file locks, and file digests.
+- Physical run/attempt layout, publish/lock and archive/rollback receipt contracts. These schemas
+  describe filesystem custody and do not own biological, stage, or pipeline semantics.
 - Retry policy, backoff math, and clock abstraction.
 - Logging bootstrap for callers that enable the `tracing` feature.
 - JSON, TOML, and optional YAML helpers for config-compatible payloads.
@@ -20,13 +22,14 @@ Validation command:
 ## Scope Rules
 
 Belongs here: deterministic helpers and generic filesystem utilities.
-Does not belong here: domain knowledge, contract schemas, command routing, or orchestration.
+Does not belong here: domain knowledge, biological/stage contract schemas, command routing, or orchestration.
 
 ## Does Not Belong Here
 
-- Biological domain models, stage/tool catalogs, pipeline semantics, or contract schema ownership.
+- Biological domain models, stage/tool catalogs, pipeline semantics, or their contract schema ownership.
 - CLI routing, planner selection, runtime execution, or process orchestration.
-- Canonical path normalization. Canonicalization belongs to `bijux-dna-core`.
+- Semantic contract canonicalization, which belongs to `bijux-dna-core`. Physical owner-root
+  overlap admission may resolve existing filesystem ancestors before comparing evidence roots.
 - Shared governance policy ownership.
 
 ## No Domain Semantics

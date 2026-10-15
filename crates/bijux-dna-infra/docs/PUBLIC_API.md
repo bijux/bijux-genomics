@@ -15,24 +15,24 @@
   `atomic_create_with`, `atomic_write_bytes`, `atomic_write_private_bytes`, `atomic_write_json`, `atomic_write_with`,
   `write_bytes`, `write_string`, `append_line`, `copy_file`, `rename`, `read_to_end_bounded`,
   `remove_file`, `remove_file_if_exists`, `remove_dir_all`, `remove_path_if_exists`, `IoError`,
-  `IoErrorKind`, and `classify_io_error`.
+  `IoErrorKind`, `classify_io_error`, `same_filesystem`, and `write_payload`.
 - Locking and logging: one-shot `FileLock::try_acquire` and `init_logging`.
 - Paths: `bench_base_dir`, `bench_data_dir`, `bench_suites_dir`, `bench_tools_dir`,
   `configs_dir`, `configs_file`, `normalize_run_base_dir`, `pipeline_run_dir`,
-  `run_layout_paths`, and `run_stage_dir`.
+  `run_layout_paths`, `run_stage_dir`, and `run_artifacts_dir_for_out`.
 - Retry planning: effect-free `RetryPolicy` and `backoff_delay`. A retry is a new immutable attempt
   allocated by the owning runtime on a later lifecycle invocation; infra does not sleep or execute it.
 - Run layout: `RunLayoutContract`, `RunLayoutPaths`, `RUN_LAYOUT_CONTRACT`,
   `PIPELINE_RUN_DIR_TEMPLATE`, `try_lock_run`, and `publish_run`.
 - Attempt layout: `AttemptLayoutIdentity`, `AttemptLayoutPaths`, `AttemptLayoutManifestV1`,
-  `AttemptEvidenceOwner`, `ATTEMPT_LAYOUT_CONTRACT`, `ATTEMPT_LAYOUT_SCHEMA_V1`,
+  `AttemptLayoutContract`, `AttemptLayoutDirectoriesV1`, `AttemptEvidenceOwner`, `ATTEMPT_LAYOUT_CONTRACT`, `ATTEMPT_LAYOUT_SCHEMA_V1`,
   `attempt_layout_paths`, `attempt_layout_schema`, `ensure_attempt_layout`, and
   `validate_attempt_owner_roots`.
-- Attempt archive: `AttemptArchiveDisposition`, `AttemptArchiveReceiptV1`,
+- Attempt archive: `AttemptArchiveDisposition`, `AttemptArchiveFileV1`, `AttemptArchivePaths`, `AttemptArchiveReceiptV1`,
   `AttemptArchiveRollbackReceiptV1`, `attempt_archive_paths`, `archive_attempt_layout`,
   `verify_attempt_archive`, `rollback_attempt_archive`, `attempt_archive_schema`, and
-  `attempt_archive_rollback_schema`.
-- Temp directories: `temp_dir` and `temp_dir_in`.
+  `attempt_archive_rollback_schema`, `ATTEMPT_ARCHIVE_SCHEMA_V1`, and `ATTEMPT_ARCHIVE_ROLLBACK_SCHEMA_V1`.
+- Temporary storage: `temp_dir`, `temp_dir_in`, and exclusively owned `private_temp_file_in`.
 
 ## Stability Rules
 

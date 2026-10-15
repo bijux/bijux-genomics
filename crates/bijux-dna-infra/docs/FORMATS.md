@@ -1,7 +1,9 @@
 # bijux-dna-infra Formats
 
-Format helpers are for config-compatible payloads only. Contract JSON canonicalization and schema
-ownership belong outside this crate.
+The generic `formats` helpers are for config-compatible payloads. Semantic contract JSON
+canonicalization and biological/stage schema ownership belong outside this crate. Infra separately
+owns serialization and schemas for its physical run/attempt layouts and publish/archive/rollback
+receipts; those filesystem contracts do not expand the generic format helpers into domain owners.
 
 ## JSON
 

@@ -19,7 +19,7 @@ Allowed utilities (and only these):
 
 Explicitly forbidden:
 - any domain semantics
-- contract schema ownership
+- biological, stage, or pipeline contract schema ownership
 
 ## Role in the stack
 Upstream: core/runtime/etc. Downstream: all crates as helpers.
@@ -30,7 +30,7 @@ See `docs/PUBLIC_API.md`, `docs/COMMANDS.md`, and `docs/INDEX.md`.
 This crate owns no Cargo binaries or host commands.
 
 ## Key contracts it owns/consumes
-None; utility-only.
+Physical run/attempt layout, publish/lock, archive and rollback contracts are owned here. Their schemas describe filesystem custody and stable evidence addresses; biological and stage contract schemas remain with their semantic owners.
 
 ## Artifacts / Contracts
 See `docs/EFFECTS.md`, `docs/PATHS.md`, and `docs/FORMATS.md` for behavioral contracts.
@@ -39,7 +39,9 @@ See `docs/EFFECTS.md`, `docs/PATHS.md`, and `docs/FORMATS.md` for behavioral con
 No process/network effects; deterministic helpers only. See `crates/bijux-dna-infra/docs/EFFECTS.md` and the golden tests below.
 
 ## No duplicate canonicalizers
-Canonicalization lives in bijux-dna-core only. Infra must not re-implement it.
+Semantic contract canonicalization lives in bijux-dna-core. Infra does not re-implement it.
+For physical evidence-root overlap admission, infra resolves an existing ancestor before
+comparing owner roots; this filesystem identity check is not semantic JSON or domain normalization.
 See `crates/bijux-dna-policies/tests/boundaries/surface/structure_guards/no_duplicate_canonicalizers.rs`.
 
 ## How to run its tests
