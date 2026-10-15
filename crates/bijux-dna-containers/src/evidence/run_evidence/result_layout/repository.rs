@@ -1,6 +1,6 @@
 //! Owner: container result movement current evidence acquisition and filesystem effects.
 use super::super::{
-    ResultFileIdentity, ResultLayoutPlan, SupersededResultArchivePlan,
+    ResultFileIdentity, ResultLayoutPlan, ResultMovementState, SupersededResultArchivePlan,
     SupersededResultArchivePlanRequest, CONTAINER_RESULT_LAYOUT_PLAN_SCHEMA_V1,
     CONTAINER_RUN_ATTEMPT_LEDGER_SCHEMA_V1, CONTAINER_SUPERSEDED_RESULT_ARCHIVE_SCHEMA_V1,
 };
@@ -29,8 +29,8 @@ pub(super) fn load_layout_plan(
     }
     validate_layout_totals(&plan)?;
     for movement in &plan.moves {
-        owned_path(result_root, &movement.source, "source")?;
-        owned_path(result_root, &movement.target, "target")?;
+        let source = owned_path(result_root, &movement.source, "source")?;
+        let target = owned_path(result_root, &movement.target, "target")?;
         let lock_path = owned_path(runs_root, &movement.evidence_lock, "evidence lock")?;
         if !lock_path.is_file()
             || bijux_dna_infra::hash_file_sha256(&lock_path)? != movement.evidence_lock_sha256
@@ -42,8 +42,16 @@ pub(super) fn load_layout_plan(
         if inventory_digest(&lock.source_files)? != movement.inventory_sha256 {
             bail!("tracked source inventory changed: {}", lock_path.display());
         }
-        let active = if movement.applied { &movement.target } else { &movement.source };
-        validate_regular_tree(&owned_path(result_root, active, "active result")?)?;
+        let unrecorded_rename = !movement.applied
+            && matches!(plan.state, ResultMovementState::Previewed | ResultMovementState::Applying)
+            && !path_exists(&source)?
+            && path_exists(&target)?;
+        let active = if movement.applied || unrecorded_rename { &target } else { &source };
+        validate_regular_tree(active)?;
+        if unrecorded_rename {
+            // Only the original locked inventory can authorize interrupted progress recovery.
+            validate_inventory(active, &lock.source_files)?;
+        }
     }
     Ok(plan)
 }
