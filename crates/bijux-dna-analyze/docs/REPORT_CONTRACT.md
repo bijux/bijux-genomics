@@ -62,6 +62,9 @@ requirements, and performance budgets owned by `bijux-dna-analyze`.
   base. It retains physical paths through invocation and telemetry acquisition, including
   reproducibility timestamps, before normalizing displayed paths.
 
+- Completed sections are retained in canonical JSON, bundle-local JSON and embedded HTML report
+  data.
+
 ## Determinism Rules
 - JSON output uses canonical ordering where the renderer owns canonicalization.
 - HTML table order is stable by stage and tool identity.

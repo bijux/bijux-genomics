@@ -503,6 +503,8 @@ pub fn build_run_report_model(base_dir: &Path, rows: &[FactsRowV1]) -> Result<Re
     sections.insert("adapter_config".to_string(), JsonBlob::new(adapter_config_section(&ordered)));
     sections.insert("run_provenance".to_string(), JsonBlob::new(run_provenance_section(base_dir)));
     enforce_report_completeness_contract(&ordered, &sections)?;
+    // Both typed report and renderer model expose the completed section assembly.
+    model.report.sections = serde_json::to_value(&sections)?;
     model.sections = sections;
     model.tables.insert("stage_completeness".to_string(), JsonBlob::new(stage_completeness));
     Ok(model)
