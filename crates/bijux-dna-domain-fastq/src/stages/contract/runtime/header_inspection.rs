@@ -90,6 +90,26 @@ fn has_style_drift(names: &[String]) -> bool {
     if names.is_empty() {
         return false;
     }
-    let first = normalize_header(&names[0]);
-    names.iter().any(|name| normalize_header(name) != first)
+    let first = header_style(&names[0]);
+    names.iter().any(|name| header_style(name) != first)
+}
+
+#[derive(PartialEq, Eq)]
+enum HeaderStyle {
+    MateSuffix,
+    Casava,
+    Plain,
+}
+
+fn header_style(name: &str) -> HeaderStyle {
+    let mut fields = name.split_whitespace();
+    let identity = fields.next().unwrap_or(name);
+    if identity.ends_with("/1") || identity.ends_with("/2") {
+        HeaderStyle::MateSuffix
+    } else if fields.next().is_some_and(|field| field.starts_with("1:") || field.starts_with("2:"))
+    {
+        HeaderStyle::Casava
+    } else {
+        HeaderStyle::Plain
+    }
 }
