@@ -7,7 +7,8 @@ use super::contracts::{
     pipeline_defaults_section, required_vcf_metric_keys,
 };
 use super::provenance::{
-    cross_domain_handoff_section, normalize_report_path, run_provenance_section,
+    cross_domain_handoff_section, normalize_report_path, resolve_report_path,
+    run_provenance_section,
 };
 use super::report_inputs::{
     banks_from_report, contaminant_summary_section, qc_delta_section, read_json_value,
@@ -95,7 +96,8 @@ pub fn build_run_report_model(base_dir: &Path, rows: &[FactsRowV1]) -> Result<Re
                 row.stage_id
             ));
         }
-        let stage_report_path = report_path_for(&row.reports, "stage_report");
+        let stage_report_path = report_path_for(&row.reports, "stage_report")
+            .map(|path| resolve_report_path(base_dir, &path));
         if stage_report_path.is_none() {
             missing_reports.push(format!("{}:stage_report", row.stage_id));
             missing_by_stage
@@ -111,10 +113,10 @@ pub fn build_run_report_model(base_dir: &Path, rows: &[FactsRowV1]) -> Result<Re
 
         let (metrics_path, tool_invocation_path, effective_config_path) =
             stage_report_fields(stage_report.as_ref());
+        let tool_invocation_path_clone = resolve_report_path(base_dir, &tool_invocation_path);
         let metrics_path = normalize_report_path(base_dir, &metrics_path);
         let tool_invocation_path = normalize_report_path(base_dir, &tool_invocation_path);
         let effective_config_path = normalize_report_path(base_dir, &effective_config_path);
-        let tool_invocation_path_clone = tool_invocation_path.clone();
         if metrics_path.is_empty() {
             missing_reports.push(format!("{}:metrics_path", row.stage_id));
             missing_by_stage
@@ -138,7 +140,8 @@ pub fn build_run_report_model(base_dir: &Path, rows: &[FactsRowV1]) -> Result<Re
             }
         }
 
-        let retention_report_path = report_path_for(&row.reports, "retention_report");
+        let retention_report_path = report_path_for(&row.reports, "retention_report")
+            .map(|path| resolve_report_path(base_dir, &path));
         if retention_report_path.is_none() && row.reads_in != row.reads_out {
             missing_reports.push(format!("{}:retention_report", row.stage_id));
             missing_by_stage
@@ -154,7 +157,8 @@ pub fn build_run_report_model(base_dir: &Path, rows: &[FactsRowV1]) -> Result<Re
             retention_definition.push(definition);
         }
 
-        let bank_report_path = report_path_for(&row.reports, "bank_report");
+        let bank_report_path = report_path_for(&row.reports, "bank_report")
+            .map(|path| resolve_report_path(base_dir, &path));
         let banks_value = banks_from_report(bank_report_path.as_deref(), row.bank_hashes.clone());
         assets_provenance.push(AssetsProvenanceV1 {
             stage_id: row.stage_id.clone(),
@@ -163,9 +167,8 @@ pub fn build_run_report_model(base_dir: &Path, rows: &[FactsRowV1]) -> Result<Re
         });
 
         if let Some(path) = telemetry_path_from_stage_report(stage_report_path.as_deref()) {
-            let normalized = normalize_report_path(base_dir, &path);
-            if !normalized.is_empty() {
-                telemetry_events.push(normalized);
+            if !path.is_empty() {
+                telemetry_events.push(path);
             }
         }
 
@@ -242,6 +245,13 @@ pub fn build_run_report_model(base_dir: &Path, rows: &[FactsRowV1]) -> Result<Re
     let (telemetry_event_count, telemetry_error_count) = telemetry_counts(&telemetry_events);
     let telemetry_decisions = telemetry_decisions_from_paths(&telemetry_events);
     let telemetry_timeline = telemetry_timeline_from_paths(&telemetry_events);
+    let reproducibility = reproducibility_section(&ordered, &telemetry_events);
+    let mut telemetry_events = telemetry_events
+        .iter()
+        .map(|path| normalize_report_path(base_dir, path))
+        .collect::<Vec<_>>();
+    telemetry_events.sort();
+    telemetry_events.dedup();
 
     let metric_semantics = report_metric_semantics();
     let completeness = report_completeness(&missing_metrics, &missing_reports);
@@ -471,10 +481,7 @@ pub fn build_run_report_model(base_dir: &Path, rows: &[FactsRowV1]) -> Result<Re
     if let Some(handoff) = cross_domain_handoff_section(base_dir) {
         sections.insert("handoff".to_string(), JsonBlob::new(handoff));
     }
-    sections.insert(
-        "reproducibility".to_string(),
-        JsonBlob::new(reproducibility_section(&ordered, &telemetry_events)),
-    );
+    sections.insert("reproducibility".to_string(), JsonBlob::new(reproducibility));
     sections
         .insert("pipeline_verdict".to_string(), JsonBlob::new(pipeline_verdict_section(&ordered)));
     sections.insert(

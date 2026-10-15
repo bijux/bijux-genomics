@@ -58,6 +58,10 @@ requirements, and performance budgets owned by `bijux-dna-analyze`.
   acquisition stays rooted at the input base. The HTML flag selects standalone `report.html`;
   existing canonical JSON, Markdown and bundle publication remains unchanged.
 
+- Primary report assembly resolves its declared stage, retention and bank inputs against the report
+  base. It retains physical paths through invocation and telemetry acquisition, including
+  reproducibility timestamps, before normalizing displayed paths.
+
 ## Determinism Rules
 - JSON output uses canonical ordering where the renderer owns canonicalization.
 - HTML table order is stable by stage and tool identity.

@@ -461,3 +461,186 @@ fn report_provenance_is_complete() -> Result<()> {
     }
     Ok(())
 }
+
+fn observation_fact(stage_report: Option<&std::path::Path>, run_id: &str) -> Result<FactsRowV1> {
+    Ok(serde_json::from_value(serde_json::json!({
+        "schema_version": "bijux.facts.v1", "run_id": run_id,
+        "stage_id": "fastq.trim_reads", "tool_id": "fastp", "tool_version": "0.23.4",
+        "image_digest": "sha256:img", "trace_id": "trace", "span_id": "span",
+        "params_hash": "parameters", "input_hash": "input", "output_hashes": ["output"],
+        "runtime_s": 1.0, "memory_mb": 10.0, "exit_code": 0, "bank_hashes": {},
+        "reads_in": 100, "reads_out": 100, "bases_in": 1000, "bases_out": 1000,
+        "pairs_in": null, "pairs_out": null,
+        "metrics": {"reads_in": 100, "reads_out": 100, "bases_in": 1000, "bases_out": 1000},
+        "reports": stage_report.map_or_else(|| serde_json::json!({}), |path|
+            serde_json::json!({"stage_report": path})),
+        "artifacts": {"metrics_envelope": "metrics_envelope.json"}
+    }))?)
+}
+
+fn observation_defaults(root: &std::path::Path) -> Result<()> {
+    bijux_dna_infra::ensure_dir(root)?;
+    bijux_dna_infra::write_bytes(
+        root.join("defaults_ledger.json"),
+        serde_json::to_vec(&serde_json::json!({
+            "pipeline_id": "fastq-to-fastq__default__v1", "tools": {}, "params": {},
+            "thresholds": {}, "tool_provenance": {}, "param_provenance": {},
+            "assumptions": [], "citations": {}
+        }))?,
+    )?;
+    Ok(())
+}
+
+struct ReportTelemetryFixture {
+    telemetry: String,
+    telemetry_inputs: Vec<(PathBuf, std::fs::Permissions)>,
+}
+
+impl ReportTelemetryFixture {
+    fn write(outside: &std::path::Path, inside: &std::path::Path) -> Result<Self> {
+        let telemetry = [
+            ("stage_start", "2024-01-01T00:00:01Z"),
+            ("stage_end", "2024-01-01T00:00:02Z"),
+        ]
+        .into_iter()
+        .map(|(event_name, timestamp)| -> Result<String> {
+            let event: bijux_dna_runtime::TelemetryEventV1 =
+                serde_json::from_value(serde_json::json!({
+                    "schema_version": "bijux.telemetry.v1", "run_id": "acquisition-run",
+                    "stage_id": "fastq.trim_reads", "tool_id": "fastp", "event_name": event_name,
+                    "timestamp": timestamp, "duration_ms": 1, "status": "ok",
+                    "trace_id": "trace", "span_id": "span", "attrs": {}, "failure_code": null
+                }))?;
+            Ok(serde_json::to_string(&event)?)
+        })
+        .collect::<Result<Vec<_>>>()?
+        .join("\n")
+            + "\n";
+        let mut telemetry_inputs = Vec::new();
+        for input_root in [outside, inside] {
+            let path = input_root.join("telemetry.jsonl");
+            fs::write(&path, &telemetry)?;
+            let permissions = fs::metadata(&path)?.permissions();
+            telemetry_inputs.push((path, permissions));
+        }
+        Ok(Self { telemetry, telemetry_inputs })
+    }
+
+    fn require_outside_bounds(outside_reproducibility: &serde_json::Value) {
+        assert_eq!(outside_reproducibility["started_at"], "2024-01-01T00:00:01+00:00");
+        assert_eq!(outside_reproducibility["finished_at"], "2024-01-01T00:00:02+00:00");
+    }
+
+    fn verify(self) -> Result<()> {
+        let Self { telemetry, telemetry_inputs } = self;
+        for (path, permissions) in telemetry_inputs {
+            assert_eq!(fs::read(&path)?, telemetry.as_bytes());
+            assert_eq!(fs::metadata(&path)?.permissions(), permissions);
+        }
+        Ok(())
+    }
+}
+
+#[test]
+fn report_acquires_declared_base_inputs_before_presentation_normalization() -> Result<()> {
+    use bijux_dna_analyze::report::build_run_report_model;
+    let root = fixture_root()?;
+    let outside = root.path().join("outside-inputs");
+    let outside_base = root.path().join("outside-presentation");
+    let inside_base = root.path().join("inside-presentation");
+    let inside = inside_base.join(root.path().file_name().expect("private root name"));
+    observation_defaults(&outside_base)?;
+    observation_defaults(&inside_base)?;
+    let (outside_stage, _, _) = base_reports(&outside)?;
+    let (inside_stage, _, _) = base_reports(&inside)?;
+    let telemetry = ReportTelemetryFixture::write(&outside, &inside)?;
+    let outside_model = build_run_report_model(
+        &outside_base,
+        &[observation_fact(Some(&outside_stage), "acquisition-run")?],
+    )?;
+    let outside_provenance = serde_json::to_value(&outside_model.sections["metric_provenance"])?;
+    assert_eq!(outside_provenance["fastq.trim_reads"]["normalized_params_excerpt"]["min_len"], 20);
+    let outside_reproducibility = outside_model.sections["reproducibility"].as_value().clone();
+    assert_eq!(outside_model.report.telemetry["event_count"], 2);
+    ReportTelemetryFixture::require_outside_bounds(&outside_reproducibility);
+    let malformed_path = outside.join("tool_invocation.json");
+    let outside_before = fs::read(&malformed_path)?;
+    fs::write(&malformed_path, "{not-json")?;
+    let malformed = build_run_report_model(
+        &outside_base,
+        &[observation_fact(Some(&outside_stage), "malformed")?],
+    )?;
+    assert!(
+        malformed.sections["metric_provenance"]
+            .as_value()
+            .as_object()
+            .expect("provenance map")
+            .is_empty(),
+        "malformed optional input remains an incomplete report"
+    );
+    fs::write(&malformed_path, outside_before)?;
+    let invocation_before = fs::read(inside.join("tool_invocation.json"))?;
+    let absolute = build_run_report_model(
+        &inside_base,
+        &[observation_fact(Some(&inside_stage), "acquisition-run")?],
+    )?;
+    let relative_stage = inside_stage.strip_prefix(&inside_base)?;
+    assert!(
+        matches!(std::fs::symlink_metadata(relative_stage), Err(error) if error.kind() == std::io::ErrorKind::NotFound),
+        "fixture path must be absent against ambient cwd"
+    );
+    let relative = build_run_report_model(
+        &inside_base,
+        &[observation_fact(Some(relative_stage), "acquisition-run")?],
+    )?;
+    let absolute_provenance = serde_json::to_value(&absolute.sections["metric_provenance"])?;
+    let relative_provenance = serde_json::to_value(&relative.sections["metric_provenance"])?;
+    assert_eq!(fs::read(inside.join("tool_invocation.json"))?, invocation_before);
+    let incomplete =
+        build_run_report_model(&inside_base, &[observation_fact(None, "incomplete")?])?;
+    assert_eq!(
+        incomplete.report.stages.len(),
+        1,
+        "supported incomplete reporting remains available"
+    );
+    eprintln!(
+        "base_acquisition_observation {}",
+        serde_json::json!({
+            "outside": outside_provenance, "inside_absolute": absolute_provenance,
+            "inside_relative": relative_provenance
+        })
+    );
+    assert_eq!(
+        absolute_provenance, outside_provenance,
+        "presentation normalization must not change the acquired invocation"
+    );
+    assert_eq!(
+        relative_provenance, outside_provenance,
+        "relative report inputs must resolve against the declared base"
+    );
+    let absolute_reproducibility = absolute.sections["reproducibility"].as_value();
+    let relative_reproducibility = relative.sections["reproducibility"].as_value();
+    assert_eq!(absolute.report.telemetry["event_count"], 2);
+    assert_eq!(relative.report.telemetry["event_count"], 2);
+    assert_eq!(
+        incomplete.sections["reproducibility"].as_value()["started_at"],
+        serde_json::Value::Null
+    );
+    telemetry.verify()?;
+    eprintln!(
+        "LATE_TELEMETRY_ACQUISITION_CONTROL_PASS: outside={outside_reproducibility:?}; inside_absolute={absolute_reproducibility:?}; inside_relative={relative_reproducibility:?}; both_event_counts=2; bytes_modes_retained=true"
+    );
+    for (kind, observed) in
+        [("absolute", absolute_reproducibility), ("relative", relative_reproducibility)]
+    {
+        assert_eq!(
+            observed["started_at"], outside_reproducibility["started_at"],
+            "presentation normalization must preserve acquired late telemetry start bounds: {kind}"
+        );
+        assert_eq!(
+            observed["finished_at"], outside_reproducibility["finished_at"],
+            "presentation normalization must preserve acquired late telemetry finish bounds: {kind}"
+        );
+    }
+    Ok(())
+}
