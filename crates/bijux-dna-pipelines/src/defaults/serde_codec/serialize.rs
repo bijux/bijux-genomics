@@ -23,6 +23,9 @@ pub(super) fn to_json(params: &DefaultParams) -> serde_json::Value {
         }
         DefaultParams::FastqTrimPolygTails(value) => encode(value, "fastq.trim_polyg_tails"),
         DefaultParams::FastqFilter(value) => encode(value, "fastq.filter_reads"),
+        DefaultParams::FastqFilterLowComplexity(value) => {
+            encode(value, "fastq.filter_low_complexity")
+        }
         DefaultParams::FastqOverrepresentedProfile(value) => {
             encode(value, "fastq.profile_overrepresented_sequences")
         }

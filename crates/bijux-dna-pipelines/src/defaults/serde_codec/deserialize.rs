@@ -17,6 +17,7 @@ use bijux_dna_domain_fastq::params::filter::FilterEffectiveParams;
 use bijux_dna_domain_fastq::params::merge::MergeEffectiveParams;
 use bijux_dna_domain_fastq::params::preprocess::PreprocessEffectiveParams;
 use bijux_dna_domain_fastq::params::qc_post::QcPostEffectiveParams;
+use bijux_dna_domain_fastq::params::quality::filter_low_complexity::FilterLowComplexityEffectiveParams;
 use bijux_dna_domain_fastq::params::screen::{
     HostDepletionEffectiveParams, ReferenceContaminantEffectiveParams, RrnaEffectiveParams,
     ScreenEffectiveParams,
@@ -72,6 +73,10 @@ pub(super) fn from_json(value: serde_json::Value) -> anyhow::Result<DefaultParam
     }
     if let Ok(parsed) = serde_json::from_value::<TrimEffectiveParams>(value.clone()) {
         return Ok(DefaultParams::FastqTrim(parsed));
+    }
+    if let Ok(parsed) = serde_json::from_value::<FilterLowComplexityEffectiveParams>(value.clone())
+    {
+        return Ok(DefaultParams::FastqFilterLowComplexity(parsed));
     }
     if let Ok(parsed) = serde_json::from_value::<FilterEffectiveParams>(value.clone()) {
         return Ok(DefaultParams::FastqFilter(parsed));

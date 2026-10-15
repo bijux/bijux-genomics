@@ -373,15 +373,10 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "umi_pattern": null
     },
     "fastq.filter_low_complexity": {
-      "contaminant_db": null,
-      "entropy_threshold": null,
-      "low_complexity_threshold": null,
-      "max_n": null,
-      "max_n_count": null,
-      "max_n_fraction": null,
-      "n_policy": null,
+      "entropy_threshold": 0.5,
       "paired_mode": "paired_end",
-      "polyx_policy": null,
+      "polyx_threshold": 20,
+      "schema_version": "bijux.fastq.params.filter_low_complexity.v1",
       "threads": 1
     },
     "fastq.filter_reads": {
