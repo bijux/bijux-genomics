@@ -530,3 +530,6 @@ fn runtime_verification_rejects_changed_retained_images_with_original_error_prio
     }
     Ok(())
 }
+
+#[path = "tool_contract/definition_lint.rs"]
+mod definition_lint;

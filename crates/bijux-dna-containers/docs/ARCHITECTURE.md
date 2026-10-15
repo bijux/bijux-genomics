@@ -86,3 +86,9 @@ files remain separate observations. Apply still rechecks the saved inventory ide
 mutating images. FIFO custody contracts exercise the real path facade under
 `tests/contracts/image_storage/inventory_observation.rs`; recovery and report cases remain with
 `tests/contracts/image_storage_reconciliation.rs`.
+
+Apptainer definition linting belongs to `evidence/tool_contract/definition_lint.rs`. It inspects
+acquired text and returns ordered typed issues for package-removal substrings, required sections,
+runscript argument forwarding and governed OCI metadata. CLI traversal, read errors, source-scope
+selection and diagnostic presentation remain with the command. These lexical checks do not parse
+the complete definition language or prove an image builds or executes.

@@ -78,3 +78,9 @@ detect retained drift; they do not lock external files or prove which inode a
 transport executed when an operator changes and restores a file during a probe.
 
 `evidence::tool_contract::delivery` admits supported and external-artifact delivery over the complete canonical catalog schema. A reusable `ContainerDeliveryCatalog` rejects duplicate or malformed tool identities and projects supported tool IDs, verified declaration requirements and exact stage/tool bindings. This is declaration admission; it does not claim an external artifact has been supplied or executed.
+
+`evidence::tool_contract::inspect_apptainer_definition` and `ApptainerDefinitionIssue` expose
+pure lexical checks over acquired definition text. Results preserve rule order and accumulated
+issues; `Display` supplies a diagnostic suffix without a source path. The caller selects whether
+governed OCI metadata is required and owns acquisition and path presentation. This contract is
+separate from catalog, embedded image identity and runtime smoke admission.

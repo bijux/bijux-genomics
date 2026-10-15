@@ -55,6 +55,7 @@ fn source_tree_matches_architecture_contract() {
             "catalog_observation.rs",
             "catalog_lock.rs",
             "catalog_validation.rs",
+            "definition_lint.rs",
             "delivery/",
             "inspection.rs",
             "labels.rs",

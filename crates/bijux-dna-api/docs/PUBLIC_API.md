@@ -132,3 +132,7 @@ loading a platform, probing tools, or publishing QA evidence. Its optional
 platform argument is not validated. A successful return does not certify an
 image or tool. Explicit QA execution and pass-record validation belong to
 `bijux-dna-containers-qa`; its `image_qa` binary is the image QA entrypoint.
+
+`v1::api::env::inspect_apptainer_definition` forwards container-owned lexical definition
+inspection and its ordered `ApptainerDefinitionIssue` results. The API adds no parser, acquisition
+or runtime evidence; command callers retain source-scope selection and diagnostic presentation.

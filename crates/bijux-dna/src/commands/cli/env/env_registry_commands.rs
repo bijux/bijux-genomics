@@ -13,14 +13,6 @@ fn declared_registry_text<'a>(value: Option<&'a str>, fallback: &'static str) ->
         .unwrap_or(fallback)
 }
 
-fn apptainer_section_body<'a>(raw: &'a str, section: &str) -> Option<&'a str> {
-    raw.split(&format!("%{section}"))
-        .nth(1)
-        .and_then(|chunk| chunk.split("\n%").next())
-        .map(str::trim)
-        .filter(|chunk| !chunk.is_empty())
-}
-
 fn current_clean_repository_commit(repository_root: &Path) -> Result<String> {
     let root = repository_root.display().to_string();
     let status = run_command(
@@ -1119,83 +1111,11 @@ pub fn lint_apptainer_defs(cwd: &Path) -> Result<()> {
             }
             let raw = std::fs::read_to_string(&path)
                 .with_context(|| format!("read {}", path.display()))?;
-            let lowered = raw.to_ascii_lowercase();
-            for banned in ["apt-get purge", "apt purge", "apt-get autoremove", "apt autoremove"] {
-                if lowered.contains(banned) {
-                    offenders.push(format!("{}: contains banned `{banned}`", path.display()));
-                }
-            }
-            let labels = raw.lines().position(|line| line.trim() == "%labels");
-            let env = raw.lines().position(|line| line.trim() == "%environment");
-            let post = raw.lines().position(|line| line.trim() == "%post");
-            let runscript = raw.lines().position(|line| line.trim() == "%runscript");
-            let help = raw.lines().position(|line| line.trim() == "%help");
-            match (labels, env, post, runscript, help) {
-                (
-                    Some(labels_index),
-                    Some(env_index),
-                    Some(post_index),
-                    Some(runscript_index),
-                    Some(help_index),
-                ) => {
-                    if !(labels_index < env_index
-                        && env_index < post_index
-                        && post_index < runscript_index
-                        && runscript_index < help_index)
-                    {
-                        offenders.push(format!(
-                            "{}: section order must be %labels -> %environment -> %post -> %runscript -> %help",
-                            path.display()
-                        ));
-                    }
-                }
-                _ => offenders.push(format!(
-                    "{}: missing required sections (%labels,%environment,%post,%runscript,%help)",
-                    path.display()
-                )),
-            }
-            if let Some(runscript_chunk) = apptainer_section_body(&raw, "runscript") {
-                if !runscript_chunk.contains("exec ") {
-                    offenders.push(format!("{}: %runscript must use exec", path.display()));
-                }
-                if !runscript_chunk.contains("\"$@\"") {
-                    offenders.push(format!(
-                        "{}: %runscript must pass through \"$@\"",
-                        path.display()
-                    ));
-                }
-            }
-            if requires_governed_oci_metadata(&defs_root, &path) {
-                for label in [
-                    "org.opencontainers.image.source",
-                    "org.opencontainers.image.revision",
-                    "org.opencontainers.image.created",
-                    "org.opencontainers.image.licenses",
-                    "org.opencontainers.image.version",
-                    "org.opencontainers.image.tool",
-                    "org.opencontainers.image.title",
-                ] {
-                    if !raw.contains(label) {
-                        offenders.push(format!(
-                            "{}: missing OCI metadata label {}",
-                            path.display(),
-                            label
-                        ));
-                    }
-                }
-                if raw.contains("/opt/bijux/VERSION.json") {
-                    offenders.push(format!(
-                        "{}: duplicated self-report metadata /opt/bijux/VERSION.json is forbidden; use OCI labels instead",
-                        path.display()
-                    ));
-                }
-                if raw.contains("bijux-tool-info") {
-                    offenders.push(format!(
-                        "{}: duplicated self-report command bijux-tool-info is forbidden; use OCI labels instead",
-                        path.display()
-                    ));
-                }
-            }
+            let issues = bijux_dna_api::v1::api::env::inspect_apptainer_definition(
+                &raw,
+                requires_governed_oci_metadata(&defs_root, &path),
+            );
+            offenders.extend(issues.into_iter().map(|issue| format!("{}: {issue}", path.display())));
         }
     }
 
