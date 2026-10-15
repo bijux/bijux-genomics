@@ -394,3 +394,24 @@ fn corpus_01_bam_mini_fixture_validation_refuses_header_sample_id_drift() {
 
 #[path = "bam/alignment_truth.rs"]
 mod alignment_truth;
+
+#[path = "bam/damage_truth.rs"]
+mod damage_truth;
+
+#[path = "bam/contamination_truth.rs"]
+mod contamination_truth;
+
+#[path = "bam/duplicate_insert_truth.rs"]
+mod duplicate_insert_truth;
+
+#[path = "bam/endogenous_truth.rs"]
+mod endogenous_truth;
+
+#[path = "bam/coverage_gc_truth.rs"]
+mod coverage_gc_truth;
+
+#[path = "bam/haplogroup_truth.rs"]
+mod haplogroup_truth;
+
+#[path = "bam/sex_truth.rs"]
+mod sex_truth;

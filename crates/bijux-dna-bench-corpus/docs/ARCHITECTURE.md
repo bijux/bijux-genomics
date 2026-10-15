@@ -133,3 +133,65 @@ ignored and the final duplicate expected record wins; duplicate manifest IDs rej
 after per-case admission. Arbitrary nested metrics, optional output families and
 complete/insufficient observations remain unchanged. This service reads local
 fixtures without launching tools, publishing products or establishing new science.
+
+## aDNA damage fixture truth
+
+`bam/damage_truth` owns the declared damage manifest, expected bundle admission
+and complete expected/observed comparison. Its private models, declaration
+admission and file observations follow the existing alignment truth boundary.
+The BAM domain retains damage classification and UDG/insufficiency interpretation.
+CLI entrypoints keep command defaults, JSON/text presentation and root-report
+composition through their existing import path. This service reads declared local
+files without running tools, generating fixtures or publishing new truth.
+
+Manifest schema, identity, governed source membership and ordered case admission
+precede expected-bundle acquisition. Bundle admission precedes alignment header
+inspection and domain damage summaries. Manifest case IDs reject duplicates;
+expected case identity remains set-based and the final duplicate expected row
+wins during map comparison. Relative source and input paths use the supplied
+repository root, while expected paths use the declaration directory. Absolute
+paths and original display conventions remain supported.
+
+## aDNA contamination fixture truth
+
+`bam/contamination_truth` owns the declared contamination cases, expected
+bundle admission and complete expected/observed comparison. Private models,
+admission and observations separate persisted fixture wire from local reads.
+The BAM domain retains tool-specific context, coverage and confidence-interval
+interpretation. CLI validation and expected-validation entrypoints retain
+command defaults, JSON/text presentation and root-report composition.
+
+Manifest identity and governed source membership precede ordered case admission.
+Source references retain the existing `exists` rule, accepting files or
+directories. Tool, coverage, estimate/interval and input-path admission precede
+expected-bundle acquisition; expected identity admission precedes alignment
+header inspection and domain summary projection. Declared metric/context values
+remain fixture inputs, not proof of newly executed contamination tools.
+
+Manifest case IDs reject duplicates. Expected case identity remains set-based
+and the final duplicate expected row wins during map comparison. Relative
+source/input paths use the supplied root; expected paths use the declaration
+directory. Absolute paths, original display strings and read/error order remain
+unchanged. The service does not generate fixtures or publish products.
+
+## Duplicate-family and insert-size fixture truth
+
+`bam/duplicate_insert_truth` owns the complete declared fixture comparison: private typed wire records, corpus admission and histogram invariants, and local observations. The existing corpus loader and admission validate all declared BAM inputs before expected truth acquisition. Existing domain summaries retain duplicate geometry and insert statistics. The CLI keeps route/default/render/report duties through its stable import facade. No runtime tool execution or payload publication is added.
+
+Expected sample order, complete records, integer arithmetic (including existing saturation choices), pair-count/optional-statistic rules, and read/error priority remain compatibility contracts. The four original CLI cases remain registered; the corpus oracle uses private declaration/expected copies and immutable governed payload inputs.
+
+## Endogenous-count fixture ownership
+
+`bam/endogenous_truth` owns private declaration/expected wire, count/fraction admission, complete comparison and local corpus observations. The existing domain calculator retains mapped/background/retained/endogenous and host-scope provenance. The existing Core count conversion is consumed directly; no CLI dependency or new numeric helper is added.
+
+## Coverage and gc-bias fixture ownership
+
+`bam/coverage_gc_truth` separates declaration admission, typed expected-summary arithmetic, complete identity-based comparison, local observations and wire models. Coverage and GC remain one existing bundle contract with two preserved observations. Existing domain coverage/GC calculators and Core numeric conversion are reused. The private identity trait and both implementations move with the comparator, with no public helper API.
+
+## Haplogroup fixture ownership
+
+`bam/haplogroup_truth` owns declaration admission, expected identity/marker/status rules, required outcome coverage, local observations and private normalized wire. Existing domain marker support and coverage gate calculations remain canonical. The CLI keeps routing, defaults, JSON/text and root-report projection.
+
+## Sex-inference fixture ownership
+
+`bam/sex_truth` owns typed fixture wire, declaration and expected admission, call-class coverage, local observations and complete comparison. The existing domain calculator retains reference context, X/Y/autosomal coverage, minimum-site gates and confidence/call thresholds. Private normalized summary records retain the public JSON wire without runtime-local payload paths. The CLI keeps routing/default/render/root-report responsibilities.

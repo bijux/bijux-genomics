@@ -130,3 +130,53 @@ displayed paths retain slash normalization. Source references accept existing fi
 and directories. Closed wire fields, optional serde behavior, acquisition/error
 ordering and expected-row set/map duplicate semantics remain unchanged. This
 read-only service does not certify fresh native execution or independent provenance.
+
+With `alignment`, `bam::validate_adna_damage_truth_manifest_path` accepts an
+explicit repository root and declaration path and returns
+`AdnaDamageTruthValidationReport`. `ADNA_DAMAGE_TRUTH_FIXTURE_ID` and
+`ADNA_DAMAGE_TRUTH_MANIFEST_SCHEMA_VERSION` retain the governed identities.
+The report preserves schema, fixture and path fields, case/insufficient counts,
+sorted terminal-pattern classes, declared case order and validity.
+
+The read-only service preserves closed declaration/expected wire fields, UDG
+models, terminal fractions within `[0, 1]`, sample-header identity, domain damage
+classification, full-record comparison and original error/read order. Expected
+row order is ignored and the final duplicate expected record wins; duplicate
+declaration IDs reject. It does not establish external provenance or execute
+native tools. CLI validation and expected-validation wires remain unchanged.
+
+With `alignment`, `bam::validate_adna_contamination_truth_manifest_path` accepts
+an explicit repository root and declaration path and returns
+`AdnaContaminationTruthValidationReport`. The matching
+`ADNA_CONTAMINATION_TRUTH_FIXTURE_ID` and
+`ADNA_CONTAMINATION_TRUTH_MANIFEST_SCHEMA_VERSION` retain governed identities.
+The report preserves schema, fixture/path fields, declared case order, case
+and insufficient counts, sorted tool inventory and validity.
+
+The read-only service preserves schmutzi, verifybamid2 and contammix fixture
+contexts; closed wire fields, flattened context/compatibility defaults, coverage
+and interval checks, complete comparison and original error/read order remain.
+Existing directory source references are admitted. Expected set/map duplicate
+semantics and declared absolute paths remain supported. Canonical domain
+interpretation stays in domain-bam; this API does not run external tools or
+establish independent scientific provenance.
+
+## Duplicate and insert fixture truth
+
+With `alignment`, `bam::validate_bam_duplicate_insert_truth_manifest_path(&Path, &Path)` returns `BamDuplicateInsertTruthValidationReport` or the existing declaration/expected/corpus error. The report fields and serde wire are unchanged. `BAM_DUPLICATE_INSERT_TRUTH_FIXTURE_ID` and `BAM_DUPLICATE_INSERT_TRUTH_MANIFEST_SCHEMA_VERSION` retain their persisted values. Corpus and expected observation order, exact sample ordering, histogram consistency and full-record equality are preserved. This API consumes local fixture observations through the existing domain calculator; it does not certify a fresh external tool run.
+
+## Endogenous-count truth API
+
+With `alignment`, `bam::validate_bam_endogenous_truth_manifest_path(&Path, &Path)` returns `BamEndogenousTruthValidationReport` or the existing acquisition/admission/observation error. The report fields, serde wire, persisted constants and CLI JSON/text remain unchanged. Preserve original corpus-before-expected acquisition, expected sample order, complete record equality, saturating count identity, existing unsigned aggregation and exact 1e-9 fraction tolerance. Method/host-scope declarations and all summary/caveat/provenance fields remain unchanged.
+
+## Coverage and gc-bias truth API
+
+With `alignment`, `bam::validate_bam_gc_coverage_truth_manifest_path(&Path, &Path)` returns `BamGcCoverageTruthValidationReport` or the existing acquisition/admission/observation error. The report fields, serde wire, persisted constants and CLI JSON/text remain unchanged. Preserve corpus-before-expected acquisition; separate expected coverage/GC ordered identities; complete keyed record equality; source/region/reference admission; weighted region depth, breadth, GC-bin/window/read-start totals, dropout-derived score and exact 1e-9 approximate comparison. Existing arithmetic and domain calculation/order remain unchanged.
+
+## Haplogroup truth API
+
+With `alignment`, `bam::validate_bam_haplogroup_truth_manifest_path(&Path, &Path)` returns `BamHaplogroupTruthValidationReport` or the existing acquisition/admission/observation error. The report fields, serde wire, persisted constants and CLI JSON/text remain unchanged. Preserve corpus-before-expected acquisition, declared case order, complete normalized record equality, first declared TSV panel selection, marker count/confidence constraints and ready/partial-support/coverage-gate refusal semantics. Required status coverage remains enforced on both expected and actual bundles; thresholds, read/error order, panel identity and wire fields remain unchanged.
+
+## Sex-inference truth API
+
+With `alignment`, `bam::validate_bam_sex_truth_manifest_path(&Path, &Path)` returns `BamSexTruthValidationReport` or the existing acquisition/admission/observation error. The report fields, serde wire, persisted constants and CLI JSON/text remain unchanged. Preserve corpus-before-expected acquisition, exact expected sample order, complete normalized record equality, all four required call classes, nonnegative coverage and the original insufficiency reason/zero-confidence/status rules. Do not tighten unrelated confidence/method/enum grammar or alter domain thresholds, read/error order, chromosome-system or minimum-Y assumptions.

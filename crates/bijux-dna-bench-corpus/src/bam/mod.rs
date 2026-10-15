@@ -41,3 +41,45 @@ pub use truth::{
     validate_bam_alignment_truth_manifest_path, BamAlignmentTruthValidationReport,
     BAM_ALIGNMENT_TRUTH_FIXTURE_ID, BAM_ALIGNMENT_TRUTH_MANIFEST_SCHEMA_VERSION,
 };
+
+mod damage_truth;
+pub use damage_truth::{
+    validate_adna_damage_truth_manifest_path, AdnaDamageTruthValidationReport,
+    ADNA_DAMAGE_TRUTH_FIXTURE_ID, ADNA_DAMAGE_TRUTH_MANIFEST_SCHEMA_VERSION,
+};
+
+mod contamination_truth;
+pub use contamination_truth::{
+    validate_adna_contamination_truth_manifest_path, AdnaContaminationTruthValidationReport,
+    ADNA_CONTAMINATION_TRUTH_FIXTURE_ID, ADNA_CONTAMINATION_TRUTH_MANIFEST_SCHEMA_VERSION,
+};
+
+mod duplicate_insert_truth;
+pub use duplicate_insert_truth::{
+    validate_bam_duplicate_insert_truth_manifest_path, BamDuplicateInsertTruthValidationReport,
+    BAM_DUPLICATE_INSERT_TRUTH_FIXTURE_ID, BAM_DUPLICATE_INSERT_TRUTH_MANIFEST_SCHEMA_VERSION,
+};
+
+mod endogenous_truth;
+pub use endogenous_truth::{
+    validate_bam_endogenous_truth_manifest_path, BamEndogenousTruthValidationReport,
+    BAM_ENDOGENOUS_TRUTH_FIXTURE_ID, BAM_ENDOGENOUS_TRUTH_MANIFEST_SCHEMA_VERSION,
+};
+
+mod coverage_gc_truth;
+pub use coverage_gc_truth::{
+    validate_bam_gc_coverage_truth_manifest_path, BamGcCoverageTruthValidationReport,
+    BAM_GC_COVERAGE_TRUTH_FIXTURE_ID, BAM_GC_COVERAGE_TRUTH_MANIFEST_SCHEMA_VERSION,
+};
+
+mod haplogroup_truth;
+pub use haplogroup_truth::{
+    validate_bam_haplogroup_truth_manifest_path, BamHaplogroupTruthValidationReport,
+    BAM_HAPLOGROUP_TRUTH_FIXTURE_ID, BAM_HAPLOGROUP_TRUTH_MANIFEST_SCHEMA_VERSION,
+};
+
+mod sex_truth;
+pub use sex_truth::{
+    validate_bam_sex_truth_manifest_path, BamSexTruthValidationReport, BAM_SEX_TRUTH_FIXTURE_ID,
+    BAM_SEX_TRUTH_MANIFEST_SCHEMA_VERSION,
+};
