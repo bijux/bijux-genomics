@@ -1904,6 +1904,11 @@ Visible aliases are part of the operator surface:
   `artifacts/benchmark-smoke/readiness/local-ready/corpus-02-edna-taxonomy-judgment.json` by default, and fails when any
   declared sample is missing an observed report or any expected present or absent taxon does not
   match the observed classifier summary.
+  Classifier-summary JSON and grammar refusals retain typed `ParseError` identity, exit code `4`
+  and the `observer.parse` hint independently of the report path text. File acquisition and
+  report mapping errors retain their existing precedence; invalid judgments still publish their
+  report before returning the existing contract refusal.
+
 - `bijux-dna bench local validate-corpus-stage-compatibility`
   `validate-corpus-stage-compatibility` checks
   `configs/bench/local/corpus-stage-compatibility.toml` against the governed 51-stage local FASTQ
