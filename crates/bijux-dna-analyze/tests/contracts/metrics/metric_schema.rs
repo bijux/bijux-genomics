@@ -410,3 +410,59 @@ fn metrics_schema_matches_stage_and_version_for_all_fastq_stages() {
         "fastq_deplete_reference_contaminants_v1"
     );
 }
+
+#[test]
+fn producer_declared_trimming_metrics_are_admitted_by_their_typed_registry() -> anyhow::Result<()> {
+    use bijux_dna_analyze::{
+        validate_metric_set, FastqTrimPolygMetrics, FastqTrimTerminalDamageMetrics,
+        StageMetricSchema,
+    };
+    let common = serde_json::json!({
+        "reads_in": 100, "reads_out": 100, "bases_in": 1000, "bases_out": 900,
+        "mean_q_before": 30.0, "mean_q_after": 30.0
+    });
+    let control: FastqTrimMetrics = serde_json::from_value(common.clone())?;
+    validate_metric_set(&metric_set(control))?;
+    let mut polyg_value = common.clone();
+    polyg_value
+        .as_object_mut()
+        .expect("metric object")
+        .insert("trimmed_tail_count".to_string(), serde_json::json!(4));
+    polyg_value
+        .as_object_mut()
+        .expect("metric object")
+        .insert("bases_trimmed_polyg".to_string(), serde_json::json!(100));
+    let polyg: FastqTrimPolygMetrics = serde_json::from_value(polyg_value.clone())?;
+    polyg.validate()?;
+    polyg_value
+        .as_object_mut()
+        .expect("metric object")
+        .insert("undeclared_fixture_field".to_string(), serde_json::json!(true));
+    assert!(serde_json::from_value::<FastqTrimPolygMetrics>(polyg_value).is_err());
+    let mut terminal_value = common;
+    for (key, value) in [
+        ("trim_5p_bases", 1),
+        ("trim_3p_bases", 0),
+        ("reads_retained", 100),
+        ("bases_removed", 100),
+    ] {
+        terminal_value
+            .as_object_mut()
+            .expect("metric object")
+            .insert(key.to_string(), serde_json::json!(value));
+    }
+    let terminal: FastqTrimTerminalDamageMetrics = serde_json::from_value(terminal_value)?;
+    terminal.validate()?;
+    let outcomes =
+        [validate_metric_set(&metric_set(polyg)), validate_metric_set(&metric_set(terminal))];
+    for (stage, outcome) in
+        ["fastq.trim_polyg_tails", "fastq.trim_terminal_damage"].into_iter().zip(&outcomes)
+    {
+        eprintln!("producer_metric_admission {stage}: {outcome:?}");
+    }
+    assert!(
+        outcomes.iter().all(std::result::Result::is_ok),
+        "real producer fields must be admitted without weakening unknown-field rejection"
+    );
+    Ok(())
+}

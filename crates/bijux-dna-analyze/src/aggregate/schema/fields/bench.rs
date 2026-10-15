@@ -20,7 +20,7 @@ pub const FASTQ_TRIM_METRICS: [MetricId; 19] = [
     MetricId::AdapterOverrides,
 ];
 
-pub const FASTQ_TRIM_POLYG_METRICS: [MetricId; 18] = [
+pub const FASTQ_TRIM_POLYG_METRICS: [MetricId; 19] = [
     MetricId::ReadsIn,
     MetricId::ReadsOut,
     MetricId::BasesIn,
@@ -34,6 +34,7 @@ pub const FASTQ_TRIM_POLYG_METRICS: [MetricId; 18] = [
     MetricId::Threads,
     MetricId::TrimPolyg,
     MetricId::MinPolygRun,
+    MetricId::TrimmedTailCount,
     MetricId::BasesTrimmedPolyg,
     MetricId::RawBackendReportFormat,
     MetricId::PolyxBankId,
@@ -41,7 +42,7 @@ pub const FASTQ_TRIM_POLYG_METRICS: [MetricId; 18] = [
     MetricId::PolyxPreset,
 ];
 
-pub const FASTQ_TRIM_TERMINAL_DAMAGE_METRICS: [MetricId; 16] = [
+pub const FASTQ_TRIM_TERMINAL_DAMAGE_METRICS: [MetricId; 20] = [
     MetricId::ReadsIn,
     MetricId::ReadsOut,
     MetricId::BasesIn,
@@ -54,6 +55,10 @@ pub const FASTQ_TRIM_TERMINAL_DAMAGE_METRICS: [MetricId; 16] = [
     MetricId::ExecutionPolicy,
     MetricId::RequestedTrim5pBases,
     MetricId::RequestedTrim3pBases,
+    MetricId::Trim5pBases,
+    MetricId::Trim3pBases,
+    MetricId::ReadsRetained,
+    MetricId::BasesRemoved,
     MetricId::UdgClassification,
     MetricId::CtGaAsymmetryPre,
     MetricId::CtGaAsymmetryPost,
