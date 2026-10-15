@@ -690,3 +690,62 @@ fn html_report_keeps_supported_metadata_as_literal_data() -> Result<()> {
     );
     Ok(())
 }
+
+#[test]
+fn scientific_provenance_preserves_declared_relative_stage_report_inputs() -> Result<()> {
+    use bijux_dna_analyze::report::build_run_report_model;
+    let root = fixture_root()?;
+    let base = root.path().join("scientific-report");
+    let inputs = base.join("inputs");
+    observation_defaults(&base)?;
+    let (stage, _, _) = base_reports(&inputs)?;
+    let retained = [
+        inputs.join("stage_report.json"),
+        inputs.join("tool_invocation.json"),
+        inputs.join("effective_config.json"),
+    ]
+    .into_iter()
+    .map(|path| -> Result<_> {
+        let bytes = fs::read(&path)?;
+        let permissions = fs::metadata(&path)?.permissions();
+        Ok((path, bytes, permissions))
+    })
+    .collect::<Result<Vec<_>>>()?;
+    let absolute =
+        build_run_report_model(&base, &[observation_fact(Some(&stage), "scientific-inputs")?])?;
+    let expected = absolute.sections["scientific_provenance"].as_value();
+    assert_eq!(expected["entries"][0]["resolved_tool_version"], "0.23.4");
+    assert_eq!(expected["entries"][0]["effective_params"]["min_len"], 20);
+    assert_eq!(expected["entries"][0]["raw_params"]["min_len"], 20);
+    let missing = build_run_report_model(&base, &[observation_fact(None, "scientific-missing")?])?;
+    assert_eq!(
+        missing.sections["scientific_provenance"].as_value()["entries"][0]["resolved_tool_version"],
+        serde_json::Value::Null
+    );
+    let relative = stage.strip_prefix(&base)?;
+    assert!(
+        matches!(fs::symlink_metadata(relative), Err(error) if error.kind() == std::io::ErrorKind::NotFound),
+        "declared relative fixture must not exist against ambient cwd"
+    );
+    let acquired =
+        build_run_report_model(&base, &[observation_fact(Some(relative), "scientific-inputs")?])?;
+    let observed = acquired.sections["scientific_provenance"].as_value();
+    assert_eq!(
+        acquired.sections["metric_provenance"].as_value()["fastq.trim_reads"]
+            ["normalized_params_excerpt"]["min_len"],
+        20,
+        "primary relative report acquisition must already be working"
+    );
+    for (path, bytes, permissions) in retained {
+        assert_eq!(fs::read(&path)?, bytes);
+        assert_eq!(fs::metadata(&path)?.permissions(), permissions);
+    }
+    eprintln!(
+        "SCIENTIFIC_INPUT_ACQUISITION_CONTROL_PASS: absolute={expected:?}; relative={observed:?}; primary_relative_metric=20; bytes_modes_retained=true"
+    );
+    assert_eq!(
+        observed, expected,
+        "relative declarations of the same admitted stage report must preserve scientific provenance"
+    );
+    Ok(())
+}

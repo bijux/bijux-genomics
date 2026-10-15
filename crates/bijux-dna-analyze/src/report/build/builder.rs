@@ -486,7 +486,7 @@ pub fn build_run_report_model(base_dir: &Path, rows: &[FactsRowV1]) -> Result<Re
         .insert("pipeline_verdict".to_string(), JsonBlob::new(pipeline_verdict_section(&ordered)));
     sections.insert(
         "scientific_provenance".to_string(),
-        JsonBlob::new(scientific_provenance_section(&ordered)),
+        JsonBlob::new(scientific_provenance_section(base_dir, &ordered)),
     );
     sections.insert(
         "data_contract_validation".to_string(),

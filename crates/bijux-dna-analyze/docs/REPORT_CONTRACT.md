@@ -65,6 +65,9 @@ requirements, and performance budgets owned by `bijux-dna-analyze`.
 - Completed sections are retained in canonical JSON, bundle-local JSON and embedded HTML report
   data.
 
+- Scientific provenance resolves its stage report, invocation and configuration declarations
+  against the same explicit report base. Absolute paths retain their location; absent, empty or
+  malformed optional evidence retains the existing empty/null projection.
 - Typed trimming registries admit producer fields `trimmed_tail_count`, `trim_5p_bases`,
   `trim_3p_bases`, `reads_retained` and `bases_removed` without accepting unknown fields.
 

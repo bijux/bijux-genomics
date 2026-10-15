@@ -309,17 +309,27 @@ fn telemetry_bounds(paths: &[String]) -> (serde_json::Value, serde_json::Value) 
     )
 }
 
-pub(crate) fn scientific_provenance_section(rows: &[FactsRowV1]) -> serde_json::Value {
+pub(crate) fn scientific_provenance_section(
+    base_dir: &Path,
+    rows: &[FactsRowV1],
+) -> serde_json::Value {
+    let read_declared_json = |raw: &str| {
+        let path = Path::new(raw);
+        if raw.is_empty() || path.is_absolute() {
+            read_json_value(path)
+        } else {
+            read_json_value(&base_dir.join(path))
+        }
+    };
     let mut entries = Vec::new();
     for row in rows {
         let mut effective_params = serde_json::json!({});
         let mut raw_params = serde_json::json!({});
         let mut resolved_tool_version = None;
         if let Some(stage_report_path) = report_path_for(&row.reports, "stage_report") {
-            if let Some(stage_report_value) = read_json_value(Path::new(&stage_report_path)) {
+            if let Some(stage_report_value) = read_declared_json(&stage_report_path) {
                 if let Ok(report) = serde_json::from_value::<StageReportV1>(stage_report_value) {
-                    if let Some(invocation_value) =
-                        read_json_value(Path::new(&report.tool_invocation_path))
+                    if let Some(invocation_value) = read_declared_json(&report.tool_invocation_path)
                     {
                         if let Ok(invocation) =
                             serde_json::from_value::<ToolInvocationV1>(invocation_value)
@@ -327,9 +337,7 @@ pub(crate) fn scientific_provenance_section(rows: &[FactsRowV1]) -> serde_json::
                             resolved_tool_version = invocation.resolved_tool_version;
                         }
                     }
-                    if let Some(config_value) =
-                        read_json_value(Path::new(&report.effective_config_path))
-                    {
+                    if let Some(config_value) = read_declared_json(&report.effective_config_path) {
                         if let Some(value) = config_value.get("effective_params_json") {
                             effective_params = value.clone();
                         }
