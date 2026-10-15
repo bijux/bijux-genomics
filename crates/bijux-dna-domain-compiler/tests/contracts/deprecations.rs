@@ -1,3 +1,5 @@
+#![cfg(test)]
+
 use anyhow::{ensure, Context as _, Result};
 use bijux_dna_domain_compiler::{
     compile_domain_configs, domain_deprecation_catalogs, load_domain_registry_bundle,

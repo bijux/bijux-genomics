@@ -1,3 +1,5 @@
+#![cfg(test)]
+
 use anyhow::{ensure, Context as _, Result};
 use bijux_dna_domain_compiler::{
     compile_domain_configs, validate_domain, CompileOptions, ValidateOptions, DEFAULT_COMPILE_SCOPE,

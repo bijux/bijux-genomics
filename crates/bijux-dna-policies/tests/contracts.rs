@@ -249,3 +249,6 @@ mod workspace_dependencies;
 
 #[path = "support/docs/references.rs"]
 mod document_references;
+
+#[path = "support/rust_source/tokens.rs"]
+mod rust_source_tokens;
