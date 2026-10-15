@@ -307,17 +307,12 @@ pub(super) fn semantic_filter(metrics: &FastqFilterMetrics) -> SemanticMetrics {
                 ">= 0",
                 "Reads after filtering.",
             ),
-            bases_in: metric_u64(
-                metrics.reads_in,
-                "Input bases",
-                ">= 0",
-                "Approx bases inferred from reads.",
-            ),
+            bases_in: metric_u64(metrics.bases_in, "Input bases", ">= 0", "Input base count."),
             bases_out: metric_u64(
-                metrics.reads_out,
+                metrics.bases_out,
                 "Output bases",
                 ">= 0",
-                "Approx bases after filtering.",
+                "Base count after filtering.",
             ),
         },
         retention: RetentionMetrics {
@@ -368,8 +363,8 @@ pub(super) fn semantic_validate(metrics: &FastqValidateMetrics) -> SemanticMetri
         integrity: IntegrityMetrics {
             reads_in: metric_u64(reads_total, "Input reads", ">= 0", "Raw input read count."),
             reads_out: metric_u64(reads_valid, "Output reads", ">= 0", "Reads passing validation."),
-            bases_in: metric_u64(0, "Input bases", ">= 0", "Base counts not reported."),
-            bases_out: metric_u64(0, "Output bases", ">= 0", "Base counts not reported."),
+            bases_in: metric_u64(metrics.bases_in, "Input bases", ">= 0", "Input base count."),
+            bases_out: metric_u64(metrics.bases_out, "Output bases", ">= 0", "Output base count."),
         },
         retention: RetentionMetrics {
             read_retention: metric_f64(
