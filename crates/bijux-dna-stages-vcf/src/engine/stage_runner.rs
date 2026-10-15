@@ -121,7 +121,7 @@ impl VcfStageRunner for DispatchRunner {
                 "no-network policy violation: BIJUX_VCF_ALLOW_NETWORK=1 is not permitted",
             ));
         }
-        if let Some(resumed) = try_resume_stage(stage, &stage_dir)? {
+        if let Some(resumed) = try_resume_stage(stage, &stage_dir, input_vcf)? {
             return Ok(resumed);
         }
         let stage_tmp_dir = ctx.request.run_root.join("tmp").join(stage.as_str().replace('.', "_"));
@@ -563,8 +563,15 @@ impl VcfStageRunner for DispatchRunner {
         };
         let checksums_path = write_artifact_checksums(&stage_dir, &artifacts)?;
         artifacts.push(checksums_path);
-        let stage_manifest =
-            write_stage_manifest(&stage_dir, stage, input_vcf, &artifacts, &runtime, &invocation)?;
+        let stage_manifest = write_stage_manifest(
+            &stage_dir,
+            stage,
+            input_vcf,
+            primary_output.as_deref(),
+            &artifacts,
+            &runtime,
+            &invocation,
+        )?;
 
         Ok(VcfStageOutputs {
             stage_id: stage.as_str().to_string(),

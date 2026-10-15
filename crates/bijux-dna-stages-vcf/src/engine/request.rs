@@ -185,27 +185,34 @@ pub(super) fn write_stage_manifest(
     out_dir: &Path,
     stage: VcfDomainStage,
     input: &Path,
+    primary_output: Option<&Path>,
     artifacts: &[PathBuf],
     runtime: &StageRuntimeStats,
     invocation: &ToolInvocation,
 ) -> Result<PathBuf> {
     let manifest = out_dir.join("stage_manifest.json");
-    atomic_write_json(
-        &manifest,
-        &serde_json::json!({
-            "schema_version": "bijux.vcf.stage_manifest.v1",
-            "stage_id": stage.as_str(),
-            "tool_id": invocation.tool_id,
-            "runtime": invocation.runtime,
-            "image_digest": invocation.image_digest,
-            "command_argv": invocation.argv,
-            "inputs": [input],
-            "outputs": artifacts,
-            "timings": runtime,
-            "exit_status": runtime.exit_code,
-            "versions": {"stage_contract": "v1"},
-        }),
-    )?;
+    let payload = serde_json::json!({
+        "schema_version": "bijux.vcf.stage_manifest.v1",
+        "stage_id": stage.as_str(),
+        "tool_id": invocation.tool_id,
+        "runtime": invocation.runtime,
+        "image_digest": invocation.image_digest,
+        "command_argv": invocation.argv,
+        "inputs": [input],
+        "input_sha256": hash_file_sha256(input).map_err(|error| anyhow!(error.to_string()))?,
+        "primary_output": primary_output,
+        "outputs": artifacts,
+        "timings": runtime,
+        "exit_status": runtime.exit_code,
+        "versions": {"stage_contract": "v1"},
+    });
+    let bytes = serde_json::to_vec_pretty(&payload)?;
+    let checksums = out_dir.join("artifact_checksums.json");
+    let mut checksum_payload: serde_json::Value =
+        serde_json::from_slice(&std::fs::read(&checksums)?)?;
+    checksum_payload["stage_manifest_sha256"] = serde_json::json!(stage_checksum_hex(&bytes));
+    atomic_write_json(&checksums, &checksum_payload)?;
+    atomic_write_bytes(&manifest, &bytes)?;
     Ok(manifest)
 }
 
@@ -371,34 +378,147 @@ pub(super) fn write_artifact_checksums(stage_dir: &Path, artifacts: &[PathBuf]) 
     Ok(path)
 }
 
+fn admitted_stage_artifact(stage_dir: &Path, path: &Path) -> bool {
+    let Ok(relative) = path.strip_prefix(stage_dir) else {
+        return false;
+    };
+    if relative.as_os_str().is_empty()
+        || !relative.components().all(|part| matches!(part, std::path::Component::Normal(_)))
+        || !path.is_file()
+    {
+        return false;
+    }
+    let (Ok(root), Ok(physical)) = (stage_dir.canonicalize(), path.canonicalize()) else {
+        return false;
+    };
+    physical == root.join(relative)
+}
+
+fn validate_resume_artifacts(
+    stage_dir: &Path,
+    checksums: &Path,
+    artifacts: &[PathBuf],
+    primary_output: Option<&Path>,
+    rows: &[serde_json::Value],
+) -> Result<bool> {
+    let mut unique = std::collections::BTreeSet::new();
+    for artifact in artifacts {
+        let Ok(relative) = artifact.strip_prefix(stage_dir) else {
+            bail!("VCF resume artifact is outside its stage directory");
+        };
+        if !relative.components().all(|part| matches!(part, std::path::Component::Normal(_))) {
+            bail!("VCF resume artifact is outside its stage directory");
+        }
+        if artifact.is_symlink() {
+            bail!("VCF resume artifact is redirected outside its stage directory");
+        }
+        if !artifact.exists() {
+            return Ok(false);
+        }
+        if !unique.insert(artifact.clone()) || !admitted_stage_artifact(stage_dir, artifact) {
+            bail!("VCF resume artifact is duplicate, redirected or outside its stage directory");
+        }
+    }
+    if artifacts.last().map(PathBuf::as_path) != Some(checksums)
+        || primary_output.is_some_and(|path| path == checksums || !unique.contains(path))
+    {
+        bail!("VCF resume result does not preserve declared artifact membership");
+    }
+    let mut observed = std::collections::BTreeSet::new();
+    for row in rows {
+        let path = row
+            .get("path")
+            .and_then(serde_json::Value::as_str)
+            .ok_or_else(|| anyhow!("VCF resume checksum path is missing"))?;
+        let expected = row
+            .get("sha256")
+            .and_then(serde_json::Value::as_str)
+            .ok_or_else(|| anyhow!("VCF resume checksum identity is missing"))?;
+        let path = PathBuf::from(path);
+        if path == checksums || !unique.contains(&path) || !observed.insert(path.clone()) {
+            bail!("VCF resume checksums do not match declared artifact membership");
+        }
+        let actual = hash_file_sha256(&path).map_err(|error| anyhow!(error.to_string()))?;
+        if actual != expected {
+            return Ok(false);
+        }
+    }
+    unique.remove(checksums);
+    if observed != unique {
+        bail!("VCF resume checksums do not cover every declared artifact");
+    }
+    Ok(true)
+}
+
 pub(super) fn try_resume_stage(
     stage: VcfDomainStage,
     stage_dir: &Path,
+    input: &Path,
 ) -> Result<Option<VcfStageOutputs>> {
     let manifest = stage_dir.join("stage_manifest.json");
     let checksums = stage_dir.join("artifact_checksums.json");
     if !manifest.exists() || !checksums.exists() {
         return Ok(None);
     }
-    let payload: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(&checksums)?)?;
-    let rows = payload.get("artifacts").and_then(|v| v.as_array()).cloned().unwrap_or_default();
-    for row in rows {
-        let path = row.get("path").and_then(|v| v.as_str()).unwrap_or_default();
-        let expected = row.get("sha256").and_then(|v| v.as_str()).unwrap_or_default().to_string();
-        let path_buf = PathBuf::from(path);
-        if !path_buf.exists() {
-            return Ok(None);
-        }
-        let actual = hash_file_sha256(&path_buf).map_err(|e| anyhow!(e.to_string()))?;
-        if actual != expected {
-            return Ok(None);
-        }
+    if !admitted_stage_artifact(stage_dir, &manifest)
+        || !admitted_stage_artifact(stage_dir, &checksums)
+    {
+        bail!("VCF resume metadata is redirected outside its stage directory");
+    }
+    let manifest_bytes = std::fs::read(&manifest)?;
+    let result: serde_json::Value = serde_json::from_slice(&manifest_bytes)?;
+    let payload: serde_json::Value = serde_json::from_slice(&std::fs::read(&checksums)?)?;
+    if result.get("schema_version").and_then(serde_json::Value::as_str)
+        != Some("bijux.vcf.stage_manifest.v1")
+        || result.get("stage_id").and_then(serde_json::Value::as_str) != Some(stage.as_str())
+        || result.get("exit_status").and_then(serde_json::Value::as_i64) != Some(0)
+        || payload.get("schema_version").and_then(serde_json::Value::as_str)
+            != Some("bijux.vcf.stage_artifact_checksums.v1")
+    {
+        bail!("VCF resume result does not match the requested successful stage");
+    }
+    // Older manifests cannot establish the input or the complete returned result.
+    let (Some(retained_input), Some(primary), Some(outputs), Some(rows)) = (
+        result.get("input_sha256").and_then(serde_json::Value::as_str),
+        result.get("primary_output"),
+        result.get("outputs").and_then(serde_json::Value::as_array),
+        payload.get("artifacts").and_then(serde_json::Value::as_array),
+    ) else {
+        return Ok(None);
+    };
+    let Some(manifest_identity) =
+        payload.get("stage_manifest_sha256").and_then(serde_json::Value::as_str)
+    else {
+        return Ok(None);
+    };
+    if manifest_identity != stage_checksum_hex(&manifest_bytes) {
+        return Ok(None);
+    }
+    let inputs: Vec<PathBuf> = serde_json::from_value(
+        result.get("inputs").cloned().ok_or_else(|| anyhow!("VCF resume inputs are missing"))?,
+    )?;
+    if inputs != [input.to_path_buf()]
+        || retained_input != hash_file_sha256(input).map_err(|error| anyhow!(error.to_string()))?
+    {
+        return Ok(None);
+    }
+    let artifacts: Vec<PathBuf> =
+        serde_json::from_value(serde_json::Value::Array(outputs.clone()))?;
+    let primary_output: Option<PathBuf> = serde_json::from_value(primary.clone())?;
+    if !validate_resume_artifacts(
+        stage_dir,
+        &checksums,
+        &artifacts,
+        primary_output.as_deref(),
+        rows,
+    )? {
+        return Ok(None);
     }
     Ok(Some(VcfStageOutputs {
         stage_id: stage.as_str().to_string(),
         artifact_dir: stage_dir.to_path_buf(),
-        primary_output: None,
-        artifacts: vec![manifest.clone(), checksums],
+        primary_output,
+        artifacts,
         stage_manifest: manifest,
         runtime: StageRuntimeStats { wall_time_ms: 0, exit_code: 0, rss_kb: None },
     }))
