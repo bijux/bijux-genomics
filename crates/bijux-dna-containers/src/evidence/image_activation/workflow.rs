@@ -4,10 +4,10 @@ use std::path::{Component, Path, PathBuf};
 
 use anyhow::{bail, Context, Result};
 
+use super::super::load::observe_image_inventory_publication;
 use super::super::{
     load_image_inventory_publication, ContainerArtifactDelivery,
-    ContainerImageInventoryPublication, ContainerImageState, EvidenceSourceIdentity,
-    ImageCandidateDisposition,
+    ContainerImageInventoryPublication, ContainerImageState, ImageCandidateDisposition,
 };
 use super::model::{
     ImageActivationPlan, ImageActivationPlanState, ImageActivationPublication,
@@ -33,7 +33,7 @@ pub fn create_image_activation_plan(
     output: &Path,
 ) -> Result<ImageActivationPlan> {
     require_timestamp(request.created_at_utc, "image activation plan")?;
-    let inventory = load_image_inventory_publication(request.inventory_path)?;
+    let inventory = observe_image_inventory_publication(request.inventory_path)?;
     let study_root = request.study_root.canonicalize().context("canonicalize study root")?;
     let source_root = request.source_root.canonicalize().context("canonicalize source root")?;
     let active_root = request.active_root.canonicalize().context("canonicalize active root")?;
@@ -43,16 +43,13 @@ pub fn create_image_activation_plan(
     {
         bail!("image activation requires source and active roots on one filesystem");
     }
-    let publications = collect_publications(&inventory, &study_root, &source_root, &active_root)?;
+    let publications =
+        collect_publications(&inventory.publication, &study_root, &source_root, &active_root)?;
     let plan = ImageActivationPlan {
         schema_version: IMAGE_ACTIVATION_PLAN_SCHEMA_V1.to_string(),
         state: ImageActivationPlanState::Previewed,
         created_at_utc: request.created_at_utc.to_string(),
-        inventory: EvidenceSourceIdentity {
-            path: request.inventory_path.display().to_string(),
-            sha256: bijux_dna_infra::hash_file_sha256(request.inventory_path)
-                .context("hash image-activation inventory")?,
-        },
+        inventory: inventory.source,
         source_root: source_root.display().to_string(),
         active_root: active_root.display().to_string(),
         file_count: u64::try_from(publications.len()).context("count image publications")?,

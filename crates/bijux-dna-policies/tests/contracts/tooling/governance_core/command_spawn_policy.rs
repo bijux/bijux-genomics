@@ -50,6 +50,7 @@ fn owned_harness_command(relative_path: &Path, arg: &str) -> bool {
             matches!(arg, "mkfifo" | "shell" | "&self.executable")
         }
         Some("crates/bijux-dna-planner-bam/tests/contracts/plan/local_duplication_metrics_smoke/generated_command.rs") => arg == "\"/bin/sh\"",
+        Some("crates/bijux-dna-containers/tests/support/inventory_capture.rs") => matches!(arg, "&mkfifo" | "std::env::current_exe()?"),
         Some("crates/bijux-dna-containers/tests/contracts/resolve_runtime/reference_indexes.rs") => arg == "&executable",
         Some("crates/bijux-dna-stage-contract/tests/contracts/tool_binding/shell_values.rs") => {
             matches!(arg, "shell" | "provider")
@@ -460,6 +461,8 @@ fn policy__contracts__command_spawn_policy__native_harnesses_require_exact_compl
             "provider",
         ),
         ("crates/bijux-dna-planner-bam/tests/contracts/plan/local_duplication_metrics_smoke/generated_command.rs", "\"/bin/sh\""),
+        ("crates/bijux-dna-containers/tests/support/inventory_capture.rs", "&mkfifo"),
+        ("crates/bijux-dna-containers/tests/support/inventory_capture.rs", "std::env::current_exe()?"),
         ("crates/bijux-dna-containers/tests/contracts/resolve_runtime/reference_indexes.rs", "&executable"),
     ] {
         let invocation = format!("std::process::Command::new({expression}).output()?");
