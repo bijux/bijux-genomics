@@ -97,8 +97,8 @@ fn source_tree_matches_architecture_contract() {
     );
     assert_eq!(
         dir_entries(&root.join("src/security_verification")),
-        btree_set(&["mod.rs", "workflow.rs"]),
-        "security verification must contain only effectful probe orchestration"
+        btree_set(&["mod.rs", "workflow.rs", "workflow/"]),
+        "security verification owns probe orchestration and its private contract leaves"
     );
 
     assert_eq!(
