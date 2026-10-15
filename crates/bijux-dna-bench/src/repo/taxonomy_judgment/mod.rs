@@ -1,3 +1,4 @@
+//! Owner: benchmark taxonomy input acquisition and request admission.
 //! Acquisition of benchmark taxonomy inputs against explicit corpus authority.
 use anyhow::{anyhow, Result};
 use bijux_dna_bench_corpus::edna::{

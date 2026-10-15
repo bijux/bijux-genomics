@@ -1,3 +1,4 @@
+//! Owner: benchmark taxonomy judgment publication.
 //! Existing benchmark taxonomy judgment publication behavior.
 use super::{judge_edna_taxonomy_outputs, TaxonomyObservedReportArg};
 use anyhow::{Context, Result};

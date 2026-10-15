@@ -1,3 +1,4 @@
+//! Owner: benchmark classifier-summary acquisition.
 //! Read classifier summary bytes and delegate their grammar to the model owner.
 use anyhow::{Context, Result};
 use bijux_dna_bench_model::{
