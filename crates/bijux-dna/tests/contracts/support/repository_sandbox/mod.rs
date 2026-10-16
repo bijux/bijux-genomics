@@ -6,6 +6,7 @@ use anyhow::{anyhow, Result};
 
 use super::test_support;
 
+mod genotype_inputs;
 mod git_authority;
 mod score_evidence;
 

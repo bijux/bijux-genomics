@@ -6,7 +6,8 @@ use crate::support;
 
 #[test]
 fn bench_readiness_bam_kinship_ready_writes_governed_json_file() {
-    let sandbox = support::RepoSandbox::new("bam-kinship-ready-file-").expect("repo sandbox");
+    let sandbox =
+        support::RepoSandbox::new_bam_genotype("bam-kinship-ready-file-").expect("repo sandbox");
     let repo_root = sandbox.path();
     let runtime_root = sandbox.path().join("artifacts/test-runtime");
     std::fs::create_dir_all(&runtime_root).expect("private runtime root");

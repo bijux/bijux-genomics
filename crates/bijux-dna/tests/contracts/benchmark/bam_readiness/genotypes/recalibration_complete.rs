@@ -3,7 +3,8 @@
 use crate::support;
 
 fn run_cli_json() -> serde_json::Value {
-    let sandbox = support::RepoSandbox::new("bam-recalibration-complete-").expect("repo sandbox");
+    let sandbox = support::RepoSandbox::new_bam_genotype("bam-recalibration-complete-")
+        .expect("repo sandbox");
     let runtime_root = sandbox.path().join("artifacts/test-runtime");
     std::fs::create_dir_all(&runtime_root).expect("private runtime root");
     let home = tempfile::Builder::new()
