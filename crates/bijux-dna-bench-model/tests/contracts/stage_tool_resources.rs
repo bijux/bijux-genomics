@@ -128,3 +128,43 @@ fn hpc_resource_projection_checks_units_and_preserves_domain_defaults() -> anyho
     assert!(project_hpc_job_resources(&config).is_err());
     Ok(())
 }
+
+#[test]
+fn fastq_walltime_profiles_preserve_tool_precedence_and_fallback() {
+    use bijux_dna_bench_model::fastq_benchmark_walltime_minutes;
+    use bijux_dna_core::id_catalog::{
+        FASTQ_CORRECT, FASTQ_DEPLETE_RRNA, FASTQ_INFER_ASVS, FASTQ_TRIM, FASTQ_VALIDATE_READS,
+    };
+
+    for (stage, tool, expected_minutes) in [
+        (FASTQ_INFER_ASVS, "dada2", 45),
+        (FASTQ_INFER_ASVS, "unprofiled_tool", 15),
+        (FASTQ_CORRECT, "dada2", 30),
+        (FASTQ_VALIDATE_READS, "dada2", 10),
+        (FASTQ_DEPLETE_RRNA, "sortmerna", 20),
+        (FASTQ_TRIM, "cutadapt", 15),
+        ("", "dada2", 15),
+    ] {
+        assert_eq!(
+            fastq_benchmark_walltime_minutes(stage, tool),
+            expected_minutes,
+            "walltime profile for {stage} / {tool}"
+        );
+    }
+}
+
+#[test]
+fn vcf_walltime_profiles_distinguish_panel_workflows_from_standard_stages() {
+    use bijux_dna_bench_model::vcf_benchmark_walltime_minutes;
+    use bijux_dna_domain_vcf::VcfDomainStage;
+
+    for (stage, expected_minutes) in [
+        (VcfDomainStage::Stats, 20),
+        (VcfDomainStage::PrepareReferencePanel, 30),
+        (VcfDomainStage::Phasing, 60),
+        (VcfDomainStage::Impute, 60),
+        (VcfDomainStage::ImputationMetrics, 60),
+    ] {
+        assert_eq!(vcf_benchmark_walltime_minutes(stage), expected_minutes);
+    }
+}

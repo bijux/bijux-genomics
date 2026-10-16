@@ -1,9 +1,15 @@
-//! Owner: checked stage-tool resource projection and domain defaults for HPC jobs.
+//! Owner: benchmark stage walltime profiles and checked resource hints for HPC jobs.
 use crate::{
     validate_stage_tool_resources_config, BenchmarkLocalHpcScratchJobResources,
     StageToolResourcesConfig,
 };
 use anyhow::{Context, Result};
+use bijux_dna_core::id_catalog::{
+    FASTQ_CLUSTER_OTUS, FASTQ_CORRECT, FASTQ_DEPLETE_HOST, FASTQ_DEPLETE_REFERENCE_CONTAMINANTS,
+    FASTQ_DEPLETE_RRNA, FASTQ_INDEX_REFERENCE, FASTQ_INFER_ASVS, FASTQ_PROFILE_READ_LENGTHS,
+    FASTQ_REMOVE_CHIMERAS, FASTQ_SCREEN, FASTQ_STATS_NEUTRAL, FASTQ_VALIDATE_READS,
+};
+use bijux_dna_domain_vcf::VcfDomainStage;
 use std::collections::BTreeMap;
 /// Resource declarations indexed by domain, stage and tool identity.
 pub type HpcJobResourceHints =
@@ -18,6 +24,56 @@ const DEFAULT_BAM_SCRATCH_GB: u32 = 2;
 const DEFAULT_VCF_CPUS: u32 = 1;
 const DEFAULT_VCF_MEMORY_MB: u32 = 2048;
 const DEFAULT_VCF_SCRATCH_GB: u32 = 2;
+
+const FASTQ_MINUTES_QC: u32 = 10;
+const FASTQ_MINUTES_TRANSFORM: u32 = 15;
+const FASTQ_MINUTES_REFERENCE: u32 = 20;
+const FASTQ_MINUTES_HEAVY_ANALYSIS: u32 = 30;
+const FASTQ_MINUTES_DADA2: u32 = 45;
+const VCF_MINUTES_STANDARD: u32 = 20;
+const VCF_MINUTES_PREPARE_PANEL: u32 = 30;
+const VCF_MINUTES_PANEL_WORKFLOW: u32 = 60;
+
+/// Return the governed benchmark walltime hint for a FASTQ stage/tool pair.
+///
+/// DADA2 ASV inference takes its specific budget before the stage profiles; unprofiled
+/// pairs retain the transformation fallback. This is a declaration hint, not a runtime estimate.
+#[must_use]
+pub fn fastq_benchmark_walltime_minutes(stage_id: &str, tool_id: &str) -> u32 {
+    match (stage_id, tool_id) {
+        (FASTQ_INFER_ASVS, "dada2") => FASTQ_MINUTES_DADA2,
+        (FASTQ_CORRECT | FASTQ_CLUSTER_OTUS | FASTQ_REMOVE_CHIMERAS, _) => {
+            FASTQ_MINUTES_HEAVY_ANALYSIS
+        }
+        (
+            FASTQ_DEPLETE_HOST
+            | FASTQ_DEPLETE_REFERENCE_CONTAMINANTS
+            | FASTQ_DEPLETE_RRNA
+            | FASTQ_INDEX_REFERENCE
+            | FASTQ_SCREEN,
+            _,
+        ) => FASTQ_MINUTES_REFERENCE,
+        (FASTQ_PROFILE_READ_LENGTHS | FASTQ_STATS_NEUTRAL | FASTQ_VALIDATE_READS, _) => {
+            FASTQ_MINUTES_QC
+        }
+        _ => FASTQ_MINUTES_TRANSFORM,
+    }
+}
+
+/// Return the governed benchmark walltime hint for a typed VCF stage.
+///
+/// Panel workflows, panel preparation and other stages retain their distinct budgets.
+/// This is a declaration hint, not a runtime estimate.
+#[must_use]
+pub fn vcf_benchmark_walltime_minutes(stage: VcfDomainStage) -> u32 {
+    match stage {
+        VcfDomainStage::Phasing | VcfDomainStage::Impute | VcfDomainStage::ImputationMetrics => {
+            VCF_MINUTES_PANEL_WORKFLOW
+        }
+        VcfDomainStage::PrepareReferencePanel => VCF_MINUTES_PREPARE_PANEL,
+        _ => VCF_MINUTES_STANDARD,
+    }
+}
 
 /// Admit source declarations before projecting scheduler resource units.
 /// # Errors

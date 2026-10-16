@@ -10,6 +10,8 @@ not own CLI commands or process execution.
 
 | Operation | Rust entrypoint | Purpose |
 | --- | --- | --- |
+| `fastq-benchmark-walltime-minutes` | `fastq_benchmark_walltime_minutes(stage_id, tool_id)` | Select the governed FASTQ benchmark walltime hint in minutes, retaining tool precedence and the unprofiled-pair fallback. |
+| `vcf-benchmark-walltime-minutes` | `vcf_benchmark_walltime_minutes(stage)` | Select the governed walltime hint in minutes for a typed VCF stage. |
 | `decode-benchmark-taxonomy-observation` | `decode_benchmark_taxonomy_observation(raw_json, source_label)` | Decode a supported classifier summary into a typed observation without IO. |
 | `evaluate-benchmark-taxonomy-outputs` | `evaluate_benchmark_taxonomy_outputs(input)` | Compare decoded observations with corpus-admitted expected rows and derive the existing judgment. |
 | `validate-all-domain-expected-result-rows` | `validate_all_domain_expected_result_rows` | Admit expected result projection against acquired source counts and governed baseline outputs, metrics and report sections. |

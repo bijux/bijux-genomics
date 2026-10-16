@@ -818,7 +818,10 @@ pub use crate::workflow::hpc_array::pipeline::{
 };
 
 pub use crate::repo::hpc_resources::{load_hpc_job_resources, HPC_JOB_RESOURCE_CONFIG_PATH};
-pub use bijux_dna_bench_model::{resolve_hpc_job_resources, HpcJobResourceHints};
+pub use bijux_dna_bench_model::{
+    fastq_benchmark_walltime_minutes, resolve_hpc_job_resources, vcf_benchmark_walltime_minutes,
+    HpcJobResourceHints,
+};
 
 pub use crate::repo::hpc_inputs::{
     collect_hpc_job_source_inputs, materialize_stage_id, HpcDiscoveredSourceInput,

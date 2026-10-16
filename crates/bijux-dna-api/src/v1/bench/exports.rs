@@ -636,7 +636,8 @@ pub use bijux_dna_bench::{
 };
 
 pub use bijux_dna_bench::{
-    load_hpc_job_resources, resolve_hpc_job_resources, HPC_JOB_RESOURCE_CONFIG_PATH,
+    fastq_benchmark_walltime_minutes, load_hpc_job_resources, resolve_hpc_job_resources,
+    vcf_benchmark_walltime_minutes, HPC_JOB_RESOURCE_CONFIG_PATH,
 };
 
 pub use bijux_dna_bench::{

@@ -932,7 +932,8 @@ pub use crate::policy::hpc_array::pipeline::{
 };
 
 pub use crate::policy::hpc_resources::{
-    project_hpc_job_resources, resolve_hpc_job_resources, HpcJobResourceHints,
+    fastq_benchmark_walltime_minutes, project_hpc_job_resources, resolve_hpc_job_resources,
+    vcf_benchmark_walltime_minutes, HpcJobResourceHints,
 };
 
 pub use crate::policy::bam_campaign::derive_bam_benchmark_campaign;

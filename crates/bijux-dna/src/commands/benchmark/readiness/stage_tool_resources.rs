@@ -3,14 +3,15 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
+use bijux_dna_api::v1::api::bench::{
+    fastq_benchmark_walltime_minutes, validate_stage_tool_resources_report,
+    vcf_benchmark_walltime_minutes, STAGE_TOOL_RESOURCES_REPORT_SCHEMA_V1,
+    STAGE_TOOL_RESOURCES_SCOPE,
+};
 pub(crate) use bijux_dna_api::v1::api::bench::{
     validate_stage_tool_resources_config, StageToolResourceRow, StageToolResourcesConfig,
     StageToolResourcesReport, BAM_STAGE_TOOL_RESOURCE_ORIGIN, FASTQ_STAGE_TOOL_RESOURCE_ORIGIN,
     LOCAL_STAGE_TOOL_RESOURCES_SCHEMA_V1, VCF_STAGE_TOOL_RESOURCE_ORIGIN,
-};
-use bijux_dna_api::v1::api::bench::{
-    validate_stage_tool_resources_report, STAGE_TOOL_RESOURCES_REPORT_SCHEMA_V1,
-    STAGE_TOOL_RESOURCES_SCOPE,
 };
 use bijux_dna_core::contract::ToolExecutionSpecV1;
 use bijux_dna_core::ids::{StageId, ToolId};
@@ -31,14 +32,6 @@ use crate::commands::cli::parse;
 use crate::commands::cli::render;
 
 pub(crate) use bijux_dna_api::v1::api::bench::HPC_JOB_RESOURCE_CONFIG_PATH as DEFAULT_STAGE_TOOL_RESOURCES_PATH;
-const FASTQ_MINUTES_QC: u32 = 10;
-const FASTQ_MINUTES_TRANSFORM: u32 = 15;
-const FASTQ_MINUTES_REFERENCE: u32 = 20;
-const FASTQ_MINUTES_HEAVY_ANALYSIS: u32 = 30;
-const FASTQ_MINUTES_DADA2: u32 = 45;
-const VCF_MINUTES_STANDARD: u32 = 20;
-const VCF_MINUTES_PREPARE_PANEL: u32 = 30;
-const VCF_MINUTES_PANEL_WORKFLOW: u32 = 60;
 const TINY_BAM_RESOURCE_INPUT_PATHS: &[&str] = &[
     "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/human_like_validation.bam",
     "benchmarks/tests/fixtures/corpora/corpus-01-bam-mini/aligned/adna_like_damage.sam",
@@ -177,7 +170,7 @@ fn render_fastq_resource_row(
         tool_id: tool_id.as_str().to_string(),
         threads: spec.resources.threads.max(1),
         memory_gb: spec.resources.mem_gb.max(1),
-        walltime_minutes: fastq_walltime_minutes(stage_id.as_str(), tool_id.as_str()),
+        walltime_minutes: fastq_benchmark_walltime_minutes(stage_id.as_str(), tool_id.as_str()),
         scratch_gb: spec.resources.tmp_gb.max(1),
         resource_origin: FASTQ_STAGE_TOOL_RESOURCE_ORIGIN.to_string(),
     }
@@ -218,43 +211,9 @@ fn render_vcf_resource_row(
         tool_id: tool_id.as_str().to_string(),
         threads: resources.threads.max(1),
         memory_gb: resources.mem_gb.max(1),
-        walltime_minutes: vcf_walltime_minutes(stage),
+        walltime_minutes: vcf_benchmark_walltime_minutes(stage),
         scratch_gb: resources.tmp_gb.max(1),
         resource_origin: VCF_STAGE_TOOL_RESOURCE_ORIGIN.to_string(),
-    }
-}
-
-fn fastq_walltime_minutes(stage_id: &str, tool_id: &str) -> u32 {
-    match (stage_id, tool_id) {
-        ("fastq.infer_asvs", "dada2") => FASTQ_MINUTES_DADA2,
-        ("fastq.correct_errors" | "fastq.cluster_otus" | "fastq.remove_chimeras", _) => {
-            FASTQ_MINUTES_HEAVY_ANALYSIS
-        }
-        (
-            "fastq.deplete_host"
-            | "fastq.deplete_reference_contaminants"
-            | "fastq.deplete_rrna"
-            | "fastq.index_reference"
-            | "fastq.screen_taxonomy",
-            _,
-        ) => FASTQ_MINUTES_REFERENCE,
-        ("fastq.merge_pairs" | "fastq.normalize_primers" | "fastq.trim_reads", _) => {
-            FASTQ_MINUTES_TRANSFORM
-        }
-        ("fastq.profile_read_lengths" | "fastq.profile_reads" | "fastq.validate_reads", _) => {
-            FASTQ_MINUTES_QC
-        }
-        _ => FASTQ_MINUTES_TRANSFORM,
-    }
-}
-
-fn vcf_walltime_minutes(stage: VcfDomainStage) -> u32 {
-    match stage {
-        VcfDomainStage::Phasing | VcfDomainStage::Impute | VcfDomainStage::ImputationMetrics => {
-            VCF_MINUTES_PANEL_WORKFLOW
-        }
-        VcfDomainStage::PrepareReferencePanel => VCF_MINUTES_PREPARE_PANEL,
-        _ => VCF_MINUTES_STANDARD,
     }
 }
 
@@ -327,16 +286,35 @@ mod tests {
         crate::commands::support::workspace_root::resolve_repo_root().expect("repo root")
     }
 
+    #[test]
+    fn stage_tool_resources_report_paths_preserve_repository_boundaries() {
+        let root = std::path::Path::new("repository");
+        for (output, expected) in [
+            ("repository/configs/resources.toml", "configs/resources.toml"),
+            ("other/resources.toml", "resources.toml"),
+            ("repository-other/resources.toml", "resources.toml"),
+        ] {
+            assert_eq!(super::path_relative_to_repo(root, std::path::Path::new(output)), expected);
+        }
+    }
+
     #[cfg(feature = "bam_downstream")]
     #[test]
     fn render_stage_tool_resources_keeps_representative_resource_bindings() {
         let root = repo_root();
-        let output = tempfile::tempdir().expect("temporary output");
-        let report = render_stage_tool_resources(&root, output.path().join("resources.toml"))
+        let artifact_root = root.join("artifacts").join("testing");
+        std::fs::create_dir_all(&artifact_root).expect("artifact output root");
+        let output = tempfile::Builder::new()
+            .prefix("stage-resources-")
+            .tempdir_in(&artifact_root)
+            .expect("temporary artifact output");
+        let output_path = output.path().join("resources.toml");
+        let requested_path = output_path.strip_prefix(&root).expect("repository-owned output");
+        let report = render_stage_tool_resources(&root, requested_path.to_path_buf())
             .expect("render stage-tool resources");
 
         assert_eq!(report.schema_version, "bijux.bench.readiness.stage_tool_resources.v1");
-        assert_eq!(report.config_path, "resources.toml");
+        assert_eq!(report.config_path, requested_path.to_string_lossy().replace('\\', "/"));
         assert_eq!(report.classification_scope, "benchmark_ready_command_resources");
         assert_eq!(report.benchmark_ready_row_count, report.row_count);
         assert_eq!(report.nonzero_resource_row_count, report.row_count);

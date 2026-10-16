@@ -115,3 +115,5 @@ row matches a goal. It preserves the original affected-row list, unlike FASTQ
 and VCF goal projections, which trim that list to matched rows.
 
 Stage-tool asset declaration coverage belongs to `contract/stage_tool_assets.rs`. Its governed validator admits the existing FASTQ taxonomy/reference/index and BAM reference/panel bindings over acquired `StageToolAssetRow` values, preserving required identity/path checks and failure order. Generic config/report validation remains separate. The CLI acquires planner/corpus inputs and publishes the existing TOML/report; this pure owner performs no IO or native probe.
+
+`policy/hpc_resources.rs` also owns the governed FASTQ stage/tool and typed VCF stage walltime profiles used by stage-tool resource declarations. The profiles retain specific-tool precedence and fallback budgets in minutes. They are benchmark scheduling hints, not runtime or scientific estimates; planner/domain CPU, memory and scratch constraints and input acquisition remain with their existing owners.
