@@ -1,6 +1,6 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::os::unix::fs::PermissionsExt;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result};
 use bijux_dna_containers::api::{
@@ -121,8 +121,8 @@ fn historical_v1_blocker_migrates_without_rewriting_immutable_evidence() -> Resu
 
 #[test]
 fn operator_binary_is_admitted_bound_and_reverified_without_copying() -> Result<()> {
-    let root = repository_root();
-    let temporary = tempfile::tempdir()?;
+    let (temporary, repository) = external_artifact_fixture()?;
+    let root = repository.as_path();
     let binary = temporary.path().join("angsd");
     let active = temporary.path().join("active");
     std::fs::create_dir(&active)?;
@@ -191,6 +191,7 @@ fn operator_binary_is_admitted_bound_and_reverified_without_copying() -> Result<
         None,
     )
     .is_err());
+    verify_repository_location_rejection(root, &active, &binary, temporary.path(), &commit)?;
     verify_rebound_artifact_rejection(root, &active, &record_path, &binary, temporary.path())?;
     verify_external_artifact_admission(root, &active, &record_path)?;
 
@@ -328,6 +329,80 @@ fn repository_root() -> &'static Path {
         .unwrap_or_else(|| panic!("container crate must live under repository crates/"))
 }
 
+// Admission requires a committed catalog. Keep the operator installation beside the
+// private product repository so its location is independent of the caller's TMPDIR.
+fn external_artifact_fixture() -> Result<(tempfile::TempDir, PathBuf)> {
+    let owner = bijux_dna_testkit::tempdir_for("container-external-artifact");
+    let repository = owner.path().join("repository");
+    std::fs::create_dir_all(repository.join("containers/contracts"))?;
+    std::fs::copy(
+        repository_root().join("containers/contracts/catalog.toml"),
+        repository.join("containers/contracts/catalog.toml"),
+    )?;
+    for arguments in [
+        &["init", "--quiet"][..],
+        &["add", "containers/contracts/catalog.toml"][..],
+        &["commit", "--quiet", "--no-gpg-sign", "-m", "test: record external artifact catalog"][..],
+    ] {
+        let output = std::process::Command::new("git")
+            .arg("-C")
+            .arg(&repository)
+            .args([
+                "-c",
+                "user.name=Bijux Fixture",
+                "-c",
+                "user.email=fixture@example.invalid",
+                "-c",
+                "core.hooksPath=/dev/null",
+            ])
+            .args(arguments)
+            .output()?;
+        anyhow::ensure!(
+            output.status.success(),
+            "prepare committed external-artifact fixture: {}",
+            String::from_utf8_lossy(&output.stderr)
+        );
+    }
+    Ok((owner, repository.canonicalize()?))
+}
+
+fn verify_repository_location_rejection(
+    root: &Path,
+    active: &Path,
+    binary: &Path,
+    fixture_root: &Path,
+    commit: &str,
+) -> Result<()> {
+    let internal = root.join("operator-angsd");
+    std::fs::copy(binary, &internal)?;
+    let checksum = bijux_dna_infra::hash_file_sha256(&internal)?;
+    let output = fixture_root.join("repository-root-admission.json");
+    let result = admit_external_artifact(
+        &ExternalArtifactAdmissionRequest {
+            repository_root: root,
+            distributable_image_root: active,
+            repository_commit: commit,
+            tool_id: "angsd",
+            recorded_at_utc: "2026-08-06T12:00:00Z",
+            availability: ExternalArtifactAdmissionStatus::Admitted,
+            artifact: Some(ExternalArtifactInput {
+                kind: ExternalArtifactKind::Binary,
+                path: &internal,
+                expected_sha256: &checksum,
+                lawful_access_basis: "local contract fixture",
+                apptainer_executable: None,
+            }),
+            blocker_reason: None,
+        },
+        &output,
+    );
+    assert!(result.is_err_and(|error| {
+        error.to_string().contains("external artifact must remain outside the product repository")
+    }));
+    assert!(!output.exists());
+    Ok(())
+}
+
 fn verify_rebound_artifact_rejection(
     root: &Path,
     active: &Path,
@@ -370,8 +445,8 @@ fn verify_rebound_artifact_rejection(
 
 #[test]
 fn excessive_external_probe_output_rejects_before_admission_publication() -> Result<()> {
-    let root = repository_root();
-    let temporary = tempfile::tempdir()?;
+    let (temporary, repository) = external_artifact_fixture()?;
+    let root = repository.as_path();
     let binary = temporary.path().join("angsd");
     let active = temporary.path().join("active");
     std::fs::create_dir(&active)?;
@@ -478,8 +553,8 @@ mod version_transport {
     #[test]
     fn preserves_projection_and_rejects_unusable_evidence() -> Result<()> {
         let success = ExternalArtifactProbeOutcome::Exited { code: Some(0) };
-        let root = repository_root();
-        let temporary = tempfile::tempdir()?;
+        let (temporary, repository) = external_artifact_fixture()?;
+        let root = repository.as_path();
         let artifact = temporary.path().join("operator artifact with spaces");
         std::fs::write(
             &artifact,
