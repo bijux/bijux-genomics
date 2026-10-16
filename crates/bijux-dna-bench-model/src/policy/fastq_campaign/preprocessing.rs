@@ -1,5 +1,10 @@
 //! Owner: pure FASTQ campaign preprocessing declarations and checks.
 use super::{BTreeSet, CheckInputs, GoalDefinition, ScenarioDefinition};
+use bijux_dna_core::id_catalog::{
+    FASTQ_CLUSTER_OTUS, FASTQ_DEDUPLICATE, FASTQ_DETECT_ADAPTERS, FASTQ_DETECT_DUPLICATES_PREMERGE,
+    FASTQ_ESTIMATE_LIBRARY_COMPLEXITY_PREALIGN, FASTQ_INFER_ASVS, FASTQ_NORMALIZE_ABUNDANCE,
+    FASTQ_NORMALIZE_PRIMERS, FASTQ_REMOVE_CHIMERAS, FASTQ_TRIM, FASTQ_UMI,
+};
 
 const G108_SCENARIOS: &[ScenarioDefinition] = &[
     ScenarioDefinition {
@@ -19,7 +24,7 @@ fn adapter_detection_checks(inputs: &CheckInputs<'_>) -> Vec<String> {
         format!("adapter_rows_present={}", !rows.is_empty()),
         format!(
             "adapter_stage_bound={}",
-            rows.iter().any(|row| row.stage_id == "fastq.detect_adapters")
+            rows.iter().any(|row| row.stage_id == FASTQ_DETECT_ADAPTERS)
         ),
         format!(
             "adapter_backend_candidates={}",
@@ -45,7 +50,7 @@ fn trimming_checks(inputs: &CheckInputs<'_>) -> Vec<String> {
     let CheckInputs { rows, findings, .. } = inputs;
     vec![
         format!("trim_rows_present={}", !rows.is_empty()),
-        format!("trim_stage_bound={}", rows.iter().any(|row| row.stage_id == "fastq.trim_reads")),
+        format!("trim_stage_bound={}", rows.iter().any(|row| row.stage_id == FASTQ_TRIM)),
         format!(
             "trim_ready_rows={}",
             rows.iter().filter(|row| row.readiness_class == "ready").count()
@@ -79,13 +84,10 @@ fn umi_checks(inputs: &CheckInputs<'_>) -> Vec<String> {
     let CheckInputs { rows, findings, .. } = inputs;
     vec![
         format!("umi_rows_present={}", !rows.is_empty()),
-        format!(
-            "umi_extraction_stage_bound={}",
-            rows.iter().any(|row| row.stage_id == "fastq.extract_umis")
-        ),
+        format!("umi_extraction_stage_bound={}", rows.iter().any(|row| row.stage_id == FASTQ_UMI)),
         format!(
             "umi_grouping_stage_bound={}",
-            rows.iter().any(|row| row.stage_id == "fastq.remove_duplicates")
+            rows.iter().any(|row| row.stage_id == FASTQ_DEDUPLICATE)
         ),
         format!(
             "umi_code_freeze_findings={}",
@@ -115,11 +117,11 @@ fn duplicate_complexity_checks(inputs: &CheckInputs<'_>) -> Vec<String> {
         format!("duplicate_complexity_rows_present={}", !rows.is_empty()),
         format!(
             "duplicate_stage_bound={}",
-            rows.iter().any(|row| row.stage_id == "fastq.detect_duplicates_premerge")
+            rows.iter().any(|row| row.stage_id == FASTQ_DETECT_DUPLICATES_PREMERGE)
         ),
         format!(
             "complexity_stage_bound={}",
-            rows.iter().any(|row| row.stage_id == "fastq.estimate_library_complexity_prealign")
+            rows.iter().any(|row| row.stage_id == FASTQ_ESTIMATE_LIBRARY_COMPLEXITY_PREALIGN)
         ),
         format!(
             "duplicate_complexity_findings={}",
@@ -155,7 +157,7 @@ fn edna_preprocessing_checks(inputs: &CheckInputs<'_>) -> Vec<String> {
         format!("edna_rows_present={}", !rows.is_empty()),
         format!(
             "edna_primer_stage_bound={}",
-            rows.iter().any(|row| row.stage_id == "fastq.normalize_primers")
+            rows.iter().any(|row| row.stage_id == FASTQ_NORMALIZE_PRIMERS)
         ),
         format!(
             "edna_branch_stages_covered={}",
@@ -163,10 +165,10 @@ fn edna_preprocessing_checks(inputs: &CheckInputs<'_>) -> Vec<String> {
                 .filter(|row| {
                     matches!(
                         row.stage_id.as_str(),
-                        "fastq.remove_chimeras"
-                            | "fastq.infer_asvs"
-                            | "fastq.cluster_otus"
-                            | "fastq.normalize_abundance"
+                        FASTQ_REMOVE_CHIMERAS
+                            | FASTQ_INFER_ASVS
+                            | FASTQ_CLUSTER_OTUS
+                            | FASTQ_NORMALIZE_ABUNDANCE
                     )
                 })
                 .count()
@@ -182,31 +184,28 @@ pub(super) const GOALS: &[GoalDefinition] = &[
     GoalDefinition {
         goal_id: "G108",
         title: "benchmark adapter detection",
-        stage_ids: &["fastq.detect_adapters"],
+        stage_ids: &[FASTQ_DETECT_ADAPTERS],
         scenarios: G108_SCENARIOS,
         checks: adapter_detection_checks,
     },
     GoalDefinition {
         goal_id: "G109",
         title: "benchmark FASTQ trimming",
-        stage_ids: &["fastq.trim_reads"],
+        stage_ids: &[FASTQ_TRIM],
         scenarios: G109_SCENARIOS,
         checks: trimming_checks,
     },
     GoalDefinition {
         goal_id: "G110",
         title: "benchmark UMI extraction and grouping",
-        stage_ids: &["fastq.extract_umis", "fastq.remove_duplicates"],
+        stage_ids: &[FASTQ_UMI, FASTQ_DEDUPLICATE],
         scenarios: G110_SCENARIOS,
         checks: umi_checks,
     },
     GoalDefinition {
         goal_id: "G111",
         title: "benchmark FASTQ duplicate and complexity stages",
-        stage_ids: &[
-            "fastq.detect_duplicates_premerge",
-            "fastq.estimate_library_complexity_prealign",
-        ],
+        stage_ids: &[FASTQ_DETECT_DUPLICATES_PREMERGE, FASTQ_ESTIMATE_LIBRARY_COMPLEXITY_PREALIGN],
         scenarios: G111_SCENARIOS,
         checks: duplicate_complexity_checks,
     },
@@ -214,11 +213,11 @@ pub(super) const GOALS: &[GoalDefinition] = &[
         goal_id: "G116",
         title: "benchmark eDNA/metabarcoding preprocessing",
         stage_ids: &[
-            "fastq.normalize_primers",
-            "fastq.remove_chimeras",
-            "fastq.infer_asvs",
-            "fastq.cluster_otus",
-            "fastq.normalize_abundance",
+            FASTQ_NORMALIZE_PRIMERS,
+            FASTQ_REMOVE_CHIMERAS,
+            FASTQ_INFER_ASVS,
+            FASTQ_CLUSTER_OTUS,
+            FASTQ_NORMALIZE_ABUNDANCE,
         ],
         scenarios: G116_SCENARIOS,
         checks: edna_preprocessing_checks,

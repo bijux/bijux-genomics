@@ -1,4 +1,5 @@
 //! Admit declared contamination source membership and expected case identity.
+use bijux_dna_core::id_catalog::BAM_CONTAMINATION;
 use std::collections::BTreeSet;
 use std::path::Path;
 
@@ -205,7 +206,7 @@ pub(super) fn validate_bundle_contract(
                 BAM_ADNA_CONTAMINATION_TRUTH_SUMMARY_SCHEMA_VERSION
             ));
         }
-        if truth.summary.stage_id != "bam.contamination" {
+        if truth.summary.stage_id != BAM_CONTAMINATION {
             return Err(anyhow!(
                 "aDNA contamination truth case `{}` must resolve to stage_id `bam.contamination`",
                 truth.case_id

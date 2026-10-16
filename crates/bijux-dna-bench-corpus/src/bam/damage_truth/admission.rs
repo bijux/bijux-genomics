@@ -1,4 +1,5 @@
 //! Admit damage fixture declarations and expected record identity before observations.
+use bijux_dna_core::id_catalog::BAM_DAMAGE;
 use std::collections::BTreeSet;
 use std::path::Path;
 
@@ -182,7 +183,7 @@ pub(super) fn validate_bundle_contract(
                 BAM_ADNA_DAMAGE_TRUTH_SUMMARY_SCHEMA_VERSION
             ));
         }
-        if truth.summary.stage_id != "bam.damage" {
+        if truth.summary.stage_id != BAM_DAMAGE {
             return Err(anyhow!(
                 "aDNA damage truth case `{}` must resolve to stage_id `bam.damage`",
                 truth.case_id

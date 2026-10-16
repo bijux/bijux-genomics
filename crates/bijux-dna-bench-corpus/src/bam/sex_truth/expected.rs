@@ -3,6 +3,7 @@ use super::class_coverage::{collect_call_classes, validate_required_call_classes
 use super::model::{BamSexSampleTruth, BamSexTruthBundle, BamSexTruthManifest};
 use super::BAM_SEX_TRUTH_BUNDLE_SCHEMA_VERSION;
 use anyhow::{anyhow, Result};
+use bijux_dna_core::id_catalog::BAM_SEX;
 use bijux_dna_domain_bam::metrics::SexConfidenceClass;
 use bijux_dna_domain_bam::BAM_SEX_SUMMARY_SCHEMA_VERSION;
 use std::path::Path;
@@ -72,7 +73,7 @@ fn validate_sample_truth_contract(sample: &BamSexSampleTruth, expected_path: &Pa
             BAM_SEX_SUMMARY_SCHEMA_VERSION
         ));
     }
-    if sample.summary.stage_id != "bam.sex" {
+    if sample.summary.stage_id != BAM_SEX {
         return Err(anyhow!(
             "BAM sex truth sample `{}` must keep stage_id `bam.sex`",
             sample.sample_id

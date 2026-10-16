@@ -3,6 +3,7 @@ use super::model::{BamHaplogroupCaseTruth, BamHaplogroupTruthBundle, BamHaplogro
 use super::status_coverage::{collect_statuses, validate_required_statuses};
 use super::BAM_HAPLOGROUP_TRUTH_BUNDLE_SCHEMA_VERSION;
 use anyhow::{anyhow, Result};
+use bijux_dna_core::id_catalog::BAM_HAPLOGROUPS;
 use bijux_dna_domain_bam::BAM_HAPLOGROUP_TRUTH_SUMMARY_SCHEMA_VERSION;
 use std::path::Path;
 
@@ -86,7 +87,7 @@ fn validate_case_truth_identity(
             BAM_HAPLOGROUP_TRUTH_SUMMARY_SCHEMA_VERSION
         ));
     }
-    if case_truth.summary.stage_id != "bam.haplogroups" {
+    if case_truth.summary.stage_id != BAM_HAPLOGROUPS {
         return Err(anyhow!(
             "BAM haplogroup truth case `{}` must keep stage_id `bam.haplogroups`",
             case_truth.case_id

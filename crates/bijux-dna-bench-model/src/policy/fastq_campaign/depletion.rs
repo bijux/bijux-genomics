@@ -1,5 +1,8 @@
 //! Owner: pure FASTQ campaign depletion declarations and checks.
 use super::{CheckInputs, GoalDefinition, ScenarioDefinition};
+use bijux_dna_core::id_catalog::{
+    FASTQ_DEPLETE_HOST, FASTQ_DEPLETE_REFERENCE_CONTAMINANTS, FASTQ_DEPLETE_RRNA, FASTQ_SCREEN,
+};
 
 const G112_SCENARIOS: &[ScenarioDefinition] = &[
     ScenarioDefinition {
@@ -22,7 +25,7 @@ fn host_depletion_checks(inputs: &CheckInputs<'_>) -> Vec<String> {
         format!("host_depletion_rows_present={}", !rows.is_empty()),
         format!(
             "host_depletion_stage_bound={}",
-            rows.iter().any(|row| row.stage_id == "fastq.deplete_host")
+            rows.iter().any(|row| row.stage_id == FASTQ_DEPLETE_HOST)
         ),
         format!(
             "host_depletion_refuse_rows={}",
@@ -62,7 +65,7 @@ fn rrna_depletion_checks(inputs: &CheckInputs<'_>) -> Vec<String> {
         format!("rrna_depletion_rows_present={}", !rows.is_empty()),
         format!(
             "rrna_depletion_stage_bound={}",
-            rows.iter().any(|row| row.stage_id == "fastq.deplete_rrna")
+            rows.iter().any(|row| row.stage_id == FASTQ_DEPLETE_RRNA)
         ),
         format!(
             "rrna_ready_rows={}",
@@ -96,7 +99,7 @@ fn contaminant_depletion_checks(inputs: &CheckInputs<'_>) -> Vec<String> {
         format!("contaminant_depletion_rows_present={}", !rows.is_empty()),
         format!(
             "contaminant_stage_bound={}",
-            rows.iter().any(|row| row.stage_id == "fastq.deplete_reference_contaminants")
+            rows.iter().any(|row| row.stage_id == FASTQ_DEPLETE_REFERENCE_CONTAMINANTS)
         ),
         format!(
             "contaminant_critical_findings={}",
@@ -128,10 +131,7 @@ fn taxonomy_screening_checks(inputs: &CheckInputs<'_>) -> Vec<String> {
     let CheckInputs { rows, findings, queue_entries, .. } = inputs;
     vec![
         format!("taxonomy_rows_present={}", !rows.is_empty()),
-        format!(
-            "taxonomy_stage_bound={}",
-            rows.iter().any(|row| row.stage_id == "fastq.screen_taxonomy")
-        ),
+        format!("taxonomy_stage_bound={}", rows.iter().any(|row| row.stage_id == FASTQ_SCREEN)),
         format!(
             "taxonomy_advisory_signals={}",
             findings
@@ -153,28 +153,28 @@ pub(super) const GOALS: &[GoalDefinition] = &[
     GoalDefinition {
         goal_id: "G112",
         title: "benchmark host depletion",
-        stage_ids: &["fastq.deplete_host"],
+        stage_ids: &[FASTQ_DEPLETE_HOST],
         scenarios: G112_SCENARIOS,
         checks: host_depletion_checks,
     },
     GoalDefinition {
         goal_id: "G113",
         title: "benchmark rRNA depletion",
-        stage_ids: &["fastq.deplete_rrna"],
+        stage_ids: &[FASTQ_DEPLETE_RRNA],
         scenarios: G113_SCENARIOS,
         checks: rrna_depletion_checks,
     },
     GoalDefinition {
         goal_id: "G114",
         title: "benchmark contaminant depletion",
-        stage_ids: &["fastq.deplete_reference_contaminants"],
+        stage_ids: &[FASTQ_DEPLETE_REFERENCE_CONTAMINANTS],
         scenarios: G114_SCENARIOS,
         checks: contaminant_depletion_checks,
     },
     GoalDefinition {
         goal_id: "G115",
         title: "benchmark taxonomy screening",
-        stage_ids: &["fastq.screen_taxonomy"],
+        stage_ids: &[FASTQ_SCREEN],
         scenarios: G115_SCENARIOS,
         checks: taxonomy_screening_checks,
     },

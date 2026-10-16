@@ -1,5 +1,10 @@
 //! Owner: pure FASTQ campaign evidence declarations and checks.
 use super::{CheckInputs, GoalDefinition, ScenarioDefinition};
+use bijux_dna_core::id_catalog::{
+    FASTQ_DEPLETE_HOST, FASTQ_FILTER, FASTQ_NORMALIZE_PRIMERS,
+    FASTQ_PROFILE_OVERREPRESENTED_SEQUENCES, FASTQ_PROFILE_READ_LENGTHS, FASTQ_STATS_NEUTRAL,
+    FASTQ_TRIM, FASTQ_TRIM_TERMINAL_DAMAGE, FASTQ_UMI, FASTQ_VALIDATE_READS,
+};
 
 const G117_SCENARIOS: &[ScenarioDefinition] = &[
     ScenarioDefinition {
@@ -20,13 +25,10 @@ fn chunked_processing_checks(inputs: &CheckInputs<'_>) -> Vec<String> {
     let CheckInputs { rows, findings, .. } = inputs;
     vec![
         format!("chunked_rows_present={}", !rows.is_empty()),
-        format!(
-            "chunk_filter_stage_bound={}",
-            rows.iter().any(|row| row.stage_id == "fastq.filter_reads")
-        ),
+        format!("chunk_filter_stage_bound={}", rows.iter().any(|row| row.stage_id == FASTQ_FILTER)),
         format!(
             "chunk_profile_stage_bound={}",
-            rows.iter().any(|row| row.stage_id == "fastq.profile_reads")
+            rows.iter().any(|row| row.stage_id == FASTQ_STATS_NEUTRAL)
         ),
         format!(
             "chunk_equivalence_findings={}",
@@ -64,8 +66,8 @@ fn qc_manifest_checks(inputs: &CheckInputs<'_>) -> Vec<String> {
                 .filter(|row| {
                     matches!(
                         row.stage_id.as_str(),
-                        "fastq.profile_read_lengths"
-                            | "fastq.profile_overrepresented_sequences"
+                        FASTQ_PROFILE_READ_LENGTHS
+                            | FASTQ_PROFILE_OVERREPRESENTED_SEQUENCES
                             | "fastq.materialize_qc_manifest"
                     )
                 })
@@ -140,12 +142,12 @@ fn template_checks(inputs: &CheckInputs<'_>) -> Vec<String> {
                 .filter(|row| {
                     matches!(
                         row.stage_id.as_str(),
-                        "fastq.validate_reads"
-                            | "fastq.trim_reads"
-                            | "fastq.extract_umis"
-                            | "fastq.deplete_host"
-                            | "fastq.trim_terminal_damage"
-                            | "fastq.normalize_primers"
+                        FASTQ_VALIDATE_READS
+                            | FASTQ_TRIM
+                            | FASTQ_UMI
+                            | FASTQ_DEPLETE_HOST
+                            | FASTQ_TRIM_TERMINAL_DAMAGE
+                            | FASTQ_NORMALIZE_PRIMERS
                     )
                 })
                 .count()
@@ -165,7 +167,7 @@ pub(super) const GOALS: &[GoalDefinition] = &[
     GoalDefinition {
         goal_id: "G117",
         title: "benchmark chunked FASTQ processing",
-        stage_ids: &["fastq.filter_reads", "fastq.profile_reads"],
+        stage_ids: &[FASTQ_FILTER, FASTQ_STATS_NEUTRAL],
         scenarios: G117_SCENARIOS,
         checks: chunked_processing_checks,
     },
@@ -174,8 +176,8 @@ pub(super) const GOALS: &[GoalDefinition] = &[
         title: "benchmark FASTQ QC manifest generation",
         stage_ids: &[
             "fastq.materialize_qc_manifest",
-            "fastq.profile_read_lengths",
-            "fastq.profile_overrepresented_sequences",
+            FASTQ_PROFILE_READ_LENGTHS,
+            FASTQ_PROFILE_OVERREPRESENTED_SEQUENCES,
         ],
         scenarios: G118_SCENARIOS,
         checks: qc_manifest_checks,
@@ -191,12 +193,12 @@ pub(super) const GOALS: &[GoalDefinition] = &[
         goal_id: "G120",
         title: "benchmark full FASTQ templates",
         stage_ids: &[
-            "fastq.validate_reads",
-            "fastq.trim_reads",
-            "fastq.extract_umis",
-            "fastq.deplete_host",
-            "fastq.trim_terminal_damage",
-            "fastq.normalize_primers",
+            FASTQ_VALIDATE_READS,
+            FASTQ_TRIM,
+            FASTQ_UMI,
+            FASTQ_DEPLETE_HOST,
+            FASTQ_TRIM_TERMINAL_DAMAGE,
+            FASTQ_NORMALIZE_PRIMERS,
         ],
         scenarios: G120_SCENARIOS,
         checks: template_checks,

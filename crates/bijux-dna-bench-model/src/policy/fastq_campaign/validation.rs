@@ -1,5 +1,6 @@
 //! Owner: pure FASTQ campaign validation declarations and checks.
 use super::{BTreeSet, CheckInputs, GoalDefinition, ScenarioDefinition};
+use bijux_dna_core::id_catalog::FASTQ_VALIDATE_READS;
 
 const G101_SCENARIOS: &[ScenarioDefinition] = &[
     ScenarioDefinition {
@@ -28,7 +29,7 @@ fn validation_checks(inputs: &CheckInputs<'_>) -> Vec<String> {
         format!(
             "layout_diversity_detected={}",
             rows.iter()
-                .any(|row| row.stage_id == "fastq.validate_reads" && row.tool_id != "<unbound>")
+                .any(|row| row.stage_id == FASTQ_VALIDATE_READS && row.tool_id != "<unbound>")
         ),
         format!(
             "validation_failure_classes={}",
@@ -52,7 +53,7 @@ fn validation_checks(inputs: &CheckInputs<'_>) -> Vec<String> {
 pub(super) const GOALS: &[GoalDefinition] = &[GoalDefinition {
     goal_id: "G101",
     title: "benchmark FASTQ validation",
-    stage_ids: &["fastq.validate_reads"],
+    stage_ids: &[FASTQ_VALIDATE_READS],
     scenarios: G101_SCENARIOS,
     checks: validation_checks,
 }];
