@@ -28,6 +28,10 @@ importing repository audit orchestration.
 - `src/checks/` partitions reusable rule families by build authority, dependency graph,
   non-waiting execution, directory layout, module files, public surface, failure policy, and stage
   ID literals.
+- `src/checks/workspace_source_audits.rs` owns the four repository source-audit
+  vocabularies, existing line-oriented matches, direct dependency classifications,
+  and pure verdicts over explicit caller observations. CLI callers retain source
+  acquisition, path exclusions, planner read exceptions, reports, and publication.
 - `src/source_scan/` performs deterministic Rust source discovery.
 - `src/policy_diagnostics/` owns the WHAT/WHY/HOW/MORE diagnostic contract and renderer.
 - `src/assertions/` owns exported assertion macros.

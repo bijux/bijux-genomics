@@ -62,3 +62,10 @@ admission to the benchmark readiness owner. CLI report counts, model validation,
 TSV presentation, output paths and publication remain at the command boundary.
 
 Fixture-root validation keeps one successful FASTQ manifest observation within the current request in `commands/fixtures/root_validation/manifest_observation.rs`. The generic manifest row and named truth row retain their separate schemas and validity projections. Failed or differently selected validators remain independent; no observation survives the request or replaces stage materialization with a global cache.
+
+The four repository source-audit commands acquire their declared member manifests
+and Rust source files, retain parser exclusions and planner read exceptions, and
+project stable path/line/report fields. Their rule vocabularies, line matches,
+dependency classifications and semantic verdicts are supplied by the existing
+Policies owner through the API front door. CLI acquisition/error order and
+report-before-refusal publication remain at the command boundary.

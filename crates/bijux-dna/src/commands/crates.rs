@@ -15,6 +15,11 @@ pub use bijux_dna_api::v1::api::{
 };
 pub type MetricRegistryReport = bijux_dna_api::v1::api::MetricRegistryReport;
 pub type MetricRegistryRow = bijux_dna_api::v1::api::MetricRegistryRow;
+use bijux_dna_api::v1::api::{
+    evaluate_workspace_source_audit, forbidden_workspace_execution_dependencies,
+    workspace_execution_owner_dependencies, workspace_source_matches, WorkspaceSourceAuditInput,
+    WorkspaceSourceRule,
+};
 use serde::Serialize;
 use toml::Value;
 
@@ -35,82 +40,6 @@ const RUNNER_OWNED_PROCESS_EXECUTION_REPORT_CRATES: &[&str] = &[
     "bijux-dna-stages-bam",
     "bijux-dna-stages-fastq",
     "bijux-dna-stages-vcf",
-];
-
-const PROCESS_EXECUTION_PATTERNS: &[&str] = &[
-    concat!("Command", "::new"),
-    concat!("std::process::", "Command"),
-    concat!("tokio::process::", "Command"),
-];
-const CONTAINER_EXECUTION_PATTERNS: &[&str] = &[
-    concat!("Command", "::new(\"docker\")"),
-    concat!("Command", "::new(\"apptainer\")"),
-    concat!("Command", "::new(\"singularity\")"),
-    concat!("Command", "::new(\"podman\")"),
-    concat!("std::process::", "Command", "::new(\"docker\")"),
-    concat!("std::process::", "Command", "::new(\"apptainer\")"),
-    concat!("std::process::", "Command", "::new(\"singularity\")"),
-    concat!("std::process::", "Command", "::new(\"podman\")"),
-    concat!("tokio::process::", "Command", "::new(\"docker\")"),
-    concat!("tokio::process::", "Command", "::new(\"apptainer\")"),
-    concat!("tokio::process::", "Command", "::new(\"singularity\")"),
-    concat!("tokio::process::", "Command", "::new(\"podman\")"),
-];
-const SLURM_EXECUTION_PATTERNS: &[&str] = &[
-    concat!("Command", "::new(\"sbatch\")"),
-    concat!("Command", "::new(\"srun\")"),
-    concat!("Command", "::new(\"salloc\")"),
-    concat!("std::process::", "Command", "::new(\"sbatch\")"),
-    concat!("std::process::", "Command", "::new(\"srun\")"),
-    concat!("std::process::", "Command", "::new(\"salloc\")"),
-    concat!("tokio::process::", "Command", "::new(\"sbatch\")"),
-    concat!("tokio::process::", "Command", "::new(\"srun\")"),
-    concat!("tokio::process::", "Command", "::new(\"salloc\")"),
-];
-
-const RUNNER_DEPENDENCY_PATTERNS: &[&str] = &["runner"];
-const CONTAINER_DEPENDENCY_PATTERNS: &[&str] =
-    &["docker", "apptainer", "singularity", "podman", "container"];
-const SLURM_DEPENDENCY_PATTERNS: &[&str] = &["slurm"];
-const PARSER_ENTRYPOINT_PATTERNS: &[&str] = &["pub fn parse_", "pub(crate) fn parse_"];
-const RAW_INPUT_READ_PATTERNS: &[&str] = &[
-    "fs::read_to_string",
-    "std::fs::read_to_string",
-    "fs::read(",
-    "std::fs::read(",
-    "File::open(",
-    ".read_to_string(",
-];
-const INPUT_MUTATION_PATTERNS: &[&str] = &[
-    concat!("fs", "::write("),
-    concat!("std::fs", "::write("),
-    concat!("File", "::create("),
-    concat!("fs", "::create_dir("),
-    concat!("fs", "::create_dir_all("),
-    concat!("std::fs", "::create_dir("),
-    concat!("std::fs", "::create_dir_all("),
-    concat!("fs", "::remove_file("),
-    concat!("fs", "::remove_dir("),
-    concat!("fs", "::remove_dir_all("),
-    concat!("std::fs", "::remove_file("),
-    concat!("std::fs", "::remove_dir("),
-    concat!("std::fs", "::remove_dir_all("),
-    concat!("fs", "::rename("),
-    concat!("std::fs", "::rename("),
-    concat!("fs", "::copy("),
-    concat!("std::fs", "::copy("),
-    "atomic_write",
-    "write_bytes(",
-    "write_json(",
-];
-const PLANNER_PARSER_API_PATTERNS: &[&str] = &[
-    "bijux_dna_domain_fastq::observer",
-    "bijux_dna_stages_fastq::observer",
-    "observer::parse_",
-    "metrics::parse_",
-    "parsers::parse_",
-    "bijux_dna_domain_vcf::parsers",
-    "raw_parser_contract",
 ];
 
 #[derive(Clone, Copy, Debug)]
@@ -1310,48 +1239,13 @@ fn push_source_hits(
     path: &Path,
     root: &Path,
     content: &str,
-    patterns: &[&str],
+    rule: WorkspaceSourceRule,
 ) {
-    for (line_number, line) in content.lines().enumerate() {
-        let trimmed = line.trim_start();
-        if trimmed.starts_with("//") || trimmed.starts_with("/*") || trimmed.starts_with('*') {
-            continue;
-        }
-        for pattern in patterns {
-            if line.contains(pattern) {
-                hits.push(SourcePatternHit {
-                    path: relative_display(path, root),
-                    line: line_number + 1,
-                    pattern: (*pattern).to_string(),
-                });
-            }
-        }
-    }
-}
-
-fn collect_manifest_dependency_hits(
-    manifest: &Value,
-    section_name: &str,
-    patterns: &[&str],
-    category: &str,
-) -> Vec<ForbiddenDependencyHit> {
-    let Some(table) = manifest.get(section_name).and_then(Value::as_table) else {
-        return Vec::new();
-    };
-    let mut hits = table
-        .keys()
-        .filter(|dependency| {
-            let normalized = dependency.to_ascii_lowercase();
-            patterns.iter().any(|pattern| normalized.contains(pattern))
-        })
-        .map(|dependency| ForbiddenDependencyHit {
-            section: section_name.to_string(),
-            dependency: dependency.clone(),
-            category: category.to_string(),
-        })
-        .collect::<Vec<_>>();
-    hits.sort_by(|left, right| left.dependency.cmp(&right.dependency));
-    hits
+    hits.extend(workspace_source_matches(content, rule).into_iter().map(|hit| SourcePatternHit {
+        path: relative_display(path, root),
+        line: hit.line,
+        pattern: hit.pattern.to_string(),
+    }));
 }
 
 fn audit_domain_crate(
@@ -1386,53 +1280,35 @@ fn audit_domain_crate(
             rust_file,
             cwd,
             &content,
-            PROCESS_EXECUTION_PATTERNS,
+            WorkspaceSourceRule::ProcessExecution,
         );
         push_source_hits(
             &mut container_execution_refs,
             rust_file,
             cwd,
             &content,
-            CONTAINER_EXECUTION_PATTERNS,
+            WorkspaceSourceRule::ContainerExecution,
         );
         push_source_hits(
             &mut slurm_execution_refs,
             rust_file,
             cwd,
             &content,
-            SLURM_EXECUTION_PATTERNS,
+            WorkspaceSourceRule::SlurmExecution,
         );
     }
 
-    let mut forbidden_direct_dependencies = Vec::new();
-    for (patterns, category) in [
-        (RUNNER_DEPENDENCY_PATTERNS, "runner"),
-        (CONTAINER_DEPENDENCY_PATTERNS, "container"),
-        (SLURM_DEPENDENCY_PATTERNS, "slurm"),
-    ] {
-        for section_name in ["dependencies", "dev-dependencies", "build-dependencies"] {
-            forbidden_direct_dependencies.extend(collect_manifest_dependency_hits(
-                &manifest_value,
-                section_name,
-                patterns,
-                category,
-            ));
-        }
-    }
-    forbidden_direct_dependencies.sort_by(|left, right| {
-        left.category
-            .cmp(&right.category)
-            .then_with(|| left.section.cmp(&right.section))
-            .then_with(|| left.dependency.cmp(&right.dependency))
-    });
+    let forbidden_direct_dependencies = collect_forbidden_direct_dependencies(&manifest_value);
 
     let scanned_rust_files =
         rust_files.iter().map(|path| relative_display(path, cwd)).collect::<Vec<_>>();
 
-    let ok = forbidden_direct_dependencies.is_empty()
-        && process_execution_refs.is_empty()
-        && container_execution_refs.is_empty()
-        && slurm_execution_refs.is_empty();
+    let ok = evaluate_workspace_source_audit(WorkspaceSourceAuditInput::Domain {
+        forbidden_dependencies: forbidden_direct_dependencies.len(),
+        process_execution: process_execution_refs.len(),
+        container_execution: container_execution_refs.len(),
+        slurm_execution: slurm_execution_refs.len(),
+    });
 
     Ok(DomainNoExecutionCrateReport {
         crate_name: member.crate_name.clone(),
@@ -1526,12 +1402,14 @@ fn audit_parser_surface(
         .iter()
         .map(|path| relative_display(&crate_root.join(path), cwd))
         .collect::<Vec<_>>();
-    let ok = !parser_entrypoints.is_empty()
-        && forbidden_direct_dependencies.is_empty()
-        && input_mutation_refs.is_empty()
-        && process_execution_refs.is_empty()
-        && container_execution_refs.is_empty()
-        && slurm_execution_refs.is_empty();
+    let ok = evaluate_workspace_source_audit(WorkspaceSourceAuditInput::Parser {
+        parser_entrypoints: parser_entrypoints.len(),
+        forbidden_dependencies: forbidden_direct_dependencies.len(),
+        input_mutations: input_mutation_refs.len(),
+        process_execution: process_execution_refs.len(),
+        container_execution: container_execution_refs.len(),
+        slurm_execution: slurm_execution_refs.len(),
+    });
 
     Ok(ParserSurfaceAuditReport {
         crate_name: member.crate_name.clone(),
@@ -1570,42 +1448,42 @@ fn collect_parser_surface_hits(
             &absolute,
             cwd,
             &content,
-            PARSER_ENTRYPOINT_PATTERNS,
+            WorkspaceSourceRule::ParserEntrypoint,
         );
         push_source_hits(
             &mut raw_input_read_refs,
             &absolute,
             cwd,
             &content,
-            RAW_INPUT_READ_PATTERNS,
+            WorkspaceSourceRule::RawInputRead,
         );
         push_source_hits(
             &mut input_mutation_refs,
             &absolute,
             cwd,
             &content,
-            INPUT_MUTATION_PATTERNS,
+            WorkspaceSourceRule::InputMutation,
         );
         push_source_hits(
             &mut process_execution_refs,
             &absolute,
             cwd,
             &content,
-            PROCESS_EXECUTION_PATTERNS,
+            WorkspaceSourceRule::ProcessExecution,
         );
         push_source_hits(
             &mut container_execution_refs,
             &absolute,
             cwd,
             &content,
-            CONTAINER_EXECUTION_PATTERNS,
+            WorkspaceSourceRule::ContainerExecution,
         );
         push_source_hits(
             &mut slurm_execution_refs,
             &absolute,
             cwd,
             &content,
-            SLURM_EXECUTION_PATTERNS,
+            WorkspaceSourceRule::SlurmExecution,
         );
     }
     Ok((
@@ -1619,28 +1497,14 @@ fn collect_parser_surface_hits(
 }
 
 fn collect_forbidden_direct_dependencies(manifest_value: &Value) -> Vec<ForbiddenDependencyHit> {
-    let mut forbidden_direct_dependencies = Vec::new();
-    for (patterns, category) in [
-        (RUNNER_DEPENDENCY_PATTERNS, "runner"),
-        (CONTAINER_DEPENDENCY_PATTERNS, "container"),
-        (SLURM_DEPENDENCY_PATTERNS, "slurm"),
-    ] {
-        for section_name in ["dependencies", "dev-dependencies", "build-dependencies"] {
-            forbidden_direct_dependencies.extend(collect_manifest_dependency_hits(
-                manifest_value,
-                section_name,
-                patterns,
-                category,
-            ));
-        }
-    }
-    forbidden_direct_dependencies.sort_by(|left, right| {
-        left.category
-            .cmp(&right.category)
-            .then_with(|| left.section.cmp(&right.section))
-            .then_with(|| left.dependency.cmp(&right.dependency))
-    });
-    forbidden_direct_dependencies
+    forbidden_workspace_execution_dependencies(manifest_value)
+        .into_iter()
+        .map(|hit| ForbiddenDependencyHit {
+            section: hit.section,
+            dependency: hit.dependency,
+            category: hit.category,
+        })
+        .collect()
 }
 
 fn audit_planner_crate(
@@ -1675,7 +1539,13 @@ fn audit_planner_crate(
         let content = std::fs::read_to_string(rust_file)
             .with_context(|| format!("read {}", rust_file.display()))?;
         let mut read_refs = Vec::new();
-        push_source_hits(&mut read_refs, rust_file, cwd, &content, RAW_INPUT_READ_PATTERNS);
+        push_source_hits(
+            &mut read_refs,
+            rust_file,
+            cwd,
+            &content,
+            WorkspaceSourceRule::RawInputRead,
+        );
         for hit in read_refs {
             if allowed_input_read_files.contains(hit.path.as_str()) {
                 planner_input_read_refs.push(hit);
@@ -1688,13 +1558,16 @@ fn audit_planner_crate(
             rust_file,
             cwd,
             &content,
-            PLANNER_PARSER_API_PATTERNS,
+            WorkspaceSourceRule::PlannerParserApi,
         );
     }
 
     let scanned_rust_files =
         rust_files.iter().map(|path| relative_display(path, cwd)).collect::<Vec<_>>();
-    let ok = unexpected_input_read_refs.is_empty() && forbidden_parser_api_refs.is_empty();
+    let ok = evaluate_workspace_source_audit(WorkspaceSourceAuditInput::Planner {
+        unexpected_input_reads: unexpected_input_read_refs.len(),
+        forbidden_parser_api: forbidden_parser_api_refs.len(),
+    });
 
     Ok(PlannerNoParserCrateReport {
         crate_name: member.crate_name.clone(),
@@ -1712,23 +1585,10 @@ fn collect_execution_owner_dependency_hits(
     manifest: &Value,
     section_name: &str,
 ) -> Vec<ExecutionOwnerDependencyHit> {
-    let Some(table) = manifest.get(section_name).and_then(Value::as_table) else {
-        return Vec::new();
-    };
-    let mut hits = table
-        .keys()
-        .filter(|dependency| {
-            matches!(dependency.as_str(), "bijux-dna-runner" | "bijux-dna-runtime")
-        })
-        .map(|dependency| ExecutionOwnerDependencyHit {
-            section: section_name.to_string(),
-            dependency: dependency.clone(),
-        })
-        .collect::<Vec<_>>();
-    hits.sort_by(|left, right| {
-        left.section.cmp(&right.section).then_with(|| left.dependency.cmp(&right.dependency))
-    });
-    hits
+    workspace_execution_owner_dependencies(manifest, section_name)
+        .into_iter()
+        .map(|hit| ExecutionOwnerDependencyHit { section: hit.section, dependency: hit.dependency })
+        .collect()
 }
 
 fn audit_runner_owned_process_execution_crate(
@@ -1763,21 +1623,21 @@ fn audit_runner_owned_process_execution_crate(
             rust_file,
             cwd,
             &content,
-            PROCESS_EXECUTION_PATTERNS,
+            WorkspaceSourceRule::ProcessExecution,
         );
         push_source_hits(
             &mut container_execution_refs,
             rust_file,
             cwd,
             &content,
-            CONTAINER_EXECUTION_PATTERNS,
+            WorkspaceSourceRule::ContainerExecution,
         );
         push_source_hits(
             &mut slurm_execution_refs,
             rust_file,
             cwd,
             &content,
-            SLURM_EXECUTION_PATTERNS,
+            WorkspaceSourceRule::SlurmExecution,
         );
     }
 
@@ -1792,9 +1652,11 @@ fn audit_runner_owned_process_execution_crate(
 
     let scanned_rust_files =
         rust_files.iter().map(|path| relative_display(path, cwd)).collect::<Vec<_>>();
-    let ok = process_execution_refs.is_empty()
-        && container_execution_refs.is_empty()
-        && slurm_execution_refs.is_empty();
+    let ok = evaluate_workspace_source_audit(WorkspaceSourceAuditInput::ExecutionOwner {
+        process_execution: process_execution_refs.len(),
+        container_execution: container_execution_refs.len(),
+        slurm_execution: slurm_execution_refs.len(),
+    });
 
     Ok(RunnerOwnedProcessExecutionCrateReport {
         crate_name: member.crate_name.clone(),

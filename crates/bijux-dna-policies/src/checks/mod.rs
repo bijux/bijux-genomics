@@ -15,3 +15,5 @@ pub(crate) use stable_surface::*;
 const CHECK_MODULE_REGISTRY: &str = "policy_check_rule_families";
 
 pub(crate) mod workspace_dependencies;
+
+pub(crate) mod workspace_source_audits;

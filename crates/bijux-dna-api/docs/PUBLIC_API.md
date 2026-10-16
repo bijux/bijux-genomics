@@ -142,3 +142,8 @@ image or tool. Explicit QA execution and pass-record validation belong to
 `v1::api::env::inspect_apptainer_definition` forwards container-owned lexical definition
 inspection and its ordered `ApptainerDefinitionIssue` results. The API adds no parser, acquisition
 or runtime evidence; command callers retain source-scope selection and diagnostic presentation.
+
+The front door curates the Policies-owned workspace source-audit helpers and their
+typed source rules, matches, dependency observations and verdict inputs. The CLI
+supplies acquired source/manifest observations; Policies makes the deterministic
+four-command governance decisions without filesystem or process effects.

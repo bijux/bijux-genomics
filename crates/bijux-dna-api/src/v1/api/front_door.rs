@@ -86,3 +86,10 @@ pub fn explain(
 }
 
 pub use bijux_dna_policies::{analyze_workspace_dependencies, WorkspaceDependencyAnalysis};
+
+pub use bijux_dna_policies::{
+    evaluate_workspace_source_audit, forbidden_workspace_execution_dependencies,
+    workspace_execution_owner_dependencies, workspace_source_matches, WorkspaceExecutionDependency,
+    WorkspaceForbiddenDependency, WorkspaceSourceAuditInput, WorkspaceSourceMatch,
+    WorkspaceSourceRule,
+};

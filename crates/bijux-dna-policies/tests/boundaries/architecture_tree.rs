@@ -57,6 +57,8 @@ fn assert_policy_rule_trees(root: &Path) {
             "directory_layout.rs",
             "dependency_graph.rs",
             "workspace_dependencies.rs",
+            "workspace_source_audits.rs",
+            "workspace_source_audits/",
             "failure_policy.rs",
             "mod.rs",
             "module_files.rs",
