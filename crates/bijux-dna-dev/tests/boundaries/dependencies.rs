@@ -32,6 +32,7 @@ fn dependency_graph_matches_dev_boundary() {
         "serde_json",
         "serde_yaml",
         "sha2",
+        "syn",
         "toml",
         "twox-hash",
         "walkdir",
