@@ -260,6 +260,7 @@ mod tests {
         ]
         .contains(&arg.as_str())));
 
+        let extracted_target = archive.archive_extract.join("target");
         for shard in &contract.shards {
             let remap = storage.scratch_root.join("workspaces").join(&shard.id);
             let args = full_shard_args(
@@ -282,15 +283,13 @@ mod tests {
             assert!(args.windows(2).any(|pair| {
                 pair[0] == "--cargo-metadata"
                     && pair[1]
-                        == archive
-                            .archive_extract
-                            .join("target/nextest/cargo-metadata.json")
+                        == extracted_target
+                            .join("nextest/cargo-metadata.json")
                             .display()
                             .to_string()
             }));
             assert!(args.windows(2).any(|pair| {
-                pair[0] == "--target-dir-remap"
-                    && pair[1] == archive.archive_extract.join("target").display().to_string()
+                pair[0] == "--target-dir-remap" && pair[1] == extracted_target.display().to_string()
             }));
             assert!(args.windows(2).any(|pair| {
                 pair[0] == "--workspace-remap" && pair[1] == remap.display().to_string()
@@ -316,7 +315,7 @@ mod tests {
     fn shared_archive_sealing_preserves_bytes_and_owned_cleanup() -> anyhow::Result<()> {
         let temp = tempfile::tempdir()?;
         let archive = temp.path().join("extracted");
-        let member = archive.join("target/nextest/binaries-metadata.json");
+        let member = archive.join("metadata/binaries.json");
         std::fs::create_dir_all(member.parent().context("member parent")?)?;
         std::fs::write(&member, b"governed archive metadata")?;
         super::seal_full_archive_extraction(&archive)?;

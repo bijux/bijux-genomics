@@ -347,17 +347,18 @@ mod tests {
             &executable_inventory(),
         )?)?;
         let root = std::env::current_dir()?.join("archive with spaces");
-        let env = bindings.remapped_environment(&root.join("target"))?;
+        let extracted_products = root.join("extracted-products");
+        let env = bindings.remapped_environment(&extracted_products)?;
         assert_eq!(
             env,
             vec![
                 (
                     "NEXTEST_BIN_EXE_bijux-dna".to_owned(),
-                    root.join("target/debug/bijux-dna").display().to_string()
+                    extracted_products.join("debug/bijux-dna").display().to_string()
                 ),
                 (
                     "NEXTEST_BIN_EXE_bijux-dna-dev".to_owned(),
-                    root.join("target/debug/bijux-dna-dev").display().to_string()
+                    extracted_products.join("debug/bijux-dna-dev").display().to_string()
                 ),
             ]
         );

@@ -198,6 +198,9 @@ fn policy__determinism__workspace_determinism_suite__helper_buckets_require_decl
     std::fs::remove_file(&helper)?;
     assert!(observe().is_err(), "an empty helper bucket must not become an admitted empty scan");
     std::fs::write(&helper, private)?;
-    assert!(observe()?, "restoring the same physical target/helper must restore authority");
+    assert!(
+        observe()?,
+        "restoring the same physical test target and helper must restore authority"
+    );
     Ok(())
 }

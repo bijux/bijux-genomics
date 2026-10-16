@@ -1266,6 +1266,56 @@ mod embedded_workspace_mirror_tests {
 }
 
 #[cfg(test)]
+mod target_path_tests {
+    use super::check_no_target_paths_in_tests;
+    use crate::model::check::{
+        CheckDefinition, CheckStatus, CommandSpec, ExecutionMode, NativeCheckKey,
+    };
+    use crate::runtime::workspace::Workspace;
+
+    #[test]
+    fn target_path_guard_rejects_shared_build_roots_and_accepts_owned_product_paths(
+    ) -> anyhow::Result<()> {
+        let directory = tempfile::tempdir()?;
+        let workspace = Workspace { root: directory.path().to_path_buf() };
+        let check = CheckDefinition {
+            id: "check-no-target-paths-in-tests",
+            version: 1,
+            summary: "Reject shared target paths".to_string(),
+            aliases: &[],
+            execution_mode: ExecutionMode::Primary,
+            command: CommandSpec::Native { key: NativeCheckKey::NoTargetPathsInTests },
+        };
+        let rust = workspace.path("crates/fixture/tests/contracts.rs");
+        let shell = workspace.path("makes/check.sh");
+        let python = workspace.path("makes/check.py");
+        for path in [&rust, &shell, &python] {
+            std::fs::create_dir_all(
+                path.parent().ok_or_else(|| anyhow::anyhow!("fixture parent"))?,
+            )?;
+            std::fs::write(path, "")?;
+        }
+        for (path, source) in [
+            (&rust, r#"std::fs::write("target/debug/result", b"output")?;"#),
+            (&shell, "printf result > target/debug/result"),
+            (&python, "open('target/debug/result', 'w').write('output')"),
+        ] {
+            std::fs::write(path, source)?;
+            let outcome = check_no_target_paths_in_tests(&workspace, &check)?;
+            assert_eq!(outcome.status, CheckStatus::Failed, "{source}");
+            assert_eq!(outcome.detail, workspace.rel(path).to_string_lossy());
+            assert_eq!(std::fs::read_to_string(path)?, source);
+            std::fs::write(path, "")?;
+        }
+        std::fs::write(&rust, r#"let binary = owned_products.join("debug/cli");"#)?;
+        std::fs::write(&shell, "printf result > artifacts/target/result")?;
+        std::fs::write(&python, "open('artifacts/target/result', 'w').write('output')")?;
+        assert_eq!(check_no_target_paths_in_tests(&workspace, &check)?.status, CheckStatus::Passed);
+        Ok(())
+    }
+}
+
+#[cfg(test)]
 mod generated_config_tests {
     use super::generated_config_drift;
 
