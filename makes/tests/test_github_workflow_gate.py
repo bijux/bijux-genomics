@@ -7,9 +7,11 @@ import json
 import os
 from pathlib import Path
 import shutil
+import signal
 import subprocess
 import sys
 import tempfile
+import time
 import unittest
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -97,6 +99,8 @@ class WorkflowProcessTests(unittest.TestCase):
         child_exit: int = 0,
         metrics_exit: int = 0,
         final_metrics_exit: int = 0,
+        interrupt_signal: int | None = None,
+        interrupt_phase: str = "gate",
     ) -> tuple[subprocess.CompletedProcess[str], list[dict], dict[str, str]]:
         products = (
             ROOT
@@ -141,6 +145,30 @@ class WorkflowProcessTests(unittest.TestCase):
                         + ")",
                         "if name=='cargo': sys.exit(" + str(preparation_exit) + ")",
                         "if name=='cargo-nextest': sys.exit(99)",
+                        "if name=='make' and args[-1]==" + repr("fmt" if interrupt_phase == "gate" else "_dev-dna-bin")
+                        + " and " + repr(interrupt_signal is not None) + ":",
+                        " import signal,subprocess,time",
+                        " child_source=" + repr(
+                            "import pathlib,signal,sys,time\n"
+                            f"root=pathlib.Path({str(root)!r})\n"
+                            "def stop(number, frame):\n"
+                            " (root/'artifacts/grandchild-signal').write_text(str(number))\n"
+                            " raise SystemExit(0)\n"
+                            "signal.signal(signal.SIGTERM,stop)\n"
+                            "signal.signal(signal.SIGINT,stop)\n"
+                            "(root/'artifacts/grandchild-ready').write_text(str(__import__('os').getpid()))\n"
+                            "while True: time.sleep(0.05)\n"
+                        ),
+                        " child=subprocess.Popen([sys.executable,'-c',child_source])",
+                        " (root/'artifacts/grandchild-pid').write_text(str(child.pid))",
+                        " def stop(number,frame):",
+                        "  try: child.wait(timeout=4)",
+                        "  except subprocess.TimeoutExpired: raise SystemExit(97)",
+                        "  (root/'artifacts/grandchild-reaped').write_text(str(child.returncode))",
+                        "  raise SystemExit(128+number)",
+                        " signal.signal(signal.SIGTERM,stop)",
+                        " signal.signal(signal.SIGINT,stop)",
+                        " while True: time.sleep(0.05)",
                         "if name=='make' and args[-1]=='_dev-dna-bin': sys.exit("
                         + str(bootstrap_exit)
                         + ")",
@@ -165,17 +193,39 @@ class WorkflowProcessTests(unittest.TestCase):
                 PYTHONDONTWRITEBYTECODE="1",
                 ARTIFACT_ROOT=str(root / "artifacts"),
             )
-            result = subprocess.run(
-                [
-                    os.environ.get("BIJUX_GATE_TEST_BASH", "bash"),
-                    str(root / "makes/bin/run_github_workflow_gate.sh"),
-                ],
-                env=env,
-                cwd=root,
-                text=True,
-                capture_output=True,
-                timeout=20,
-            )
+            args = [os.environ.get("BIJUX_GATE_TEST_BASH", "bash"),
+                    str(root / "makes/bin/run_github_workflow_gate.sh")]
+            if interrupt_signal is None:
+                result = subprocess.run(args, env=env, cwd=root, text=True,
+                                        capture_output=True, timeout=20)
+            else:
+                process = subprocess.Popen(args, env=env, cwd=root, text=True,
+                                           stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                                           start_new_session=True)
+                try:
+                    deadline = time.monotonic() + 10
+                    ready = root / "artifacts/grandchild-ready"
+                    while not ready.exists() and process.poll() is None and time.monotonic() < deadline:
+                        time.sleep(0.01)
+                    self.assertTrue(ready.exists(), "gate grandchild did not start")
+                    process.send_signal(interrupt_signal)
+                    stdout, stderr = process.communicate(timeout=15)
+                    result = subprocess.CompletedProcess(args, process.returncode, stdout, stderr)
+                finally:
+                    # The fixture session and recorded child are exclusively owned, even when
+                    # exercising a broken supervisor which leaves descendants behind.
+                    try:
+                        os.killpg(process.pid, signal.SIGKILL)
+                    except ProcessLookupError:
+                        pass
+                    child_pid = root / "artifacts/grandchild-pid"
+                    if child_pid.exists() and not (root / "artifacts/grandchild-reaped").exists():
+                        try:
+                            os.kill(int(child_pid.read_text()), signal.SIGKILL)
+                        except ProcessLookupError:
+                            pass
+                    if process.poll() is None:
+                        process.wait(timeout=5)
             captured = [json.loads(path.read_text()) for path in calls.iterdir()]
             files = {
                 str(path.relative_to(root)): path.read_text()
@@ -254,6 +304,24 @@ class WorkflowProcessTests(unittest.TestCase):
         result, calls, _ = self.run_fixture(("make fmt",), metrics_exit=12)
         self.assertEqual(result.returncode, 12)
         self.assertFalse(any(call["tool"] == "make" for call in calls))
+
+    def test_signals_terminate_gate_grandchildren_and_preserve_terminal_summary(self) -> None:
+        for phase in ("gate", "preparation"):
+            for interrupted in (signal.SIGTERM, signal.SIGINT):
+                with self.subTest(phase=phase, signal=interrupted):
+                    result, calls, files = self.run_fixture(
+                        ("make fmt" if phase == "gate" else "make test",),
+                        interrupt_signal=interrupted, interrupt_phase=phase,
+                    )
+                    self.assertEqual(result.returncode, 128 + interrupted, result.stderr)
+                    self.assertEqual(files.get("artifacts/grandchild-signal"), str(signal.SIGTERM))
+                    self.assertEqual(files.get("artifacts/grandchild-reaped"), "0")
+                    row = "fmt\tfmt\t143\t" if phase == "gate" else "workspace-preparation\t_dev-dna-bin/nextest-list\t143\t"
+                    self.assertIn(row, files["artifacts/github-all/summary.tsv"])
+                    if phase == "preparation":
+                        self.assertFalse(any(call["tool"] == "cargo" for call in calls))
+                        self.assertFalse(any(call["tool"] == "make" and call["args"][-1] == "test" for call in calls))
+                    self.assertIn("artifacts/github-all/build-authority/sccache-after.json", files)
 
 
 if __name__ == "__main__":
