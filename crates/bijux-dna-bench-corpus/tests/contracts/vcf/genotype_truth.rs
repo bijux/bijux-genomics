@@ -220,8 +220,12 @@ fn command_seed_metadata_is_observed_without_execution_and_unknown_fields_remain
     command["argv"] =
         serde_json::json!(["not-an-executable", "-seed", "invalid", "--seed", "42", "-seed", "99"]);
     fixture.manifest["cases"][2]["command_path"] = command_path.to_string_lossy().as_ref().into();
-    fixture.expected["cases"][2]["command"]["command_path"] =
-        command_path.to_string_lossy().replace('\\', "/").into();
+    fixture.expected["cases"][2]["command"]["command_path"] = command_path
+        .strip_prefix(&fixture.root)
+        .unwrap_or(&command_path)
+        .to_string_lossy()
+        .replace('\\', "/")
+        .into();
     fs::write(&command_path, serde_json::to_vec(&command).expect("encode command"))
         .expect("write command");
     write_fixture(&fixture);
@@ -270,6 +274,13 @@ fn absolute_declarations_and_backslash_report_paths_retain_supported_resolution(
             .expect("write filename containing a literal backslash");
         let report = validate_vcf_genotype_truth_manifest_path(&fixture.root, &decorated)
             .expect("backslash path normalization remains a report-only operation");
-        assert_eq!(report.manifest_path, decorated.to_string_lossy().replace('\\', "/"));
+        assert_eq!(
+            report.manifest_path,
+            decorated
+                .strip_prefix(&fixture.root)
+                .unwrap_or(&decorated)
+                .to_string_lossy()
+                .replace('\\', "/")
+        );
     }
 }

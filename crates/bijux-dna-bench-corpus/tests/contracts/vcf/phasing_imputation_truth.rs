@@ -301,6 +301,13 @@ fn absolute_source_and_evidence_paths_retain_local_resolution_and_report_normali
             .expect("write filename with literal backslash");
         let report = validate_phasing_imputation_truth_manifest_path(&fixture.root, &decorated)
             .expect("path normalization remains a display operation");
-        assert_eq!(report.manifest_path, decorated.to_string_lossy().replace('\\', "/"));
+        assert_eq!(
+            report.manifest_path,
+            decorated
+                .strip_prefix(&fixture.root)
+                .unwrap_or(&decorated)
+                .to_string_lossy()
+                .replace('\\', "/")
+        );
     }
 }

@@ -177,6 +177,13 @@ fn optional_native_output_and_backslash_display_keep_declared_evidence_semantics
             .expect("write Unix filename containing backslash");
         let report = validate_vcf_filter_truth_manifest_path(&fixture.root, &decorated)
             .expect("declare an existing path with compatibility report normalization");
-        assert_eq!(report.manifest_path, decorated.to_string_lossy().replace('\\', "/"));
+        assert_eq!(
+            report.manifest_path,
+            decorated
+                .strip_prefix(&fixture.root)
+                .unwrap_or(&decorated)
+                .to_string_lossy()
+                .replace('\\', "/")
+        );
     }
 }

@@ -395,6 +395,13 @@ fn absolute_references_and_backslash_display_paths_retain_local_resolution() {
             .expect("write literal backslash filename");
         let report = validate_segments_demography_truth_manifest_path(&fixture.root, &decorated)
             .expect("report normalization does not change the observed path");
-        assert_eq!(report.manifest_path, decorated.to_string_lossy().replace('\\', "/"));
+        assert_eq!(
+            report.manifest_path,
+            decorated
+                .strip_prefix(&fixture.root)
+                .unwrap_or(&decorated)
+                .to_string_lossy()
+                .replace('\\', "/")
+        );
     }
 }
