@@ -38,15 +38,16 @@ Internal targets can be listed with:
 
 Target -> implementation mapping (no hidden magic):
 - `fmt`, `lint`, `test`, `test-slow`, and `coverage` -> shared `bijux-makes-rs` targets through `makes/bin/run_genomics_rust_gate.sh`
-- `test-all` -> the Genomics complete Rust shard executor through the repository Rust-gate adapter
+- `test-all` -> the Genomics complete native Rust shard executor through the repository Rust-gate adapter
 - `test-preflight` -> pinned Nextest and full-suite native dependency checks without building test binaries
 - `test-complete` -> all declared Rust, doctest and Python lanes with exact aggregate membership
 - `audit` -> the shared Rust audit after Genomics audit-governance prerequisites
 - `test-all-frozen`, `lint-frozen`, and `audit-frozen` -> shared immutable-ref launcher
 - `github-all` -> the unique Make commands declared by `.github/workflows/ci.yml`, discovered from
-  the pinned source and run concurrently with isolated logs and live start/completion status; the
-  developer CLI and workspace test binaries are compiled once before the gates start, and the
-  workflow's fast `test` lane remains unchanged
+  the pinned source and run concurrently with isolated logs and live start/completion status.
+  Shared developer CLI and workspace test preparation runs only when the discovered workflow
+  contains a test gate; the declared gate names are preserved. The current workflow declares
+  `fmt`, `lint`, and `audit`, so it does not trigger test preparation or run a test lane.
 - `github-all-frozen` -> the shared immutable-ref launcher running `github-all` after verifying that the requested ref provides the gate
 - `doctor` -> `cargo run -q -p bijux-dna-dev -- tooling run repo-doctor --fast` + fast parity checks
 - `release-gate` -> docs + root layout + registry lock + container version lock/authority checks
@@ -65,16 +66,18 @@ Rust gate artifact layout:
 - pinned-ref gate runs record launcher state under `artifacts/<sha>/background/`, including `<gate>.console.log`, `<gate>.pid`, and `<gate>.exit.status`
 - `make github-all-frozen` rejects refs that predate the `github-all` contract before starting a background process
 - `make github-all-frozen` records live per-gate progress in the console log and records per-gate logs, exit statuses, and an aggregate summary under `artifacts/<sha>/github-all/`
-- `make github-all` records its one-time workspace compilation under
-  `artifacts/github-all/workspace-compile.log`
+- When a discovered workflow contains a test gate, `make github-all` records shared preparation
+  under `artifacts/github-all/workspace-compile.log`; workflows without test gates skip this work.
 - `make test-all` runs the complete workspace, all-target, all-feature suite (including ignored
   tests) as five exact hash partitions through the event-driven Rust supervisor; shard logs and
   the timing receipt remain under `ARTIFACT_ROOT`. Archives, isolated workspaces, build targets,
   and shard runtime products use the disjoint `BIJUX_CI_FULL_SHARD_SCRATCH_ROOT` when supplied and
   are removed before return. This keeps bounded evidence governed while permitting high-volume
   execution on job-local scratch without writing build products into the source checkout.
-- `make test-all-frozen` runs the complete suite from its immutable source snapshot with no
-  fast/slow filter expression and no slow timeout
+- `make test-all-frozen` runs the complete native suite from its immutable source snapshot with
+  no fast/slow filter expression or slow-test termination; slow-test reporting remains enabled.
+- `make test-all` and `make test-all-frozen` exclude doctests and Python tests. Use
+  `make test-complete` for the declared Rust, doctest, and Python lanes.
 - `make lint` checks the complete workspace, including `bijux-dna-dev`, with all targets and
   features, locked dependencies and warnings denied
 - `make lint-workspace` is the CI-sized workspace lane for configuration, documentation, and automation-boundary contracts; Rust formatting and product-crate clippy remain independent CI gates
@@ -88,8 +91,10 @@ It admits preparation and test execution together within a detected CPU allocati
 `BIJUX_CI_FULL_WORKER_BUDGET` to the allocated total case workers,
 `BIJUX_CI_FULL_SHARD_JOBS` to the maximum active shard processes, and
 `BIJUX_CI_FULL_SHARD_TEST_THREADS` to each process’s case threads. Positive decimal values
-are required; the admitted process/thread product cannot exceed the worker budget. Archive
-compilation has a separate contract budget. Scratch storage and memory still need capacity
+are required. Process jobs and requested case threads are ceilings, not guaranteed occupancy:
+their requested product may exceed the worker budget, while weighted admission keeps concurrent
+startup and case demand within it. Each command must fit the allocation. Archive compilation
+has a separate contract budget. Scratch storage and memory still need capacity
 for the selected roster; declaring more partitions does not provide more resources.
 A partition whose exact source-bound inventory assignment contains no cases terminates as
 `expected_empty`, with no native process, case events, exit code, or copied workspace.
