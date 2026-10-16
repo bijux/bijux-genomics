@@ -678,3 +678,7 @@ pub use bijux_dna_bench::{
     BenchmarkTaxonomySampleJudgment, TaxonomyObservedReportArg,
     BENCHMARK_TAXONOMY_OUTPUT_JUDGMENT_SCHEMA_VERSION,
 };
+
+pub use bijux_dna_bench::{
+    derive_fastq_scientific_acceptance_threshold, derive_vcf_scientific_acceptance_threshold,
+};

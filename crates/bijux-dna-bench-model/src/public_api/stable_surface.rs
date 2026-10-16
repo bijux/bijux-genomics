@@ -1016,3 +1016,7 @@ pub use crate::model::taxonomy_judgment::{
 pub use crate::policy::taxonomy_judgment::{
     decode_benchmark_taxonomy_observation, evaluate_benchmark_taxonomy_outputs,
 };
+
+pub use crate::policy::scientific_acceptance::{
+    derive_fastq_scientific_acceptance_threshold, derive_vcf_scientific_acceptance_threshold,
+};

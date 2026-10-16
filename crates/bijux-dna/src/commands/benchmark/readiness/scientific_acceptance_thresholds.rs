@@ -4,6 +4,7 @@ use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
 use bijux_dna_api::v1::api::bench::{
+    derive_fastq_scientific_acceptance_threshold, derive_vcf_scientific_acceptance_threshold,
     validate_scientific_acceptance_thresholds_config,
     validate_scientific_acceptance_thresholds_report,
     SCIENTIFIC_ACCEPTANCE_THRESHOLDS_REPORT_SCHEMA_V1, SCIENTIFIC_ACCEPTANCE_THRESHOLDS_SCHEMA_V1,
@@ -28,8 +29,7 @@ use super::fastq_comparable_metrics::{
     DEFAULT_FASTQ_COMPARABLE_METRICS_PATH,
 };
 use super::vcf_comparable_metrics::{
-    render_vcf_comparable_metrics, VcfComparableMetricsReport, VcfComparableMetricsRow,
-    DEFAULT_VCF_COMPARABLE_METRICS_PATH,
+    render_vcf_comparable_metrics, VcfComparableMetricsReport, DEFAULT_VCF_COMPARABLE_METRICS_PATH,
 };
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
@@ -178,7 +178,7 @@ pub(crate) fn collect_scientific_acceptance_threshold_rows_from_reports(
 
     for row in &fastq_report.rows {
         for metric_id in &row.shared_metric_fields {
-            rows.push(fastq_acceptance_row(&row.stage_id, metric_id)?);
+            rows.push(derive_fastq_scientific_acceptance_threshold(&row.stage_id, metric_id)?);
         }
     }
 
@@ -214,7 +214,14 @@ pub(crate) fn collect_scientific_acceptance_threshold_rows_from_reports(
     }
 
     for row in &vcf_report.rows {
-        rows.push(vcf_acceptance_row(row)?);
+        rows.push(derive_vcf_scientific_acceptance_threshold(
+            &row.stage_id,
+            &row.metric_id,
+            &row.metric_name,
+            &row.unit,
+            scientific_acceptance_direction_from_vcf(row.direction),
+            row.required,
+        )?);
     }
 
     rows.sort_by(|left, right| {
@@ -248,152 +255,6 @@ pub(crate) fn scientific_acceptance_insufficiency_behavior_label(
     behavior: ScientificAcceptanceInsufficiencyBehavior,
 ) -> &'static str {
     behavior.as_str()
-}
-
-fn fastq_acceptance_row(
-    stage_id: &str,
-    metric_id: &str,
-) -> Result<ScientificAcceptanceThresholdRow> {
-    let (unit, direction, tolerance_kind, tolerance_value, pass_rule, insufficiency_behavior) =
-        match (stage_id, metric_id) {
-            ("fastq.index_reference", "index_build_exit_code") => (
-                Some("exit_code"),
-                ScientificAcceptanceDirection::ExactMatchPreferred,
-                ScientificAcceptanceToleranceKind::ExactMatch,
-                0.0,
-                ScientificAcceptancePassRule::MatchReference,
-                ScientificAcceptanceInsufficiencyBehavior::RefuseStageComparison,
-            ),
-            ("fastq.profile_overrepresented_sequences", "sequence_count") => (
-                Some("reads"),
-                ScientificAcceptanceDirection::ExactMatchPreferred,
-                ScientificAcceptanceToleranceKind::ExactMatch,
-                0.0,
-                ScientificAcceptancePassRule::MatchReference,
-                ScientificAcceptanceInsufficiencyBehavior::WarnAndExcludeStage,
-            ),
-            ("fastq.profile_overrepresented_sequences", "flagged_sequences") => (
-                Some("sequences"),
-                ScientificAcceptanceDirection::ExactMatchPreferred,
-                ScientificAcceptanceToleranceKind::AbsoluteDelta,
-                1.0,
-                ScientificAcceptancePassRule::MatchReference,
-                ScientificAcceptanceInsufficiencyBehavior::WarnAndExcludeStage,
-            ),
-            ("fastq.profile_overrepresented_sequences", "top_fraction") => (
-                Some("fraction"),
-                ScientificAcceptanceDirection::ExactMatchPreferred,
-                ScientificAcceptanceToleranceKind::AbsoluteDelta,
-                0.05,
-                ScientificAcceptancePassRule::MatchReference,
-                ScientificAcceptanceInsufficiencyBehavior::WarnAndExcludeStage,
-            ),
-            ("fastq.validate_reads", "format_validation_pass_rate") => (
-                Some("fraction"),
-                ScientificAcceptanceDirection::HigherIsBetter,
-                ScientificAcceptanceToleranceKind::AbsoluteDelta,
-                0.01,
-                ScientificAcceptancePassRule::MeetOrExceedReference,
-                ScientificAcceptanceInsufficiencyBehavior::RefuseStageComparison,
-            ),
-            _ => {
-                return Err(anyhow!(
-                    "FASTQ comparable metric `{stage_id}` / `{metric_id}` is missing scientific acceptance policy"
-                ))
-            }
-        };
-
-    Ok(ScientificAcceptanceThresholdRow {
-        domain: "fastq".to_string(),
-        stage_id: stage_id.to_string(),
-        metric_id: metric_id.to_string(),
-        metric_name: metric_id.to_string(),
-        unit: unit.map(str::to_string),
-        direction,
-        tolerance_kind,
-        tolerance_value,
-        pass_rule,
-        insufficiency_behavior,
-        required: true,
-        declaration_origin: "fastq_comparable_metric_policy".to_string(),
-    })
-}
-
-fn vcf_acceptance_row(row: &VcfComparableMetricsRow) -> Result<ScientificAcceptanceThresholdRow> {
-    let direction = scientific_acceptance_direction_from_vcf(row.direction);
-    let tolerance_kind = match direction {
-        ScientificAcceptanceDirection::ExactMatchPreferred => {
-            ScientificAcceptanceToleranceKind::ExactMatch
-        }
-        ScientificAcceptanceDirection::HigherIsBetter
-        | ScientificAcceptanceDirection::LowerIsBetter => vcf_tolerance_kind(&row.unit)?,
-        ScientificAcceptanceDirection::Minimum
-        | ScientificAcceptanceDirection::Maximum
-        | ScientificAcceptanceDirection::Range
-        | ScientificAcceptanceDirection::StructuredMatch => {
-            return Err(anyhow!(
-                "VCF comparable metric `{}` / `{}` uses unsupported direction `{}`",
-                row.stage_id,
-                row.metric_id,
-                row.direction
-            ))
-        }
-    };
-    let tolerance_value = vcf_tolerance_value(row, tolerance_kind)?;
-
-    Ok(ScientificAcceptanceThresholdRow {
-        domain: "vcf".to_string(),
-        stage_id: row.stage_id.clone(),
-        metric_id: row.metric_id.clone(),
-        metric_name: row.metric_name.clone(),
-        unit: Some(row.unit.clone()),
-        direction,
-        tolerance_kind,
-        tolerance_value,
-        pass_rule: scientific_acceptance_pass_rule_from_direction(direction),
-        insufficiency_behavior: if row.required {
-            ScientificAcceptanceInsufficiencyBehavior::RefuseStageComparison
-        } else {
-            ScientificAcceptanceInsufficiencyBehavior::DropMetricFromStage
-        },
-        required: row.required,
-        declaration_origin: "vcf_comparable_metric_policy".to_string(),
-    })
-}
-
-fn vcf_tolerance_kind(unit: &str) -> Result<ScientificAcceptanceToleranceKind> {
-    match unit {
-        "fraction" | "score" => Ok(ScientificAcceptanceToleranceKind::AbsoluteDelta),
-        "sites" | "samples" | "variants" | "pairs" | "clusters" | "populations" | "genotypes"
-        | "bases" => Ok(ScientificAcceptanceToleranceKind::RelativeFraction),
-        _ => Err(anyhow!("VCF comparable metric unit `{unit}` is missing a tolerance kind policy")),
-    }
-}
-
-fn vcf_tolerance_value(
-    row: &VcfComparableMetricsRow,
-    tolerance_kind: ScientificAcceptanceToleranceKind,
-) -> Result<f64> {
-    match tolerance_kind {
-        ScientificAcceptanceToleranceKind::ExactMatch => Ok(0.0),
-        ScientificAcceptanceToleranceKind::AbsoluteDelta => match row.metric_id.as_str() {
-            "concordance" | "switch_error_proxy" | "missingness_post" => Ok(0.02),
-            _ => Ok(0.05),
-        },
-        ScientificAcceptanceToleranceKind::RelativeFraction => {
-            if row.stage_id == "vcf.phasing" && row.metric_id == "phase_block_n50" {
-                Ok(0.15)
-            } else {
-                Ok(0.05)
-            }
-        }
-        ScientificAcceptanceToleranceKind::NormalizedSetOverlap
-        | ScientificAcceptanceToleranceKind::NormalizedRecordOverlap => Err(anyhow!(
-            "VCF comparable metric `{}` / `{}` uses unsupported tolerance kind policy",
-            row.stage_id,
-            row.metric_id
-        )),
-    }
 }
 
 fn scientific_acceptance_direction_from_vcf(
@@ -475,28 +336,6 @@ fn scientific_acceptance_pass_rule_from_bam(
         }
         BamScientificPassDirection::ExactMatch => ScientificAcceptancePassRule::MatchReference,
         BamScientificPassDirection::StructuredMatch => {
-            ScientificAcceptancePassRule::MatchReferenceStructure
-        }
-    }
-}
-
-fn scientific_acceptance_pass_rule_from_direction(
-    direction: ScientificAcceptanceDirection,
-) -> ScientificAcceptancePassRule {
-    match direction {
-        ScientificAcceptanceDirection::ExactMatchPreferred => {
-            ScientificAcceptancePassRule::MatchReference
-        }
-        ScientificAcceptanceDirection::HigherIsBetter | ScientificAcceptanceDirection::Minimum => {
-            ScientificAcceptancePassRule::MeetOrExceedReference
-        }
-        ScientificAcceptanceDirection::LowerIsBetter | ScientificAcceptanceDirection::Maximum => {
-            ScientificAcceptancePassRule::NotExceedReference
-        }
-        ScientificAcceptanceDirection::Range => {
-            ScientificAcceptancePassRule::RemainWithinReferenceRange
-        }
-        ScientificAcceptanceDirection::StructuredMatch => {
             ScientificAcceptancePassRule::MatchReferenceStructure
         }
     }

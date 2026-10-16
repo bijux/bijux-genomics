@@ -1,8 +1,7 @@
 use crate::commands::cli::{parse, render};
 use anyhow::{Context, Result};
 pub(crate) use bijux_dna_bench_vcf::evidence::metrics::{
-    ComparableMetricDirection, VcfComparableMetricsReport, VcfComparableMetricsRow,
-    DEFAULT_VCF_COMPARABLE_METRICS_PATH,
+    ComparableMetricDirection, VcfComparableMetricsReport, DEFAULT_VCF_COMPARABLE_METRICS_PATH,
 };
 use std::path::{Path, PathBuf};
 pub(crate) fn run_render_vcf_comparable_metrics(

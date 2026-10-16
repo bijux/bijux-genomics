@@ -52,3 +52,5 @@ pub(crate) mod bundle_redaction;
 pub(crate) mod hpc_submission;
 
 pub(crate) mod taxonomy_judgment;
+
+pub(crate) mod scientific_acceptance;

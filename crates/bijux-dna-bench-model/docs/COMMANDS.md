@@ -10,6 +10,8 @@ not own CLI commands or process execution.
 
 | Operation | Rust entrypoint | Purpose |
 | --- | --- | --- |
+| `derive-fastq-scientific-acceptance-threshold` | `derive_fastq_scientific_acceptance_threshold(stage_id, metric_id)` | Derive the existing governed FASTQ threshold or refuse an unknown stage/metric pair without IO. |
+| `derive-vcf-scientific-acceptance-threshold` | `derive_vcf_scientific_acceptance_threshold(stage_id, metric_id, metric_name, unit, direction, required)` | Derive the existing governed VCF threshold, retaining exact-match and refusal priority without IO. |
 | `fastq-benchmark-walltime-minutes` | `fastq_benchmark_walltime_minutes(stage_id, tool_id)` | Select the governed FASTQ benchmark walltime hint in minutes, retaining tool precedence and the unprofiled-pair fallback. |
 | `vcf-benchmark-walltime-minutes` | `vcf_benchmark_walltime_minutes(stage)` | Select the governed walltime hint in minutes for a typed VCF stage. |
 | `decode-benchmark-taxonomy-observation` | `decode_benchmark_taxonomy_observation(raw_json, source_label)` | Decode a supported classifier summary into a typed observation without IO. |
