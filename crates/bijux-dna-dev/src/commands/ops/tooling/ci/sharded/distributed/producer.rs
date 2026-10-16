@@ -75,6 +75,7 @@ pub(super) fn produce(
     args.extend(["--cargo-profile".to_owned(), "ci".to_owned()]);
     command(workspace, reports, "archive-build", args, envs.clone())?;
     set_full_archive_readonly(&roots.archive_file)?;
+    super::super::archive::prepare_full_archive_extraction(&roots.archive_extract)?;
     command(
         workspace,
         reports,

@@ -51,6 +51,7 @@ pub(super) fn consume(
         build_log: reports.join("archive-extract.log"),
     };
     let envs = full_archive_env(&roots, 1)?;
+    super::super::archive::prepare_full_archive_extraction(&roots.archive_extract)?;
     command(workspace, reports, "archive-extract", full_archive_extraction_args(&roots), envs)?;
     seal_full_archive_extraction(&roots.archive_extract)?;
     let target = roots.archive_extract.join("target");
