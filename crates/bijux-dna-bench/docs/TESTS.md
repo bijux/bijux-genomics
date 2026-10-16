@@ -97,3 +97,9 @@ Cross-domain campaign pure cases execute once in `bijux-dna-bench-model` under
 `workflow::cross_campaign::tests::derives_publishes_and_loads_admitted_cross_campaign`
 case stays with persisted report admission and atomic publication. Its body and
 public operation signatures remain unchanged.
+
+Alias-audit owner tests inject stage and tool aliases across all four readiness
+surfaces, retain result/corpus/profile identity, and distinguish candidate-scoped
+tool membership from merely similar spellings on other surfaces. Stable ordering
+and duplicate observations have direct coverage. The CLI integration cases retain
+the existing report schema, counts and governed JSON publication behavior.

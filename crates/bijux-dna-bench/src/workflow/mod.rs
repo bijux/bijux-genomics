@@ -83,9 +83,10 @@ pub use crate::repo::hardening_campaign::{
     load_hardening_benchmark_campaign_report, publish_hardening_benchmark_campaign_report,
 };
 pub use alias_resolution::{
-    choose_canonical_tool_id, derive_benchmark_tool_alias_clusters,
-    legacy_benchmark_stage_alias_target, legacy_benchmark_stage_aliases, normalize_tool_id,
-    required_migration_stage_ids, stage_set_contains_canonical_or_migration_alias,
+    choose_canonical_tool_id, derive_benchmark_stage_tool_alias_violations,
+    derive_benchmark_tool_alias_clusters, legacy_benchmark_stage_alias_target,
+    legacy_benchmark_stage_aliases, normalize_tool_id, required_migration_stage_ids,
+    stage_set_contains_canonical_or_migration_alias, BenchmarkStageToolAliasViolation,
     BenchmarkToolAliasCluster, LegacyBenchmarkStageAlias,
 };
 pub use appraisal::{

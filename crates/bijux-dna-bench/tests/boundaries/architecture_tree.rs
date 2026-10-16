@@ -217,6 +217,7 @@ fn bench_tree_matches_architecture_contract() {
             "micro_report.rs",
             "simulation/",
             "container_qualification/",
+            "alias_resolution/",
             "alias_resolution.rs",
             "appraisal.rs",
             "attempt_migration.rs",

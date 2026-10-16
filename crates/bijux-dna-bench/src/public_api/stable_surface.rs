@@ -93,7 +93,8 @@ pub use crate::workflow::{
     build_full_benchmark_unsupported_pair_rows, build_vcf_stage_catalog_rows,
     build_vcf_stage_matrix_rows, choose_canonical_tool_id, current_benchmark_matrix_timestamp,
     derive_bam_benchmark_campaign, derive_benchmark_local_corpus_skip_report,
-    derive_benchmark_matrix, derive_benchmark_tool_alias_clusters, derive_cross_benchmark_campaign,
+    derive_benchmark_matrix, derive_benchmark_stage_tool_alias_violations,
+    derive_benchmark_tool_alias_clusters, derive_cross_benchmark_campaign,
     derive_fastq_benchmark_campaign, derive_hardening_benchmark_campaign,
     derive_vcf_benchmark_campaign, evaluate_full_benchmark_dashboard,
     expand_benchmark_config_env_placeholders, hardening_queue_from_appraisal,
@@ -118,9 +119,10 @@ pub use crate::workflow::{
     validate_benchmark_config_contract, validate_benchmark_pipeline_profiles,
     validate_benchmark_stage_result_path, validate_vcf_stage_matrix,
     BenchmarkConfigValidationRequest, BenchmarkConfigValidationSummary,
-    BenchmarkLocalCorpusSkipPublicationRequest, BenchmarkMatrixRequest, BenchmarkToolAliasCluster,
-    FullBenchmarkDashboardEvidence, FullBenchmarkDashboardPaths, LegacyBenchmarkStageAlias,
-    PipelineProfileEvidence, DEFAULT_VCF_STAGE_CATALOG_PATH, DEFAULT_VCF_STAGE_MATRIX_PATH,
+    BenchmarkLocalCorpusSkipPublicationRequest, BenchmarkMatrixRequest,
+    BenchmarkStageToolAliasViolation, BenchmarkToolAliasCluster, FullBenchmarkDashboardEvidence,
+    FullBenchmarkDashboardPaths, LegacyBenchmarkStageAlias, PipelineProfileEvidence,
+    DEFAULT_VCF_STAGE_CATALOG_PATH, DEFAULT_VCF_STAGE_MATRIX_PATH,
 };
 pub use bijux_dna_bench_model::{
     admit_real_smoke_core_subset_report, all_domain_active_stage_tool_matrix_schema,

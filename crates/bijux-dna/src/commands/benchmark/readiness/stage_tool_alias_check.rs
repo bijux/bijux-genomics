@@ -7,19 +7,16 @@ use serde::Serialize;
 
 use super::all_domain_active_stage_tool_matrix::{
     collect_all_domain_active_stage_tool_matrix_candidate_rows,
-    collect_all_domain_active_stage_tool_matrix_rows, AllDomainActiveStageToolMatrixRow,
+    collect_all_domain_active_stage_tool_matrix_rows,
 };
-use super::all_domain_expected_benchmark_results::{
-    collect_all_domain_expected_benchmark_result_rows, AllDomainExpectedBenchmarkResultRow,
-};
-use super::all_domain_rendered_commands::{
-    collect_all_domain_rendered_command_rows, AllDomainRenderedCommandRow,
-};
+use super::all_domain_expected_benchmark_results::collect_all_domain_expected_benchmark_result_rows;
+use super::all_domain_rendered_commands::collect_all_domain_rendered_command_rows;
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 use bijux_dna_api::v1::api::bench::{
-    derive_benchmark_tool_alias_clusters, legacy_benchmark_stage_alias_target,
-    legacy_benchmark_stage_aliases, BenchmarkToolAliasCluster,
+    derive_benchmark_stage_tool_alias_violations, derive_benchmark_tool_alias_clusters,
+    legacy_benchmark_stage_aliases, BenchmarkStageToolAliasViolation as StageToolAliasViolationRow,
+    BenchmarkToolAliasCluster,
 };
 
 pub(crate) const DEFAULT_STAGE_TOOL_ALIAS_CHECK_PATH: &str =
@@ -29,30 +26,12 @@ const STAGE_TOOL_ALIAS_CHECK_SCHEMA_VERSION: &str =
 const ACCEPTED_SCOPE_MIGRATION_VALIDATION_ONLY: &str = "migration_validation_only";
 const ALIAS_KIND_STAGE: &str = "stage";
 const ALIAS_KIND_TOOL: &str = "tool";
-const SURFACE_CANDIDATE_MATRIX: &str = "candidate_matrix";
-const SURFACE_ACTIVE_MATRIX: &str = "active_matrix";
-const SURFACE_EXPECTED_RESULTS: &str = "expected_results";
-const SURFACE_RENDERED_COMMANDS: &str = "rendered_commands";
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub(crate) struct MigrationValidationStageAliasRow {
     pub(crate) alias_stage_id: String,
     pub(crate) canonical_stage_id: String,
     pub(crate) accepted_scope: String,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub(crate) struct StageToolAliasViolationRow {
-    pub(crate) alias_kind: String,
-    pub(crate) alias_id: String,
-    pub(crate) canonical_id: String,
-    pub(crate) surface: String,
-    pub(crate) domain: String,
-    pub(crate) stage_id: String,
-    pub(crate) tool_id: String,
-    pub(crate) result_id: Option<String>,
-    pub(crate) corpus_id: Option<String>,
-    pub(crate) asset_profile_id: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize)]
@@ -129,46 +108,13 @@ fn build_stage_tool_alias_check_report(
         .collect::<Vec<_>>();
     let tool_alias_clusters =
         derive_benchmark_tool_alias_clusters(candidate_rows.iter().map(|row| row.tool_id.as_str()));
-    let tool_alias_canonical_by_id = tool_alias_clusters
-        .iter()
-        .flat_map(|cluster| {
-            cluster
-                .alias_tool_ids
-                .iter()
-                .map(|alias_tool_id| (alias_tool_id.clone(), cluster.canonical_tool_id.clone()))
-        })
-        .collect::<BTreeMap<_, _>>();
-
-    let mut violations = Vec::new();
-    collect_candidate_matrix_alias_violations(
+    let violations = derive_benchmark_stage_tool_alias_violations(
         &candidate_rows,
-        &tool_alias_canonical_by_id,
-        &mut violations,
-    );
-    collect_active_matrix_alias_violations(
         &active_rows,
-        &tool_alias_canonical_by_id,
-        &mut violations,
-    );
-    collect_expected_result_alias_violations(
         &expected_rows,
-        &tool_alias_canonical_by_id,
-        &mut violations,
-    );
-    collect_rendered_command_alias_violations(
         &rendered_rows,
-        &tool_alias_canonical_by_id,
-        &mut violations,
+        &tool_alias_clusters,
     );
-    violations.sort_by(|left, right| {
-        left.surface
-            .cmp(&right.surface)
-            .then_with(|| left.domain.cmp(&right.domain))
-            .then_with(|| left.stage_id.cmp(&right.stage_id))
-            .then_with(|| left.tool_id.cmp(&right.tool_id))
-            .then_with(|| left.alias_kind.cmp(&right.alias_kind))
-            .then_with(|| left.alias_id.cmp(&right.alias_id))
-    });
 
     let mut surface_violation_counts = BTreeMap::<String, usize>::new();
     let mut alias_kind_violation_counts = BTreeMap::<String, usize>::new();
@@ -196,181 +142,6 @@ fn build_stage_tool_alias_check_report(
     };
     ensure_stage_tool_alias_check_contract(&report)?;
     Ok(report)
-}
-
-fn collect_candidate_matrix_alias_violations(
-    rows: &[AllDomainActiveStageToolMatrixRow],
-    tool_alias_canonical_by_id: &BTreeMap<String, String>,
-    violations: &mut Vec<StageToolAliasViolationRow>,
-) {
-    for row in rows {
-        push_stage_alias_violation(
-            SURFACE_CANDIDATE_MATRIX,
-            &row.domain,
-            &row.stage_id,
-            &row.tool_id,
-            None,
-            Some(row.corpus_id.clone()),
-            Some(row.asset_profile_id.clone()),
-            violations,
-        );
-        push_tool_alias_violation(
-            SURFACE_CANDIDATE_MATRIX,
-            tool_alias_canonical_by_id,
-            &row.domain,
-            &row.stage_id,
-            &row.tool_id,
-            None,
-            Some(row.corpus_id.clone()),
-            Some(row.asset_profile_id.clone()),
-            violations,
-        );
-    }
-}
-
-fn collect_active_matrix_alias_violations(
-    rows: &[AllDomainActiveStageToolMatrixRow],
-    tool_alias_canonical_by_id: &BTreeMap<String, String>,
-    violations: &mut Vec<StageToolAliasViolationRow>,
-) {
-    for row in rows {
-        push_stage_alias_violation(
-            SURFACE_ACTIVE_MATRIX,
-            &row.domain,
-            &row.stage_id,
-            &row.tool_id,
-            None,
-            Some(row.corpus_id.clone()),
-            Some(row.asset_profile_id.clone()),
-            violations,
-        );
-        push_tool_alias_violation(
-            SURFACE_ACTIVE_MATRIX,
-            tool_alias_canonical_by_id,
-            &row.domain,
-            &row.stage_id,
-            &row.tool_id,
-            None,
-            Some(row.corpus_id.clone()),
-            Some(row.asset_profile_id.clone()),
-            violations,
-        );
-    }
-}
-
-fn collect_expected_result_alias_violations(
-    rows: &[AllDomainExpectedBenchmarkResultRow],
-    tool_alias_canonical_by_id: &BTreeMap<String, String>,
-    violations: &mut Vec<StageToolAliasViolationRow>,
-) {
-    for row in rows {
-        push_stage_alias_violation(
-            SURFACE_EXPECTED_RESULTS,
-            &row.domain,
-            &row.stage_id,
-            &row.tool_id,
-            Some(row.result_id.clone()),
-            Some(row.corpus_id.clone()),
-            Some(row.asset_profile_id.clone()),
-            violations,
-        );
-        push_tool_alias_violation(
-            SURFACE_EXPECTED_RESULTS,
-            tool_alias_canonical_by_id,
-            &row.domain,
-            &row.stage_id,
-            &row.tool_id,
-            Some(row.result_id.clone()),
-            Some(row.corpus_id.clone()),
-            Some(row.asset_profile_id.clone()),
-            violations,
-        );
-    }
-}
-
-fn collect_rendered_command_alias_violations(
-    rows: &[AllDomainRenderedCommandRow],
-    tool_alias_canonical_by_id: &BTreeMap<String, String>,
-    violations: &mut Vec<StageToolAliasViolationRow>,
-) {
-    for row in rows {
-        push_stage_alias_violation(
-            SURFACE_RENDERED_COMMANDS,
-            &row.domain,
-            &row.stage_id,
-            &row.tool_id,
-            Some(row.result_id.clone()),
-            Some(row.corpus_id.clone()),
-            Some(row.asset_profile_id.clone()),
-            violations,
-        );
-        push_tool_alias_violation(
-            SURFACE_RENDERED_COMMANDS,
-            tool_alias_canonical_by_id,
-            &row.domain,
-            &row.stage_id,
-            &row.tool_id,
-            Some(row.result_id.clone()),
-            Some(row.corpus_id.clone()),
-            Some(row.asset_profile_id.clone()),
-            violations,
-        );
-    }
-}
-
-fn push_stage_alias_violation(
-    surface: &str,
-    domain: &str,
-    stage_id: &str,
-    tool_id: &str,
-    result_id: Option<String>,
-    corpus_id: Option<String>,
-    asset_profile_id: Option<String>,
-    violations: &mut Vec<StageToolAliasViolationRow>,
-) {
-    let Some(canonical_id) = legacy_benchmark_stage_alias_target(stage_id) else {
-        return;
-    };
-    violations.push(StageToolAliasViolationRow {
-        alias_kind: ALIAS_KIND_STAGE.to_string(),
-        alias_id: stage_id.to_string(),
-        canonical_id: canonical_id.to_string(),
-        surface: surface.to_string(),
-        domain: domain.to_string(),
-        stage_id: stage_id.to_string(),
-        tool_id: tool_id.to_string(),
-        result_id,
-        corpus_id,
-        asset_profile_id,
-    });
-}
-
-fn push_tool_alias_violation(
-    surface: &str,
-    tool_alias_canonical_by_id: &BTreeMap<String, String>,
-    domain: &str,
-    stage_id: &str,
-    tool_id: &str,
-    result_id: Option<String>,
-    corpus_id: Option<String>,
-    asset_profile_id: Option<String>,
-    violations: &mut Vec<StageToolAliasViolationRow>,
-) {
-    let Some(canonical_id) = tool_alias_canonical_by_id.get(tool_id) else {
-        return;
-    };
-    violations.push(StageToolAliasViolationRow {
-        alias_kind: ALIAS_KIND_TOOL.to_string(),
-        alias_id: tool_id.to_string(),
-        canonical_id: canonical_id.clone(),
-        surface: surface.to_string(),
-        domain: domain.to_string(),
-        stage_id: stage_id.to_string(),
-        tool_id: tool_id.to_string(),
-        result_id,
-        corpus_id,
-        asset_profile_id,
-    });
 }
 
 fn ensure_stage_tool_alias_check_contract(report: &StageToolAliasCheckReport) -> Result<()> {

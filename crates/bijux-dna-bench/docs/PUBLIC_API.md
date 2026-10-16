@@ -317,3 +317,10 @@ published transactionally, and this service is not a production-scale sorter.
 output admission before returning normalized illustrative parser evidence.
 Malformed, unsupported, missing and contradictory inputs are errors; raw
 files remain untouched. This adapter does not prove scientific payload validity.
+
+`derive_benchmark_stage_tool_alias_violations` accepts the four model-owned readiness
+row slices and the caller's existing candidate-derived tool clusters. It returns
+`BenchmarkStageToolAliasViolation` records with their original surface and optional
+result identity. Other surfaces do not expand the candidate tool-alias scope.
+Duplicate observations and stable sort-key ties are retained. This pure operation
+does not acquire files, validate the report envelope, publish results or execute tools.

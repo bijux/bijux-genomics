@@ -5,6 +5,12 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use serde::Serialize;
 
+mod violations;
+
+pub use violations::{
+    derive_benchmark_stage_tool_alias_violations, BenchmarkStageToolAliasViolation,
+};
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct LegacyBenchmarkStageAlias {
     pub alias_stage_id: &'static str,
