@@ -46,3 +46,5 @@ with command routing, help snapshots, and command contract tests in the same
 change.
 
 Benchmark taxonomy judgment separates declared corpus truth from classifier summary observation. `bijux-dna-bench-model` owns typed output records, the supported summary codec and pure expected-presence/count evaluation. `bijux-dna-bench` acquires explicit manifest/table/report files and publishes the existing JSON result. The CLI requests those services through the API benchmark facade. Summary aliases and legacy verdicts remain compatible; summary admission does not validate the full classifier stage report or establish biological truth.
+
+Benchmark stage-tool assets separate explicit planner/corpus acquisition and TOML publication from required binding policy. `readiness/stage_tool_assets.rs` delegates governed FASTQ/BAM asset coverage to the existing benchmark-model contract through the API facade; domain planning, path canonicalization, public command output and filesystem effects remain in their existing adapters.

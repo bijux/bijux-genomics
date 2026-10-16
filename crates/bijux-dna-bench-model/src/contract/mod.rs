@@ -374,7 +374,10 @@ pub use source_authority::validate_benchmark_data_source_spec;
 pub use stage_result::{
     validate_benchmark_stage_result_manifest, validate_benchmark_stage_result_validation_report,
 };
-pub use stage_tool_assets::{validate_stage_tool_assets_config, validate_stage_tool_assets_report};
+pub use stage_tool_assets::{
+    validate_governed_stage_tool_asset_coverage, validate_stage_tool_assets_config,
+    validate_stage_tool_assets_report,
+};
 pub use stage_tool_benchmark_ready::validate_stage_tool_benchmark_ready_report;
 pub use stage_tool_closure::validate_benchmark_stage_tool_closure;
 pub use stage_tool_containers::{

@@ -113,3 +113,5 @@ scientific qualification.
 The cross-domain queue join keeps each complete queue entry when any affected
 row matches a goal. It preserves the original affected-row list, unlike FASTQ
 and VCF goal projections, which trim that list to matched rows.
+
+Stage-tool asset declaration coverage belongs to `contract/stage_tool_assets.rs`. Its governed validator admits the existing FASTQ taxonomy/reference/index and BAM reference/panel bindings over acquired `StageToolAssetRow` values, preserving required identity/path checks and failure order. Generic config/report validation remains separate. The CLI acquires planner/corpus inputs and publishes the existing TOML/report; this pure owner performs no IO or native probe.
