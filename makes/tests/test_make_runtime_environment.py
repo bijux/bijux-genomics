@@ -145,7 +145,7 @@ class MakeRuntimeEnvironmentTests(unittest.TestCase):
         self.provision()
         runtime = self.root / "selected-runtime"
         bcftools, _ = self.provision(runtime)
-        python = self.program(self.root / "chosen-python", "explicit python")
+        python = self.program(self.root / "chosen interpreter/python", "explicit python")
         bash = self.program(self.root / "chosen-bash", "explicit bash")
         variables = (
             f"BIJUX_TEST_RUNTIME_ROOT={runtime}",

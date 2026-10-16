@@ -7,4 +7,4 @@ PYTHON ?= python3
 _python-test: ## Run Python adapter and benchmark contracts with isolated artifacts
 	@$(ensure_artifact_env)
 	@mkdir -p "$(ARTIFACT_TMP_DIR)" "$(PYTEST_DEBUG_TEMPROOT)"
-	@TMPDIR="$(ARTIFACT_TMP_DIR)" TMP="$(ARTIFACT_TMP_DIR)" TEMP="$(ARTIFACT_TMP_DIR)" $(PYTHON) -m pytest
+	@TMPDIR="$(ARTIFACT_TMP_DIR)" TMP="$(ARTIFACT_TMP_DIR)" TEMP="$(ARTIFACT_TMP_DIR)" "$(PYTHON)" -m pytest
