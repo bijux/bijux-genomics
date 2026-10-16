@@ -250,9 +250,12 @@ apptainer-hpc-test: ## Run contract smoke test directly on HPC frontend (no ssh)
 		cargo run -q -p bijux-dna-dev -- containers run check-apptainer-frontend-smoke-proof -- "$(LUNARC_APPTAINER_DIR)"; \
 		tail -n 20 "$(LUNARC_APPTAINER_DIR)/logs/apptainer/summary.txt"
 
-apptainer-hpc-clean: ## Remove frontend apptainer output dir
+apptainer-hpc-clean: ## Remove an owned frontend Apptainer output directory
 	@set -euo pipefail; \
-		rm -rf "$(LUNARC_APPTAINER_DIR)"; \
-		echo "removed $(LUNARC_APPTAINER_DIR)"
+		test -d "$(LUNARC_FRONTEND_SENTINEL)" || { echo "refusing HPC-native cleanup off frontend" >&2; exit 2; }; \
+		python3 -c 'from pathlib import Path; import sys; base, selected = map(Path, sys.argv[1:]); all(value.is_absolute() for value in [base, selected]) or sys.exit("cleanup roots must be absolute"); not selected.is_symlink() or sys.exit("cleanup output must not be a symlink"); boundary, destination = base.resolve(), selected.resolve(); boundary != Path("/") and boundary in destination.parents or sys.exit("cleanup output must stay strictly inside the declared container root")' \
+			"$(BENCHMARK_REMOTE_CONTAINERS_ROOT)" "$(LUNARC_APPTAINER_DIR)"; \
+		rm -rf -- "$(LUNARC_APPTAINER_DIR)"; \
+		printf 'removed %s\n' "$(LUNARC_APPTAINER_DIR)"
 
 .PHONY: _benchmark-sync-push benchmark-sync-push push-lunarc benchmark-sync-push-confirm push-lunarc-confirm _benchmark-sync-pull benchmark-sync-pull pull-lunarc _benchmark-sync-pull-results benchmark-sync-pull-results pull-lunarc-results benchmark-sync-pull-results-prune pull-lunarc-results-prune benchmark-publication-refresh benchmark-lunarc-publication-refresh lunarc-footprint lunarc-prune-code apptainer-lunarc-build apptainer-lunarc-test apptainer-lunarc-pull apptainer-hpc-build apptainer-hpc-test apptainer-hpc-clean
