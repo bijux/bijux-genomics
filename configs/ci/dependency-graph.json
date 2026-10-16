@@ -1043,6 +1043,16 @@
     },
     {
       "consumer": "crate:bijux-dna-containers-qa",
+      "dependency": "crate:bijux-dna-process",
+      "kind": "normal"
+    },
+    {
+      "consumer": "crate:bijux-dna-containers-qa",
+      "dependency": "crate:bijux-dna-process",
+      "kind": "dev"
+    },
+    {
+      "consumer": "crate:bijux-dna-containers-qa",
       "dependency": "crate:bijux-dna-runtime",
       "kind": "normal"
     },
