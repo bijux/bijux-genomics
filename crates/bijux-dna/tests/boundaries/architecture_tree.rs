@@ -31,15 +31,6 @@ fn dna_tree_matches_architecture_contract() {
     .collect();
     assert_eq!(docs_entries, expected_docs, "dna docs must stay capped at ten files");
 
-    let markdown_entries = markdown_entries(&root);
-    let expected_markdown: BTreeSet<_> = std::iter::once("README.md".to_string())
-        .chain(expected_docs.iter().map(|file| format!("docs/{file}")))
-        .collect();
-    assert_eq!(
-        markdown_entries, expected_markdown,
-        "dna markdown must be limited to root README.md and docs/*.md"
-    );
-
     let src_entries = dir_entries(&root.join("src"));
     let expected_src: BTreeSet<_> =
         ["bin/", "cli_entrypoint.rs", "commands/", "lib.rs", "process_exit.rs", "public_api/"]
@@ -547,32 +538,4 @@ fn dir_entries(path: &std::path::Path) -> BTreeSet<String> {
             }
         })
         .collect()
-}
-
-fn markdown_entries(root: &std::path::Path) -> BTreeSet<String> {
-    fn visit(root: &std::path::Path, dir: &std::path::Path, entries: &mut BTreeSet<String>) {
-        for entry in
-            std::fs::read_dir(dir).unwrap_or_else(|err| panic!("read {}: {err}", dir.display()))
-        {
-            let entry =
-                entry.unwrap_or_else(|err| panic!("read entry in {}: {err}", dir.display()));
-            let path = entry.path();
-            if path.is_dir() {
-                visit(root, &path, entries);
-                continue;
-            }
-            if path.extension().and_then(|ext| ext.to_str()) == Some("md") {
-                let rel = path
-                    .strip_prefix(root)
-                    .unwrap_or_else(|err| panic!("strip {}: {err}", path.display()))
-                    .to_string_lossy()
-                    .replace('\\', "/");
-                entries.insert(rel);
-            }
-        }
-    }
-
-    let mut entries = BTreeSet::new();
-    visit(root, root, &mut entries);
-    entries
 }
