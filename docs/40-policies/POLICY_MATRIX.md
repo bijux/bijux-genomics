@@ -27,6 +27,7 @@ Provides a single index for governance checks.
 - mod_naming_policy.rs
 
 Dependency and effect boundaries establish module ownership. The namespace integrity
-check rejects empty or placeholder directories and requires compact module declarations
-to resolve to real source files. Public-item counts and directory depth are not ownership
-criteria.
+check rejects empty directories. A compact namespace containing only `mod.rs` must
+delegate to existing module files rather than reserve names without implementation.
+A fixture directory containing only `.keep` must explain why the directory is retained.
+Public-item counts and directory depth are not ownership criteria.

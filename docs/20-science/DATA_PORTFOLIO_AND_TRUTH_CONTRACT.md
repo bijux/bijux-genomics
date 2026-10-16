@@ -18,6 +18,36 @@ The machine-readable authorities are
 definitions in [`benchmarks/corpora/`](https://github.com/bijux/bijux-genomics/tree/main/benchmarks/corpora). This document defines how those
 authorities must be interpreted by the Rust product owners.
 
+## Scope
+
+This contract governs production benchmark corpus, reference, database, panel,
+and truth-set declarations and their transition into admitted STUDY material.
+It covers access identity, acquisition and derivation lineage, scientific
+fitness, case bindings, permitted claims, and publication or replay use.
+
+## Non-goals
+
+- Promoting checked-in fixtures, smoke inputs, downloaded bytes, or successful
+  stage execution into production scientific evidence without admission.
+- Granting data access or redistribution permission; those decisions require the
+  applicable access receipt and policy verdict.
+- Using cross-tool agreement as independent truth or interpreting a performance-only
+  corpus as evidence of biological accuracy.
+
+## Contracts
+
+- Source declarations, acquisition plans, admitted catalogs, and execution evidence
+  are separate authorities. The typed lifecycle preserves their identities and
+  never infers admission from files already present on disk.
+- Every executable case closes over selected file URIs, SHA-256 digests, byte
+  sizes, and roles as well as corpus, truth, reference, and database identities.
+- The bound fitness profile's sample, study, scale, strata, control, and truth
+  requirements apply together. Missing dimensions remain visible audit blockers.
+- Held-out truth is frozen before comparison and excluded from parameter and tool
+  selection. Claims remain limited to the declared truth strategy and uncertainty.
+- Publication requires current input, result, and report hash closure and valid
+  access policy. Historical evidence is retained without being relabeled current.
+
 ## Ownership
 
 | Surface | Exclusive responsibility |

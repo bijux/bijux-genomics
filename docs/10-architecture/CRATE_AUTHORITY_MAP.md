@@ -5,6 +5,29 @@
 Provide a compatibility navigation surface for crate ownership checks without maintaining a second
 responsibility table.
 
+## Scope
+
+Use this page to find the authority for a crate responsibility, dependency edge,
+or ownership-check failure. It connects the product ownership contract, dependency
+map, and executable checks; the linked documents retain their separate roles.
+
+## Non-goals
+
+- Maintaining another crate responsibility table or an alternative dependency graph.
+- Granting a dependency exception because a crate appears in this navigation page.
+- Replacing crate-local API and effect contracts with repository-wide prose.
+
+## Contracts
+
+- Resolve product and lifecycle ownership in
+  [the target architecture](TARGET_ARCHITECTURE.md), rather than deriving an owner
+  from a command name, directory location, or this page's link list.
+- Resolve permitted dependency edges in [the boundary map](BOUNDARY_MAP.md).
+  A responsibility assignment does not by itself authorize a Cargo dependency.
+- Follow the matching enforcement link below when a dependency, effect, command
+  spawn, or responsibility check fails. Change the owning contract and executable
+  check together when the intended boundary changes.
+
 ## Authority
 
 The repository-wide ownership source of truth is

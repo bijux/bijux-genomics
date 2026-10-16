@@ -18,6 +18,37 @@ configuration remain governed by [the SSOT contract](SSOT.md).
 Production corpus, truth, materialization, and scientific claim eligibility remain governed by
 [the data portfolio and truth contract](../20-science/DATA_PORTFOLIO_AND_TRUTH_CONTRACT.md).
 
+## Scope
+
+This contract assigns container and benchmark product responsibilities to Rust
+crates and defines the flow from authored stage declarations through planning,
+attempt execution, evidence admission, publication, and replay. It applies to
+crate services, public API composition, CLI and operator callers, and the
+repository's container and benchmark declaration trees.
+
+## Non-goals
+
+- Replacing domain-owned scientific declarations or the dependency rules in the
+  boundary map with a second configuration authority.
+- Implementing a tool-specific scheduler or a second lifecycle in shell, Python,
+  the CLI, or the repository's declaration trees.
+- Treating image availability, a successful process, or a scheduler job ID as a
+  scientific verdict or an admitted publication.
+
+## Contracts
+
+- Each product responsibility has the exclusive owner listed below. API, CLI,
+  and operator composition call that owner instead of reconstructing its policy.
+- Execution consumes an immutable, validated stage plan and explicit input-role
+  bindings. Missing material authority is refused before allocation.
+- Submission, observation, and terminal collection are one-shot operations;
+  independent ready execution units proceed within their own resource bounds.
+- Runtime attempts and their lineage remain immutable. Scientific and governance
+  verdicts are independent inputs to benchmark evidence admission.
+- Current publications close over source, catalog, stage, data, artifact, campaign,
+  and report identities. Changed dependencies produce new identities while
+  historical attempts and publications remain addressable.
+
 ## Product Boundary
 
 Containers and benchmarks are application products implemented by workspace crates. The

@@ -37,7 +37,7 @@ Policies are enforced by tests under
 | id_literal_policy | SSOT IDs | string IDs | all crates | `tests/surface/id_literal_policy.rs` |
 | mod_naming_policy | naming hygiene | legacy/internal misuse | all crates | `tests/surface/mod_naming_policy.rs` |
 | no_duplicate_canonicalizers | single canonicalization | duplicate hash/paths | all crates | `tests/surface/no_duplicate_canonicalizers.rs` |
-| no_empty_dirs_policy | namespace integrity | empty directories and placeholder modules | all crates | `tests/boundaries/surface/structure_guards/no_empty_dirs_policy.rs` |
+| no_empty_dirs_policy | namespace integrity | empty directories, unresolved compact module declarations, and unexplained fixture retention | all crates | `tests/boundaries/surface/structure_guards/no_empty_dirs_policy.rs` |
 | no_helpers_policy | no helpers buckets | helpers/utils | all crates | `tests/surface/no_helpers_policy.rs` |
 | no_serde_json_writer | canonical JSON only | raw serde_json writes | all crates | `tests/surface/no_serde_json_writer.rs` |
 | planner_purity | planner purity | parsing logic in planners | planners | `tests/surface/planner_purity.rs` |

@@ -9,6 +9,35 @@ Contract version: v1
 
 Keep the repository layout reviewable and prevent generated paths from recreating a host's absolute workspace hierarchy inside the checkout.
 
+## Scope
+
+This contract covers entries directly beneath the repository root, the declared
+shapes of `containers/` and `benchmarks/`, and embedded absolute-workspace prefixes
+beneath those product trees. It also governs the declared CI artifact destinations
+checked by `check-artifacts-layout`. Crate-internal ownership remains defined by
+[the target architecture](TARGET_ARCHITECTURE.md) and crate-local contracts.
+
+## Non-goals
+
+- Defining the internal module tree of every crate or the contents of every report.
+- Turning a permitted output location into evidence admission or scientific eligibility.
+- Deleting historical run evidence to satisfy an allowlist; recoverable inventories
+  and original path mappings must survive any relocation.
+
+## Contracts
+
+- The native root-layout allowlist and the product-root declarations below must
+  agree. Adding a direct root entry requires an explicit change to both the
+  declaration and its executable check.
+- Generated local outputs use `artifacts/` unless a governed product destination
+  explicitly applies. CI build, archive, and report paths must remain relative
+  children of `artifacts/`, without parent traversal or escaping symlink ancestors.
+- Container and benchmark publication roots retain reviewed declarations and small
+  publications; raw scientific payloads and attempts retain their governed STUDY
+  identities. Directory placement alone does not admit those bytes as evidence.
+- Moving archived outputs preserves checksums, relative trees, and the old-to-new
+  path mapping. Existing serialized input paths retain their original meaning.
+
 ## Repository root
 
 The repository root is governed by the native `check-root-layout` allowlist. New root entries require an architecture decision and a corresponding validator change. Generated output belongs under `artifacts/` unless another governed destination is part of a product contract.
