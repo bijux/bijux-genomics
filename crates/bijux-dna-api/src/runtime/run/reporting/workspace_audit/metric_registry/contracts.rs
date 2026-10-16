@@ -1,3 +1,5 @@
+#![cfg(test)]
+
 use super::*;
 
 fn write_input(root: &Path, relative: &str, payload: &str) -> Result<()> {
