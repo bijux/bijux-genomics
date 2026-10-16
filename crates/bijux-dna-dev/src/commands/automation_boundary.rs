@@ -238,6 +238,9 @@ fn is_governed_shared_script_prefix(prefix: &str) -> bool {
     prefix.ends_with(".bijux/shared/bijux-makes-rs/")
         || prefix.ends_with("shared/bijux-makes-rs/")
         || prefix.ends_with("$(BIJUX_MAKES_SHARED_ROOT)/bijux-makes-rs/")
+        || prefix.ends_with(".bijux/shared/bijux-docs/tooling/")
+        || prefix.ends_with("shared/bijux-docs/tooling/")
+        || prefix.ends_with("$(DOCS_PUBLICATION_SHARED)/tooling/")
 }
 
 #[cfg(test)]
@@ -320,6 +323,48 @@ mod tests {
         std::fs::write(workspace.path("makes/tests/source.py"), [0xff, 0xfe])?;
         let result = check_no_raw_cargo_in_makes(&workspace, &check);
         assert!(result.is_err());
+        Ok(())
+    }
+
+    #[test]
+    fn governed_docs_publication_scripts_are_not_legacy_automation() -> Result<()> {
+        let (_owner, workspace, check) = make_surface_fixture()?;
+        std::fs::write(
+            workspace.path("makes/docs-publication.mk"),
+            concat!(
+                "DOCS_PUBLICATION_SHARED := .bijux/shared/bijux-docs\n",
+                "gate:\n",
+                "\t@source \"$(DOCS_PUBLICATION_SHARED)/tooling/scripts/docs_source_authority.sh\"\n",
+                "\t@python3 \".bijux/shared/bijux-docs/tooling/scripts/project_bijux_docs.py\"\n",
+                "\t@python3 \"shared/bijux-docs/tooling/scripts/project_bijux_docs.py\"\n",
+            ),
+        )?;
+        let outcome = check_no_raw_cargo_in_makes(&workspace, &check)?;
+        assert_eq!(outcome.status, CheckStatus::Passed);
+        Ok(())
+    }
+
+    #[test]
+    fn foreign_docs_script_prefixes_still_refuse() -> Result<()> {
+        let (_owner, workspace, check) = make_surface_fixture()?;
+        for prefix in [
+            ".bijux/shared/foreign-docs/tooling/",
+            ".bijux/shared/bijux-docs-foreign/tooling/",
+            ".bijux/shared/bijux-docs/foreign/",
+            "$(OTHER_PUBLICATION_SHARED)/tooling/",
+            "$(DOCS_PUBLICATION_SHARED)/unowned/",
+            "makes/tooling/",
+        ] {
+            std::fs::write(
+                workspace.path("makes/foreign-publication.mk"),
+                format!("gate:\n\t@python3 \"{prefix}scripts/project_bijux_docs.py\"\n"),
+            )?;
+            let outcome = check_no_raw_cargo_in_makes(&workspace, &check)?;
+            assert_eq!(outcome.status, CheckStatus::Failed);
+            assert!(outcome
+                .detail
+                .contains("makes/foreign-publication.mk:2:scripts/project_bijux_docs.py"));
+        }
         Ok(())
     }
 
