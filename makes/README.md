@@ -86,6 +86,9 @@ Rust gate artifact layout:
 - `make test-slow` is the lane for tests that exceed the fast-lane budget
 - `make test-all` is the complete, concurrently sharded full-suite lane with bounded worker admission
 
+The slow roster accounts for fixture setup and child workflows as part of each test’s runtime.
+Slow cases remain selected by `test-slow` and `test-all`.
+
 The complete executor accepts larger complete partition rosters, including hundreds of shards.
 It admits preparation and test execution together within a detected CPU allocation. Set
 `BIJUX_CI_FULL_WORKER_BUDGET` to the allocated total case workers,
