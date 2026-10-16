@@ -241,13 +241,17 @@ fn is_governed_shared_script_prefix(prefix: &str) -> bool {
         || prefix.ends_with(".bijux/shared/bijux-docs/tooling/")
         || prefix.ends_with("shared/bijux-docs/tooling/")
         || prefix.ends_with("$(DOCS_PUBLICATION_SHARED)/tooling/")
+        || prefix.ends_with(".bijux/shared/bijux-gh/")
+        || prefix.ends_with("shared/bijux-gh/")
 }
 
 #[cfg(test)]
 mod tests {
     use anyhow::{Context, Result};
 
-    use super::{check_no_raw_cargo_in_makes, is_governed_shared_script_prefix};
+    use super::{
+        check_ci_automation_surface, check_no_raw_cargo_in_makes, is_governed_shared_script_prefix,
+    };
     use crate::catalog::checks::check_registry;
     use crate::model::check::{CheckDefinition, CheckStatus};
     use crate::runtime::workspace::Workspace;
@@ -364,6 +368,39 @@ mod tests {
             assert!(outcome
                 .detail
                 .contains("makes/foreign-publication.mk:2:scripts/project_bijux_docs.py"));
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn governed_publication_workflow_keeps_legacy_references_visible() -> Result<()> {
+        let (_owner, workspace, _) = make_surface_fixture()?;
+        let check = check_registry()
+            .into_iter()
+            .find(|check| check.id == "check-ci-automation-surface")
+            .context("maintained CI automation check")?;
+        std::fs::create_dir_all(workspace.path(".github/workflows"))?;
+        for prefix in [".bijux/shared/bijux-gh/", "shared/bijux-gh/"] {
+            std::fs::write(
+                workspace.path(".github/workflows/deploy-docs.yml"),
+                format!("run: python3 {prefix}scripts/publication_admission.py\n"),
+            )?;
+            assert_eq!(
+                check_ci_automation_surface(&workspace, &check)?.status,
+                CheckStatus::Passed
+            );
+        }
+        for prefix in ["", "makes/", ".bijux/shared/foreign-gh/", ".bijux/shared/bijux-gh-foreign/"]
+        {
+            std::fs::write(
+                workspace.path(".github/workflows/unowned.yml"),
+                format!("run: python3 {prefix}scripts/publication_admission.py\n"),
+            )?;
+            let outcome = check_ci_automation_surface(&workspace, &check)?;
+            assert_eq!(outcome.status, CheckStatus::Failed);
+            assert!(outcome
+                .detail
+                .contains(".github/workflows/unowned.yml:1:scripts/publication_admission.py"));
         }
         Ok(())
     }
