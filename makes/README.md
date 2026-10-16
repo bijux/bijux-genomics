@@ -7,6 +7,8 @@ Public targets (stable contract):
 - `test`
 - `test-slow`
 - `test-all`
+- `test-preflight`
+- `test-complete`
 - `test-all-frozen`
 - `lint-frozen`
 - `audit-frozen`
@@ -35,7 +37,10 @@ Internal targets can be listed with:
 - `SHOW_INTERNAL=1 make help`
 
 Target -> implementation mapping (no hidden magic):
-- `fmt`, `lint`, `test`, `test-slow`, `test-all`, and `coverage` -> shared `bijux-makes-rs` targets through `makes/bin/run_genomics_rust_gate.sh`
+- `fmt`, `lint`, `test`, `test-slow`, and `coverage` -> shared `bijux-makes-rs` targets through `makes/bin/run_genomics_rust_gate.sh`
+- `test-all` -> the Genomics complete Rust shard executor through the repository Rust-gate adapter
+- `test-preflight` -> pinned Nextest and full-suite native dependency checks without building test binaries
+- `test-complete` -> all declared Rust, doctest and Python lanes with exact aggregate membership
 - `audit` -> the shared Rust audit after Genomics audit-governance prerequisites
 - `test-all-frozen`, `lint-frozen`, and `audit-frozen` -> shared immutable-ref launcher
 - `github-all` -> the unique Make commands declared by `.github/workflows/ci.yml`, discovered from
@@ -116,3 +121,28 @@ Current internal targets surfaced by help:
 `_python-test` runs the Python benchmark and adapter contracts with the root
 `pyproject.toml` configuration. Select an interpreter containing its `checks`
 dependency group through `PYTHON`; caches and temporary output use `artifacts/`.
+
+## Local test runtimes
+
+Make prefers executable tools provisioned under
+`artifacts/runtime/bcftools/install/bin` and `artifacts/runtime/bash/install/bin`.
+Set `BIJUX_TEST_RUNTIME_ROOT` to choose another provisioned runtime root; when
+these tools are absent, normal `PATH` lookup applies. Nested Make calls retain
+each selected directory once. No system installation or shell configuration is
+changed. `PYTHON` defaults to `artifacts/python/checks-environment/bin/python3`
+when that environment exists, otherwise `python3`; an explicit `PYTHON` wins.
+That interpreter must contain the `checks` dependency group from `pyproject.toml`.
+
+Run `make test-preflight` before a full Rust run. The authoritative native version
+is declared in `configs/ci/full-shards.json` and checked against the container
+catalog: currently `bcftools 1.20`. An installed `1.21` does not satisfy that pin.
+Provide the exact release in the selected runtime directory or on `PATH`, or set
+`BIJUX_DNA_RUNNER_BINDINGS` to an absolute checksum-bound runner manifest. The
+preflight prints expected and observed versions and retains its dependency
+report under `artifacts/ci/full-shards/`. Preflight success certifies runtime
+availability only; it does not certify passing tests.
+
+Workflow supervision requires Bash 5.1 or newer. The provisioned Bash directory
+also makes that interpreter available to `github-all`; workflow unit tests accept
+an explicit `BIJUX_GATE_TEST_BASH`. The full local verification controller binds
+the selected interpreter and tools into its lane evidence.

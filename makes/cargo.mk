@@ -196,6 +196,10 @@ test-all: ## Run the full Rust suite, including ignored tests.
 	@$(ensure_artifact_env)
 	@$(MAKE) test-all-rs
 
+test-preflight: _dev-dna-bin ## Check pinned full-suite runtime dependencies without building tests.
+	@$(ensure_artifact_env)
+	@"$(DEV_DNA_BIN)" tooling run ci-test-all-sharded --preflight-only
+
 _test:
 	@$(ensure_artifact_env)
 	@$(MAKE) _dev-dna-bin >/dev/null
@@ -703,3 +707,5 @@ _ci-profile-fast:
 
 _ci-profile-slow:
 	@cargo run -q -p bijux-dna-dev -- tooling run ci-slow
+
+.PHONY: test-preflight

@@ -88,8 +88,26 @@ pub(in super::super) fn observe_full_shard_runtime_dependencies_with_env(
         }),
     )?;
     if !all_available {
+        let unavailable = observations
+            .iter()
+            .filter(|observation| observation["available"] == false)
+            .map(|observation| {
+                format!(
+                    "{}: expected {:?}, observed {:?}",
+                    observation["id"].as_str().unwrap_or("unknown"),
+                    observation["expected_version_line"].as_str().unwrap_or("unknown"),
+                    observation["observed"]
+                        .as_str()
+                        .unwrap_or("")
+                        .lines()
+                        .next()
+                        .unwrap_or("unavailable")
+                )
+            })
+            .collect::<Vec<_>>()
+            .join("; ");
         anyhow::bail!(
-            "full workspace shard runtime dependencies are unavailable; see {}",
+            "full workspace shard runtime dependencies are unavailable ({unavailable}); select the pinned tools with BIJUX_TEST_RUNTIME_ROOT or PATH, or set BIJUX_DNA_RUNNER_BINDINGS to an absolute checksum-bound manifest; run `make test-preflight` before the full suite; see {}",
             report_path.display()
         );
     }
@@ -263,6 +281,31 @@ mod tests {
             receipt.pointer("/dependencies/0/available").and_then(serde_json::Value::as_bool),
             Some(false)
         );
+        Ok(())
+    }
+
+    #[test]
+    fn full_shards_report_exact_version_mismatch_and_runtime_recovery() -> anyhow::Result<()> {
+        let root = tempfile::tempdir()?;
+        let workspace = Workspace { root: root.path().to_path_buf() };
+        let report_path = workspace.root.join("artifacts/runtime-dependencies.json");
+        let dependencies = vec![FullShardRuntimeDependency {
+            id: "bcftools".to_string(),
+            executable: "sh".to_string(),
+            version_args: vec!["-c".to_string(), "printf 'bcftools 1.21\\n'".to_string()],
+            expected_version_line: "bcftools 1.20".to_string(),
+            provisioning: "pinned test tool".to_string(),
+        }];
+        let error =
+            observe_full_shard_runtime_dependencies(&workspace, &dependencies, &report_path)
+                .expect_err("another installed version must not satisfy the pinned tool");
+        let message = error.to_string();
+        assert!(message.contains("expected \"bcftools 1.20\", observed \"bcftools 1.21\""));
+        assert!(message.contains("make test-preflight"));
+        assert!(message.contains("BIJUX_DNA_RUNNER_BINDINGS"));
+        let receipt: serde_json::Value = serde_json::from_slice(&std::fs::read(report_path)?)?;
+        assert_eq!(receipt["all_available"], false);
+        assert_eq!(receipt["dependencies"][0]["available"], false);
         Ok(())
     }
 

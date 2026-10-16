@@ -124,7 +124,16 @@
         "configs/docs/mathjax-source.json",
         "mkdocs.yml",
         "makes/bin/python_test_receipt.py",
-        ".cargo/config.toml"
+        ".cargo/config.toml",
+        "makes/cargo.mk",
+        "makes/cargo-dev.mk",
+        "makes/root.mk",
+        "makes/_macro.mk",
+        "makes/runtime.mk",
+        ".bijux/shared/bijux-makes/environment.mk",
+        ".bijux/shared/bijux-makes-rs/bijux.mk",
+        ".bijux/shared/bijux-makes-rs/cargo.mk",
+        "makes/lunarc.mk"
       ],
       "input_trees": [
         "docs/assets/vendor/mathjax"
@@ -140,7 +149,8 @@
         "basename",
         "mkdir",
         "mktemp",
-        "rm"
+        "rm",
+        "make"
       ],
       "resource_units": 2
     }

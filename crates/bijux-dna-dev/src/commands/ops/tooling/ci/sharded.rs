@@ -70,29 +70,68 @@ pub(in super::super::super) fn tooling_ci_test_all_sharded(
         _ => (false, args),
     };
     let contract_path = workspace.path("configs/ci/full-shards.json");
-    let contract: FullShardContract = serde_json::from_slice(&fs::read(&contract_path)?)
-        .with_context(|| format!("parse {}", contract_path.display()))?;
-    validate_full_shard_contract(&contract)?;
     let preflight_only = matches!(args, [single] if single == "--preflight-only");
-    let selected_shards = select_full_shards(&contract, if preflight_only { &[] } else { args })?;
-    validate_full_shard_runtime_dependency_catalog(workspace, &contract.runtime_dependencies)?;
+    let receipt_path = ci_output_path(workspace, "artifacts/ci/full-gate-timing.json")?;
+    // Runtime admission must replace stale successful evidence before any early refusal.
+    // A successful preflight alone never certifies test execution.
+    let (
+        contract,
+        selected_shards,
+        storage,
+        build_authority,
+        build_authority_sha256,
+        runtime_dependencies,
+    ) = crate::runtime::gate_receipt::run_reported(
+        &receipt_path,
+        serde_json::json!({
+            "schema_version": "bijux.ci.full_gate_timing.v4",
+            "operation": "runtime_admission",
+            "test_execution_started": false,
+            "all_passed": false,
+        }),
+        started,
+        &mut (),
+        |(), receipt| {
+            let contract: FullShardContract = serde_json::from_slice(&fs::read(&contract_path)?)
+                .with_context(|| format!("parse {}", contract_path.display()))?;
+            validate_full_shard_contract(&contract)?;
+            let selected_shards =
+                select_full_shards(&contract, if preflight_only { &[] } else { args })?;
+            validate_full_shard_runtime_dependency_catalog(
+                workspace,
+                &contract.runtime_dependencies,
+            )?;
 
-    let storage = resolve_full_shard_storage_roots(
-        workspace,
-        &contract,
-        std::env::var_os(FULL_SHARD_SCRATCH_ROOT_ENV).map(PathBuf::from),
+            let storage = resolve_full_shard_storage_roots(
+                workspace,
+                &contract,
+                std::env::var_os(FULL_SHARD_SCRATCH_ROOT_ENV).map(PathBuf::from),
+            )?;
+            let build_authority_path = workspace.path(&contract.build_authority);
+            let build_authority = read_ci_build_authority(&build_authority_path)?;
+            require_ci_test_executor(workspace, &build_authority)?;
+            let build_authority_sha256 = bijux_dna_infra::hash_file_sha256(&build_authority_path)?;
+            bijux_dna_infra::ensure_dir(&storage.retained_report_root)?;
+            let runtime_dependencies = observe_full_shard_runtime_dependencies(
+                workspace,
+                &contract.runtime_dependencies,
+                &ci_output_path(workspace, &contract.runtime_dependency_report)?,
+            )?;
+            receipt["runtime_dependencies"] = serde_json::json!(&runtime_dependencies);
+            receipt["runtime_admission_passed"] = serde_json::json!(true);
+            Ok((
+                contract,
+                selected_shards,
+                storage,
+                build_authority,
+                build_authority_sha256,
+                runtime_dependencies,
+            ))
+        },
+        |(), _| Ok(()),
     )?;
     let report_root = storage.retained_report_root.clone();
     let build_authority_path = workspace.path(&contract.build_authority);
-    let build_authority = read_ci_build_authority(&build_authority_path)?;
-    require_ci_test_executor(workspace, &build_authority)?;
-    let build_authority_sha256 = bijux_dna_infra::hash_file_sha256(&build_authority_path)?;
-    bijux_dna_infra::ensure_dir(&report_root)?;
-    let runtime_dependencies = observe_full_shard_runtime_dependencies(
-        workspace,
-        &contract.runtime_dependencies,
-        &ci_output_path(workspace, &contract.runtime_dependency_report)?,
-    )?;
     if preflight_only {
         return Ok(OpsCommandOutcome::success(format!(
             "full workspace runtime preflight passed; report: {}\n",
@@ -103,7 +142,6 @@ pub(in super::super::super) fn tooling_ci_test_all_sharded(
     let source_identity = source_snapshot.commit();
     let source_patch_sha256 = source_snapshot.patch_sha256();
     let source_clean = source_worktree_clean(workspace)?;
-    let receipt_path = ci_output_path(workspace, "artifacts/ci/full-gate-timing.json")?;
     let mut session: (Option<CompilationCache>, Option<FullShardEphemera>) = (None, None);
     crate::runtime::gate_receipt::run_reported(
         &receipt_path,
