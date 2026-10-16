@@ -54,6 +54,24 @@ TEST_PREPARATION_TARGETS = frozenset(
     }
 )
 
+DISTRIBUTED_NATIVE_TARGETS = frozenset({"ci-test-build", "ci-test-shard", "ci-test-aggregate"})
+
+
+def local_gate_equivalents(targets):
+    """A hosted producer/consumer graph becomes one complete local native gate."""
+    if not DISTRIBUTED_NATIVE_TARGETS.intersection(targets):
+        return targets
+    if not DISTRIBUTED_NATIVE_TARGETS.issubset(targets) or "ci-test-python" not in targets:
+        raise ValueError("distributed test workflow omits a producer, consumer, aggregate or Python lane")
+    gates = []
+    for target in targets:
+        if target in {"ci-test-runtime", "ci-test-shard", "ci-test-aggregate"}:
+            continue
+        target = "test-all" if target == "ci-test-build" else target
+        if target not in gates:
+            gates.append(target)
+    return gates
+
 
 def workflow_gates(content: bytes, label: str) -> list[str]:
     """Require unambiguous literal Make commands and preserve their first order."""
@@ -96,6 +114,7 @@ def workflow_gates(content: bytes, label: str) -> list[str]:
                     targets.append(target)
     if not targets:
         raise ValueError("workflow declares no literal Make gates")
+    targets = local_gate_equivalents(targets)
     names = [target.lstrip("_").replace("_", "-") for target in targets]
     if len(names) != len(set(names)):
         raise ValueError("workflow gate artifact identities collide")

@@ -106,6 +106,7 @@ class DeveloperBootstrapProcessTests(unittest.TestCase):
         (self.root / "crates/domain/src").mkdir(parents=True)
         (self.root / "Cargo.toml").write_text(
             '[workspace]\nmembers=["crates/bijux-dna-dev", "crates/domain"]\nresolver="2"\n'
+            '[profile.ci]\ninherits="dev"\ndebug=0\nincremental=false\n'
         )
         (self.root / "crates/bijux-dna-dev/Cargo.toml").write_text(
             '[package]\nname="bijux-dna-dev"\nversion="0.1.0"\nedition="2021"\n'
@@ -133,15 +134,23 @@ class DeveloperBootstrapProcessTests(unittest.TestCase):
         )
 
     def run_bootstrap(
-        self, path: Path | None = None
+        self, path: Path | None = None, profile: str | None = None
     ) -> subprocess.CompletedProcess[str]:
         return subprocess.run(
-            ["sh", str(BOOTSTRAP), str(path or self.binary)],
+            ["sh", str(BOOTSTRAP), str(path or self.binary), *([profile] if profile else [])],
             cwd=self.root,
             env=self.env,
             capture_output=True,
             text=True,
         )
+
+    def test_ci_profile_uses_cargo_declared_artifact_and_refuses_wrong_profile_path(self):
+        binary = self.root / "compiled artifacts/ci/bijux-dna-dev"
+        result = self.run_bootstrap(binary, "ci")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(subprocess.check_output([str(binary)], text=True).strip(), "1")
+        self.assertNotEqual(self.run_bootstrap(binary, "dev").returncode, 0)
+        self.assertNotEqual(self.run_bootstrap(binary, "unregistered").returncode, 0)
 
     def host(self) -> str:
         output = subprocess.check_output(["rustc", "-vV"], text=True, env=self.env)

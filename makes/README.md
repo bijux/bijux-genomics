@@ -9,6 +9,11 @@ Public targets (stable contract):
 - `test-all`
 - `test-preflight`
 - `test-complete`
+- `ci-test-runtime`
+- `ci-test-build`
+- `ci-test-shard`
+- `ci-test-aggregate`
+- `ci-test-python`
 - `test-all-frozen`
 - `lint-frozen`
 - `audit-frozen`
@@ -154,3 +159,40 @@ Workflow supervision requires Bash 5.1 or newer. The provisioned Bash directory
 also makes that interpreter available to `github-all`; workflow unit tests accept
 an explicit `BIJUX_GATE_TEST_BASH`. The full local verification controller binds
 the selected interpreter and tools into its lane evidence.
+
+## Distributed continuous integration
+
+The hosted test graph builds all native targets and features once, then shares
+the compiled archive with independent hash partitions. `ci_partition_count` in
+`configs/ci/full-shards.json` governs the hosted matrix; the ordinary local
+five-shard roster remains unchanged. Each consumer owns its checkout, runtime,
+extraction and output directories. Consumers do not compile workspace code.
+
+`make ci-test-build` uses the `ci` Cargo profile, which inherits development
+assertions and overflow checks while omitting debug symbols and incremental
+state. The producer also qualifies doctests against the same build cache.
+`make ci-test-shard CI_TEST_PARTITION=hash:1/20` consumes only matching source,
+configuration, runtime and compiled inputs. `make ci-test-aggregate` requires the
+exact expected case union and terminal outcomes from every admitted partition.
+Missing, cancelled, failed, duplicate or foreign-source results fail acceptance.
+
+`make ci-test-python` separately runs every Python lane declared in
+`configs/ci/local-test-lanes.json`, retaining collection and execution receipts.
+The required hosted `tests / complete` check waits for all native partitions and
+Python lanes before aggregating. Artifact names include the workflow attempt;
+rerun the whole workflow so a partial rerun cannot mix attempts.
+
+`make ci-test-runtime` provisions the exact checksum-pinned BCFtools source
+release under `artifacts/runtime`. Linux CI caches the installation; its observed
+version is still checked on every use. Existing local installations remain
+supported. This command does not install into system directories.
+
+For `github-all`, the hosted producer, consumer and aggregate steps map to one
+complete local `test-all` gate, alongside `ci-test-python`. Runtime provisioning
+remains a prerequisite. This preserves local coverage without launching
+dependent hosted stages as unrelated parallel commands.
+
+The time budget includes compilation, runtime setup, artifact transfer and final
+aggregation. Partition counts express available parallel work, not a promise of
+five-minute cold builds or runner availability. Hosted measurements must report
+queue time and cold or warm cache state separately.

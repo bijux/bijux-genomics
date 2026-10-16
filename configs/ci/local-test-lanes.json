@@ -138,7 +138,10 @@
         "makes/lab.mk",
         "crates/bijux-dna-dev/src/catalog/ops.rs",
         "makes/bin/run_genomics_rust_gate.sh",
-        "makes/bin/run_nextest_gate.py"
+        "makes/bin/run_nextest_gate.py",
+        "makes/bin/run_distributed_ci.py",
+        "makes/bin/provision_ci_runtime.py",
+        "makes/bin/run_ci_python.py"
       ],
       "input_trees": [
         "docs/assets/vendor/mathjax"

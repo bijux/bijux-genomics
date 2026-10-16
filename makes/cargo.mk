@@ -33,6 +33,32 @@ RUST_AUDIT_PREREQUISITES += audit-policy-rs
 NEXTEST_STATUS_LEVEL ?= all
 NEXTEST_FINAL_STATUS_LEVEL ?= all
 
+CI_CARGO_TARGET_DIR ?= $(abspath $(ARTIFACT_ROOT)/ci/distributed/scratch/producer/compile-cache/cargo)
+CI_DEV_DNA_BIN ?= $(CI_CARGO_TARGET_DIR)/ci/bijux-dna-dev
+
+.PHONY: ci-test-runtime ci-test-build ci-test-shard ci-test-aggregate _ci-dev-dna-bin
+
+ci-test-runtime: ## Provision the exact native runtime beneath artifacts
+	@$(ensure_artifact_env)
+	@"$(PYTHON)" -B makes/bin/provision_ci_runtime.py --runtime-root "$(BIJUX_TEST_RUNTIME_ROOT)" --jobs "$(CARGO_BUILD_JOBS)"
+
+_ci-dev-dna-bin:
+	@$(ensure_artifact_env)
+	@$(DEV_DNA_BOOTSTRAP) "$(CI_DEV_DNA_BIN)" ci
+
+ci-test-build: _ci-dev-dna-bin ## Build reusable native CI tests and their exact inventory
+	@$(ensure_artifact_env)
+	@"$(CI_DEV_DNA_BIN)" tooling run ci-test-all-sharded --github-producer
+
+ci-test-shard: ## Execute one source-bound CI partition from shared products
+	@$(ensure_artifact_env)
+	@$(call require_var,CI_TEST_PARTITION)
+	@"$(PYTHON)" -B makes/bin/run_distributed_ci.py consumer "$(CI_TEST_PARTITION)"
+
+ci-test-aggregate: ## Verify complete and unique native CI coverage
+	@$(ensure_artifact_env)
+	@"$(PYTHON)" -B makes/bin/run_distributed_ci.py aggregate
+
 BIJUX_HELP_TARGETS += github-all github-all-frozen
 BIJUX_HELP_github-all := Run repository-controlled GitHub workflow gates
 BIJUX_HELP_github-all-frozen := Launch pinned GitHub workflow gates in the background
