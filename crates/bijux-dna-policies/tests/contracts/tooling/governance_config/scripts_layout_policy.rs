@@ -1,5 +1,5 @@
 #![allow(non_snake_case)]
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use walkdir::WalkDir;
 
@@ -53,6 +53,16 @@ fn contains_root_automation_reference(raw: &str) -> bool {
     })
 }
 
+// Test fixtures describe refused paths; production references remain governed.
+fn contains_root_automation_reference_in_file(path: &Path, raw: &str) -> bool {
+    if path.extension().and_then(|extension| extension.to_str()) == Some("rs") {
+        let production = bijux_dna_testkit::workspace_support::strip_rust_test_modules(raw);
+        contains_root_automation_reference(&production)
+    } else {
+        contains_root_automation_reference(raw)
+    }
+}
+
 #[test]
 fn policy__contracts__scripts_layout_policy__root_automation_directory_is_absent() {
     let root = workspace_root();
@@ -89,7 +99,7 @@ fn policy__contracts__scripts_layout_policy__repo_does_not_reference_root_automa
             let raw = std::fs::read_to_string(&scope).unwrap_or_default();
             let rel =
                 scope.strip_prefix(&root).unwrap_or(&scope).to_string_lossy().replace('\\', "/");
-            if contains_root_automation_reference(&raw)
+            if contains_root_automation_reference_in_file(&scope, &raw)
                 && !allowlist.iter().any(|allowed| rel == *allowed)
             {
                 offenders.push(scope.display().to_string());
@@ -118,7 +128,7 @@ fn policy__contracts__scripts_layout_policy__repo_does_not_reference_root_automa
                 continue;
             }
             let raw = std::fs::read_to_string(entry.path()).unwrap_or_default();
-            if contains_root_automation_reference(&raw) {
+            if contains_root_automation_reference_in_file(entry.path(), &raw) {
                 offenders.push(entry.path().display().to_string());
             }
         }
@@ -164,6 +174,36 @@ fn policy__contracts__scripts_layout_policy__path_context_preserves_nested_owner
         "makes/../scripts/check.sh",
     ] {
         assert!(contains_root_automation_reference(reference), "root owner: {reference}");
+    }
+}
+
+#[test]
+fn policy__contracts__scripts_layout_policy__rust_test_fixtures_preserve_production_checks() {
+    let source = r##"pub fn production() {}
+#[cfg(test)]
+mod tests {
+    fn negative_fixture() {
+        let quoted = "} scripts/legacy.sh";
+        let raw = r#"} scripts/legacy.sh"#;
+        /* } /* { */ */
+        assert_eq!(quoted, raw);
+    }
+}
+"##;
+    let rust = Path::new("owner.rs");
+    assert!(contains_root_automation_reference(source));
+    assert!(!contains_root_automation_reference_in_file(rust, source));
+    assert!(contains_root_automation_reference_in_file(Path::new("owner.mk"), source));
+    assert!(!contains_root_automation_reference_in_file(
+        rust,
+        "#![cfg(test)]\nconst FIXTURE: &str = \"scripts/legacy.sh\";"
+    ));
+    for production in [
+        format!("const TOOL: &str = \"scripts/legacy.sh\";\n{source}"),
+        format!("{source}\nconst TOOL: &str = \"scripts/legacy.sh\";"),
+        "const FIXTURE: &str = r#\"\n#[cfg(test)]\nmod fake {}\n\"#;\nconst TOOL: &str = \"scripts/legacy.sh\";".to_owned(),
+    ] {
+        assert!(contains_root_automation_reference_in_file(rust, &production));
     }
 }
 
