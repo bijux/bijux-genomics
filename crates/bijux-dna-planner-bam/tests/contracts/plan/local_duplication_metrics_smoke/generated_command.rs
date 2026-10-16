@@ -1,7 +1,7 @@
 //! Execute declared command languages with private, non-scientific backend observations.
 use std::ffi::OsStr;
 use std::os::unix::fs::PermissionsExt as _;
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::process::{Command, Output};
 
 use anyhow::{ensure, Context as _, Result};
@@ -11,10 +11,21 @@ use bijux_dna_core::prelude::{StageId, ToolId};
 fn duplication_metrics_command_serializes_observed_counts_and_summary() -> Result<()> {
     let repository = bijux_dna_testkit::workspace_root_from_manifest(env!("CARGO_MANIFEST_DIR"));
     let root = bijux_dna_testkit::tempdir_for("bam-generated-command").keep();
-    let providers = root.join("providers");
+    let providers = root.join("providers with spaces");
     let output = root.join("output");
     std::fs::create_dir_all(&providers)?;
     std::fs::create_dir_all(&output)?;
+    let python =
+        PathBuf::from(std::env::var_os("PYTHON").context("declared genuine Python provider")?);
+    ensure!(
+        python.is_absolute()
+            && python.is_file()
+            && std::fs::metadata(&python)?.permissions().mode() & 0o111 != 0,
+        "Python provider must be an admitted absolute executable file"
+    );
+    let interpreter = providers.join("python");
+    std::fs::write(&interpreter, b"#!/bin/sh\nexec \"$BIJUX_BAM_COMMAND_PYTHON\" \"$@\"\n")?;
+    std::fs::set_permissions(&interpreter, std::fs::Permissions::from_mode(0o755))?;
     let input = root.join("input.bam");
     std::fs::write(&input, b"opaque argv fixture; no alignment evidence\n")?;
     let recorder = providers.join("samtools");
@@ -27,7 +38,7 @@ fn duplication_metrics_command_serializes_observed_counts_and_summary() -> Resul
     let search = std::env::join_paths(
         std::iter::once(providers.clone()).chain(std::env::split_paths(&inherited)),
     )?;
-    provider_controls(&root, &recorder, &input, &search)?;
+    provider_controls(&root, &recorder, &input, &search, &python)?;
     let capture = root.join("observed.argv");
     std::fs::remove_file(&capture)?;
     let tool = bijux_dna_planner_bam::stage_api::load_bam_domain_tool_planning_spec(
@@ -48,7 +59,7 @@ fn duplication_metrics_command_serializes_observed_counts_and_summary() -> Resul
     )?;
     let (program, arguments) = plan.command.template.split_first().context("planned argv")?;
     ensure!(program == "/bin/sh", "actual planned shell changed: {program}");
-    let observation = observe_shell(&root, "planned-command", arguments, &search)?;
+    let observation = observe_shell(&root, "planned-command", arguments, &search, &python)?;
     let expected = [
         "markdup".to_string(),
         "-s".to_string(),
@@ -77,7 +88,13 @@ fn duplication_metrics_command_serializes_observed_counts_and_summary() -> Resul
     Ok(())
 }
 
-fn provider_controls(root: &Path, recorder: &Path, input: &Path, search: &OsStr) -> Result<()> {
+fn provider_controls(
+    root: &Path,
+    recorder: &Path,
+    input: &Path,
+    search: &OsStr,
+    python: &Path,
+) -> Result<()> {
     let interpreter = observe_shell(
         root,
         "interpreter-control",
@@ -86,6 +103,7 @@ fn provider_controls(root: &Path, recorder: &Path, input: &Path, search: &OsStr)
             "python -c 'import json,sys; print(json.dumps({\"value\": 3, \"python\": sys.executable}))'".into(),
         ],
         search,
+        python,
     )?;
     ensure!(
         interpreter.status.success(),
@@ -95,6 +113,24 @@ fn provider_controls(root: &Path, recorder: &Path, input: &Path, search: &OsStr)
     );
     let identity: serde_json::Value = serde_json::from_slice(&interpreter.stdout)?;
     ensure!(identity["value"] == 3 && identity["python"].is_string(), "Python control output");
+    let refusal = observe_shell(
+        root,
+        "interpreter-refusal-control",
+        &[
+            "-c".into(),
+            "python -c \"raise RuntimeError('bijux-duplication-python-refusal-control')\"".into(),
+        ],
+        search,
+        python,
+    )?;
+    ensure!(
+        refusal.status.code() == Some(1)
+            && String::from_utf8_lossy(&refusal.stderr)
+                .contains("bijux-duplication-python-refusal-control"),
+        "selected Python must preserve a genuine interpreter refusal: {}\n{}",
+        refusal.status,
+        String::from_utf8_lossy(&refusal.stderr)
+    );
     let control_output = root.join("control.bam");
     let provider_control = observe_shell(
         root,
@@ -110,16 +146,25 @@ fn provider_controls(root: &Path, recorder: &Path, input: &Path, search: &OsStr)
             control_output.to_str().context("private UTF-8 output path")?.into(),
         ],
         search,
+        python,
     )?;
     ensure!(provider_control.status.success() && control_output.is_file(), "recorder setup");
     Ok(())
 }
 
-fn observe_shell(root: &Path, label: &str, arguments: &[String], search: &OsStr) -> Result<Output> {
+fn observe_shell(
+    root: &Path,
+    label: &str,
+    arguments: &[String],
+    search: &OsStr,
+    python: &Path,
+) -> Result<Output> {
     let observation = Command::new("/bin/sh")
         .args(arguments)
         .current_dir(root)
         .env("PATH", search)
+        .env("BIJUX_BAM_COMMAND_PYTHON", python)
+        .env("PYTHONDONTWRITEBYTECODE", "1")
         .env("HOME", root)
         .env("TMPDIR", root)
         .env("TMP", root)
