@@ -327,19 +327,7 @@ fn policy__boundaries__purity_scans__pipelines_do_not_embed_tool_names() {
     );
 }
 
-#[test]
-fn policy__boundaries__purity_scans__tool_rosters_are_confined_to_registry_sources() {
-    let root = repo_root();
-    let mut offenders = Vec::new();
-    let roster_tokens = [
-        "\"fastp\"",
-        "\"cutadapt\"",
-        "\"samtools\"",
-        "\"kraken2\"",
-        "\"pydamage\"",
-        "\"verifybamid2\"",
-        "\"schmutzi\"",
-    ];
+fn tool_roster_source_is_owned(relative_path: &str) -> bool {
     let allowed_paths = [
         "crates/bijux-dna-domain-compiler/src/lib.rs",
         "crates/bijux-dna-domain-compiler/src/compiler/support/status.rs",
@@ -372,11 +360,29 @@ fn policy__boundaries__purity_scans__tool_rosters_are_confined_to_registry_sourc
         "crates/bijux-dna/src/commands/benchmark/readiness/stage_tool_resources.rs",
         "crates/bijux-dna/src/commands/benchmark/readiness/pair_readiness.rs",
         "crates/bijux-dna/src/commands/benchmark/readiness/fastq_command_adapter_coverage.rs",
-        "crates/bijux-dna/src/commands/benchmark/readiness/stage_tool_assets.rs",
+        "crates/bijux-dna-bench-model/src/contract/stage_tool_assets.rs",
         "crates/bijux-dna/src/commands/benchmark/readiness/adapter_missing_input_audit.rs",
         "crates/bijux-dna/src/commands/benchmark/readiness/corpus_asset_coverage_gate.rs",
         "crates/bijux-dna/src/commands/benchmark/local_adna_micro_pipeline.rs",
         "crates/bijux-dna-api/src/internal/fastq/stages/preprocess/stage_artifacts.rs",
+    ];
+
+    relative_path.starts_with("crates/bijux-dna-stage-contract/src/tool_binding/catalog/")
+        || allowed_paths.contains(&relative_path)
+}
+
+#[test]
+fn policy__boundaries__purity_scans__tool_rosters_are_confined_to_registry_sources() {
+    let root = repo_root();
+    let mut offenders = Vec::new();
+    let roster_tokens = [
+        "\"fastp\"",
+        "\"cutadapt\"",
+        "\"samtools\"",
+        "\"kraken2\"",
+        "\"pydamage\"",
+        "\"verifybamid2\"",
+        "\"schmutzi\"",
     ];
 
     for entry in WalkDir::new(root.join("crates"))
@@ -392,9 +398,7 @@ fn policy__boundaries__purity_scans__tool_rosters_are_confined_to_registry_sourc
         if !rel.contains("/src/") {
             continue;
         }
-        if rel.starts_with("crates/bijux-dna-stage-contract/src/tool_binding/catalog/")
-            || allowed_paths.iter().any(|allowed| rel == *allowed)
-        {
+        if tool_roster_source_is_owned(rel.as_ref()) {
             continue;
         }
         let content = std::fs::read_to_string(path).expect("read source");
@@ -409,6 +413,30 @@ fn policy__boundaries__purity_scans__tool_rosters_are_confined_to_registry_sourc
         "tool rosters must remain in registry sources or explicitly owned tool projections:\n{}",
         offenders.join("\n")
     );
+}
+
+#[test]
+fn policy__boundaries__purity_scans__asset_roster_ownership_does_not_spread_to_neighbors() {
+    let roster_tokens = ["\"kraken2\"", "\"schmutzi\"", "\"verifybamid2\""];
+    let roster = r#"const TOOLS: &[&str] = &["kraken2", "schmutzi", "verifybamid2"];"#;
+    assert_eq!(production_tool_roster_hit_count(roster, &roster_tokens), 3);
+    assert!(tool_roster_source_is_owned(
+        "crates/bijux-dna-bench-model/src/contract/stage_tool_assets.rs"
+    ));
+
+    for path in [
+        "crates/bijux-dna-bench-model/src/contract/stage_tool_assets_other.rs",
+        "crates/bijux-dna-bench-model/src/contract/stage_tool_assets/coverage.rs",
+        "crates/bijux-dna-bench-model/src/contract/stage_tool_assets.rs/coverage.rs",
+        "crates/bijux-dna-bench-model/src/contract/scientific_acceptance.rs",
+        "crates/bijux-dna-bench-model/src/model/stage_tool_assets.rs",
+        "crates/bijux-dna/src/commands/benchmark/readiness/stage_tool_assets.rs",
+    ] {
+        assert!(
+            !tool_roster_source_is_owned(path),
+            "undeclared roster source must not inherit asset contract ownership: {path}"
+        );
+    }
 }
 
 #[test]
