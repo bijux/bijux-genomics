@@ -142,18 +142,24 @@
         "docs/assets/vendor/mathjax"
       ],
       "tools": [
-        "python",
-        "cargo",
-        "rustc",
-        "bash",
-        "sh",
-        "env",
-        "dirname",
         "basename",
+        "bash",
+        "cargo",
+        "chmod",
+        "cp",
+        "dirname",
+        "env",
+        "find",
+        "make",
         "mkdir",
         "mktemp",
+        "python",
         "rm",
-        "make"
+        "rustc",
+        "sh",
+        "tail",
+        "tr",
+        "xargs"
       ],
       "resource_units": 2
     }

@@ -92,10 +92,13 @@ _lint-docs:
 _lint-automation:
 	@$(ensure_artifact_env)
 	@$(MAKE) _dev-dna-bin >/dev/null
-	$(DEV_DNA_BIN) tooling run repo-doctor --fast
-	$(DEV_DNA_BIN) domain run lock-registry
 	@rm -rf "$(ARTIFACTS_DIR)/lint-parallel"
 	@mkdir -p "$(ARTIFACTS_DIR)/lint-parallel"
+	# Nested Cargo commands may replace the build output while peer gates start.
+	@cp -p "$(DEV_DNA_BIN)" "$(ARTIFACTS_DIR)/lint-parallel/bijux-dna-dev"
+	@chmod a-w "$(ARTIFACTS_DIR)/lint-parallel/bijux-dna-dev"
+	"$(ARTIFACTS_DIR)/lint-parallel/bijux-dna-dev" tooling run repo-doctor --fast
+	"$(ARTIFACTS_DIR)/lint-parallel/bijux-dna-dev" domain run lock-registry
 	@cp "$(LINT_PARALLEL_COMMANDS_FILE)" "$(ARTIFACTS_DIR)/lint-parallel/commands.txt"
 	@echo "Running automation lint gates in parallel (jobs=$(LINT_PARALLEL_JOBS)); logs: $(ARTIFACTS_DIR)/lint-parallel"
 	@while IFS= read -r cmd; do printf '%s\0' "$$cmd"; done < "$(ARTIFACTS_DIR)/lint-parallel/commands.txt" \
@@ -114,7 +117,7 @@ _lint-automation:
 			printf "FAILED %s\n" "$$cmd" >&2; \
 			tail -n 80 "$$log_file" >&2; \
 			exit 1; \
-		fi' sh "$(ARTIFACTS_DIR)/lint-parallel" "$(DEV_DNA_BIN)"
+		fi' sh "$(ARTIFACTS_DIR)/lint-parallel" "$(ARTIFACTS_DIR)/lint-parallel/bijux-dna-dev"
 	@find "$(ARTIFACTS_DIR)/lint-parallel" -type f -name '._*' -delete
 
 _lint-automation-contracts:
