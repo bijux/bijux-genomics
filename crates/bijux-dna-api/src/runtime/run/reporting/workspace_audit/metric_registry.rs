@@ -9,6 +9,9 @@ use serde::{Deserialize, Serialize};
 #[cfg(test)]
 mod contracts;
 
+/// Workspace metric vocabulary joined to the declared domain and stage contracts.
+///
+/// Stability: v1 (stable).
 #[derive(Debug, Serialize)]
 pub struct MetricRegistryReport {
     pub schema_version: &'static str,
@@ -20,6 +23,9 @@ pub struct MetricRegistryReport {
     pub rows: Vec<MetricRegistryRow>,
 }
 
+/// One metric's meaning and its declared stage and domain contract surfaces.
+///
+/// Stability: v1 (stable).
 #[derive(Debug, Clone, Serialize, PartialEq, Eq)]
 pub struct MetricRegistryRow {
     pub domain: String,
