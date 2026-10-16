@@ -1,3 +1,4 @@
+//! Owner: bijux-dna-bench
 //! Classify stale benchmark aliases in acquired readiness surfaces.
 
 use std::collections::BTreeMap;

@@ -1,3 +1,4 @@
+//! Owner: bijux-dna-bench
 //! Pure retained-tool scope aggregation over acquired benchmark and delivery records.
 
 use std::collections::{BTreeMap, BTreeSet};
