@@ -403,6 +403,7 @@ pub(in super::super::super) fn tooling_ci_test_all_sharded(
                 products.discover_inventory(
                     workspace,
                     &archive_workspace,
+                    &expected_source,
                     &full_archive_env(&archive_roots, archive_build_jobs)?,
                     &report_root,
                     execution_budget.worker_budget,
@@ -411,6 +412,7 @@ pub(in super::super::super) fn tooling_ci_test_all_sharded(
                 discover_native_inventory(
                     workspace,
                     &archive_workspace,
+                    &expected_source,
                     reuse_inputs,
                     &full_archive_env(&archive_roots, archive_build_jobs)?,
                     &report_root,
@@ -468,7 +470,8 @@ pub(in super::super::super) fn tooling_ci_test_all_sharded(
                 crate_gate_proof_inputs: shard_proof_inputs,
             } = full_execution::run_shards(
                 full_execution::ShardInputs {
-                    workspace,
+                    workspace: &compiled_source,
+                    source_condition: &expected_source,
                     shards: &selected_shards,
                     roots: &shard_roots,
                     plans: &shard_plans,

@@ -17,7 +17,6 @@ use crate::runtime::process::{
     WeightedProcessSpec,
 };
 
-use crate::runtime::source_snapshot::IsolatedSourceIdentity;
 use crate::runtime::workspace::Workspace;
 
 use super::super::sharded::archive::full_shard_args;
@@ -303,7 +302,7 @@ pub(super) fn run_shards(
         plan.require_partition(&captured_inventory, &shard.partition)?;
         plan.verify_inventory(inputs.inventory)?;
     }
-    let expected_source = IsolatedSourceIdentity::capture(inputs.workspace)?;
+    let expected_source = inputs.source_condition;
     expected_source.require_snapshot(inputs.snapshot)?;
     let shard_ids = inputs.shards.iter().map(|shard| shard.id.clone()).collect::<Vec<_>>();
     let original_metadata = std::fs::read(inputs.reuse.binaries_metadata())?;

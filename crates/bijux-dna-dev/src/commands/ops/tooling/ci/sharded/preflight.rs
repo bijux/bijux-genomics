@@ -298,7 +298,8 @@ mod tests {
         }];
         let error =
             observe_full_shard_runtime_dependencies(&workspace, &dependencies, &report_path)
-                .expect_err("another installed version must not satisfy the pinned tool");
+                .err()
+                .context("another installed version must not satisfy the pinned tool")?;
         let message = error.to_string();
         assert!(message.contains("expected \"bcftools 1.20\", observed \"bcftools 1.21\""));
         assert!(message.contains("make test-preflight"));

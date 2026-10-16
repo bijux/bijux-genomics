@@ -8,6 +8,7 @@ use serde_json::{json, Value};
 
 use crate::application::ci::{admit_compiled_executable_paths, NextestReuseInputs};
 use crate::runtime::process::{ParallelProcessOutput, ParallelProcessSpec, ProcessRunner};
+use crate::runtime::source_snapshot::IsolatedSourceIdentity;
 use crate::runtime::workspace::Workspace;
 
 mod executable_seal;
@@ -108,6 +109,7 @@ impl LocalCompiledProducts {
         &self,
         workspace: &Workspace,
         source: &Path,
+        source_condition: &IsolatedSourceIdentity,
         envs: &[(String, String)],
         reports: &Path,
         native_worker_budget: usize,
@@ -115,6 +117,7 @@ impl LocalCompiledProducts {
         discover_native_inventory(
             workspace,
             source,
+            source_condition,
             &self.reuse,
             envs,
             reports,

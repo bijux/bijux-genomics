@@ -9,7 +9,7 @@ use super::sharded::storage::FullShardRoots;
 use crate::application::ci::{
     CompiledWorkspaceExecutables, NextestReuseInputs, ShardDiscoveryPlan,
 };
-use crate::runtime::source_snapshot::TrackedSourceSnapshot;
+use crate::runtime::source_snapshot::{IsolatedSourceIdentity, TrackedSourceSnapshot};
 use crate::runtime::workspace::Workspace;
 use anyhow::{Context, Result};
 
@@ -191,6 +191,7 @@ fn positive_decimal(name: &str, value: Option<&str>) -> Result<Option<usize>> {
 
 pub(super) struct ShardInputs<'a> {
     pub workspace: &'a Workspace,
+    pub source_condition: &'a IsolatedSourceIdentity,
     pub shards: &'a [FullShard],
     pub roots: &'a [FullShardRoots],
     pub plans: &'a [ShardDiscoveryPlan],

@@ -106,6 +106,7 @@ pub(crate) fn native_child_records<'a>(
 pub(crate) fn discover_native_inventory(
     workspace: &Workspace,
     source: &Path,
+    expected_source: &IsolatedSourceIdentity,
     reuse: &NextestReuseInputs,
     envs: &[(String, String)],
     reports: &Path,
@@ -113,10 +114,9 @@ pub(crate) fn discover_native_inventory(
 ) -> Result<(Vec<u8>, std::time::Duration)> {
     let started = Instant::now();
     let source_workspace = Workspace { root: source.to_owned() };
-    let expected_source = IsolatedSourceIdentity::capture(workspace)?;
-    expected_source.require_snapshot(&TrackedSourceSnapshot::capture(workspace)?)?;
     expected_source.verify(&source_workspace)?;
     let source_before = TrackedSourceSnapshot::capture(&source_workspace)?;
+    expected_source.require_snapshot(&source_before)?;
     let metadata = std::fs::read(reuse.binaries_metadata())?;
     let producer_sha256 = bijux_dna_infra::hash_bytes_sha256(&metadata);
     let plan = BinaryDiscoveryPlan::new(&metadata, native_worker_budget)?;
@@ -207,6 +207,125 @@ pub(crate) fn discover_native_inventory(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[cfg(unix)]
+    fn fixture_git(workspace: &Workspace, args: &[&str]) -> Result<()> {
+        let command = std::iter::once("git").chain(args.iter().copied()).collect::<Vec<_>>();
+        let output = ProcessRunner::new(workspace).run(&command)?;
+        ensure!(
+            output.status.success(),
+            "fixture Git failed: {}",
+            String::from_utf8_lossy(&output.stderr)
+        );
+        Ok(())
+    }
+
+    #[cfg(unix)]
+    fn discovery_fixture(root: &Path) -> Result<(NextestReuseInputs, Vec<(String, String)>)> {
+        use std::os::unix::fs::PermissionsExt;
+
+        let tools = root.join("tools");
+        let target = root.join("target");
+        std::fs::create_dir(&tools)?;
+        std::fs::create_dir(&target)?;
+        let cargo = tools.join("cargo");
+        std::fs::write(&cargo, b"#!/bin/sh\nprintf 'invoked\\n' >> \"$DISCOVERY_CALLS\"\n/bin/cat \"$DISCOVERY_INVENTORY\"\n")?;
+        std::fs::set_permissions(&cargo, std::fs::Permissions::from_mode(0o755))?;
+        let binary = json!({"binary-id":"owner::contracts", "binary-name":"contracts",
+            "package-id":"owner-package", "kind":"test", "binary-path":target.join("contracts"),
+            "build-platform":"target"});
+        let build = json!({"target-directory":target});
+        let metadata = root.join("binaries.json");
+        std::fs::write(
+            &metadata,
+            serde_json::to_vec(&json!({"rust-build-meta":build,
+            "rust-binaries":{"owner::contracts":binary}}))?,
+        )?;
+        let mut suite = binary;
+        suite["package-name"] = json!("owner");
+        suite["status"] = json!("listed");
+        suite["testcases"] =
+            json!({"retained":{"ignored":false,"filter-match":{"status":"matches"}}});
+        let inventory = root.join("inventory.json");
+        std::fs::write(
+            &inventory,
+            serde_json::to_vec(&json!({"rust-build-meta":build,
+            "test-count":1,"rust-suites":{"owner::contracts":suite}}))?,
+        )?;
+        let reuse = NextestReuseInputs::new(root.join("cargo.json"), metadata, target)?;
+        Ok((
+            reuse,
+            vec![
+                ("PATH".into(), tools.display().to_string()),
+                ("DISCOVERY_CALLS".into(), root.join("calls").display().to_string()),
+                ("DISCOVERY_INVENTORY".into(), inventory.display().to_string()),
+            ],
+        ))
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn discovery_keeps_admitted_frozen_source_when_canonical_inputs_advance() -> Result<()> {
+        let owner = tempfile::tempdir()?;
+        let root = owner.path().canonicalize()?;
+        let canonical = Workspace { root: root.join("canonical") };
+        std::fs::create_dir(&canonical.root)?;
+        std::fs::write(canonical.path("retained.txt"), b"admitted source\n")?;
+        fixture_git(&canonical, &["init", "--quiet"])?;
+        fixture_git(&canonical, &["config", "user.name", "Source Fixture"])?;
+        fixture_git(&canonical, &["config", "user.email", "source@example.invalid"])?;
+        fixture_git(&canonical, &["config", "commit.gpgsign", "false"])?;
+        fixture_git(&canonical, &["add", "--", "retained.txt"])?;
+        fixture_git(&canonical, &["commit", "--quiet", "-m", "fixture: admit source"])?;
+        let expected = IsolatedSourceIdentity::capture(&canonical)?;
+        let admitted = expected.descriptor();
+        let frozen = Workspace { root: root.join("frozen") };
+        TrackedSourceSnapshot::capture(&canonical)?.materialize(&frozen.root)?;
+        let (reuse, envs) = discovery_fixture(&root)?;
+
+        std::fs::write(canonical.path("retained.txt"), b"later canonical source\n")?;
+        for phase in ["dirty-canonical", "advanced-canonical"] {
+            if phase == "advanced-canonical" {
+                fixture_git(&canonical, &["commit", "--quiet", "-am", "fixture: advance source"])?;
+            }
+            assert!(expected.verify(&canonical).is_err());
+            let reports = root.join(phase);
+            std::fs::create_dir(&reports)?;
+            let (inventory, _) = discover_native_inventory(
+                &canonical,
+                &frozen.root,
+                &expected,
+                &reuse,
+                &envs,
+                &reports,
+                2,
+            )?;
+            assert_eq!(
+                crate::application::ci::ExpectedTestInventory::parse(&inventory)?.case_count(),
+                1
+            );
+            let receipt: serde_json::Value = serde_json::from_slice(&std::fs::read(
+                reports.join("test-inventory-groups.receipt.json"),
+            )?)?;
+            assert_eq!(receipt["source_condition"], admitted);
+            assert_eq!(receipt["source_postcondition"]["unchanged"], true);
+        }
+        assert_eq!(std::fs::read_to_string(root.join("calls"))?, "invoked\ninvoked\n");
+        std::fs::write(frozen.path("retained.txt"), b"changed frozen source\n")?;
+        let refused = discover_native_inventory(
+            &canonical,
+            &frozen.root,
+            &expected,
+            &reuse,
+            &envs,
+            &root.join("changed-frozen"),
+            2,
+        );
+        assert!(refused.is_err_and(|error| error.to_string().contains("SHA/tree/patch")));
+        assert!(!root.join("changed-frozen").exists());
+        assert_eq!(std::fs::read_to_string(root.join("calls"))?, "invoked\ninvoked\n");
+        Ok(())
+    }
 
     #[test]
     fn native_subset_bytes_modes_and_redirected_identity_cannot_be_resealed() -> Result<()> {
