@@ -130,6 +130,7 @@ impl ProvisionedResourceUnits {
     }
 }
 
+/// Keep reservations unchanged for ordinary and provisioned dependency processes.
 pub(super) fn collect_provisioned<F>(
     specs: Vec<WeightedProcessSpec>,
     max_parallelism: usize,
@@ -140,6 +141,62 @@ pub(super) fn collect_provisioned<F>(
 where
     F: Fn(&ParallelProcessSpec) -> Result<Output> + Sync,
 {
+    collect_with_transitions(
+        specs,
+        max_parallelism,
+        resource_capacity,
+        auxiliary,
+        None,
+        |spec, _| run(spec),
+    )
+}
+
+/// A trusted executor may lower a running child's declared reservation once.
+pub(super) fn collect_transitioning<F>(
+    specs: Vec<WeightedProcessSpec>,
+    max_parallelism: usize,
+    resource_capacity: usize,
+    execution_units: Vec<usize>,
+    run: F,
+) -> Result<Vec<DependencyProcessOutput>>
+where
+    F: Fn(&ParallelProcessSpec, &mut dyn FnMut() -> Result<()>) -> Result<Output> + Sync,
+{
+    collect_with_transitions(
+        specs,
+        max_parallelism,
+        resource_capacity,
+        None,
+        Some(execution_units),
+        run,
+    )
+}
+
+enum ReservationEvent {
+    ExecutionStarted(usize),
+    Completed(usize, Result<ParallelProcessOutput>),
+}
+
+fn collect_with_transitions<F>(
+    specs: Vec<WeightedProcessSpec>,
+    max_parallelism: usize,
+    resource_capacity: usize,
+    auxiliary: Option<AuxiliaryReservation>,
+    execution_units: Option<Vec<usize>>,
+    run: F,
+) -> Result<Vec<DependencyProcessOutput>>
+where
+    F: Fn(&ParallelProcessSpec, &mut dyn FnMut() -> Result<()>) -> Result<Output> + Sync,
+{
+    let execution_units =
+        execution_units.unwrap_or_else(|| specs.iter().map(|spec| spec.resource_units).collect());
+    ensure!(execution_units.len() == specs.len(), "execution reservation roster differs");
+    for (spec, &units) in specs.iter().zip(&execution_units) {
+        ensure!(
+            units > 0 && units <= spec.resource_units,
+            "execution reservation must be positive and cannot grow"
+        );
+    }
     if let Some(reservation) = &auxiliary {
         ensure!(
             reservation.demands.len() == specs.len()
@@ -198,6 +255,8 @@ where
         .map(|(spec, dependencies)| dependencies[spec.process.dependencies.len()..].to_vec())
         .collect::<Vec<_>>();
 
+    let mut held_units = specs.iter().map(|spec| spec.resource_units).collect::<Vec<_>>();
+    let mut transitioned = vec![false; specs.len()];
     let mut states = vec![State::Pending; specs.len()];
     let mut outputs = (0..specs.len()).map(|_| None).collect::<Vec<_>>();
     let (sender, receiver) = mpsc::channel();
@@ -263,30 +322,55 @@ where
                         let started = Instant::now();
                         // Every admitted child must send a terminal result even if its executor
                         // panics; the coordinator retains the sender for later slot admission.
-                        let result =
-                            std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| run(spec)))
-                                .unwrap_or_else(|_| {
-                                    Err(anyhow::anyhow!(
-                                        "dependency process {} executor panicked",
-                                        spec.label
-                                    ))
-                                })
-                                .map(|output| ParallelProcessOutput {
-                                    label: spec.label.clone(),
-                                    output,
-                                    duration: started.elapsed(),
-                                });
-                        let _ = sender.send((index, result));
+                        let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+                            let mut execution_started = || {
+                                sender
+                                    .send(ReservationEvent::ExecutionStarted(index))
+                                    .map_err(|_| anyhow::anyhow!("reservation coordinator closed"))
+                            };
+                            run(spec, &mut execution_started)
+                        }))
+                        .unwrap_or_else(|_| {
+                            Err(anyhow::anyhow!(
+                                "dependency process {} executor panicked",
+                                spec.label
+                            ))
+                        })
+                        .map(|output| ParallelProcessOutput {
+                            label: spec.label.clone(),
+                            output,
+                            duration: started.elapsed(),
+                        });
+                        let _ = sender.send(ReservationEvent::Completed(index, result));
                     });
                 }
             }
             if active == 0 {
                 break;
             }
-            let (index, result) =
-                receiver.recv().context("dependency process completion channel closed")?;
+            let (index, result) = match receiver
+                .recv()
+                .context("dependency process completion channel closed")?
+            {
+                ReservationEvent::ExecutionStarted(index) => {
+                    if states[index] != State::Running
+                        || transitioned[index]
+                        || execution_units[index] >= held_units[index]
+                    {
+                        first_error.get_or_insert_with(|| {
+                            anyhow::anyhow!("invalid or repeated execution reservation transition")
+                        });
+                    } else {
+                        occupied_units -= held_units[index] - execution_units[index];
+                        held_units[index] = execution_units[index];
+                        transitioned[index] = true;
+                    }
+                    continue;
+                }
+                ReservationEvent::Completed(index, result) => (index, result),
+            };
             active -= 1;
-            occupied_units -= specs[index].resource_units;
+            occupied_units -= held_units[index];
             if let Some(reservation) = &auxiliary {
                 occupied_resources = occupied_resources
                     .checked_sub(reservation.demands[index])
@@ -306,6 +390,7 @@ where
                 }
             }
         }
+        ensure!(occupied_units == 0, "native reservations were not drained");
         ensure!(
             occupied_resources == ProvisionedResourceUnits::default(),
             "provisioned reservations were not drained"
@@ -588,6 +673,162 @@ mod tests {
         assert_eq!(outputs.len(), 3);
         assert!(maximum.load(Ordering::SeqCst) <= 3);
         assert_eq!(active.load(Ordering::SeqCst), 0);
+
+        // Neither running peer may finish until a third child uses the released startup unit.
+        let signal = (Mutex::new(false), Condvar::new());
+        let active = AtomicUsize::new(0);
+        let maximum = AtomicUsize::new(0);
+        let outputs = collect_transitioning(
+            vec![
+                weighted("listing", 2, &[], &[]),
+                weighted("peer", 1, &[], &[]),
+                weighted("refill", 1, &[], &[]),
+            ],
+            3,
+            3,
+            vec![1, 1, 1],
+            |spec, execution_started| {
+                let startup = if spec.label == "listing" { 2 } else { 1 };
+                let current = active.fetch_add(startup, Ordering::SeqCst) + startup;
+                maximum.fetch_max(current, Ordering::SeqCst);
+                if spec.label == "listing" {
+                    active.fetch_sub(1, Ordering::SeqCst);
+                    execution_started()?;
+                }
+                if spec.label == "refill" {
+                    *signal.0.lock().map_err(|_| anyhow::anyhow!("refill mutex poisoned"))? = true;
+                    signal.1.notify_all();
+                } else {
+                    let (ready, _) = signal
+                        .1
+                        .wait_timeout_while(
+                            signal
+                                .0
+                                .lock()
+                                .map_err(|_| anyhow::anyhow!("refill mutex poisoned"))?,
+                            Duration::from_secs(10),
+                            |ready| !*ready,
+                        )
+                        .map_err(|_| anyhow::anyhow!("refill condition poisoned"))?;
+                    ensure!(*ready, "startup unit was not refilled before peer completion");
+                }
+                let result = output(true);
+                active.fetch_sub(1, Ordering::SeqCst);
+                result
+            },
+        )?;
+        assert_eq!(outputs.len(), 3);
+        assert!(maximum.load(Ordering::SeqCst) <= 3);
+        assert_eq!(active.load(Ordering::SeqCst), 0);
+        assert_paired_startup_limits_four_parent_slots_to_three_live_cases()?;
+        Ok(())
+    }
+
+    /// Paired startup needs two units even when every eventual case needs only one.
+    fn assert_paired_startup_limits_four_parent_slots_to_three_live_cases() -> Result<()> {
+        use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
+        let third_started = (Mutex::new(false), Condvar::new());
+        let fourth_started = AtomicBool::new(false);
+        let live = AtomicUsize::new(0);
+        let maximum = AtomicUsize::new(0);
+        let outputs = collect_transitioning(
+            ["first", "second", "third", "fourth"]
+                .into_iter()
+                .map(|label| weighted(label, 2, &[], &[]))
+                .collect(),
+            4,
+            4,
+            vec![1, 1, 1, 1],
+            |spec, execution_started| {
+                let current = live.fetch_add(1, Ordering::SeqCst) + 1;
+                maximum.fetch_max(current, Ordering::SeqCst);
+                execution_started()?;
+                if spec.label == "third" {
+                    assert_eq!(current, 3);
+                    assert!(!fourth_started.load(Ordering::SeqCst));
+                    *third_started
+                        .0
+                        .lock()
+                        .map_err(|_| anyhow::anyhow!("geometry mutex poisoned"))? = true;
+                    third_started.1.notify_all();
+                } else if spec.label == "fourth" {
+                    fourth_started.store(true, Ordering::SeqCst);
+                } else {
+                    let (ready, _) = third_started
+                        .1
+                        .wait_timeout_while(
+                            third_started
+                                .0
+                                .lock()
+                                .map_err(|_| anyhow::anyhow!("geometry mutex poisoned"))?,
+                            Duration::from_secs(10),
+                            |ready| !*ready,
+                        )
+                        .map_err(|_| anyhow::anyhow!("geometry condition poisoned"))?;
+                    ensure!(*ready, "third case failed to use the reduced reservations");
+                }
+                let result = output(true);
+                live.fetch_sub(1, Ordering::SeqCst);
+                result
+            },
+        )?;
+        assert_eq!(outputs.len(), 4);
+        assert!(fourth_started.load(Ordering::SeqCst));
+        assert_eq!(maximum.load(Ordering::SeqCst), 3);
+        assert_eq!(live.load(Ordering::SeqCst), 0);
+        Ok(())
+    }
+
+    #[test]
+    fn execution_transitions_refuse_invalid_demands_and_drain_failed_or_panicked_peers(
+    ) -> Result<()> {
+        use std::sync::atomic::{AtomicBool, Ordering};
+        for demands in [vec![], vec![0], vec![3]] {
+            assert!(collect_transitioning(
+                vec![weighted("refused", 2, &[], &[])],
+                1,
+                2,
+                demands,
+                |_, _| panic!("invalid transition demand launched")
+            )
+            .is_err());
+        }
+        for failure in ["duplicate", "error", "panic"] {
+            let drained = AtomicBool::new(false);
+            let result = collect_transitioning(
+                vec![weighted("failed", 2, &[], &[]), weighted("peer", 1, &[], &[])],
+                2,
+                3,
+                vec![1, 1],
+                |spec, execution_started| {
+                    if spec.label == "peer" {
+                        drained.store(true, Ordering::SeqCst);
+                        return output(true);
+                    }
+                    execution_started()?;
+                    match failure {
+                        "duplicate" => execution_started()?,
+                        "error" => anyhow::bail!("executor failed after transition"),
+                        "panic" => panic!("executor panicked after transition"),
+                        _ => unreachable!(),
+                    }
+                    output(true)
+                },
+            );
+            assert!(result.is_err(), "{failure}");
+            assert!(drained.load(Ordering::SeqCst), "{failure} left a peer undrained");
+        }
+        // No start event, including an ordinary nonzero terminal, releases the original units once.
+        let outputs = collect_transitioning(
+            vec![weighted("no-event", 2, &[], &[])],
+            1,
+            2,
+            vec![1],
+            |_, _| output(false),
+        )?;
+        assert!(
+            matches!(&outputs[0], DependencyProcessOutput::Completed(value) if !value.output.status.success())
+        );
         Ok(())
     }
 

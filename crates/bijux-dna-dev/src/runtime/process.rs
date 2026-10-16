@@ -1,5 +1,4 @@
 use std::collections::BTreeSet;
-use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Output;
 use std::sync::mpsc;
@@ -10,6 +9,9 @@ use anyhow::{ensure, Context, Result};
 use crate::runtime::workspace::Workspace;
 
 mod dependency_graph;
+mod logged_output;
+
+use logged_output::{run_with_logs, run_with_start_record};
 
 #[derive(Debug, Clone)]
 pub struct DependentProcessSpec {
@@ -146,8 +148,44 @@ impl<'a> ProcessRunner<'a> {
     where
         F: Fn(&ParallelProcessSpec) -> Result<ParallelProcessSpec> + Sync,
     {
+        let execution_units = specs.iter().map(|spec| spec.resource_units).collect();
+        self.run_prepared_transitioning_parallel_logged(
+            specs,
+            execution_units,
+            max_parallelism,
+            resource_capacity,
+            log_directory,
+            |spec| Ok((prepare(spec)?, (|_: &[u8]| Ok(false)) as fn(&[u8]) -> Result<bool>)),
+        )
+    }
+
+    /// Lower a declared startup reservation only after an owner validates its first stdout record.
+    /// Child output still goes directly to durable files; the observer never owns a pipe.
+    ///
+    /// # Errors
+    /// Returns admission, preparation, observation, launch, wait or log IO errors after draining.
+    pub(crate) fn run_prepared_transitioning_parallel_logged<F, O>(
+        &self,
+        specs: Vec<WeightedProcessSpec>,
+        execution_units: Vec<usize>,
+        max_parallelism: usize,
+        resource_capacity: usize,
+        log_directory: &Path,
+        prepare: F,
+    ) -> Result<Vec<ParallelProcessOutput>>
+    where
+        F: Fn(&ParallelProcessSpec) -> Result<(ParallelProcessSpec, O)> + Sync,
+        O: FnMut(&[u8]) -> Result<bool>,
+    {
         ensure!(max_parallelism > 0, "prepared process parallelism must be positive");
         ensure!(resource_capacity > 0, "weighted resource capacity must be positive");
+        ensure!(execution_units.len() == specs.len(), "execution reservation roster differs");
+        let reduced = specs
+            .iter()
+            .zip(&execution_units)
+            .filter(|(spec, units)| **units < spec.resource_units)
+            .map(|(spec, _)| spec.process.process.label.clone())
+            .collect::<BTreeSet<_>>();
         prepare_log_directory(
             specs.iter().map(|spec| spec.process.process.label.as_str()),
             log_directory,
@@ -159,20 +197,34 @@ impl<'a> ProcessRunner<'a> {
                 &serde_json::to_vec_pretty(&receipt)?,
             )?;
         }
-        dependency_graph::collect_weighted(specs, max_parallelism, resource_capacity, |admitted| {
+        dependency_graph::collect_transitioning(specs, max_parallelism, resource_capacity, execution_units, |admitted, execution_started| {
             let preparing=serde_json::json!({"schema_version":"bijux.ci.logged_weighted_child.v1","label":admitted.label,"state":"preparing","terminal":false,"all_passed":false});
             bijux_dna_infra::write_bytes(log_directory.join(format!("{}.receipt.json",admitted.label)),&serde_json::to_vec_pretty(&preparing)?)?;
+            let mut start_observed = false;
             let result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| -> Result<Output> {
-                let spec = prepare(admitted)?;
+                let (spec, mut observe) = prepare(admitted)?;
                 ensure!(spec.label == admitted.label, "prepared weighted process changed admitted identity");
                 let mut command = std::process::Command::new(&spec.program);
                 command.args(&spec.args).envs(spec.envs.iter().map(|(key, value)| (key, value))).current_dir(spec.current_dir.as_ref().unwrap_or(&self.workspace.root));
-                run_with_logs(&mut command, log_directory, &spec.label)
+                if reduced.contains(&spec.label) {
+                    run_with_start_record(&mut command, log_directory, &spec.label, |line| {
+                        if observe(line)? {
+                            execution_started()?;
+                            start_observed = true;
+                        }
+                        Ok(())
+                    })
+                } else {
+                    run_with_logs(&mut command, log_directory, &spec.label)
+                }
             })).unwrap_or_else(|_|Err(anyhow::anyhow!("prepared weighted process {} panicked",admitted.label)));
-            let receipt = serde_json::json!({"schema_version":"bijux.ci.logged_weighted_child.v1","label":admitted.label,
+            let mut receipt = serde_json::json!({"schema_version":"bijux.ci.logged_weighted_child.v1","label":admitted.label,
                 "terminal":true,"state":if result.is_ok() {"complete"} else {"error"},"exit_code":result.as_ref().ok().and_then(|output|output.status.code()),
                 "execution_error":result.as_ref().err().map(|error|format!("{error:#}")),
                 "all_passed":result.as_ref().is_ok_and(|output|output.status.success())});
+            if reduced.contains(&admitted.label) {
+                receipt["execution_start_observed"] = serde_json::json!(start_observed);
+            }
             bijux_dna_infra::write_bytes(log_directory.join(format!("{}.receipt.json", admitted.label)), &serde_json::to_vec_pretty(&receipt)?)?;
             result
         })?.into_iter().map(|result| match result {
@@ -342,28 +394,6 @@ fn prepare_log_directory<'a>(
     }
     bijux_dna_infra::ensure_dir(directory)
         .with_context(|| format!("create process log directory {}", directory.display()))
-}
-
-fn run_with_logs(
-    command: &mut std::process::Command,
-    directory: &Path,
-    label: &str,
-) -> Result<Output> {
-    let stdout_path = directory.join(format!("{label}.stdout.log"));
-    let stderr_path = directory.join(format!("{label}.stderr.log"));
-    let stdout = bijux_dna_infra::create_file(&stdout_path)
-        .with_context(|| format!("create {}", stdout_path.display()))?;
-    let stderr = bijux_dna_infra::create_file(&stderr_path)
-        .with_context(|| format!("create {}", stderr_path.display()))?;
-    let status =
-        command.stdin(std::process::Stdio::null()).stdout(stdout).stderr(stderr).spawn()?.wait()?;
-    Ok(Output {
-        status,
-        stdout: fs::read(&stdout_path)
-            .with_context(|| format!("read {}", stdout_path.display()))?,
-        stderr: fs::read(&stderr_path)
-            .with_context(|| format!("read {}", stderr_path.display()))?,
-    })
 }
 
 #[cfg(test)]

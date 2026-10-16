@@ -99,6 +99,42 @@ fn chunks(
     Ok(chunks)
 }
 
+/// This is the first run record, after the pinned executor has joined both list children.
+/// Test output is captured by the pinned libtest-json-plus mode, never emitted as top-level records.
+fn suite_start_record(
+    chunk: &NativeChunk,
+    inventory: &serde_json::Value,
+    case_counts: &BTreeMap<String, usize>,
+) -> Result<serde_json::Value> {
+    ensure!(chunk.binaries.len() == 1, "startup transition requires one selected binary");
+    let id = chunk.binaries.first().context("native binary absent")?;
+    let metadata: serde_json::Value = serde_json::from_slice(&chunk.metadata)?;
+    let binary = &metadata["rust-binaries"][id];
+    let suite = &inventory["rust-suites"][id];
+    // Physical executable/subset seals remain caller-owned; inventory paths may use admitted target remaps.
+    for field in ["binary-id", "binary-name", "package-id", "kind", "build-platform"] {
+        ensure!(
+            !binary[field].is_null() && binary[field] == suite[field],
+            "startup suite changed {field}"
+        );
+    }
+    let count = *case_counts.get(id).context("selected suite has no admitted cases")?;
+    ensure!(
+        count > 0 && suite["package-name"].as_str().is_some_and(|name| !name.is_empty()),
+        "startup suite identity/count absent"
+    );
+    Ok(json!({"type":"suite", "event":"started", "test_count":count,
+        "nextest":{"crate":suite["package-name"], "test_binary":suite["binary-name"], "kind":suite["kind"]}}))
+}
+
+fn admit_suite_start(expected: &serde_json::Value, line: &[u8]) -> Result<bool> {
+    ensure!(line.last() == Some(&b'\n'), "startup record is incomplete");
+    let observed: serde_json::Value =
+        serde_json::from_slice(line).context("parse native startup record")?;
+    ensure!(observed == *expected, "native startup record differs from admitted suite/count");
+    Ok(true)
+}
+
 fn merge_outputs(
     shard_ids: &[String],
     plans: &[ShardDiscoveryPlan],
@@ -178,6 +214,7 @@ fn run_native_chunks<F>(
     plan: &[NativeChunk],
     budget: &ExecutionBudget,
     report_root: &std::path::Path,
+    starts: &BTreeMap<String, serde_json::Value>,
     prepare: F,
 ) -> Result<Vec<ParallelProcessOutput>>
 where
@@ -200,12 +237,32 @@ where
             terminal_dependencies: chunk.terminal_dependencies.clone(),
         })
         .collect();
-    ProcessRunner::new(workspace).run_prepared_weighted_parallel_logged(
+    let runner = ProcessRunner::new(workspace);
+    if starts.is_empty() {
+        return runner.run_prepared_weighted_parallel_logged(
+            specifications,
+            budget.process_jobs,
+            budget.worker_budget,
+            report_root,
+            prepare,
+        );
+    }
+    let execution_units = plan
+        .iter()
+        .map(|chunk| if starts.contains_key(&chunk.label) { 1 } else { chunk.resource_units })
+        .collect();
+    runner.run_prepared_transitioning_parallel_logged(
         specifications,
+        execution_units,
         budget.process_jobs,
         budget.worker_budget,
         report_root,
-        prepare,
+        |admitted| {
+            let expected = starts.get(&admitted.label).cloned();
+            Ok((prepare(admitted)?, move |line: &[u8]| {
+                admit_suite_start(expected.as_ref().context("startup admission absent")?, line)
+            }))
+        },
     )
 }
 
@@ -229,6 +286,33 @@ pub(super) fn run_shards(
     let original_metadata = std::fs::read(inputs.reuse.binaries_metadata())?;
     let producer_sha256 = bijux_dna_infra::hash_bytes_sha256(&original_metadata);
     let plan = chunks(&original_metadata, &shard_ids, inputs.plans, budget)?;
+    let mut starts = BTreeMap::new();
+    // The existing 2-by-2 geometry retains its static reservations and direct log path.
+    // A one-thread invocation can lower two listing slots only after its exact suite starts.
+    if budget.test_threads_per_process == 1 {
+        let inventory: serde_json::Value = serde_json::from_slice(inputs.inventory_bytes)?;
+        let counts = inputs
+            .plans
+            .iter()
+            .map(ShardDiscoveryPlan::selected_binary_case_counts)
+            .collect::<Vec<_>>();
+        for (plan, counts) in inputs.plans.iter().zip(&counts) {
+            ensure!(
+                counts.values().sum::<usize>() == plan.expected_case_count
+                    && counts.keys().cloned().collect::<BTreeSet<_>>()
+                        == plan.selected_binary_ids(),
+                "selected binary counts differ from admitted partition"
+            );
+        }
+        for chunk in &plan {
+            if chunk.binaries.len() == 1 && chunk.resource_units > 1 {
+                starts.insert(
+                    chunk.label.clone(),
+                    suite_start_record(chunk, &inventory, &counts[chunk.shard_index])?,
+                );
+            }
+        }
+    }
     let workspaces = shard_ids
         .iter()
         .map(|id| inputs.scratch_root.join("workspaces").join(id))
@@ -254,12 +338,20 @@ pub(super) fn run_shards(
         "worker_scope":"ordinary/ignored native listing and declared case workers; parent runtimes and nested tools have no hard physical CPU/process cap",
         "metadata_inputs":metadata_inputs,
         "expected_chunks":plan.iter().map(|chunk|json!({"label":chunk.label,"shard":shard_ids[chunk.shard_index],"binaries":chunk.binaries,"resource_units":chunk.resource_units,"terminal_dependencies":chunk.terminal_dependencies})).collect::<Vec<_>>()});
+    if !starts.is_empty() {
+        receipt["execution_start_admissions"] = json!(starts);
+    }
     bijux_dna_infra::write_bytes(&receipt_path, &serde_json::to_vec_pretty(&receipt)?)?;
     let materialized_sources = Mutex::new(BTreeSet::new());
     let preparation = Mutex::new(BTreeMap::new());
     let proof_handles = Mutex::new(BTreeMap::new());
-    let outputs =
-        run_native_chunks(inputs.workspace, &plan, budget, inputs.report_root, |admitted| {
+    let outputs = run_native_chunks(
+        inputs.workspace,
+        &plan,
+        budget,
+        inputs.report_root,
+        &starts,
+        |admitted| {
             let chunk = plan
                 .iter()
                 .find(|chunk| chunk.label == admitted.label)
@@ -304,6 +396,15 @@ pub(super) fn run_shards(
                 budget.test_threads_per_process,
             )?;
             args.extend(["--filterset".into(), inputs.plans[index].filterset.clone()]);
+            if starts.contains_key(&chunk.label) {
+                ensure!(
+                    args.windows(2).any(|pair| pair == ["--message-format", "libtest-json-plus"])
+                        && args.windows(2).any(|pair| pair == ["--message-format-version", "0.1"])
+                        && args.windows(2).any(|pair| pair == ["--test-threads", "1"])
+                        && !args.iter().any(|arg| arg == "--no-capture" || arg == "--nocapture"),
+                    "startup transition requires pinned captured Nextest event mode"
+                );
+            }
             let mut envs = full_shard_env(&inputs.roots[index], &workspaces[index])?;
             envs.extend(inputs.executables.remapped_environment(inputs.compiled_target)?);
             envs.push(
@@ -321,7 +422,8 @@ pub(super) fn run_shards(
                 envs,
                 current_dir: Some(workspaces[index].clone()),
             })
-        });
+        },
+    );
     let handles = proof_handles
         .into_inner()
         .map_err(|_| anyhow::anyhow!("native proof receipt lock poisoned"))?;
@@ -687,6 +789,56 @@ mod tests {
             )
             .selected_shards_valid
         );
+        Ok(())
+    }
+
+    #[test]
+    fn startup_record_requires_the_admitted_binary_partition_count_and_captured_protocol(
+    ) -> Result<()> {
+        let PartitionFixture { metadata, shard_ids, shard_plans, budget, .. } = fixture()?;
+        let planned = chunks(&metadata, &shard_ids, &shard_plans, &budget)?;
+        let chunk = planned.first().context("fixture chunk absent")?;
+        let id = chunk.binaries.first().context("fixture binary absent")?;
+        let selected: serde_json::Value = serde_json::from_slice(&chunk.metadata)?;
+        let mut suite = selected["rust-binaries"][id].clone();
+        suite["package-name"] = json!("owner");
+        let mut suites = serde_json::Map::new();
+        suites.insert(id.clone(), suite);
+        let inventory = json!({"rust-suites":suites});
+        let counts = shard_plans[chunk.shard_index].selected_binary_case_counts();
+        let expected = suite_start_record(chunk, &inventory, &counts)?;
+        let mut line = serde_json::to_vec(&expected)?;
+        assert!(admit_suite_start(&expected, &line).is_err(), "partial line passed");
+        line.push(b'\n');
+        assert!(admit_suite_start(&expected, &line)?);
+        for (field, value) in [
+            ("event", json!("ok")),
+            ("test_count", json!(0)),
+            ("test_count", json!(counts[id] + 1)),
+        ] {
+            let mut changed = expected.clone();
+            changed[field] = value;
+            let mut raw = serde_json::to_vec(&changed)?;
+            raw.push(b'\n');
+            assert!(admit_suite_start(&expected, &raw).is_err());
+        }
+        for field in ["crate", "test_binary", "kind"] {
+            let mut changed = expected.clone();
+            changed["nextest"][field] = json!("foreign");
+            let mut raw = serde_json::to_vec(&changed)?;
+            raw.push(b'\n');
+            assert!(admit_suite_start(&expected, &raw).is_err());
+        }
+        assert!(
+            admit_suite_start(&expected, b"{\"type\":\"test\",\"event\":\"started\"}\n").is_err()
+        );
+        assert!(admit_suite_start(&expected, b"not json\n").is_err());
+        let doubled = [line.clone(), line].concat();
+        assert!(admit_suite_start(&expected, &doubled).is_err(), "two records passed as one start");
+        assert!(suite_start_record(chunk, &inventory, &BTreeMap::new()).is_err());
+        let mut foreign = inventory;
+        foreign["rust-suites"][id]["package-id"] = json!("foreign-package");
+        assert!(suite_start_record(chunk, &foreign, &counts).is_err());
         Ok(())
     }
 
