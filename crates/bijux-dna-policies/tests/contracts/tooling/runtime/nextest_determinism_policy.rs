@@ -131,9 +131,6 @@ fn policy__contracts__nextest_determinism_policy__full_profile_keeps_long_runnin
     let nextest_expression_builder = root.join("makes/bin/nextest_expr.sh");
     let nextest_expression_builder_source = std::fs::read_to_string(&nextest_expression_builder)
         .expect("read Nextest expression builder");
-    let github_gate_runner =
-        std::fs::read_to_string(root.join("makes/bin/run_github_workflow_gate.sh"))
-            .expect("read GitHub workflow gate runner");
     let slow_roster = std::fs::read_to_string(root.join("configs/rust/nextest-slow-roster.txt"))
         .expect("read nextest slow roster");
     let violations = profile_contract_violations(profile(&config, "full"), true);
@@ -164,7 +161,7 @@ fn policy__contracts__nextest_determinism_policy__full_profile_keeps_long_runnin
                 .contains("sed 's#test(/\\^(?:#test(/(?:^|::)(?:#g'"),
         "the repository Nextest expression boundary must preserve the shared builder and match rostered unit-test suffixes"
     );
-    assert_github_gate_supervision_contract(&github_gate_runner);
+    // Workflow admission and child lifecycle are exercised by makes/tests/test_github_workflow_gate.py.
     bijux_dna_policies::policy_assert!(
         cargo_mk.contains("NEXTEST_SLOW_NAME_EXPR ?= test(/::slow__/)"),
         "make test lanes must use the shared slow__ namespace"
@@ -176,25 +173,6 @@ fn policy__contracts__nextest_determinism_policy__full_profile_keeps_long_runnin
         &rust_gate,
         &pinned_gate,
         &slow_roster,
-    );
-}
-
-fn assert_github_gate_supervision_contract(github_gate_runner: &str) {
-    bijux_dna_policies::policy_assert!(
-        github_gate_runner.contains("cargo nextest list")
-            && github_gate_runner.contains("export CARGO_TARGET_DIR=\"${cargo_target_dir}\"")
-            && github_gate_runner
-                .contains("gate_target_dir=\"${artifact_dir}/targets/${gate_name}\"")
-            && github_gate_runner.contains("CARGO_TARGET_DIR=\"${gate_target_dir}\"")
-            && github_gate_runner.contains("DEV_DNA_BIN=\"${shared_dev_bin}\"")
-            && !github_gate_runner.contains("gate_target=\"test-all\""),
-        "github-all must prebuild its shared developer binary, isolate concurrent Cargo targets, and preserve the workflow's fast test lane"
-    );
-    bijux_dna_policies::policy_assert!(
-        github_gate_runner.contains("wait -n -p completed_pid")
-            && !github_gate_runner.contains("sleep ")
-            && !github_gate_runner.contains(".exit.status"),
-        "github-all must supervise parallel gates from child completion events without polling status files"
     );
 }
 
