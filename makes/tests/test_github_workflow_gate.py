@@ -43,7 +43,7 @@ class WorkflowAdmissionTests(unittest.TestCase):
             GATES.workflow_gates(
                 (ROOT / ".github/workflows/ci.yml").read_bytes(), "actual"
             ),
-            ["fmt", "lint", "audit"],
+            ["fmt", "lint", "audit", "test-all", "ci-test-python"],
         )
 
     def test_quoted_and_block_keys_preserve_order_and_deduplicate(self) -> None:

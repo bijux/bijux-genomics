@@ -10,6 +10,10 @@ Required branch-protection checks for `main`:
 - `std / standard` (from workflow `bijux-std`)
 - `std / report` (from workflow `bijux-std`)
 
+Repository-specific required checks:
+
+- `tests / complete` (from workflow `continuous integration`)
+
 Notes:
 
 - Treat these four checks as the baseline for all governed repos in the unified contract.

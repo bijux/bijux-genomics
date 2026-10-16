@@ -1951,7 +1951,8 @@
             "CARGO_DENY_VERSION": "0.18.3",
             "CARGO_AUDIT_VERSION": "0.22.0",
             "SCCACHE_GHA_ENABLED": "true",
-            "RUSTC_WRAPPER": "sccache"
+            "RUSTC_WRAPPER": "sccache",
+            "CARGO_NEXTEST_VERSION": "0.9.100"
           },
           "jobs": {
             "fmt": {
@@ -2071,6 +2072,301 @@
                   "run": "make audit"
                 }
               ]
+            },
+            "test-build": {
+              "name": "tests / build",
+              "runs-on": "ubuntu-24.04",
+              "timeout-minutes": 30,
+              "env": {
+                "CARGO_HOME": "${{ github.workspace }}/artifacts/cargo/home",
+                "CARGO_TARGET_DIR": "${{ github.workspace }}/artifacts/target",
+                "CARGO_BUILD_JOBS": "4"
+              },
+              "outputs": {
+                "matrix": "${{ steps.matrix.outputs.matrix }}"
+              },
+              "steps": [
+                {
+                  "name": "Check out the repository",
+                  "uses": "actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1"
+                },
+                {
+                  "name": "Install Linux test prerequisites",
+                  "run": "sudo apt-get update && sudo apt-get install --yes pkg-config libfontconfig1-dev libfreetype6-dev zlib1g-dev libbz2-dev liblzma-dev libcurl4-openssl-dev libssl-dev ruby"
+                },
+                {
+                  "name": "Set up Rust",
+                  "uses": "dtolnay/rust-toolchain@e2a55d2ffb04f378e9626c28d38b36d230d1e12f",
+                  "with": {
+                    "toolchain": "${{ env.RUST_TOOLCHAIN_VERSION }}"
+                  }
+                },
+                {
+                  "name": "Install the pinned test executor",
+                  "uses": "taiki-e/install-action@ab6895351a88b908e96a4697860d4ffea5e57dbe",
+                  "with": {
+                    "tool": "cargo-nextest@${{ env.CARGO_NEXTEST_VERSION }}",
+                    "checksum": "true",
+                    "fallback": "none"
+                  }
+                },
+                {
+                  "name": "Verify the test executor version",
+                  "run": "set -euo pipefail\nobserved=\"$(cargo nextest --version)\"\n[[ \"$observed\" == \"cargo-nextest ${CARGO_NEXTEST_VERSION}\" ]] || { printf \"Unexpected test executor: %s\\n\" \"$observed\" >&2; exit 1; }"
+                },
+                {
+                  "name": "Restore the exact native test runtime",
+                  "uses": "actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830",
+                  "with": {
+                    "path": "artifacts/runtime/bcftools/install",
+                    "key": "genomics-${{ runner.os }}-${{ runner.arch }}-bcftools-1.20-${{ hashFiles('configs/ci/full-shards.json', 'makes/bin/*runtime*') }}"
+                  }
+                },
+                {
+                  "name": "Provision the declared native test runtime",
+                  "run": "make ci-test-runtime"
+                },
+                {
+                  "name": "Set up sccache",
+                  "uses": "mozilla/sccache-action@fc920bf0ec8de6ee65d409111f7ec508035751ba"
+                },
+                {
+                  "name": "Restore the compilation cache",
+                  "uses": "Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6",
+                  "with": {
+                    "shared-key": "genomics-ci-test-build",
+                    "workspaces": ". -> artifacts/ci/distributed/scratch/producer/compile-cache/cargo"
+                  }
+                },
+                {
+                  "name": "Build native tests and qualify doctests",
+                  "run": "make ci-test-build"
+                },
+                {
+                  "name": "Publish the exact native partition matrix",
+                  "id": "matrix",
+                  "run": "set -euo pipefail\nmatrix=\"$(python3 -c 'import json; from pathlib import Path; print(json.dumps(json.loads(Path(\"artifacts/ci/distributed/build/matrix.json\").read_text()), separators=(\",\", \":\")))')\"\nprintf 'matrix=%s\\n' \"$matrix\" >> \"$GITHUB_OUTPUT\""
+                },
+                {
+                  "name": "Upload the compiled test archive",
+                  "uses": "actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9",
+                  "with": {
+                    "name": "genomics-test-build-${{ github.run_attempt }}",
+                    "path": "artifacts/ci/distributed/build/",
+                    "compression-level": 0,
+                    "if-no-files-found": "error",
+                    "retention-days": 7
+                  }
+                },
+                {
+                  "name": "Retain producer diagnostics",
+                  "if": "${{ always() }}",
+                  "uses": "actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9",
+                  "with": {
+                    "name": "test-build-diagnostics-${{ github.run_attempt }}",
+                    "path": "artifacts/ci/distributed/build/*.json\nartifacts/ci/distributed/build/*.log",
+                    "if-no-files-found": "warn",
+                    "retention-days": 7
+                  }
+                }
+              ]
+            },
+            "native-tests": {
+              "name": "tests / native (${{ matrix.id }})",
+              "needs": [
+                "test-build"
+              ],
+              "if": "${{ needs.test-build.result == 'success' }}",
+              "runs-on": "ubuntu-24.04",
+              "timeout-minutes": 30,
+              "env": {
+                "CARGO_HOME": "${{ github.workspace }}/artifacts/cargo/home",
+                "CARGO_TARGET_DIR": "${{ github.workspace }}/artifacts/target",
+                "CARGO_BUILD_JOBS": "2",
+                "RUSTC_WRAPPER": ""
+              },
+              "strategy": {
+                "fail-fast": false,
+                "max-parallel": 20,
+                "matrix": "${{ fromJSON(needs.test-build.outputs.matrix) }}"
+              },
+              "steps": [
+                {
+                  "name": "Check out the repository",
+                  "uses": "actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1"
+                },
+                {
+                  "name": "Install Linux test prerequisites",
+                  "run": "sudo apt-get update && sudo apt-get install --yes pkg-config libfontconfig1-dev libfreetype6-dev zlib1g-dev libbz2-dev liblzma-dev libcurl4-openssl-dev libssl-dev ruby"
+                },
+                {
+                  "name": "Set up Rust",
+                  "uses": "dtolnay/rust-toolchain@e2a55d2ffb04f378e9626c28d38b36d230d1e12f",
+                  "with": {
+                    "toolchain": "${{ env.RUST_TOOLCHAIN_VERSION }}"
+                  }
+                },
+                {
+                  "name": "Install the pinned test executor",
+                  "uses": "taiki-e/install-action@ab6895351a88b908e96a4697860d4ffea5e57dbe",
+                  "with": {
+                    "tool": "cargo-nextest@${{ env.CARGO_NEXTEST_VERSION }}",
+                    "checksum": "true",
+                    "fallback": "none"
+                  }
+                },
+                {
+                  "name": "Verify the test executor version",
+                  "run": "set -euo pipefail\nobserved=\"$(cargo nextest --version)\"\n[[ \"$observed\" == \"cargo-nextest ${CARGO_NEXTEST_VERSION}\" ]] || { printf \"Unexpected test executor: %s\\n\" \"$observed\" >&2; exit 1; }"
+                },
+                {
+                  "name": "Restore the exact native test runtime",
+                  "uses": "actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830",
+                  "with": {
+                    "path": "artifacts/runtime/bcftools/install",
+                    "key": "genomics-${{ runner.os }}-${{ runner.arch }}-bcftools-1.20-${{ hashFiles('configs/ci/full-shards.json', 'makes/bin/*runtime*') }}"
+                  }
+                },
+                {
+                  "name": "Provision the declared native test runtime",
+                  "run": "make ci-test-runtime"
+                },
+                {
+                  "name": "Download the exact compiled test archive",
+                  "uses": "actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333",
+                  "with": {
+                    "name": "genomics-test-build-${{ github.run_attempt }}",
+                    "path": "artifacts/ci/distributed/build"
+                  }
+                },
+                {
+                  "name": "Run the admitted native partition",
+                  "env": {
+                    "CI_TEST_PARTITION": "${{ matrix.partition }}"
+                  },
+                  "run": "make ci-test-shard"
+                },
+                {
+                  "name": "Upload native outcomes and diagnostics",
+                  "if": "${{ always() }}",
+                  "uses": "actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9",
+                  "with": {
+                    "name": "native-${{ matrix.id }}-${{ github.run_attempt }}",
+                    "path": "artifacts/ci/distributed/shards/",
+                    "if-no-files-found": "error",
+                    "retention-days": 7
+                  }
+                }
+              ]
+            },
+            "python-tests": {
+              "name": "tests / python",
+              "runs-on": "ubuntu-24.04",
+              "timeout-minutes": 30,
+              "steps": [
+                {
+                  "name": "Check out the repository",
+                  "uses": "actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1"
+                },
+                {
+                  "name": "Set up Rust",
+                  "uses": "dtolnay/rust-toolchain@e2a55d2ffb04f378e9626c28d38b36d230d1e12f",
+                  "with": {
+                    "toolchain": "${{ env.RUST_TOOLCHAIN_VERSION }}"
+                  }
+                },
+                {
+                  "name": "Set up Python",
+                  "uses": "actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97",
+                  "with": {
+                    "python-version": "3.13"
+                  }
+                },
+                {
+                  "name": "Install Python checks",
+                  "run": "set -euo pipefail\npython -m venv artifacts/python/checks-environment\nartifacts/python/checks-environment/bin/python -m pip install 'pip==25.2'\nartifacts/python/checks-environment/bin/python -m pip install --group checks"
+                },
+                {
+                  "name": "Run every declared Python test lane",
+                  "run": "make ci-test-python"
+                },
+                {
+                  "name": "Retain Python lane diagnostics",
+                  "if": "${{ always() }}",
+                  "uses": "actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9",
+                  "with": {
+                    "name": "python-test-results-${{ github.run_attempt }}",
+                    "path": "artifacts/ci/distributed/python/",
+                    "if-no-files-found": "error",
+                    "retention-days": 7
+                  }
+                }
+              ],
+              "env": {
+                "PYTHON": "${{ github.workspace }}/artifacts/python/checks-environment/bin/python",
+                "RUSTC_WRAPPER": ""
+              }
+            },
+            "test-complete": {
+              "name": "tests / complete",
+              "needs": [
+                "test-build",
+                "native-tests",
+                "python-tests"
+              ],
+              "if": "${{ always() }}",
+              "runs-on": "ubuntu-24.04",
+              "timeout-minutes": 10,
+              "env": {
+                "RUSTC_WRAPPER": ""
+              },
+              "steps": [
+                {
+                  "name": "Check out the repository",
+                  "uses": "actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1"
+                },
+                {
+                  "name": "Require successful build, all native partitions and Python lanes",
+                  "env": {
+                    "BUILD_RESULT": "${{ needs.test-build.result }}",
+                    "NATIVE_RESULT": "${{ needs.native-tests.result }}",
+                    "PYTHON_RESULT": "${{ needs.python-tests.result }}"
+                  },
+                  "run": "set -euo pipefail\nfor result in \"$BUILD_RESULT\" \"$NATIVE_RESULT\" \"$PYTHON_RESULT\"; do\n  [[ \"$result\" == success ]] || { printf 'Required test lane did not succeed: %s\\n' \"$result\" >&2; exit 1; }\ndone"
+                },
+                {
+                  "name": "Download the authoritative native inventory",
+                  "uses": "actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333",
+                  "with": {
+                    "name": "genomics-test-build-${{ github.run_attempt }}",
+                    "path": "artifacts/ci/distributed/build"
+                  }
+                },
+                {
+                  "name": "Download all current-attempt native outcomes",
+                  "uses": "actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333",
+                  "with": {
+                    "pattern": "native-*-${{ github.run_attempt }}",
+                    "path": "artifacts/ci/distributed/shards",
+                    "merge-multiple": true
+                  }
+                },
+                {
+                  "name": "Require exact native outcome coverage",
+                  "run": "make ci-test-aggregate"
+                },
+                {
+                  "name": "Retain exact native aggregation evidence",
+                  "if": "${{ always() }}",
+                  "uses": "actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9",
+                  "with": {
+                    "name": "test-aggregate-${{ github.run_attempt }}",
+                    "path": "artifacts/ci/distributed/aggregate/",
+                    "if-no-files-found": "warn",
+                    "retention-days": 7
+                  }
+                }
+              ]
             }
           }
         }
@@ -2098,7 +2394,13 @@
         "dependency_pull_requests": "notification-only",
         "dependency_merge": "owner-consolidation",
         "main_verification": "accepted-pull-request"
-      }
+      },
+      "additional_required_status_checks": [
+        {
+          "context": "tests / complete",
+          "workflow": "continuous integration"
+        }
+      ]
     },
     {
       "name": "bijux-iac",
