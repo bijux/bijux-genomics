@@ -4,6 +4,8 @@
 
 ### Changed
 
+- Verify the complete native and Python test lanes through a build-once archive, independently rooted CI partitions and exact final coverage; reshape crate and CLI ownership and retain meaningful test contracts ([#175](https://github.com/bijux/bijux-genomics/pull/175)).
+
 - Adopt accepted reader preference recovery, inert native search, truthful clipboard feedback, patched publication dependencies and authenticated workflow actions for source readiness while retaining local MathJax assets ([#163](https://github.com/bijux/bijux-genomics/pull/163)).
 
 - Retain the admitted documentation renderer and MathJax assets while adopting the canonical bounded manual publication workflow and independently checked governance components ([#162](https://github.com/bijux/bijux-genomics/pull/162)).
@@ -11,5 +13,7 @@
 - Qualify source-bound manual documentation publication with a frozen Linux media renderer, reviewed local MathJax assets and exact repository source links ([#161](https://github.com/bijux/bijux-genomics/pull/161)).
 
 ### Fixed
+
+- Bind Make gates to current compiled products and pinned runtime dependencies, prepare archive extraction roots, and propagate report sink failures ([#175](https://github.com/bijux/bijux-genomics/pull/175)).
 
 - Upgrade the HTTP/3 transport to `quinn-proto 0.11.18` to resolve five QUIC security advisories without suppressing the dependency audit ([#162](https://github.com/bijux/bijux-genomics/pull/162)).
