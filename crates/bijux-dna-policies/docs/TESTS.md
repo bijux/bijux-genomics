@@ -10,7 +10,7 @@
 - `tests/boundaries/` — dependency boundaries, source layout, documentation spine, and surface safety rules.
 - `tests/contracts/` — policy contracts, snapshots, tooling governance, and workspace-level invariants.
 - `tests/determinism/` — stable-order and fixture reproducibility rules.
-- `tests/support/` — shared filesystem helpers used across policy suites.
+- `tests/support/` — private filesystem, Cargo-observation, and Rust source classification helpers.
 - `tests/fixtures/` — sample inputs referenced by policy tests.
 - `tests/snapshots/` — locked snapshots for guardrail defaults and documentation contracts.
 - Schema-style policy snapshots stay under `tests/snapshots/` until a materialized schemas suite exists.
@@ -46,3 +46,9 @@ stage-identifier rules. Equivalent public aliases retain the same outcome whethe
 reexports are grouped or separate statements. The public-item count field remains serialized
 for configuration compatibility and does not impose a mandatory lexical quota. The separate
 public-use count rule remains an explicit opt-in policy with its scoped-reexport negative.
+
+The scratch filesystem-path classifier is private support under `tests/support/rust_source/`.
+Only `tests/contracts.rs` registers it; the existing determinism policy case retains its
+positive/negative source vectors, actual CLI helper check, and workspace-wide scan. The
+separate `tests/determinism.rs` target uses token and module-registration readers for its
+own taxonomy controls and does not register an unused scratch classifier.

@@ -252,3 +252,6 @@ mod document_references;
 
 #[path = "support/rust_source/tokens.rs"]
 mod rust_source_tokens;
+
+#[path = "support/rust_source/scratch_paths.rs"]
+mod rust_source_scratch_paths;

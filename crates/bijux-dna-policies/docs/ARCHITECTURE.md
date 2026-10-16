@@ -39,7 +39,9 @@ importing repository audit orchestration.
 - `tests/guardrails.rs` smoke-checks crate-specific guardrail wiring.
 - `tests/fixtures/` contains governed fixtures for policy tests.
 - `tests/snapshots/` contains governed diagnostic snapshots.
-- `tests/support/` contains shared filesystem helpers only.
+- `tests/support/` owns private filesystem, Cargo-observation, and Rust source classification helpers.
+- `tests/support/rust_source/scratch_paths.rs` classifies cwd-derived filesystem path admission;
+  the contracts policy owns its counterexamples and workspace-wide enforcement.
 
 ## Data Flow
 1. Qualification callers provide admitted observations; policy rules record versioned measured
