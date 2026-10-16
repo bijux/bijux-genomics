@@ -33,4 +33,9 @@ if [[ "${1:-}" == "test-all" ]]; then
   exec cargo run -q -p bijux-dna-dev -- tooling run ci-test-all-sharded
 fi
 
+if [[ "${1:-}" == "test" || "${1:-}" == "test-slow" ]]; then
+  export PROJECT_ROOT="${PROJECT_ROOT:-${repo_root}}"
+  exec "${PYTHON:-python3}" -B "${repo_root}/makes/bin/run_nextest_gate.py" "${shared_gate}" "$@"
+fi
+
 exec "${shared_gate}" "$@"

@@ -136,7 +136,9 @@
         ".bijux/shared/bijux-makes-rs/cargo.mk",
         "makes/lunarc.mk",
         "makes/lab.mk",
-        "crates/bijux-dna-dev/src/catalog/ops.rs"
+        "crates/bijux-dna-dev/src/catalog/ops.rs",
+        "makes/bin/run_genomics_rust_gate.sh",
+        "makes/bin/run_nextest_gate.py"
       ],
       "input_trees": [
         "docs/assets/vendor/mathjax"
