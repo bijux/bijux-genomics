@@ -220,6 +220,8 @@ pub(in super::super::super) fn tooling_ci_test_complete(
                 provisioned_resources,
                 resource_request,
             };
+            // Bind the requested native parent ceiling to its fixed weighted lane before launch.
+            execution::native_environment(&plan)?;
             let plan_path = output.join("execution-plan.json");
             write_value(&plan_path, &plan)?;
             receipt["source"] = json!(source);
@@ -259,6 +261,7 @@ pub(in super::super::super) fn tooling_ci_test_complete(
                     })
                 })
                 .collect::<Result<Vec<_>>>()?;
+            verify_execution_plan(workspace, &plan_seal)?;
             let runner = ProcessRunner::new(&isolated);
             let completed = if let Some(admitted) = &plan.provisioned_resources {
                 let specs = specs

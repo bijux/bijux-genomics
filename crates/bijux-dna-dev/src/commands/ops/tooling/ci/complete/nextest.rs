@@ -102,10 +102,17 @@ pub(super) fn nextest_lane(
 }
 
 fn verify_native_allocation(full: &Value, plan: &super::NativeExecutionPlan) -> Result<()> {
+    let requested = plan
+        .process_jobs
+        .checked_mul(plan.case_threads)
+        .context("native requested case-worker product overflow")?;
     ensure!(
         full["execution_resources"]["worker_budget"] == plan.worker_units
             && full["execution_resources"]["process_jobs"] == plan.process_jobs
             && full["execution_resources"]["test_threads_per_process"] == plan.case_threads
+            && full["execution_resources"]["requested_case_workers"] == requested
+            && full["execution_resources"]["maximum_case_workers"]
+                == requested.min(plan.worker_units)
             && full["execution_resources"]["selected_shards"] == plan.partitions
             && full["archive_build_jobs"] == plan.compiler_jobs
             && full["compiler_admission"]["configured_jobs"] == plan.configured_compiler_jobs
@@ -125,7 +132,8 @@ mod tests {
         let plan = super::super::NativeExecutionControls::default().admit(9, 8, 5)?;
         let full = serde_json::json!({"all_passed":true,
             "execution_resources":{"worker_budget":8,"process_jobs":4,
-                "test_threads_per_process":2,"selected_shards":5},
+                "test_threads_per_process":2,"selected_shards":5,
+                "requested_case_workers":8,"maximum_case_workers":8},
             "archive_build_jobs":8,"compiler_admission":{"configured_jobs":8,
                 "effective_jobs":8,"state":"admitted"}});
         verify_native_allocation(&full, &plan)?;
@@ -134,6 +142,8 @@ mod tests {
             ("execution_resources", "process_jobs"),
             ("execution_resources", "test_threads_per_process"),
             ("execution_resources", "selected_shards"),
+            ("execution_resources", "requested_case_workers"),
+            ("execution_resources", "maximum_case_workers"),
             ("compiler_admission", "configured_jobs"),
             ("compiler_admission", "effective_jobs"),
             ("compiler_admission", "state"),
@@ -145,6 +155,25 @@ mod tests {
         let mut changed = full;
         changed["archive_build_jobs"] = serde_json::json!(2);
         assert!(verify_native_allocation(&changed, &plan).is_err());
+        let adaptive = super::super::NativeExecutionControls::read(|name| {
+            Ok(match name {
+                "BIJUX_CI_FULL_WORKER_BUDGET" => Some("4".into()),
+                "BIJUX_CI_FULL_SHARD_JOBS" => Some("3".into()),
+                "BIJUX_CI_FULL_SHARD_TEST_THREADS" | "CARGO_BUILD_JOBS" => Some("2".into()),
+                _ => None,
+            })
+        })?
+        .admit(6, 8, 5)?;
+        let mut adaptive_full = serde_json::json!({"execution_resources":{
+            "worker_budget":4,"process_jobs":3,"test_threads_per_process":2,"selected_shards":5,
+            "requested_case_workers":6,"maximum_case_workers":4},
+            "archive_build_jobs":2,"compiler_admission":{"configured_jobs":8,"effective_jobs":2,"state":"admitted"}});
+        verify_native_allocation(&adaptive_full, &adaptive)?;
+        adaptive_full["execution_resources"]["maximum_case_workers"] = serde_json::json!(6);
+        assert!(
+            verify_native_allocation(&adaptive_full, &adaptive).is_err(),
+            "nominal product replaced weighted ceiling"
+        );
         Ok(())
     }
 }

@@ -181,6 +181,14 @@ count is absent, the default command count is reduced to fit; explicit conflicti
 are refused. Positive decimal controls are captured before setup, sealed in the execution
 plan and lane inputs, forwarded to the native executor, and compared with terminal receipts.
 An inherited eight-unit native control is refused under a six-unit complete budget.
+Command count is a ceiling for weighted admission: commands wait until their startup
+reservation fits. For example, four native units can admit a ceiling of three commands
+with two requested case threads each. Every chunk reserves its paired listing demand;
+its case threads are capped by its exact selected case count. A single-binary chunk with
+one case thread releases the spare listing unit only after its admitted suite starts.
+This permits at most three simultaneous one-thread case processes under four native units;
+it does not promise that every workload reaches the worker ceiling. Workspace dependencies
+and complete lane RAM, disk and IO reservations remain in force.
 Compiler overrides apply to local products, cannot exceed the configured producer authority
 or native allocation, and leave archive transport controls unchanged. Python fixture builds
 retain their separate two-job allocation. Known native demand includes two listing children

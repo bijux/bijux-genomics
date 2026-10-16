@@ -61,7 +61,9 @@ impl NativeExecutionControls {
 #[serde(deny_unknown_fields)]
 pub(crate) struct NativeExecutionPlan {
     pub worker_units: usize,
+    /// Parent ceiling inside the weighted native executor, not an unconditional launch count.
     pub process_jobs: usize,
+    /// Requested per-chunk ceiling; the executor may reduce it for exact singleton chunks.
     pub case_threads: usize,
     pub compiler_jobs: usize,
     pub configured_compiler_jobs: usize,
@@ -78,13 +80,15 @@ impl NativeExecutionPlan {
             self.process_jobs > 0 && self.process_jobs <= self.partitions && self.case_threads > 0,
             "native command allocation or partition count invalid"
         );
-        let demand = self
-            .process_jobs
-            .checked_mul(self.case_threads.max(2))
-            .context("native command worker demand overflow")?;
         ensure!(
-            demand <= self.worker_units,
-            "native discovery/case allocation exceeds native worker budget"
+            self.process_jobs.checked_mul(self.case_threads.max(2)).is_some(),
+            "native command worker demand overflow"
+        );
+        // The fixed sharded backend reserves paired listing demand before each startup and
+        // retains each chunk's actual case demand. Parent ceilings do not launch unweighted work.
+        ensure!(
+            self.case_threads.max(2) <= self.worker_units,
+            "native single-command discovery/case allocation exceeds native worker budget"
         );
         ensure!(
             (1..=16).contains(&self.configured_compiler_jobs)
@@ -178,6 +182,14 @@ mod tests {
         assert_eq!(reduced, derived);
         assert_eq!(reduced.worker_units + 1 + 1, 6);
         assert!(NativeExecutionControls::default().admit(6, 8, 5).is_err());
+        let adaptive = controls([Some("4"), Some("3"), Some("2"), Some("2")]).admit(6, 8, 5)?;
+        assert_eq!(
+            (adaptive.worker_units, adaptive.process_jobs, adaptive.case_threads),
+            (4, 3, 2)
+        );
+        assert_eq!(adaptive.environment()[1], ("BIJUX_CI_FULL_SHARD_JOBS".into(), "3".into()));
+        // A parent ceiling may wait for weighted startup capacity rather than requiring all parents at once.
+        assert!(controls([Some("2"), Some("2"), Some("1"), Some("2")]).admit(6, 8, 5).is_ok());
         Ok(())
     }
 
@@ -194,8 +206,8 @@ mod tests {
         }
         for values in [
             [Some("8"), Some("2"), Some("2"), Some("2")],
-            [Some("4"), Some("4"), Some("2"), Some("2")],
-            [Some("4"), Some("2"), Some("3"), Some("2")],
+            [Some("4"), Some("4"), Some("5"), Some("2")],
+            [Some("4"), Some("2"), Some("5"), Some("2")],
             [Some("4"), Some("6"), Some("1"), Some("2")],
             [Some("4"), Some("2"), Some("2"), Some("5")],
             [Some("4"), Some("2"), Some("2"), Some("9")],
@@ -204,7 +216,7 @@ mod tests {
             assert!(controls(values).admit(6, 8, 5).is_err(), "{values:?}");
         }
         assert!(controls([Some("4"), Some("2"), Some("1"), Some("2")]).admit(6, 8, 5).is_ok());
-        assert!(controls([Some("2"), Some("2"), Some("1"), Some("2")]).admit(6, 8, 5).is_err());
+        assert!(controls([Some("1"), Some("2"), Some("1"), Some("1")]).admit(6, 8, 5).is_err());
         assert!(controls([Some("4"), Some("2"), Some("2"), Some("2")]).admit(6, 17, 5).is_err());
     }
 
@@ -227,6 +239,8 @@ mod tests {
         invalid.partitions = usize::MAX;
         invalid.case_threads = usize::MAX;
         assert!(invalid.validate(usize::MAX).is_err());
+        invalid.case_threads = 1;
+        assert!(invalid.validate(usize::MAX).is_err(), "paired-startup product overflow passed");
         assert!(NativeExecutionControls::read(|_| anyhow::bail!("non-Unicode control")).is_err());
         Ok(())
     }

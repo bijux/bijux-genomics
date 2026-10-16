@@ -64,11 +64,13 @@ pub(super) fn native_environment(plan: &LocalVerificationPlan) -> Result<Vec<(St
     let native =
         plan.native_execution.as_ref().context("sealed native execution allocation absent")?;
     native.validate(plan.worker_budget)?;
-    let lane = plan
-        .lanes
-        .iter()
-        .find(|lane| lane.id == "rust-nextest")
-        .context("native lane absent from sealed plan")?;
+    let mut nextest_lanes =
+        plan.lanes.iter().filter(|lane| lane.id == "rust-nextest" || lane.harness == "nextest");
+    let lane = nextest_lanes.next().context("native lane absent from sealed plan")?;
+    ensure!(
+        nextest_lanes.next().is_none() && lane.id == "rust-nextest" && lane.harness == "nextest",
+        "native allocation requires exactly one weighted Nextest lane"
+    );
     ensure!(
         lane.resource_units == native.worker_units,
         "native allocation differs from admitted lane weight"
@@ -271,6 +273,25 @@ pub(super) mod tests {
             ]
         );
         crate::runtime::local_tests::verify_execution_plan(&workspace, &seal)?;
+        let mut adaptive = plan(&workspace.root);
+        adaptive.native_execution.as_mut().context("native plan")?.process_jobs = 3;
+        let decoded: LocalVerificationPlan =
+            serde_json::from_slice(&serde_json::to_vec(&adaptive)?)?;
+        assert_eq!(
+            native_environment(&decoded)?[1],
+            ("BIJUX_CI_FULL_SHARD_JOBS".into(), "3".into())
+        );
+        let mut wrong_harness = plan(&workspace.root);
+        wrong_harness.lanes[0].harness = "unittest".into();
+        assert!(native_environment(&wrong_harness).is_err());
+        let mut foreign = plan(&workspace.root);
+        let mut foreign_lane = foreign.lanes[0].clone();
+        foreign_lane.id = "python-ordinary".into();
+        foreign.lanes.push(foreign_lane);
+        assert!(native_environment(&foreign).is_err(), "foreign lane borrowed native allocation");
+        let mut duplicate = plan(&workspace.root);
+        duplicate.lanes.push(duplicate.lanes[0].clone());
+        assert!(native_environment(&duplicate).is_err());
         admitted.native_execution.as_mut().context("native plan")?.compiler_jobs = 3;
         write_value(&path, &admitted)?;
         assert!(crate::runtime::local_tests::verify_execution_plan(&workspace, &seal).is_err());
