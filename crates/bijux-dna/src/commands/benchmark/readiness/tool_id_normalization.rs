@@ -11,7 +11,9 @@ use super::tool_serving_map::{
 };
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
-use bijux_dna_api::v1::api::bench::{choose_canonical_tool_id, normalize_tool_id};
+use bijux_dna_api::v1::api::bench::{
+    derive_benchmark_tool_alias_clusters, BenchmarkToolAliasCluster,
+};
 
 pub(crate) const DEFAULT_TOOL_ID_NORMALIZATION_PATH: &str =
     "artifacts/benchmark-smoke/readiness/tool-id-normalization.tsv";
@@ -71,28 +73,15 @@ pub(crate) fn render_tool_id_normalization(
         domains_by_tool_id.entry(row.tool_id.clone()).or_default().insert("bam".to_string());
     }
 
-    let mut tool_ids_by_normalized = BTreeMap::<String, BTreeSet<String>>::new();
-    for tool_id in domains_by_tool_id.keys() {
-        tool_ids_by_normalized
-            .entry(normalize_tool_id(tool_id))
-            .or_default()
-            .insert(tool_id.clone());
-    }
-
     let mut rows = Vec::new();
-    for (normalized_tool_id, cluster) in tool_ids_by_normalized {
-        if cluster.len() <= 1 {
-            continue;
-        }
-        let cluster_tool_ids = cluster.into_iter().collect::<Vec<_>>();
-        let Some(canonical_tool_id) = choose_canonical_tool_id(&cluster_tool_ids) else {
-            continue;
-        };
-        let alias_tool_ids = cluster_tool_ids
-            .iter()
-            .filter(|tool_id| *tool_id != &canonical_tool_id)
-            .cloned()
-            .collect::<Vec<_>>();
+    for cluster in
+        derive_benchmark_tool_alias_clusters(domains_by_tool_id.keys().map(String::as_str))
+    {
+        let BenchmarkToolAliasCluster { normalized_tool_id, canonical_tool_id, alias_tool_ids } =
+            cluster;
+        let mut cluster_tool_ids = alias_tool_ids.clone();
+        cluster_tool_ids.push(canonical_tool_id.clone());
+        cluster_tool_ids.sort();
         let domains = cluster_tool_ids
             .iter()
             .flat_map(|tool_id| {

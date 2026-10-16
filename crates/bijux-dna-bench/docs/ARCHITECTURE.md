@@ -114,3 +114,5 @@ scientific qualification.
 The cross-domain queue join keeps each complete queue entry when any affected
 row matches a goal. It preserves the original affected-row list, unlike FASTQ
 and VCF goal projections, which trim that list to matched rows.
+
+`workflow/alias_resolution.rs` owns normalized benchmark tool cluster membership as well as canonical spelling preference. Callers supply their exact acquired tool scope; repeated identical IDs and singleton groups do not create aliases. The CLI keeps domain aggregation, report reasons, stale-stage checks and publication, so FASTQ/BAM normalization and all-domain alias auditing retain their separate coverage.

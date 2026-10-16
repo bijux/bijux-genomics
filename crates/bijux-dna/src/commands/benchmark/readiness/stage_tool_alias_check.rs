@@ -18,8 +18,8 @@ use super::all_domain_rendered_commands::{
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
 use bijux_dna_api::v1::api::bench::{
-    choose_canonical_tool_id, legacy_benchmark_stage_alias_target, legacy_benchmark_stage_aliases,
-    normalize_tool_id,
+    derive_benchmark_tool_alias_clusters, legacy_benchmark_stage_alias_target,
+    legacy_benchmark_stage_aliases, BenchmarkToolAliasCluster,
 };
 
 pub(crate) const DEFAULT_STAGE_TOOL_ALIAS_CHECK_PATH: &str =
@@ -39,13 +39,6 @@ pub(crate) struct MigrationValidationStageAliasRow {
     pub(crate) alias_stage_id: String,
     pub(crate) canonical_stage_id: String,
     pub(crate) accepted_scope: String,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub(crate) struct ToolAliasClusterRow {
-    pub(crate) normalized_tool_id: String,
-    pub(crate) canonical_tool_id: String,
-    pub(crate) alias_tool_ids: Vec<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
@@ -77,7 +70,7 @@ pub(crate) struct StageToolAliasCheckReport {
     pub(crate) violation_count: usize,
     pub(crate) ok: bool,
     pub(crate) migration_validation_stage_aliases: Vec<MigrationValidationStageAliasRow>,
-    pub(crate) tool_alias_clusters: Vec<ToolAliasClusterRow>,
+    pub(crate) tool_alias_clusters: Vec<BenchmarkToolAliasCluster>,
     pub(crate) violations: Vec<StageToolAliasViolationRow>,
 }
 
@@ -134,7 +127,8 @@ fn build_stage_tool_alias_check_report(
             accepted_scope: ACCEPTED_SCOPE_MIGRATION_VALIDATION_ONLY.to_string(),
         })
         .collect::<Vec<_>>();
-    let tool_alias_clusters = collect_tool_alias_clusters(&candidate_rows);
+    let tool_alias_clusters =
+        derive_benchmark_tool_alias_clusters(candidate_rows.iter().map(|row| row.tool_id.as_str()));
     let tool_alias_canonical_by_id = tool_alias_clusters
         .iter()
         .flat_map(|cluster| {
@@ -377,36 +371,6 @@ fn push_tool_alias_violation(
         corpus_id,
         asset_profile_id,
     });
-}
-
-fn collect_tool_alias_clusters(
-    candidate_rows: &[AllDomainActiveStageToolMatrixRow],
-) -> Vec<ToolAliasClusterRow> {
-    let mut tool_ids_by_normalized = BTreeMap::<String, BTreeSet<String>>::new();
-    for tool_id in candidate_rows.iter().map(|row| row.tool_id.as_str()) {
-        tool_ids_by_normalized
-            .entry(normalize_tool_id(tool_id))
-            .or_default()
-            .insert(tool_id.to_string());
-    }
-
-    let mut rows = Vec::new();
-    for (normalized_tool_id, cluster) in tool_ids_by_normalized {
-        if cluster.len() <= 1 {
-            continue;
-        }
-        let cluster_tool_ids = cluster.into_iter().collect::<Vec<_>>();
-        let Some(canonical_tool_id) = choose_canonical_tool_id(&cluster_tool_ids) else {
-            continue;
-        };
-        let alias_tool_ids = cluster_tool_ids
-            .into_iter()
-            .filter(|tool_id| tool_id != &canonical_tool_id)
-            .collect::<Vec<_>>();
-        rows.push(ToolAliasClusterRow { normalized_tool_id, canonical_tool_id, alias_tool_ids });
-    }
-    rows.sort_by(|left, right| left.normalized_tool_id.cmp(&right.normalized_tool_id));
-    rows
 }
 
 fn ensure_stage_tool_alias_check_contract(report: &StageToolAliasCheckReport) -> Result<()> {

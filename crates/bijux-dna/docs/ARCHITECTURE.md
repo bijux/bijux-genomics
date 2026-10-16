@@ -50,3 +50,5 @@ Benchmark taxonomy judgment separates declared corpus truth from classifier summ
 Benchmark stage-tool assets separate explicit planner/corpus acquisition and TOML publication from required binding policy. `readiness/stage_tool_assets.rs` delegates governed FASTQ/BAM asset coverage to the existing benchmark-model contract through the API facade; domain planning, path canonicalization, public command output and filesystem effects remain in their existing adapters.
 
 Stage-tool resource rendering acquires execution specifications and tiny BAM fixture sizes, composes existing planner/domain resource constraints, and publishes the governed TOML/report. The pure benchmark walltime profiles are supplied by `bijux-dna-bench-model`; the CLI does not choose those stage/tool budgets.
+
+Tool alias reports acquire their existing serving-map or candidate-matrix scope and delegate normalized cluster membership to the benchmark alias owner. CLI projection retains domain lists, explanations, stage-alias refusal and the existing JSON/TSV formats.

@@ -166,3 +166,5 @@ The CLI local stage-list commands delegate matrix admission to `load_benchmark_l
 `collect_hpc_scratch_layout(HpcScratchRequest)` derives current scratch evidence without publication. `publish_hpc_scratch_layout(root, output, manifest)` binds an admitted manifest to its normalized destination; `load_hpc_scratch_layout(root, path)` admits the stored schema and path identity. CLI command producers still publish their command artifacts, while scratch collection consumes their typed rows directly.
 
 `render_all_domain_completion_check(root, output, expected, commands, outputs)` owns the illustrative completion workflow. The CLI acquires source rows, delegates, and presents the admitted report.
+
+`derive_benchmark_tool_alias_clusters(tool_ids)` groups an explicit benchmark tool scope without IO. It returns `BenchmarkToolAliasCluster` records using the existing canonical spelling policy, distinct sorted aliases and deterministic group order. It does not acquire declarations, expand the caller's domain scope or reject stale stage aliases.
