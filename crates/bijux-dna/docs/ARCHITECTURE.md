@@ -19,6 +19,9 @@ operator-facing exit behavior.
 - `tests/boundaries.rs` checks source layout, dependency boundaries, command
   inventory, and help/documentation contracts.
 - `tests/contracts.rs` checks CLI behavior and dry-run output contracts.
+- `tests/bench_readiness_all_domain_completion.rs` groups parser observations,
+  completion rules, active-scope and operational completion gates while preserving
+  each public CLI report contract and its isolated runtime roots.
 - `tests/support/workspace_paths.rs` contains workspace-root helpers shared by
   integration suites without making support code look like a standalone suite.
 - `tests/support/fixtures/process.rs` owns shared fixture-command process context

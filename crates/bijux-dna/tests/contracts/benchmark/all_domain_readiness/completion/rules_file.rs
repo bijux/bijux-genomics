@@ -2,8 +2,7 @@
 
 use std::fs;
 
-#[path = "contracts/banks/bank_fixtures.rs"]
-mod support;
+use crate::support;
 
 #[test]
 fn bench_readiness_all_domain_completion_check_writes_governed_fixture_tree() {
