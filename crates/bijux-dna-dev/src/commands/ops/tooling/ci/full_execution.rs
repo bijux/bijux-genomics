@@ -28,6 +28,9 @@ pub(super) struct ExecutionBudget {
     pub selected_shards: usize,
     pub process_jobs: usize,
     pub test_threads_per_process: usize,
+    /// Configured parent ceiling times requested per-parent threads, before weighted admission.
+    pub requested_case_workers: usize,
+    /// Enforced weighted case-worker ceiling, not a promise of observed occupancy.
     pub maximum_case_workers: usize,
     pub preparation_jobs: usize,
 }
@@ -66,11 +69,14 @@ impl ExecutionBudget {
             positive_decimal(SHARD_JOBS_ENV, jobs)?.unwrap_or(default_jobs).min(selected);
         let test_threads_per_process = declared_threads
             .unwrap_or_else(|| (worker_budget / process_jobs).clamp(1, DEFAULT_TEST_THREADS));
-        let maximum_case_workers = process_jobs
+        let requested_case_workers = process_jobs
             .checked_mul(test_threads_per_process)
             .context("full-shard case-worker product overflow")?;
-        anyhow::ensure!(maximum_case_workers <= worker_budget,
-            "full-shard process jobs ({process_jobs}) times case threads ({test_threads_per_process}) exceeds allocation ({worker_budget})");
+        anyhow::ensure!(test_threads_per_process <= worker_budget,
+            "full-shard case threads ({test_threads_per_process}) exceed allocation ({worker_budget})");
+        // ExecutionBudget feeds only the weighted native pool. Each startup reserves its paired
+        // listing demand; each running chunk retains at least its actual case-thread demand.
+        let maximum_case_workers = requested_case_workers.min(worker_budget);
         Ok(Self {
             detected_cpu_capacity: detected,
             worker_budget,
@@ -82,6 +88,7 @@ impl ExecutionBudget {
             selected_shards: selected,
             process_jobs,
             test_threads_per_process,
+            requested_case_workers,
             maximum_case_workers,
             preparation_jobs: process_jobs,
         })
@@ -377,6 +384,12 @@ mod tests {
         assert_eq!((budget.process_jobs, budget.maximum_case_workers), (100, 400));
         assert_eq!(budget.detected_cpu_capacity, 8);
         assert_eq!(budget.allocation_origin, "explicit_worker_budget");
+        // The requested parent/thread product can exceed capacity only inside weighted execution.
+        let adaptive = ExecutionBudget::admit(5, 10, Some("4"), Some("3"), Some("2"))?;
+        assert_eq!((adaptive.process_jobs, adaptive.test_threads_per_process), (3, 2));
+        assert_eq!((adaptive.requested_case_workers, adaptive.maximum_case_workers), (6, 4));
+        let baseline = ExecutionBudget::admit(5, 10, Some("4"), Some("2"), Some("2"))?;
+        assert_eq!((baseline.requested_case_workers, baseline.maximum_case_workers), (4, 4));
         let budget = ExecutionBudget::admit(2, 8, None, Some("100"), Some("4"))?;
         assert_eq!((budget.process_jobs, budget.maximum_case_workers), (2, 8));
         Ok(())
@@ -403,7 +416,7 @@ mod tests {
                     .is_err());
             }
         }
-        assert!(ExecutionBudget::admit(100, 6, None, Some("4"), Some("2")).is_err());
+        assert!(ExecutionBudget::admit(100, 6, None, Some("4"), Some("7")).is_err());
         assert!(ExecutionBudget::admit(100, 6, None, None, Some("7")).is_err());
         assert!(ExecutionBudget::admit(0, 6, None, None, None).is_err());
         assert!(ExecutionBudget::admit(100, 0, None, None, None).is_err());

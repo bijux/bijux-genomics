@@ -30,6 +30,8 @@ struct NativeChunk {
     metadata: Vec<u8>,
     binaries: BTreeSet<String>,
     resource_units: usize,
+    selected_case_count: usize,
+    case_threads: usize,
     terminal_dependencies: Vec<String>,
 }
 
@@ -74,6 +76,15 @@ fn chunks(
             }
         })
         .collect::<Result<Vec<_>>>()?;
+    let case_counts =
+        plans.iter().map(ShardDiscoveryPlan::selected_binary_case_counts).collect::<Vec<_>>();
+    for (plan, counts) in plans.iter().zip(&case_counts) {
+        ensure!(
+            counts.values().sum::<usize>() == plan.expected_case_count
+                && counts.keys().cloned().collect::<BTreeSet<_>>() == plan.selected_binary_ids(),
+            "selected binary counts differ from admitted partition"
+        );
+    }
     let mut chunks = Vec::new();
     let longest = groups.iter().map(Vec::len).max().unwrap_or_default();
     let mut predecessors = BTreeMap::new();
@@ -84,13 +95,25 @@ fn chunks(
                 let label = format!("{}-{}", shard_ids[shard_index], group.label);
                 let terminal_dependencies =
                     predecessors.insert(shard_index, label.clone()).into_iter().collect();
+                let selected_case_count = group.binaries.iter().try_fold(0usize, |total, id| {
+                    total
+                        .checked_add(
+                            *case_counts[shard_index]
+                                .get(id)
+                                .context("selected binary case count absent")?,
+                        )
+                        .context("native chunk selected case count overflow")
+                })?;
+                ensure!(selected_case_count > 0, "nonempty native chunk has no selected cases");
+                let case_threads = budget.test_threads_per_process.min(selected_case_count);
                 chunks.push(NativeChunk {
                     shard_index,
                     label,
                     metadata: group.metadata.clone(),
                     binaries: group.binaries.clone(),
-                    resource_units: group
-                        .worker_demand(budget.test_threads_per_process, budget.worker_budget)?,
+                    resource_units: group.worker_demand(case_threads, budget.worker_budget)?,
+                    selected_case_count,
+                    case_threads,
                     terminal_dependencies,
                 });
             }
@@ -287,9 +310,11 @@ pub(super) fn run_shards(
     let producer_sha256 = bijux_dna_infra::hash_bytes_sha256(&original_metadata);
     let plan = chunks(&original_metadata, &shard_ids, inputs.plans, budget)?;
     let mut starts = BTreeMap::new();
-    // The existing 2-by-2 geometry retains its static reservations and direct log path.
-    // A one-thread invocation can lower two listing slots only after its exact suite starts.
-    if budget.test_threads_per_process == 1 {
+    // Requested two-thread chunks retain two workers when they contain multiple cases.
+    // A singleton, or an explicit one-thread invocation, can lower its paired startup reservation.
+    if plan.iter().any(|chunk| {
+        chunk.case_threads == 1 && chunk.binaries.len() == 1 && chunk.resource_units > 1
+    }) {
         let inventory: serde_json::Value = serde_json::from_slice(inputs.inventory_bytes)?;
         let counts = inputs
             .plans
@@ -305,7 +330,7 @@ pub(super) fn run_shards(
             );
         }
         for chunk in &plan {
-            if chunk.binaries.len() == 1 && chunk.resource_units > 1 {
+            if chunk.case_threads == 1 && chunk.binaries.len() == 1 && chunk.resource_units > 1 {
                 starts.insert(
                     chunk.label.clone(),
                     suite_start_record(chunk, &inventory, &counts[chunk.shard_index])?,
@@ -337,7 +362,7 @@ pub(super) fn run_shards(
         "producer_binary_metadata_sha256":producer_sha256,"native_worker_budget":budget.worker_budget,
         "worker_scope":"ordinary/ignored native listing and declared case workers; parent runtimes and nested tools have no hard physical CPU/process cap",
         "metadata_inputs":metadata_inputs,
-        "expected_chunks":plan.iter().map(|chunk|json!({"label":chunk.label,"shard":shard_ids[chunk.shard_index],"binaries":chunk.binaries,"resource_units":chunk.resource_units,"terminal_dependencies":chunk.terminal_dependencies})).collect::<Vec<_>>()});
+        "expected_chunks":plan.iter().map(|chunk|json!({"label":chunk.label,"shard":shard_ids[chunk.shard_index],"binaries":chunk.binaries,"resource_units":chunk.resource_units,"selected_case_count":chunk.selected_case_count,"case_threads":chunk.case_threads,"terminal_dependencies":chunk.terminal_dependencies})).collect::<Vec<_>>()});
     if !starts.is_empty() {
         receipt["execution_start_admissions"] = json!(starts);
     }
@@ -393,7 +418,7 @@ pub(super) fn run_shards(
                 &inputs.shards[index],
                 &subset,
                 &workspaces[index],
-                budget.test_threads_per_process,
+                chunk.case_threads,
             )?;
             args.extend(["--filterset".into(), inputs.plans[index].filterset.clone()]);
             if starts.contains_key(&chunk.label) {
@@ -580,6 +605,7 @@ mod tests {
             selected_shards: 5,
             process_jobs: 4,
             test_threads_per_process: 2,
+            requested_case_workers: 8,
             maximum_case_workers: 8,
             preparation_jobs: 4,
         };
@@ -621,6 +647,67 @@ mod tests {
         })
     }
 
+    fn assert_adaptive_chunks_preserve_mixed_counts_and_empty_assignments() -> Result<()> {
+        let PartitionFixture { metadata, .. } = fixture()?;
+        let mut metadata: serde_json::Value = serde_json::from_slice(&metadata)?;
+        metadata["rust-binaries"]
+            .as_object_mut()
+            .context("fixture binaries")?
+            .retain(|id, _| id == "owner::binary0" || id == "owner::binary1");
+        let mut suites = serde_json::Map::new();
+        for (id, binary) in metadata["rust-binaries"].as_object().context("fixture binaries")? {
+            let mut suite = binary.clone();
+            suite["package-name"] = json!("owner");
+            suite["status"] = json!("listed");
+            suite["testcases"] = if id == "owner::binary0" {
+                json!({"ordinary":{"ignored":true,"filter-match":{"status":"matches"}}})
+            } else {
+                json!({"ordinary":{"ignored":false,"filter-match":{"status":"matches"}},
+                    "ignored":{"ignored":true,"filter-match":{"status":"matches"}}})
+            };
+            suites.insert(id.clone(), suite);
+        }
+        let inventory = ExpectedTestInventory::parse(&serde_json::to_vec(
+            &json!({"test-count":3,"rust-suites":suites}),
+        )?)?;
+        assert_eq!(inventory.ignored_case_count(), 2);
+        let ids = (1..=3).map(|n| format!("hash-{n}-of-3")).collect::<Vec<_>>();
+        let plans = (1..=3)
+            .map(|n| {
+                ShardDiscoveryPlan::from_inventory(&inventory, &format!("hash:{n}/3"), "0.9.100")
+            })
+            .collect::<Result<Vec<_>>>()?;
+        // Both maintained names hash to partition1; the other assignments must remain empty.
+        assert_eq!(
+            plans.iter().map(|plan| plan.expected_case_count).collect::<Vec<_>>(),
+            [3, 0, 0]
+        );
+        let budget = ExecutionBudget::admit(3, 10, Some("4"), Some("3"), Some("2"))?;
+        let metadata = serde_json::to_vec(&metadata)?;
+        let planned = chunks(&metadata, &ids, &plans, &budget)?;
+        assert_eq!(planned.len(), 2);
+        assert_eq!(
+            (planned[0].selected_case_count, planned[0].case_threads, planned[0].resource_units),
+            (1, 1, 2)
+        );
+        assert_eq!(
+            (planned[1].selected_case_count, planned[1].case_threads, planned[1].resource_units),
+            (2, 2, 2)
+        );
+        assert_eq!(
+            planned.iter().map(|chunk| chunk.selected_case_count).sum::<usize>(),
+            inventory.case_count()
+        );
+        assert_eq!(planned[1].terminal_dependencies, [planned[0].label.clone()]);
+        let empty_budget = ExecutionBudget::admit(2, 10, Some("4"), Some("3"), Some("2"))?;
+        let empty = chunks(&metadata, &ids[1..], &plans[1..], &empty_budget)?;
+        assert!(empty.is_empty());
+        assert!(merge_outputs(&ids[1..], &plans[1..], &empty, vec![])?
+            .iter()
+            .all(ShardTerminal::is_empty));
+        Ok(())
+    }
+
     #[test]
     fn bounded_chunk_streams_preserve_all_five_exact_partitions_and_ignored_cases() -> Result<()> {
         let PartitionFixture { metadata, inventory, shard_ids: ids, shard_plans: plans, budget } =
@@ -634,6 +721,13 @@ mod tests {
             for (position, chunk) in selected.iter().enumerate() {
                 assert_eq!(chunk.resource_units, 2);
                 assert_eq!(chunk.binaries.len(), 1);
+                let count = chunk
+                    .binaries
+                    .iter()
+                    .map(|id| shard_plan.selected_binary_case_counts()[id])
+                    .sum::<usize>();
+                assert_eq!(chunk.selected_case_count, count);
+                assert_eq!(chunk.case_threads, budget.test_threads_per_process.min(count));
                 for binary in &chunk.binaries {
                     assert!(union.insert(binary.clone()), "binary repeated within partition");
                 }
@@ -656,6 +750,7 @@ mod tests {
         assert!(coverage.complete && coverage.selected_shards_valid);
         assert_eq!(merged.len(), 5);
         assert!(inventory.ignored_case_count() > 0);
+        assert_adaptive_chunks_preserve_mixed_counts_and_empty_assignments()?;
 
         // A complete partition roster can contain no cases in some assignments.
         // This maintained metadata fixture has only 32 distinct names, even though
@@ -692,6 +787,17 @@ mod tests {
             expanded.as_ref().err().map_or_else(String::new, |error| format!("{error:#}"))
         );
         let expanded = expanded?;
+        for chunk in &expanded {
+            assert_eq!(
+                chunk.case_threads,
+                expanded_budget.test_threads_per_process.min(chunk.selected_case_count)
+            );
+            assert_eq!(chunk.resource_units, 2);
+        }
+        assert_eq!(
+            expanded.iter().map(|chunk| chunk.selected_case_count).sum::<usize>(),
+            inventory.case_count()
+        );
         let expanded_outputs =
             expanded.iter().map(|chunk| completed(chunk, 100)).collect::<Result<Vec<_>>>()?;
         let terminal = merge_outputs(&expanded_ids, &expanded_plans, &expanded, expanded_outputs)?;
@@ -905,6 +1011,14 @@ mod tests {
         unfit = budget.clone();
         unfit.worker_budget = 1;
         assert!(chunks(&metadata, &ids, &plans, &unfit).is_err());
+        unfit = budget.clone();
+        unfit.test_threads_per_process = 0;
+        assert!(chunks(&metadata, &ids, &plans, &unfit).is_err());
+        let adaptive = ExecutionBudget::admit(5, 10, Some("4"), Some("3"), Some("2"))?;
+        let planned = chunks(&metadata, &ids, &plans, &adaptive)?;
+        assert!(planned.iter().all(|chunk| chunk.case_threads == 2.min(chunk.selected_case_count)
+            && chunk.resource_units == 2));
+        assert_eq!((adaptive.requested_case_workers, adaptive.maximum_case_workers), (6, 4));
         Ok(())
     }
 }
