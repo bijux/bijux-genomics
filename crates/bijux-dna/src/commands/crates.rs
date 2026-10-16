@@ -3,6 +3,10 @@ use std::fmt::Write as _;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, bail, Context, Result};
+use bijux_dna_api::v1::api::bench::{
+    index_canonical_benchmark_result_bindings, reconcile_canonical_benchmark_result_identities,
+    CanonicalBenchmarkResultBinding as CanonicalResultIdRow, CanonicalResultIdentityViolation,
+};
 use bijux_dna_api::v1::api::{
     read_workspace_crate_manifests as workspace_members, WorkspaceCrateManifest as WorkspaceMember,
 };
@@ -671,6 +675,12 @@ pub struct ResultIdStabilityViolation {
     pub detail: String,
 }
 
+impl From<CanonicalResultIdentityViolation> for ResultIdStabilityViolation {
+    fn from(value: CanonicalResultIdentityViolation) -> Self {
+        Self { result_id: value.result_id, surface: value.surface, detail: value.detail }
+    }
+}
+
 #[derive(Debug, Deserialize, Default)]
 struct MetricRegistryStageDoc {
     #[serde(default)]
@@ -1142,17 +1152,6 @@ const MICRO_RESULT_ID_SUBSET: &[&str] = &[
     "vcf:vcf_production_regression:vcf.call:bam_bundle:bcftools",
 ];
 
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
-struct CanonicalResultIdRow {
-    result_id: String,
-    domain: String,
-    stage_id: String,
-    tool_id: String,
-    corpus_id: String,
-    scope_kind: crate::commands::benchmark::benchmark_result_ids::BenchmarkResultScopeKind,
-    scope_id: String,
-}
-
 fn result_scope_kind_label(
     kind: crate::commands::benchmark::benchmark_result_ids::BenchmarkResultScopeKind,
 ) -> &'static str {
@@ -1265,60 +1264,18 @@ fn validate_canonical_result_id_rows(
     rows: &[CanonicalResultIdRow],
     violations: &mut Vec<ResultIdStabilityViolation>,
 ) -> Result<()> {
-    let mut canonical_by_result = BTreeMap::new();
-    for row in rows {
-        if canonical_by_result.insert(row.result_id.clone(), row.clone()).is_some() {
-            push_result_id_violation(
-                violations,
-                &row.result_id,
-                "canonical_result_builder",
-                "canonical result-id builder produced a duplicate binding",
-            );
-        }
-    }
+    let mut identity_violations = Vec::new();
+    let canonical = index_canonical_benchmark_result_bindings(rows, &mut identity_violations);
+    violations.extend(identity_violations.drain(..).map(ResultIdStabilityViolation::from));
 
     let all_domain_rows = crate::commands::benchmark::readiness::all_domain_expected_benchmark_results::collect_all_domain_expected_benchmark_result_rows(cwd)?;
-    if all_domain_rows.len() != rows.len() {
-        push_result_id_violation(
-            violations,
-            "all-domain-expected-row-count",
-            "all_domain_expected_benchmark_results",
-            format!(
-                "all-domain expected rows drifted from canonical benchmark rows: expected {}, found {}",
-                rows.len(),
-                all_domain_rows.len()
-            ),
-        );
-    }
-    for row in &all_domain_rows {
-        let Some(canonical) = canonical_by_result.get(&row.result_id) else {
-            push_result_id_violation(
-                violations,
-                &row.result_id,
-                "all_domain_expected_benchmark_results",
-                "all-domain expected row is missing from the canonical result-id builder",
-            );
-            continue;
-        };
-        let parsed = crate::commands::benchmark::benchmark_result_ids::parse_benchmark_result_id(
-            &row.result_id,
-        )?;
-        if canonical.domain != row.domain
-            || canonical.stage_id != row.stage_id.as_str()
-            || canonical.tool_id != row.tool_id.as_str()
-            || canonical.corpus_id != row.corpus_id
-            || canonical.scope_kind != parsed.scope_kind
-            || canonical.scope_id != parsed.scope_id
-        {
-            push_result_id_violation(
-                violations,
-                &row.result_id,
-                "all_domain_expected_benchmark_results",
-                "all-domain expected row drifted from the canonical result-id identity",
-            );
-        }
-    }
-    Ok(())
+    let result = reconcile_canonical_benchmark_result_identities(
+        &canonical,
+        &all_domain_rows,
+        &mut identity_violations,
+    );
+    violations.extend(identity_violations.into_iter().map(ResultIdStabilityViolation::from));
+    result.map_err(Into::into)
 }
 
 fn validate_optional_result_id_surface<T>(

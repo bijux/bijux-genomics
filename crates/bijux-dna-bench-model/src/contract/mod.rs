@@ -407,8 +407,11 @@ pub use local_slurm_scripts::{
 pub use real_smoke_core_subset::admit_real_smoke_core_subset_report;
 
 pub use readiness::{
+    index_canonical_benchmark_result_bindings, reconcile_canonical_benchmark_result_identities,
     validate_all_domain_expected_result_rows, validate_all_domain_rendered_command_rows,
     validate_all_domain_stage_tool_table_rows, AllDomainStageToolTableAdmissionContext,
+    CanonicalBenchmarkResultBinding, CanonicalBenchmarkResultIndex,
+    CanonicalResultIdentityViolation,
 };
 
 #[cfg(feature = "canonical-fastq-catalog")]

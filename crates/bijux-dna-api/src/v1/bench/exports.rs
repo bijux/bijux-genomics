@@ -682,3 +682,9 @@ pub use bijux_dna_bench::{
 pub use bijux_dna_bench::{
     derive_fastq_scientific_acceptance_threshold, derive_vcf_scientific_acceptance_threshold,
 };
+
+pub use bijux_dna_bench_model::{
+    index_canonical_benchmark_result_bindings, reconcile_canonical_benchmark_result_identities,
+    CanonicalBenchmarkResultBinding, CanonicalBenchmarkResultIndex,
+    CanonicalResultIdentityViolation,
+};

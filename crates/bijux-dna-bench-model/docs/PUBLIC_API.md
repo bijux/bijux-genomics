@@ -536,3 +536,5 @@ Slurm fields and sensitive values reject; empty values, recognized placeholders
 and declared secret-reference fields remain admissible. Diagnostics identify
 keys without reproducing values; malformed TOML refuses without source excerpts.
 This operation reads no environment or files and does not certify tool availability.
+
+`index_canonical_benchmark_result_bindings` returns an opaque `CanonicalBenchmarkResultIndex` over explicit `CanonicalBenchmarkResultBinding` values and appends ordered `CanonicalResultIdentityViolation` diagnostics. After acquisition, `reconcile_canonical_benchmark_result_identities` compares borrowed `AllDomainExpectedBenchmarkResultRow` values, retaining diagnostics before the first unchanged Core parsing error. The new values are in-memory contracts without serde/schema changes; callers retain report serialization and acquisition errors.
