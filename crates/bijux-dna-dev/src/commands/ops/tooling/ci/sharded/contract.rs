@@ -24,6 +24,8 @@ pub(in super::super) struct FullShardContract {
     pub(in super::super) shard_artifact_root: String,
     pub(in super::super) report_root: String,
     pub(in super::super) shards: Vec<FullShard>,
+    #[serde(default)]
+    pub(in super::super) ci_partition_count: Option<usize>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -119,6 +121,7 @@ pub(in super::super) fn validate_full_shard_contract(contract: &FullShardContrac
         || contract.build_authority != "configs/ci/build-authority.json"
         || contract.runtime_dependencies.is_empty()
         || !(1..=16).contains(&contract.archive_build_jobs)
+        || contract.ci_partition_count.is_some_and(|count| !(2..=256).contains(&count))
         || contract.shards.len() < 2
     {
         anyhow::bail!("full shard coverage contract is incomplete");
@@ -202,6 +205,7 @@ pub(super) fn contract() -> FullShardContract {
             overlap_policy: "exactly_once".to_string(),
         },
         partition_strategy: "hash".to_string(),
+        ci_partition_count: None,
         workspace_isolation: "tracked_source_clones_with_shared_immutable_archive".to_string(),
         build_authority: "configs/ci/build-authority.json".to_string(),
         runtime_dependency_report: "artifacts/ci/full-shards/runtime-dependencies.json".to_string(),

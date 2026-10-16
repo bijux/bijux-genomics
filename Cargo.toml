@@ -176,3 +176,10 @@ codegen-units = 16
 inherits = "test"
 opt-level = 0
 debug = 1
+
+# CI transports executables between workers; debug symbols and incremental state
+# add transfer cost without changing assertions or overflow checks.
+[profile.ci]
+inherits = "dev"
+debug = 0
+incremental = false

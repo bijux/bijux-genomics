@@ -1,6 +1,7 @@
 //! Full-shard source/product transaction and terminal evidence.
 pub(super) mod archive;
 pub(super) mod contract;
+mod distributed;
 mod preflight;
 pub(super) mod storage;
 
@@ -61,6 +62,9 @@ pub(in super::super::super) fn tooling_ci_test_all_sharded(
     workspace: &Workspace,
     args: &[String],
 ) -> Result<OpsCommandOutcome> {
+    if args.first().is_some_and(|arg| arg.starts_with("--github-")) {
+        return distributed::run(workspace, args);
+    }
     if matches!(args, [single] if single == "--help" || single == "-h") {
         ensure_help_only("ci-test-all-sharded", args)?;
     }
