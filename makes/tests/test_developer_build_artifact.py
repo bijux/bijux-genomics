@@ -145,10 +145,23 @@ class DeveloperBootstrapProcessTests(unittest.TestCase):
         )
 
     def test_ci_profile_uses_cargo_declared_artifact_and_refuses_wrong_profile_path(self):
+        domain_manifest = self.root / "crates/domain/Cargo.toml"
+        domain_manifest.write_text(
+            domain_manifest.read_text() + '[features]\nobserved=[]\n'
+        )
+        self.source.write_text(
+            'pub fn value() -> u8 { if cfg!(feature = "observed") { 9 } else { 1 } }\n'
+        )
+        default = self.run_bootstrap()
+        self.assertEqual(default.returncode, 0, default.stderr)
+        self.assertEqual(subprocess.check_output([str(self.binary)]), b"1\n")
         binary = self.root / "compiled artifacts/ci/bijux-dna-dev"
         result = self.run_bootstrap(binary, "ci")
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertEqual(subprocess.check_output([str(binary)], text=True).strip(), "1")
+        self.assertEqual(subprocess.check_output([str(binary)], text=True).strip(), "9")
+        restored = self.run_bootstrap()
+        self.assertEqual(restored.returncode, 0, restored.stderr)
+        self.assertEqual(subprocess.check_output([str(self.binary)]), b"1\n")
         self.assertNotEqual(self.run_bootstrap(binary, "dev").returncode, 0)
         self.assertNotEqual(self.run_bootstrap(binary, "unregistered").returncode, 0)
 
