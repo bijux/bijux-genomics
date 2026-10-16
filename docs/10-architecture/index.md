@@ -1,7 +1,7 @@
 # 10-architecture Index
 
 - [../index.md](../index.md)
-- [TARGET_ARCHITECTURE.md](TARGET_ARCHITECTURE.md)
+- [Target Architecture](TARGET_ARCHITECTURE.md)
 - [ARCHITECTURE_OVERVIEW.md](ARCHITECTURE_OVERVIEW.md)
 - [ARCHITECTURE.md](ARCHITECTURE.md)
 - [BOUNDARY_MAP.md](BOUNDARY_MAP.md)

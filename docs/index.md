@@ -24,9 +24,11 @@ Welcome to the Bijux Genomics documentation. Start with the overview and then di
 
 ## Core map
 - [Architecture Overview](10-architecture/ARCHITECTURE_OVERVIEW.md)
+- [Product Ownership](10-architecture/TARGET_ARCHITECTURE.md)
 - [Boundary Map](10-architecture/BOUNDARY_MAP.md)
 - [SSOT](10-architecture/SSOT.md)
 - [Contract Spine](10-architecture/CONTRACT_SPINE.md)
+- [Data Portfolio and Truth](20-science/DATA_PORTFOLIO_AND_TRUTH_CONTRACT.md)
 - [Configs Index](https://github.com/bijux/bijux-genomics/blob/main/configs/index.md)
 
 ## Operations
