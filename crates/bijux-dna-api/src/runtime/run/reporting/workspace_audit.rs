@@ -8,12 +8,14 @@ use std::path::{Path, PathBuf};
 mod contracts;
 mod dependency_map;
 mod manifest;
+mod metric_registry;
 
 pub use dependency_map::{
     write_workspace_dependency_map, CrateDependencyEdge, CrateDependencyMapReport,
     CrateDependencyNode,
 };
 pub use manifest::{read_workspace_crate_manifests, WorkspaceCrateManifest};
+pub use metric_registry::{write_metric_registry_report, MetricRegistryReport, MetricRegistryRow};
 
 /// # Errors
 /// Returns an error if policy checks fail or cannot be executed.

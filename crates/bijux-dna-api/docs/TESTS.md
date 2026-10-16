@@ -82,3 +82,11 @@ when feature-gated code changed.
 Shared guardrail parser regressions are owned and executed by the policy crate. This boundary suite retains its crate-specific architecture checks; it does not compile another crate's test source. Constructor-only guardrail wrappers provide no source-check coverage and are retired.
 
 The owned invocation environment contract also checks a failed Local provider: the crash bundle preserves the five recorded child environment values, and the parent environment remains unchanged.
+
+## Workspace Metric Registry
+
+`src/runtime/run/reporting/workspace_audit/metric_registry/contracts.rs` covers
+vocabulary compatibility and YAML error chains, ordered stage refusals, domain
+contract projection, stable TSV/report publication, and preservation of an
+existing output on refusal. The CLI's retained `dev_crates_audits` metric-registry
+case checks the actual command, JSON envelope, and governed FASTQ/BAM/VCF rows.

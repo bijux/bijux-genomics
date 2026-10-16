@@ -36,7 +36,8 @@ pub use reporting::{
     query_run_lineage, read_workspace_crate_manifests, render_operator_diagnosis_output,
     render_report, render_run_browser_output, replay_explain, replay_failed_run, replay_manifest,
     resume_run, run_local_failure_injection, sign_bundle_prototype, status, verify_run_bundle,
-    verify_signed_bundle_prototype, workspace_edges, workspace_edges_at, write_workspace_audit,
-    write_workspace_dependency_map, CrateDependencyEdge, CrateDependencyMapReport,
-    CrateDependencyNode, WorkspaceCrateManifest,
+    verify_signed_bundle_prototype, workspace_edges, workspace_edges_at,
+    write_metric_registry_report, write_workspace_audit, write_workspace_dependency_map,
+    CrateDependencyEdge, CrateDependencyMapReport, CrateDependencyNode, MetricRegistryReport,
+    MetricRegistryRow, WorkspaceCrateManifest,
 };

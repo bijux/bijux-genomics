@@ -59,6 +59,12 @@ enter through `bijux_dna_api::v1::api`.
 - The `bench` namespace exposes the model-owned Goal 211-229 local VCF smoke-suite
   record, generated schema, and fail-closed aggregate validator.
 
+`write_metric_registry_report(source_root, output_path)` publishes the existing
+`bijux.crates.metric_registry.v1` table and returns `MetricRegistryReport` with
+`MetricRegistryRow` entries. FASTQ/BAM declarations are read from their governed
+YAML; VCF rows come from the domain's typed stage contracts. The file is TSV;
+the returned envelope retains the CLI report fields and their ordering.
+
 ## Export Policy
 
 - Export only stable, versioned APIs from `v1`.

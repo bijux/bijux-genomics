@@ -42,6 +42,11 @@
   acquisition stays in `workspace_audit.rs`; source-bound callers supply a root and
   reject metadata resolved from another workspace. Crate-cycle policy remains in
   `bijux-dna-policies`; the CLI retains cycle-report and effect-audit entrypoints.
+- `src/runtime/run/reporting/workspace_audit/metric_registry.rs` owns governed
+  FASTQ/BAM YAML metric acquisition, the domain-owned VCF metric-contract projection,
+  reconciliation, and atomic TSV publication. The CLI retains command dispatch and
+  the separate VCF proof invocation. Report DTOs remain beside their publication
+  owner, as with the workspace dependency map, and are curated through the v1 front door.
 - `src/support/` contains API-local support for benchmark runtime selection,
   QA compatibility hooks, reference resolution, tool selection, and workspace
   registry/root resolution. The compatibility hooks validate a nonempty stage

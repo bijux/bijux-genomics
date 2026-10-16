@@ -67,8 +67,9 @@ pub use stable_output::{render_operator_diagnosis_output, render_run_browser_out
 pub use status::status;
 pub use workspace_audit::{
     policy_audit, read_workspace_crate_manifests, workspace_edges, workspace_edges_at,
-    write_workspace_audit, write_workspace_dependency_map, CrateDependencyEdge,
-    CrateDependencyMapReport, CrateDependencyNode, WorkspaceCrateManifest,
+    write_metric_registry_report, write_workspace_audit, write_workspace_dependency_map,
+    CrateDependencyEdge, CrateDependencyMapReport, CrateDependencyNode, MetricRegistryReport,
+    MetricRegistryRow, WorkspaceCrateManifest,
 };
 
 /// # Errors

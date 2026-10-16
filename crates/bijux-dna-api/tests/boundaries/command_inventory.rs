@@ -18,6 +18,7 @@ const API_COMMANDS: &[&str] = &[
     "workspace-edges-at",
     "read-workspace-crate-manifests",
     "write-workspace-dependency-map",
+    "write-metric-registry-report",
     "write-workspace-audit",
 ];
 
