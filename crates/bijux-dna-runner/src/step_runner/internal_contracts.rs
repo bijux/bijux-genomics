@@ -437,16 +437,39 @@ fn execution_step_fixture(
 #[cfg(unix)]
 #[test]
 fn container_stage_deadlines_refuse_live_providers_and_inherited_pipes() -> anyhow::Result<()> {
-    use std::os::unix::fs::PermissionsExt as _;
+    use super::runtime_policy::StepRuntimeContext;
+    use crate::command_runner::{
+        CommandExecutionBindingV1, ExecutionBindingManifestV1, RUNNER_EXECUTION_BINDINGS_ENV,
+        RUNNER_EXECUTION_BINDINGS_SCHEMA_V1,
+    };
+    use std::collections::BTreeMap;
+    use std::ffi::OsString;
     use std::time::Duration;
 
     let root = bijux_dna_testkit::tempdir_for("container-stage-deadline");
     let provider = root.path().join("runtime-provider");
-    std::fs::write(
-        &provider,
-        b"#!/bin/sh\nfor last do :; done\nprintf provider-ready >&2\ncase \"$last\" in hold) exec /bin/sleep 2;; inherited) /bin/sleep 2 & exit 0;; *) printf completed; exit 0;; esac\n",
-    )?;
-    std::fs::set_permissions(&provider, std::fs::Permissions::from_mode(0o700))?;
+    let binding_path = root.path().join("provider-bindings.json");
+    let provider_name = provider.to_str().ok_or_else(|| anyhow!("provider is not UTF-8"))?;
+    // Invoke the existing shell directly; a newly written executable's admission is
+    // unrelated to the runner's one-second lifetime and inherited-pipe contract.
+    let bindings = ExecutionBindingManifestV1 {
+        schema_version: RUNNER_EXECUTION_BINDINGS_SCHEMA_V1.to_string(),
+        bindings: vec![CommandExecutionBindingV1 {
+            command: provider_name.to_string(),
+            program: "/bin/sh".to_string(),
+            prefix_args: vec![
+                "-c".to_string(),
+                "for last do :; done\nprintf provider-ready >&2\ncase \"$last\" in hold) exec /bin/sleep 2;; inherited) /bin/sleep 2 & exit 0;; *) printf completed; exit 0;; esac\n".to_string(),
+                provider_name.to_string(),
+            ],
+            required_files: Vec::new(),
+        }],
+    };
+    std::fs::write(&binding_path, serde_json::to_vec(&bindings)?)?;
+    let environment = BTreeMap::from([(
+        OsString::from(RUNNER_EXECUTION_BINDINGS_ENV),
+        binding_path.into_os_string(),
+    )]);
     for runtime in [RuntimeKind::Apptainer, RuntimeKind::Singularity] {
         for mode in ["hold", "inherited"] {
             let out_dir = root.path().join(format!("{runtime:?}-{mode}"));
@@ -460,11 +483,14 @@ fn container_stage_deadlines_refuse_live_providers_and_inherited_pipes() -> anyh
                 out_dir.to_str().ok_or_else(|| anyhow!("fixture root is not UTF-8"))?,
             );
             // Keep the deadline below the finite provider lifetime while allowing process startup.
-            let error = super::execute_verified_step_with_runtime_executable(
+            let error = super::execute_verified_step_in_context(
                 &step,
                 runtime,
-                Some(Duration::from_secs(1)),
-                Some(&provider),
+                StepRuntimeContext {
+                    timeout: Some(Duration::from_secs(1)),
+                    environment: Some(&environment),
+                    executable: Some(&provider),
+                },
             )
             .err()
             .ok_or_else(|| anyhow!("stage deadline accepted {runtime:?} {mode}"))?;
@@ -485,12 +511,16 @@ fn container_stage_deadlines_refuse_live_providers_and_inherited_pipes() -> anyh
             out_dir.to_str().ok_or_else(|| anyhow!("fixture root is not UTF-8"))?,
         );
         for timeout in [None, Some(Duration::from_secs(5))] {
-            let completed = super::execute_verified_step_with_runtime_executable(
+            let completed = super::execute_verified_step_in_context(
                 &step,
                 runtime,
-                timeout,
-                Some(&provider),
+                StepRuntimeContext {
+                    timeout,
+                    environment: Some(&environment),
+                    executable: Some(&provider),
+                },
             )?;
+            assert!(completed.command.starts_with("/bin/sh -c "));
             assert_eq!(completed.exit_code, 0);
             assert_eq!(completed.stdout, "completed");
             assert_eq!(completed.stderr, "provider-ready");
