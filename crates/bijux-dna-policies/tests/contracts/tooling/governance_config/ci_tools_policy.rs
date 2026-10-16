@@ -241,6 +241,7 @@ fn policy__contracts__ci_tools_policy__serde_yaml_is_scoped() {
     let root = workspace_root();
     let expected = [
         "bijux-dna",
+        "bijux-dna-api",
         "bijux-dna-bench",
         "bijux-dna-containers",
         "bijux-dna-containers-qa",
