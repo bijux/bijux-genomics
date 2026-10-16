@@ -23,3 +23,6 @@ pub use slurm_scripts::validate_benchmark_local_slurm_script_bodies;
 
 mod slurm_dependencies;
 pub use slurm_dependencies::inspect_benchmark_local_slurm_dependencies;
+
+mod retained_tools;
+pub use retained_tools::derive_all_domain_retained_tool_rows;

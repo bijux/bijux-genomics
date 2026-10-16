@@ -52,3 +52,8 @@ Benchmark stage-tool assets separate explicit planner/corpus acquisition and TOM
 Stage-tool resource rendering acquires execution specifications and tiny BAM fixture sizes, composes existing planner/domain resource constraints, and publishes the governed TOML/report. The pure benchmark walltime profiles are supplied by `bijux-dna-bench-model`; the CLI does not choose those stage/tool budgets.
 
 Tool alias reports acquire their existing serving-map or candidate-matrix scope and delegate normalized cluster membership to the benchmark alias owner. CLI projection retains domain lists, explanations and the existing JSON/TSV formats. The benchmark alias owner classifies stage/tool violations across the acquired four readiness surfaces. The CLI retains acquisition order, report-envelope validation and publication before the existing stale-alias refusal.
+
+The all-domain retained-tool adapter acquires executable bindings and external
+artifact contracts, then delegates retained-row aggregation and source-closure
+admission to the benchmark readiness owner. CLI report counts, model validation,
+TSV presentation, output paths and publication remain at the command boundary.

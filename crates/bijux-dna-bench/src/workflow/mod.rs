@@ -391,6 +391,7 @@ pub(crate) mod hpc_campaign;
 
 pub(crate) mod simulation;
 
+pub use readiness::derive_all_domain_retained_tool_rows;
 pub use readiness::evaluate_tool_execution_modes;
 pub use readiness::write_recorded_command_audit;
 

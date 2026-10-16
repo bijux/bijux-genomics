@@ -116,3 +116,10 @@ row matches a goal. It preserves the original affected-row list, unlike FASTQ
 and VCF goal projections, which trim that list to matched rows.
 
 `workflow/alias_resolution.rs` owns normalized benchmark tool cluster membership as well as canonical spelling preference. Callers supply their exact acquired tool scope; repeated identical IDs and singleton groups do not create aliases. Its private `alias_resolution/violations.rs` classifies stale stage and tool spellings across acquired candidate, active, expected-result and rendered-command rows, preserving surface metadata and stable violation order. The CLI keeps acquisition, report envelopes and validation, and publication before the existing stale-alias refusal, so FASTQ/BAM normalization and all-domain auditing retain their separate coverage.
+
+`workflow/readiness/retained_tools.rs` derives retained tool rows from explicit
+executable binding observations and external-artifact delivery contracts. Binding
+counts retain repeated observations while stage/domain sets remain unique and
+ordered. External contracts extend retention without manufacturing ready evidence.
+The CLI acquires both input families, validates the persisted model-owned report,
+and presents or publishes the unchanged inventory.

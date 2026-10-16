@@ -399,6 +399,7 @@ fn bench_tree_matches_architecture_contract() {
             "dashboard.rs",
             "dashboard_markdown.rs",
             "mod.rs",
+            "retained_tools.rs",
             "tool_execution_modes.rs",
             "slurm_dependencies.rs",
             "slurm_scripts.rs"

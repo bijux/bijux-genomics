@@ -324,3 +324,10 @@ row slices and the caller's existing candidate-derived tool clusters. It returns
 result identity. Other surfaces do not expand the candidate tool-alias scope.
 Duplicate observations and stable sort-key ties are retained. This pure operation
 does not acquire files, validate the report envelope, publish results or execute tools.
+
+`derive_all_domain_retained_tool_rows` accepts existing model-owned active rows and
+container-owned `ExternalArtifactToolContract` records. It returns existing
+`AllDomainRetainedToolRow` values after the retained-scope checks. External delivery
+metadata does not establish artifact availability or create benchmark-ready status.
+The function preserves distinct binding counts, unique stage counts, lexical order
+and existing refusal reasons without filesystem or process effects.

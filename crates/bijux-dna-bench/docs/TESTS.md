@@ -103,3 +103,8 @@ surfaces, retain result/corpus/profile identity, and distinguish candidate-scope
 tool membership from merely similar spellings on other surfaces. Stable ordering
 and duplicate observations have direct coverage. The CLI integration cases retain
 the existing report schema, counts and governed JSON publication behavior.
+
+Retained-tool derivation directly covers repeated bindings versus unique stages,
+mixed readiness, overlapping external contracts and exact source-closure failures.
+External-only declarations and non-ready observations must not become ready evidence.
+The CLI JSON and TSV inventory cases retain their supported command/output contracts.
