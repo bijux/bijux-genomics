@@ -60,3 +60,5 @@ The all-domain retained-tool adapter acquires executable bindings and external
 artifact contracts, then delegates retained-row aggregation and source-closure
 admission to the benchmark readiness owner. CLI report counts, model validation,
 TSV presentation, output paths and publication remain at the command boundary.
+
+Fixture-root validation keeps one successful FASTQ manifest observation within the current request in `commands/fixtures/root_validation/manifest_observation.rs`. The generic manifest row and named truth row retain their separate schemas and validity projections. Failed or differently selected validators remain independent; no observation survives the request or replaces stage materialization with a global cache.

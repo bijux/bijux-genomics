@@ -71,11 +71,18 @@ fn dna_tree_matches_architecture_contract() {
     );
 
     let fixture_entries = dir_entries(&root.join("src/commands/fixtures"));
-    let expected_fixtures: BTreeSet<_> =
-        ["build/", "entrypoint.rs", "expected/", "mod.rs", "paths.rs", "root_validation.rs"]
-            .into_iter()
-            .map(str::to_string)
-            .collect();
+    let expected_fixtures: BTreeSet<_> = [
+        "build/",
+        "entrypoint.rs",
+        "expected/",
+        "mod.rs",
+        "paths.rs",
+        "root_validation/",
+        "root_validation.rs",
+    ]
+    .into_iter()
+    .map(str::to_string)
+    .collect();
     assert_eq!(
         fixture_entries, expected_fixtures,
         "fixture commands must keep generation, expected-truth, entrypoint, and path ownership separate"

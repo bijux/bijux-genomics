@@ -27,6 +27,8 @@ use bijux_dna_bench_corpus::vcf::{
 };
 use serde::{Deserialize, Serialize};
 
+mod manifest_observation;
+
 use crate::commands::benchmark::local_corpus_fixture::{amplicon, bam, damage, edna, fastq, vcf};
 use crate::commands::benchmark::local_taxonomy_database_fixture::TAXONOMY_DATABASE_FIXTURE_SCHEMA_VERSION;
 use crate::commands::fixtures::expected::fastq_duplicates::{
@@ -143,12 +145,18 @@ fn collect_benchmark_fixture_root_rows(
         rows.push(validate_manifest_row(repo_root, &manifest_path));
     }
     for manifest_path in discover_fixture_manifests(&science_root)? {
-        rows.push(validate_manifest_row(repo_root, &manifest_path));
+        let (manifest, mut observed_truth) =
+            manifest_observation::observe_manifest(repo_root, &manifest_path);
+        rows.push(manifest);
         if manifest_path.ends_with("fastq-trimming-truth/manifest.toml") {
-            rows.push(validate_fastq_trimming_truth_row(repo_root, &manifest_path));
+            rows.push(observed_truth.take_trimming_or_else(|| {
+                validate_fastq_trimming_truth_row(repo_root, &manifest_path)
+            }));
         }
         if manifest_path.ends_with("fastq-duplicates-truth/manifest.toml") {
-            rows.push(validate_fastq_duplicates_truth_row(repo_root, &manifest_path));
+            rows.push(observed_truth.take_duplicates_or_else(|| {
+                validate_fastq_duplicates_truth_row(repo_root, &manifest_path)
+            }));
         }
         if manifest_path.ends_with("fastq-taxonomy-truth/manifest.toml") {
             rows.push(validate_fastq_taxonomy_truth_row(repo_root, &manifest_path));
@@ -257,43 +265,7 @@ fn validate_manifest_row(
     repo_root: &Path,
     manifest_path: &Path,
 ) -> BenchmarkFixtureRootValidationRow {
-    let schema_version = match load_manifest_schema_version(manifest_path) {
-        Ok(value) => value,
-        Err(error) => {
-            return BenchmarkFixtureRootValidationRow {
-                fixture_kind: "manifest".to_string(),
-                fixture_id: fixture_id_from_manifest_path(manifest_path),
-                manifest_path: Some(path_relative_to_repo(repo_root, manifest_path)),
-                detail_path: None,
-                schema_version: None,
-                valid: false,
-                detail: error.to_string(),
-            };
-        }
-    };
-
-    let result = validate_manifest_row_by_schema(repo_root, manifest_path, &schema_version);
-
-    match result {
-        Ok((fixture_kind, fixture_id)) => BenchmarkFixtureRootValidationRow {
-            fixture_kind,
-            fixture_id,
-            manifest_path: Some(path_relative_to_repo(repo_root, manifest_path)),
-            detail_path: None,
-            schema_version: Some(schema_version),
-            valid: true,
-            detail: "valid".to_string(),
-        },
-        Err(error) => BenchmarkFixtureRootValidationRow {
-            fixture_kind: "manifest".to_string(),
-            fixture_id: fixture_id_from_manifest_path(manifest_path),
-            manifest_path: Some(path_relative_to_repo(repo_root, manifest_path)),
-            detail_path: None,
-            schema_version: Some(schema_version),
-            valid: false,
-            detail: error.to_string(),
-        },
-    }
+    manifest_observation::observe_manifest(repo_root, manifest_path).0
 }
 
 macro_rules! validate_manifest_row_by_schema_cases {
@@ -340,18 +312,6 @@ macro_rules! validate_manifest_row_by_schema_cases {
                 $manifest_path,
                 "database",
                 crate::commands::benchmark::local_taxonomy_database_fixture::validate_taxonomy_database_fixture_manifest_path,
-            ),
-            FASTQ_TRIMMING_TRUTH_MANIFEST_SCHEMA_VERSION => validate_known_manifest_schema_row(
-                $repo_root,
-                $manifest_path,
-                "science_fixture",
-                validate_fastq_trimming_truth_manifest_path,
-            ),
-            FASTQ_DUPLICATES_TRUTH_MANIFEST_SCHEMA_VERSION => validate_known_manifest_schema_row(
-                $repo_root,
-                $manifest_path,
-                "science_fixture",
-                validate_fastq_duplicates_truth_manifest_path,
             ),
             FASTQ_TAXONOMY_TRUTH_MANIFEST_SCHEMA_VERSION => validate_known_manifest_schema_row(
                 $repo_root,
@@ -474,15 +434,7 @@ fn validate_fastq_trimming_truth_row(
     manifest_path: &Path,
 ) -> BenchmarkFixtureRootValidationRow {
     match validate_fastq_trimming_truth_manifest_path(repo_root, manifest_path) {
-        Ok(report) => BenchmarkFixtureRootValidationRow {
-            fixture_kind: "expected_truth".to_string(),
-            fixture_id: report.fixture_id,
-            manifest_path: Some(path_relative_to_repo(repo_root, manifest_path)),
-            detail_path: Some(report.expected_path),
-            schema_version: Some(report.schema_version.to_string()),
-            valid: report.valid,
-            detail: format!("validated_cases={}", report.validated_case_count),
-        },
+        Ok(report) => manifest_observation::trimming_truth_row(repo_root, manifest_path, report),
         Err(error) => BenchmarkFixtureRootValidationRow {
             fixture_kind: "expected_truth".to_string(),
             fixture_id: fixture_id_from_manifest_path(manifest_path),
@@ -500,15 +452,7 @@ fn validate_fastq_duplicates_truth_row(
     manifest_path: &Path,
 ) -> BenchmarkFixtureRootValidationRow {
     match validate_fastq_duplicates_truth_manifest_path(repo_root, manifest_path) {
-        Ok(report) => BenchmarkFixtureRootValidationRow {
-            fixture_kind: "expected_truth".to_string(),
-            fixture_id: report.fixture_id,
-            manifest_path: Some(path_relative_to_repo(repo_root, manifest_path)),
-            detail_path: Some(report.expected_path),
-            schema_version: Some(report.schema_version.to_string()),
-            valid: report.valid,
-            detail: format!("validated_cases={}", report.validated_case_count),
-        },
+        Ok(report) => manifest_observation::duplicates_truth_row(repo_root, manifest_path, report),
         Err(error) => BenchmarkFixtureRootValidationRow {
             fixture_kind: "expected_truth".to_string(),
             fixture_id: fixture_id_from_manifest_path(manifest_path),
