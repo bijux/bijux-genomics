@@ -13,7 +13,12 @@ fn retry_count(value: &toml::Value) -> Option<i64> {
     value.as_integer().or_else(|| value.get("count").and_then(toml::Value::as_integer))
 }
 
-fn profile_contract_violations(profile: &toml::Value, complete: bool) -> Vec<&'static str> {
+fn profile_contract_violations(
+    config: &toml::Value,
+    name: &str,
+    complete: bool,
+) -> Vec<&'static str> {
+    let profile = profile(config, name);
     let mut violations = Vec::new();
     if profile.get("retries").and_then(retry_count) != Some(0) {
         violations.push("profile must explicitly disable retries");
@@ -37,7 +42,16 @@ fn profile_contract_violations(profile: &toml::Value, complete: bool) -> Vec<&'s
         violations.push("bounded profile must terminate stalled tests");
     }
     for override_config in
-        profile.get("overrides").and_then(toml::Value::as_array).into_iter().flatten()
+        profile.get("overrides").and_then(toml::Value::as_array).into_iter().flatten().chain(
+            config
+                .get("profile")
+                .and_then(|profiles| profiles.get("default"))
+                .filter(|_| name != "default")
+                .and_then(|defaults| defaults.get("overrides"))
+                .and_then(toml::Value::as_array)
+                .into_iter()
+                .flatten(),
+        )
     {
         if override_config.get("retries").is_some_and(|value| retry_count(value) != Some(0)) {
             violations.push("profile override must not enable retries");
@@ -60,7 +74,7 @@ fn policy__contracts__nextest_determinism_policy__ci_profile_disables_flaky_orde
         .expect("read configs/rust/nextest.toml");
     let config: toml::Value = toml::from_str(&source).expect("parse nextest profiles");
     for name in ["ci", "fast-unit"] {
-        let violations = profile_contract_violations(profile(&config, name), false);
+        let violations = profile_contract_violations(&config, name, false);
         bijux_dna_policies::policy_assert!(
             violations.is_empty(),
             "profile.{name} violates deterministic bounded execution: {violations:?}"
@@ -82,29 +96,37 @@ test-threads = "num-cpus"
 slow-timeout = { period = "3s" }
 "#;
     let config: toml::Value = toml::from_str(source).expect("parse profile contract fixture");
-    assert!(profile_contract_violations(profile(&config, "ci"), false).is_empty());
-    assert!(profile_contract_violations(profile(&config, "full"), true).is_empty());
+    assert!(profile_contract_violations(&config, "ci", false).is_empty());
+    assert!(profile_contract_violations(&config, "full", true).is_empty());
 
     let mut retried_ci = config.clone();
     retried_ci["profile"]["ci"]["retries"] = toml::Value::Integer(1);
-    assert!(profile_contract_violations(profile(&retried_ci, "ci"), false)
+    assert!(profile_contract_violations(&retried_ci, "ci", false)
         .contains(&"profile must explicitly disable retries"));
 
     let mut stopped_full = config.clone();
     stopped_full["profile"]["full"]["fail-fast"] = toml::Value::Boolean(true);
-    assert!(profile_contract_violations(profile(&stopped_full, "full"), true)
+    assert!(profile_contract_violations(&stopped_full, "full", true)
         .contains(&"complete profile must collect all failures"));
 
     let mut stalled_ci = config.clone();
     stalled_ci["profile"]["ci"]["slow-timeout"]["terminate-after"] = toml::Value::Integer(0);
-    assert!(profile_contract_violations(profile(&stalled_ci, "ci"), false)
+    assert!(profile_contract_violations(&stalled_ci, "ci", false)
         .contains(&"bounded profile must terminate stalled tests"));
 
     let overridden: toml::Value = toml::from_str(&format!(
         "{source}\n[[profile.full.overrides]]\nfilter = 'test(example)'\nretries = 1\nslow-timeout = {{ period = '1s', terminate-after = 2 }}\n"
     ))
     .expect("parse profile override fixture");
-    let violations = profile_contract_violations(profile(&overridden, "full"), true);
+    let violations = profile_contract_violations(&overridden, "full", true);
+    assert!(violations.contains(&"profile override must not enable retries"));
+    assert!(violations.contains(&"complete profile override must not terminate slow tests"));
+
+    let inherited: toml::Value = toml::from_str(&format!(
+        "{source}\n[[profile.default.overrides]]\nfilter = 'test(example)'\nretries = 1\nslow-timeout = {{ period = '1s', terminate-after = 2 }}\n"
+    ))
+    .expect("parse inherited override fixture");
+    let violations = profile_contract_violations(&inherited, "full", true);
     assert!(violations.contains(&"profile override must not enable retries"));
     assert!(violations.contains(&"complete profile override must not terminate slow tests"));
 }
@@ -133,7 +155,7 @@ fn policy__contracts__nextest_determinism_policy__full_profile_keeps_long_runnin
         .expect("read Nextest expression builder");
     let slow_roster = std::fs::read_to_string(root.join("configs/rust/nextest-slow-roster.txt"))
         .expect("read nextest slow roster");
-    let violations = profile_contract_violations(profile(&config, "full"), true);
+    let violations = profile_contract_violations(&config, "full", true);
     bijux_dna_policies::policy_assert!(
         violations.is_empty(),
         "profile.full violates complete first-attempt execution: {violations:?}"
@@ -226,4 +248,161 @@ fn assert_shared_full_suite_contract(
         slow_roster.lines().map(str::trim).any(|line| !line.is_empty() && !line.starts_with('#')),
         "nextest slow roster must contain governed slow test names"
     );
+}
+
+fn benchmark_ownership_violations(config: &toml::Value) -> Vec<&'static str> {
+    let mut violations = Vec::new();
+    if config
+        .get("test-groups")
+        .and_then(|groups| groups.get("benchmark-repository-mutators"))
+        .and_then(|group| group.get("max-threads"))
+        .and_then(toml::Value::as_integer)
+        != Some(1)
+    {
+        violations.push("shared repository writers must serialize");
+    }
+    let shared = profile(config, "default")
+        .get("overrides")
+        .and_then(toml::Value::as_array)
+        .map(Vec::as_slice)
+        .unwrap_or_default();
+    let mut shared_writers = false;
+    let mut private_exceptions = false;
+    for override_config in shared {
+        match override_config.get("test-group").and_then(toml::Value::as_str) {
+            Some("benchmark-repository-mutators") => shared_writers = true,
+            Some("@global") => {
+                private_exceptions = true;
+                if shared_writers {
+                    violations
+                        .push("qualified private exceptions must precede shared writer rules");
+                }
+            }
+            _ => {}
+        }
+    }
+    if !shared_writers || !private_exceptions {
+        violations.push("default profile must own shared writers and qualified private exceptions");
+    }
+    for (name, value) in
+        config.get("profile").and_then(toml::Value::as_table).expect("profile table")
+    {
+        if name != "default"
+            && value
+                .get("overrides")
+                .and_then(toml::Value::as_array)
+                .into_iter()
+                .flatten()
+                .any(|rule| rule.get("test-group").is_some())
+        {
+            violations.push("profile-local ownership must not mask the inherited shared boundary");
+        }
+    }
+    violations
+}
+
+#[test]
+fn policy__contracts__nextest_determinism_policy__benchmark_ownership_is_shared_across_profiles() {
+    let root = repo_root();
+    let config: toml::Value = toml::from_str(
+        &std::fs::read_to_string(root.join("configs/rust/nextest.toml")).expect("read profiles"),
+    )
+    .expect("parse profiles");
+    let violations = benchmark_ownership_violations(&config);
+    assert!(violations.is_empty(), "shared benchmark ownership: {violations:?}");
+    // Pinned Nextest chains each custom profile's overrides before default overrides.
+    // With no local ownership masks, these profiles share the same ordered owner rules.
+    for name in ["default", "full", "fast-unit", "slow-integration"] {
+        let _ = profile(&config, name);
+    }
+    let expression = |mode: &str| {
+        let output = std::process::Command::new(root.join("makes/bin/nextest_expr.sh"))
+            .arg(mode)
+            .env("PROJECT_ROOT", &root)
+            .env("NEXTEST_SLOW_ROSTER", root.join("configs/rust/nextest-slow-roster.txt"))
+            .env("NEXTEST_SLOW_NAME_EXPR", "test(/::slow__/)")
+            .output()
+            .expect("run existing Nextest expression builder");
+        assert!(
+            output.status.success(),
+            "Nextest expression builder: {}",
+            String::from_utf8_lossy(&output.stderr)
+        );
+        String::from_utf8(output.stdout).expect("Nextest expression UTF-8").trim().to_string()
+    };
+    let slow = expression("slow");
+    assert_eq!(expression("fast"), format!("not ({slow})"));
+    let roster_pattern = slow
+        .rsplit_once("test(/")
+        .expect("rostered slow predicate")
+        .1
+        .split_once("/)")
+        .expect("closed slow predicate")
+        .0;
+    let roster = regex::Regex::new(roster_pattern).expect("valid slow roster regex");
+    for name in [
+        "loaded_hpc_asset_staging_manifest_matches_governed_render",
+        "rendered_hpc_asset_staging_manifest_covers_all_domain_jobs",
+        "validated_hpc_asset_staging_manifest_rejects_stale_selected_job_count",
+    ] {
+        assert!(roster.is_match(name), "bare slow case must remain selected: {name}");
+        assert!(
+            roster.is_match(&format!(
+                "commands::benchmark::local_hpc_asset_staging_manifest::tests::{name}"
+            )),
+            "module-qualified slow case must remain selected: {name}"
+        );
+        assert!(
+            !roster.is_match(&format!("{name}_neighbor")),
+            "adjacent unqualified case must not be reclassified"
+        );
+    }
+}
+
+#[test]
+fn policy__contracts__nextest_determinism_policy__ownership_controls_refuse_profile_masks() {
+    let source = r"
+[test-groups.benchmark-repository-mutators]
+max-threads = 1
+[profile.default]
+[[profile.default.overrides]]
+filter = 'test(=qualified_private_case)'
+test-group = '@global'
+[[profile.default.overrides]]
+filter = 'package(bijux-dna)'
+test-group = 'benchmark-repository-mutators'
+[profile.full]
+[profile.fast-unit]
+[profile.slow-integration]
+";
+    let config: toml::Value = toml::from_str(source).expect("ownership fixture");
+    assert!(benchmark_ownership_violations(&config).is_empty());
+    let mut masked = config.clone();
+    masked["profile"]["fast-unit"]
+        .as_table_mut()
+        .expect("fast table")
+        .insert("overrides".to_string(), config["profile"]["default"]["overrides"].clone());
+    assert!(benchmark_ownership_violations(&masked)
+        .contains(&"profile-local ownership must not mask the inherited shared boundary"));
+    let mut full_only = config.clone();
+    let moved = full_only["profile"]["default"]
+        .as_table_mut()
+        .expect("default table")
+        .remove("overrides")
+        .expect("default overrides");
+    full_only["profile"]["full"]
+        .as_table_mut()
+        .expect("full table")
+        .insert("overrides".to_string(), moved);
+    assert!(benchmark_ownership_violations(&full_only)
+        .contains(&"default profile must own shared writers and qualified private exceptions"));
+    let mut reordered = config.clone();
+    reordered["profile"]["default"]["overrides"].as_array_mut().expect("overrides").reverse();
+    assert!(benchmark_ownership_violations(&reordered)
+        .contains(&"qualified private exceptions must precede shared writer rules"));
+    let mut concurrent = config;
+    concurrent["test-groups"]["benchmark-repository-mutators"]["max-threads"] =
+        toml::Value::Integer(2);
+    assert!(benchmark_ownership_violations(&concurrent)
+        .contains(&"shared repository writers must serialize"));
 }

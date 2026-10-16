@@ -32,9 +32,10 @@ failure-output = "immediate"
 success-output = "never"
 status-level = "pass"
 
+# Shared-output ownership applies across profiles, independently of their timeouts.
 # Only these qualified cases own private repository/output and child runtime roots.
 # Keep adjacent readiness and CLI generators serialized until their effects are isolated.
-[[profile.full.overrides]]
+[[profile.default.overrides]]
 filter = """
 package(bijux-dna) and binary(=benchmark_readiness) and ( \
     test(=parser_failures::fastq_bam::bench_readiness_parser_failure_audit_report_structures_parser_errors) or \
@@ -45,7 +46,7 @@ package(bijux-dna) and binary(=benchmark_readiness) and ( \
 test-group = '@global'
 
 # Adapter coverage owns selected fixture inputs, private Git authority and runtime roots.
-[[profile.full.overrides]]
+[[profile.default.overrides]]
 filter = """
 package(bijux-dna) and binary(=benchmark_readiness) and ( \
     test(=readiness::adapters::bench_readiness_all_domain_adapter_coverage_reports_complete_active_rows) or \
@@ -53,7 +54,7 @@ package(bijux-dna) and binary(=benchmark_readiness) and ( \
 )"""
 test-group = '@global'
 
-[[profile.full.overrides]]
+[[profile.default.overrides]]
 filter = """
 package(bijux-dna) and binary(=bench_readiness_bam) and ( \
     test(=bam::genotypes::genotyping_complete::bench_readiness_bam_genotyping_complete_reports_governed_row) or \
@@ -69,7 +70,7 @@ package(bijux-dna) and binary(=bench_readiness_bam) and ( \
 )"""
 test-group = '@global'
 
-[[profile.full.overrides]]
+[[profile.default.overrides]]
 filter = """
 package(bijux-dna) and binary(=bijux_dna) and ( \
     test(=commands::benchmark::local_hpc_asset_staging_manifest::tests::loaded_hpc_asset_staging_manifest_matches_governed_render) or \
@@ -79,8 +80,8 @@ package(bijux-dna) and binary(=bijux_dna) and ( \
 test-group = '@global'
 
 # These suites create an independent RepoSandbox for every test and bind all CLI
-# repository/output roots to it. They can use the global worker pool within a shard.
-[[profile.full.overrides]]
+# repository/output roots to it. They can use the global worker pool.
+[[profile.default.overrides]]
 filter = '(package(bijux-dna) and binary(/^(?:bench_local_hpc_dry_run_ready|bench_readiness_operational_benchmark_ready|bench_readiness_all_domain_local_harness_complete|bench_readiness_full_benchmark_(?:report|result_collector|dashboard))$/)) or (package(bijux-dna) and binary(=bench_readiness_all_domain_completion) and test(=operational_benchmark::bench_readiness_all_domain_local_operational_benchmark_complete_reports_green_surface))'
 test-group = '@global'
 # Start the measured long independent workflows before ordinary cases.
@@ -88,17 +89,17 @@ priority = 100
 
 # These micro workflows bind child commands to fresh per-test repository roots.
 # The SLURM file contract already uses that same sandbox boundary.
-[[profile.full.overrides]]
+[[profile.default.overrides]]
 filter = '(package(bijux-dna) and binary(/^(?:bench_local_bam_micro_smoke_subset|bench_local_edna_micro_pipeline(?:_file)?)$/)) or (package(bijux-dna) and binary(=bench_local_slurm) and test(=slurm::all_domain::scripts_file::bench_local_render_all_domain_slurm_scripts_writes_governed_root))'
 test-group = '@global'
 priority = 90
 
 # Other CLI generators retain serialization until their output isolation is qualified.
-[[profile.full.overrides]]
+[[profile.default.overrides]]
 filter = 'package(bijux-dna) and binary(/^(?:bench_|benchmark_readiness$|config_|dev_crates_|fixtures_|plan_validate_)/)'
 test-group = 'benchmark-repository-mutators'
 
-[[profile.full.overrides]]
+[[profile.default.overrides]]
 filter = 'package(bijux-dna) and test(/^commands::benchmark::/)'
 test-group = 'benchmark-repository-mutators'
 
