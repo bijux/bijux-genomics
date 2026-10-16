@@ -242,7 +242,7 @@ fn policy__contracts__root_docs_navigation_policy__architecture_litmus_links_gov
 #[test]
 fn policy__contracts__root_docs_navigation_policy__anti_patterns_links_governed_surfaces_exactly() {
     let expected = BTreeSet::from([
-        "../../crates/bijux-dna-policies/tests/boundaries/surface/structure_guards/no_policy_duplication.rs".to_string(),
+        "../../crates/bijux-dna-policies/docs/ARCHITECTURE.md".to_string(),
         "../../crates/bijux-dna-policies/tests/boundaries/surface/policy/id_literal_policy.rs"
             .to_string(),
         "../../crates/bijux-dna-policies/tests/boundaries/surface/structure_guards/no_serde_json_writer.rs".to_string(),

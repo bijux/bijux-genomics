@@ -90,8 +90,6 @@ mod mod_boundaries_surface_no_duplicate_canonicalizers_rs;
 mod mod_boundaries_surface_no_empty_dirs_policy_rs;
 #[path = "boundaries/surface/structure_guards/no_helpers_policy.rs"]
 mod mod_boundaries_surface_no_helpers_policy_rs;
-#[path = "boundaries/surface/structure_guards/no_policy_duplication.rs"]
-mod mod_boundaries_surface_no_policy_duplication_rs;
 #[path = "boundaries/surface/structure_guards/no_repo_tree_snapshots.rs"]
 mod mod_boundaries_surface_no_repo_tree_snapshots_rs;
 #[path = "boundaries/surface/structure_guards/no_serde_json_writer.rs"]

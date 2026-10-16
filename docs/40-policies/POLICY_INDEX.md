@@ -39,7 +39,6 @@ Policies are enforced by tests under
 | no_duplicate_canonicalizers | single canonicalization | duplicate hash/paths | all crates | `tests/surface/no_duplicate_canonicalizers.rs` |
 | no_empty_dirs_policy | namespace integrity | empty directories and placeholder modules | all crates | `tests/boundaries/surface/structure_guards/no_empty_dirs_policy.rs` |
 | no_helpers_policy | no helpers buckets | helpers/utils | all crates | `tests/surface/no_helpers_policy.rs` |
-| no_policy_duplication | centralize policy logic | policy redefs | all crates | `tests/surface/no_policy_duplication.rs` |
 | no_serde_json_writer | canonical JSON only | raw serde_json writes | all crates | `tests/surface/no_serde_json_writer.rs` |
 | planner_purity | planner purity | parsing logic in planners | planners | `tests/surface/planner_purity.rs` |
 | policy_docs_anchor | policy docs link | missing policy listing | policies crate | `tests/surface/policy_docs_anchor.rs` |

@@ -69,7 +69,6 @@ Welcome to the Bijux Genomics documentation. Start with the overview and then di
 - `no_duplicate_policy_checks.rs`
 - `no_empty_dirs_policy.rs`
 - `no_helpers_policy.rs`
-- `no_policy_duplication.rs`
 - `no_repo_tree_snapshots.rs`
 - `no_serde_json_writer.rs`
 - `no_standalone_bijux_cli.rs`
