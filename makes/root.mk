@@ -25,6 +25,8 @@ include $(BIJUX_MAKES_SHARED_ROOT)/bijux-makes-rs/bijux.mk
 
 .DEFAULT_GOAL := help
 
+.PHONY: help _prep-apptainer-batch _gc-mac
+
 ##@ General
 
 help: ## Show this help message

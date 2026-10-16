@@ -533,6 +533,8 @@ _ci-slow: ## Slow CI tier (manual): heavier integration checks.
 
 _quick: ## Quick local gate: fmt + clippy + unit + invariant tests.
 	$(MAKE) fmt
+	$(MAKE) lint
+	$(MAKE) test
 	$(MAKE) lint-workspace
 	$(MAKE) _test-profile-invariants
 	$(MAKE) _registry-lint
@@ -679,6 +681,8 @@ refresh-assets-toy: ## Regenerate deterministic toy datasets in assets/toy.
 refresh-assets-golden: ## Regenerate deterministic toy-run goldens in assets/golden.
 	@cargo run -q -p bijux-dna-dev -- assets run refresh-golden
 
+.PHONY: _dev-dna-bin _fmt audit-policy-rs _test _audit _coverage _doctor _lint-automation-contracts test-preflight generate-configs vcf-certification bench-hpc-dry-run-ready-render bench-hpc-dry-run-ready-validate bench-hpc-dry-run-ready-dry-run
+
 .PHONY: fmt fmt-rs lint lint-rs lint-workspace lint-governance lint-rustfmt lint-clippy lint-docs lint-configs lint-fast lint-automation lint-scripts test test-rs test-fast test-slow test-slow-rs test-all test-all-rs test-all-frozen test-complete lint-frozen audit-frozen audit audit-rs coverage coverage-rs coverage-workspace ci doctor github-all github-all-frozen _check _verify-artifact-env \
 		_clean-artifact-scratch \
 		_domain-gates domain-validate examples-validate \
@@ -707,5 +711,3 @@ _ci-profile-fast:
 
 _ci-profile-slow:
 	@cargo run -q -p bijux-dna-dev -- tooling run ci-slow
-
-.PHONY: test-preflight
