@@ -128,7 +128,11 @@ pub(in super::super) fn validate_ci_test_executor_observation(
     }
     let expected =
         format!("{} {}", authority.test_executor.package, authority.test_executor.version);
-    if !observed.lines().next().is_some_and(|line| line.starts_with(&expected)) {
+    if !observed.lines().next().is_some_and(|line| {
+        let mut tokens = line.split_whitespace();
+        tokens.next() == Some(authority.test_executor.package.as_str())
+            && tokens.next() == Some(authority.test_executor.version.as_str())
+    }) {
         anyhow::bail!(
             "CI test executor version mismatch: expected {expected}, observed {observed}"
         );
@@ -329,6 +333,31 @@ mod tests {
                 .ok_or_else(|| anyhow::anyhow!("drifted nextest did not fail closed"))?;
         assert!(drifted.to_string().contains("version mismatch"));
 
-        validate_ci_test_executor_observation(&authority, true, "cargo-nextest 0.9.100 (build)")
+        validate_ci_test_executor_observation(&authority, true, "cargo-nextest 0.9.100 (build)")?;
+        validate_ci_test_executor_observation(
+            &authority,
+            true,
+            concat!(
+                "cargo-nextest 0.9.100 (7e6129fe2 2025-07-07)\n",
+                "release: 0.9.100\n",
+                "commit-hash: 7e6129fe2c410ba2b5fd0da0755c61f9f2252b59\n",
+                "commit-date: 2025-07-07\n",
+                "host: x86_64-unknown-linux-gnu\n"
+            ),
+        )?;
+        for observed in [
+            "cargo-nextest-extra 0.9.100",
+            "cargo-nextest 0.9.100-custom",
+            "cargo-nextest 0.9.1000",
+            "unrelated tool\ncargo-nextest 0.9.100",
+        ] {
+            let error = validate_ci_test_executor_observation(&authority, true, observed)
+                .err()
+                .ok_or_else(|| {
+                    anyhow::anyhow!("mismatched test executor was accepted: {observed}")
+                })?;
+            assert!(error.to_string().contains("version mismatch"), "{observed}: {error:#}");
+        }
+        Ok(())
     }
 }
