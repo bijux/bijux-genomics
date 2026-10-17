@@ -124,14 +124,16 @@ class DeveloperBootstrapProcessTests(unittest.TestCase):
         self.env = dict(os.environ)
         for name in ["CARGO_BUILD_TARGET", "CARGO_TARGET_DIR", "RUSTC_WRAPPER"]:
             self.env.pop(name, None)
-        self.env["CARGO_HOME"] = str(ROOT / "artifacts/rust/cargo/home")
-        subprocess.run(
+        # Dependency-free fixtures must not share mutable Cargo configuration or caches.
+        self.env["CARGO_HOME"] = str(self.root / "cargo-home")
+        lockfile = subprocess.run(
             ["cargo", "generate-lockfile", "--offline"],
             cwd=self.root,
             env=self.env,
-            check=True,
             capture_output=True,
+            text=True,
         )
+        self.assertEqual(lockfile.returncode, 0, lockfile.stdout + lockfile.stderr)
 
     def run_bootstrap(
         self, path: Path | None = None, profile: str | None = None
