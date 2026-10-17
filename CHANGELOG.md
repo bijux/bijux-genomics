@@ -8,6 +8,8 @@
 
 - Preserve compatible compilation caches across CI runs while rebuilding and validating every source-bound test archive ([#175](https://github.com/bijux/bijux-genomics/pull/175)).
 
+- Derive selected HPC jobs once within each readiness assessment while preserving provider diagnostics, output admission and fresh validation against governed inputs ([#175](https://github.com/bijux/bijux-genomics/pull/175)).
+
 - Adopt accepted reader preference recovery, inert native search, truthful clipboard feedback, patched publication dependencies and authenticated workflow actions for source readiness while retaining local MathJax assets ([#163](https://github.com/bijux/bijux-genomics/pull/163)).
 
 - Retain the admitted documentation renderer and MathJax assets while adopting the canonical bounded manual publication workflow and independently checked governance components ([#162](https://github.com/bijux/bijux-genomics/pull/162)).
