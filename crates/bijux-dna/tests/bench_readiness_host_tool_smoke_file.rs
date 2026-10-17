@@ -55,16 +55,19 @@ fn bench_readiness_host_tool_smoke_writes_manifest_file() {
         parsed.get("version_matches_regex").and_then(serde_json::Value::as_bool),
         Some(true)
     );
-    assert!(parsed.get("applied_command").and_then(serde_json::Value::as_array).is_some_and(
-        |argv| {
-            argv.len() == 2
-                && argv
-                    .first()
-                    .and_then(serde_json::Value::as_str)
-                    .is_some_and(|value| value.ends_with("/debug/bijux-dna"))
-                && argv.get(1).and_then(serde_json::Value::as_str) == Some("--version")
-        }
-    ));
+    let applied_command = parsed
+        .get("applied_command")
+        .and_then(serde_json::Value::as_array)
+        .expect("applied host command argv");
+    assert_eq!(applied_command.len(), 2);
+    let applied_executable = repo_root
+        .join(applied_command[0].as_str().expect("applied host executable path"))
+        .canonicalize()
+        .expect("resolve applied host executable");
+    let admitted_executable =
+        support::cli_binary_path().canonicalize().expect("resolve admitted CLI executable");
+    assert_eq!(applied_executable, admitted_executable);
+    assert_eq!(applied_command[1].as_str(), Some("--version"));
     assert_eq!(parsed.get("stdout").and_then(serde_json::Value::as_str), Some("bijux-dna 0.1.0\n"));
     assert_eq!(parsed.get("stderr").and_then(serde_json::Value::as_str), Some(""));
 }
