@@ -18,6 +18,8 @@
 
 ### Fixed
 
+- Keep compiler host probes inside their minimal-toolchain fixtures so caller toolchain component installation cannot prevent stale-artifact checks ([#176](https://github.com/bijux/bijux-genomics/pull/176)).
+
 - Bind Make gates to current compiled products and pinned runtime dependencies, keep developer preflight valid on Python 3.13, prepare archive extraction roots, and propagate report sink failures. Upgrade ZIP to 9.0.4 to address security advisories and reject database archive paths outside their staging directory ([#175](https://github.com/bijux/bijux-genomics/pull/175)).
 
 - Resolve relocated CLI executables, isolate fixture toolchains and Git histories, and preserve schema and native path behavior across CI environments ([#175](https://github.com/bijux/bijux-genomics/pull/175)).

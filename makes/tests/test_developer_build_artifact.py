@@ -174,7 +174,9 @@ class DeveloperBootstrapProcessTests(unittest.TestCase):
         self.assertNotEqual(self.run_bootstrap(binary, "unregistered").returncode, 0)
 
     def host(self) -> str:
-        output = subprocess.check_output(["rustc", "-vV"], text=True, env=self.env)
+        output = subprocess.check_output(
+            ["rustc", "-vV"], cwd=self.root, text=True, env=self.env
+        )
         return next(
             line.removeprefix("host: ")
             for line in output.splitlines()
