@@ -445,23 +445,65 @@ fn stage_report_admission_rejects_stale_catalog_identity() -> Result<()> {
     let (registry, _, interfaces) =
         bijux_dna_bench::load_checked_in_benchmark_planning_contracts()?;
     let mut report = reference_stage_report()?.report;
-    report.catalog_sha256 = "f".repeat(64);
-
-    let reports_dir = bijux_dna_bench::bench_reports_dir();
-    let repository_root = reports_dir
-        .ancestors()
-        .find(|root| root.join(".git").exists())
-        .ok_or_else(|| anyhow::anyhow!("resolve repository root"))?;
-    let artifact_root = repository_root.join("artifacts/tests/benchmark-report-admission");
+    let source_root = repository_root()?;
+    let artifact_root = source_root.join("artifacts/tests/benchmark-report-admission");
     bijux_dna_infra::ensure_dir(&artifact_root)?;
-    let publication = bijux_dna_infra::temp_dir_in(&artifact_root, "stale-catalog-")?;
-    bijux_dna_infra::atomic_write_json(&publication.path().join("run-stale.json"), &report)?;
+    let fixture = bijux_dna_infra::temp_dir_in(&artifact_root, "catalog-identity-")?;
+    let root = fixture.path();
+    let catalog = "containers/contracts/catalog.toml";
+    bijux_dna_infra::ensure_dir(&root.join("containers/contracts"))?;
+    std::fs::copy(source_root.join(catalog), root.join(catalog))?;
+    catalog_fixture_git(root, &["init", "--quiet"])?;
+    catalog_fixture_git(root, &["add", catalog])?;
+    catalog_fixture_git(root, &["commit", "--quiet", "-m", "record catalog authority"])?;
+    let commit = bijux_dna_containers::api::repository_head_commit(root)?;
+    for tool in &mut report.tools {
+        tool.repository_commit.clone_from(&commit);
+    }
+    if let Some(comparability) = &mut report.comparability {
+        comparability.repository_commit.clone_from(&commit);
+    }
+    report.catalog_sha256 = bijux_dna_containers::api::catalog_identity_at_commit(root, &commit)?;
+    let publication = root.join("benchmarks/reports");
+    bijux_dna_infra::ensure_dir(&publication)?;
+    let report_path = publication.join("run-stale.json");
+    bijux_dna_infra::atomic_write_json(&report_path, &report)?;
+    assert_eq!(
+        bijux_dna_bench::load_stage_reports_from_dir(&publication, &registry, &interfaces)?.len(),
+        1
+    );
 
-    let error =
-        bijux_dna_bench::load_stage_reports_from_dir(publication.path(), &registry, &interfaces)
-            .err()
-            .map(|error| error.to_string());
+    report.catalog_sha256 = "f".repeat(64);
+    bijux_dna_infra::atomic_write_json(&report_path, &report)?;
+
+    let error = bijux_dna_bench::load_stage_reports_from_dir(&publication, &registry, &interfaces)
+        .err()
+        .map(|error| error.to_string());
     assert!(error.as_deref().is_some_and(|message| message.contains("catalog identity is stale")));
+    Ok(())
+}
+
+fn catalog_fixture_git(root: &std::path::Path, args: &[&str]) -> Result<()> {
+    let output = std::process::Command::new("git")
+        .arg("-C")
+        .arg(root)
+        .args(args)
+        .env_remove("GIT_DIR")
+        .env_remove("GIT_WORK_TREE")
+        .env_remove("GIT_INDEX_FILE")
+        .env_remove("GIT_CONFIG_COUNT")
+        .env("GIT_CONFIG_NOSYSTEM", "1")
+        .env("GIT_CONFIG_GLOBAL", "/dev/null")
+        .env("GIT_AUTHOR_NAME", "Bijux Tests")
+        .env("GIT_AUTHOR_EMAIL", "tests@bijux.invalid")
+        .env("GIT_COMMITTER_NAME", "Bijux Tests")
+        .env("GIT_COMMITTER_EMAIL", "tests@bijux.invalid")
+        .output()?;
+    anyhow::ensure!(
+        output.status.success(),
+        "owned catalog Git fixture: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
     Ok(())
 }
 
