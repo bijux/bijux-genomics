@@ -8,6 +8,7 @@ import os
 from pathlib import Path
 import subprocess
 import tempfile
+import tomllib
 import unittest
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -102,6 +103,11 @@ class DeveloperBootstrapProcessTests(unittest.TestCase):
         self.directory = tempfile.TemporaryDirectory(prefix="workspace-", dir=scratch)
         self.addCleanup(self.directory.cleanup)
         self.root = Path(self.directory.name)
+        # Cargo fixtures need the pinned compiler, not repository lint components.
+        channel = tomllib.loads((ROOT / "rust-toolchain.toml").read_text())["toolchain"]["channel"]
+        (self.root / "rust-toolchain.toml").write_text(
+            f'[toolchain]\nchannel = {json.dumps(channel)}\nprofile = "minimal"\n'
+        )
         (self.root / "crates/bijux-dna-dev/src").mkdir(parents=True)
         (self.root / "crates/domain/src").mkdir(parents=True)
         (self.root / "Cargo.toml").write_text(
