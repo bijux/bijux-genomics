@@ -2,7 +2,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::fmt::Write as _;
 use std::fs::File;
 use std::io::{BufRead, BufReader, Read, Seek, Write};
-use std::path::{Path, PathBuf};
+use std::path::{Component, Path, PathBuf};
 
 use anyhow::{anyhow, bail, Context, Result};
 use flate2::read::GzDecoder;
@@ -869,7 +869,13 @@ fn install_snpeff_database(
         let mut member = archive
             .by_index(index)
             .with_context(|| format!("read {index} from {}", zip_path.display()))?;
-        let normalized = member.name().trim_start_matches("./");
+        let name = member
+            .name()
+            .with_context(|| {
+                format!("read archive member name at {index} from {}", zip_path.display())
+            })?
+            .into_owned();
+        let normalized = name.trim_start_matches("./");
         if normalized.split('/').any(|part| part == "..") {
             bail!("unsafe archive member path in {}: {}", zip_path.display(), normalized);
         }
@@ -881,6 +887,12 @@ fn install_snpeff_database(
         let relative = normalized.trim_start_matches(active_prefix);
         if relative.is_empty() {
             continue;
+        }
+        if !Path::new(relative)
+            .components()
+            .all(|component| matches!(component, Component::Normal(_) | Component::CurDir))
+        {
+            bail!("unsafe archive member path in {}: {}", zip_path.display(), normalized);
         }
         let destination = staging_dir.join(relative);
         if member.is_dir() {
@@ -925,9 +937,13 @@ fn install_snpeff_core(
         let mut member = archive
             .by_index(index)
             .with_context(|| format!("read {index} from {}", zip_path.display()))?;
-        if Path::new(member.name()).file_name().and_then(|value| value.to_str())
-            == Some("snpEff.jar")
-        {
+        let name = member
+            .name()
+            .with_context(|| {
+                format!("read archive member name at {index} from {}", zip_path.display())
+            })?
+            .into_owned();
+        if Path::new(&name).file_name().and_then(|value| value.to_str()) == Some("snpEff.jar") {
             let mut bytes = Vec::new();
             member
                 .read_to_end(&mut bytes)
@@ -1149,7 +1165,10 @@ mod tests {
         write_zip(&core_zip, &[("snpEff/snpEff.jar", b"jar-bits".as_slice())]);
         write_zip(
             &db_zip,
-            &[("data/EquCab3.0.99/snpEffectPredictor.bin", b"predictor".as_slice())],
+            &[
+                ("data/EquCab3.0.99/snpEffectPredictor.bin", b"predictor".as_slice()),
+                ("data/EquCab3.0.99/nested/metadata.txt", b"annotation".as_slice()),
+            ],
         );
 
         install_snpeff_core(&core_zip, &jar_path, &assets).expect("install snpeff core");
@@ -1158,10 +1177,57 @@ mod tests {
             .expect("write snpeff config");
 
         assert_eq!(std::fs::read(&jar_path).expect("read jar"), b"jar-bits");
-        assert!(data_dir.join("EquCab3.0.99").join("snpEffectPredictor.bin").is_file());
+        assert_eq!(
+            std::fs::read(data_dir.join("EquCab3.0.99/snpEffectPredictor.bin"))
+                .expect("read predictor"),
+            b"predictor"
+        );
+        assert_eq!(
+            std::fs::read(data_dir.join("EquCab3.0.99/nested/metadata.txt"))
+                .expect("read nested metadata"),
+            b"annotation"
+        );
         let config = std::fs::read_to_string(&config_path).expect("read config");
         assert!(config.contains("data.dir = "));
         assert!(config.contains("EquCab3.0.99.genome : Equus caballus EquCab3.0.99"));
+    }
+
+    #[test]
+    fn snpeff_database_rejects_archive_paths_outside_staging() {
+        let dir = tempdir().expect("tempdir");
+        let root = dir.path().canonicalize().expect("resolve private fixture root");
+        let outside = root.join("outside.bin");
+        let data_dir = root.join("data");
+        let assets = LocalPipelineSnpEffAssets {
+            genome_id: "EquCab3.0.99".to_string(),
+            database_url: "https://example.test/db.zip".to_string(),
+            database_filename: "db.zip".to_string(),
+            core_url: "https://example.test/core.zip".to_string(),
+            core_filename: "core.zip".to_string(),
+        };
+        write_bytes(&outside, b"outside-unchanged");
+        for (label, name) in [
+            ("absolute", format!("data/{}/{}", assets.genome_id, outside.display())),
+            ("parent", format!("data/{}/../../outside.bin", assets.genome_id)),
+        ] {
+            let archive_path = root.join(format!("{label}.zip"));
+            write_zip(&archive_path, &[(name.as_str(), b"overwrite-outside".as_slice())]);
+            let mut archive = zip::ZipArchive::new(
+                std::fs::File::open(&archive_path).expect("open hostile archive"),
+            )
+            .expect("read hostile archive");
+            let member = archive.by_index(0).expect("read hostile member");
+            assert_eq!(member.name_raw(), name.as_bytes());
+            assert_eq!(member.name().expect("decode hostile member").as_ref(), name);
+            let error = install_snpeff_database(&archive_path, &data_dir, &assets)
+                .expect_err("refuse archive path outside staging");
+            assert!(error.to_string().contains("unsafe archive member path"), "{error:#}");
+            assert_eq!(
+                std::fs::read(&outside).expect("read outside sentinel"),
+                b"outside-unchanged"
+            );
+            assert!(!data_dir.join(&assets.genome_id).exists());
+        }
     }
 
     fn write_gzip(path: &Path, payload: &str) {
