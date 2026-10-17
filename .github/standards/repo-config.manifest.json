@@ -1980,14 +1980,20 @@
                   "name": "Restore the Rust cache",
                   "uses": "Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6",
                   "with": {
-                    "shared-key": "ci-fmt"
+                    "shared-key": "ci-fmt",
+                    "workspaces": ". -> artifacts/target"
                   }
                 },
                 {
                   "name": "Run repository formatting gate",
                   "run": "make fmt"
                 }
-              ]
+              ],
+              "env": {
+                "CARGO_HOME": "${{ github.workspace }}/artifacts/cargo/home",
+                "CARGO_TARGET_DIR": "${{ github.workspace }}/artifacts/target",
+                "CARGO_BUILD_JOBS": "4"
+              }
             },
             "lint": {
               "name": "lint",
@@ -2018,14 +2024,20 @@
                   "name": "Restore the Rust cache",
                   "uses": "Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6",
                   "with": {
-                    "shared-key": "ci-lint"
+                    "shared-key": "ci-lint",
+                    "workspaces": ". -> artifacts/target"
                   }
                 },
                 {
                   "name": "Run repository lint gate",
                   "run": "make lint"
                 }
-              ]
+              ],
+              "env": {
+                "CARGO_HOME": "${{ github.workspace }}/artifacts/cargo/home",
+                "CARGO_TARGET_DIR": "${{ github.workspace }}/artifacts/target",
+                "CARGO_BUILD_JOBS": "4"
+              }
             },
             "audit": {
               "name": "dependency audit",
@@ -2051,7 +2063,8 @@
                   "name": "Restore the Rust cache",
                   "uses": "Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6",
                   "with": {
-                    "shared-key": "ci-audit"
+                    "shared-key": "ci-audit",
+                    "workspaces": ". -> artifacts/target"
                   }
                 },
                 {
@@ -2071,7 +2084,12 @@
                   "name": "Run repository audit gate",
                   "run": "make audit"
                 }
-              ]
+              ],
+              "env": {
+                "CARGO_HOME": "${{ github.workspace }}/artifacts/cargo/home",
+                "CARGO_TARGET_DIR": "${{ github.workspace }}/artifacts/target",
+                "CARGO_BUILD_JOBS": "4"
+              }
             },
             "test-build": {
               "name": "tests / build",
@@ -2112,7 +2130,7 @@
                 },
                 {
                   "name": "Verify the test executor version",
-                  "run": "set -euo pipefail\nobserved=\"$(cargo nextest --version)\"\n[[ \"$observed\" == \"cargo-nextest ${CARGO_NEXTEST_VERSION}\" ]] || { printf \"Unexpected test executor: %s\\n\" \"$observed\" >&2; exit 1; }"
+                  "run": "set -euo pipefail\nobserved=\"$(cargo nextest --version)\"\nread -r tool version _ <<< \"${observed%%$'\\n'*}\"\n[[ \"$tool\" == \"cargo-nextest\" && \"$version\" == \"$CARGO_NEXTEST_VERSION\" ]] || { printf \"Unexpected test executor: %s\\n\" \"$observed\" >&2; exit 1; }"
                 },
                 {
                   "name": "Restore the exact native test runtime",
@@ -2217,7 +2235,7 @@
                 },
                 {
                   "name": "Verify the test executor version",
-                  "run": "set -euo pipefail\nobserved=\"$(cargo nextest --version)\"\n[[ \"$observed\" == \"cargo-nextest ${CARGO_NEXTEST_VERSION}\" ]] || { printf \"Unexpected test executor: %s\\n\" \"$observed\" >&2; exit 1; }"
+                  "run": "set -euo pipefail\nobserved=\"$(cargo nextest --version)\"\nread -r tool version _ <<< \"${observed%%$'\\n'*}\"\n[[ \"$tool\" == \"cargo-nextest\" && \"$version\" == \"$CARGO_NEXTEST_VERSION\" ]] || { printf \"Unexpected test executor: %s\\n\" \"$observed\" >&2; exit 1; }"
                 },
                 {
                   "name": "Restore the exact native test runtime",
@@ -2310,6 +2328,9 @@
             "test-complete": {
               "name": "tests / complete",
               "needs": [
+                "fmt",
+                "lint",
+                "audit",
                 "test-build",
                 "native-tests",
                 "python-tests"
@@ -2326,13 +2347,16 @@
                   "uses": "actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1"
                 },
                 {
-                  "name": "Require successful build, all native partitions and Python lanes",
+                  "name": "Require successful source and test lanes",
                   "env": {
+                    "FMT_RESULT": "${{ needs.fmt.result }}",
+                    "LINT_RESULT": "${{ needs.lint.result }}",
+                    "AUDIT_RESULT": "${{ needs.audit.result }}",
                     "BUILD_RESULT": "${{ needs.test-build.result }}",
                     "NATIVE_RESULT": "${{ needs.native-tests.result }}",
                     "PYTHON_RESULT": "${{ needs.python-tests.result }}"
                   },
-                  "run": "set -euo pipefail\nfor result in \"$BUILD_RESULT\" \"$NATIVE_RESULT\" \"$PYTHON_RESULT\"; do\n  [[ \"$result\" == success ]] || { printf 'Required test lane did not succeed: %s\\n' \"$result\" >&2; exit 1; }\ndone"
+                  "run": "set -euo pipefail\nfor result in \"$FMT_RESULT\" \"$LINT_RESULT\" \"$AUDIT_RESULT\" \"$BUILD_RESULT\" \"$NATIVE_RESULT\" \"$PYTHON_RESULT\"; do\n  [[ \"$result\" == success ]] || { printf 'Required CI lane did not succeed: %s\\n' \"$result\" >&2; exit 1; }\ndone"
                 },
                 {
                   "name": "Download the authoritative native inventory",
