@@ -70,10 +70,21 @@ pub(crate) fn render_hpc_scratch_layout(
     Ok(manifest)
 }
 
-pub(crate) fn collect_hpc_scratch_layout(repo_root: &Path) -> Result<LocalHpcScratchLayout> {
-    let benchmark_paths = BenchmarkPathResolver::new(repo_root, None);
-    let output_path = benchmark_paths.benchmark_hpc_dry_run_root().join("scratch-layout.json");
-    build_hpc_scratch_layout(repo_root, &output_path)
+pub(crate) fn collect_hpc_scratch_layout_with_jobs<
+    J: AsRef<[BenchLocalAllDomainSlurmSubmitJob]>,
+>(
+    repo_root: &Path,
+    acquire_jobs: impl FnOnce() -> Result<J>,
+) -> Result<LocalHpcScratchLayout> {
+    let paths = BenchmarkPathResolver::new(repo_root, None);
+    let output_path = paths.benchmark_hpc_dry_run_root().join("scratch-layout.json");
+    ensure_path_stays_within_benchmark_runs_root(
+        repo_root,
+        &output_path,
+        "HPC scratch layout output",
+    )?;
+    let jobs = acquire_jobs()?;
+    build_hpc_scratch_layout_for_jobs(repo_root, &output_path, jobs.as_ref())
 }
 
 pub(crate) fn collect_hpc_scratch_layout_for_jobs(

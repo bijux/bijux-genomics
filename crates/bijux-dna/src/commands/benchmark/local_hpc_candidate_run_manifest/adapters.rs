@@ -4,7 +4,8 @@ use super::super::{
         collect_hpc_asset_staging_manifest, LocalHpcAssetStagingManifest,
     },
     local_hpc_execution_resolver::{
-        collect_hpc_execution_resolver_report, LocalHpcExecutionResolverReport,
+        collect_hpc_execution_resolver_report, collect_hpc_execution_resolver_report_with_jobs,
+        LocalHpcExecutionResolverReport,
     },
     local_hpc_job_completion::resolve_local_hpc_job_result_paths,
     local_hpc_job_resources::{load_local_hpc_job_resource_hints, LocalHpcJobResourceHint},
@@ -55,4 +56,35 @@ impl CandidateEvidenceProvider for LocalEvidence {
 }
 pub(super) fn context(repo_root: &Path) -> CandidateContext<'_> {
     CandidateContext { repo_root, evidence: &LocalEvidence }
+}
+pub(super) struct SelectedJobsEvidence<'callback, 'jobs> {
+    pub(super) selected_jobs:
+        &'callback dyn Fn() -> Result<&'jobs [BenchLocalAllDomainSlurmSubmitJob]>,
+}
+impl CandidateEvidenceProvider for SelectedJobsEvidence<'_, '_> {
+    fn assets(&self, root: &Path) -> Result<LocalHpcAssetStagingManifest> {
+        LocalEvidence.assets(root)
+    }
+    fn execution(&self, root: &Path) -> Result<LocalHpcExecutionResolverReport> {
+        collect_hpc_execution_resolver_report_with_jobs(root, || (self.selected_jobs)())
+    }
+    fn jobs(&self, _root: &Path) -> Result<Vec<BenchLocalAllDomainSlurmSubmitJob>> {
+        Ok((self.selected_jobs)()?.to_vec())
+    }
+    fn resources(
+        &self,
+        root: &Path,
+    ) -> Result<BTreeMap<(String, String, String), LocalHpcJobResourceHint>> {
+        LocalEvidence.resources(root)
+    }
+    fn result_paths(
+        &self,
+        root: &Path,
+        job: &BenchLocalAllDomainSlurmSubmitJob,
+    ) -> Result<CandidateResultPaths> {
+        LocalEvidence.result_paths(root, job)
+    }
+    fn admit_output(&self, root: &Path, output: &Path) -> Result<()> {
+        LocalEvidence.admit_output(root, output)
+    }
 }

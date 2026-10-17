@@ -110,13 +110,18 @@ pub(crate) fn render_hpc_resume_simulation(
     Ok(report)
 }
 
-pub(crate) fn collect_hpc_resume_simulation(
+pub(crate) fn collect_hpc_resume_simulation_with_jobs<
+    J: AsRef<[BenchLocalAllDomainSlurmSubmitJob]>,
+>(
     repo_root: &Path,
+    acquire_jobs: impl FnOnce() -> Result<J>,
 ) -> Result<LocalHpcResumeSimulationReport> {
     let benchmark_paths = BenchmarkPathResolver::new(repo_root, None);
     let output_path =
         benchmark_paths.resolve_repo_relative(Path::new(DEFAULT_HPC_RESUME_SIMULATION_PATH));
-    build_hpc_resume_simulation(repo_root, &output_path)
+    build_hpc_resume_simulation_with_jobs(repo_root, &output_path, || {
+        acquire_jobs().map(|jobs| jobs.as_ref().to_vec())
+    })
 }
 
 pub(crate) fn validate_hpc_resume_simulation_path(
@@ -147,6 +152,16 @@ fn build_hpc_resume_simulation(
     repo_root: &Path,
     absolute_output_path: &Path,
 ) -> Result<LocalHpcResumeSimulationReport> {
+    build_hpc_resume_simulation_with_jobs(repo_root, absolute_output_path, || {
+        load_local_hpc_selected_jobs(repo_root)
+    })
+}
+
+fn build_hpc_resume_simulation_with_jobs(
+    repo_root: &Path,
+    absolute_output_path: &Path,
+    acquire_jobs: impl FnOnce() -> Result<Vec<BenchLocalAllDomainSlurmSubmitJob>>,
+) -> Result<LocalHpcResumeSimulationReport> {
     ensure_path_stays_within_benchmark_runs_root(
         repo_root,
         absolute_output_path,
@@ -174,7 +189,7 @@ fn build_hpc_resume_simulation(
     fs::create_dir_all(&simulation_root)
         .with_context(|| format!("create {}", simulation_root.display()))?;
 
-    let selected_jobs = load_local_hpc_selected_jobs(repo_root)?;
+    let selected_jobs = acquire_jobs()?;
     let graph = build_benchmark_local_hpc_job_graph(
         DEFAULT_ALL_DOMAIN_SLURM_SUBMIT_MANIFEST_PATH,
         selected_jobs.clone(),

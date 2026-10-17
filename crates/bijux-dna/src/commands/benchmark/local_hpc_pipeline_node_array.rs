@@ -1,3 +1,4 @@
+use super::local_all_domain_slurm_submit_manifest::BenchLocalAllDomainSlurmSubmitJob;
 use super::local_hpc_scratch_layout::collect_hpc_scratch_layout_for_jobs;
 use super::local_hpc_selected_jobs::load_local_hpc_selected_jobs;
 use super::local_pipeline_dag::{
@@ -57,14 +58,23 @@ pub(crate) fn render_hpc_pipeline_node_array(
     root: &Path,
     path: PathBuf,
 ) -> Result<LocalHpcPipelineNodeArrayReport> {
-    with_observations(root, &path, publish_hpc_pipeline_array)
+    with_observations(
+        root,
+        &path,
+        || load_local_hpc_selected_jobs(root),
+        publish_hpc_pipeline_array,
+    )
 }
-pub(crate) fn collect_hpc_pipeline_node_array(
+pub(crate) fn collect_hpc_pipeline_node_array_with_jobs<
+    J: AsRef<[BenchLocalAllDomainSlurmSubmitJob]>,
+>(
     root: &Path,
+    acquire_jobs: impl FnOnce() -> Result<J>,
 ) -> Result<LocalHpcPipelineNodeArrayReport> {
     with_observations(
         root,
         Path::new(DEFAULT_HPC_PIPELINE_NODE_ARRAY_SCRIPT_PATH),
+        acquire_jobs,
         collect_hpc_pipeline_array,
     )
 }
@@ -72,21 +82,28 @@ pub(crate) fn validate_hpc_pipeline_node_array_path(
     root: &Path,
     path: &Path,
 ) -> Result<LocalHpcPipelineNodeArrayReport> {
-    with_observations(root, path, validate_hpc_pipeline_array)
+    with_observations(
+        root,
+        path,
+        || load_local_hpc_selected_jobs(root),
+        validate_hpc_pipeline_array,
+    )
 }
-fn with_observations(
+fn with_observations<J: AsRef<[BenchLocalAllDomainSlurmSubmitJob]>>(
     root: &Path,
     path: &Path,
+    acquire_jobs: impl FnOnce() -> Result<J>,
     service: impl FnOnce(HpcPipelineArrayRequest<'_>) -> Result<LocalHpcPipelineNodeArrayReport>,
 ) -> Result<LocalHpcPipelineNodeArrayReport> {
     let destination = HpcPipelineArrayDestination::prepare(root, path)?;
-    let jobs = load_local_hpc_selected_jobs(root)?;
-    let scratch = collect_hpc_scratch_layout_for_jobs(root, &jobs)?;
+    let jobs = acquire_jobs()?;
+    let jobs = jobs.as_ref();
+    let scratch = collect_hpc_scratch_layout_for_jobs(root, jobs)?;
     let pipelines = load_pipeline_reports(root)?;
     service(HpcPipelineArrayRequest {
         repo_root: root,
         destination,
-        jobs: &jobs,
+        jobs,
         scratch: &scratch.jobs,
         pipelines: &pipelines,
         pipeline_order: ESSENTIAL_PIPELINE_IDS,

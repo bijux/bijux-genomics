@@ -43,8 +43,9 @@ pub(crate) fn render_hpc_dry_run_ready(
     repo_root: &Path,
     output_path: PathBuf,
 ) -> Result<LocalHpcDryRunReadyReport> {
+    let evidence = adapters::LocalEvidence::new(repo_root);
     bijux_dna_bench_hpc::dry_run::render_hpc_dry_run_ready(
-        &adapters::context(repo_root),
+        &adapters::context(repo_root, &evidence),
         output_path,
     )
 }
@@ -52,8 +53,9 @@ pub(crate) fn validate_hpc_dry_run_ready_path(
     repo_root: &Path,
     manifest_path: &Path,
 ) -> Result<LocalHpcDryRunReadyReport> {
+    let evidence = adapters::LocalEvidence::new(repo_root);
     bijux_dna_bench_hpc::dry_run::validate_hpc_dry_run_ready_path(
-        &adapters::context(repo_root),
+        &adapters::context(repo_root, &evidence),
         manifest_path,
     )
 }
