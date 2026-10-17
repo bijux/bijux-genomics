@@ -43,7 +43,21 @@ class WorkflowAdmissionTests(unittest.TestCase):
             GATES.workflow_gates(
                 (ROOT / ".github/workflows/ci.yml").read_bytes(), "actual"
             ),
-            ["fmt", "lint", "audit", "test-all", "ci-test-python"],
+            ["fmt", "lint", "audit", "test-complete"],
+        )
+
+    def test_actual_workflow_cli_retains_complete_test_preparation(self) -> None:
+        result = subprocess.run(
+            [sys.executable, "-B", str(HELPER), str(ROOT / ".github/workflows/ci.yml")],
+            text=True,
+            capture_output=True,
+            timeout=10,
+            check=False,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(
+            result.stdout.splitlines(),
+            ["test-preparation", "fmt", "lint", "audit", "test-complete"],
         )
 
     def test_quoted_and_block_keys_preserve_order_and_deduplicate(self) -> None:
@@ -261,6 +275,21 @@ class WorkflowProcessTests(unittest.TestCase):
                 for call in calls
                 if call["tool"] == "make" and call["args"][-1] == "test"
             )["dev"]
+        )
+
+    def test_complete_test_gate_retains_locked_preparation(self) -> None:
+        result, calls, _ = self.run_fixture(("make test-complete",))
+        self.assertEqual(result.returncode, 0, result.stderr)
+        cargo = [call for call in calls if call["tool"] == "cargo"]
+        self.assertEqual(len(cargo), 1)
+        self.assertEqual(cargo[0]["args"][:2], ["nextest", "list"])
+        self.assertIn("--locked", cargo[0]["args"])
+        make = [call for call in calls if call["tool"] == "make"]
+        self.assertCountEqual(
+            [call["args"][-1] for call in make], ["_dev-dna-bin", "test-complete"]
+        )
+        self.assertTrue(
+            next(call for call in make if call["args"][-1] == "test-complete")["dev"]
         )
 
     def test_preparation_failure_prevents_children(self) -> None:

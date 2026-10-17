@@ -94,7 +94,14 @@ class DistributedCiAdmissionTests(unittest.TestCase):
         self.assertEqual(WORKFLOWS.local_gate_equivalents([
             "fmt", "lint", "audit", "ci-test-runtime", "ci-test-build",
             "ci-test-shard", "ci-test-python", "ci-test-aggregate",
-        ]), ["fmt", "lint", "audit", "test-all", "ci-test-python"])
+        ]), ["fmt", "lint", "audit", "test-complete"])
+        self.assertEqual(WORKFLOWS.local_gate_equivalents([
+            "ci-test-python", "test-complete", "ci-test-build",
+            "ci-test-shard", "ci-test-aggregate",
+        ]), ["test-complete"])
+        self.assertEqual(WORKFLOWS.local_gate_equivalents([
+            "test-all", "ci-test-python",
+        ]), ["test-all", "ci-test-python"])
         for missing in WORKFLOWS.DISTRIBUTED_NATIVE_TARGETS | {"ci-test-python"}:
             targets = sorted((WORKFLOWS.DISTRIBUTED_NATIVE_TARGETS | {"ci-test-python"}) - {missing})
             with self.subTest(missing=missing), self.assertRaisesRegex(ValueError, "omits"):
