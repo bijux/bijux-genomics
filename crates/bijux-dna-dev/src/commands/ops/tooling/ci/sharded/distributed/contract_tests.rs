@@ -1,3 +1,5 @@
+#![cfg(test)]
+
 //! Distributed transport admission exercised through the native inventory and event owners.
 
 use std::collections::BTreeMap;

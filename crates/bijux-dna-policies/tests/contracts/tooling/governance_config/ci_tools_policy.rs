@@ -117,6 +117,9 @@ fn has_direct_cargo_verification(commands: &[Vec<String>]) -> bool {
         let words = command_start(words);
         let Some(command) = words.first() else { return false };
         if command == "cargo" {
+            if words == ["cargo", "nextest", "--version"] {
+                return false;
+            }
             words
                 .iter()
                 .skip(1)
@@ -215,6 +218,7 @@ fn policy__contracts__ci_tools_policy__notice_prose_does_not_select_verification
     };
     for run in [
         "make test",
+        "make ci-test-build\nversion=\"$(cargo nextest --version)\"",
         "# cargo test is governed by Make\nmake lint",
         "set -euo pipefail\n{\necho 'cargo test and make lint did not run'\nprintf '%s\\n' 'owner verification required'\n} >> \"$GITHUB_STEP_SUMMARY\"",
     ] {
@@ -222,6 +226,8 @@ fn policy__contracts__ci_tools_policy__notice_prose_does_not_select_verification
     }
     for run in [
         "cargo test",
+        "make ci-test-build\ncargo nextest --version run",
+        "make ci-test-build\ncargo nextest --version\ncargo nextest run",
         "make lint\ncargo +stable -q test --workspace",
         "env CARGO_NET_OFFLINE=true cargo clippy",
         "bash -c 'cargo nextest run'",

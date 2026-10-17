@@ -17,6 +17,9 @@ fn is_allowed_writer_path(path: &Path) -> bool {
         // Developer process logs and immutable source materialization are runtime effects.
         || path_str.ends_with("/crates/bijux-dna-dev/src/runtime/process.rs")
         || path_str.ends_with("/crates/bijux-dna-dev/src/runtime/source_snapshot.rs")
+        // Distributed archive owners publish only their admitted products and receipts.
+        || path_str.ends_with("/crates/bijux-dna-dev/src/commands/ops/tooling/ci/sharded/distributed/producer.rs")
+        || path_str.ends_with("/crates/bijux-dna-dev/src/commands/ops/tooling/ci/sharded/distributed/consumer.rs")
         // Output-root checks probe permissions only within their admitted owned artifact directory.
         || path_str.ends_with("/crates/bijux-dna-dev/src/commands/repo_checks/artifacts.rs")
         || path_str.contains("/crates/bijux-dna-runner/src/backend/slurm/qualification/")
@@ -312,14 +315,21 @@ fn policy__boundaries__path_policies__crates_do_not_reference_removed_fastq_test
 
 #[test]
 fn policy__boundaries__path_policies__developer_effects_have_exact_runtime_owners() {
-    for relative in
-        ["runtime/process.rs", "runtime/source_snapshot.rs", "commands/repo_checks/artifacts.rs"]
-    {
+    for relative in [
+        "runtime/process.rs",
+        "runtime/source_snapshot.rs",
+        "commands/repo_checks/artifacts.rs",
+        "commands/ops/tooling/ci/sharded/distributed/producer.rs",
+        "commands/ops/tooling/ci/sharded/distributed/consumer.rs",
+    ] {
         assert!(is_allowed_writer_path(&PathBuf::from(format!(
             "/workspace/crates/bijux-dna-dev/src/{relative}"
         ))));
     }
     for relative in [
+        "commands/ops/tooling/ci/sharded/distributed/producer.rs.disabled",
+        "commands/ops/tooling/ci/sharded/distributed/other.rs",
+        "commands/ops/tooling/ci/sharded/distributed/producer/other.rs",
         "runtime/workspace.rs",
         "runtime/other.rs",
         "runtime/process.rs.disabled",
