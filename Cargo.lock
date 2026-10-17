@@ -1187,7 +1187,7 @@ dependencies = [
  "bijux-dna-stage-contract",
  "bijux-dna-testkit",
  "noodles-bgzf",
- "noodles-core",
+ "noodles-core 0.21.0",
  "noodles-csi",
  "noodles-tabix",
  "regex",
@@ -2341,7 +2341,7 @@ dependencies = [
  "indexmap",
  "memchr",
  "noodles-bgzf",
- "noodles-core",
+ "noodles-core 0.20.0",
  "noodles-csi",
  "noodles-sam",
 ]
@@ -2367,6 +2367,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "noodles-core"
+version = "0.21.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d99b2bca1b3816b186b4c10ab067a8a9d8331542c14cbd16f10c32dee345bc6a"
+dependencies = [
+ "bstr",
+]
+
+[[package]]
 name = "noodles-csi"
 version = "0.56.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2376,7 +2385,7 @@ dependencies = [
  "bstr",
  "indexmap",
  "noodles-bgzf",
- "noodles-core",
+ "noodles-core 0.20.0",
 ]
 
 [[package]]
@@ -2391,7 +2400,7 @@ dependencies = [
  "lexical-core",
  "memchr",
  "noodles-bgzf",
- "noodles-core",
+ "noodles-core 0.20.0",
  "noodles-csi",
 ]
 
@@ -2404,7 +2413,7 @@ dependencies = [
  "bstr",
  "indexmap",
  "noodles-bgzf",
- "noodles-core",
+ "noodles-core 0.20.0",
  "noodles-csi",
 ]
 
