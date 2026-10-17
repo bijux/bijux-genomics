@@ -139,7 +139,7 @@ pub(super) fn write_minimum_run_artifacts(
                 .map(|output| output.path.display().to_string())
                 .collect::<Vec<_>>(),
             "subreports": [],
-            "log_paths": [stdout_log_path, stderr_log_path],
+            "log_paths": [stdout_log_path.display().to_string(), stderr_log_path.display().to_string()],
         });
         bijux_dna_infra::atomic_write_json(&stage_report_path, &payload)
             .context("write stage_report.json")?;

@@ -730,5 +730,14 @@ fn inherited_local_entrypoint_keeps_native_output_directory_bytes() -> anyhow::R
     let mut expected = output.canonicalize()?.as_os_str().as_bytes().to_vec();
     expected.push(b'\n');
     assert_eq!(std::fs::read(observation)?, expected);
+    let report: serde_json::Value =
+        serde_json::from_slice(&std::fs::read(output.join("run_artifacts/stage_report.json"))?)?;
+    assert_eq!(
+        report["log_paths"],
+        serde_json::json!([
+            output.join("run_artifacts/stdout.log").display().to_string(),
+            output.join("run_artifacts/stderr.log").display().to_string(),
+        ])
+    );
     Ok(())
 }
