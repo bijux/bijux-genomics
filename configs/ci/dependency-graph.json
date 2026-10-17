@@ -1177,6 +1177,11 @@
       "kind": "dev"
     },
     {
+      "consumer": "crate:bijux-dna-domain-compiler",
+      "dependency": "crate:bijux-dna-testkit",
+      "kind": "dev"
+    },
+    {
       "consumer": "crate:bijux-dna-domain-fastq",
       "dependency": "crate:bijux-dna-core",
       "kind": "normal"
