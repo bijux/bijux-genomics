@@ -29,8 +29,7 @@ DEV_EXPLICIT_ARTIFACT_VARIABLES = $(foreach name,$(DEV_ARTIFACT_PATH_VARIABLES),
 
 define dev_artifact_environment
 artifact_root="$(abspath $(DEV_ARTIFACT_ROOT))"; \
-reset_variables=$$(python3 -c '\
-from pathlib import Path; \
+reset_variables=$$(python3 -c 'from pathlib import Path; \
 import os, sys; \
 root = Path(sys.argv[1]).resolve(); \
 boundary = Path("artifacts").resolve(); \

@@ -37,6 +37,11 @@ class DeveloperMakeEnvironmentTests(unittest.TestCase):
         self.env = dict(os.environ)
         for name in [*PATH_VARIABLES, "ARTIFACT_ROOT", "DEV_ARTIFACT_ROOT", "MAKEFLAGS", "MFLAGS", "MAKEOVERRIDES"]:
             self.env.pop(name, None)
+        # Make's Python preflight must use the interpreter exercising this contract.
+        interpreter_bin = self.root / "bin"
+        interpreter_bin.mkdir()
+        (interpreter_bin / "python3").symlink_to(sys.executable)
+        self.env["PATH"] = os.pathsep.join([str(interpreter_bin), self.env.get("PATH", "")])
         self.child = self.root / "child.mk"
         self.child.write_text(
             f"BIJUX_MAKES_SHARED_ROOT := {SHARED}\n"
