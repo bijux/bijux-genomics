@@ -11,7 +11,7 @@ fn fixture_command(repo_root: &Path, owner: &Path) -> Command {
             "bijux-dna",
             std::path::Path::new(env!("CARGO_BIN_EXE_bijux-dna")),
         )
-        .expect("resolve CLI executable"),
+        .unwrap_or_else(|error| panic!("resolve CLI executable: {error}")),
     );
     command
         .env_clear()

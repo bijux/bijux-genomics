@@ -67,7 +67,7 @@ pub fn cli_binary_path() -> PathBuf {
         "bijux-dna",
         Path::new(env!("CARGO_BIN_EXE_bijux-dna")),
     )
-    .expect("resolve CLI executable")
+    .unwrap_or_else(|error| panic!("resolve CLI executable: {error}"))
 }
 
 #[allow(dead_code)]

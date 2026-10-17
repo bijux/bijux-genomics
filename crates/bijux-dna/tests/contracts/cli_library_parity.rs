@@ -95,7 +95,7 @@ fn run_cli_json(workspace: &CliWorkspace, args: &[&str]) -> serde_json::Value {
             "bijux-dna",
             std::path::Path::new(env!("CARGO_BIN_EXE_bijux-dna")),
         )
-        .expect("resolve CLI executable"),
+        .unwrap_or_else(|error| panic!("resolve CLI executable: {error}")),
     )
     .current_dir(workspace.path())
     .env("HOME", &workspace.home)

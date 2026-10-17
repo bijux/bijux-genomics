@@ -33,15 +33,19 @@ fn relocated_workspace_command(relative_path: &Path, arg: &str) -> bool {
     if relative_path.starts_with("crates/bijux-dna/tests") && arg == "support::cli_binary_path()" {
         return true;
     }
+    if relative_path == Path::new("crates/bijux-dna/tests/bench_corpus_materialization_slurm.rs") {
+        return arg == "cli_binary_path()?";
+    }
     let (binaries, suffix): (&[&str], &str) = match relative_path.to_str() {
         Some("crates/bijux-dna-domain-compiler/tests/domain_registry_cli.rs") => {
             (&["domain_registry_bundle", "domain_registry_query"], "?")
         }
         Some(
-            "crates/bijux-dna/tests/bench_corpus_materialization_slurm.rs"
-            | "crates/bijux-dna/tests/contracts/cli_library_parity.rs"
+            "crates/bijux-dna/tests/contracts/cli_library_parity.rs"
             | "crates/bijux-dna/tests/support/fixtures/process.rs",
-        ) => (&["bijux-dna"], ".expect(\"resolve CLI executable\")"),
+        ) => {
+            (&["bijux-dna"], ".unwrap_or_else(|error|panic!(\"resolve CLI executable: {error}\"))")
+        }
         _ => return false,
     };
     binaries.iter().any(|binary| {
@@ -392,7 +396,8 @@ fn policy__contracts__command_spawn_policy__native_harnesses_require_exact_compl
 fn policy__contracts__command_spawn_policy__relocated_executables_retain_exact_bindings() {
     for (owner, expression) in [
         ("crates/bijux-dna/tests/bench_local_tool_comparison_template.rs", "support::cli_binary_path()"),
-        ("crates/bijux-dna/tests/support/fixtures/process.rs", "bijux_dna_testkit::workspace_support::workspace_binary_path(\"bijux-dna\",std::path::Path::new(env!(\"CARGO_BIN_EXE_bijux-dna\")),).expect(\"resolve CLI executable\")"),
+        ("crates/bijux-dna/tests/bench_corpus_materialization_slurm.rs", "cli_binary_path()?"),
+        ("crates/bijux-dna/tests/support/fixtures/process.rs", "bijux_dna_testkit::workspace_support::workspace_binary_path(\"bijux-dna\",std::path::Path::new(env!(\"CARGO_BIN_EXE_bijux-dna\")),).unwrap_or_else(|error|panic!(\"resolve CLI executable: {error}\"))"),
         ("crates/bijux-dna-domain-compiler/tests/domain_registry_cli.rs", "bijux_dna_testkit::workspace_support::workspace_binary_path(\"domain_registry_bundle\",std::path::Path::new(env!(\"CARGO_BIN_EXE_domain_registry_bundle\")),)?"),
         ("crates/bijux-dna-domain-compiler/tests/domain_registry_cli.rs", "bijux_dna_testkit::workspace_support::workspace_binary_path(\"domain_registry_query\",std::path::Path::new(env!(\"CARGO_BIN_EXE_domain_registry_query\")))?"),
     ] {
