@@ -14,6 +14,6 @@
 
 ### Fixed
 
-- Bind Make gates to current compiled products and pinned runtime dependencies, prepare archive extraction roots, and propagate report sink failures ([#175](https://github.com/bijux/bijux-genomics/pull/175)).
+- Bind Make gates to current compiled products and pinned runtime dependencies, keep developer preflight valid on Python 3.13, prepare archive extraction roots, and propagate report sink failures. Upgrade ZIP to 9.0.4 to address security advisories and reject database archive paths outside their staging directory ([#175](https://github.com/bijux/bijux-genomics/pull/175)).
 
 - Upgrade the HTTP/3 transport to `quinn-proto 0.11.18` to resolve five QUIC security advisories without suppressing the dependency audit ([#162](https://github.com/bijux/bijux-genomics/pull/162)).
