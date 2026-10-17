@@ -451,7 +451,7 @@ fn stage_report_admission_rejects_stale_catalog_identity() -> Result<()> {
     let fixture = bijux_dna_infra::temp_dir_in(&artifact_root, "catalog-identity-")?;
     let root = fixture.path();
     let catalog = "containers/contracts/catalog.toml";
-    bijux_dna_infra::ensure_dir(&root.join("containers/contracts"))?;
+    bijux_dna_infra::ensure_dir(root.join("containers/contracts"))?;
     std::fs::copy(source_root.join(catalog), root.join(catalog))?;
     catalog_fixture_git(root, &["init", "--quiet"])?;
     catalog_fixture_git(root, &["add", catalog])?;
