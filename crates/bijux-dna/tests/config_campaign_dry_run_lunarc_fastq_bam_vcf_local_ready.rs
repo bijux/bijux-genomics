@@ -15,7 +15,7 @@ fn run_cli_json(args: &[&str]) -> serde_json::Value {
     let env_file = temp.path().join("missing.env");
     let policy_file = temp.path().join("missing.policy");
 
-    let mut command = Command::new(env!("CARGO_BIN_EXE_bijux-dna"));
+    let mut command = Command::new(support::cli_binary_path());
     command
         .current_dir(&repo_root)
         .env("HOME", home.path())

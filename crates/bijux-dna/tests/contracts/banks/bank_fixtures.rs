@@ -61,6 +61,16 @@ impl Drop for EnvGuard {
 }
 
 #[allow(dead_code)]
+#[must_use]
+pub fn cli_binary_path() -> PathBuf {
+    bijux_dna_testkit::workspace_support::workspace_binary_path(
+        "bijux-dna",
+        Path::new(env!("CARGO_BIN_EXE_bijux-dna")),
+    )
+    .expect("resolve CLI executable")
+}
+
+#[allow(dead_code)]
 pub fn crate_root(name: &str) -> Result<PathBuf> {
     test_support::crate_root(name)
 }

@@ -6,7 +6,13 @@ use std::process::{Command, Output};
 mod workspace_paths;
 
 fn fixture_command(repo_root: &Path, owner: &Path) -> Command {
-    let mut command = Command::new(env!("CARGO_BIN_EXE_bijux-dna"));
+    let mut command = Command::new(
+        bijux_dna_testkit::workspace_support::workspace_binary_path(
+            "bijux-dna",
+            std::path::Path::new(env!("CARGO_BIN_EXE_bijux-dna")),
+        )
+        .expect("resolve CLI executable"),
+    );
     command
         .env_clear()
         .current_dir(repo_root)

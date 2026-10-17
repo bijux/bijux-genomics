@@ -20,7 +20,12 @@ fn prepare_and_submit_recover_across_cli_processes_without_duplicate_effects() -
     let plan_path = data_root.join("evidence/acquisition-plans/plan.json");
     fs::write(&plan_path, serde_json::to_vec_pretty(&acquisition_plan())?)?;
     let plan_path = plan_path.canonicalize()?;
-    let executable = PathBuf::from(env!("CARGO_BIN_EXE_bijux-dna")).canonicalize()?;
+    let executable = bijux_dna_testkit::workspace_support::workspace_binary_path(
+        "bijux-dna",
+        std::path::Path::new(env!("CARGO_BIN_EXE_bijux-dna")),
+    )
+    .expect("resolve CLI executable")
+    .canonicalize()?;
     let specification_path = root.path().join("materialization-spec.json");
     fs::write(
         &specification_path,
@@ -114,10 +119,16 @@ fn prepare_and_submit_recover_across_cli_processes_without_duplicate_effects() -
 }
 
 fn run_cli(arguments: &[&str]) -> anyhow::Result<Output> {
-    Ok(Command::new(env!("CARGO_BIN_EXE_bijux-dna"))
-        .current_dir(repository_root()?)
-        .args(arguments)
-        .output()?)
+    Ok(Command::new(
+        bijux_dna_testkit::workspace_support::workspace_binary_path(
+            "bijux-dna",
+            std::path::Path::new(env!("CARGO_BIN_EXE_bijux-dna")),
+        )
+        .expect("resolve CLI executable"),
+    )
+    .current_dir(repository_root()?)
+    .args(arguments)
+    .output()?)
 }
 
 fn assert_success(output: &Output) {

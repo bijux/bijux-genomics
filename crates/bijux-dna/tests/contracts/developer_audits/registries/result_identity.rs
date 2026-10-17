@@ -13,7 +13,7 @@ fn dev_crates_result_id_stability_reports_canonical_alignment() {
     let temp = tempfile::tempdir().expect("tempdir");
     let out = temp.path().join("result-id-stability.json");
 
-    let output = Command::new(env!("CARGO_BIN_EXE_bijux-dna"))
+    let output = Command::new(support::cli_binary_path())
         .current_dir(&repo_root)
         .arg("dev")
         .arg("crates")

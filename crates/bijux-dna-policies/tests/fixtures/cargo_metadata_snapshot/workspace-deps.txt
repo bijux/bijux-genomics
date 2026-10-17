@@ -27,7 +27,7 @@ bijux-dna-db-ena
 bijux-dna-db-ref	bijux-dna-domain-vcf
 bijux-dna-dev	bijux-dna-api bijux-dna-bench bijux-dna-containers bijux-dna-core bijux-dna-db-ena bijux-dna-db-ref bijux-dna-domain-compiler bijux-dna-infra bijux-dna-policies bijux-dna-runner bijux-dna-runtime bijux-dna-stage-contract
 bijux-dna-domain-bam	bijux-dna-core bijux-dna-infra bijux-dna-policies bijux-dna-testkit
-bijux-dna-domain-compiler	bijux-dna-domain-bam bijux-dna-domain-fastq bijux-dna-domain-vcf bijux-dna-infra bijux-dna-policies
+bijux-dna-domain-compiler	bijux-dna-domain-bam bijux-dna-domain-fastq bijux-dna-domain-vcf bijux-dna-infra bijux-dna-policies bijux-dna-testkit
 bijux-dna-domain-fastq	bijux-dna-core bijux-dna-infra bijux-dna-policies bijux-dna-testkit
 bijux-dna-domain-vcf	bijux-dna-core bijux-dna-policies bijux-dna-testkit
 bijux-dna-engine	bijux-dna-core bijux-dna-infra bijux-dna-policies bijux-dna-runtime

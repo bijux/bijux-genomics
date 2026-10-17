@@ -25,7 +25,32 @@ fn allowed_test_command_arg(relative_path: &Path, arg: &str) -> bool {
         || normalized == "\"bash\""
         || normalized == "\"git\""
         || normalized == "\"awk\""
+        || relocated_workspace_command(relative_path, normalized)
         || owned_harness_command(relative_path, normalized)
+}
+
+fn relocated_workspace_command(relative_path: &Path, arg: &str) -> bool {
+    if relative_path.starts_with("crates/bijux-dna/tests") && arg == "support::cli_binary_path()" {
+        return true;
+    }
+    let (binaries, suffix): (&[&str], &str) = match relative_path.to_str() {
+        Some("crates/bijux-dna-domain-compiler/tests/domain_registry_cli.rs") => {
+            (&["domain_registry_bundle", "domain_registry_query"], "?")
+        }
+        Some(
+            "crates/bijux-dna/tests/bench_corpus_materialization_slurm.rs"
+            | "crates/bijux-dna/tests/contracts/cli_library_parity.rs"
+            | "crates/bijux-dna/tests/support/fixtures/process.rs",
+        ) => (&["bijux-dna"], ".expect(\"resolve CLI executable\")"),
+        _ => return false,
+    };
+    binaries.iter().any(|binary| {
+        ["", ","].into_iter().any(|trailing| {
+            arg == format!(
+                "bijux_dna_testkit::workspace_support::workspace_binary_path(\"{binary}\",std::path::Path::new(env!(\"CARGO_BIN_EXE_{binary}\")){trailing}){suffix}"
+            )
+        })
+    })
 }
 
 fn owned_harness_command(relative_path: &Path, arg: &str) -> bool {
@@ -115,7 +140,12 @@ fn constructor_argument(tokens: &[SourceToken<'_>], opening: usize) -> Option<(S
                         return (!argument.is_empty()).then_some((argument, index + 1));
                     }
                 }
-                "," if delimiters.len() == 1 => return None,
+                "," if delimiters.len() == 1 => {
+                    if tokens.get(index + 1).is_none_or(|next| next.literal || next.text != ")") {
+                        return None;
+                    }
+                    continue;
+                }
                 _ => {}
             }
         }
@@ -359,10 +389,44 @@ fn policy__contracts__command_spawn_policy__native_harnesses_require_exact_compl
 }
 
 #[test]
+fn policy__contracts__command_spawn_policy__relocated_executables_retain_exact_bindings() {
+    for (owner, expression) in [
+        ("crates/bijux-dna/tests/bench_local_tool_comparison_template.rs", "support::cli_binary_path()"),
+        ("crates/bijux-dna/tests/support/fixtures/process.rs", "bijux_dna_testkit::workspace_support::workspace_binary_path(\"bijux-dna\",std::path::Path::new(env!(\"CARGO_BIN_EXE_bijux-dna\")),).expect(\"resolve CLI executable\")"),
+        ("crates/bijux-dna-domain-compiler/tests/domain_registry_cli.rs", "bijux_dna_testkit::workspace_support::workspace_binary_path(\"domain_registry_bundle\",std::path::Path::new(env!(\"CARGO_BIN_EXE_domain_registry_bundle\")),)?"),
+        ("crates/bijux-dna-domain-compiler/tests/domain_registry_cli.rs", "bijux_dna_testkit::workspace_support::workspace_binary_path(\"domain_registry_query\",std::path::Path::new(env!(\"CARGO_BIN_EXE_domain_registry_query\")))?"),
+    ] {
+        let invocation = format!("Command::new({expression})");
+        assert!(!content_spawns_forbidden_test_command(Path::new(owner), &invocation));
+        assert!(!content_spawns_forbidden_test_command(
+            Path::new(owner), &format!("Command::new(\n{expression},\n)"),
+        ));
+        for redirected in [
+            format!("Command::new({expression}.with_file_name(\"curl\"))"),
+            format!("Command::new({expression}, foreign)"),
+            invocation.replace("CARGO_BIN_EXE_bijux-dna", "CARGO_BIN_EXE_foreign"),
+            invocation.replace("CARGO_BIN_EXE_domain_registry_", "CARGO_BIN_EXE_foreign_"),
+            invocation.replace("cli_binary_path()", "cli_binary_path(foreign)"),
+        ] {
+            if redirected != invocation {
+                assert!(content_spawns_forbidden_test_command(Path::new(owner), &redirected), "{redirected}");
+            }
+        }
+        assert!(content_spawns_forbidden_test_command(
+            &Path::new("foreign-checkout").join(owner), &invocation,
+        ));
+        assert!(content_spawns_forbidden_test_command(
+            Path::new("crates/bijux-dna-domain-compiler/tests/unrelated.rs"), &invocation,
+        ));
+    }
+}
+
+#[test]
 fn policy__contracts__command_spawn_policy__constructor_literals_do_not_change_call_boundaries() {
     let owner = Path::new("crates/bijux-dna-db-ref/tests/contracts/runtime_root.rs");
     for source in [
         "// Command::new(\"curl\")\nCommand::new(std::env::current_exe()?)",
+        "Command::new(std::env::current_exe()?,)",
         "/* outer /* Command::new(\"curl\") */ nested */ Command::new(std::env::current_exe()?)",
         r#"let quoted = "Command::new(\"curl\")"; Command::new(std::env::current_exe()?)"#,
         r###"let raw = r##"Command::new("curl")"##; Command::new(std::env::current_exe()?)"###,
@@ -390,7 +454,7 @@ fn policy__contracts__command_spawn_policy__redirected_or_malformed_constructor_
         "Command::new(std::env::current_exe().with_file_name(\"curl\")?)",
         "Command::new(std::env::current_exe().unwrap())",
         "Command::new(std::env::current_exe()?, \"curl\")",
-        "Command::new(std::env::current_exe()?,)",
+        "Command::new(std::env::current_exe()?,,)",
         "Command::new()",
         "Command::new(std::env::current_exe()?",
         "Command::new(std::env::current_exe(?))",
@@ -433,7 +497,7 @@ fn policy__contracts__command_spawn_policy__bijux_dna_tests_use_prebuilt_cli() {
 
     bijux_dna_policies::policy_assert!(
         offenders.is_empty(),
-        "bijux-dna integration tests must invoke env!(\"CARGO_BIN_EXE_bijux-dna\") instead of spawning nested Cargo builds:\n{}",
+        "bijux-dna integration tests must invoke a validated prebuilt CLI instead of spawning nested Cargo builds:\n{}",
         offenders.join("\n")
     );
 }

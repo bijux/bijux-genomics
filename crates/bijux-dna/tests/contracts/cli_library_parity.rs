@@ -90,15 +90,21 @@ fn snapshot_path() -> PathBuf {
 }
 
 fn run_cli_json(workspace: &CliWorkspace, args: &[&str]) -> serde_json::Value {
-    let output = Command::new(env!("CARGO_BIN_EXE_bijux-dna"))
-        .current_dir(workspace.path())
-        .env("HOME", &workspace.home)
-        .env("BIJUX_SKIP_QA", "1")
-        .env("BIJUX_ALLOW_SILVER", "1")
-        .env("BIJUX_SKIP_IMAGE_CHECK", "1")
-        .args(args)
-        .output()
-        .expect("run cli");
+    let output = Command::new(
+        bijux_dna_testkit::workspace_support::workspace_binary_path(
+            "bijux-dna",
+            std::path::Path::new(env!("CARGO_BIN_EXE_bijux-dna")),
+        )
+        .expect("resolve CLI executable"),
+    )
+    .current_dir(workspace.path())
+    .env("HOME", &workspace.home)
+    .env("BIJUX_SKIP_QA", "1")
+    .env("BIJUX_ALLOW_SILVER", "1")
+    .env("BIJUX_SKIP_IMAGE_CHECK", "1")
+    .args(args)
+    .output()
+    .expect("run cli");
     assert!(
         output.status.success(),
         "command failed: {}\nstdout:\n{}\nstderr:\n{}",

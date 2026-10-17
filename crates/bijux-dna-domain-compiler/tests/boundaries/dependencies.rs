@@ -28,12 +28,19 @@ fn dependency_graph_matches_compiler_boundary() {
 
     let dev_dependencies = section_keys(&manifest, "[dev-dependencies]");
     let expected_dev_dependencies: BTreeSet<_> =
-        ["bijux-dna-policies", "tempfile"].into_iter().map(str::to_string).collect();
+        ["bijux-dna-policies", "bijux-dna-testkit", "tempfile"]
+            .into_iter()
+            .map(str::to_string)
+            .collect();
     assert_eq!(dev_dependencies, expected_dev_dependencies, "unexpected dev dependency shape");
 
     assert!(
         manifest.contains("bijux-dna-policies.workspace = true"),
         "bijux-dna-policies must use the workspace dependency declaration"
+    );
+    assert!(
+        manifest.contains("bijux-dna-testkit.workspace = true"),
+        "bijux-dna-testkit must use the workspace dependency declaration"
     );
     assert!(
         manifest.contains("tempfile.workspace = true"),

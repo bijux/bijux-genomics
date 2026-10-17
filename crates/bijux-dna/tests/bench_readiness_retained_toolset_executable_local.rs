@@ -4,7 +4,7 @@
 mod support;
 
 pub(crate) fn seed_tool_smoke_manifests(repo_root: &std::path::Path) {
-    let output = std::process::Command::new(env!("CARGO_BIN_EXE_bijux-dna"))
+    let output = std::process::Command::new(support::cli_binary_path())
         .current_dir(repo_root)
         .env("BIJUX_SKIP_QA", "1")
         .env("BIJUX_ALLOW_SILVER", "1")

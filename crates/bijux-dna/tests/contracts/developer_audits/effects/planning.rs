@@ -13,7 +13,7 @@ fn dev_crates_planner_no_parser_writes_the_governed_audit_report() {
     let temp = tempfile::tempdir().expect("tempdir");
     let out = temp.path().join("planner-no-parser.json");
 
-    let output = Command::new(env!("CARGO_BIN_EXE_bijux-dna"))
+    let output = Command::new(support::cli_binary_path())
         .current_dir(&repo_root)
         .arg("dev")
         .arg("crates")

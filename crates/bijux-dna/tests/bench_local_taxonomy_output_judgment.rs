@@ -14,7 +14,7 @@ fn bench_local_judge_taxonomy_output_json_reports_governed_corpus_02_match() {
     let home = tempfile::tempdir().expect("tempdir");
     let output_path = home.path().join("taxonomy-judgment.json");
 
-    let output = Command::new(env!("CARGO_BIN_EXE_bijux-dna"))
+    let output = Command::new(support::cli_binary_path())
         .current_dir(&repo_root)
         .env("HOME", home.path())
         .env("BIJUX_SKIP_QA", "1")
@@ -136,7 +136,7 @@ fn bench_local_judge_taxonomy_output_refuses_declared_mismatch_after_publication
             ]
         }))?,
     )?;
-    let output = Command::new(env!("CARGO_BIN_EXE_bijux-dna"))
+    let output = Command::new(support::cli_binary_path())
         .current_dir(&repo_root)
         .env("HOME", output_root.path())
         .env("BIJUX_SKIP_QA", "1")

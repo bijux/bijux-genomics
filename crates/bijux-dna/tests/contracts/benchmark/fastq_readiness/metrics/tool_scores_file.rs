@@ -16,7 +16,7 @@ fn render_path(label: &str) -> PathBuf {
 }
 
 fn run_cli(repo_root: &Path, home: &Path, args: &[&str]) -> std::process::Output {
-    Command::new(env!("CARGO_BIN_EXE_bijux-dna"))
+    Command::new(support::cli_binary_path())
         .current_dir(repo_root)
         .env("HOME", home)
         .env("BIJUX_SKIP_QA", "1")

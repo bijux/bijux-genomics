@@ -16,6 +16,7 @@ graph must stay pointed at schema/domain truth and repository IO helpers, not at
 ## Allowed test dependencies
 
 - `bijux-dna-policies`: workspace guardrail checks.
+- `bijux-dna-testkit`: validated runtime bindings for archived CLI executables.
 - `tempfile`: isolated generated-output directories under the repository `artifacts/` tree.
 
 ## Forbidden dependencies

@@ -15,7 +15,7 @@ fn bench_readiness_vcf_phasing_family_adapter_writes_governed_json_files() {
     for command_name in
         ["render-vcf-shapeit5-adapter", "render-vcf-eagle-adapter", "render-vcf-beagle-adapter"]
     {
-        let output = Command::new(env!("CARGO_BIN_EXE_bijux-dna"))
+        let output = Command::new(support::cli_binary_path())
             .current_dir(&repo_root)
             .env("HOME", home.path())
             .env("BIJUX_SKIP_QA", "1")
