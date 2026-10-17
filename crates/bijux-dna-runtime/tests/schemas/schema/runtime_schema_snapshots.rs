@@ -14,6 +14,13 @@ use bijux_dna_runtime::run_layout::{
 #[path = "../../support/workspace_paths.rs"]
 mod support;
 
+// Schema snapshots retain scalar values; truth normalization applies ambient privacy rules.
+fn schema_json(value: &impl serde::Serialize) -> String {
+    let value = serde_json::to_value(value).unwrap_or_else(|err| panic!("schema: {err}"));
+    let canonical = bijux_dna_core::contract::canonical::canonicalize_json_value(&value);
+    serde_json::to_string(&canonical).unwrap_or_else(|err| panic!("canonical: {err}"))
+}
+
 #[test]
 fn run_layout_schema_snapshot() {
     let layout = RunLayoutV1 {
@@ -55,11 +62,7 @@ fn run_layout_schema_snapshot() {
         evidence_bundle_path: "evidence_bundle.json".to_string(),
     };
     let expected = include_str!("../../fixtures/runtime_schema/default/run_layout_v1.json");
-    let actual = String::from_utf8(
-        bijux_dna_core::contract::canonical::to_canonical_json_bytes(&layout)
-            .unwrap_or_else(|err| panic!("canonical: {err}")),
-    )
-    .unwrap_or_else(|err| panic!("utf8: {err}"));
+    let actual = schema_json(&layout);
     assert_eq!(actual.trim_end(), expected.trim_end());
 }
 
@@ -74,11 +77,7 @@ fn run_record_schema_snapshot() {
         },
     ]);
     let expected = include_str!("../../fixtures/runtime_schema/default/run_record_v1.json");
-    let actual = String::from_utf8(
-        bijux_dna_core::contract::canonical::to_canonical_json_bytes(&record)
-            .unwrap_or_else(|err| panic!("canonical: {err}")),
-    )
-    .unwrap_or_else(|err| panic!("utf8: {err}"));
+    let actual = schema_json(&record);
     assert_eq!(actual, expected);
 }
 
@@ -97,11 +96,7 @@ fn run_provenance_schema_snapshot() {
         plan_hash: None,
     };
     let expected = include_str!("../../fixtures/runtime_schema/default/run_provenance_v1.json");
-    let actual = String::from_utf8(
-        bijux_dna_core::contract::canonical::to_canonical_json_bytes(&provenance)
-            .unwrap_or_else(|err| panic!("canonical: {err}")),
-    )
-    .unwrap_or_else(|err| panic!("utf8: {err}"));
+    let actual = schema_json(&provenance);
     assert_eq!(actual, expected);
 }
 
@@ -147,11 +142,7 @@ fn run_manifest_schema_snapshot() {
         artifacts: Vec::new(),
     };
     let expected = include_str!("../../fixtures/runtime_schema/default/run_manifest_v1.json");
-    let actual = String::from_utf8(
-        bijux_dna_core::contract::canonical::to_canonical_json_bytes(&manifest)
-            .unwrap_or_else(|err| panic!("canonical: {err}")),
-    )
-    .unwrap_or_else(|err| panic!("utf8: {err}"));
+    let actual = schema_json(&manifest);
     assert_eq!(actual, expected);
 }
 
@@ -168,11 +159,7 @@ fn run_state_schema_snapshot() {
         failure_path: None,
     };
     let expected = include_str!("../../fixtures/runtime_schema/default/run_state_v1.json");
-    let actual = String::from_utf8(
-        bijux_dna_core::contract::canonical::to_canonical_json_bytes(&state)
-            .unwrap_or_else(|err| panic!("canonical: {err}")),
-    )
-    .unwrap_or_else(|err| panic!("utf8: {err}"));
+    let actual = schema_json(&state);
     assert_eq!(actual.trim_end(), expected.trim_end());
 }
 
@@ -192,11 +179,7 @@ fn run_failure_schema_snapshot() {
         retryable: true,
     };
     let expected = include_str!("../../fixtures/runtime_schema/default/run_failure_v1.json");
-    let actual = String::from_utf8(
-        bijux_dna_core::contract::canonical::to_canonical_json_bytes(&failure)
-            .unwrap_or_else(|err| panic!("canonical: {err}")),
-    )
-    .unwrap_or_else(|err| panic!("utf8: {err}"));
+    let actual = schema_json(&failure);
     assert_eq!(actual.trim_end(), expected.trim_end());
 }
 
@@ -210,11 +193,7 @@ fn executor_descriptor_schema_snapshot() {
     };
     let expected =
         include_str!("../../fixtures/runtime_schema/default/executor_descriptor_v1.json");
-    let actual = String::from_utf8(
-        bijux_dna_core::contract::canonical::to_canonical_json_bytes(&descriptor)
-            .unwrap_or_else(|err| panic!("canonical: {err}")),
-    )
-    .unwrap_or_else(|err| panic!("utf8: {err}"));
+    let actual = schema_json(&descriptor);
     assert_eq!(actual.trim_end(), expected.trim_end());
 }
 
@@ -238,11 +217,7 @@ fn runtime_operations_schema_snapshots() {
     };
     let backend_expected =
         include_str!("../../fixtures/runtime_schema/default/run_backend_v1.json");
-    let backend_actual = String::from_utf8(
-        bijux_dna_core::contract::canonical::to_canonical_json_bytes(&backend)
-            .unwrap_or_else(|err| panic!("canonical: {err}")),
-    )
-    .unwrap_or_else(|err| panic!("utf8: {err}"));
+    let backend_actual = schema_json(&backend);
     assert_eq!(backend_actual.trim_end(), backend_expected.trim_end());
 
     let scheduling = RunSchedulingDecisionV1 {
@@ -267,11 +242,7 @@ fn runtime_operations_schema_snapshots() {
     };
     let scheduling_expected =
         include_str!("../../fixtures/runtime_schema/default/run_scheduling_decision_v1.json");
-    let scheduling_actual = String::from_utf8(
-        bijux_dna_core::contract::canonical::to_canonical_json_bytes(&scheduling)
-            .unwrap_or_else(|err| panic!("canonical: {err}")),
-    )
-    .unwrap_or_else(|err| panic!("utf8: {err}"));
+    let scheduling_actual = schema_json(&scheduling);
     assert_eq!(scheduling_actual.trim_end(), scheduling_expected.trim_end());
 
     let queue_state = RunQueueStateV1 {
@@ -289,11 +260,7 @@ fn runtime_operations_schema_snapshots() {
     };
     let queue_expected =
         include_str!("../../fixtures/runtime_schema/default/run_queue_state_v1.json");
-    let queue_actual = String::from_utf8(
-        bijux_dna_core::contract::canonical::to_canonical_json_bytes(&queue_state)
-            .unwrap_or_else(|err| panic!("canonical: {err}")),
-    )
-    .unwrap_or_else(|err| panic!("utf8: {err}"));
+    let queue_actual = schema_json(&queue_state);
     assert_eq!(queue_actual.trim_end(), queue_expected.trim_end());
 
     let lease = RunLeaseV1 {
@@ -308,11 +275,7 @@ fn runtime_operations_schema_snapshots() {
         exclusive: true,
     };
     let lease_expected = include_str!("../../fixtures/runtime_schema/default/run_lease_v1.json");
-    let lease_actual = String::from_utf8(
-        bijux_dna_core::contract::canonical::to_canonical_json_bytes(&lease)
-            .unwrap_or_else(|err| panic!("canonical: {err}")),
-    )
-    .unwrap_or_else(|err| panic!("utf8: {err}"));
+    let lease_actual = schema_json(&lease);
     assert_eq!(lease_actual.trim_end(), lease_expected.trim_end());
 
     let control = RunControlStateV1 {
@@ -330,11 +293,7 @@ fn runtime_operations_schema_snapshots() {
     };
     let control_expected =
         include_str!("../../fixtures/runtime_schema/default/run_control_v1.json");
-    let control_actual = String::from_utf8(
-        bijux_dna_core::contract::canonical::to_canonical_json_bytes(&control)
-            .unwrap_or_else(|err| panic!("canonical: {err}")),
-    )
-    .unwrap_or_else(|err| panic!("utf8: {err}"));
+    let control_actual = schema_json(&control);
     assert_eq!(control_actual.trim_end(), control_expected.trim_end());
 
     let health = OperatorHealthReportV1 {
@@ -358,11 +317,7 @@ fn runtime_operations_schema_snapshots() {
     };
     let health_expected =
         include_str!("../../fixtures/runtime_schema/default/operator_health_v1.json");
-    let health_actual = String::from_utf8(
-        bijux_dna_core::contract::canonical::to_canonical_json_bytes(&health)
-            .unwrap_or_else(|err| panic!("canonical: {err}")),
-    )
-    .unwrap_or_else(|err| panic!("utf8: {err}"));
+    let health_actual = schema_json(&health);
     assert_eq!(health_actual.trim_end(), health_expected.trim_end());
 
     let slurm = SlurmSubmissionRecordV1 {
@@ -389,11 +344,7 @@ fn runtime_operations_schema_snapshots() {
     };
     let slurm_expected =
         include_str!("../../fixtures/runtime_schema/default/slurm_submission_v1.json");
-    let slurm_actual = String::from_utf8(
-        bijux_dna_core::contract::canonical::to_canonical_json_bytes(&slurm)
-            .unwrap_or_else(|err| panic!("canonical: {err}")),
-    )
-    .unwrap_or_else(|err| panic!("utf8: {err}"));
+    let slurm_actual = schema_json(&slurm);
     assert_eq!(slurm_actual.trim_end(), slurm_expected.trim_end());
 }
 
