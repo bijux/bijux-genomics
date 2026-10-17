@@ -1,5 +1,6 @@
 //! Execute exact emitted report bodies with the declared interpreter; no backend evidence.
 use std::io::Write as _;
+use std::os::unix::fs::PermissionsExt as _;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 
@@ -197,8 +198,27 @@ fn observe_report(root: &Path, label: &str, argv: &[String]) -> Result<Value> {
 }
 
 fn observe_python(root: &Path, label: &str, payload: &str) -> Result<Value> {
-    let python =
+    let declared =
         PathBuf::from(std::env::var_os("PYTHON").context("declared genuine Python provider")?);
+    let python = if declared.is_absolute() {
+        declared
+    } else {
+        ensure!(
+            declared.components().count() == 1,
+            "Python provider must be a name or absolute path"
+        );
+        std::env::split_paths(&std::env::var_os("PATH").context("Python provider search path")?)
+            .map(|directory| directory.join(&declared))
+            .find(|candidate| {
+                candidate.is_file()
+                    && candidate
+                        .metadata()
+                        .is_ok_and(|metadata| metadata.permissions().mode() & 0o111 != 0)
+            })
+            .context("declared Python provider is unavailable on PATH")?
+    }
+    .canonicalize()
+    .context("resolve declared Python provider")?;
     ensure!(
         python.is_absolute() && python.is_file(),
         "Python provider must be an admitted absolute file"

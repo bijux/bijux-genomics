@@ -15,8 +15,27 @@ fn duplication_metrics_command_serializes_observed_counts_and_summary() -> Resul
     let output = root.join("output");
     std::fs::create_dir_all(&providers)?;
     std::fs::create_dir_all(&output)?;
-    let python =
+    let declared =
         PathBuf::from(std::env::var_os("PYTHON").context("declared genuine Python provider")?);
+    let python = if declared.is_absolute() {
+        declared
+    } else {
+        ensure!(
+            declared.components().count() == 1,
+            "Python provider must be a name or absolute path"
+        );
+        std::env::split_paths(&std::env::var_os("PATH").context("Python provider search path")?)
+            .map(|directory| directory.join(&declared))
+            .find(|candidate| {
+                candidate.is_file()
+                    && candidate
+                        .metadata()
+                        .is_ok_and(|metadata| metadata.permissions().mode() & 0o111 != 0)
+            })
+            .context("declared Python provider is unavailable on PATH")?
+    }
+    .canonicalize()
+    .context("resolve declared Python provider")?;
     ensure!(
         python.is_absolute()
             && python.is_file()
