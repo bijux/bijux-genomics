@@ -192,9 +192,11 @@ version is still checked on every use. Existing local installations remain
 supported. This command does not install into system directories.
 
 For `github-all`, the hosted producer, consumer and aggregate steps map to one
-complete local `test-all` gate, alongside `ci-test-python`. Runtime provisioning
-remains a prerequisite. This preserves local coverage without launching
-dependent hosted stages as unrelated parallel commands.
+local `test-complete` gate, which covers native tests including ignored cases,
+doctests and all three Python lanes. The separate hosted Python step is included
+in that local gate. Runtime provisioning remains a prerequisite, and native
+preparation still runs before dispatch. Dependent hosted stages are not launched
+as unrelated parallel commands.
 
 The time budget includes compilation, runtime setup, artifact transfer and final
 aggregation. Partition counts express available parallel work, not a promise of
