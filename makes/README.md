@@ -171,6 +171,9 @@ extraction and output directories. Consumers do not compile workspace code.
 `make ci-test-build` uses the `ci` Cargo profile, which inherits development
 assertions and overflow checks while omitting debug symbols and incremental
 state. The producer also qualifies doctests against the same build cache.
+Hosted Rust gates explicitly cache their actual Cargo home and target roots;
+format, lint and audit use `artifacts/target`, while native archive production
+uses its separately owned compilation cache.
 `make ci-test-shard CI_TEST_PARTITION=hash:1/20` consumes only matching source,
 configuration, runtime and compiled inputs. `make ci-test-aggregate` requires the
 exact expected case union and terminal outcomes from every admitted partition.
@@ -178,8 +181,9 @@ Missing, cancelled, failed, duplicate or foreign-source results fail acceptance.
 
 `make ci-test-python` separately runs every Python lane declared in
 `configs/ci/local-test-lanes.json`, retaining collection and execution receipts.
-The required hosted `tests / complete` check waits for all native partitions and
-Python lanes before aggregating. Artifact names include the workflow attempt;
+The required hosted `tests / complete` check requires successful formatting,
+lint, dependency auditing, native build, every native partition and Python lanes
+before aggregating. Artifact names include the workflow attempt;
 rerun the whole workflow so a partial rerun cannot mix attempts.
 
 `make ci-test-runtime` provisions the exact checksum-pinned BCFtools source
