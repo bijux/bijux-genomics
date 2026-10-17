@@ -1,11 +1,11 @@
-use std::ffi::OsString;
+use std::ffi::OsStr;
 use std::path::PathBuf;
 use std::time::Duration;
 
 use anyhow::{anyhow, bail, Context, Result};
 use bijux_dna_containers::api::RuntimeKind;
 use bijux_dna_core::contract::ExecutionStep;
-use bijux_dna_runner::step_runner::{execute_step, StageResultV1};
+use bijux_dna_runner::step_runner::{execute_step_with_context, StageResultV1};
 use bijux_dna_runtime::recording::write_execution_logs_bounded;
 use serde::{Deserialize, Serialize};
 
@@ -17,6 +17,10 @@ use super::invocation_policy::{
     update_resume_report, validate_required_outputs, write_crash_bundle,
 };
 use crate::writers::{ArtifactWriter, MetricsWriter};
+
+mod environment;
+
+use environment::invocation_environment;
 
 const STAGE_SUMMARY_FILE_NAME: &str = "stage_human_summary.json";
 
@@ -52,29 +56,6 @@ fn read_log_tail(path: &std::path::Path) -> Option<String> {
         .ok()
         .map(|value| value.trim().to_string())
         .filter(|value| !value.is_empty())
-}
-
-struct ScopedEnvRestore {
-    previous: Vec<(&'static str, Option<OsString>)>,
-}
-
-impl ScopedEnvRestore {
-    fn capture(keys: &[&'static str]) -> Self {
-        let previous = keys.iter().map(|key| (*key, std::env::var_os(key))).collect::<Vec<_>>();
-        Self { previous }
-    }
-}
-
-impl Drop for ScopedEnvRestore {
-    fn drop(&mut self) {
-        for (key, value) in &self.previous {
-            if let Some(value) = value {
-                std::env::set_var(key, value);
-            } else {
-                std::env::remove_var(key);
-            }
-        }
-    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -165,48 +146,16 @@ pub fn invoke_tool(req: &ToolInvocationRequest) -> Result<ToolInvocationResult> 
     bijux_dna_infra::ensure_dir(&cache_root)?;
     let home_dir = work_dir.join("home");
     bijux_dna_infra::ensure_dir(&home_dir)?;
-    let _env_restore = ScopedEnvRestore::capture(&[
-        "LC_ALL",
-        "LANG",
-        "TZ",
-        "PATH",
-        "BIJUX_UMASK",
-        "BIJUX_STAGE_THREADS",
-        "BIJUX_STAGE_MEMORY_MB",
-        "BIJUX_COMPRESSION_THREADS",
-        "BIJUX_STAGE_SEED",
-        "TMPDIR",
-        "HOME",
-        "XDG_CACHE_HOME",
-        "BIJUX_CACHE_ROOT",
-        "BIJUX_STAGE_WORKDIR",
-    ]);
-    std::env::set_var("LC_ALL", policy.deterministic_env.lc_all.as_deref().unwrap_or("C"));
-    std::env::set_var("LANG", policy.deterministic_env.lang.as_deref().unwrap_or("C"));
-    std::env::set_var("TZ", policy.deterministic_env.tz.as_deref().unwrap_or("UTC"));
-    if let Some(path) = policy.deterministic_env.path.as_deref() {
-        std::env::set_var("PATH", path);
-    }
-    if let Some(umask) = policy.deterministic_env.umask.as_deref() {
-        std::env::set_var("BIJUX_UMASK", umask);
-    }
-    std::env::set_var("BIJUX_STAGE_THREADS", policy.threads.to_string());
-    if let Some(memory_hint_mb) = policy.memory_mb {
-        std::env::set_var("BIJUX_STAGE_MEMORY_MB", memory_hint_mb.to_string());
-    }
-    if let Some(compression_threads) = policy.compression_threads {
-        std::env::set_var("BIJUX_COMPRESSION_THREADS", compression_threads.to_string());
-    }
-    if let Some(seed) = req.context.seed {
-        std::env::set_var("BIJUX_STAGE_SEED", seed.to_string());
-    }
-    std::env::set_var("TMPDIR", &effective_tmp_root);
-    std::env::set_var("HOME", &home_dir);
-    std::env::set_var("XDG_CACHE_HOME", &cache_root);
-    std::env::set_var("BIJUX_CACHE_ROOT", &cache_root);
-    std::env::set_var("BIJUX_STAGE_WORKDIR", &work_dir);
+    let environment = invocation_environment(
+        req,
+        &policy,
+        &effective_tmp_root,
+        &cache_root,
+        &home_dir,
+        &work_dir,
+    );
     for var in ["XDG_CACHE_HOME", "BIJUX_CACHE_ROOT"] {
-        if let Ok(value) = std::env::var(var) {
+        if let Some(value) = environment.get(OsStr::new(var)).and_then(|value| value.to_str()) {
             let path = PathBuf::from(value);
             if !path.starts_with(&cache_root) {
                 bail!("cache policy violation: {var} must be under {}", cache_root.display());
@@ -397,12 +346,14 @@ pub fn invoke_tool(req: &ToolInvocationRequest) -> Result<ToolInvocationResult> 
         &serde_json::to_string(&tool_event)?,
     )?;
 
-    let arg_threshold = std::env::var("BIJUX_MAX_COMMAND_LENGTH")
-        .ok()
+    let arg_threshold = environment
+        .get(OsStr::new("BIJUX_MAX_COMMAND_LENGTH"))
+        .and_then(|value| value.to_str())
         .and_then(|v| v.parse::<usize>().ok())
         .unwrap_or(12_000);
     let effective_step = rewrite_long_region_args(&req.step, &work_dir, arg_threshold)?;
-    let stage_result = execute_step(&effective_step, req.runner, policy.timeout)?;
+    let stage_result =
+        execute_step_with_context(&effective_step, req.runner, policy.timeout, Some(&environment))?;
     validate_required_outputs(&effective_step)?;
     enforce_large_file_guard(&req.context.output_root, &effective_step.io.outputs)?;
     let stage_metrics_path = req.context.stage_root.join("stage.metrics.json");
@@ -421,6 +372,7 @@ pub fn invoke_tool(req: &ToolInvocationRequest) -> Result<ToolInvocationResult> 
             stderr_tail.as_deref(),
             stage_result.exit_code,
             &stage_result.command,
+            &environment,
         );
         let _ = mark_partial_failure_invalid(&req.context.stage_root, &effective_step.io.outputs);
         let _ = bijux_dna_infra::atomic_write_json(
@@ -452,9 +404,9 @@ pub fn invoke_tool(req: &ToolInvocationRequest) -> Result<ToolInvocationResult> 
     let inferred_tool_version = infer_tool_version_from_image(&req.step.image.image);
     let runtime_provenance_path = req.context.stage_root.join("runtime_provenance.json");
     let env_summary = serde_json::json!({
-        "hostname": std::env::var("HOSTNAME").ok(),
-        "tz": std::env::var("TZ").ok(),
-        "lc_all": std::env::var("LC_ALL").ok(),
+        "hostname": environment.get(OsStr::new("HOSTNAME")).and_then(|value| value.to_str()),
+        "tz": environment.get(OsStr::new("TZ")).and_then(|value| value.to_str()),
+        "lc_all": environment.get(OsStr::new("LC_ALL")).and_then(|value| value.to_str()),
     });
     let runtime_provenance = serde_json::json!({
         "schema_version": "bijux.runtime_provenance.v1",

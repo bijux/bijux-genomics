@@ -6,6 +6,9 @@ use super::super::filter::FilterEffectiveParams;
 use super::super::qc_post::{
     QcAggregationEngine, QcAggregationScope, QcPostEffectiveParams, REPORT_QC_SCHEMA_VERSION,
 };
+use super::super::quality::filter_low_complexity::{
+    FilterLowComplexityEffectiveParams, FILTER_LOW_COMPLEXITY_SCHEMA_VERSION,
+};
 use super::super::screen::{
     ScreenEffectiveParams, TaxonomyAssignmentFormat, TaxonomyClassifier, TaxonomyDatabaseScope,
     TaxonomyInterpretationBoundary, TaxonomyReportFormat, SCREEN_TAXONOMY_SCHEMA_VERSION,
@@ -108,6 +111,18 @@ pub fn filter_defaults(paired: bool) -> FilterEffectiveParams {
         n_policy: None,
         polyx_policy: None,
         damage_mode: None,
+    }
+}
+
+/// Defaults for the governed low-complexity stage's explicit entropy and homopolymer filters.
+#[must_use]
+pub fn filter_low_complexity_defaults(paired: bool) -> FilterLowComplexityEffectiveParams {
+    FilterLowComplexityEffectiveParams {
+        schema_version: FILTER_LOW_COMPLEXITY_SCHEMA_VERSION.to_string(),
+        paired_mode: paired_mode(paired),
+        threads: 1,
+        entropy_threshold: 0.5,
+        polyx_threshold: Some(20),
     }
 }
 

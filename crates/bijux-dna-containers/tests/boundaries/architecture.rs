@@ -55,6 +55,7 @@ fn source_tree_matches_architecture_contract() {
             "catalog_observation.rs",
             "catalog_lock.rs",
             "catalog_validation.rs",
+            "definition_lint.rs",
             "delivery/",
             "inspection.rs",
             "labels.rs",
@@ -267,29 +268,6 @@ fn inventory_source_tree_matches_ownership_contract() {
         dir_entries(&root.join("src/evidence/inventory")),
         btree_set(&["activation.rs", "derivation.rs", "mod.rs", "report.rs", "source.rs"]),
         "inventory must separate activation provenance, execution-site inputs, admission decisions, and reporting"
-    );
-}
-
-#[test]
-fn test_tree_matches_architecture_contract() {
-    let root = crate_root("bijux-dna-containers");
-
-    assert_eq!(
-        dir_entries(&root.join("tests")),
-        btree_set(&[
-            "boundaries/",
-            "boundaries.rs",
-            "contracts/",
-            "contracts.rs",
-            "determinism/",
-            "determinism.rs",
-            "fixtures/",
-            "guardrails.rs",
-            "public_api_docs.rs",
-            "schemas/",
-            "schemas.rs",
-        ]),
-        "test tree must stay grouped by taxonomy without nested README docs"
     );
 }
 

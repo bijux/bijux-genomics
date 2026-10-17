@@ -38,10 +38,13 @@ or an equivalent runtime-owned setup before calling the engine.
 
 ## Enforcement
 
-- `tests/boundaries/architecture_tree.rs` locks `src/public_api/`.
+- `tests/boundaries/dependency_graph.rs` enforces the engine dependency boundary.
 - `tests/contracts/execution_orchestration_contracts.rs` covers public
   `Engine`, `EngineConfig`, `CancellationToken`, `EngineEvent`, `EngineHooks`,
   and run-layout precondition behavior.
+
+The curated export list is documented here; engine tests do not lock an exact
+`src/public_api/` tree or a public export snapshot.
 
 ## Stability Tiers
 

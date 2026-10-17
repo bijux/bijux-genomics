@@ -2,6 +2,8 @@
 
 use std::path::{Path, PathBuf};
 
+use crate::document_references;
+
 fn repo_root() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR"))
         .parent()
@@ -85,14 +87,18 @@ fn policy__contracts__contract_index_policy__index_covers_architecture_boundarie
 fn policy__contracts__contract_index_policy__index_authorities_exist() {
     let root = repo_root();
     let path = root.join("docs/10-architecture/CONTRACT_INDEX.md");
-    let doc_root = path
-        .parent()
-        .unwrap_or_else(|| bijux_dna_policies::policy_panic!("resolve {}", path.display()));
     let content = std::fs::read_to_string(&path)
         .unwrap_or_else(|err| bijux_dna_policies::policy_panic!("read {}: {err}", path.display()));
     let missing = indexed_contract_rows(&content)
         .into_iter()
-        .filter(|(_, authority)| !doc_root.join(authority).exists())
+        .filter(|(_, authority)| {
+            document_references::repository_target(
+                &root,
+                "docs/10-architecture/CONTRACT_INDEX.md",
+                authority,
+            )
+            .is_err()
+        })
         .map(|(category, authority)| format!("{category}: {authority}"))
         .collect::<Vec<_>>();
 

@@ -1634,11 +1634,9 @@ fn has_symlink_ancestor_within(path: &Path, root: &Path) -> bool {
         if !candidate.starts_with(root) {
             break;
         }
-        if candidate.exists() {
-            if let Ok(metadata) = std::fs::symlink_metadata(candidate) {
-                if metadata.file_type().is_symlink() {
-                    return true;
-                }
+        if let Ok(metadata) = std::fs::symlink_metadata(candidate) {
+            if metadata.file_type().is_symlink() {
+                return true;
             }
         }
         if candidate == root {

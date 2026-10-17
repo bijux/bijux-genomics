@@ -16,7 +16,7 @@ use crate::{
 /// # Errors
 /// Returns an error if reference bank config cannot be read or entry is missing.
 pub fn resolve_reference_bank(species: &str, build: &str) -> Result<ReferenceBankEntry> {
-    let path = workspace_root().join("configs/runtime/reference_bank.toml");
+    let path = workspace_root()?.join("configs/runtime/reference_bank.toml");
     let cfg: ReferenceBankConfig = load_toml(&path)?;
     let entry = cfg
         .reference
@@ -43,7 +43,7 @@ pub fn resolve_reference_bank(species: &str, build: &str) -> Result<ReferenceBan
 /// Returns an error when the lock is malformed, unordered, incomplete, duplicated, or drifts from
 /// the checked source authority.
 pub fn resolve_reference_source_lock() -> Result<ReferenceSourceLock> {
-    let root = workspace_root();
+    let root = workspace_root()?;
     let bank_path = root.join("configs/runtime/reference_bank.toml");
     let lock_path = root.join("configs/runtime/references/locks/lock.json");
     let bank: ReferenceBankConfig = load_toml(&bank_path)?;
@@ -113,7 +113,7 @@ pub fn resolve_genetic_map_bank(
     build: &str,
     panel_id: Option<&str>,
 ) -> Result<GeneticMapBankEntry> {
-    let path = workspace_root().join("configs/runtime/genetic_map_bank.toml");
+    let path = workspace_root()?.join("configs/runtime/genetic_map_bank.toml");
     let cfg: GeneticMapBankConfig = load_toml(&path)?;
     let mut candidates = cfg
         .map
@@ -134,7 +134,7 @@ pub fn resolve_genetic_map_bank(
 /// # Errors
 /// Returns an error if organellar policy cannot be loaded.
 pub fn resolve_organellar_policy(species: &str, build: &str) -> Result<OrganellarPolicy> {
-    let path = workspace_root().join("configs/runtime/organellar_policy.toml");
+    let path = workspace_root()?.join("configs/runtime/organellar_policy.toml");
     let cfg: OrganellarPolicyConfig = load_toml(&path)?;
     cfg.policy
         .into_iter()
@@ -145,7 +145,7 @@ pub fn resolve_organellar_policy(species: &str, build: &str) -> Result<Organella
 /// # Errors
 /// Returns an error if default reference set cannot be loaded for species/usecase.
 pub fn resolve_default_reference_set(species: &str, usecase: &str) -> Result<ReferenceSet> {
-    let path = workspace_root().join("configs/runtime/reference_sets.toml");
+    let path = workspace_root()?.join("configs/runtime/reference_sets.toml");
     let cfg: ReferenceSetConfig = load_toml(&path)?;
     cfg.set
         .into_iter()
@@ -293,7 +293,7 @@ pub fn resolve_reference_bundle_contract(
 }
 
 pub(crate) fn resolve_bundle_entry(species: &str, build: &str) -> Result<BundleEntry> {
-    let path = workspace_root().join("configs/runtime/reference_bundles.toml");
+    let path = workspace_root()?.join("configs/runtime/reference_bundles.toml");
     let cfg: BundlesConfig = load_toml(&path)?;
     cfg.bundle
         .into_iter()

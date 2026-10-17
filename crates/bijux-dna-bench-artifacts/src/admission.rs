@@ -6,6 +6,9 @@ use anyhow::{ensure, Result};
 use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
 
+mod report_identity;
+pub(super) use report_identity::admit_report_identity;
+
 /// # Errors
 /// Rejects symlinked execution-store ancestry.
 pub fn execution_parent(destination: &Path) -> Result<PathBuf> {
@@ -37,14 +40,7 @@ impl PublicationPlan {
         owner: &ReportOwner<'_>,
         schema: &PublicationSchema,
     ) -> Result<Self> {
-        admit_relative(Path::new(schema.inventory_name))?;
-        ensure!(
-            Path::new(schema.inventory_name).components().count() == 1
-                && ![EXECUTIONS, "stage-result.json", owner.report_name]
-                    .contains(&schema.inventory_name)
-                && !schema.schema_version.trim().is_empty(),
-            "invalid benchmark publication schema"
-        );
+        schema.admit(owner)?;
         admit_ancestry(destination)?;
         admit_ancestry(execution)?;
         ensure!(
@@ -62,6 +58,7 @@ impl PublicationPlan {
                 && !files.iter().any(|file| file.starts_with(EXECUTIONS)),
             "benchmark execution contains reserved publication paths"
         );
+        admit_report_identity(&execution.join(owner.report_name), owner)?;
         let stage_result = files
             .contains(Path::new("stage-result.json"))
             .then(|| {

@@ -75,3 +75,36 @@ Micro-report coverage policy independently tests expected-source and current-evi
 Micro-report admission compares the exact multiset of component/execution/domain/stage/tool/status identities against source results for result, runtime and memory sections. The existing two-row fixture rejects substituted identities and equal-total forged status/source distributions, clears stale passing verdicts, and accepts a harmless section permutation. No additional workflow fixture is needed.
 
 Shared guardrail parser regressions are owned and executed by the policy crate. This boundary suite retains its crate-specific architecture checks; it does not compile another crate's test source. Constructor-only guardrail wrappers provide no source-check coverage and are retired.
+
+BAM campaign pure goal selection, checks, source identity and evidence projection are covered directly by `bijux-dna-bench-model` policy tests. The benchmark repository retains the admitted derive/publish/load roundtrip under `repo/bam_campaign.rs`. All existing campaign behavior cases remain registered once.
+
+The three taxonomy judgment repository oracles are registered once under `repo/taxonomy_judgment/`: governed matrix agreement, missing-sample refusal and false-positive evidence. Pure summary/evaluation contracts belong to the model tests; the CLI retains its JSON and persisted-output compatibility case.
+
+FASTQ campaign pure cases execute once in `bijux-dna-bench-model` under
+`tests/contracts/fastq_campaign/`. The existing
+`workflow::fastq_campaign::tests::derives_publishes_and_loads_admitted_fastq_campaign`
+case stays with persisted report admission and atomic publication. Its body and
+public operation signatures remain unchanged.
+
+VCF campaign pure cases execute once in `bijux-dna-bench-model` under
+`tests/contracts/vcf_campaign/`. The existing
+`workflow::vcf_campaign::tests::derives_publishes_and_loads_admitted_vcf_campaign`
+case stays with persisted report admission and atomic publication. Its body and
+public operation signatures remain unchanged.
+
+Cross-domain campaign pure cases execute once in `bijux-dna-bench-model` under
+`tests/contracts/cross_campaign/`. The existing
+`workflow::cross_campaign::tests::derives_publishes_and_loads_admitted_cross_campaign`
+case stays with persisted report admission and atomic publication. Its body and
+public operation signatures remain unchanged.
+
+Alias-audit owner tests inject stage and tool aliases across all four readiness
+surfaces, retain result/corpus/profile identity, and distinguish candidate-scoped
+tool membership from merely similar spellings on other surfaces. Stable ordering
+and duplicate observations have direct coverage. The CLI integration cases retain
+the existing report schema, counts and governed JSON publication behavior.
+
+Retained-tool derivation directly covers repeated bindings versus unique stages,
+mixed readiness, overlapping external contracts and exact source-closure failures.
+External-only declarations and non-ready observations must not become ready evidence.
+The CLI JSON and TSV inventory cases retain their supported command/output contracts.

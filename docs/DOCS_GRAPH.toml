@@ -73,6 +73,7 @@ children = [
   "docs/10-architecture/SNAPSHOT_GOLDEN_CONTRACT.md",
   "docs/10-architecture/SSOT.md",
   "docs/10-architecture/SYSTEM_MAP.md",
+  "docs/10-architecture/TARGET_ARCHITECTURE.md",
   "docs/10-architecture/WORKFLOW_TRUTH_MIGRATION.md",
 ]
 
@@ -86,6 +87,7 @@ children = [
 [[edge]]
 from = "docs/20-science/index.md"
 children = [
+  "docs/20-science/DATA_PORTFOLIO_AND_TRUTH_CONTRACT.md",
   "docs/20-science/DOMAIN_COVERAGE.generated.md",
   "docs/20-science/PUBLICATION_ASSETS.md",
   "docs/20-science/SCIENTIFIC_DECISIONS.md",

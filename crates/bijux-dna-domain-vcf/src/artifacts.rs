@@ -10,7 +10,13 @@ use serde::{Deserialize, Serialize};
 
 mod sample_header;
 pub use sample_header::sample_count_from_vcf_text;
+mod fixture_genotypes;
+pub use fixture_genotypes::{
+    summarize_fixture_genotypes, VcfFixtureAlleleFrequency, VcfFixtureGenotypeInput,
+    VcfFixtureGenotypeSummary, VcfFixtureSampleGenotypes,
+};
 mod genotype_calls;
+mod genotype_truth;
 pub use genotype_calls::genotypes_equivalent_unphased;
 mod schema;
 mod types;
@@ -394,6 +400,21 @@ fn parse_tiny_vcf(path: &Path) -> Result<TinyVcfDocument> {
     Ok(doc)
 }
 
+fn validate_sample_payload_counts(doc: &TinyVcfDocument) -> Result<()> {
+    for record in &doc.records {
+        if record.samples.len() != doc.samples.len() {
+            return Err(anyhow!(
+                "VCF row `{}:{}` has {} sample payloads but the #CHROM header declares {}",
+                record.chrom,
+                record.pos,
+                record.samples.len(),
+                doc.samples.len(),
+            ));
+        }
+    }
+    Ok(())
+}
+
 /// Execute fixture-safe VCF validation and return refusal reasons for malformed content.
 ///
 /// # Errors
@@ -582,9 +603,10 @@ fn mean_from_sum_and_count(sum: f64, count: usize) -> f64 {
 /// Build a bcftools-style stats summary for tiny fixture-safe VCF records.
 ///
 /// # Errors
-/// Returns an error when the VCF cannot be parsed.
+/// Returns an error when the VCF cannot be parsed or record sample counts disagree with its header.
 pub fn execute_vcf_stats_workflow(input_vcf: &Path) -> Result<VcfStatsWorkflowSummaryV1> {
     let doc = parse_tiny_vcf(input_vcf)?;
+    validate_sample_payload_counts(&doc)?;
     let mut snv_count = 0_u64;
     let mut indel_count = 0_u64;
     let mut transitions = 0_u64;
@@ -667,82 +689,13 @@ pub fn summarize_vcf_genotype_truth(
 ) -> Result<VcfGenotypeTruthSummaryV1> {
     let doc = parse_tiny_vcf(input_vcf)?;
     let stats = execute_vcf_stats_workflow(input_vcf)?;
-    let mut observed_ploidy_widths = BTreeSet::<u32>::new();
-    let mut called_calls = 0_u64;
-    let mut missing_calls = 0_u64;
-    let mut reference_only_calls = 0_u64;
-    let mut mixed_allele_calls = 0_u64;
-    let mut alternate_only_calls = 0_u64;
-    let mut phased_calls = 0_u64;
-    let mut unphased_calls = 0_u64;
-    let mut likelihood_fields_present = BTreeSet::<String>::new();
-    let mut sites_with_likelihood_values = BTreeMap::<String, u64>::new();
-    let mut sites_missing_likelihood_values = BTreeMap::<String, u64>::new();
-
-    for record in &doc.records {
-        let Some(format) = &record.format else {
-            continue;
-        };
-        for field_name in ["GL", "GP", "PL"] {
-            if !format.split(':').any(|field| field == field_name) {
-                continue;
-            }
-            likelihood_fields_present.insert(field_name.to_string());
-            let has_value = record.samples.iter().any(|sample_payload| {
-                parse_format_value_from_sample(format, sample_payload, field_name)
-                    .is_some_and(likelihood_value_present)
-            });
-            if has_value {
-                *sites_with_likelihood_values.entry(field_name.to_string()).or_insert(0) += 1;
-            } else {
-                *sites_missing_likelihood_values.entry(field_name.to_string()).or_insert(0) += 1;
-            }
-        }
-        for sample_payload in &record.samples {
-            let Some(gt) = parse_gt_from_sample(format, sample_payload) else {
-                continue;
-            };
-            let Some((phased, alleles)) = parse_called_genotype(gt) else {
-                missing_calls += 1;
-                continue;
-            };
-            called_calls += 1;
-            observed_ploidy_widths.insert(usize_to_u32_saturating(alleles.len()));
-            if phased {
-                phased_calls += 1;
-            } else {
-                unphased_calls += 1;
-            }
-            if alleles.iter().all(|allele| *allele == 0) {
-                reference_only_calls += 1;
-            } else if alleles.iter().all(|allele| *allele > 0) {
-                alternate_only_calls += 1;
-            } else {
-                mixed_allele_calls += 1;
-            }
-        }
-    }
-
-    Ok(VcfGenotypeTruthSummaryV1 {
-        schema_version: VCF_GENOTYPE_TRUTH_SCHEMA_VERSION.to_string(),
-        stage_id: stage_id.to_string(),
-        tool_id: tool_id.to_string(),
-        input_vcf: input_vcf.to_path_buf(),
-        sample_count: usize_to_u32_saturating(doc.samples.len()),
-        variant_count: doc.records.len() as u64,
-        observed_ploidy_widths: observed_ploidy_widths.into_iter().collect(),
-        called_calls,
-        missing_calls,
-        reference_only_calls,
-        mixed_allele_calls,
-        alternate_only_calls,
-        phased_calls,
-        unphased_calls,
+    Ok(genotype_truth::summarize(genotype_truth::GenotypeTruthInput {
+        document: &doc,
+        input_vcf,
+        stage_id,
+        tool_id,
         per_sample_missingness: stats.per_sample_missingness,
-        likelihood_fields_present: likelihood_fields_present.into_iter().collect(),
-        sites_with_likelihood_values,
-        sites_missing_likelihood_values,
-    })
+    }))
 }
 
 /// Summarize the labeled filter output observed in a VCF after filtering or damage-aware removal.
@@ -796,13 +749,14 @@ pub fn summarize_vcf_filter_output_truth(
 /// Summarize phased genotype counts and phase-set evidence from a phasing-output VCF.
 ///
 /// # Errors
-/// Returns an error when the VCF cannot be parsed.
+/// Returns an error when the VCF cannot be parsed or record sample counts disagree with its header.
 pub fn summarize_vcf_phasing_output_truth(
     input_vcf: &Path,
     stage_id: &str,
     tool_id: &str,
 ) -> Result<VcfPhasingOutputTruthSummaryV1> {
     let doc = parse_tiny_vcf(input_vcf)?;
+    validate_sample_payload_counts(&doc)?;
     let mut called_genotype_count = 0_u64;
     let mut phased_genotype_count = 0_u64;
     let mut unphased_genotype_count = 0_u64;
@@ -1612,7 +1566,9 @@ fn compare_imputed_truth(
     let output_records = doc
         .records
         .iter()
-        .map(|record| (format!("{}:{}", record.chrom, record.pos), record))
+        .map(|record| {
+            ((&record.chrom, record.pos, &record.ref_allele, &record.alt_alleles), record)
+        })
         .collect::<BTreeMap<_, _>>();
 
     let mut masked_sites = 0_u64;
@@ -1622,7 +1578,13 @@ fn compare_imputed_truth(
 
     for truth_record in &truth.records {
         let site_id = format!("{}:{}", truth_record.chrom, truth_record.pos);
-        let Some(output_record) = output_records.get(&site_id) else {
+        let variant = (
+            &truth_record.chrom,
+            truth_record.pos,
+            &truth_record.ref_allele,
+            &truth_record.alt_alleles,
+        );
+        let Some(output_record) = output_records.get(&variant) else {
             for truth_payload in &truth_record.samples {
                 let gt = truth_record
                     .format
@@ -1666,9 +1628,9 @@ fn compare_imputed_truth(
                 unresolved += 1;
                 continue;
             }
-            if canonicalize_genotype_for_truth(output_gt)
-                == canonicalize_genotype_for_truth(truth_gt)
-            {
+            let output_genotype = canonicalize_genotype_for_truth(output_gt);
+            let truth_genotype = canonicalize_genotype_for_truth(truth_gt);
+            if genotypes_equivalent_unphased(&output_genotype, &truth_genotype) {
                 matches += 1;
             } else {
                 mismatches += 1;
@@ -4024,3 +3986,6 @@ chr1\t30\t.\tG\tA\t55\tPASS\tDP=8\tGT\t0/1\n",
         assert_eq!(insufficient_summary.insufficient_data_probe.status, "insufficient_data");
     }
 }
+
+#[cfg(test)]
+mod output_truth_tests;

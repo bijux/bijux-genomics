@@ -44,37 +44,21 @@
             contig_set_digest: "3f2b2d7d76f3d8de2b8f0d6d9f0b1776c8b0f95f4135f2b5114634364b4f22cc"
                 .to_string(),
             contigs: vec![
-                ContigSpec {
-                    name: "1".to_string(),
-                    length_bp: 248956422,
-                },
-                ContigSpec {
-                    name: "2".to_string(),
-                    length_bp: 242193529,
-                },
-                ContigSpec {
-                    name: "chr1".to_string(),
-                    length_bp: 248956422,
-                },
-                ContigSpec {
-                    name: "chr2".to_string(),
-                    length_bp: 242193529,
-                },
+                ContigSpec { name: "1".to_string(), length_bp: 248956422 },
+                ContigSpec { name: "2".to_string(), length_bp: 242193529 },
+                ContigSpec { name: "chr1".to_string(), length_bp: 248956422 },
+                ContigSpec { name: "chr2".to_string(), length_bp: 242193529 },
             ],
             sex_system: "xy".to_string(),
             par_policy: "grch38_par".to_string(),
             default_coverage_regime: None,
         };
-        let out = run_vcf_pipeline(&VcfPipelineRequest {
+        let request = VcfPipelineRequest {
             run_root: dir.path().to_path_buf(),
             input_vcf: input.to_path_buf(),
             species_context: species,
             sample_name: "sample1".to_string(),
-            requested_stages: vec![
-                VcfDomainStage::Call,
-                VcfDomainStage::Filter,
-                VcfDomainStage::Stats,
-            ],
+            requested_stages: vec![VcfDomainStage::Call, VcfDomainStage::Filter, VcfDomainStage::Stats],
             production_profile: false,
             reference_fasta: None,
             prepare_panel: None,
@@ -90,17 +74,16 @@
                 require_sex_metadata_for_sex_chr: false,
                 ..InvariantConfig::default()
             },
-        })
-        .unwrap_or_else(|err| panic!("dispatch vcf pipeline: {err}"));
+        };
+        let out =
+            run_vcf_pipeline(&request).unwrap_or_else(|err| panic!("dispatch vcf pipeline: {err}"));
         assert!(out.report_path.exists());
         let report_raw = std::fs::read_to_string(&out.report_path)
             .unwrap_or_else(|err| panic!("read report.json: {err}"));
-        let report_json: serde_json::Value = serde_json::from_str(&report_raw)
-            .unwrap_or_else(|err| panic!("parse report.json: {err}"));
-        let provenance_line = report_json
-            .get("vcf_provenance_line")
-            .and_then(serde_json::Value::as_str)
-            .unwrap_or("");
+        let report_json: serde_json::Value =
+            serde_json::from_str(&report_raw).unwrap_or_else(|err| panic!("parse report.json: {err}"));
+        let provenance_line =
+            report_json.get("vcf_provenance_line").and_then(serde_json::Value::as_str).unwrap_or("");
         assert!(
             provenance_line.contains("tools=")
                 && provenance_line.contains("digests=")
@@ -127,64 +110,135 @@
             assert!(stage.artifact_dir.join("artifact_checksums.json").exists());
         }
 
-        let resumed = run_vcf_pipeline(&VcfPipelineRequest {
-            run_root: dir.path().to_path_buf(),
-            input_vcf: input.to_path_buf(),
-            species_context: SpeciesContext {
-                species_id: "Homo sapiens".to_string(),
-                build_id: "GRCh38".to_string(),
-                contig_set_digest:
-                    "3f2b2d7d76f3d8de2b8f0d6d9f0b1776c8b0f95f4135f2b5114634364b4f22cc"
-                        .to_string(),
-                contigs: vec![
-                    ContigSpec {
-                        name: "1".to_string(),
-                        length_bp: 248956422,
-                    },
-                    ContigSpec {
-                        name: "2".to_string(),
-                        length_bp: 242193529,
-                    },
-                    ContigSpec {
-                        name: "chr1".to_string(),
-                        length_bp: 248956422,
-                    },
-                    ContigSpec {
-                        name: "chr2".to_string(),
-                        length_bp: 242193529,
-                    },
-                ],
-                sex_system: "xy".to_string(),
-                par_policy: "grch38_par".to_string(),
-                default_coverage_regime: None,
-            },
-            sample_name: "sample1".to_string(),
-            requested_stages: vec![
-                VcfDomainStage::Call,
-                VcfDomainStage::Filter,
-                VcfDomainStage::Stats,
-            ],
-            production_profile: false,
-            reference_fasta: None,
-            prepare_panel: None,
-            panel_vcf: None,
-            damage_filter: None,
-            gl_propagation: None,
-            qc: None,
-            phasing: None,
-            impute: None,
-            postprocess: None,
-            invariants: InvariantConfig {
-                allow_contig_aliasing: true,
-                require_sex_metadata_for_sex_chr: false,
-                ..InvariantConfig::default()
-            },
-        })
-        .unwrap_or_else(|err| panic!("dispatch resume vcf pipeline: {err}"));
+        let resumed = run_vcf_pipeline(&request)
+            .unwrap_or_else(|err| panic!("dispatch resume vcf pipeline: {err}"));
         assert!(
             resumed.stages.iter().all(|s| s.runtime.wall_time_ms == 0),
             "resume run should skip stages with matching checksums"
         );
+        assert_eq!(out.stages.len(), resumed.stages.len());
+        for (cold, reused) in out.stages.iter().zip(&resumed.stages) {
+            assert_eq!(cold.stage_id, reused.stage_id);
+            assert_eq!(
+                cold.primary_output, reused.primary_output,
+                "resumed stage must retain its declared primary artifact identity"
+            );
+            assert_eq!(
+                cold.artifacts, reused.artifacts,
+                "resumed stage must retain declared artifact membership"
+            );
+        }
+
+        let first = out.stages.first().unwrap_or_else(|| panic!("cold stage control is empty"));
+        let checksum_path = first.artifact_dir.join("artifact_checksums.json");
+        let original_result = std::fs::read(&first.stage_manifest)
+            .unwrap_or_else(|error| panic!("read cold stage manifest: {error}"));
+        let original_checksums = std::fs::read(&checksum_path)
+            .unwrap_or_else(|error| panic!("read cold artifact checksums: {error}"));
+        let stage_payload: serde_json::Value = serde_json::from_slice(&original_result)
+            .unwrap_or_else(|error| panic!("decode cold stage manifest: {error}"));
+        let checksum_payload: serde_json::Value = serde_json::from_slice(&original_checksums)
+            .unwrap_or_else(|error| panic!("decode cold artifact checksums: {error}"));
+        let restore = || {
+            std::fs::write(&first.stage_manifest, &original_result)
+                .unwrap_or_else(|error| panic!("restore stage manifest: {error}"));
+            std::fs::write(&checksum_path, &original_checksums)
+                .unwrap_or_else(|error| panic!("restore artifact checksums: {error}"));
+        };
+        let publish = |result: &serde_json::Value, identities: &serde_json::Value| {
+            let bytes = serde_json::to_vec(result)
+                .unwrap_or_else(|error| panic!("encode controlled stage manifest: {error}"));
+            std::fs::write(&first.stage_manifest, bytes)
+                .unwrap_or_else(|error| panic!("write controlled stage manifest: {error}"));
+            let mut bound = identities.clone();
+            bound["stage_manifest_sha256"] =
+                serde_json::json!(bijux_dna_infra::hash_file_sha256(&first.stage_manifest)
+                    .unwrap_or_else(|error| panic!("hash controlled stage manifest: {error}")));
+            std::fs::write(
+                &checksum_path,
+                serde_json::to_vec(&bound)
+                    .unwrap_or_else(|error| panic!("encode controlled checksums: {error}")),
+            )
+            .unwrap_or_else(|error| panic!("write controlled checksums: {error}"));
+        };
+        let require_refusal = |reason: &str| {
+            let admission_error = run_vcf_pipeline(&request)
+                .err()
+                .unwrap_or_else(|| panic!("persisted VCF result must refuse {reason}"));
+            assert!(admission_error.to_string().contains(reason), "{admission_error:#}");
+            restore();
+        };
+
+        std::fs::write(&first.stage_manifest, b"{")
+            .unwrap_or_else(|error| panic!("write corrupt result control: {error}"));
+        require_refusal("EOF while parsing");
+
+        let mut wrong_stage = stage_payload.clone();
+        wrong_stage["stage_id"] = serde_json::json!("vcf.foreign");
+        publish(&wrong_stage, &checksum_payload);
+        require_refusal("requested successful stage");
+
+        let outside = dir.path().join("outside-stage.vcf");
+        std::fs::write(&outside, b"foreign owned sentinel")
+            .unwrap_or_else(|error| panic!("write foreign result control: {error}"));
+        let mut foreign_result = stage_payload.clone();
+        foreign_result["primary_output"] = serde_json::json!(outside);
+        let outputs = foreign_result["outputs"]
+            .as_array_mut()
+            .unwrap_or_else(|| panic!("cold result outputs must be an array"));
+        outputs.insert(0, serde_json::json!(outside));
+        let mut foreign_checksums = checksum_payload.clone();
+        foreign_checksums["artifacts"]
+            .as_array_mut()
+            .unwrap_or_else(|| panic!("cold checksum artifacts must be an array"))
+            .push(serde_json::json!({
+                "path": outside,
+                "sha256": bijux_dna_infra::hash_file_sha256(&outside)
+                    .unwrap_or_else(|error| panic!("hash foreign result control: {error}")),
+            }));
+        publish(&foreign_result, &foreign_checksums);
+        require_refusal("outside its stage directory");
+        assert_eq!(
+            std::fs::read(&outside).unwrap_or_else(|error| panic!("read foreign sentinel: {error}")),
+            b"foreign owned sentinel"
+        );
+
+        let mut missing_identity = checksum_payload.clone();
+        missing_identity["artifacts"] = serde_json::json!([]);
+        publish(&stage_payload, &missing_identity);
+        require_refusal("cover every declared artifact");
+
+        let mut stale_input = stage_payload.clone();
+        stale_input["input_sha256"] = serde_json::json!("0".repeat(64));
+        assert_ne!(stage_payload["input_sha256"], stale_input["input_sha256"]);
+        publish(&stale_input, &checksum_payload);
+        let version_path = first.artifact_dir.join("tool_version.txt");
+        std::fs::write(&version_path, b"stale cache marker")
+            .unwrap_or_else(|error| panic!("write stale producer marker: {error}"));
+        let recomputed = run_vcf_pipeline(&request)
+            .unwrap_or_else(|error| panic!("recompute stale input lineage: {error}"));
+        assert_eq!(
+            std::fs::read(&version_path)
+                .unwrap_or_else(|error| panic!("read producer marker: {error}")),
+            b"captured-in-stage-artifacts\n",
+            "stale input lineage must execute the stage instead of reusing the marker"
+        );
+        for (cold, refreshed) in out.stages.iter().zip(&recomputed.stages) {
+            assert_eq!(cold.stage_id, refreshed.stage_id);
+            assert_eq!(cold.primary_output, refreshed.primary_output);
+            assert_eq!(cold.artifacts, refreshed.artifacts);
+        }
+        // Retain the newly produced manifest and checksums together with their
+        // refreshed report bytes when checking the next resume.
+        let restored = run_vcf_pipeline(&request)
+            .unwrap_or_else(|error| panic!("resume refreshed lineage: {error}"));
+        assert!(restored.stages.iter().all(|stage| stage.runtime.wall_time_ms == 0));
+        assert_eq!(out.stages.len(), restored.stages.len());
+        for (cold, retained) in out.stages.iter().zip(&restored.stages) {
+            assert_eq!(cold.stage_id, retained.stage_id);
+            assert_eq!(cold.primary_output, retained.primary_output);
+            assert_eq!(cold.artifacts, retained.artifacts);
+        }
     }
 
     #[test]

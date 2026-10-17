@@ -99,7 +99,12 @@ fn verify_hash_ledger(path: &Path, run_dir: &Path, issues: &mut Vec<String>) -> 
         out
     };
     if expected_root != ledger.root_sha256 {
-        let _ = expected_root;
+        issues.push(format!(
+            "hash ledger root mismatch {} expected {} got {}",
+            path.display(),
+            expected_root,
+            ledger.root_sha256
+        ));
     }
     Ok(())
 }

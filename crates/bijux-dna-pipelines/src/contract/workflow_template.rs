@@ -842,7 +842,7 @@ pub fn build_batch_workflow_graph(
                 to: format!("sample::{}::{sample_first}", record.sample_id),
                 fan_pattern: FanPatternV1::FanOut,
                 artifact_scope: "shared_reference_bundle".to_string(),
-                lineage_fields: vec!["reference_id".to_string()],
+                lineage_fields: vec!["reference_id".to_string(), "sample_id".to_string()],
             });
         }
     }
@@ -885,11 +885,61 @@ pub fn build_batch_workflow_graph(
         });
     }
 
+    append_declared_fan_edges(&nodes, &template.fan_artifact_rules, &mut edges);
+
     WorkflowBatchGraphV1 {
         schema_version: "bijux.cross.batch_graph.v1".to_string(),
         template_id: template.template_id.clone(),
         nodes,
         edges,
+    }
+}
+
+fn append_declared_fan_edges(
+    nodes: &[WorkflowBatchNodeV1],
+    rules: &[FanArtifactRuleV1],
+    edges: &mut Vec<WorkflowBatchEdgeV1>,
+) {
+    for rule in rules {
+        let mut lineage_fields = rule.lineage_fields.clone();
+        if rule.fan_pattern == FanPatternV1::FanOut
+            && !lineage_fields.iter().any(|field| field == "sample_id")
+        {
+            lineage_fields.push("sample_id".to_string());
+        }
+        let targets =
+            nodes.iter().filter(|node| node.stage_id == rule.target_stage).collect::<Vec<_>>();
+        for source in nodes.iter().filter(|node| node.stage_id == rule.source_stage) {
+            for target in &targets {
+                if source.node_id == target.node_id
+                    || (source.scope == BatchNodeScopeV1::Sample
+                        && target.scope == BatchNodeScopeV1::Sample
+                        && source.sample_id != target.sample_id)
+                {
+                    continue;
+                }
+                if let Some(edge) = edges.iter_mut().find(|edge| {
+                    edge.from == source.node_id
+                        && edge.to == target.node_id
+                        && edge.fan_pattern == rule.fan_pattern
+                        && edge.artifact_scope == rule.artifact_scope
+                }) {
+                    for field in &lineage_fields {
+                        if !edge.lineage_fields.contains(field) {
+                            edge.lineage_fields.push(field.clone());
+                        }
+                    }
+                } else {
+                    edges.push(WorkflowBatchEdgeV1 {
+                        from: source.node_id.clone(),
+                        to: target.node_id.clone(),
+                        fan_pattern: rule.fan_pattern,
+                        artifact_scope: rule.artifact_scope.clone(),
+                        lineage_fields: lineage_fields.clone(),
+                    });
+                }
+            }
+        }
     }
 }
 

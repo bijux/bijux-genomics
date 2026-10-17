@@ -25,3 +25,9 @@ and `StageProofs` keep provider failures explicit. Stage proof requests identify
 capability and one output path; their canonical report cardinalities feed the same
 retained completion conditions. Aggregation preserves the existing binding-set semantics,
 including selection by expected stage and the separate reported cardinality checks.
+
+`parser_probes::reports::parse_report` acquires report text once. Canonical typed
+admission and the returned JSON describe that same text. Strict schema visitors
+see the original raw JSON, retaining duplicate-field rejection. Contamination
+and sex use the domain parser's existing lenient defaults and classification.
+One acquisition does not make concurrent in-place writes an atomic snapshot.

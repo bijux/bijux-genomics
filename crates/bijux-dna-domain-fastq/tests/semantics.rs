@@ -18,3 +18,6 @@ mod mod_semantics_tool_models_rs;
 
 #[path = "semantics/validation_evidence.rs"]
 mod validation_evidence;
+
+#[path = "semantics/header_inspection.rs"]
+mod header_inspection;

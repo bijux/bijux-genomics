@@ -68,3 +68,9 @@ mod planner_manifest_contract;
 mod toy_bam_run;
 #[path = "plan/workflow_governance.rs"]
 mod workflow_governance;
+
+#[path = "plan/registry_root.rs"]
+mod registry_root;
+
+#[path = "plan/samtools_report_language.rs"]
+mod samtools_report_language;

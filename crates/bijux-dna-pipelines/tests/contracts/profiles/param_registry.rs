@@ -83,6 +83,7 @@ fn profile_param_kind(params: &DefaultParams) -> &'static str {
         DefaultParams::FastqTrimTerminalDamage(_) => "fastq.trim_terminal_damage",
         DefaultParams::FastqTrimPolygTails(_) => "fastq.trim_polyg_tails",
         DefaultParams::FastqFilter(_) => "fastq.filter_reads",
+        DefaultParams::FastqFilterLowComplexity(_) => "fastq.filter_low_complexity",
         DefaultParams::FastqOverrepresentedProfile(_) => "fastq.profile_overrepresented_sequences",
         DefaultParams::FastqQcPost(_) => "fastq.report_qc",
         DefaultParams::FastqPreprocess(_) => "fastq.preprocess",

@@ -1,3 +1,4 @@
+use std::ffi::OsString;
 use std::path::Path;
 use std::process::Command;
 use std::time::Duration;
@@ -47,7 +48,24 @@ pub fn run_command_with_context_and_timeout(
     envs: Option<&BTreeMap<String, String>>,
     timeout: Duration,
 ) -> Result<TimedCommandOutputV1> {
-    let resolved = execution_binding::resolve_command(command, args, envs)?;
+    let environment = native_environment(envs);
+    run_command_with_environment_and_timeout(
+        command,
+        args,
+        current_dir,
+        environment.as_ref(),
+        timeout,
+    )
+}
+
+pub(crate) fn run_command_with_environment_and_timeout(
+    command: &str,
+    args: &[String],
+    current_dir: Option<&Path>,
+    envs: Option<&BTreeMap<OsString, OsString>>,
+    timeout: Duration,
+) -> Result<TimedCommandOutputV1> {
+    let resolved = execution_binding::resolve_command_with_environment(command, args, envs)?;
 
     let start = Instant::now();
     let supervised = execute_supervised(&resolved, current_dir, envs, timeout)?;
@@ -84,7 +102,41 @@ pub fn run_command_with_context_and_stdin(
     envs: Option<&BTreeMap<String, String>>,
     stdin_bytes: Option<&[u8]>,
 ) -> Result<CommandOutputV1> {
-    let resolved = execution_binding::resolve_command(command, args, envs)?;
+    let environment = native_environment(envs);
+    run_command_with_environment_and_stdin(
+        command,
+        args,
+        current_dir,
+        environment.as_ref(),
+        stdin_bytes,
+    )
+}
+
+pub(crate) fn run_command_with_environment(
+    command: &str,
+    args: &[String],
+    current_dir: Option<&Path>,
+    envs: Option<&BTreeMap<OsString, OsString>>,
+) -> Result<CommandOutputV1> {
+    run_command_with_environment_and_stdin(command, args, current_dir, envs, None)
+}
+
+fn native_environment(
+    envs: Option<&BTreeMap<String, String>>,
+) -> Option<BTreeMap<OsString, OsString>> {
+    envs.map(|values| {
+        values.iter().map(|(key, value)| (OsString::from(key), OsString::from(value))).collect()
+    })
+}
+
+fn run_command_with_environment_and_stdin(
+    command: &str,
+    args: &[String],
+    current_dir: Option<&Path>,
+    envs: Option<&BTreeMap<OsString, OsString>>,
+    stdin_bytes: Option<&[u8]>,
+) -> Result<CommandOutputV1> {
+    let resolved = execution_binding::resolve_command_with_environment(command, args, envs)?;
     let start = Instant::now();
     let mut child = Command::new(&resolved.program);
     child.args(&resolved.args);
@@ -129,14 +181,14 @@ pub(crate) fn run_command_bytes_with_timeout(
     args: &[String],
     timeout: Duration,
 ) -> Result<crate::process_supervision::SupervisedOutput> {
-    let resolved = execution_binding::resolve_command(command, args, None)?;
+    let resolved = execution_binding::resolve_command_with_environment(command, args, None)?;
     execute_supervised(&resolved, None, None, timeout)
 }
 
 fn execute_supervised(
     resolved: &execution_binding::ResolvedCommand,
     current_dir: Option<&Path>,
-    envs: Option<&BTreeMap<String, String>>,
+    envs: Option<&BTreeMap<OsString, OsString>>,
     timeout: Duration,
 ) -> Result<crate::process_supervision::SupervisedOutput> {
     let mut child = Command::new(&resolved.program);

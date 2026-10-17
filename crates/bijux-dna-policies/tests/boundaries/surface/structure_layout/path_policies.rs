@@ -17,6 +17,11 @@ fn is_allowed_writer_path(path: &Path) -> bool {
         // Developer process logs and immutable source materialization are runtime effects.
         || path_str.ends_with("/crates/bijux-dna-dev/src/runtime/process.rs")
         || path_str.ends_with("/crates/bijux-dna-dev/src/runtime/source_snapshot.rs")
+        // Distributed archive owners publish only their admitted products and receipts.
+        || path_str.ends_with("/crates/bijux-dna-dev/src/commands/ops/tooling/ci/sharded/distributed/producer.rs")
+        || path_str.ends_with("/crates/bijux-dna-dev/src/commands/ops/tooling/ci/sharded/distributed/consumer.rs")
+        // Output-root checks probe permissions only within their admitted owned artifact directory.
+        || path_str.ends_with("/crates/bijux-dna-dev/src/commands/repo_checks/artifacts.rs")
         || path_str.contains("/crates/bijux-dna-runner/src/backend/slurm/qualification/")
         || path_str.contains("/crates/bijux-dna-runner/src/step_runner/external_artifact.rs")
         || path_str.contains("/crates/bijux-dna-containers/src/build/")
@@ -31,6 +36,7 @@ fn is_allowed_writer_path(path: &Path) -> bool {
         )
         || path_str.contains("/crates/bijux-dna-db-ref/src/resolution/reference_assets.rs")
         || path_str.contains("/crates/bijux-dna-domain-bam/src/artifacts.rs")
+        || path_str.ends_with("/crates/bijux-dna-domain-bam/src/artifacts/transformation/sort_index.rs")
         || path_str.contains("/crates/bijux-dna-domain-vcf/src/artifacts.rs")
         || path_str.contains("/crates/bijux-dna-api/src/v1/run/runtime_support.rs")
         || path_str.contains(
@@ -103,7 +109,9 @@ fn policy__boundaries__path_policies__src_test_paths_are_explicitly_test_only() 
         if rel == "crates/bijux-dna-testkit/src/temp/test_paths.rs" {
             continue;
         }
-        if name.contains("test") && !is_explicit_private_test_path(path) {
+        if reserved_test_module_name(name, entry.file_type().is_dir())
+            && !is_explicit_private_test_path(path)
+        {
             offenders.push(path.display().to_string());
         }
     }
@@ -113,6 +121,18 @@ fn policy__boundaries__path_policies__src_test_paths_are_explicitly_test_only() 
         "src test paths must contain only explicitly test-gated Rust modules:\n{}",
         offenders.join("\n")
     );
+}
+
+// These names designate Rust test-only modules. Execution domains and tool names
+// such as local_tests, nextest and latest do not designate a compilation cfg.
+fn reserved_test_module_name(name: &str, directory: bool) -> bool {
+    if directory {
+        return matches!(name, "tests" | "test_support");
+    }
+    let Some(stem) = name.strip_suffix(".rs") else { return false };
+    matches!(stem, "tests" | "test_support")
+        || stem.starts_with("test_")
+        || stem.ends_with("_tests")
 }
 
 fn is_explicit_private_test_source(path: &Path) -> bool {
@@ -295,20 +315,91 @@ fn policy__boundaries__path_policies__crates_do_not_reference_removed_fastq_test
 
 #[test]
 fn policy__boundaries__path_policies__developer_effects_have_exact_runtime_owners() {
-    for relative in ["runtime/process.rs", "runtime/source_snapshot.rs"] {
+    for relative in [
+        "runtime/process.rs",
+        "runtime/source_snapshot.rs",
+        "commands/repo_checks/artifacts.rs",
+        "commands/ops/tooling/ci/sharded/distributed/producer.rs",
+        "commands/ops/tooling/ci/sharded/distributed/consumer.rs",
+    ] {
         assert!(is_allowed_writer_path(&PathBuf::from(format!(
             "/workspace/crates/bijux-dna-dev/src/{relative}"
         ))));
     }
     for relative in [
+        "commands/ops/tooling/ci/sharded/distributed/producer.rs.disabled",
+        "commands/ops/tooling/ci/sharded/distributed/other.rs",
+        "commands/ops/tooling/ci/sharded/distributed/producer/other.rs",
         "runtime/workspace.rs",
         "runtime/other.rs",
         "runtime/process.rs.disabled",
         "application/ci/executables.rs",
         "commands/ops/tooling/ci.rs",
+        "commands/repo_checks/artifacts.rs.disabled",
+        "commands/repo_checks/artifact_paths.rs",
+        "commands/repo_checks/artifacts/other.rs",
     ] {
         assert!(!is_allowed_writer_path(&PathBuf::from(format!(
             "/workspace/crates/bijux-dna-dev/src/{relative}"
         ))));
     }
+}
+
+#[test]
+fn policy__boundaries__path_policies__reserved_test_names_distinguish_execution_domains() {
+    for (name, directory) in [
+        ("tests", true),
+        ("test_support", true),
+        ("tests.rs", false),
+        ("test_support.rs", false),
+        ("test_contract.rs", false),
+        ("contract_tests.rs", false),
+    ] {
+        assert!(reserved_test_module_name(name, directory), "{name}");
+    }
+    for (name, directory) in [
+        ("local_tests", true),
+        ("nextest", true),
+        ("latest", true),
+        ("nextest.rs", false),
+        ("latest.rs", false),
+        ("test_contract.toml", false),
+        ("contract_tests.json", false),
+        ("testing.rs", false),
+        ("tests.toml", false),
+    ] {
+        assert!(!reserved_test_module_name(name, directory), "{name}");
+    }
+}
+
+#[test]
+fn policy__boundaries__path_policies__nested_reserved_test_modules_retain_cfg_obligations(
+) -> anyhow::Result<()> {
+    let root = bijux_dna_testkit::temp::tempdir_for("reserved-test-module-ownership");
+    let production = root.path().join("local_tests");
+    std::fs::create_dir(&production)?;
+    std::fs::write(production.join("nextest.rs"), "pub fn execute() {}\n")?;
+    assert!(!reserved_test_module_name("local_tests", true));
+    assert!(!reserved_test_module_name("nextest.rs", false));
+    let tests = production.join("tests");
+    std::fs::create_dir(&tests)?;
+    assert!(reserved_test_module_name("tests", true));
+    assert!(!is_explicit_private_test_path(&tests));
+    let file = tests.join("case.rs");
+    std::fs::write(&file, "#![cfg(test)]\nfn fixture() {}\n")?;
+    assert!(is_explicit_private_test_path(&tests));
+    let mixed = tests.join("production.rs");
+    std::fs::write(&mixed, "pub fn execute() {}\n")?;
+    assert!(!is_explicit_private_test_path(&tests));
+    for name in ["test_contract.rs", "contract_tests.rs", "tests.rs", "test_support.rs"] {
+        let file = production.join(name);
+        assert!(reserved_test_module_name(name, false));
+        std::fs::write(&file, "pub fn execute() {}\n")?;
+        assert!(!is_explicit_private_test_path(&file));
+        std::fs::write(&file, "const MARKER: &str = \"#![cfg(test)]\";\n")?;
+        assert!(!is_explicit_private_test_path(&file));
+        std::fs::write(&file, "#![cfg(test)]\nfn fixture() {}\n")?;
+        assert!(is_explicit_private_test_path(&file));
+    }
+    Ok(())
 }

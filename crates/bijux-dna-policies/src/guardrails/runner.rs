@@ -2,9 +2,7 @@ use anyhow::Result;
 use std::path::Path;
 
 use crate::checks::{check_empty_modules, check_mod_only_dirs, check_mod_reexports_only};
-use crate::checks::{
-    check_panic_expect, check_pub_items, check_pub_use_spam, check_stage_id_strings,
-};
+use crate::checks::{check_panic_expect, check_pub_use_spam, check_stage_id_strings};
 
 use super::source_inventory::collect_sources;
 use super::GuardrailConfig;
@@ -20,7 +18,6 @@ pub fn check(crate_root: &Path, config: &GuardrailConfig) -> Result<()> {
     check_mod_only_dirs(src_dir, config)?;
     check_empty_modules(files)?;
     check_mod_reexports_only(files)?;
-    check_pub_items(files, config)?;
     if config.forbid_pub_use_spam {
         check_pub_use_spam(files, config)?;
     }

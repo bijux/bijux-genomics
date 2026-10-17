@@ -35,9 +35,13 @@ pub(super) fn load_registry_tool_contract(
         .and_then(toml::Value::as_array)
         .ok_or_else(|| anyhow!("{tool_id} VCF registry row is missing stage_ids"))?
         .iter()
-        .filter_map(toml::Value::as_str)
-        .map(str::to_string)
-        .collect::<Vec<_>>();
+        .enumerate()
+        .map(|(index, value)| {
+            value.as_str().map(str::to_string).ok_or_else(|| {
+                anyhow!("{tool_id} VCF registry stage_ids[{index}] must be a string")
+            })
+        })
+        .collect::<Result<Vec<_>>>()?;
     Ok(RegistryToolContract {
         tool_id: tool_id.to_string(),
         tool_status: tool_status.to_string(),

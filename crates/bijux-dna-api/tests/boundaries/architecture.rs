@@ -87,6 +87,7 @@ fn assert_runtime_tree(root: &std::path::Path) {
         &root.join("src/runtime"),
         &[
             "cross_runtime.rs",
+            "execution_kernel/",
             "execution_kernel.rs",
             "invocation_policy/",
             "invocation_policy.rs",
@@ -96,6 +97,11 @@ fn assert_runtime_tree(root: &std::path::Path) {
             "validation.rs",
         ],
         "api runtime tree must stay decomposed by enduring concern",
+    );
+    assert_dir_entries(
+        &root.join("src/runtime/execution_kernel"),
+        &["environment.rs"],
+        "api execution kernel must isolate invocation-owned environment construction",
     );
     assert_dir_entries(
         &root.join("src/runtime/invocation_policy"),
@@ -402,6 +408,7 @@ fn fastq_contract_entries() -> &'static [&'static str] {
 
 fn cross_contract_entries() -> &'static [&'static str] {
     &[
+        "invocation_environment.rs",
         "v1_cross_contract_spine.rs",
         "v1_cross_explain_roundtrip.rs",
         "v1_cross_profile_contracts.rs",

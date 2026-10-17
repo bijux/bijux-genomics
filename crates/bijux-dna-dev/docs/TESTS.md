@@ -2,6 +2,8 @@
 
 ## Coverage
 - `tests/bootstrap.rs` checks developer executable freshness after direct and transitive source changes.
+- `tests/contracts.rs` registers private workflow observation contracts under `tests/contracts/`: exact example golden-bundle transport and independently observed frontend cache comparisons. Scripted cache providers qualify control flow and report claims, not real SIF image or scientific reproducibility.
+- The private cache observation owner also checks that purging its own directories preserves caller/foreign roots and refuses substituted symlinks before either removal.
 - `src/runtime/workspace.rs` tests artifact root admission; CI destination contracts reuse that owner and cover nested symlink escapes.
 - `tests/boundaries.rs` is the integration-test entrypoint for boundary-oriented coverage.
 - `tests/boundaries/architecture.rs` enforces the documented crate tree and layout contract.
@@ -34,3 +36,5 @@
 CI coverage contracts replay captured Nextest 0.9.100 library and integration event streams from `tests/fixtures/ci/nextest/`. The fixture capture manifest binds their source/binary hashes and format version. Adversarial cases reject omissions, duplicate identities, incomplete event sequences, incorrect suite counters, unexpected cases, failed outcomes and filtered inventories.
 
 Private CI discovery tests live under `tests/boundaries/ci/` and compile into their owning developer binary. They do not add an integration executable or a second public test facade.
+
+Fast-gate contracts live with their contract, compiler-cache and timing owners under `src/commands/ops/tooling/ci/fast/`. Full-shard contract, storage, archive and preflight tests live with those owners under `ci/sharded/`. They remain private tests in the existing developer binary; execution-budget, native-chunk and complete-lane contracts keep their existing owners.

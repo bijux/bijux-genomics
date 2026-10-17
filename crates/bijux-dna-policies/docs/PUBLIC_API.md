@@ -42,3 +42,12 @@
   candidates without loading registries or reading process state.
 
 `analyze_workspace_dependencies` admits a closed crate adjacency map and returns deterministic cycle components and dependency-first order. The iterative policy has no filesystem or process effects. Cyclic graphs have no complete dependency order; undeclared dependency nodes reject.
+
+`workspace_source_matches` observes one supplied source string under a closed
+`WorkspaceSourceRule`. `forbidden_workspace_execution_dependencies` and
+`workspace_execution_owner_dependencies` classify supplied parsed manifest sections.
+`evaluate_workspace_source_audit` evaluates the four explicit
+`WorkspaceSourceAuditInput` variants. Their typed match/dependency results carry
+only observations; these helpers perform no file reads, source discovery or process
+execution. Line matching preserves the existing heuristic, including overlapping
+literals and strings; it is not semantic Rust parsing.

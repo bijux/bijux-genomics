@@ -57,6 +57,13 @@ publish_sccache_metrics() {
 publish_final_metrics() {
   local status="$?"
   trap - EXIT
+  if [[ -n "${remaining_pids[*]:-}" ]]; then
+    # Unexpected supervisor errors must not leave target writers running.
+    terminate_gates || status=1
+    if [[ "${status}" -eq 0 ]]; then
+      status=1
+    fi
+  fi
   if ! publish_sccache_metrics after; then
     echo "failed to publish final sccache metrics: ${metrics_after}" >&2
     status=1
@@ -91,10 +98,101 @@ printf 'gate\ttarget\texit_code\tlog\n' >"${summary_file}"
 
 workspace_compile_log="${artifact_dir}/workspace-compile.log"
 shared_dev_bin="${cargo_target_dir}/debug/bijux-dna-dev"
+remaining_pids=()
+exit_codes=()
+launching_gate_index=""
+declare -A gate_index_by_pid=()
+
+publish_gate_result() {
+  local index="$1"
+  local status="$2"
+  exit_codes[index]="${status}"
+  printf '%s\t%s\t%s\t%s\n' \
+    "${gate_names[index]}" "${gate_targets[index]}" "${status}" \
+    "${artifact_dir}/${gate_names[index]}.log" >>"${summary_file}"
+}
+
+# Each asynchronous job is a separate process group, including its make/Cargo
+# descendants. The foreground supervisor never signals its own process group.
+set -m
+
+# shellcheck disable=SC2329  # Called by the signal and EXIT handlers.
+terminate_gates() {
+  local pid status attempt
+  local groups=("${remaining_pids[@]}")
+  # A signal can arrive between starting a job and recording $!.
+  while IFS= read -r pid; do
+    if [[ -n "${pid}" && " ${groups[*]:-} " != *" ${pid} "* ]]; then
+      groups+=("${pid}")
+      if [[ -n "${launching_gate_index}" ]]; then
+        gate_index_by_pid["${pid}"]="${launching_gate_index}"
+      fi
+    fi
+  done < <(jobs -pr)
+  for pid in "${groups[@]}"; do
+    kill -TERM -- "-${pid}" 2>/dev/null || true
+  done
+  for ((attempt = 0; attempt < 100; attempt++)); do
+    local running=0
+    for pid in "${groups[@]}"; do
+      if kill -0 -- "-${pid}" 2>/dev/null; then
+        running=1
+      fi
+    done
+    if [[ "${running}" -eq 0 ]]; then
+      break
+    fi
+    sleep 0.05
+  done
+  for pid in "${groups[@]}"; do
+    if kill -0 -- "-${pid}" 2>/dev/null; then
+      kill -KILL -- "-${pid}" 2>/dev/null || true
+    fi
+  done
+  for pid in "${groups[@]}"; do
+    if wait "${pid}"; then
+      status=0
+    else
+      status=$?
+    fi
+    if [[ -n "${gate_index_by_pid[${pid}]:-}" ]]; then
+      publish_gate_result "${gate_index_by_pid[${pid}]}" "${status}"
+    else
+      printf 'workspace-preparation\t_dev-dna-bin/nextest-list\t%s\t%s\n' \
+        "${status}" "${workspace_compile_log}" >>"${summary_file}"
+    fi
+  done
+  remaining_pids=()
+  for ((attempt = 0; attempt < 100; attempt++)); do
+    local running=0
+    for pid in "${groups[@]}"; do
+      if kill -0 -- "-${pid}" 2>/dev/null; then
+        running=1
+      fi
+    done
+    if [[ "${running}" -eq 0 ]]; then
+      return 0
+    fi
+    sleep 0.05
+  done
+  echo "GitHub gate process groups did not drain" >&2
+  return 1
+}
+
+# shellcheck disable=SC2329  # Invoked indirectly by the signal traps.
+interrupt_gates() {
+  local status="$1"
+  trap '' INT TERM
+  terminate_gates
+  exit "${status}"
+}
+trap 'interrupt_gates 130' INT
+trap 'interrupt_gates 143' TERM
+
 if [[ "${preparation_mode}" == "test-preparation" ]]; then
   require_tool cargo-nextest
   printf 'preparing shared workspace binaries\nlog: %s\n' "${workspace_compile_log}"
-  if (
+  (
     "${make_bin}" --no-print-directory _dev-dna-bin || exit $?
     cargo nextest list \
       --workspace \
@@ -104,26 +202,20 @@ if [[ "${preparation_mode}" == "test-preparation" ]]; then
       --profile "${nextest_profile}" \
       --target-dir "${cargo_target_dir}" \
       >/dev/null
-  ) >"${workspace_compile_log}" 2>&1; then
+  ) >"${workspace_compile_log}" 2>&1 &
+  preparation_pid="$!"
+  remaining_pids=("${preparation_pid}")
+  if wait "${preparation_pid}"; then
+    remaining_pids=()
     printf 'prepared shared workspace binaries\n'
   else
     compile_status=$?
+    remaining_pids=()
     printf 'workspace binary preparation failed (exit %s)\n' "${compile_status}" >&2
     tail -n 80 "${workspace_compile_log}" >&2
     exit "${compile_status}"
   fi
 fi
-
-pids=()
-declare -A gate_index_by_pid=()
-
-# shellcheck disable=SC2329  # Invoked indirectly by the signal trap.
-terminate_gates() {
-  for pid in "${pids[@]:-}"; do
-    kill "${pid}" 2>/dev/null || true
-  done
-}
-trap terminate_gates INT TERM
 
 for index in "${!gate_names[@]}"; do
   gate_name="${gate_names[${index}]}"
@@ -135,6 +227,7 @@ for index in "${!gate_names[@]}"; do
     "${gate_name}" \
     "${gate_target}" \
     "${gate_log}"
+  launching_gate_index="${index}"
   (
     if [[ "${preparation_mode}" == "test-preparation" ]]; then
       CARGO_TARGET_DIR="${gate_target_dir}" \
@@ -148,25 +241,24 @@ for index in "${!gate_names[@]}"; do
     fi
   ) &
   gate_pid="$!"
-  pids+=("${gate_pid}")
+  remaining_pids+=("${gate_pid}")
   gate_index_by_pid["${gate_pid}"]="${index}"
+  launching_gate_index=""
 done
 
 overall_status=0
-exit_codes=()
-remaining_pids=("${pids[@]}")
 while [[ "${#remaining_pids[@]}" -gt 0 ]]; do
   completed_pid=""
   set +e
   wait -n -p completed_pid "${remaining_pids[@]}"
   exit_code=$?
   set -e
-  if [[ -z "${completed_pid}" || -z "${gate_index_by_pid[${completed_pid}]:-}" ]]; then
+  if [[ -z "${completed_pid:-}" || -z "${gate_index_by_pid[${completed_pid}]:-}" ]]; then
     echo "wait returned an unknown GitHub gate process" >&2
     exit 1
   fi
   index="${gate_index_by_pid[${completed_pid}]}"
-  exit_codes[index]="${exit_code}"
+  publish_gate_result "${index}" "${exit_code}"
   if [[ "${exit_code}" -ne 0 ]]; then
     overall_status=1
   fi
@@ -180,17 +272,6 @@ while [[ "${#remaining_pids[@]}" -gt 0 ]]; do
     fi
   done
   remaining_pids=("${next_remaining[@]}")
-done
-
-for index in "${!gate_names[@]}"; do
-  gate_name="${gate_names[${index}]}"
-  gate_target="${gate_targets[${index}]}"
-  gate_log="${artifact_dir}/${gate_name}.log"
-  printf '%s\t%s\t%s\t%s\n' \
-    "${gate_name}" \
-    "${gate_target}" \
-    "${exit_codes[${index}]}" \
-    "${gate_log}" >>"${summary_file}"
 done
 
 column -t -s $'\t' "${summary_file}" 2>/dev/null || cat "${summary_file}"

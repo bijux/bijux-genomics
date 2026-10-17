@@ -137,3 +137,80 @@ fn merge_metrics_invariants() -> Result<()> {
     assert!(invalid.validate().is_err());
     Ok(())
 }
+
+fn refuses_unrepresentable_counts<T: StageMetricSchema + std::panic::RefUnwindSafe>(
+    label: &str,
+    metrics: &T,
+) -> bool {
+    let outcome = std::panic::catch_unwind(|| metrics.validate());
+    let refused = matches!(outcome, Ok(Err(_)));
+    eprintln!("count_admission {label}: {outcome:?}");
+    refused
+}
+
+#[test]
+fn unrepresentable_metric_count_sums_refuse_without_panicking() -> anyhow::Result<()> {
+    use bijux_dna_analyze::{FastqLowComplexityMetrics, FastqValidateMetrics};
+    let mut validate: FastqValidateMetrics = serde_json::from_value(serde_json::json!({
+        "reads_in": u64::MAX, "reads_out": u64::MAX,
+        "bases_in": u64::MAX, "bases_out": u64::MAX,
+        "reads_total": u64::MAX, "reads_valid": u64::MAX - 1,
+        "reads_invalid": 1, "mean_q": 32.0
+    }))?;
+    let mut filter: FastqFilterMetrics = serde_json::from_value(serde_json::json!({
+        "reads_in": u64::MAX, "reads_out": u64::MAX - 1, "reads_dropped": 1,
+        "reads_removed_by_n": 1, "bases_in": u64::MAX, "bases_out": 1,
+        "mean_q_before": 30.0, "mean_q_after": 30.0
+    }))?;
+    let mut breakdown = filter.clone();
+    breakdown.reads_out = 0;
+    breakdown.reads_dropped = u64::MAX;
+    breakdown.reads_removed_by_n = u64::MAX;
+    let mut complexity: FastqLowComplexityMetrics = serde_json::from_value(serde_json::json!({
+        "reads_in": u64::MAX, "reads_out": u64::MAX - 1,
+        "reads_removed_low_complexity": 1, "bases_in": u64::MAX, "bases_out": 1,
+        "mean_q_before": 30.0, "mean_q_after": 30.0
+    }))?;
+    let mut merge: FastqMergeMetrics = serde_json::from_value(serde_json::json!({
+        "reads_r1": u64::MAX, "reads_r2": u64::MAX,
+        "reads_merged": u64::MAX - 1, "reads_unmerged": 1, "merge_rate": 0.5
+    }))?;
+    validate.validate()?;
+    filter.validate()?;
+    breakdown.validate()?;
+    complexity.validate()?;
+    merge.validate()?;
+    let mut malformed = serde_json::to_value(&validate)?;
+    malformed["reads_valid"] = serde_json::json!(-1);
+    assert!(serde_json::from_value::<FastqValidateMetrics>(malformed).is_err());
+    let mut ordinary_invalid = validate.clone();
+    ordinary_invalid.reads_valid = 0;
+    ordinary_invalid.reads_invalid = 0;
+    ordinary_invalid.mean_q = f64::NAN;
+    assert!(ordinary_invalid
+        .validate()
+        .expect_err("invalid sum")
+        .to_string()
+        .contains("reads_valid + reads_invalid must equal reads_total"));
+
+    validate.reads_valid = u64::MAX;
+    validate.reads_total = 0;
+    filter.reads_out = u64::MAX;
+    filter.reads_in = 0;
+    breakdown.reads_removed_by_entropy = 1;
+    complexity.reads_out = u64::MAX;
+    complexity.reads_in = 0;
+    merge.reads_merged = u64::MAX;
+    let observations = [
+        refuses_unrepresentable_counts("validate total", &validate),
+        refuses_unrepresentable_counts("filter total", &filter),
+        refuses_unrepresentable_counts("filter breakdown", &breakdown),
+        refuses_unrepresentable_counts("low-complexity total", &complexity),
+        refuses_unrepresentable_counts("merge total", &merge),
+    ];
+    assert!(
+        observations.into_iter().all(|refused| refused),
+        "unrepresentable count sums must return validation errors in debug and release"
+    );
+    Ok(())
+}

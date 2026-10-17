@@ -288,46 +288,7 @@ pub(in super::super) fn tooling_check_config_paths(
     args: &[String],
 ) -> Result<OpsCommandOutcome> {
     ensure_help_only("check-config-paths", args)?;
-    let pattern = Regex::new(r"(?:benchmarks/)?configs/[A-Za-z0-9_./-]+\.(toml|md|sha256)")?;
-    let mut refs = BTreeSet::new();
-    let mut scan_roots = vec![workspace.path("Makefile")];
-    scan_roots.extend([
-        workspace.path("makes"),
-        workspace.path("crates"),
-        workspace.path("docs"),
-        workspace.path(".github"),
-    ]);
-    for root in scan_roots {
-        if root.is_file() {
-            let raw = read_utf8(&root).unwrap_or_default();
-            for capture in pattern.find_iter(&raw) {
-                refs.insert(
-                    capture
-                        .as_str()
-                        .trim_end_matches(|ch: char| "`\"',;:)".contains(ch))
-                        .to_string(),
-                );
-            }
-            continue;
-        }
-        if !root.is_dir() {
-            continue;
-        }
-        for entry in WalkDir::new(&root).into_iter().filter_map(std::result::Result::ok) {
-            if !entry.file_type().is_file() {
-                continue;
-            }
-            let raw = read_utf8(entry.path()).unwrap_or_default();
-            for capture in pattern.find_iter(&raw) {
-                refs.insert(
-                    capture
-                        .as_str()
-                        .trim_end_matches(|ch: char| "`\"',;:)".contains(ch))
-                        .to_string(),
-                );
-            }
-        }
-    }
+    let refs = repository_config_references(workspace)?;
     let allow_missing = BTreeSet::from([
         "configs/runtime/profiles/hpc.toml",
         "configs/tools.toml",
@@ -342,6 +303,175 @@ pub(in super::super) fn tooling_check_config_paths(
         return success_line("config path references: OK");
     }
     failure_lines("config path references: FAILED", &missing)
+}
+
+fn repository_config_references(workspace: &Workspace) -> Result<BTreeSet<String>> {
+    let pattern = Regex::new(r"(?:benchmarks/)?configs/[A-Za-z0-9_./-]+\.(toml|md|sha256)")?;
+    let mut refs = BTreeSet::new();
+    let mut scan_roots = vec![workspace.path("Makefile")];
+    scan_roots.extend([
+        workspace.path("makes"),
+        workspace.path("crates"),
+        workspace.path("docs"),
+        workspace.path(".github"),
+    ]);
+    for root in scan_roots {
+        if root.is_file() {
+            collect_config_file_references(workspace, &root, &pattern, &mut refs)?;
+            continue;
+        }
+        if !root.is_dir() {
+            continue;
+        }
+        for entry in WalkDir::new(&root) {
+            let entry = entry.with_context(|| format!("scan {}", root.display()))?;
+            if !entry.file_type().is_file() {
+                continue;
+            }
+            collect_config_file_references(workspace, entry.path(), &pattern, &mut refs)?;
+        }
+    }
+    Ok(refs)
+}
+
+fn collect_config_file_references(
+    workspace: &Workspace,
+    path: &std::path::Path,
+    pattern: &Regex,
+    refs: &mut BTreeSet<String>,
+) -> Result<()> {
+    let rel = workspace.rel(path);
+    let components = rel.components().map(std::path::Component::as_os_str).collect::<Vec<_>>();
+    if components.first().is_some_and(|part| *part == "crates")
+        && components.iter().skip(2).any(|part| *part == "tests")
+        || components.first().is_some_and(|part| *part == "makes")
+            && components.get(1).is_some_and(|part| *part == "tests")
+    {
+        return Ok(());
+    }
+    let bytes = fs::read(path).with_context(|| format!("read {}", path.display()))?;
+    let raw = match String::from_utf8(bytes) {
+        Ok(raw) => raw,
+        Err(error)
+            if matches!(
+                path.extension().and_then(|value| value.to_str()),
+                Some("rs" | "md" | "sh" | "mk" | "py" | "toml" | "yaml" | "yml" | "json")
+            ) =>
+        {
+            return Err(error).with_context(|| format!("decode {}", path.display()));
+        }
+        Err(_) => return Ok(()),
+    };
+    if path.extension().is_some_and(|extension| extension == "rs") {
+        let mut visitor = ConfigReferenceVisitor { pattern, refs, error: None };
+        match syn::parse_file(&raw) {
+            Ok(source) => {
+                if !visitor.test_only(&source.attrs) {
+                    syn::visit::Visit::visit_file(&mut visitor, &source);
+                }
+            }
+            Err(file_error) => {
+                // include! also consumes complete expressions, including block fragments.
+                let expression = syn::parse_str::<syn::Expr>(&raw).map_err(|expression_error| {
+                    anyhow::anyhow!(
+                        "parse production Rust {} as file ({file_error}) or expression ({expression_error})",
+                        path.display()
+                    )
+                })?;
+                syn::visit::Visit::visit_expr(&mut visitor, &expression);
+            }
+        }
+        if let Some(error) = visitor.error {
+            return Err(error)
+                .with_context(|| format!("inspect Rust attributes {}", path.display()));
+        }
+    } else {
+        refs.extend(pattern.find_iter(&raw).map(|capture| capture.as_str().to_string()));
+    }
+    Ok(())
+}
+
+struct ConfigReferenceVisitor<'a> {
+    pattern: &'a Regex,
+    refs: &'a mut BTreeSet<String>,
+    error: Option<anyhow::Error>,
+}
+
+impl ConfigReferenceVisitor<'_> {
+    fn test_only(&mut self, attrs: &[syn::Attribute]) -> bool {
+        for attr in attrs {
+            if attr.path().is_ident("test") {
+                return true;
+            }
+            if attr.path().is_ident("cfg") {
+                match attr.parse_args::<syn::Meta>().and_then(|meta| cfg_requires_test(&meta)) {
+                    Ok(true) => return true,
+                    Ok(false) => {}
+                    Err(error) => self.error = Some(error.into()),
+                }
+            }
+        }
+        false
+    }
+}
+
+fn cfg_requires_test(meta: &syn::Meta) -> syn::Result<bool> {
+    match meta {
+        syn::Meta::Path(path) => Ok(path.is_ident("test")),
+        syn::Meta::List(list) if list.path.is_ident("all") || list.path.is_ident("any") => {
+            let conditions = list.parse_args_with(
+                syn::punctuated::Punctuated::<syn::Meta, syn::Token![,]>::parse_terminated,
+            )?;
+            let requirements =
+                conditions.iter().map(cfg_requires_test).collect::<syn::Result<Vec<_>>>()?;
+            Ok(if list.path.is_ident("all") {
+                requirements.contains(&true)
+            } else {
+                !requirements.is_empty() && requirements.iter().all(|required| *required)
+            })
+        }
+        _ => Ok(false),
+    }
+}
+
+impl<'ast> syn::visit::Visit<'ast> for ConfigReferenceVisitor<'_> {
+    fn visit_item(&mut self, item: &'ast syn::Item) {
+        let attrs: &[syn::Attribute] = match item {
+            syn::Item::Const(item) => &item.attrs,
+            syn::Item::Enum(item) => &item.attrs,
+            syn::Item::ExternCrate(item) => &item.attrs,
+            syn::Item::Fn(item) => &item.attrs,
+            syn::Item::ForeignMod(item) => &item.attrs,
+            syn::Item::Impl(item) => &item.attrs,
+            syn::Item::Macro(item) => &item.attrs,
+            syn::Item::Mod(item) => &item.attrs,
+            syn::Item::Static(item) => &item.attrs,
+            syn::Item::Struct(item) => &item.attrs,
+            syn::Item::Trait(item) => &item.attrs,
+            syn::Item::TraitAlias(item) => &item.attrs,
+            syn::Item::Type(item) => &item.attrs,
+            syn::Item::Union(item) => &item.attrs,
+            syn::Item::Use(item) => &item.attrs,
+            _ => &[],
+        };
+        if !self.test_only(attrs) {
+            syn::visit::visit_item(self, item);
+        }
+    }
+
+    fn visit_lit_str(&mut self, literal: &'ast syn::LitStr) {
+        self.refs.extend(
+            self.pattern.find_iter(&literal.value()).map(|capture| capture.as_str().to_string()),
+        );
+    }
+
+    fn visit_macro(&mut self, invocation: &'ast syn::Macro) {
+        self.refs.extend(
+            self.pattern
+                .find_iter(&invocation.tokens.to_string())
+                .map(|capture| capture.as_str().to_string()),
+        );
+    }
 }
 
 pub(in super::super) fn tooling_clean_docs(
@@ -373,4 +503,160 @@ pub(in super::super) fn tooling_clean_docs(
             .with_context(|| format!("remove {}", docs_root.display()))?;
     }
     success_line(format!("removed {}", docs_root.display()))
+}
+
+#[cfg(test)]
+mod config_reference_tests {
+    use super::*;
+
+    fn scan(files: &[(&str, &str)]) -> Result<BTreeSet<String>> {
+        let root = tempfile::tempdir()?;
+        let workspace = Workspace { root: root.path().to_path_buf() };
+        for (rel, text) in files {
+            let path = workspace.path(rel);
+            fs::create_dir_all(path.parent().context("fixture parent")?)?;
+            fs::write(path, text)?;
+        }
+        repository_config_references(&workspace)
+    }
+
+    #[test]
+    fn production_config_references_include_literals_macros_and_documentation() -> Result<()> {
+        let refs = scan(&[(
+            "crates/example/src/lib.rs",
+            r##"
+                /// Read configs/documented.toml before using this API.
+                const PATH: &str = "configs/production.toml";
+                const RAW: &str = r#"benchmarks/configs/raw.toml"#;
+                const CONTENTS: &str = include_str!("configs/included.toml");
+                fn read() { custom_macro!("configs/macro.toml"); }
+            "##,
+        )])?;
+        assert_eq!(
+            refs,
+            BTreeSet::from([
+                "configs/documented.toml".into(),
+                "configs/production.toml".into(),
+                "benchmarks/configs/raw.toml".into(),
+                "configs/included.toml".into(),
+                "configs/macro.toml".into(),
+            ])
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn expression_include_fragments_retain_required_config_paths() -> Result<()> {
+        let refs = scan(&[(
+            "crates/example/src/execution_outputs.rs",
+            r#"{
+                let path = "configs/expression.toml";
+                consume(include_str!("configs/fragment.toml"));
+                path
+            }"#,
+        )])?;
+        assert_eq!(
+            refs,
+            BTreeSet::from(["configs/expression.toml".into(), "configs/fragment.toml".into()])
+        );
+        assert!(scan(&[("crates/example/src/execution_outputs.rs", "{ let path =")]).is_err());
+        Ok(())
+    }
+
+    #[test]
+    fn rust_test_boundaries_do_not_hide_following_production_items() -> Result<()> {
+        let refs = scan(&[(
+            "crates/example/src/lib.rs",
+            r##"
+                #[cfg(test)] mod fixtures {
+                    const PATH: &str = r#"configs/fixture.toml } #[cfg(test)]"#;
+                    mod nested { const PATH: &str = "configs/nested-fixture.toml"; }
+                }
+                #[test] fn direct_test() { consume("configs/test.toml"); }
+                #[cfg(all(test, feature = "extra"))]
+                const TEST: &str = "configs/test-feature.toml";
+                #[cfg(any(test, feature = "extra"))]
+                const SHARED: &str = "configs/feature.toml";
+                const AFTER: &str = "configs/after.toml";
+            "##,
+        )])?;
+        assert_eq!(
+            refs,
+            BTreeSet::from(["configs/feature.toml".into(), "configs/after.toml".into()])
+        );
+        assert!(scan(&[(
+            "crates/example/src/testing.rs",
+            "#![cfg(test)]\nconst PATH: &str = \"configs/fixture.toml\";"
+        )])?
+        .is_empty());
+        Ok(())
+    }
+
+    #[test]
+    fn fixture_roots_are_separate_from_governed_make_and_docs_references() -> Result<()> {
+        let refs = scan(&[
+            (
+                "crates/example/tests/contracts.rs",
+                "fn fixture() { use_path(\"configs/fixture.toml\"); }",
+            ),
+            ("crates/example/tests/fixtures/input.md", "configs/fixture-data.toml"),
+            ("makes/tests/example.py", "value = 'configs/fixture.toml'"),
+            ("crates/example/examples/main.rs", "fn main() { read(\"configs/example.toml\"); }"),
+            ("Makefile", "CONFIG = configs/make.toml"),
+            ("docs/configuration.md", "Read `configs/documented.toml`."),
+            (".github/workflows/ci.yml", "config: configs/workflow.toml"),
+        ])?;
+        assert_eq!(
+            refs,
+            BTreeSet::from([
+                "configs/example.toml".into(),
+                "configs/make.toml".into(),
+                "configs/documented.toml".into(),
+                "configs/workflow.toml".into(),
+            ])
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn missing_production_reference_fails_while_test_fixture_remains_private() -> Result<()> {
+        let root = tempfile::tempdir()?;
+        let workspace = Workspace { root: root.path().to_path_buf() };
+        let source = workspace.path("crates/example/src/lib.rs");
+        fs::create_dir_all(source.parent().context("source parent")?)?;
+        fs::write(&source, "const PATH: &str = \"configs/production.toml\";\n#[cfg(test)] mod tests { const PATH: &str = \"configs/missing.toml\"; }")?;
+        let failed = tooling_check_config_paths(&workspace, &[])?;
+        assert!(!failed.is_success());
+        assert!(failed.stderr.contains("missing config reference: configs/production.toml"));
+        assert!(!failed.stderr.contains("configs/missing.toml"));
+        fs::create_dir(workspace.path("configs"))?;
+        fs::write(workspace.path("configs/production.toml"), "enabled = true")?;
+        assert!(tooling_check_config_paths(&workspace, &[])?.is_success());
+        Ok(())
+    }
+
+    #[test]
+    fn malformed_or_unreadable_production_source_fails_closed() -> Result<()> {
+        assert!(scan(&[("crates/example/src/lib.rs", "fn broken( {")]).is_err());
+        let root = tempfile::tempdir()?;
+        let workspace = Workspace { root: root.path().to_path_buf() };
+        let pattern = Regex::new("configs/[a-z]+[.]toml")?;
+        let mut refs = BTreeSet::new();
+        assert!(collect_config_file_references(
+            &workspace,
+            &workspace.path("missing.rs"),
+            &pattern,
+            &mut refs
+        )
+        .is_err());
+        fs::write(workspace.path("invalid.rs"), [0xff])?;
+        assert!(collect_config_file_references(
+            &workspace,
+            &workspace.path("invalid.rs"),
+            &pattern,
+            &mut refs
+        )
+        .is_err());
+        Ok(())
+    }
 }

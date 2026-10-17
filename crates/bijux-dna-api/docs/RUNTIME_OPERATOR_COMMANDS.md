@@ -25,6 +25,8 @@ These APIs provide replay provenance and cache-miss explainability without mutat
 - `run_local_failure_injection(<run_dir>, <scenario>)`
 - `verify_run_bundle(<run_dir>)`
 
+`verify_run_bundle` checks declared artifact hashes and the hash-ledger root against canonical ledger entries. Integrity mismatches return `ok=false` with contextual `issues`; malformed required contracts return errors. The run-manifest ledger entry remains best-effort because the manifest is finalized after evidence attachment.
+
 Supported `run_local_failure_injection` scenarios:
 
 - `timeout`

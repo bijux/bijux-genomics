@@ -13,3 +13,6 @@ mod stage_result;
 pub mod schemas;
 
 pub mod results;
+
+mod staged;
+pub use staged::StagedPublicationPlan;

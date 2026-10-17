@@ -3,9 +3,12 @@
 pub use crate::runtime::run::{
     browse_runs, cache_explain, cancel_run, dry_run, evidence_gap, execute, execute_and_report,
     operator_diagnosis, operator_health, pause_run, plan, policy_audit, query_run_lineage,
-    render_operator_diagnosis_output, render_report, render_run_browser_output, replay_explain,
-    resume_run, sign_bundle_prototype, status, verify_signed_bundle_prototype, workspace_edges,
-    write_workspace_audit,
+    read_workspace_crate_manifests, render_operator_diagnosis_output, render_report,
+    render_run_browser_output, replay_explain, resume_run, sign_bundle_prototype, status,
+    verify_signed_bundle_prototype, workspace_edges, workspace_edges_at,
+    write_metric_registry_report, write_workspace_audit, write_workspace_dependency_map,
+    CrateDependencyEdge, CrateDependencyMapReport, CrateDependencyNode, MetricRegistryReport,
+    MetricRegistryRow, WorkspaceCrateManifest,
 };
 pub use crate::surface::explain::{ExplainResponse, ExplainToolSelection, PlanExplainV1};
 pub use crate::surface::request_contracts::{
@@ -83,3 +86,10 @@ pub fn explain(
 }
 
 pub use bijux_dna_policies::{analyze_workspace_dependencies, WorkspaceDependencyAnalysis};
+
+pub use bijux_dna_policies::{
+    evaluate_workspace_source_audit, forbidden_workspace_execution_dependencies,
+    workspace_execution_owner_dependencies, workspace_source_matches, WorkspaceExecutionDependency,
+    WorkspaceForbiddenDependency, WorkspaceSourceAuditInput, WorkspaceSourceMatch,
+    WorkspaceSourceRule,
+};

@@ -1,10 +1,14 @@
 #![cfg_attr(test, allow(clippy::expect_used))]
 
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::BTreeMap;
 use std::fs;
 use std::path::Path;
 
 use anyhow::{anyhow, Context, Result};
+use bijux_dna_domain_vcf::{
+    summarize_fixture_genotypes, VcfFixtureGenotypeInput,
+    VcfFixtureGenotypeSummary as VcfVariantTruthSummary,
+};
 use serde::{Deserialize, Serialize};
 
 use crate::commands::benchmark::local_corpus_fixture::vcf::{
@@ -196,106 +200,6 @@ struct IbdExpectedTruthRow {
     right_sample_id: String,
     shared_genotype_site_count: u64,
     expected_ibd_segment_count: u64,
-}
-
-#[derive(Debug, Clone)]
-struct VcfVariantTruthSummary {
-    sample_ids: Vec<String>,
-    sample_count: usize,
-    variant_count: u64,
-    contigs: Vec<String>,
-    genotype_states: BTreeMap<String, ObservedGenotypeState>,
-    allele_frequencies: BTreeMap<(String, u64), ObservedAlleleFrequency>,
-}
-
-#[derive(Debug, Clone, Default)]
-struct ObservedGenotypeState {
-    hom_ref: u64,
-    het: u64,
-    hom_alt: u64,
-    missing: u64,
-    phased_calls: u64,
-    unphased_calls: u64,
-    dosages: Vec<u64>,
-    contig_is_homozygous: BTreeMap<String, Vec<bool>>,
-}
-
-#[derive(Debug, Clone)]
-struct ObservedAlleleFrequency {
-    alt_allele_count: u64,
-    called_allele_count: u64,
-    alt_allele_frequency: f64,
-}
-
-#[derive(Debug, Clone)]
-struct ParsedVariantRecord {
-    contig: String,
-    position: u64,
-    sample_genotypes: Vec<ParsedGenotype>,
-}
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-enum ParsedGenotype {
-    Missing,
-    Unphased(Vec<u32>),
-    Phased(Vec<u32>),
-}
-
-impl ParsedGenotype {
-    fn dosage(&self) -> Option<u64> {
-        match self {
-            Self::Missing => None,
-            Self::Unphased(alleles) | Self::Phased(alleles) => {
-                Some(alleles.iter().map(|allele| u64::from(*allele > 0)).sum())
-            }
-        }
-    }
-
-    fn is_homozygous(&self) -> bool {
-        match self {
-            Self::Missing => false,
-            Self::Unphased(alleles) | Self::Phased(alleles) => {
-                !alleles.is_empty() && alleles.iter().all(|allele| *allele == alleles[0])
-            }
-        }
-    }
-
-    fn is_hom_ref(&self) -> bool {
-        match self {
-            Self::Unphased(alleles) | Self::Phased(alleles) => {
-                !alleles.is_empty() && alleles.iter().all(|allele| *allele == 0)
-            }
-            Self::Missing => false,
-        }
-    }
-
-    fn is_hom_alt(&self) -> bool {
-        match self {
-            Self::Unphased(alleles) | Self::Phased(alleles) => {
-                !alleles.is_empty()
-                    && alleles.iter().all(|allele| *allele == alleles[0] && *allele > 0)
-            }
-            Self::Missing => false,
-        }
-    }
-
-    fn is_het(&self) -> bool {
-        match self {
-            Self::Unphased(alleles) | Self::Phased(alleles) => {
-                let distinct = alleles.iter().collect::<BTreeSet<_>>();
-                distinct.len() > 1
-            }
-            Self::Missing => false,
-        }
-    }
-
-    fn is_phased(&self) -> bool {
-        matches!(self, Self::Phased(_))
-    }
-
-    fn is_unphased(&self) -> bool {
-        matches!(self, Self::Unphased(_))
-    }
 }
 
 pub(crate) fn validate_vcf_expected_truth(
@@ -713,7 +617,7 @@ fn build_roh_expected_truth(
             Ok(RohExpectedTruthRow {
                 sample_id: sample_id.clone(),
                 homozygous_variant_count: state.hom_ref + state.hom_alt,
-                expected_roh_segment_count: count_roh_segments(state),
+                expected_roh_segment_count: state.homozygous_run_count(),
             })
         })
         .collect::<Result<Vec<_>>>()?;
@@ -750,7 +654,7 @@ fn build_ibd_expected_truth(
                 left_sample_id,
                 right_sample_id,
                 shared_genotype_site_count,
-                expected_ibd_segment_count: count_shared_dosage_segments(left, right),
+                expected_ibd_segment_count: left.shared_homozygous_run_count(right),
             })
         })
         .collect::<Result<Vec<_>>>()?;
@@ -1127,7 +1031,7 @@ fn validate_roh_expected_truth(
             .genotype_states
             .get(sample_id)
             .ok_or_else(|| anyhow!("missing observed genotype state for `{sample_id}`"))?;
-        let observed_roh_segments = count_roh_segments(observed);
+        let observed_roh_segments = observed.homozygous_run_count();
         let observed_homozygous_variant_count = observed.hom_ref + observed.hom_alt;
         if expected.expected_roh_segment_count != observed_roh_segments
             || expected.homozygous_variant_count != observed_homozygous_variant_count
@@ -1189,7 +1093,7 @@ fn validate_ibd_expected_truth(
             .zip(right.dosages.iter())
             .filter(|(left_dosage, right_dosage)| left_dosage == right_dosage)
             .count() as u64;
-        let observed_segments = count_shared_dosage_segments(left, right);
+        let observed_segments = left.shared_homozygous_run_count(right);
         if expected.shared_genotype_site_count != observed_shared_sites
             || expected.expected_ibd_segment_count != observed_segments
         {
@@ -1201,169 +1105,10 @@ fn validate_ibd_expected_truth(
     Ok(())
 }
 
-#[allow(clippy::too_many_lines)]
 fn summarize_vcf_variant_set(vcf_path: &Path) -> Result<VcfVariantTruthSummary> {
     let raw =
         fs::read_to_string(vcf_path).with_context(|| format!("read {}", vcf_path.display()))?;
-    let mut sample_ids = Vec::new();
-    let mut sample_index = BTreeMap::new();
-    let mut contigs = BTreeSet::new();
-    let mut variant_count = 0u64;
-    let mut genotype_states = BTreeMap::<String, ObservedGenotypeState>::new();
-    let mut allele_frequencies = BTreeMap::<(String, u64), ObservedAlleleFrequency>::new();
-
-    for (line_number, line) in raw.lines().enumerate() {
-        if let Some(payload) = line.strip_prefix("#CHROM\t") {
-            let fields = payload.split('\t').collect::<Vec<_>>();
-            if fields.len() < 9 {
-                return Err(anyhow!(
-                    "VCF truth parser expected sample columns in {}",
-                    vcf_path.display()
-                ));
-            }
-            sample_ids = fields[8..].iter().map(|value| (*value).to_string()).collect::<Vec<_>>();
-            sample_index = sample_ids
-                .iter()
-                .enumerate()
-                .map(|(index, sample_id)| (sample_id.clone(), index))
-                .collect();
-            for sample_id in &sample_ids {
-                genotype_states.insert(sample_id.clone(), ObservedGenotypeState::default());
-            }
-            continue;
-        }
-        if line.starts_with('#') || line.trim().is_empty() {
-            continue;
-        }
-        let fields = line.split('\t').collect::<Vec<_>>();
-        if fields.len() < 10 {
-            return Err(anyhow!(
-                "VCF truth parser line {} in {} must contain at least 10 columns",
-                line_number + 1,
-                vcf_path.display()
-            ));
-        }
-        let record = parse_variant_record(&fields)?;
-        contigs.insert(record.contig.clone());
-        variant_count += 1;
-        let mut alt_allele_count = 0u64;
-        let mut called_allele_count = 0u64;
-        for (sample_id, genotype) in sample_ids.iter().zip(record.sample_genotypes.iter()) {
-            let state = genotype_states
-                .get_mut(sample_id)
-                .ok_or_else(|| anyhow!("missing genotype accumulator for `{sample_id}`"))?;
-            match genotype {
-                ParsedGenotype::Missing => {
-                    state.missing += 1;
-                }
-                ParsedGenotype::Unphased(alleles) => {
-                    state.unphased_calls += 1;
-                    called_allele_count += alleles.len() as u64;
-                    alt_allele_count +=
-                        alleles.iter().map(|allele| u64::from(*allele > 0)).sum::<u64>();
-                    if genotype.is_hom_ref() {
-                        state.hom_ref += 1;
-                    } else if genotype.is_hom_alt() {
-                        state.hom_alt += 1;
-                    } else if genotype.is_het() {
-                        state.het += 1;
-                    }
-                }
-                ParsedGenotype::Phased(alleles) => {
-                    state.phased_calls += 1;
-                    called_allele_count += alleles.len() as u64;
-                    alt_allele_count +=
-                        alleles.iter().map(|allele| u64::from(*allele > 0)).sum::<u64>();
-                    if genotype.is_hom_ref() {
-                        state.hom_ref += 1;
-                    } else if genotype.is_hom_alt() {
-                        state.hom_alt += 1;
-                    } else if genotype.is_het() {
-                        state.het += 1;
-                    }
-                }
-            }
-            state.dosages.push(genotype.dosage().unwrap_or(0));
-            state
-                .contig_is_homozygous
-                .entry(record.contig.clone())
-                .or_default()
-                .push(genotype.is_homozygous());
-        }
-        let allele_frequency = if called_allele_count == 0 {
-            0.0
-        } else {
-            checked_f64_from_u64(alt_allele_count, "alternate allele count")
-                / checked_f64_from_u64(called_allele_count, "called allele count")
-        };
-        allele_frequencies.insert(
-            (record.contig, record.position),
-            ObservedAlleleFrequency {
-                alt_allele_count,
-                called_allele_count,
-                alt_allele_frequency: allele_frequency,
-            },
-        );
-    }
-
-    if sample_ids.is_empty() || sample_index.is_empty() {
-        return Err(anyhow!("VCF truth parser found no samples in {}", vcf_path.display()));
-    }
-    if variant_count == 0 {
-        return Err(anyhow!("VCF truth parser found no variant records in {}", vcf_path.display()));
-    }
-
-    Ok(VcfVariantTruthSummary {
-        sample_count: sample_ids.len(),
-        sample_ids,
-        variant_count,
-        contigs: contigs.into_iter().collect(),
-        genotype_states,
-        allele_frequencies,
-    })
-}
-
-fn parse_variant_record(fields: &[&str]) -> Result<ParsedVariantRecord> {
-    let position =
-        fields[1].parse::<u64>().with_context(|| format!("parse VCF position `{}`", fields[1]))?;
-    let format = fields[8];
-    let format_keys = format.split(':').collect::<Vec<_>>();
-    let gt_index = format_keys
-        .iter()
-        .position(|token| *token == "GT")
-        .ok_or_else(|| anyhow!("VCF truth parser requires GT in FORMAT"))?;
-    let sample_genotypes = fields[9..]
-        .iter()
-        .map(|sample_payload| {
-            let tokens = sample_payload.split(':').collect::<Vec<_>>();
-            let gt = tokens.get(gt_index).copied().unwrap_or(".");
-            parse_genotype(gt)
-        })
-        .collect::<Result<Vec<_>>>()?;
-    Ok(ParsedVariantRecord { contig: fields[0].to_string(), position, sample_genotypes })
-}
-
-fn parse_genotype(gt: &str) -> Result<ParsedGenotype> {
-    if matches!(gt, "." | "./." | ".|." | "./" | ".|") {
-        return Ok(ParsedGenotype::Missing);
-    }
-    if let Some((left, right)) = gt.split_once('|') {
-        return Ok(ParsedGenotype::Phased(vec![
-            parse_allele_token(left)?,
-            parse_allele_token(right)?,
-        ]));
-    }
-    if let Some((left, right)) = gt.split_once('/') {
-        return Ok(ParsedGenotype::Unphased(vec![
-            parse_allele_token(left)?,
-            parse_allele_token(right)?,
-        ]));
-    }
-    Ok(ParsedGenotype::Unphased(vec![parse_allele_token(gt)?]))
-}
-
-fn parse_allele_token(token: &str) -> Result<u32> {
-    token.parse::<u32>().with_context(|| format!("parse genotype allele token `{token}`"))
+    summarize_fixture_genotypes(VcfFixtureGenotypeInput { text: &raw, source_path: vcf_path })
 }
 
 fn load_sample_population_map(sample_metadata_path: &Path) -> Result<BTreeMap<String, String>> {
@@ -1419,49 +1164,6 @@ fn pairwise_squared_distances(
         distances.insert((left_sample_id, right_sample_id), distance_sq);
     }
     Ok(distances)
-}
-
-fn count_roh_segments(state: &ObservedGenotypeState) -> u64 {
-    state.contig_is_homozygous.values().map(|flags| count_true_runs(flags)).sum::<u64>()
-}
-
-fn count_shared_dosage_segments(
-    left: &ObservedGenotypeState,
-    right: &ObservedGenotypeState,
-) -> u64 {
-    left.contig_is_homozygous
-        .iter()
-        .map(|(contig, left_flags)| {
-            let Some(right_flags) = right.contig_is_homozygous.get(contig) else {
-                return 0;
-            };
-            let shared_flags = left_flags
-                .iter()
-                .zip(right_flags.iter())
-                .map(|(left_flag, right_flag)| *left_flag && *right_flag)
-                .collect::<Vec<_>>();
-            count_true_runs(&shared_flags)
-        })
-        .sum::<u64>()
-}
-
-fn count_true_runs(flags: &[bool]) -> u64 {
-    let mut run_length = 0usize;
-    let mut count = 0u64;
-    for flag in flags {
-        if *flag {
-            run_length += 1;
-        } else {
-            if run_length >= 2 {
-                count += 1;
-            }
-            run_length = 0;
-        }
-    }
-    if run_length >= 2 {
-        count += 1;
-    }
-    count
 }
 
 fn pair_keys(sample_ids: &[String]) -> Vec<(String, String)> {

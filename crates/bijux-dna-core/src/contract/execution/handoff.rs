@@ -434,7 +434,8 @@ fn path_has_extension_ignore_ascii_case(path: &str, extension: &str) -> bool {
 }
 
 fn path_has_suffix_ignore_ascii_case(path: &str, suffix: &str) -> bool {
-    path.len() >= suffix.len() && path[path.len() - suffix.len()..].eq_ignore_ascii_case(suffix)
+    path.get(path.len().saturating_sub(suffix.len())..)
+        .is_some_and(|tail| tail.eq_ignore_ascii_case(suffix))
 }
 
 fn stage_domain(stage_id: &str) -> &str {
@@ -585,5 +586,46 @@ mod tests {
             .unwrap_or_else(|error| panic!("canonical contract must classify handoff: {error}"))
             .unwrap_or_else(|| panic!("FASTQ contract must produce a typed handoff"));
         assert_eq!(typed.kind(), TypedArtifactKind::Fastq);
+    }
+
+    #[test]
+    fn legacy_variant_handoffs_preserve_unicode_paths() -> Result<()> {
+        for (path, expected) in [
+            ("🧬.vcf", TypedArtifactKind::Vcf),
+            ("é.vcf", TypedArtifactKind::Vcf),
+            ("🧬.VCF.GZ", TypedArtifactKind::Vcf),
+            ("🧬.m3vcf", TypedArtifactKind::Panel),
+            ("é.m3vcf.gz", TypedArtifactKind::Panel),
+        ] {
+            let artifact: ArtifactSpec = serde_json::from_value(serde_json::json!({
+                "name": "variants",
+                "path": path,
+                "role": "variant",
+                "optional": false
+            }))?;
+            assert!(artifact.artifact_contract_id.is_none());
+            let consumer = step("vcf.filter", vec![artifact.clone()]);
+
+            let typed = TypedArtifactRef::from_input(&consumer, &artifact)?
+                .ok_or_else(|| BijuxError::validation("expected a typed variant handoff"))?;
+
+            assert_eq!(typed.kind(), expected, "{path}");
+            assert_eq!(typed.path(), Path::new(path));
+            assert!(validate_typed_input_handoffs(&consumer).is_ok());
+        }
+        let artifact = ArtifactSpec::required(
+            ArtifactId::new("variants"),
+            PathBuf::from("🧬.m3vcf"),
+            ArtifactRole::Variant,
+        );
+        let consumer = step("vcf.filter", vec![artifact.clone()]);
+        assert_eq!(required_kind(&consumer, &artifact)?, TypedArtifactKind::Vcf);
+        let invalid: ArtifactSpec = serde_json::from_value(serde_json::json!({
+            "name": "variants",
+            "path": "🧬.txt",
+            "role": "variant"
+        }))?;
+        assert!(TypedArtifactRef::from_input(&consumer, &invalid).is_err());
+        Ok(())
     }
 }

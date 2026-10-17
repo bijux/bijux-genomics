@@ -21,8 +21,8 @@ pub(crate) struct CoverageAttestation {
 
 struct ShardEvidence<'a> {
     id: &'a str,
-    bytes: &'a [u8],
-    planned: Option<&'a BTreeSet<TestIdentity>>,
+    bytes: Option<&'a [u8]>,
+    planned: Option<&'a ShardDiscoveryPlan>,
 }
 
 impl CoverageAttestation {
@@ -33,7 +33,11 @@ impl CoverageAttestation {
     ) -> Self {
         Self::reconcile_expected(
             inventory,
-            shards.into_iter().map(|(id, bytes)| ShardEvidence { id, bytes, planned: None }),
+            shards.into_iter().map(|(id, bytes)| ShardEvidence {
+                id,
+                bytes: Some(bytes),
+                planned: None,
+            }),
         )
     }
 
@@ -41,12 +45,23 @@ impl CoverageAttestation {
         inventory: &ExpectedTestInventory,
         shards: impl IntoIterator<Item = (&'a str, &'a [u8], &'a ShardDiscoveryPlan)>,
     ) -> Self {
+        Self::reconcile_terminals(
+            inventory,
+            shards.into_iter().map(|(id, bytes, plan)| (id, Some(bytes), plan)),
+        )
+    }
+
+    /// None is an explicit no-process terminal; it never substitutes for native event bytes.
+    pub(crate) fn reconcile_terminals<'a>(
+        inventory: &ExpectedTestInventory,
+        shards: impl IntoIterator<Item = (&'a str, Option<&'a [u8]>, &'a ShardDiscoveryPlan)>,
+    ) -> Self {
         Self::reconcile_expected(
             inventory,
             shards.into_iter().map(|(id, bytes, plan)| ShardEvidence {
                 id,
                 bytes,
-                planned: Some(&plan.expected),
+                planned: Some(plan),
             }),
         )
     }
@@ -67,17 +82,31 @@ impl CoverageAttestation {
                 invalid_shards.insert(id.to_string(), "duplicate shard identity".to_string());
                 continue;
             }
-            match admit_shard_events(inventory, bytes) {
+            let admitted = (|| -> anyhow::Result<_> {
+                if let Some(plan) = planned {
+                    plan.verify_inventory(inventory)?;
+                }
+                if let Some(bytes) = bytes {
+                    admit_shard_events(inventory, bytes)
+                } else {
+                    anyhow::ensure!(
+                        planned.is_some_and(|plan| plan.expected_case_count == 0),
+                        "no-process terminal requires an exact expected-empty partition"
+                    );
+                    Ok(BTreeMap::new())
+                }
+            })();
+            match admitted {
                 Ok(cases) => {
                     if let Some(planned) = planned {
                         let actual = cases.keys().cloned().collect::<BTreeSet<_>>();
-                        if actual != *planned {
+                        if actual != planned.expected {
                             invalid_shards.insert(
                                 id.to_string(),
                                 format!(
                                     "partition case mismatch: missing {:?}; unexpected {:?}",
-                                    planned.difference(&actual).collect::<Vec<_>>(),
-                                    actual.difference(planned).collect::<Vec<_>>()
+                                    planned.expected.difference(&actual).collect::<Vec<_>>(),
+                                    actual.difference(&planned.expected).collect::<Vec<_>>()
                                 ),
                             );
                         }

@@ -4,9 +4,9 @@ use super::super::{
     build_three_column_table, copy_absolute_file, copy_repo_relative_file, is_nonempty_file, json,
     load_json, path_relative_to_repo, row, stage_root, write_fastq_records, write_json_file,
     write_text_file, AmpliconTruthBundle, BTreeMap, ClusterOtusStageArtifacts,
-    ClusterOtusStageEvidence, Path, Result, CLUSTER_OTUS_STAGE_SCHEMA_VERSION,
-    DEFAULT_AMPLICON_CLUSTER_OTUS_FASTQ_PATH, DEFAULT_AMPLICON_OTU_REPRESENTATIVES_PATH,
-    DEFAULT_AMPLICON_TRUTH_EXPECTED_PATH,
+    ClusterOtusStageEvidence, Path, RemoveChimerasStageArtifacts, Result,
+    CLUSTER_OTUS_STAGE_SCHEMA_VERSION, DEFAULT_AMPLICON_CLUSTER_OTUS_FASTQ_PATH,
+    DEFAULT_AMPLICON_OTU_REPRESENTATIVES_PATH, DEFAULT_AMPLICON_TRUTH_EXPECTED_PATH,
 };
 use crate::execution::stage::StageIdentity;
 use bijux_dna_core::id_catalog as stage;
@@ -14,11 +14,12 @@ use bijux_dna_core::id_catalog as stage;
 pub(crate) fn run_cluster_otus_stage(
     repo_root: &Path,
     output_root: &Path,
+    chimera: &RemoveChimerasStageArtifacts,
 ) -> Result<ClusterOtusStageArtifacts> {
     let source_report_path =
         repo_root.join("artifacts/runs/bench/local-smoke/fastq.cluster_otus/report.json");
     if !is_nonempty_file(&source_report_path) {
-        return run_fixture_backed_cluster_otus_stage(repo_root, output_root);
+        return run_fixture_backed_cluster_otus_stage(repo_root, output_root, chimera);
     }
     let mut report: ClusterOtusStageEvidence = load_json(&source_report_path)?;
     let stage_root = stage_root(output_root, stage::FASTQ_CLUSTER_OTUS);
@@ -73,24 +74,20 @@ pub(crate) fn run_cluster_otus_stage(
     let evidence_path = stage_root.join("report.json");
     bijux_dna_infra::atomic_write_json(&evidence_path, &report)?;
 
-    let mut row = row(StageIdentity { stage_id: stage::FASTQ_CLUSTER_OTUS, domain: "fastq", tool_id: &report.planned_tool_id, execution_mode: "local_smoke_copy" },
-"copied governed OTU-clustering smoke outputs into the amplicon micro pipeline",
-Some(path_relative_to_repo(repo_root, &evidence_path)),
-Some(report.schema_version.clone()),
-BTreeMap::from([
-            (
-                "normalized_amplicon_reads".to_string(),
-                "benchmarks/tests/fixtures/corpora/corpus-03-amplicon-mini/normalized/corpus-03-otu-cluster-se.fastq.gz"
-                    .to_string(),
-            ),
-            (
-                "non_chimeric_representatives".to_string(),
-                "artifacts/benchmark-smoke/micro/pipelines/amplicon/artifacts/fastq.remove_chimeras/non_chimeric.fasta"
-                    .to_string(),
-            ),
-        ]),
-stage_outputs(&report),
-stage_metrics(&report));
+    let mut row = row(
+        StageIdentity {
+            stage_id: stage::FASTQ_CLUSTER_OTUS,
+            domain: "fastq",
+            tool_id: &report.planned_tool_id,
+            execution_mode: "local_smoke_copy",
+        },
+        "copied governed OTU-clustering smoke outputs into the amplicon micro pipeline",
+        Some(path_relative_to_repo(repo_root, &evidence_path)),
+        Some(report.schema_version.clone()),
+        stage_inputs(repo_root, chimera),
+        stage_outputs(&report),
+        stage_metrics(&report),
+    );
     if let Some(path) = &report.raw_backend_report {
         row.outputs.insert("raw_backend_report".to_string(), path.clone());
     }
@@ -100,6 +97,7 @@ stage_metrics(&report));
 pub(crate) fn run_fixture_backed_cluster_otus_stage(
     repo_root: &Path,
     output_root: &Path,
+    chimera: &RemoveChimerasStageArtifacts,
 ) -> Result<ClusterOtusStageArtifacts> {
     let truth_bundle: AmpliconTruthBundle =
         load_json(&repo_root.join(DEFAULT_AMPLICON_TRUTH_EXPECTED_PATH))?;
@@ -179,24 +177,37 @@ pub(crate) fn run_fixture_backed_cluster_otus_stage(
     let evidence_path = stage_root.join("report.json");
     bijux_dna_infra::atomic_write_json(&evidence_path, &report)?;
 
-    let row = row(StageIdentity { stage_id: stage::FASTQ_CLUSTER_OTUS, domain: "fastq", tool_id: "vsearch", execution_mode: "fixture_truth_copy" },
-"materialized governed OTU-clustering evidence from tracked amplicon truth fixtures",
-Some(path_relative_to_repo(repo_root, &evidence_path)),
-Some(report.schema_version.clone()),
-BTreeMap::from([
-            (
-                "normalized_amplicon_reads".to_string(),
-                DEFAULT_AMPLICON_CLUSTER_OTUS_FASTQ_PATH.to_string(),
-            ),
-            (
-                "non_chimeric_representatives".to_string(),
-                "artifacts/benchmark-smoke/micro/pipelines/amplicon/artifacts/fastq.remove_chimeras/non_chimeric.fasta"
-                    .to_string(),
-            ),
-        ]),
-stage_outputs(&report),
-stage_metrics(&report));
+    let row = row(
+        StageIdentity {
+            stage_id: stage::FASTQ_CLUSTER_OTUS,
+            domain: "fastq",
+            tool_id: "vsearch",
+            execution_mode: "fixture_truth_copy",
+        },
+        "materialized governed OTU-clustering evidence from tracked amplicon truth fixtures",
+        Some(path_relative_to_repo(repo_root, &evidence_path)),
+        Some(report.schema_version.clone()),
+        stage_inputs(repo_root, chimera),
+        stage_outputs(&report),
+        stage_metrics(&report),
+    );
     Ok(ClusterOtusStageArtifacts { row, otu_table_tsv, otu_representatives_fasta })
+}
+
+fn stage_inputs(
+    repo_root: &Path,
+    chimera: &RemoveChimerasStageArtifacts,
+) -> BTreeMap<String, String> {
+    BTreeMap::from([
+        (
+            "normalized_amplicon_reads".to_string(),
+            DEFAULT_AMPLICON_CLUSTER_OTUS_FASTQ_PATH.to_string(),
+        ),
+        (
+            "non_chimeric_representatives".to_string(),
+            path_relative_to_repo(repo_root, &chimera.non_chimeric_fasta),
+        ),
+    ])
 }
 
 fn stage_outputs(report: &ClusterOtusStageEvidence) -> BTreeMap<String, String> {

@@ -1,4 +1,4 @@
-use super::bundle::{build_domain_registry_bundle, write_domain_registry_bundle};
+use super::bundle::{build_admitted_domain_registry_bundle, write_domain_registry_bundle};
 use super::loading::{
     build_images_toml, build_stages_toml, build_tool_registries_toml, collect_domain_data,
     collect_vcf_image_versions, load_container_catalog, ToolRegistryInputs,
@@ -35,9 +35,6 @@ pub fn compile_domain_configs(options: &CompileOptions) -> Result<()> {
             bail!("pre_hpc_pre_vcf scope must not include VCF stages in generated configs");
         }
     }
-    ensure_dir(&options.configs_dir)
-        .with_context(|| format!("create {}", options.configs_dir.display()))?;
-
     let catalog_path = options
         .domain_dir
         .parent()
@@ -47,6 +44,10 @@ pub fn compile_domain_configs(options: &CompileOptions) -> Result<()> {
         .ok()
         .or_else(|| git_head_commit(&options.domain_dir))
         .unwrap_or_else(|| "unknown".to_string());
+    let registry_bundle =
+        build_admitted_domain_registry_bundle(&options.domain_dir, &source_commit)?;
+    ensure_dir(&options.configs_dir)
+        .with_context(|| format!("create {}", options.configs_dir.display()))?;
 
     let ci_dir = options.configs_dir.join("ci");
     let ci_registry_dir = ci_dir.join("registry");
@@ -130,7 +131,6 @@ pub fn compile_domain_configs(options: &CompileOptions) -> Result<()> {
         &container_catalog,
         &source_commit,
     )?;
-    let registry_bundle = build_domain_registry_bundle(&options.domain_dir, &source_commit)?;
     let bundle_paths = write_domain_registry_bundle(&options.configs_dir, &registry_bundle)?;
 
     println!("generated: {}", tool_registry_path.display());

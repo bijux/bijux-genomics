@@ -414,50 +414,14 @@
                 .collect::<std::collections::BTreeSet<_>>()
         })
         .unwrap_or_default();
-    let planned_chunks = {
-        let window = params.chunk_window_bp.unwrap_or(0);
-        let overlap = params.chunk_overlap_bp;
-        let mut chunks = Vec::<(String, String)>::new();
-        if window == 0 {
-            for contig in &contig_seen {
-                if include_chr.as_ref().is_some_and(|s| !s.contains(contig)) {
-                    continue;
-                }
-                if exclude_chr.contains(contig) {
-                    continue;
-                }
-                chunks.push((format!("{contig}:whole"), contig.clone()));
-            }
-        } else {
-            for contig in &contig_seen {
-                if include_chr.as_ref().is_some_and(|s| !s.contains(contig)) {
-                    continue;
-                }
-                if exclude_chr.contains(contig) {
-                    continue;
-                }
-                let len = species_context
-                    .contigs
-                    .iter()
-                    .find(|c| c.name == *contig)
-                    .map(|c| c.length_bp)
-                    .unwrap_or(window);
-                let mut start = 1_u64;
-                let mut idx = 0_u64;
-                while start <= len {
-                    let end = std::cmp::min(start + window - 1, len);
-                    chunks.push((format!("{contig}:{idx:05}:{start}-{end}"), contig.clone()));
-                    if end == len {
-                        break;
-                    }
-                    start = end.saturating_sub(overlap).saturating_add(1);
-                    idx += 1;
-                }
-            }
-        }
-        chunks.sort();
-        chunks
-    };
+    let planned_chunks = chunk_regions::plan_imputation_chunk_regions(
+        &contig_seen,
+        species_context,
+        params.chunk_window_bp,
+        params.chunk_overlap_bp,
+        include_chr.as_ref(),
+        &exclude_chr,
+    )?;
     let chunk_regions_json = out_dir.join("chunk_regions.json");
     atomic_write_json(
         &chunk_regions_json,

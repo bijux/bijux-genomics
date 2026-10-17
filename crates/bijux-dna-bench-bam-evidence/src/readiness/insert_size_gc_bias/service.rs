@@ -26,13 +26,13 @@ pub(in crate::readiness) fn build_bam_insert_size_gc_bias_ready_report(
         &context.declarations.schema()?,
         BAM_STAGE_SPECS.iter().map(|spec| spec.stage_id),
     )?;
-    let local_smoke_by_stage = collect_local_smoke_proofs(context)?;
 
     let scope = RetainedScope::new(
         "BAM insert-size/gc-bias",
         BAM_STAGE_SPECS.iter().map(|spec| (spec.stage_id, spec.tool_id)),
     );
     let indexed = IndexedSources::admit(&scope, published, schema_contracts)?;
+    let local_smoke_by_stage = collect_local_smoke_proofs(context)?;
 
     let mut rows = Vec::with_capacity(BAM_STAGE_SPECS.len());
     for spec in BAM_STAGE_SPECS {

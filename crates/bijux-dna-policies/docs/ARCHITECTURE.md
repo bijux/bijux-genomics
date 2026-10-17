@@ -28,6 +28,10 @@ importing repository audit orchestration.
 - `src/checks/` partitions reusable rule families by build authority, dependency graph,
   non-waiting execution, directory layout, module files, public surface, failure policy, and stage
   ID literals.
+- `src/checks/workspace_source_audits.rs` owns the four repository source-audit
+  vocabularies, existing line-oriented matches, direct dependency classifications,
+  and pure verdicts over explicit caller observations. CLI callers retain source
+  acquisition, path exclusions, planner read exceptions, reports, and publication.
 - `src/source_scan/` performs deterministic Rust source discovery.
 - `src/policy_diagnostics/` owns the WHAT/WHY/HOW/MORE diagnostic contract and renderer.
 - `src/assertions/` owns exported assertion macros.
@@ -39,7 +43,9 @@ importing repository audit orchestration.
 - `tests/guardrails.rs` smoke-checks crate-specific guardrail wiring.
 - `tests/fixtures/` contains governed fixtures for policy tests.
 - `tests/snapshots/` contains governed diagnostic snapshots.
-- `tests/support/` contains shared filesystem helpers only.
+- `tests/support/` owns private filesystem, Cargo-observation, and Rust source classification helpers.
+- `tests/support/rust_source/scratch_paths.rs` classifies cwd-derived filesystem path admission;
+  the contracts policy owns its counterexamples and workspace-wide enforcement.
 
 ## Data Flow
 1. Qualification callers provide admitted observations; policy rules record versioned measured
@@ -61,7 +67,7 @@ importing repository audit orchestration.
 7. Assertion macros and `policy_diagnostics` render failures with consistent repair guidance.
 
 ## Naming
-Policy test names use `policy__<suite>__<file>__<rule>` when they enforce workspace governance. Crate-local lock tests may use concise names when they only protect this crate's own tree or manifest.
+Test names describe the behavior they protect. Native test IDs retain the package, target, and module owner without repeating the source path in each function name.
 
 ## Dependency Direction
 

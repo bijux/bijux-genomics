@@ -24,9 +24,11 @@ Welcome to the Bijux Genomics documentation. Start with the overview and then di
 
 ## Core map
 - [Architecture Overview](10-architecture/ARCHITECTURE_OVERVIEW.md)
+- [Product Ownership](10-architecture/TARGET_ARCHITECTURE.md)
 - [Boundary Map](10-architecture/BOUNDARY_MAP.md)
 - [SSOT](10-architecture/SSOT.md)
 - [Contract Spine](10-architecture/CONTRACT_SPINE.md)
+- [Data Portfolio and Truth](20-science/DATA_PORTFOLIO_AND_TRUTH_CONTRACT.md)
 - [Configs Index](https://github.com/bijux/bijux-genomics/blob/main/configs/index.md)
 
 ## Operations
@@ -35,7 +37,6 @@ Welcome to the Bijux Genomics documentation. Start with the overview and then di
 ## Policy checks
 - [CLI conventions and snapshot](cli/index.md)
 - `api_boundaries.rs`
-- `architecture_pointer_policy.rs`
 - `benchmark_dependency_policy.rs`
 - `boundary_enforcement.rs`
 - `cli_dependency_policy.rs`
@@ -70,11 +71,9 @@ Welcome to the Bijux Genomics documentation. Start with the overview and then di
 - `no_duplicate_policy_checks.rs`
 - `no_empty_dirs_policy.rs`
 - `no_helpers_policy.rs`
-- `no_policy_duplication.rs`
 - `no_repo_tree_snapshots.rs`
 - `no_serde_json_writer.rs`
 - `no_standalone_bijux_cli.rs`
-- `no_thin_modules_policy.rs`
 - `ownership_contract.rs`
 - `path_policies.rs`
 - `pipelines_dependency_policy.rs`
@@ -85,6 +84,10 @@ Welcome to the Bijux Genomics documentation. Start with the overview and then di
 - `readme_policy.rs`
 - `runner_tree_policy.rs`
 - `snapshot_policy.rs`
+- `source_admission.rs` — core, infrastructure, defaults, and snapshot source authority and required-input refusal contracts.
+- `rust_source_intake.rs` — shared required Rust source acquisition for policy contracts.
+- `macos_dotfiles_tests.rs` — governed source observation and output-directory pruning contracts.
+- `resource_forks_tests.rs` — resource-fork source observation and output-directory pruning contracts.
 - `ssot_catalog_authority.rs`
 - `stage_specs_purity.rs`
 - `style_policy.rs`

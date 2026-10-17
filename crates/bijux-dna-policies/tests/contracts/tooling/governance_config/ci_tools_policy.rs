@@ -9,6 +9,163 @@ fn workspace_root() -> PathBuf {
     bijux_dna_testkit::workspace_root_from_manifest(env!("CARGO_MANIFEST_DIR"))
 }
 
+// Interpret actual run directives, never workflow names, comments or notice prose.
+// This lexer recognizes shell command boundaries and quoted arguments; it does
+// not execute shell text or claim to validate arbitrary shell programming.
+fn shell_commands(raw: &str) -> Vec<Vec<String>> {
+    let mut commands = Vec::new();
+    let mut words = Vec::new();
+    let mut word = String::new();
+    let mut quote = None;
+    let mut chars = raw.chars().peekable();
+    while let Some(ch) = chars.next() {
+        if ch == '$' && chars.peek() == Some(&'(') && quote != Some('\'') {
+            chars.next();
+            let mut depth = 1;
+            let mut substitution = String::new();
+            for next in chars.by_ref() {
+                match next {
+                    '(' => depth += 1,
+                    ')' => depth -= 1,
+                    _ => {}
+                }
+                if depth == 0 {
+                    break;
+                }
+                substitution.push(next);
+            }
+            commands.extend(shell_commands(&substitution));
+            word.push_str("${substitution}");
+            continue;
+        }
+        if ch == '`' && quote != Some('\'') {
+            let substitution = chars.by_ref().take_while(|next| *next != '`').collect::<String>();
+            commands.extend(shell_commands(&substitution));
+            word.push_str("${substitution}");
+            continue;
+        }
+        if ch == '\\' && quote != Some('\'') {
+            if let Some(next) = chars.next() {
+                if next != '\n' {
+                    word.push(next);
+                }
+            }
+            continue;
+        }
+        if let Some(active) = quote {
+            if ch == active {
+                quote = None;
+            } else {
+                word.push(ch);
+            }
+            continue;
+        }
+        match ch {
+            '\'' | '"' => quote = Some(ch),
+            '{' if word.is_empty() && words.is_empty() => commands.push(vec!["{".to_string()]),
+            '#' if word.is_empty() => {
+                for rest in chars.by_ref() {
+                    if rest == '\n' {
+                        break;
+                    }
+                }
+                if !words.is_empty() {
+                    commands.push(std::mem::take(&mut words));
+                }
+            }
+            '\n' | ';' | '&' | '|' => {
+                if !word.is_empty() {
+                    words.push(std::mem::take(&mut word));
+                }
+                if !words.is_empty() {
+                    commands.push(std::mem::take(&mut words));
+                }
+            }
+            ch if ch.is_whitespace() => {
+                if !word.is_empty() {
+                    words.push(std::mem::take(&mut word));
+                }
+            }
+            _ => word.push(ch),
+        }
+    }
+    if !word.is_empty() {
+        words.push(word);
+    }
+    if !words.is_empty() {
+        commands.push(words);
+    }
+    commands
+}
+
+fn command_start(words: &[String]) -> &[String] {
+    let mut start = 0;
+    while let Some(word) = words.get(start) {
+        if matches!(word.as_str(), "if" | "then" | "elif" | "do" | "!" | "exec" | "env" | "time")
+            || word.contains('=')
+        {
+            start += 1;
+        } else {
+            break;
+        }
+    }
+    &words[start..]
+}
+
+fn has_direct_cargo_verification(commands: &[Vec<String>]) -> bool {
+    commands.iter().any(|words| {
+        let words = command_start(words);
+        let Some(command) = words.first() else { return false };
+        if command == "cargo" {
+            if words == ["cargo", "nextest", "--version"] {
+                return false;
+            }
+            words
+                .iter()
+                .skip(1)
+                .any(|word| matches!(word.as_str(), "clippy" | "fmt" | "test" | "nextest" | "make"))
+        } else if matches!(command.as_str(), "sh" | "bash") {
+            words.windows(2).any(|pair| {
+                pair[0] == "-c" && has_direct_cargo_verification(&shell_commands(&pair[1]))
+            })
+        } else {
+            false
+        }
+    })
+}
+
+fn is_notice_only(commands: &[Vec<String>]) -> bool {
+    !commands.is_empty()
+        && commands.iter().all(|words| {
+            let words = command_start(words);
+            words.first().is_some_and(|word| {
+                matches!(word.as_str(), "set" | "echo" | "printf" | "{")
+                    || (word == "}" && words.get(1).is_some_and(|next| next.starts_with('>')))
+            })
+        })
+}
+
+fn workflow_uses_make_entrypoints(raw: &str) -> Result<bool, serde_yaml::Error> {
+    let workflow: serde_yaml::Value = serde_yaml::from_str(raw)?;
+    let runs = workflow["jobs"]
+        .as_mapping()
+        .into_iter()
+        .flat_map(|jobs| jobs.values())
+        .filter_map(|job| job["steps"].as_sequence())
+        .flatten()
+        .filter_map(|step| step["run"].as_str())
+        .map(shell_commands)
+        .collect::<Vec<_>>();
+    if runs.iter().any(|commands| has_direct_cargo_verification(commands)) {
+        return Ok(false);
+    }
+    let uses_make = runs
+        .iter()
+        .flatten()
+        .any(|words| command_start(words).first().is_some_and(|command| command == "make"));
+    Ok(uses_make || (!runs.is_empty() && runs.iter().all(|commands| is_notice_only(commands))))
+}
+
 #[test]
 fn policy__contracts__ci_tools_policy__workflows_use_make_only() {
     let root = workspace_root();
@@ -38,15 +195,7 @@ fn policy__contracts__ci_tools_policy__workflows_use_make_only() {
             continue;
         }
         let content = std::fs::read_to_string(entry.path()).expect("read workflow");
-        if content.contains("cargo clippy")
-            || content.contains("cargo fmt")
-            || content.contains("cargo test")
-            || content.contains("cargo nextest")
-            || content.contains("cargo make")
-        {
-            offenders.push(entry.path().display().to_string());
-        }
-        if !content.contains("make ") {
+        if !workflow_uses_make_entrypoints(&content).expect("parse workflow run directives") {
             offenders.push(entry.path().display().to_string());
         }
     }
@@ -60,10 +209,45 @@ fn policy__contracts__ci_tools_policy__workflows_use_make_only() {
 }
 
 #[test]
+fn policy__contracts__ci_tools_policy__notice_prose_does_not_select_verification_commands() {
+    let workflow = |run: &str| {
+        format!(
+            "jobs:\n  check:\n    steps:\n      - run: {}\n",
+            serde_json::to_string(run).unwrap()
+        )
+    };
+    for run in [
+        "make test",
+        "make ci-test-build\nversion=\"$(cargo nextest --version)\"",
+        "# cargo test is governed by Make\nmake lint",
+        "set -euo pipefail\n{\necho 'cargo test and make lint did not run'\nprintf '%s\\n' 'owner verification required'\n} >> \"$GITHUB_STEP_SUMMARY\"",
+    ] {
+        assert!(workflow_uses_make_entrypoints(&workflow(run)).unwrap(), "accepted: {run}");
+    }
+    for run in [
+        "cargo test",
+        "make ci-test-build\ncargo nextest --version run",
+        "make ci-test-build\ncargo nextest --version\ncargo nextest run",
+        "make lint\ncargo +stable -q test --workspace",
+        "env CARGO_NET_OFFLINE=true cargo clippy",
+        "bash -c 'cargo nextest run'",
+        "make lint\necho \"$(cargo test)\"",
+        "make lint\nprintf '%s' `cargo clippy`",
+        "{ cargo fmt; }",
+        "echo 'make test'\npython3 check.py",
+    ] {
+        assert!(!workflow_uses_make_entrypoints(&workflow(run)).unwrap(), "rejected: {run}");
+    }
+    assert!(!workflow_uses_make_entrypoints("name: make test\njobs: {}\n").unwrap());
+    assert!(workflow_uses_make_entrypoints("jobs: [").is_err());
+}
+
+#[test]
 fn policy__contracts__ci_tools_policy__serde_yaml_is_scoped() {
     let root = workspace_root();
     let expected = [
         "bijux-dna",
+        "bijux-dna-api",
         "bijux-dna-bench",
         "bijux-dna-containers",
         "bijux-dna-containers-qa",

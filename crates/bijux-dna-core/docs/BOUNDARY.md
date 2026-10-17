@@ -33,10 +33,17 @@ public stage and artifact contract product surface.
 
 ## Allowed Effects
 
-Most core operations are pure in-memory transformations. The explicit exception
-is `foundation::input_assessment`, which reads input files to discover FASTQ
-paths and hash file contents, and can persist a typed assessment payload when a
-caller invokes `write_input_assessment`.
+Most core operations are pure in-memory transformations. The retained local
+filesystem operations are:
+
+- `foundation::input_assessment` reads input files to discover FASTQ paths and
+  hash file contents. `write_input_assessment` can persist a caller-provided
+  typed assessment payload.
+- `contract::run` index query helpers read caller-provided index files and
+  return typed records. They do not publish, move or retain runtime artifacts.
+- `contract::validate_execution_outputs` recursively reads a caller-provided
+  output directory to check declared output patterns. It does not run tools or
+  write execution outputs.
 
 This crate must not spawn processes, perform network access, call product APIs,
 or mutate runtime state.

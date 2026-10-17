@@ -779,7 +779,9 @@ fn repository_root_offenders(root: &Path) -> Result<Vec<String>> {
     ];
     const FILES: &[&str] = &[
         ".git",
+        ".gitattributes",
         ".gitignore",
+        "CHANGELOG.md",
         "Cargo.lock",
         "Cargo.toml",
         "LICENSE",
@@ -787,6 +789,7 @@ fn repository_root_offenders(root: &Path) -> Result<Vec<String>> {
         "NOTICE",
         "README.md",
         "audit-allowlist.toml",
+        "mkdocs.shared.yml",
         "mkdocs.yml",
         "pyproject.toml",
         "rust-toolchain.toml",
@@ -797,6 +800,10 @@ fn repository_root_offenders(root: &Path) -> Result<Vec<String>> {
         let entry = entry?;
         let name = entry.file_name().to_string_lossy().to_string();
         let kind = entry.file_type()?;
+        // Finder metadata does not change the governed repository layout.
+        if kind.is_file() && name == ".DS_Store" {
+            continue;
+        }
         if (kind.is_dir() && DIRECTORIES.contains(&name.as_str()))
             || (kind.is_file() && FILES.contains(&name.as_str()))
         {
@@ -1071,7 +1078,7 @@ mod embedded_workspace_mirror_tests {
             std::fs::create_dir(root.path().join(name))?;
         }
         for name in [
-            ".DS_Store",
+            ".DS_Store.backup",
             "DATA_PORTFOLIO_AND_TRUTH_CONTRACT.md",
             "TARGET_ARCHITECTURE.md",
             "check.log",
@@ -1094,9 +1101,17 @@ mod embedded_workspace_mirror_tests {
         for directory in [".cargo", ".bijux", ".github", "artifacts", "crates", "docs"] {
             std::fs::create_dir(root.path().join(directory))?;
         }
-        for file in
-            [".git", ".gitignore", "Cargo.toml", "Cargo.lock", "README.md", "pyproject.toml"]
-        {
+        for file in [
+            ".git",
+            ".gitattributes",
+            ".gitignore",
+            "CHANGELOG.md",
+            "Cargo.toml",
+            "Cargo.lock",
+            "README.md",
+            "mkdocs.shared.yml",
+            "pyproject.toml",
+        ] {
             std::fs::write(root.path().join(file), b"governed")?;
         }
         assert!(repository_root_offenders(root.path())?.is_empty());
@@ -1108,6 +1123,22 @@ mod embedded_workspace_mirror_tests {
         Ok(())
     }
 
+    #[test]
+    fn repository_root_ignores_only_regular_finder_metadata() -> anyhow::Result<()> {
+        let root = tempfile::tempdir()?;
+        let metadata = root.path().join(".DS_Store");
+        std::fs::write(&metadata, b"preserved Finder metadata")?;
+        assert!(repository_root_offenders(root.path())?.is_empty());
+        assert_eq!(std::fs::read(&metadata)?, b"preserved Finder metadata");
+        std::fs::remove_file(&metadata)?;
+        std::fs::create_dir(&metadata)?;
+        assert_eq!(
+            repository_root_offenders(root.path())?,
+            [".DS_Store: unexpected repository-root entry"]
+        );
+        Ok(())
+    }
+
     #[cfg(unix)]
     #[test]
     fn repository_root_rejects_symlinks_that_hide_output_locations() -> anyhow::Result<()> {
@@ -1115,9 +1146,14 @@ mod embedded_workspace_mirror_tests {
         std::fs::create_dir(root.path().join("artifacts"))?;
         std::os::unix::fs::symlink("artifacts", root.path().join("runs"))?;
         std::os::unix::fs::symlink("artifacts", root.path().join("crates"))?;
+        std::os::unix::fs::symlink("artifacts", root.path().join(".DS_Store"))?;
         assert_eq!(
             repository_root_offenders(root.path())?,
-            ["crates: unexpected repository-root entry", "runs: unexpected repository-root entry",]
+            [
+                ".DS_Store: unexpected repository-root entry",
+                "crates: unexpected repository-root entry",
+                "runs: unexpected repository-root entry",
+            ]
         );
         Ok(())
     }
@@ -1225,6 +1261,56 @@ mod embedded_workspace_mirror_tests {
             CONTAINER_ROOT_FILES,
         )?
         .is_empty());
+        Ok(())
+    }
+}
+
+#[cfg(test)]
+mod target_path_tests {
+    use super::check_no_target_paths_in_tests;
+    use crate::model::check::{
+        CheckDefinition, CheckStatus, CommandSpec, ExecutionMode, NativeCheckKey,
+    };
+    use crate::runtime::workspace::Workspace;
+
+    #[test]
+    fn target_path_guard_rejects_shared_build_roots_and_accepts_owned_product_paths(
+    ) -> anyhow::Result<()> {
+        let directory = tempfile::tempdir()?;
+        let workspace = Workspace { root: directory.path().to_path_buf() };
+        let check = CheckDefinition {
+            id: "check-no-target-paths-in-tests",
+            version: 1,
+            summary: "Reject shared target paths".to_string(),
+            aliases: &[],
+            execution_mode: ExecutionMode::Primary,
+            command: CommandSpec::Native { key: NativeCheckKey::NoTargetPathsInTests },
+        };
+        let rust = workspace.path("crates/fixture/tests/contracts.rs");
+        let shell = workspace.path("makes/check.sh");
+        let python = workspace.path("makes/check.py");
+        for path in [&rust, &shell, &python] {
+            std::fs::create_dir_all(
+                path.parent().ok_or_else(|| anyhow::anyhow!("fixture parent"))?,
+            )?;
+            std::fs::write(path, "")?;
+        }
+        for (path, source) in [
+            (&rust, r#"std::fs::write("target/debug/result", b"output")?;"#),
+            (&shell, "printf result > target/debug/result"),
+            (&python, "open('target/debug/result', 'w').write('output')"),
+        ] {
+            std::fs::write(path, source)?;
+            let outcome = check_no_target_paths_in_tests(&workspace, &check)?;
+            assert_eq!(outcome.status, CheckStatus::Failed, "{source}");
+            assert_eq!(outcome.detail, workspace.rel(path).to_string_lossy());
+            assert_eq!(std::fs::read_to_string(path)?, source);
+            std::fs::write(path, "")?;
+        }
+        std::fs::write(&rust, r#"let binary = owned_products.join("debug/cli");"#)?;
+        std::fs::write(&shell, "printf result > artifacts/target/result")?;
+        std::fs::write(&python, "open('artifacts/target/result', 'w').write('output')")?;
+        assert_eq!(check_no_target_paths_in_tests(&workspace, &check)?.status, CheckStatus::Passed);
         Ok(())
     }
 }

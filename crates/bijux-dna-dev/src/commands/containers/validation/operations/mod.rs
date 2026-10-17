@@ -32,6 +32,7 @@ mod imputation;
 mod orchestration;
 mod provenance;
 mod release_checks;
+mod reproducibility;
 mod runtime_smoke;
 mod smoke_contract;
 

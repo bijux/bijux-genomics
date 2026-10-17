@@ -62,3 +62,17 @@ Governed BAM case output paths must use `artifacts/runs/bench/local-smoke` under
 the supplied repository root. Planning rejects parent traversal and sample/tool
 path injection while retaining valid relative, absolute, and space-containing
 paths. Filesystem link and concurrent replacement checks remain with materialization.
+
+BAM registry observations have an explicit request lifetime. The additive
+`selection/registry.rs` observation captures its root without IO, then lazily
+validates both repository manifests and the selected tool registry on first BAM
+candidate demand. Only a successful parsed observation is retained. Failed
+admission remains retryable, and a fresh request observes current source bytes.
+The CLI serving adapter pins its corpus, definition and registry observations to
+the same root; FASTQ-only serving does not acquire the BAM registry. Candidate
+union and sorting stay in the existing selection authority.
+
+The legacy allowed/default tool functions still read freshly on every call,
+including their existing unbound optional-registry fallback and explicit-root
+refusal behavior. Other independent planning/reference observations retain their
+existing acquisition; this change does not create a global repository cache.

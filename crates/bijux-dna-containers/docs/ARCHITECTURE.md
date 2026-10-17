@@ -78,3 +78,17 @@ Image campaign ownership is explicit under `build/campaign`: wire models and sch
 Result movement separates decoded observations, pure admission, repository effects, flattening and superseded-attempt lifecycle. Saved plans bind each movement to current lock/ledger identities, canonical source and destination, and checked inventory totals before mutation. Evidence digests do not authorize changing a destination or substituting a different attempt.
 
 External artifact admission projects catalog version argv and interprets raw evidence. Shared process transport owns spawning, process-group cancellation, a30-second deadline and a64KiB combined stdout/stderr budget. Bounded collection rejects unsupported non-Unix platforms before launching. Invalid, excessive or timed-out probes cannot publish an admission record.
+
+Image-storage plan creation acquires its decoded inventory and source digest from one UTF-8
+buffer. Legacy normalization changes the value projection while the saved digest commits to the
+original bytes. The private observation is consumed by storage creation; other image and catalog
+files remain separate observations. Apply still rechecks the saved inventory identity before
+mutating images. FIFO custody contracts exercise the real path facade under
+`tests/contracts/image_storage/inventory_observation.rs`; recovery and report cases remain with
+`tests/contracts/image_storage_reconciliation.rs`.
+
+Apptainer definition linting belongs to `evidence/tool_contract/definition_lint.rs`. It inspects
+acquired text and returns ordered typed issues for package-removal substrings, required sections,
+runscript argument forwarding and governed OCI metadata. CLI traversal, read errors, source-scope
+selection and diagnostic presentation remain with the command. These lexical checks do not parse
+the complete definition language or prove an image builds or executes.

@@ -10,7 +10,7 @@ of authored domain YAML.
 - Keep generated output order deterministic.
 - Preserve planned alternatives in metadata without promoting planned-only tools into governed
   runtime registries.
-- Expose the two command binaries documented in [COMMANDS.md](COMMANDS.md).
+- Expose the four command binaries documented in [COMMANDS.md](COMMANDS.md).
 
 ## Out of Scope
 

@@ -41,9 +41,12 @@ serialization, metric contracts, and the curated prelude surface.
 ## Boundaries
 
 Core must not depend on domain, planner, API, engine, runner, or CLI crates. It
-may define pure contracts consumed by those crates. The only documented
-filesystem exception is `foundation::input_assessment`, which discovers and
-writes typed FASTQ assessment contracts.
+may define pure contracts consumed by those crates. Retained filesystem helpers
+are limited to typed FASTQ input assessment, read-only run-index queries and
+execution-output inspection. `foundation::input_assessment` can discover and
+hash input files and persist an assessment; the run-index and output-validation
+helpers only read caller-provided paths. These helpers do not execute workflows
+or publish runtime artifacts.
 
 ## Dependency Direction
 

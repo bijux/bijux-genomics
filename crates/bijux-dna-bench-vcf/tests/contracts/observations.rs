@@ -40,8 +40,14 @@ fn repeated_report_publication_reuses_acquired_fixture_observations() -> Result<
         serde_json::from_slice::<serde_json::Value>(&std::fs::read(&second)?)?,
         serde_json::to_value(&right)?
     );
-    assert_eq!(left.output_path, first.to_string_lossy());
-    assert_eq!(right.output_path, second.to_string_lossy());
+    assert_eq!(
+        left.output_path,
+        first.strip_prefix(&root).unwrap_or(&first).to_string_lossy().replace('\\', "/")
+    );
+    assert_eq!(
+        right.output_path,
+        second.strip_prefix(&root).unwrap_or(&second).to_string_lossy().replace('\\', "/")
+    );
     Ok(())
 }
 

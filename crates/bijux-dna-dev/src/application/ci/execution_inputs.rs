@@ -25,6 +25,14 @@ impl NextestReuseInputs {
         Ok(Self { cargo_metadata, binaries_metadata, target_root })
     }
 
+    pub(crate) fn target_root(&self) -> &Path {
+        &self.target_root
+    }
+
+    pub(crate) fn binaries_metadata(&self) -> &Path {
+        &self.binaries_metadata
+    }
+
     /// Preserve Cargo/build identities while selecting a separately admitted binary inventory.
     pub(crate) fn with_binaries_metadata(&self, binaries_metadata: PathBuf) -> Result<Self> {
         Self::new(self.cargo_metadata.clone(), binaries_metadata, self.target_root.clone())

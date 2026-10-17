@@ -51,6 +51,15 @@ This crate owns developer automation contracts, not production pipeline contract
   [--apply] <pipelines-root>` plans or atomically applies inventory-bound repository and image
   identities while preserving all other declaration content.
 
+## Example bundle contract
+
+`examples run run -- <example-id>` transports the example's governed golden
+outputs into a deterministic bundle. It invokes archive creation and verifies
+copied bytes; it does not run the illustrated scientific pipeline or its container
+providers. Existing report field names and workflow step labels remain compatible.
+`run_report.json` success describes bundle assembly, and its step names do not
+attest that image preparation or benchmark stages executed.
+
 ## Artifact contract
 - Generated reports, logs, run products, and local command outputs default to the repository root `artifacts/` tree.
 - Commands that intentionally update governed outputs outside `artifacts/` must name the owned output path in docs or command help.

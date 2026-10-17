@@ -8,7 +8,9 @@ documentation belongs here rather than in nested test README files.
 - `tests/boundaries.rs`: architecture tree checks, public-surface limits, ownership guardrails,
   docs-layout limits, and layering rules
 - `tests/contracts.rs`: report artifacts, facts, dashboard exports, loader behavior, public API
-  compatibility, pipeline handoff rules, and performance/privacy contracts
+  compatibility, pipeline handoff rules, and performance/privacy contracts.
+  Each leaf is registered once in this suite; pipeline and report cases use the direct module
+  registrations so their case identities stay stable.
 - `tests/determinism.rs`: canonical fixture ordering and stable serialization guarantees
 - `tests/schemas.rs`: SQLite migrations, latest-schema reads, deterministic query behavior, and
   SQL query linting

@@ -1,3 +1,7 @@
+#[cfg(unix)]
+#[path = "image_activation/inventory_observation.rs"]
+mod inventory_observation;
+
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 

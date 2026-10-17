@@ -89,3 +89,125 @@ fn public_artifact_projection_rejects_escaping_paths() -> anyhow::Result<()> {
     assert!(paths.path(&destination.join("outside.txt")).is_err());
     Ok(())
 }
+
+#[test]
+fn malformed_current_report_is_refused_before_stable_replacement() -> anyhow::Result<()> {
+    let repository = tempfile::tempdir()?;
+    let destination = repository.path().join("publication");
+    let first = execution(&destination, "existing")?;
+    PublicationPlan::admit(repository.path(), &first, &destination, &owner(), &SCHEMA)?
+        .publish()?;
+    let report = std::fs::read(destination.join("metrics.json"))?;
+    let native = std::fs::read(destination.join("native.txt"))?;
+    let inventory = std::fs::read(destination.join(SCHEMA.inventory_name))?;
+    let malformed = execution(&destination, "malformed-current-report")?;
+    std::fs::write(malformed.join("metrics.json"), b"{malformed native report")?;
+    assert!(
+        PublicationPlan::admit(repository.path(), &malformed, &destination, &owner(), &SCHEMA)
+            .is_err(),
+        "current malformed report must not become a publication plan"
+    );
+    assert_eq!(std::fs::read(destination.join("metrics.json"))?, report);
+    assert_eq!(std::fs::read(destination.join("native.txt"))?, native);
+    assert_eq!(std::fs::read(destination.join(SCHEMA.inventory_name))?, inventory);
+    Ok(())
+}
+
+#[test]
+fn invalid_current_report_identity_preserves_fresh_and_existing_publication() -> anyhow::Result<()>
+{
+    let repository = tempfile::tempdir()?;
+    let malformed: [&[u8]; 13] = [
+        b"{malformed report",
+        b"null",
+        b"[]",
+        br#"["example.metrics.v1","vcf.qc","plink2"]"#,
+        br#"{"schema_version":"example.metrics.v1","stage_id":"vcf.qc"}"#,
+        br#"{"schema_version":1,"stage_id":"vcf.qc","tool_id":"plink2"}"#,
+        br#"{"schema_version":"example.metrics.v1","stage_id":null,"tool_id":"plink2"}"#,
+        br#"{"schema_version":"foreign.metrics.v1","stage_id":"vcf.qc","tool_id":"plink2"}"#,
+        br#"{"schema_version":"example.metrics.v1","stage_id":"foreign.stage","tool_id":"plink2"}"#,
+        br#"{"schema_version":"example.metrics.v1","stage_id":"vcf.qc","tool_id":"foreign.tool"}"#,
+        br#"{"schema_version":"foreign","schema_version":"example.metrics.v1","stage_id":"vcf.qc","tool_id":"plink2"}"#,
+        br#"{"schema_version":"example.metrics.v1","stage_id":"foreign","stage_id":"vcf.qc","tool_id":"plink2"}"#,
+        br#"{"schema_version":"example.metrics.v1","stage_id":"vcf.qc","tool_id":"foreign","tool_id":"plink2"}"#,
+    ];
+    for retained in [false, true] {
+        let destination =
+            repository.path().join(if retained { "published" } else { "unpublished" });
+        let checkpoints = if retained {
+            let original = execution(&destination, "retained")?;
+            PublicationPlan::admit(repository.path(), &original, &destination, &owner(), &SCHEMA)?
+                .publish()?;
+            ["metrics.json", "native.txt", SCHEMA.inventory_name]
+                .into_iter()
+                .map(|name| Ok((name, std::fs::read(destination.join(name))?)))
+                .collect::<anyhow::Result<Vec<_>>>()?
+        } else {
+            Vec::new()
+        };
+        let run = execution(&destination, "invalid-report")?;
+        for payload in malformed {
+            std::fs::write(run.join("metrics.json"), payload)?;
+            assert!(PublicationPlan::admit(
+                repository.path(),
+                &run,
+                &destination,
+                &owner(),
+                &SCHEMA
+            )
+            .is_err());
+            assert_eq!(std::fs::read(run.join("metrics.json"))?, payload);
+            if retained {
+                for (name, bytes) in &checkpoints {
+                    assert_eq!(std::fs::read(destination.join(name))?, *bytes);
+                }
+            } else {
+                assert!(!destination.join("metrics.json").exists());
+                assert!(!destination.join("native.txt").exists());
+                assert!(!destination.join(SCHEMA.inventory_name).exists());
+            }
+        }
+    }
+    Ok(())
+}
+
+#[test]
+fn report_identity_allows_scientific_fields_and_enforces_existing_report_byte_bound(
+) -> anyhow::Result<()> {
+    let repository = tempfile::tempdir()?;
+    let destination = repository.path().join("publication");
+    let run = execution(&destination, "bounded-report")?;
+    let prefix = br#"{"schema_version":"example.metrics.v1","stage_id":"vcf.qc","tool_id":"plink2","scientific_payload":""#;
+    let mut payload = prefix.to_vec();
+    payload.resize(8 * 1024 * 1024 - 2, b'x');
+    payload.extend_from_slice(b"\"}");
+    std::fs::write(run.join("metrics.json"), &payload)?;
+    PublicationPlan::admit(repository.path(), &run, &destination, &owner(), &SCHEMA)?.publish()?;
+    assert_eq!(std::fs::read(destination.join("metrics.json"))?, payload);
+    assert_eq!(std::fs::read(run.join("metrics.json"))?, payload);
+    payload.push(b' ');
+    let oversized = execution(&destination, "oversized-report")?;
+    std::fs::write(oversized.join("metrics.json"), &payload)?;
+    assert!(PublicationPlan::admit(repository.path(), &oversized, &destination, &owner(), &SCHEMA)
+        .is_err());
+    assert_eq!(std::fs::metadata(destination.join("metrics.json"))?.len(), 8 * 1024 * 1024);
+    Ok(())
+}
+
+#[test]
+fn empty_declared_report_owner_cannot_admit_a_fresh_publication() -> anyhow::Result<()> {
+    let repository = tempfile::tempdir()?;
+    let destination = repository.path().join("publication");
+    let run = execution(&destination, "owned-report")?;
+    for declared in [
+        ReportOwner { schema: "", ..owner() },
+        ReportOwner { stage: " ", ..owner() },
+        ReportOwner { tool: "", ..owner() },
+    ] {
+        assert!(PublicationPlan::admit(repository.path(), &run, &destination, &declared, &SCHEMA)
+            .is_err());
+        assert!(!destination.join("metrics.json").exists());
+    }
+    Ok(())
+}

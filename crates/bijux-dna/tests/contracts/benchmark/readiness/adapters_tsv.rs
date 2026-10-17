@@ -1,20 +1,25 @@
 #![allow(clippy::expect_used, clippy::too_many_lines)]
 
-use std::process::Command;
-
-use crate::support;
-
 #[test]
 fn bench_readiness_all_domain_adapter_coverage_writes_governed_tsv_file() {
-    let _cwd_guard = support::CWD_LOCK.lock().expect("cwd lock");
-    let _env_guard = support::EnvGuard::new().expect("capture env");
-    let _crate_root = support::crate_root("bijux-dna").expect("crate root");
-    let repo_root = support::repo_root().expect("repo root");
-    let home = tempfile::tempdir().expect("tempdir");
+    let sandbox =
+        super::adapter_fixture::new("all-domain-adapter-coverage-tsv-").expect("repo sandbox");
+    let repo_root = sandbox.path();
+    let runtime_root = sandbox.path().join("artifacts/test-runtime");
+    std::fs::create_dir_all(&runtime_root).expect("private runtime root");
+    let home = tempfile::Builder::new()
+        .prefix("adapter-runtime-")
+        .tempdir_in(&runtime_root)
+        .expect("private runtime directory");
 
-    let output = Command::new(env!("CARGO_BIN_EXE_bijux-dna"))
-        .current_dir(&repo_root)
-        .env("HOME", home.path())
+    let output = sandbox
+        .bijux_dna_command()
+        .envs([
+            ("HOME", home.path()),
+            ("TMPDIR", home.path()),
+            ("TMP", home.path()),
+            ("TEMP", home.path()),
+        ])
         .env("BIJUX_SKIP_QA", "1")
         .env("BIJUX_ALLOW_SILVER", "1")
         .env("BIJUX_SKIP_IMAGE_CHECK", "1")

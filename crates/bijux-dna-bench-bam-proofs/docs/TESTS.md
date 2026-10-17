@@ -19,3 +19,8 @@ Retained-tool contracts exercise missing/foreign binding identities, exact stage
 cardinality, continued diagnostics after a failed stage, provider refusal before aggregate
 replacement, and rejection of a foreign root before source effects. The original public
 and inline aggregate consumers exercise canonical all-feature composition.
+
+`src/parser_probes/reports/tests.rs` retains captured-text identity after path
+replacement and rejects duplicate typed fields before JSON projection.
+`tests/contracts/parser_reports.rs` checks public typed-schema failures,
+read/parse path diagnostics and historically lenient contamination/sex documents.

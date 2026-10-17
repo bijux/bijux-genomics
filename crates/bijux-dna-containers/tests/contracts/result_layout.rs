@@ -1,3 +1,6 @@
+#[path = "result_layout/resume_recovery.rs"]
+mod resume_recovery;
+
 use std::fs;
 use std::path::{Path, PathBuf};
 
@@ -89,6 +92,7 @@ fn flat_layout_plan_apply_verify_and_rollback_preserve_bytes() -> Result<()> {
 
     assert_eq!(rollback_result_layout(&plan_path, &runs, &result_root, "2026-08-07T03:02:00Z")?, 1);
     assert_eq!(fs::read(result_root.join("samtools/run-1001/sample.bam"))?, b"governed-bam");
+    resume_recovery::require_recorded_rename_recovery(&runs, &result_root)?;
     Ok(())
 }
 

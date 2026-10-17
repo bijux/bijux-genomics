@@ -1,6 +1,6 @@
 pub(crate) use bijux_dna_api::v1::api::env::delivery::{
     load_benchmark_integrated_container_tool_ids, load_external_artifact_binding_keys,
-    load_external_artifact_tool_contracts, ExternalArtifactToolContract,
+    load_external_artifact_tool_contracts,
 };
 use std::collections::{BTreeMap, BTreeSet};
 use std::fs;

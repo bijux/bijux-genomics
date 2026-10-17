@@ -8,6 +8,8 @@
 )]
 
 // Auto-generated test aggregator for contracts
+#[path = "contracts/invocation_environment.rs"]
+mod invocation_environment;
 #[path = "contracts/fastq_amplicon_governance_contract.rs"]
 mod mod_contracts_fastq_amplicon_governance_contract_rs;
 #[path = "contracts/v1_bam_local_align_plan.rs"]

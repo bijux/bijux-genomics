@@ -1,9 +1,10 @@
 use anyhow::Result;
 
-/// Stubbed image QA runner for API surface parity.
+/// Image QA compatibility hook without probe or evidence effects.
 ///
 /// # Errors
-/// Returns `Ok(())` in production builds; QA enforcement lives in the QA crate.
+/// Returns `Ok(())` without validating the platform argument; explicit QA execution
+/// and pass-record validation belong to `bijux-dna-containers-qa`.
 pub fn run_image_qa(_platform_name: Option<&str>) -> Result<()> {
     Ok(())
 }

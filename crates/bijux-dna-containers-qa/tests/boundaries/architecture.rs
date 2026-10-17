@@ -92,18 +92,18 @@ fn source_tree_matches_architecture_contract() {
 
     assert_eq!(
         dir_entries(&root.join("src/image_qa/runtime_verification")),
-        btree_set(&["apptainer_smoke.rs", "mod.rs", "workflow.rs"]),
+        btree_set(&["apptainer_smoke/", "apptainer_smoke.rs", "mod.rs", "workflow.rs"]),
         "runtime verification must isolate effectful catalog-wide probe orchestration"
     );
     assert_eq!(
         dir_entries(&root.join("src/security_verification")),
-        btree_set(&["mod.rs", "workflow.rs"]),
-        "security verification must contain only effectful probe orchestration"
+        btree_set(&["mod.rs", "workflow.rs", "workflow/"]),
+        "security verification owns probe orchestration and its private contract leaves"
     );
 
     assert_eq!(
         dir_entries(&root.join("src/image_qa/records")),
-        btree_set(&["builder.rs", "mod.rs", "pass_cache.rs", "store.rs"]),
+        btree_set(&["builder.rs", "builder/", "mod.rs", "pass_cache.rs", "store.rs"]),
         "record tree must stay split by persistence concern"
     );
 

@@ -4,36 +4,6 @@ use std::path::PathBuf;
 const NORMAL_DEPS: &[&str] = &["rand", "serde_json", "tempfile"];
 const DEV_DEPS: &[&str] = &["bijux-dna-policies"];
 
-const FORBIDDEN_NORMAL_DEPS: &[&str] = &[
-    "bijux-dna",
-    "bijux-dna-analyze",
-    "bijux-dna-api",
-    "bijux-dna-bench",
-    "bijux-dna-bench-model",
-    "bijux-dna-core",
-    "bijux-dna-db-ena",
-    "bijux-dna-db-ref",
-    "bijux-dna-domain-bam",
-    "bijux-dna-domain-compiler",
-    "bijux-dna-domain-fastq",
-    "bijux-dna-domain-vcf",
-    "bijux-dna-engine",
-    "bijux-dna-containers",
-    "bijux-dna-containers-qa",
-    "bijux-dna-infra",
-    "bijux-dna-pipelines",
-    "bijux-dna-planner-bam",
-    "bijux-dna-planner-fastq",
-    "bijux-dna-planner-vcf",
-    "bijux-dna-runner",
-    "bijux-dna-runtime",
-    "bijux-dna-science",
-    "bijux-dna-stage-contract",
-    "bijux-dna-stages-bam",
-    "bijux-dna-stages-fastq",
-    "bijux-dna-stages-vcf",
-];
-
 #[test]
 fn normal_dependency_graph_stays_test_helper_only() {
     let manifest = manifest();
@@ -54,18 +24,6 @@ fn dev_dependency_graph_stays_policy_only() {
         set(DEV_DEPS),
         "dev dependencies must stay limited to policy validation"
     );
-}
-
-#[test]
-fn testkit_rejects_required_product_crate_edges() {
-    let normal_deps = section_keys(&manifest(), "dependencies");
-
-    for forbidden in FORBIDDEN_NORMAL_DEPS {
-        assert!(
-            !normal_deps.contains(*forbidden),
-            "testkit must not require product workspace crate {forbidden}"
-        );
-    }
 }
 
 fn manifest() -> String {

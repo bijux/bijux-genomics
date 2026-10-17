@@ -528,3 +528,13 @@ result report and stage manifest before producing the four-field normalized
 parser snapshot. Schema, six identities, counts, metric-name uniqueness, finite
 duration, stage/tool/runtime and exact declared output observations must agree.
 This proves report consistency; it does not verify scientific output contents.
+
+`validate_hpc_campaign_config_source` parses declared TOML in memory before
+confidentiality admission. Quoted and escaped keys, inline tables, nested values
+and arrays obey the same policy as ordinary declarations. Non-empty confidential
+Slurm fields and sensitive values reject; empty values, recognized placeholders
+and declared secret-reference fields remain admissible. Diagnostics identify
+keys without reproducing values; malformed TOML refuses without source excerpts.
+This operation reads no environment or files and does not certify tool availability.
+
+`index_canonical_benchmark_result_bindings` returns an opaque `CanonicalBenchmarkResultIndex` over explicit `CanonicalBenchmarkResultBinding` values and appends ordered `CanonicalResultIdentityViolation` diagnostics. After acquisition, `reconcile_canonical_benchmark_result_identities` compares borrowed `AllDomainExpectedBenchmarkResultRow` values, retaining diagnostics before the first unchanged Core parsing error. The new values are in-memory contracts without serde/schema changes; callers retain report serialization and acquisition errors.

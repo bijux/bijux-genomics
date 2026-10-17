@@ -9,6 +9,7 @@ include $(BIJUX_MAKES_SHARED_ROOT)/bijux-makes/environment.mk
 include $(BIJUX_MAKES_SHARED_ROOT)/bijux-makes/guards.mk
 
 include $(ROOT_MK_DIR)/_macro.mk
+include $(ROOT_MK_DIR)/runtime.mk
 include $(ROOT_MK_DIR)/cargo.mk
 include $(ROOT_MK_DIR)/cargo-dev.mk
 include $(ROOT_MK_DIR)/containers.mk
@@ -23,6 +24,8 @@ include $(ROOT_MK_DIR)/bijux-std.mk
 include $(BIJUX_MAKES_SHARED_ROOT)/bijux-makes-rs/bijux.mk
 
 .DEFAULT_GOAL := help
+
+.PHONY: help _prep-apptainer-batch _gc-mac
 
 ##@ General
 

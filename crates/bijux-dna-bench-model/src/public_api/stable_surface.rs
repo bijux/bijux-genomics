@@ -4,17 +4,19 @@
 pub use crate::contract::{
     admit_real_smoke_core_subset_report, build_benchmark_local_hpc_array_resource_envelope,
     build_benchmark_local_hpc_dependency_simulation, build_benchmark_local_hpc_job_graph,
-    project_benchmark_local_hpc_tool_scopes, validate_all_domain_expected_result_rows,
+    index_canonical_benchmark_result_bindings, project_benchmark_local_hpc_tool_scopes,
+    reconcile_canonical_benchmark_result_identities, validate_all_domain_expected_result_rows,
     validate_all_domain_output_declaration_rows, validate_all_domain_output_declarations_report,
     validate_all_domain_rendered_command_rows, validate_all_domain_stage_tool_table_rows,
-    validate_stage_tool_assets_config, validate_stage_tool_assets_report,
-    validate_stage_tool_containers_config, validate_stage_tool_containers_report,
-    validate_stage_tool_resources_config, validate_stage_tool_resources_report,
-    AllDomainStageToolTableAdmissionContext, BenchmarkLocalHpcToolScope,
-    ALL_DOMAIN_OUTPUT_DECLARATIONS_SCHEMA_V1, LOCAL_STAGE_TOOL_ASSETS_SCHEMA_V1,
-    LOCAL_STAGE_TOOL_CONTAINERS_SCHEMA_V1, LOCAL_STAGE_TOOL_RESOURCES_SCHEMA_V1,
-    STAGE_TOOL_ASSETS_REPORT_SCHEMA_V1, STAGE_TOOL_CONTAINERS_REPORT_SCHEMA_V1,
-    STAGE_TOOL_RESOURCES_REPORT_SCHEMA_V1,
+    validate_governed_stage_tool_asset_coverage, validate_stage_tool_assets_config,
+    validate_stage_tool_assets_report, validate_stage_tool_containers_config,
+    validate_stage_tool_containers_report, validate_stage_tool_resources_config,
+    validate_stage_tool_resources_report, AllDomainStageToolTableAdmissionContext,
+    BenchmarkLocalHpcToolScope, CanonicalBenchmarkResultBinding, CanonicalBenchmarkResultIndex,
+    CanonicalResultIdentityViolation, ALL_DOMAIN_OUTPUT_DECLARATIONS_SCHEMA_V1,
+    LOCAL_STAGE_TOOL_ASSETS_SCHEMA_V1, LOCAL_STAGE_TOOL_CONTAINERS_SCHEMA_V1,
+    LOCAL_STAGE_TOOL_RESOURCES_SCHEMA_V1, STAGE_TOOL_ASSETS_REPORT_SCHEMA_V1,
+    STAGE_TOOL_CONTAINERS_REPORT_SCHEMA_V1, STAGE_TOOL_RESOURCES_REPORT_SCHEMA_V1,
 };
 pub use crate::model::benchmark_config::{
     benchmark_config_schema, BenchmarkConfig, BenchmarkCorpusConfig,
@@ -932,10 +934,15 @@ pub use crate::policy::hpc_array::pipeline::{
 };
 
 pub use crate::policy::hpc_resources::{
-    project_hpc_job_resources, resolve_hpc_job_resources, HpcJobResourceHints,
+    fastq_benchmark_walltime_minutes, project_hpc_job_resources, resolve_hpc_job_resources,
+    vcf_benchmark_walltime_minutes, HpcJobResourceHints,
 };
 
+pub use crate::policy::bam_campaign::derive_bam_benchmark_campaign;
+pub use crate::policy::cross_campaign::derive_cross_benchmark_campaign;
+pub use crate::policy::fastq_campaign::derive_fastq_benchmark_campaign;
 pub use crate::policy::hardening_campaign::derive_hardening_benchmark_campaign;
+pub use crate::policy::vcf_campaign::derive_vcf_benchmark_campaign;
 
 pub use crate::policy::hpc_asset_staging::{
     assemble_hpc_asset_staging_manifest, compare_hpc_asset_staging_manifest,
@@ -1001,3 +1008,17 @@ pub use crate::policy::operational_readiness::harness;
 pub use crate::contract::project_all_domain_simulation_parser_row;
 
 pub use crate::model::scope_views::DEFAULT_ALL_DOMAIN_ACTIVE_STAGE_TOOL_MATRIX_PATH;
+
+pub use crate::model::taxonomy_judgment::{
+    AdmittedBenchmarkTaxonomyObservation, BenchmarkTaxonomyExpectationRowJudgment,
+    BenchmarkTaxonomyJudgmentInput, BenchmarkTaxonomyObservedTaxon,
+    BenchmarkTaxonomyOutputJudgmentReport, BenchmarkTaxonomySampleJudgment,
+    BENCHMARK_TAXONOMY_OUTPUT_JUDGMENT_SCHEMA_VERSION,
+};
+pub use crate::policy::taxonomy_judgment::{
+    decode_benchmark_taxonomy_observation, evaluate_benchmark_taxonomy_outputs,
+};
+
+pub use crate::policy::scientific_acceptance::{
+    derive_fastq_scientific_acceptance_threshold, derive_vcf_scientific_acceptance_threshold,
+};

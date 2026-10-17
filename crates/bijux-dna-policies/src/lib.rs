@@ -76,3 +76,10 @@ pub use tool_eligibility::{
 pub use checks::workspace_dependencies::{
     analyze_workspace_dependencies, WorkspaceDependencyAnalysis,
 };
+
+pub use checks::workspace_source_audits::{
+    evaluate_workspace_source_audit, forbidden_workspace_execution_dependencies,
+    workspace_execution_owner_dependencies, workspace_source_matches, WorkspaceExecutionDependency,
+    WorkspaceForbiddenDependency, WorkspaceSourceAuditInput, WorkspaceSourceMatch,
+    WorkspaceSourceRule,
+};

@@ -102,13 +102,22 @@ pub fn apply_result_layout(
             validate_inventory(&target, &lock.source_files)?;
             continue;
         }
-        if !source.is_dir() || path_exists(&target)? {
-            bail!("result move precondition failed: {} -> {}", source.display(), target.display());
+        if !path_exists(&source)? && path_exists(&target)? {
+            validate_inventory(&target, &lock.source_files)?;
+        } else {
+            if !source.is_dir() || path_exists(&target)? {
+                bail!(
+                    "result move precondition failed: {} -> {}",
+                    source.display(),
+                    target.display()
+                );
+            }
+            validate_inventory(&source, &lock.source_files)?;
+            fs::rename(&source, &target).with_context(|| {
+                format!("move result {} -> {}", source.display(), target.display())
+            })?;
+            validate_inventory(&target, &lock.source_files)?;
         }
-        validate_inventory(&source, &lock.source_files)?;
-        fs::rename(&source, &target)
-            .with_context(|| format!("move result {} -> {}", source.display(), target.display()))?;
-        validate_inventory(&target, &lock.source_files)?;
         plan.moves[index].applied = true;
         plan.moves[index].applied_at_utc = Some(observed_at_utc.to_string());
         write_json(plan_path, &plan)?;

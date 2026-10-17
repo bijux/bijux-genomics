@@ -67,6 +67,13 @@ CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna --test contracts
 CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna --no-default-features
 ```
 
+The retained-toolset execution gate has one successful sandboxed workflow. Its
+text path is checked against the default relative output path, and the real
+persisted report owns the full schema, tool/count, per-goal and output-audit
+assertions. The failed-report case separately exercises JSON stdout equality
+with its physical diagnostic report and text path presentation before failure.
+Successful JSON presentation is not a separate complete workflow invocation.
+
 ## Snapshot Rules
 Update snapshots only when the command surface, output format, or public export intentionally
 changes. Snapshot diffs must be reviewed as contract changes, not accepted mechanically.
@@ -88,6 +95,8 @@ Active-scope completion runs one sandboxed workflow. Its JSON command case compa
 
 All-domain catalog and admission contracts link through `bench_readiness_all_domain_catalog` and `bench_readiness_all_domain_admission`. Their modules in `contracts/benchmark/all_domain_readiness/` retain all sixteen JSON, TSV and file cases. Catalog owns stage/tool inventory, expected results and job coverage; admission owns scope blockers and forbidden readiness states. Each binary shares the process-state guard. Nextest still schedules individual cases under the repository mutation group; function-based slow filters retain their names.
 
+All-domain completion evidence links through `bench_readiness_all_domain_completion`, with six cases in `contracts/benchmark/all_domain_readiness/completion/`. Parser JSON/file observations, completion-rule JSON/file probes, active-scope closure and the operational gate retain their existing commands, private roots and assertions. The target shares one process-state guard for ordinary Cargo execution; nextest retains separate case processes. Only the operational gate keeps its existing global worker group and priority. No-placeholder commands remain dedicated fast-lane targets; missing-result, failure-classification and local-harness targets retain their separate execution boundaries.
+
 Retained-tool readiness uses one complete workflow per BAM/VCF domain. BAM compares stdout and persisted JSON within one sandbox lifetime; VCF inspects its persisted failure report and preserves licensed-evidence blockers. Both retain their exact governed goal ranges and container/external-artifact counts. A separate BAM plain-text path invocation and the duplicate VCF failure invocation are retired.
 
 The HPC stage benchmark array suite renders one private script/manifest pair. That same publication covers exact result commands and output paths, container resolution, SLURM dispatch, rendered and validated path presentation, and independent script/manifest drift rejection. Each mutation restores its original bytes before the next check. Duplicate render setup and a second integration binary are unnecessary.
@@ -103,7 +112,13 @@ The scratch-layout publication suite retains one private manifest for schema/roo
 Shared guardrail parser regressions are owned and executed by the policy crate. This boundary suite retains its crate-specific architecture checks; it does not compile another crate's test source. Constructor-only guardrail wrappers provide no source-check coverage and are retired.
 
 Variant truth admission and expected/observed JSON/text output cases share the
-`fixtures_vcf` target, grouped by scientific truth family. Pipeline validation JSON
+`fixtures_vcf` target, grouped by scientific truth family. Its `vcf/mini` subtree
+also owns generation JSON and persisted-asset contracts in `generation_json.rs`
+and `generation_file.rs`. Both retain their original function names, CLI arguments
+and assertions under the `vcf::mini` namespace, using the executable's shared
+environment/cwd guard. Select these contracts with
+`cargo test -p bijux-dna --test fixtures_vcf fixtures_build_vcf_mini`; the
+`science-fixtures-fast` lane selects them through that same target. Pipeline validation JSON
 and file-publication cases share `plan_validate_pipelines`, grouped by declared pipeline.
 Both retain the repository-mutator nextest group and original per-command guards.
 These are command boundary contracts; scientific truth semantics remain owner-tested.

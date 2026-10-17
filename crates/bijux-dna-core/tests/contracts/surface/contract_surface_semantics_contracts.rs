@@ -198,6 +198,8 @@ fn metric_id_as_str_roundtrip_covers_all_variants() {
         MetricId::ContaminationSummary,
         MetricId::GcPercent,
         MetricId::LengthHistogram,
+        MetricId::MinReadLength,
+        MetricId::MedianReadLength,
         MetricId::DeltaMetrics,
         MetricId::AdapterPreset,
         MetricId::AdapterBankId,

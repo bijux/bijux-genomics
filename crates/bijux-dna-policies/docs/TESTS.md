@@ -10,13 +10,13 @@
 - `tests/boundaries/` — dependency boundaries, source layout, documentation spine, and surface safety rules.
 - `tests/contracts/` — policy contracts, snapshots, tooling governance, and workspace-level invariants.
 - `tests/determinism/` — stable-order and fixture reproducibility rules.
-- `tests/support/` — shared filesystem helpers used across policy suites.
+- `tests/support/` — private filesystem, Cargo-observation, and Rust source classification helpers.
 - `tests/fixtures/` — sample inputs referenced by policy tests.
 - `tests/snapshots/` — locked snapshots for guardrail defaults and documentation contracts.
 - Schema-style policy snapshots stay under `tests/snapshots/` until a materialized schemas suite exists.
 
 ## Naming
-- Policy tests use `policy__<suite>__<file>__<rule>` for stable search and failure triage.
+- Name tests for the behavior they protect; native test IDs include the package, target, and module owner.
 - Source-tree guardrails for this crate live in `tests/boundaries/architecture_tree.rs`.
 
 ## Policy Registry
@@ -32,3 +32,23 @@
 Run the package test command from `COMMANDS.md` before handoff. For narrow changes, run the matching `--test` entrypoint plus the full package test before final handoff.
 
 Shared guardrail parser regressions are owned and executed by the policy crate. This boundary suite retains its crate-specific architecture checks; it does not compile another crate's test source. Constructor-only guardrail wrappers provide no source-check coverage and are retired.
+
+Dependency boundary readers share `tests/support/cargo_dependency_authority.rs`. Each actual
+workspace guard captures one explicit-manifest Cargo metadata observation and reuses its
+package-indexed dependencies for the complete guard. Aliases retain package identity; normal,
+build, dev and target-specific declarations remain in the observation. Physical manifest
+lookups refuse missing or foreign packages. Fixture mutation controls intentionally capture
+fresh observations; no process-global cache or per-package Cargo invocation is used by the
+workspace map guards.
+
+Mandatory guardrails check source acquisition, namespace structure and configured panic or
+stage-identifier rules. Equivalent public aliases retain the same outcome whether their
+reexports are grouped or separate statements. The public-item count field remains serialized
+for configuration compatibility and does not impose a mandatory lexical quota. The separate
+public-use count rule remains an explicit opt-in policy with its scoped-reexport negative.
+
+The scratch filesystem-path classifier is private support under `tests/support/rust_source/`.
+Only `tests/contracts.rs` registers it; the existing determinism policy case retains its
+positive/negative source vectors, actual CLI helper check, and workspace-wide scan. The
+separate `tests/determinism.rs` target uses token and module-registration readers for its
+own taxonomy controls and does not register an unused scratch classifier.

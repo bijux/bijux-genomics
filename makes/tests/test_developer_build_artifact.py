@@ -8,6 +8,7 @@ import os
 from pathlib import Path
 import subprocess
 import tempfile
+import tomllib
 import unittest
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -102,10 +103,16 @@ class DeveloperBootstrapProcessTests(unittest.TestCase):
         self.directory = tempfile.TemporaryDirectory(prefix="workspace-", dir=scratch)
         self.addCleanup(self.directory.cleanup)
         self.root = Path(self.directory.name)
+        # Cargo fixtures need the pinned compiler, not repository lint components.
+        channel = tomllib.loads((ROOT / "rust-toolchain.toml").read_text())["toolchain"]["channel"]
+        (self.root / "rust-toolchain.toml").write_text(
+            f'[toolchain]\nchannel = {json.dumps(channel)}\nprofile = "minimal"\n'
+        )
         (self.root / "crates/bijux-dna-dev/src").mkdir(parents=True)
         (self.root / "crates/domain/src").mkdir(parents=True)
         (self.root / "Cargo.toml").write_text(
             '[workspace]\nmembers=["crates/bijux-dna-dev", "crates/domain"]\nresolver="2"\n'
+            '[profile.ci]\ninherits="dev"\ndebug=0\nincremental=false\n'
         )
         (self.root / "crates/bijux-dna-dev/Cargo.toml").write_text(
             '[package]\nname="bijux-dna-dev"\nversion="0.1.0"\nedition="2021"\n'
@@ -123,25 +130,48 @@ class DeveloperBootstrapProcessTests(unittest.TestCase):
         self.env = dict(os.environ)
         for name in ["CARGO_BUILD_TARGET", "CARGO_TARGET_DIR", "RUSTC_WRAPPER"]:
             self.env.pop(name, None)
-        self.env["CARGO_HOME"] = str(ROOT / "artifacts/rust/cargo/home")
-        subprocess.run(
+        # Dependency-free fixtures must not share mutable Cargo configuration or caches.
+        self.env["CARGO_HOME"] = str(self.root / "cargo-home")
+        lockfile = subprocess.run(
             ["cargo", "generate-lockfile", "--offline"],
-            cwd=self.root,
-            env=self.env,
-            check=True,
-            capture_output=True,
-        )
-
-    def run_bootstrap(
-        self, path: Path | None = None
-    ) -> subprocess.CompletedProcess[str]:
-        return subprocess.run(
-            ["sh", str(BOOTSTRAP), str(path or self.binary)],
             cwd=self.root,
             env=self.env,
             capture_output=True,
             text=True,
         )
+        self.assertEqual(lockfile.returncode, 0, lockfile.stdout + lockfile.stderr)
+
+    def run_bootstrap(
+        self, path: Path | None = None, profile: str | None = None
+    ) -> subprocess.CompletedProcess[str]:
+        return subprocess.run(
+            ["sh", str(BOOTSTRAP), str(path or self.binary), *([profile] if profile else [])],
+            cwd=self.root,
+            env=self.env,
+            capture_output=True,
+            text=True,
+        )
+
+    def test_ci_profile_uses_cargo_declared_artifact_and_refuses_wrong_profile_path(self):
+        domain_manifest = self.root / "crates/domain/Cargo.toml"
+        domain_manifest.write_text(
+            domain_manifest.read_text() + '[features]\nobserved=[]\n'
+        )
+        self.source.write_text(
+            'pub fn value() -> u8 { if cfg!(feature = "observed") { 9 } else { 1 } }\n'
+        )
+        default = self.run_bootstrap()
+        self.assertEqual(default.returncode, 0, default.stderr)
+        self.assertEqual(subprocess.check_output([str(self.binary)]), b"1\n")
+        binary = self.root / "compiled artifacts/ci/bijux-dna-dev"
+        result = self.run_bootstrap(binary, "ci")
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertEqual(subprocess.check_output([str(binary)], text=True).strip(), "9")
+        restored = self.run_bootstrap()
+        self.assertEqual(restored.returncode, 0, restored.stderr)
+        self.assertEqual(subprocess.check_output([str(self.binary)]), b"1\n")
+        self.assertNotEqual(self.run_bootstrap(binary, "dev").returncode, 0)
+        self.assertNotEqual(self.run_bootstrap(binary, "unregistered").returncode, 0)
 
     def host(self) -> str:
         output = subprocess.check_output(["rustc", "-vV"], text=True, env=self.env)

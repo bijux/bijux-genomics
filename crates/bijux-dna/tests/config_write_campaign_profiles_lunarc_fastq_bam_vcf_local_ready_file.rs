@@ -15,7 +15,7 @@ fn config_write_campaign_profiles_emits_lunarc_fastq_bam_vcf_local_ready_profile
     let home = tempfile::tempdir().expect("tempdir");
     let out_dir = tempfile::tempdir().expect("tempdir");
 
-    let output = Command::new(env!("CARGO_BIN_EXE_bijux-dna"))
+    let output = Command::new(support::cli_binary_path())
         .current_dir(&repo_root)
         .env("HOME", home.path())
         .env("BIJUX_SKIP_QA", "1")
@@ -56,7 +56,7 @@ fn config_write_campaign_profiles_emits_lunarc_fastq_bam_vcf_local_ready_profile
     let temp = tempfile::tempdir().expect("tempdir");
     let env_file = temp.path().join("missing.env");
     let policy_file = temp.path().join("missing.policy");
-    let dry_run = Command::new(env!("CARGO_BIN_EXE_bijux-dna"))
+    let dry_run = Command::new(support::cli_binary_path())
         .current_dir(&repo_root)
         .env("HOME", home.path())
         .env("BIJUX_SKIP_QA", "1")

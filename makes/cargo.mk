@@ -33,6 +33,32 @@ RUST_AUDIT_PREREQUISITES += audit-policy-rs
 NEXTEST_STATUS_LEVEL ?= all
 NEXTEST_FINAL_STATUS_LEVEL ?= all
 
+CI_CARGO_TARGET_DIR ?= $(abspath $(ARTIFACT_ROOT)/ci/distributed/scratch/producer/compile-cache/cargo)
+CI_DEV_DNA_BIN ?= $(CI_CARGO_TARGET_DIR)/ci/bijux-dna-dev
+
+.PHONY: ci-test-runtime ci-test-build ci-test-shard ci-test-aggregate _ci-dev-dna-bin
+
+ci-test-runtime: ## Provision the exact native runtime beneath artifacts
+	@$(ensure_artifact_env)
+	@"$(PYTHON)" -B makes/bin/provision_ci_runtime.py --runtime-root "$(BIJUX_TEST_RUNTIME_ROOT)" --jobs "$(CARGO_BUILD_JOBS)"
+
+_ci-dev-dna-bin:
+	@$(ensure_artifact_env)
+	@$(DEV_DNA_BOOTSTRAP) "$(CI_DEV_DNA_BIN)" ci
+
+ci-test-build: _ci-dev-dna-bin ## Build reusable native CI tests and their exact inventory
+	@$(ensure_artifact_env)
+	@"$(CI_DEV_DNA_BIN)" tooling run ci-test-all-sharded --github-producer
+
+ci-test-shard: ## Execute one source-bound CI partition from shared products
+	@$(ensure_artifact_env)
+	@$(call require_var,CI_TEST_PARTITION)
+	@"$(PYTHON)" -B makes/bin/run_distributed_ci.py consumer "$(CI_TEST_PARTITION)"
+
+ci-test-aggregate: ## Verify complete and unique native CI coverage
+	@$(ensure_artifact_env)
+	@"$(PYTHON)" -B makes/bin/run_distributed_ci.py aggregate
+
 BIJUX_HELP_TARGETS += github-all github-all-frozen
 BIJUX_HELP_github-all := Run repository-controlled GitHub workflow gates
 BIJUX_HELP_github-all-frozen := Launch pinned GitHub workflow gates in the background
@@ -92,10 +118,13 @@ _lint-docs:
 _lint-automation:
 	@$(ensure_artifact_env)
 	@$(MAKE) _dev-dna-bin >/dev/null
-	$(DEV_DNA_BIN) tooling run repo-doctor --fast
-	$(DEV_DNA_BIN) domain run lock-registry
 	@rm -rf "$(ARTIFACTS_DIR)/lint-parallel"
 	@mkdir -p "$(ARTIFACTS_DIR)/lint-parallel"
+	# Nested Cargo commands may replace the build output while peer gates start.
+	@cp -p "$(DEV_DNA_BIN)" "$(ARTIFACTS_DIR)/lint-parallel/bijux-dna-dev"
+	@chmod a-w "$(ARTIFACTS_DIR)/lint-parallel/bijux-dna-dev"
+	"$(ARTIFACTS_DIR)/lint-parallel/bijux-dna-dev" tooling run repo-doctor --fast
+	"$(ARTIFACTS_DIR)/lint-parallel/bijux-dna-dev" domain run lock-registry
 	@cp "$(LINT_PARALLEL_COMMANDS_FILE)" "$(ARTIFACTS_DIR)/lint-parallel/commands.txt"
 	@echo "Running automation lint gates in parallel (jobs=$(LINT_PARALLEL_JOBS)); logs: $(ARTIFACTS_DIR)/lint-parallel"
 	@while IFS= read -r cmd; do printf '%s\0' "$$cmd"; done < "$(ARTIFACTS_DIR)/lint-parallel/commands.txt" \
@@ -114,7 +143,7 @@ _lint-automation:
 			printf "FAILED %s\n" "$$cmd" >&2; \
 			tail -n 80 "$$log_file" >&2; \
 			exit 1; \
-		fi' sh "$(ARTIFACTS_DIR)/lint-parallel" "$(DEV_DNA_BIN)"
+		fi' sh "$(ARTIFACTS_DIR)/lint-parallel" "$(ARTIFACTS_DIR)/lint-parallel/bijux-dna-dev"
 	@find "$(ARTIFACTS_DIR)/lint-parallel" -type f -name '._*' -delete
 
 _lint-automation-contracts:
@@ -188,9 +217,17 @@ test-slow: ## Run Rust tests labeled as slow.
 	@$(ensure_artifact_env)
 	@$(MAKE) test-slow-rs
 
+test-complete: _dev-dna-bin ## Run all declared local Rust, doctest and Python test lanes.
+	@$(ensure_artifact_env)
+	@"$(DEV_DNA_BIN)" tooling run ci-test-complete
+
 test-all: ## Run the full Rust suite, including ignored tests.
 	@$(ensure_artifact_env)
 	@$(MAKE) test-all-rs
+
+test-preflight: _dev-dna-bin ## Check pinned full-suite runtime dependencies without building tests.
+	@$(ensure_artifact_env)
+	@"$(DEV_DNA_BIN)" tooling run ci-test-all-sharded --preflight-only
 
 _test:
 	@$(ensure_artifact_env)
@@ -525,6 +562,8 @@ _ci-slow: ## Slow CI tier (manual): heavier integration checks.
 
 _quick: ## Quick local gate: fmt + clippy + unit + invariant tests.
 	$(MAKE) fmt
+	$(MAKE) lint
+	$(MAKE) test
 	$(MAKE) lint-workspace
 	$(MAKE) _test-profile-invariants
 	$(MAKE) _registry-lint
@@ -671,7 +710,9 @@ refresh-assets-toy: ## Regenerate deterministic toy datasets in assets/toy.
 refresh-assets-golden: ## Regenerate deterministic toy-run goldens in assets/golden.
 	@cargo run -q -p bijux-dna-dev -- assets run refresh-golden
 
-.PHONY: fmt fmt-rs lint lint-rs lint-workspace lint-governance lint-rustfmt lint-clippy lint-docs lint-configs lint-fast lint-automation lint-scripts test test-rs test-fast test-slow test-slow-rs test-all test-all-rs test-all-frozen lint-frozen audit-frozen audit audit-rs coverage coverage-rs coverage-workspace ci doctor github-all github-all-frozen _check _verify-artifact-env \
+.PHONY: _dev-dna-bin _fmt audit-policy-rs _test _audit _coverage _doctor _lint-automation-contracts test-preflight generate-configs vcf-certification bench-hpc-dry-run-ready-render bench-hpc-dry-run-ready-validate bench-hpc-dry-run-ready-dry-run
+
+.PHONY: fmt fmt-rs lint lint-rs lint-workspace lint-governance lint-rustfmt lint-clippy lint-docs lint-configs lint-fast lint-automation lint-scripts test test-rs test-fast test-slow test-slow-rs test-all test-all-rs test-all-frozen test-complete lint-frozen audit-frozen audit audit-rs coverage coverage-rs coverage-workspace ci doctor github-all github-all-frozen _check _verify-artifact-env \
 		_clean-artifact-scratch \
 		_domain-gates domain-validate examples-validate \
 		_examples-validate \

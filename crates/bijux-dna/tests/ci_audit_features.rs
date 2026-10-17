@@ -14,7 +14,7 @@ fn ci_audit_features_writes_default_fast_report() {
     let temp = tempfile::tempdir().expect("tempdir");
     let out = temp.path().join("default-feature-audit.json");
 
-    let output = Command::new(env!("CARGO_BIN_EXE_bijux-dna"))
+    let output = Command::new(support::cli_binary_path())
         .current_dir(&repo_root)
         .arg("ci")
         .arg("audit-features")

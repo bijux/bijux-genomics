@@ -2,10 +2,16 @@
 set -eu
 
 bin_path="${1:-${CARGO_TARGET_DIR:-artifacts/target}/debug/bijux-dna-dev}"
+profile="${2:-dev}"
+case "$profile" in
+  dev) profile_directory=debug ;;
+  ci) profile_directory=ci ;;
+  *) echo "unsupported developer bootstrap profile: $profile" >&2; exit 2 ;;
+esac
 profile_dir="$(dirname "$bin_path")"
 if [ "$(basename "$bin_path")" != "bijux-dna-dev" ] ||
-  [ "$(basename "$profile_dir")" != "debug" ]; then
-  echo "developer bootstrap requires a debug/bijux-dna-dev output path: $bin_path" >&2
+  [ "$(basename "$profile_dir")" != "$profile_directory" ]; then
+  echo "developer bootstrap requires a $profile_directory/bijux-dna-dev output path: $bin_path" >&2
   exit 2
 fi
 
@@ -15,7 +21,13 @@ target_dir="$(dirname "$profile_dir")"
 mkdir -p "$target_dir/developer-bootstrap"
 messages_path="$(mktemp "$target_dir/developer-bootstrap/build-messages.XXXXXX")"
 trap 'rm -f "$messages_path"' 0
-cargo build --locked -q -p bijux-dna-dev --bin bijux-dna-dev --target-dir "$target_dir" \
+# Match the CI archive's workspace feature graph before building its controller.
+# Ordinary developer bootstrap retains its package-scoped default feature graph.
+case "$profile" in
+  ci) set -- --workspace --all-features ;;
+  dev) set -- -p bijux-dna-dev ;;
+esac
+cargo build --locked -q "$@" --bin bijux-dna-dev --profile "$profile" --target-dir "$target_dir" \
   --message-format=json > "$messages_path"
 
 # A configured target can redirect Cargo output while an old native executable

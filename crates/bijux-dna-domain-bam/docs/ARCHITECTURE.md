@@ -9,7 +9,9 @@ src/
 ├── alignment.rs
 ├── artifacts.rs
 ├── artifacts/
-│   └── alignment/       # shared miniature document, SAM/BAM codecs and header policy
+│   ├── alignment/       # shared miniature document, SAM/BAM codecs and header policy
+│   ├── observation/     # acquisition and pure scientific observation projections
+│   └── transformation/  # miniature fixture transforms and their publication
 ├── defaults.rs
 ├── invariants/
 ├── lib.rs
@@ -35,7 +37,13 @@ src/
 
 `artifacts/alignment/` owns the miniature document and format-specific readers/renderers, with shared header identity policy. SAM output publication delegates to infrastructure atomic writing; the codec has no dependency on scientific report evaluation; callers adapt reference names/lengths instead of passing their simulation model.
 
-`artifacts.rs` still contains small-fixture transformations and report evaluation. Those effects are separate from the model modules and require further execution-owner separation; moving models does not create independent Cargo compilation units.
+`artifacts/observation/alignment.rs` acquires one miniature document through the codec and projects header inspection and exact alignment truth without additional IO. Its private projections own stable record ordering, mapped position counts, MAPQ classes and CIGAR classes.
+
+`artifacts/observation/kinship.rs` projects an already acquired miniature document into the existing kinship summary. Its private context carries paths and panel labels as metadata; it performs no acquisition or publication. The public path helper in `artifacts.rs` still acquires through the existing codec and preserves parse errors before projection. Conflicting calls, overlap sufficiency, pair ordering and six-decimal rounding remain domain truth.
+
+`artifacts/transformation/sort_index.rs` separates coordinate ordering and deterministic index payload construction from path acquisition and publication. The compatibility operation preserves reference-declaration ordering, mapped-read sidecar counts, header metadata and the existing output-before-index publication order. It still performs file IO in this crate; this structure does not relocate execution effects to a downstream owner.
+
+`artifacts.rs` retains the public compatibility reexports and the remaining scientific families. Other small-fixture transformations and report evaluation still require responsibility separation. Moving modules does not create independent Cargo compilation units.
 
 ## Responsibilities
 

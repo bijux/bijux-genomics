@@ -38,6 +38,39 @@ configuration, run manifests, and reviewed evidence summaries.
   immutable evidence and accounting checksums into the repository.
 - Unsupported tools remain visible with a durable reason.
 
+## Examples
+
+Run these local repository checks from the checkout root before requesting a
+build or remote execution:
+
+```sh
+CARGO_TARGET_DIR=artifacts/cargo-target cargo run -q -p bijux-dna-dev -- containers run check-version-lock
+CARGO_TARGET_DIR=artifacts/cargo-target cargo run -q -p bijux-dna-dev -- containers run check-version-authority
+```
+
+The first compares `containers/versions/lock.json` with the generated lock
+content. The second checks the admitted version lock, permitted version-authority
+files, and recipe source markers. A passing result establishes repository
+identity consistency; neither command builds an image or proves that it runs a
+scientific workload.
+
+For the broader local metadata and recipe gate, use:
+
+```sh
+CARGO_TARGET_DIR=artifacts/cargo-target cargo run -q -p bijux-dna-dev -- containers run lint
+```
+
+This gate also checks tool IDs, generated names and documentation, license
+metadata, network disclosure, and container ownership. Resolve a reported drift
+at its catalog, version, or generated-source authority before rebuilding. Do not
+edit a lock or generated report simply to suppress the diagnostic.
+
+When evaluating an existing image, read its version/help result together with the
+[qualification matrix](container-evidence/QUALIFICATION.md). A passing version
+probe with missing real-data or scientific evidence remains qualified only for
+that probe; release eligibility still requires the independent evidence
+contracts above.
+
 ## Configured HPC execution
 
 Reusable code contains no LUNARC study path. The governed YAML site contract

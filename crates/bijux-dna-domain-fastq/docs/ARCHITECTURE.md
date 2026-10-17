@@ -1,7 +1,9 @@
 # bijux-dna-domain-fastq Architecture
 
-`bijux-dna-domain-fastq` is a pure FASTQ domain library. It owns typed domain truth and contract
-queries; execution crates decide when and how to run tools.
+`bijux-dna-domain-fastq` owns FASTQ typed domain truth and contract queries. Its
+pure value kernels are separate from retained path-based library operations that
+acquire inputs, publish files and normalize output names. Execution crates decide
+when and how to run external tools.
 
 ## Layout
 
@@ -36,24 +38,61 @@ src/
   run/                    FASTQ input discovery and benchmark corpus helpers
   stage_tool_governance/  tool layout, readiness, maturity, and input layout policy
   stages/                 stage IDs, specs, ports, semantics, and contract JSON
-    contract/             contract catalog, export helpers, and runtime policy
+    abundance_normalization.rs pure table-text normalization and observations
+    abundance_normalization/   unit, ordering, and text-admission contracts
+    primer_normalization.rs deterministic native primer-prefix computation on record values
+    primer_normalization/   scientific computation contracts without filesystem setup
+    read_filtering.rs       borrowed-sequence local rejection rules and typed reasons
+    contract/             contract catalog, export helpers, and path operations
+      runtime/            retained input acquisition, local transforms and output publication
+    otu_clustering.rs     pure native representative membership and aligned abundances
+    otu_clustering/       order, threshold and record-retention contracts
     ports/                governed manifest ports and query helpers
     semantics/            semantic catalog and query helpers
   types/                  shared FASTQ domain value types
+    record.rs             FASTQ record identity, content, and header pairing semantics
   lib.rs                  public facade and compatibility re-exports
 ```
 
 ## Ownership Rules
 
 - `stages/` is the authority for FASTQ stage IDs, semantics, IO, and contract JSON.
+- `stages/abundance_normalization` owns the borrowed-text normalization and table
+  observation capability used by API artifact composition. It preserves six-decimal
+  output, sorted sample grouping, duplicate row contributions, declared scaling,
+  and existing malformed/non-finite observation semantics. API adapters retain
+  acquisition, publication, execution, and benchmark persistence. The existing
+  eight-decimal `stages::contract::normalize_abundance` path operation retains its
+  separate behavior; this capability does not reconcile the two algorithms.
+- `stages/primer_normalization` owns the pure native local-smoke prefix transform and its typed
+  admission error. It keeps the two exact primer motifs, overlap threshold, and paired fraction
+  semantics. Orientation, primer-bank, mismatch, and IUPAC metadata do not add algorithm behavior.
+  The module and shared record value are crate-private. The existing path-based
+  `stages::contract::normalize_primers` operation retains acquisition, publication, and report
+  projection; this separation does not relocate its filesystem effects.
+- `stages/read_filtering` owns the pure native local read rejection decision from a
+  borrowed sequence and existing effective parameters. It preserves N-count alias
+  precedence, N-before-complexity priority and byte-transition percentage thresholds.
+  API composition retains record acquisition, paired retention, report fields and
+  FASTQ codecs. The local complexity rule is a transition proxy.
+- `stages/otu_clustering` owns crate-private native local-smoke membership on
+  admitted FASTQ records. It preserves input-order representative selection, first-match
+  assignment, common-prefix identity and direct threshold comparison behavior. The
+  existing `stages::contract::cluster_otus` operation retains filesystem acquisition,
+  table/FASTA/FASTQ formatting, sequential publication and report projection. This
+  kernel does not execute vsearch or replace its scientific clustering algorithm.
 - `params/`, `metrics/`, and `invariants/` must stay aligned; changing one usually requires tests
   for the others.
 - `banks/` owns bank content, preset resolution, provenance, and deterministic hashes.
 - `observer/` may parse governed tool reports, but it must not execute tools or own runtime policy.
 - `execution_support/`, `integration_matrix/`, and `stage_tool_governance/` expose domain readiness
   and compatibility metadata; they do not schedule execution.
-- `run/` may discover FASTQ inputs and benchmark corpus descriptors, but it must remain domain
-  discovery, not runner orchestration.
+- `run/` exposes FASTQ discovery and benchmark corpus descriptors. It also reexports
+  the core input-assessment publication helper; writing that assessment is an explicit
+  caller-selected filesystem effect, without runner orchestration.
+- `stages::contract` retains path-based FASTQ/table/report acquisition, local
+  transforms, directory creation, file publication and output renaming. These APIs
+  are distinct from the pure borrowed-value kernels; they do not launch tools.
 
 ## Data Flow
 

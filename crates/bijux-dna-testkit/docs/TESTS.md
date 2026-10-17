@@ -21,11 +21,20 @@ CARGO_TARGET_DIR=artifacts/cargo-target cargo check -p bijux-dna-testkit --no-de
 
 ## Test Layout
 
-- `tests/boundaries.rs` locks source layout, docs placement, dependency shape,
-  dev-dependency usage, command inventory, and effect boundaries.
+- `tests/boundaries.rs` checks dependency shape, dev-dependency usage,
+  forbidden effects, documented environment inputs, and temporary path containment.
 - `tests/contracts.rs` locks helper contracts such as fixture error reporting.
 - `tests/determinism.rs` locks deterministic clock, RNG, ordering, and timestamp
   behavior.
 - `tests/schemas.rs` locks public API and snapshot normalization behavior.
 - `tests/guardrails.rs` runs the workspace guardrail policy.
 - `tests/snapshots/` stores public surface snapshots.
+
+The exact normal-dependency set check rejects every additional product or external
+dependency. It replaces the narrower duplicated forbidden-product roster; the
+independent dev-dependency set check remains. This retires one case in the existing
+boundary target without changing its supported dependency policy.
+
+The configured-clock contract keeps both 42-second and 1,234-second values in
+`tests/determinism.rs`. It replaces the duplicated clock assertion in the
+boundary target; path-containment and filesystem failure cases remain there.

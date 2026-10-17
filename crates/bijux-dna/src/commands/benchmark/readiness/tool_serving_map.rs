@@ -38,15 +38,12 @@ pub(crate) fn render_fastq_tool_serving_map(
     repo_root: &Path,
     output_path: PathBuf,
 ) -> Result<ToolServingMapReport> {
-    owner::render_fastq_tool_serving_map(
-        &ServingAdapter::default().context(repo_root),
-        &output_path,
-    )
+    owner::render_fastq_tool_serving_map(&ServingAdapter::new(repo_root).context(), &output_path)
 }
 pub(crate) fn collect_fastq_tool_serving_map_rows(
     repo_root: &Path,
 ) -> Result<(usize, usize, Vec<ToolServingMapRow>)> {
-    let observed = owner::collect(&ServingAdapter::default().context(repo_root), Domain::Fastq)?;
+    let observed = owner::collect(&ServingAdapter::new(repo_root).context(), Domain::Fastq)?;
     Ok((observed.stage_count, observed.tool_count, observed.rows))
 }
 pub(crate) fn run_render_bam_tool_serving_map(
@@ -68,16 +65,16 @@ pub(crate) fn render_bam_tool_serving_map(
     repo_root: &Path,
     output_path: PathBuf,
 ) -> Result<ToolServingMapReport> {
-    owner::render_bam_tool_serving_map(&ServingAdapter::default().context(repo_root), &output_path)
+    owner::render_bam_tool_serving_map(&ServingAdapter::new(repo_root).context(), &output_path)
 }
 pub(crate) fn collect_bam_tool_serving_map_rows(
     repo_root: &Path,
 ) -> Result<(usize, usize, Vec<ToolServingMapRow>)> {
-    let observed = owner::collect(&ServingAdapter::default().context(repo_root), Domain::Bam)?;
+    let observed = owner::collect(&ServingAdapter::new(repo_root).context(), Domain::Bam)?;
     Ok((observed.stage_count, observed.tool_count, observed.rows))
 }
 pub(crate) fn load_corpus_status_by_stage(repo_root: &Path) -> Result<BTreeMap<String, String>> {
-    owner::load_corpus_status_by_stage(&ServingAdapter::default().context(repo_root))
+    owner::load_corpus_status_by_stage(&ServingAdapter::new(repo_root).context())
 }
 
 #[cfg(test)]

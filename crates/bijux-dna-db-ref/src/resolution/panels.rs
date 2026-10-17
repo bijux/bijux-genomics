@@ -13,7 +13,7 @@ pub fn resolve_panel(
     build: &str,
     panel_id: Option<&str>,
 ) -> Result<PanelCatalogEntry> {
-    let path = workspace_root().join("configs/vcf/panels/panels.toml");
+    let path = workspace_root()?.join("configs/vcf/panels/panels.toml");
     let cfg: PanelsConfig = load_toml(&path)?;
     let mut candidates = cfg
         .panel
@@ -52,7 +52,7 @@ fn validate_panel_catalog(panel: &PanelCatalogEntry) -> Result<()> {
 /// Returns an error if panel lock metadata is missing or malformed.
 pub fn resolve_panel_lock(panel: &PanelCatalogEntry) -> Result<PanelLockEntry> {
     let (lock_path, key) = parse_lock_ref(&panel.lock_ref)?;
-    let path = workspace_root().join("configs/vcf/panels").join(lock_path);
+    let path = workspace_root()?.join("configs/vcf/panels").join(lock_path);
     let cfg: PanelLocksConfig = load_toml(&path)?;
     let entry = cfg
         .locks

@@ -158,7 +158,7 @@ python - <<'PY' > {summary}\nimport json\npayload = {{\"action\": \"{action}\", 
         action = action,
         mapq = params.mapq_threshold,
         min_len = params.min_length,
-        remove_dup = if params.remove_duplicates { "true" } else { "false" }
+        remove_dup = if params.remove_duplicates { "True" } else { "False" }
     );
     vec!["/bin/sh".to_string(), "-c".to_string(), command]
 }
@@ -195,7 +195,7 @@ pub fn endogenous_content_args(
     let host_reference_digest = params
         .host_reference_digest
         .as_ref()
-        .map_or_else(|| "null".to_string(), |digest| format!("\"{digest}\""));
+        .map_or_else(|| "None".to_string(), |digest| format!("\"{digest}\""));
     let command = format!(
         "samtools flagstat {bam} > {flagstat} && \
 python - <<'PY' > {report}\nimport json\npayload = {{\"stage\": \"bam.endogenous_content\", \"method\": \"mapped_fraction_from_flagstat\", \"flagstat\": \"{flagstat}\", \"host_reference_scope\": \"{host_reference_scope}\", \"host_reference_digest\": {host_reference_digest}, \"refuse_without_host_reference\": {refuse_without_host_reference}}}\nprint(json.dumps(payload, indent=2))\nPY",
@@ -205,7 +205,7 @@ python - <<'PY' > {report}\nimport json\npayload = {{\"stage\": \"bam.endogenous
         host_reference_scope = params.host_reference_scope,
         host_reference_digest = host_reference_digest,
         refuse_without_host_reference =
-            if params.refuse_without_host_reference { "true" } else { "false" },
+            if params.refuse_without_host_reference { "True" } else { "False" },
     );
     vec!["/bin/sh".to_string(), "-c".to_string(), command]
 }
@@ -270,7 +270,7 @@ python - <<'PY' > {summary}\nimport json\npayload = {{\"input_bam\": \"{bam}\", 
         idxstats_before = idxstats_before.display(),
         idxstats_after = idxstats_after.display(),
         summary = summary.display(),
-        remove = if remove { "true" } else { "false" }
+        remove = if remove { "True" } else { "False" }
     );
     vec!["/bin/sh".to_string(), "-c".to_string(), command]
 }

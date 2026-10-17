@@ -59,6 +59,12 @@ enter through `bijux_dna_api::v1::api`.
 - The `bench` namespace exposes the model-owned Goal 211-229 local VCF smoke-suite
   record, generated schema, and fail-closed aggregate validator.
 
+`write_metric_registry_report(source_root, output_path)` publishes the existing
+`bijux.crates.metric_registry.v1` table and returns `MetricRegistryReport` with
+`MetricRegistryRow` entries. FASTQ/BAM declarations are read from their governed
+YAML; VCF rows come from the domain's typed stage contracts. The file is TSV;
+the returned envelope retains the CLI report fields and their ordering.
+
 ## Export Policy
 
 - Export only stable, versioned APIs from `v1`.
@@ -102,3 +108,42 @@ The benchmark API re-exports normalized FASTQ corpus discovery and publication m
 The `v1::api::bench` facade exposes `BenchmarkLocalStageInventoryDomain`, `load_benchmark_local_stage_inventory` and `render_benchmark_all_domain_stage_inventory`. It delegates explicit-root matrix admission and validated aggregate publication to the benchmark owner; persisted inventory schema identities remain unchanged.
 
 `v1::api::env::delivery` exposes container-owned supported-tool selection and external-artifact declaration admission. The API forwards the canonical delivery view and contract records without adding another parser or projection authority.
+
+## Workspace Dependency Reports
+
+`read_workspace_crate_manifests` returns the named manifests declared by a root
+workspace in crate-name order through `WorkspaceCrateManifest`. It preserves
+caller-supplied manifest paths and the existing manifest read/parse diagnostics.
+
+`workspace_edges_at` resolves Cargo metadata from an explicit root and rejects
+metadata whose canonical workspace root differs. Relative paths and symlink
+aliases are accepted; a member directory resolved to its parent workspace is
+rejected. `workspace_edges` retains its existing current-directory contract.
+Both methods retain Cargo metadata's default dependency kinds, feature resolution,
+and strict output/error decoding.
+
+`write_workspace_dependency_map` returns and atomically publishes
+`CrateDependencyMapReport`, with `CrateDependencyNode` and `CrateDependencyEdge`,
+using the existing `bijux.crates.dependency_map.v1` schema, field names, ordering,
+and caller-relative path rendering. This service owns report composition and
+publication; it does not implement cycle-admission policy. Cargo metadata retains
+its existing lockfile and dependency-resolution effects.
+
+Benchmark taxonomy services expose explicit corpus/report acquisition and publication through `v1::api::bench`. Typed benchmark judgment records describe expectation matches, unexpected taxa and inferred unclassified counts. The semantic model evaluates caller-admitted truth; the API does not execute a classifier or establish biological validity.
+
+## Image QA Compatibility Hook
+
+`v1::api::env::run_image_qa` retains a compatibility success result without
+loading a platform, probing tools, or publishing QA evidence. Its optional
+platform argument is not validated. A successful return does not certify an
+image or tool. Explicit QA execution and pass-record validation belong to
+`bijux-dna-containers-qa`; its `image_qa` binary is the image QA entrypoint.
+
+`v1::api::env::inspect_apptainer_definition` forwards container-owned lexical definition
+inspection and its ordered `ApptainerDefinitionIssue` results. The API adds no parser, acquisition
+or runtime evidence; command callers retain source-scope selection and diagnostic presentation.
+
+The front door curates the Policies-owned workspace source-audit helpers and their
+typed source rules, matches, dependency observations and verdict inputs. The CLI
+supplies acquired source/manifest observations; Policies makes the deterministic
+four-command governance decisions without filesystem or process effects.

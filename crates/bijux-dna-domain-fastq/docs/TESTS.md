@@ -12,6 +12,13 @@ semantic behavior, and contract snapshots.
 | Determinism | `tests/determinism.rs`, `tests/determinism/*` | Fixture stability and reproducibility checks. |
 | Semantics | `tests/semantics.rs`, `tests/semantics/*` | Retention, canonical params, observability, execution support, tool models, and stage params. |
 | Invariants | `tests/semantics/invariants/*` | Invariant specs, metric fixtures, and evaluation behavior. |
+| Native primer computation | `src/stages/primer_normalization/contracts.rs` | Exact prefix/quality trimming, record identity, overlap thresholds, mate admission, empty layouts, metadata-only controls, and paired fractions. |
+
+The primer computation contracts use record values directly and require no fixture directories.
+The existing eDNA runtime tests retain the composed file-backed report flow. Primer codec and
+path-adapter verification must preserve plain/gzip FASTQ bytes, orientation TSV precision, stats
+JSON, public report schema, error priority, and publication order. Native local-smoke behavior does
+not establish equivalence to a cutadapt invocation or full primer-bank alignment semantics.
 
 The raw FASTQ parser bank for benchmark-facing observer fixtures lives at
 `benchmarks/tests/fixtures/bench/parsers/fastq/<stage>/<tool>/` in the repository root.

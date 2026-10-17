@@ -97,7 +97,7 @@ pub(crate) fn check_no_raw_cargo_in_makes(
     workspace: &Workspace,
     check: &CheckDefinition,
 ) -> Result<CheckOutcome> {
-    let raw_cargo_re = regex(r"^\t@?.*(?:^|[[:space:]])cargo(?:[[:space:]]|$)")?;
+    let raw_cargo_re = regex(r"^\t@?(?:cargo|.*[[:space:]]cargo)(?:[[:space:]]|$)")?;
     let allowed_re = regex(r"cargo\s+run\s+(-q\s+)?-p\s+bijux-dna-dev\s+--")?;
     let install_note_re = regex(r"cargo install")?;
     let mut violations = Vec::new();
@@ -191,8 +191,19 @@ fn repo_legacy_automation_references(
         if !root.is_dir() {
             continue;
         }
-        for entry in WalkDir::new(root).into_iter().filter_map(std::result::Result::ok) {
-            if !entry.file_type().is_file() {
+        // Bytecode caches are generated inputs, not automation source. Other
+        // files still require readable UTF-8 so an unknown source cannot vanish.
+        for entry in WalkDir::new(root)
+            .into_iter()
+            .filter_entry(|entry| !entry.file_type().is_dir() || entry.file_name() != "__pycache__")
+        {
+            let entry = entry?;
+            if !entry.file_type().is_file()
+                || matches!(
+                    entry.path().extension().and_then(|ext| ext.to_str()),
+                    Some("pyc" | "pyo")
+                )
+            {
                 continue;
             }
             let rel = workspace.rel(entry.path()).display().to_string();
@@ -227,11 +238,172 @@ fn is_governed_shared_script_prefix(prefix: &str) -> bool {
     prefix.ends_with(".bijux/shared/bijux-makes-rs/")
         || prefix.ends_with("shared/bijux-makes-rs/")
         || prefix.ends_with("$(BIJUX_MAKES_SHARED_ROOT)/bijux-makes-rs/")
+        || prefix.ends_with(".bijux/shared/bijux-docs/tooling/")
+        || prefix.ends_with("shared/bijux-docs/tooling/")
+        || prefix.ends_with("$(DOCS_PUBLICATION_SHARED)/tooling/")
+        || prefix.ends_with(".bijux/shared/bijux-gh/")
+        || prefix.ends_with("shared/bijux-gh/")
 }
 
 #[cfg(test)]
 mod tests {
-    use super::is_governed_shared_script_prefix;
+    use anyhow::{Context, Result};
+
+    use super::{
+        check_ci_automation_surface, check_no_raw_cargo_in_makes, is_governed_shared_script_prefix,
+    };
+    use crate::catalog::checks::check_registry;
+    use crate::model::check::{CheckDefinition, CheckStatus};
+    use crate::runtime::workspace::Workspace;
+
+    fn make_surface_fixture() -> Result<(tempfile::TempDir, Workspace, CheckDefinition)> {
+        let artifact_root = Workspace::resolve()?.path("artifacts/tests/automation-boundary");
+        std::fs::create_dir_all(&artifact_root)?;
+        let owner = tempfile::tempdir_in(artifact_root)?;
+        let workspace = Workspace { root: owner.path().to_path_buf() };
+        std::fs::create_dir_all(workspace.path("makes/tests/__pycache__"))?;
+        std::fs::write(
+            workspace.path("Makefile"),
+            concat!(
+                "gate:\n",
+                "\t@cargo run -q -p bijux-dna-dev -- tooling run ci-fmt\n",
+                "\tcargo run -p bijux-dna-dev -- tooling run ci-fmt\n",
+                "\t@env MODE=1 cargo run -q -p bijux-dna-dev -- tooling run ci-fmt\n",
+                "\t@cargo install --locked example-tool\n",
+            ),
+        )?;
+        let check = check_registry()
+            .into_iter()
+            .find(|check| check.id == "check-no-raw-cargo-in-makes")
+            .context("maintained no-raw-Cargo check")?;
+        Ok((owner, workspace, check))
+    }
+
+    #[test]
+    fn generated_python_bytecode_is_not_automation_source() -> Result<()> {
+        let (_owner, workspace, check) = make_surface_fixture()?;
+        let bytecode = [0xff, 0xfe, 0, 0x80];
+        for path in [
+            "makes/tests/__pycache__/case.cpython-314.pyc",
+            "makes/tests/__pycache__/cached-source.py",
+            "makes/tests/legacy-cache.pyc",
+            "makes/tests/legacy-cache.pyo",
+        ] {
+            std::fs::write(workspace.path(path), bytecode)?;
+        }
+
+        let outcome = check_no_raw_cargo_in_makes(&workspace, &check)?;
+        assert_eq!(outcome.status, CheckStatus::Passed);
+        assert_eq!(
+            std::fs::read(workspace.path("makes/tests/__pycache__/case.cpython-314.pyc"))?,
+            bytecode
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn bytecode_caches_do_not_hide_raw_cargo_or_legacy_source() -> Result<()> {
+        let (_owner, workspace, check) = make_surface_fixture()?;
+        std::fs::write(workspace.path("makes/tests/__pycache__/case.pyc"), [0xff])?;
+        std::fs::write(workspace.path("makes/legacy.sh"), "bash scripts/legacy.sh\n")?;
+        for recipe in [
+            "\t@cargo test --workspace",
+            "\tcargo test --workspace",
+            "\t@env MODE=1 cargo test --workspace",
+        ] {
+            std::fs::write(workspace.path("makes/unguarded.mk"), format!("gate:\n{recipe}\n"))?;
+            let outcome = check_no_raw_cargo_in_makes(&workspace, &check)?;
+            assert_eq!(outcome.status, CheckStatus::Failed);
+            assert!(outcome.detail.contains("makes/unguarded.mk:"));
+            assert!(outcome.detail.contains(recipe));
+            assert!(outcome.detail.contains("makes/legacy.sh:1:scripts/legacy.sh"));
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn unreadable_automation_source_outside_bytecode_cache_still_refuses() -> Result<()> {
+        let (_owner, workspace, check) = make_surface_fixture()?;
+        std::fs::write(workspace.path("makes/tests/source.py"), [0xff, 0xfe])?;
+        let result = check_no_raw_cargo_in_makes(&workspace, &check);
+        assert!(result.is_err());
+        Ok(())
+    }
+
+    #[test]
+    fn governed_docs_publication_scripts_are_not_legacy_automation() -> Result<()> {
+        let (_owner, workspace, check) = make_surface_fixture()?;
+        std::fs::write(
+            workspace.path("makes/docs-publication.mk"),
+            concat!(
+                "DOCS_PUBLICATION_SHARED := .bijux/shared/bijux-docs\n",
+                "gate:\n",
+                "\t@source \"$(DOCS_PUBLICATION_SHARED)/tooling/scripts/docs_source_authority.sh\"\n",
+                "\t@python3 \".bijux/shared/bijux-docs/tooling/scripts/project_bijux_docs.py\"\n",
+                "\t@python3 \"shared/bijux-docs/tooling/scripts/project_bijux_docs.py\"\n",
+            ),
+        )?;
+        let outcome = check_no_raw_cargo_in_makes(&workspace, &check)?;
+        assert_eq!(outcome.status, CheckStatus::Passed);
+        Ok(())
+    }
+
+    #[test]
+    fn foreign_docs_script_prefixes_still_refuse() -> Result<()> {
+        let (_owner, workspace, check) = make_surface_fixture()?;
+        for prefix in [
+            ".bijux/shared/foreign-docs/tooling/",
+            ".bijux/shared/bijux-docs-foreign/tooling/",
+            ".bijux/shared/bijux-docs/foreign/",
+            "$(OTHER_PUBLICATION_SHARED)/tooling/",
+            "$(DOCS_PUBLICATION_SHARED)/unowned/",
+            "makes/tooling/",
+        ] {
+            std::fs::write(
+                workspace.path("makes/foreign-publication.mk"),
+                format!("gate:\n\t@python3 \"{prefix}scripts/project_bijux_docs.py\"\n"),
+            )?;
+            let outcome = check_no_raw_cargo_in_makes(&workspace, &check)?;
+            assert_eq!(outcome.status, CheckStatus::Failed);
+            assert!(outcome
+                .detail
+                .contains("makes/foreign-publication.mk:2:scripts/project_bijux_docs.py"));
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn governed_publication_workflow_keeps_legacy_references_visible() -> Result<()> {
+        let (_owner, workspace, _) = make_surface_fixture()?;
+        let check = check_registry()
+            .into_iter()
+            .find(|check| check.id == "check-ci-automation-surface")
+            .context("maintained CI automation check")?;
+        std::fs::create_dir_all(workspace.path(".github/workflows"))?;
+        for prefix in [".bijux/shared/bijux-gh/", "shared/bijux-gh/"] {
+            std::fs::write(
+                workspace.path(".github/workflows/deploy-docs.yml"),
+                format!("run: python3 {prefix}scripts/publication_admission.py\n"),
+            )?;
+            assert_eq!(
+                check_ci_automation_surface(&workspace, &check)?.status,
+                CheckStatus::Passed
+            );
+        }
+        for prefix in ["", "makes/", ".bijux/shared/foreign-gh/", ".bijux/shared/bijux-gh-foreign/"]
+        {
+            std::fs::write(
+                workspace.path(".github/workflows/unowned.yml"),
+                format!("run: python3 {prefix}scripts/publication_admission.py\n"),
+            )?;
+            let outcome = check_ci_automation_surface(&workspace, &check)?;
+            assert_eq!(outcome.status, CheckStatus::Failed);
+            assert!(outcome
+                .detail
+                .contains(".github/workflows/unowned.yml:1:scripts/publication_admission.py"));
+        }
+        Ok(())
+    }
 
     #[test]
     fn governed_shared_rust_automation_is_recognized() {

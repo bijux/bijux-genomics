@@ -361,3 +361,82 @@ fn materialize_qc_fixture(outputs: &[ArtifactRef]) -> anyhow::Result<()> {
     }
     Ok(())
 }
+
+#[test]
+fn declared_bam_metric_observation_does_not_depend_on_parent_sort_names() -> anyhow::Result<()> {
+    let root = bijux_dna_infra::temp_dir("bam-metric-parent-admission")?;
+    let mut observations = Vec::new();
+    for (label, metric_name, report_name) in
+        [("metrics-first", "a-metrics", "z-reports"), ("reports-first", "z-metrics", "a-reports")]
+    {
+        let base = root.path().join(label);
+        let metrics = base.join(metric_name);
+        let reports = base.join(report_name);
+        bijux_dna_infra::ensure_dir(&metrics)?;
+        bijux_dna_infra::ensure_dir(&reports)?;
+        let metrics_path = metrics.join("flagstat.txt");
+        bijux_dna_infra::write_bytes(
+            &metrics_path,
+            include_bytes!("../fixtures/observer/default/flagstat.txt"),
+        )?;
+        let summary = reports.join("summary.json");
+        bijux_dna_infra::write_bytes(&summary, b"{}")?;
+        let outputs = vec![
+            ArtifactRef::required(
+                ArtifactId::new("flagstat"),
+                metrics_path,
+                ArtifactRole::ReportJson,
+            ),
+            ArtifactRef::required(ArtifactId::new("summary"), summary, ArtifactRole::ReportJson),
+        ];
+        let mut plan = stage_plan("bam.mapping_summary");
+        plan.out_dir = base.join("unused");
+        plan.io.outputs = outputs.clone();
+        let first = BamStagePlugin.parse_outputs(&plan, &outputs)?;
+        let mut reversed = outputs;
+        reversed.reverse();
+        let second = BamStagePlugin.parse_outputs(&plan, &reversed)?;
+        assert_eq!(first.metrics.metrics, second.metrics.metrics);
+        eprintln!("bam_metric_parent_observation {label}: {}", first.metrics.metrics);
+        observations.push(first.metrics.metrics["alignment"]["total"].clone());
+    }
+    assert_eq!(observations[0], 10, "actual fixture metric positive");
+    assert_eq!(
+        observations[1], 10,
+        "declared metric artifact cannot disappear because an inert report parent sorts first"
+    );
+    for (label, metric_name, report_name) in
+        [("metrics-first", "a-metrics", "z-reports"), ("reports-first", "z-metrics", "a-reports")]
+    {
+        let base = root.path().join(label);
+        let metrics = base.join(metric_name);
+        let sibling = include_str!("../fixtures/observer/default/flagstat.txt").replacen(
+            "10 + 0 in total",
+            "99 + 0 in total",
+            1,
+        );
+        assert!(sibling.contains("99 + 0 in total"), "conflicting real flagstat control");
+        bijux_dna_infra::write_bytes(metrics.join("flagstat.after.txt"), sibling.as_bytes())?;
+        let outputs = vec![
+            ArtifactRef::required(
+                ArtifactId::new("flagstat"),
+                metrics.join("flagstat.txt"),
+                ArtifactRole::ReportJson,
+            ),
+            ArtifactRef::required(
+                ArtifactId::new("summary"),
+                base.join(report_name).join("summary.json"),
+                ArtifactRole::ReportJson,
+            ),
+        ];
+        let mut plan = stage_plan("bam.mapping_summary");
+        plan.out_dir = base.join("unused");
+        plan.io.outputs = outputs.clone();
+        let parsed = BamStagePlugin.parse_outputs(&plan, &outputs)?;
+        assert_eq!(
+            parsed.metrics.metrics["alignment"]["total"], 10,
+            "undeclared higher-priority sibling must not replace the declared metric observation"
+        );
+    }
+    Ok(())
+}

@@ -52,3 +52,7 @@ mod mod_contracts_tool_contract_rs;
 
 #[path = "contracts/delivery/catalog.rs"]
 mod delivery_catalog;
+
+#[cfg(unix)]
+#[path = "support/inventory_capture.rs"]
+mod inventory_capture;

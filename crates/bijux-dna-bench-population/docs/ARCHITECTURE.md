@@ -12,3 +12,11 @@ a complete multi-file publication is not transactional on filesystem failure.
 
 Native execution, fallback, synthetic and proxy observations retain their existing
 classification. Producing a report is not proof of scientific interchangeability.
+
+## Readiness records
+
+Readiness flags observe independent proof surfaces, and incomplete combinations
+remain valid diagnostic data. Flat serialized row fields preserve the existing
+report contract. Pure field projections stay explicit in their capability owner;
+scientific admission remains in coverage/science modules. Scoped lint allowances
+document these boundaries without changing field identities or assessment behavior.

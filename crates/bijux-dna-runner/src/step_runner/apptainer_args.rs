@@ -1,3 +1,5 @@
+use std::collections::BTreeMap;
+use std::ffi::OsString;
 use std::path::{Path, PathBuf};
 
 use anyhow::Result;
@@ -15,6 +17,7 @@ pub(super) fn build_apptainer_exec_args(
     input_root: &Path,
     out_dir: &Path,
     _runner: RuntimeKind,
+    environment: Option<&BTreeMap<OsString, OsString>>,
 ) -> Result<Vec<String>> {
     let preserve_absolute_inputs = preserve_absolute_input_paths(inputs);
     let bind_roots = input_bind_roots(inputs, input_root, preserve_absolute_inputs);
@@ -37,7 +40,7 @@ pub(super) fn build_apptainer_exec_args(
     args.push("--bind".to_string());
     args.push(output_mount);
     args.push("--pwd".to_string());
-    args.push(stage_workdir_in_container(out_dir, RuntimeKind::Apptainer));
+    args.push(stage_workdir_in_container(out_dir, RuntimeKind::Apptainer, environment));
     args.push(step.image.image.clone());
     args.extend(container_command_template(
         &step.command.template,

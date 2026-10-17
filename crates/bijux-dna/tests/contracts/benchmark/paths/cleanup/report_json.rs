@@ -114,7 +114,7 @@ fn bench_paths_cleanup_proof_reports_disposable_root_deletion() {
         "sentinel.txt",
     ));
 
-    let output = Command::new(env!("CARGO_BIN_EXE_bijux-dna"))
+    let output = Command::new(support::cli_binary_path())
         .current_dir(repo_root.path())
         .env("HOME", home.path())
         .env("BIJUX_SKIP_QA", "1")

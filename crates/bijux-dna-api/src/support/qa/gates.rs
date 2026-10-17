@@ -1,10 +1,10 @@
 use anyhow::{anyhow, Result};
 use bijux_dna_containers::api::{PlatformSpec, ToolImageCatalog};
 
-/// QA hooks are a no-op in production API builds.
+/// Compatibility hooks validate stage identity without running image QA.
 ///
-/// The QA crate carries heavy dependencies and is intentionally kept out of the
-/// runtime dependency graph.
+/// These hooks do not inspect QA records or execute probes. Image and tool QA
+/// are explicit operations owned by `bijux-dna-containers-qa`.
 pub fn ensure_image_qa_passed(
     stage: &str,
     _tools: &[String],

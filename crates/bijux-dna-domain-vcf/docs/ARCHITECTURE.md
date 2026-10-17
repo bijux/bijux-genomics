@@ -50,3 +50,25 @@ strings retain equality; otherwise complete calls with at least two alleles are
 compared without allele order or phase separators. This operation does not
 validate genotype syntax. Science evidence and benchmark workflows share this
 domain contract without depending on one another.
+
+`artifacts/genotype_truth.rs` owns pure genotype, ploidy, phase and likelihood
+projection over an internal typed request. Declared input paths and caller labels
+are report metadata; the kernel does not read them. The public Path facade retains
+its existing document acquisition followed by statistics acquisition, including
+error order and supplied missingness. Native decoding and filesystem acquisition
+remain in that compatibility path. This boundary does not change the summary
+schema or claim that every domain artifact service is free of acquisition effects.
+
+`artifacts/fixture_genotypes/` owns strict mini-fixture GT observations over borrowed
+VCF text: allele dosage, zygosity, phase, per-contig homozygosity and last-seen site
+frequencies. The typed request's source path is diagnostic metadata. The caller
+retains text acquisition, expected-truth document construction, validation and
+publication. Strict fixture syntax intentionally differs from the aggregate
+`genotype_truth` projection; neither capability substitutes the other's semantics.
+
+`artifacts/fixture_genotypes/homozygosity.rs` owns runs of at least two adjacent
+homozygous observations and paired runs over the same per-contig flags. Contig
+boundaries, existing record order and paired-vector truncation are retained.
+The expected-truth caller keeps ROH/IBD document schemas, state admission,
+independent equal-dosage site counts, acquisition and publication. These fixture
+run counts do not claim physical interval alignment or matching genotype alleles.

@@ -1,5 +1,8 @@
 #![cfg(unix)]
 
+#[path = "runtime_verification/retained_manifest.rs"]
+mod retained_manifest;
+
 use std::fs;
 use std::os::unix::fs::PermissionsExt as _;
 use std::path::Path;
@@ -107,6 +110,7 @@ fn executes_canonical_inventory_and_binds_immutable_manifests() -> Result<()> {
     verify_runtime_verification_report(&publication_path, &markdown_path)?;
 
     assert_baseline_reuses_unchanged_evidence(&request, &publication_path)?;
+    retained_manifest::require_live_manifest_semantics(&request, &publication_path)?;
 
     assert_label_tampering_rejected(
         temporary.path(),

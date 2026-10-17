@@ -595,6 +595,12 @@ fn load_attempt_ledger(path: &Path) -> Result<RunAttemptLedger> {
     if ledger.schema_version != CONTAINER_RUN_ATTEMPT_LEDGER_SCHEMA_V1 {
         bail!("existing attempt ledger is invalid: {}", path.display());
     }
+    let mut seen = BTreeSet::new();
+    for attempt in &ledger.attempts {
+        if !seen.insert(attempt.run_id.as_str()) {
+            bail!("existing attempt ledger run identity is duplicated: {}", attempt.run_id);
+        }
+    }
     Ok(ledger)
 }
 

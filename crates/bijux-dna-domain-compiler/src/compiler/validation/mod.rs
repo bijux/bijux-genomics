@@ -20,6 +20,9 @@ use self::catalog_validation::{
     validate_domain_vocabularies, validate_reference_catalogs, DomainVocabularies,
 };
 use self::deprecations::validate_deprecations_contract;
+pub(super) use self::deprecations::{
+    validate_deprecation_entries, DeprecationEntry, DeprecationsDoc,
+};
 use self::fixture_consistency::validate_fixture_consistency;
 use self::index_rules::validate_domain_indexes_and_pipelines;
 use self::stage_files::validate_stage_files;

@@ -41,6 +41,16 @@ README files are intentionally not allowed under `tests/`.
 
 ## Contract Tests
 
+- `tests/contracts/invocation_environment.rs` executes the public run entrypoint
+  in fresh child processes, first sequentially and then with two real Local
+  providers held in overlap. It checks private HOME, temporary, cache and work
+  directories, resource values, unchanged parent environment and bounded child
+  cleanup. The repository root stays fixed within each child. Its shell and
+  FIFO providers and the current contracts executable are checked for byte and
+  mode changes; small private fixtures and raw child results remain under
+  `artifacts/testing/invocation-environment/` for diagnostics. Schedule this
+  contract with capacity for its four workload processes plus supervision and
+  transient cleanup; it performs no container or network operation.
 - `tests/contracts/v1_cross_contract_spine.rs` checks the plan, manifest, and
   report contract spine.
 - `tests/contracts/v1_cross_explain_roundtrip.rs` checks explainability
@@ -50,6 +60,11 @@ README files are intentionally not allowed under `tests/`.
 - `tests/contracts/v1_fastq_small_integration.rs` checks a small FASTQ flow.
 - `tests/contracts/fastq_amplicon_governance_contract.rs` checks governed FASTQ
   amplicon inputs and locks.
+
+- Inline BAM contracts in `src/internal/handlers/cross/bam_exec_contracts.rs` check
+  resumed alignment continuation, summary/manifest projection, and downstream
+  binding refusals using accepted synthetic receipts in a bounded private child.
+  These checks do not qualify cold aligner execution or scientific BAM outputs.
 
 ## Recommended Commands
 
@@ -65,3 +80,13 @@ Run `cargo test -p bijux-dna-api --all-features` before release-facing handoff
 when feature-gated code changed.
 
 Shared guardrail parser regressions are owned and executed by the policy crate. This boundary suite retains its crate-specific architecture checks; it does not compile another crate's test source. Constructor-only guardrail wrappers provide no source-check coverage and are retired.
+
+The owned invocation environment contract also checks a failed Local provider: the crash bundle preserves the five recorded child environment values, and the parent environment remains unchanged.
+
+## Workspace Metric Registry
+
+`src/runtime/run/reporting/workspace_audit/metric_registry/contracts.rs` covers
+vocabulary compatibility and YAML error chains, ordered stage refusals, domain
+contract projection, stable TSV/report publication, and preservation of an
+existing output on refusal. The CLI's retained `dev_crates_audits` metric-registry
+case checks the actual command, JSON envelope, and governed FASTQ/BAM/VCF rows.

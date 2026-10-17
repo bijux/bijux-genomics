@@ -1,12 +1,30 @@
 use std::collections::{BTreeMap, BTreeSet};
-use std::fmt::Write as _;
 use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, bail, Context, Result};
-use bijux_dna_api::v1::api::run::run_command_with_context;
-use bijux_dna_domain_vcf::{contracts::stage_metrics_contract, VcfDomainStage};
-use serde::{Deserialize, Serialize};
+use bijux_dna_api::v1::api::bench::{
+    index_canonical_benchmark_result_bindings, reconcile_canonical_benchmark_result_identities,
+    CanonicalBenchmarkResultBinding as CanonicalResultIdRow, CanonicalResultIdentityViolation,
+};
+pub use bijux_dna_api::v1::api::write_metric_registry_report;
+use bijux_dna_api::v1::api::{
+    read_workspace_crate_manifests as workspace_members, WorkspaceCrateManifest as WorkspaceMember,
+};
+pub use bijux_dna_api::v1::api::{
+    write_workspace_dependency_map as write_dependency_map, CrateDependencyEdge,
+};
+pub type MetricRegistryReport = bijux_dna_api::v1::api::MetricRegistryReport;
+pub type MetricRegistryRow = bijux_dna_api::v1::api::MetricRegistryRow;
+use bijux_dna_api::v1::api::{
+    evaluate_workspace_source_audit, forbidden_workspace_execution_dependencies,
+    workspace_execution_owner_dependencies, workspace_source_matches, WorkspaceSourceAuditInput,
+    WorkspaceSourceRule,
+};
+use serde::Serialize;
 use toml::Value;
+
+mod proof_transport;
+use proof_transport::{run_gate_proof, ProofId};
 
 const DOMAIN_CRATES: &[&str] =
     &["bijux-dna-domain-bam", "bijux-dna-domain-fastq", "bijux-dna-domain-vcf"];
@@ -23,88 +41,6 @@ const RUNNER_OWNED_PROCESS_EXECUTION_REPORT_CRATES: &[&str] = &[
     "bijux-dna-stages-fastq",
     "bijux-dna-stages-vcf",
 ];
-
-const PROCESS_EXECUTION_PATTERNS: &[&str] = &[
-    concat!("Command", "::new"),
-    concat!("std::process::", "Command"),
-    concat!("tokio::process::", "Command"),
-];
-const CONTAINER_EXECUTION_PATTERNS: &[&str] = &[
-    concat!("Command", "::new(\"docker\")"),
-    concat!("Command", "::new(\"apptainer\")"),
-    concat!("Command", "::new(\"singularity\")"),
-    concat!("Command", "::new(\"podman\")"),
-    concat!("std::process::", "Command", "::new(\"docker\")"),
-    concat!("std::process::", "Command", "::new(\"apptainer\")"),
-    concat!("std::process::", "Command", "::new(\"singularity\")"),
-    concat!("std::process::", "Command", "::new(\"podman\")"),
-    concat!("tokio::process::", "Command", "::new(\"docker\")"),
-    concat!("tokio::process::", "Command", "::new(\"apptainer\")"),
-    concat!("tokio::process::", "Command", "::new(\"singularity\")"),
-    concat!("tokio::process::", "Command", "::new(\"podman\")"),
-];
-const SLURM_EXECUTION_PATTERNS: &[&str] = &[
-    concat!("Command", "::new(\"sbatch\")"),
-    concat!("Command", "::new(\"srun\")"),
-    concat!("Command", "::new(\"salloc\")"),
-    concat!("std::process::", "Command", "::new(\"sbatch\")"),
-    concat!("std::process::", "Command", "::new(\"srun\")"),
-    concat!("std::process::", "Command", "::new(\"salloc\")"),
-    concat!("tokio::process::", "Command", "::new(\"sbatch\")"),
-    concat!("tokio::process::", "Command", "::new(\"srun\")"),
-    concat!("tokio::process::", "Command", "::new(\"salloc\")"),
-];
-
-const RUNNER_DEPENDENCY_PATTERNS: &[&str] = &["runner"];
-const CONTAINER_DEPENDENCY_PATTERNS: &[&str] =
-    &["docker", "apptainer", "singularity", "podman", "container"];
-const SLURM_DEPENDENCY_PATTERNS: &[&str] = &["slurm"];
-const PARSER_ENTRYPOINT_PATTERNS: &[&str] = &["pub fn parse_", "pub(crate) fn parse_"];
-const RAW_INPUT_READ_PATTERNS: &[&str] = &[
-    "fs::read_to_string",
-    "std::fs::read_to_string",
-    "fs::read(",
-    "std::fs::read(",
-    "File::open(",
-    ".read_to_string(",
-];
-const INPUT_MUTATION_PATTERNS: &[&str] = &[
-    concat!("fs", "::write("),
-    concat!("std::fs", "::write("),
-    concat!("File", "::create("),
-    concat!("fs", "::create_dir("),
-    concat!("fs", "::create_dir_all("),
-    concat!("std::fs", "::create_dir("),
-    concat!("std::fs", "::create_dir_all("),
-    concat!("fs", "::remove_file("),
-    concat!("fs", "::remove_dir("),
-    concat!("fs", "::remove_dir_all("),
-    concat!("std::fs", "::remove_file("),
-    concat!("std::fs", "::remove_dir("),
-    concat!("std::fs", "::remove_dir_all("),
-    concat!("fs", "::rename("),
-    concat!("std::fs", "::rename("),
-    concat!("fs", "::copy("),
-    concat!("std::fs", "::copy("),
-    "atomic_write",
-    "write_bytes(",
-    "write_json(",
-];
-const PLANNER_PARSER_API_PATTERNS: &[&str] = &[
-    "bijux_dna_domain_fastq::observer",
-    "bijux_dna_stages_fastq::observer",
-    "observer::parse_",
-    "metrics::parse_",
-    "parsers::parse_",
-    "bijux_dna_domain_vcf::parsers",
-    "raw_parser_contract",
-];
-
-#[derive(Clone, Debug)]
-struct WorkspaceMember {
-    crate_name: String,
-    manifest_path: PathBuf,
-}
 
 #[derive(Clone, Copy, Debug)]
 struct ParserSurfaceSpec {
@@ -448,25 +384,6 @@ const METRIC_REGISTRY_PROOF_TEST_COMMAND: &str =
     "cargo test -p bijux-dna-domain-vcf --test contracts vcf_metric_registry_rejects_unregistered_stage_metrics -- --nocapture";
 
 #[derive(Debug, Serialize)]
-pub struct CrateDependencyMapReport {
-    pub schema_version: &'static str,
-    pub workspace_manifest: String,
-    pub output_path: String,
-    pub crate_count: usize,
-    pub edge_count: usize,
-    pub crates: Vec<CrateDependencyNode>,
-    pub edges: Vec<CrateDependencyEdge>,
-}
-
-#[derive(Debug, Serialize)]
-pub struct CrateDependencyNode {
-    pub crate_name: String,
-    pub manifest_path: String,
-    pub direct_workspace_dependencies: Vec<String>,
-    pub direct_workspace_dependents: Vec<String>,
-}
-
-#[derive(Debug, Serialize)]
 pub struct DomainNoExecutionReport {
     pub schema_version: &'static str,
     pub workspace_manifest: String,
@@ -621,34 +538,6 @@ pub struct ParserSurfaceAuditReport {
 }
 
 #[derive(Debug, Serialize)]
-pub struct CrateDependencyEdge {
-    pub from: String,
-    pub to: String,
-}
-
-#[derive(Debug, Serialize)]
-pub struct MetricRegistryReport {
-    pub schema_version: &'static str,
-    pub workspace_manifest: String,
-    pub output_path: String,
-    pub domain_count: usize,
-    pub stage_count: usize,
-    pub row_count: usize,
-    pub rows: Vec<MetricRegistryRow>,
-}
-
-#[derive(Debug, Clone, Serialize, PartialEq, Eq)]
-pub struct MetricRegistryRow {
-    pub domain: String,
-    pub stage_id: String,
-    pub metric_id: String,
-    pub meaning: String,
-    pub contract_kind: String,
-    pub stage_contract_surface: String,
-    pub domain_registry_surface: String,
-}
-
-#[derive(Debug, Serialize)]
 pub struct ResultIdStabilityReport {
     pub schema_version: &'static str,
     pub workspace_manifest: String,
@@ -694,34 +583,10 @@ pub struct ResultIdStabilityViolation {
     pub detail: String,
 }
 
-#[derive(Debug, Deserialize, Default)]
-struct MetricRegistryStageDoc {
-    #[serde(default)]
-    stage_id: String,
-    #[serde(default)]
-    metrics: Vec<MetricRegistryStageMetricDoc>,
-}
-
-#[derive(Debug, Deserialize, Default)]
-struct MetricRegistryStageMetricDoc {
-    #[serde(default)]
-    name: String,
-    #[serde(default)]
-    meaning: String,
-}
-
-#[derive(Debug, Deserialize, Default)]
-struct MetricRegistryVocabularyDoc {
-    #[serde(default)]
-    metric_ids: Vec<String>,
-    #[serde(default)]
-    metrics: Vec<MetricRegistryVocabularyEntryDoc>,
-}
-
-#[derive(Debug, Deserialize, Default)]
-struct MetricRegistryVocabularyEntryDoc {
-    #[serde(default)]
-    id: String,
+impl From<CanonicalResultIdentityViolation> for ResultIdStabilityViolation {
+    fn from(value: CanonicalResultIdentityViolation) -> Self {
+        Self { result_id: value.result_id, surface: value.surface, detail: value.detail }
+    }
 }
 
 #[derive(Debug, Serialize)]
@@ -769,10 +634,6 @@ fn relative_display(path: &Path, root: &Path) -> String {
     path.strip_prefix(root).unwrap_or(path).display().to_string()
 }
 
-fn sanitize_tsv(value: &str) -> String {
-    value.replace(['\t', '\n', '\r'], " ")
-}
-
 fn crate_cycle_category(crate_name: &str) -> Option<&'static str> {
     CRATE_CYCLE_CATEGORIES
         .iter()
@@ -793,25 +654,6 @@ fn gate_cargo_target_dir(cwd: &Path) -> PathBuf {
         cwd,
         std::env::var_os("CARGO_TARGET_DIR").as_deref().map(Path::new),
     )
-}
-
-fn run_gate_cargo_test(
-    cwd: &Path,
-    cargo_target_dir: &Path,
-    package: &str,
-    subcommand_args: &[&str],
-    command_text: &str,
-) -> Result<()> {
-    let mut envs = BTreeMap::new();
-    envs.insert("CARGO_TARGET_DIR".to_string(), cargo_target_dir.display().to_string());
-    let mut args = vec!["test".to_string(), "-p".to_string(), package.to_string()];
-    args.extend(subcommand_args.iter().map(|arg| (*arg).to_string()));
-    let status = run_command_with_context("cargo", &args, Some(cwd), Some(&envs))
-        .with_context(|| format!("run `{command_text}`"))?;
-    if status.exit_code != 0 {
-        bail!("`{command_text}` exited with status {}", status.exit_code);
-    }
-    Ok(())
 }
 
 fn build_benchmarking_ready_crate_shape_gate_report(
@@ -847,15 +689,13 @@ fn crate_shape_gate_check_from_result<R>(
     goal_id: &'static str,
     command: String,
     result: Result<R>,
-    ok_detail: impl FnOnce(R) -> String,
+    outcome: impl FnOnce(R) -> (bool, String),
 ) -> CrateShapeGateCheckReport {
     match result {
-        Ok(report) => CrateShapeGateCheckReport {
-            goal_id: goal_id.to_string(),
-            ok: true,
-            command,
-            detail: ok_detail(report),
-        },
+        Ok(report) => {
+            let (ok, detail) = outcome(report);
+            CrateShapeGateCheckReport { goal_id: goal_id.to_string(), ok, command, detail }
+        }
         Err(err) => CrateShapeGateCheckReport {
             goal_id: goal_id.to_string(),
             ok: false,
@@ -874,7 +714,7 @@ fn collect_benchmarking_ready_crate_shape_gate_checks(
         "411",
         format!("bijux-dna dev crates graph --output {DEFAULT_CRATE_DEPENDENCY_MAP_PATH}"),
         write_dependency_map(cwd, &graph_path),
-        |report| report.output_path,
+        |report| (true, report.output_path),
     );
 
     let domain_no_execution_path = cwd.join(DEFAULT_DOMAIN_NO_EXECUTION_PATH);
@@ -884,7 +724,7 @@ fn collect_benchmarking_ready_crate_shape_gate_checks(
             "bijux-dna dev crates domain-no-execution --output {DEFAULT_DOMAIN_NO_EXECUTION_PATH}"
         ),
         write_domain_no_execution_report(cwd, &domain_no_execution_path),
-        |report| report.output_path,
+        |report| (report.ok, report.output_path),
     );
 
     let parser_no_execution_path = cwd.join(DEFAULT_PARSER_NO_EXECUTION_PATH);
@@ -894,7 +734,7 @@ fn collect_benchmarking_ready_crate_shape_gate_checks(
             "bijux-dna dev crates parser-no-execution --output {DEFAULT_PARSER_NO_EXECUTION_PATH}"
         ),
         write_parser_no_execution_report(cwd, &parser_no_execution_path),
-        |report| report.output_path,
+        |report| (report.ok, report.output_path),
     );
 
     let planner_no_parser_path = cwd.join(DEFAULT_PLANNER_NO_PARSER_PATH);
@@ -902,7 +742,7 @@ fn collect_benchmarking_ready_crate_shape_gate_checks(
         "414",
         format!("bijux-dna dev crates planner-no-parser --output {DEFAULT_PLANNER_NO_PARSER_PATH}"),
         write_planner_no_parser_report(cwd, &planner_no_parser_path),
-        |report| report.output_path,
+        |report| (report.ok, report.output_path),
     );
 
     let runner_process_execution_path = cwd.join(DEFAULT_RUNNER_OWNS_PROCESS_EXECUTION_PATH);
@@ -912,20 +752,19 @@ fn collect_benchmarking_ready_crate_shape_gate_checks(
             "bijux-dna dev crates runner-owns-process-execution --output {DEFAULT_RUNNER_OWNS_PROCESS_EXECUTION_PATH}"
         ),
         write_runner_owned_process_execution_report(cwd, &runner_process_execution_path),
-        |report| report.output_path,
+        |report| (report.ok, report.output_path),
     );
 
     let goal_416 = crate_shape_gate_check_from_result(
         "416",
         TYPED_ARTIFACT_HANDOFF_TEST_COMMAND.to_string(),
-        run_gate_cargo_test(
+        run_gate_proof(
             cwd,
             cargo_target_dir,
-            "bijux-dna-api",
-            &["typed_artifact_handoff_rejects_wrong_stage_inputs", "--", "--nocapture"],
+            ProofId::TypedArtifactHandoff,
             TYPED_ARTIFACT_HANDOFF_TEST_COMMAND,
         ),
-        |()| "typed artifact handoff proof passed".to_string(),
+        |()| (true, "typed artifact handoff proof passed".to_string()),
     );
 
     let goal_417 = collect_metric_registry_gate_check(cwd, cargo_target_dir);
@@ -937,7 +776,7 @@ fn collect_benchmarking_ready_crate_shape_gate_checks(
             "bijux-dna dev crates result-id-stability --output {DEFAULT_RESULT_ID_STABILITY_PATH}"
         ),
         write_result_id_stability_report(cwd, &result_id_stability_path),
-        |report| report.output_path,
+        |report| (report.ok, report.output_path),
     );
 
     let no_crate_cycles_path = cwd.join(DEFAULT_NO_CRATE_CYCLES_PATH);
@@ -945,7 +784,7 @@ fn collect_benchmarking_ready_crate_shape_gate_checks(
         "419",
         format!("bijux-dna dev crates check-cycles --output {DEFAULT_NO_CRATE_CYCLES_PATH}"),
         write_no_crate_cycles_report(cwd, &no_crate_cycles_path),
-        |report| report.output_path,
+        |report| (report.ok, report.output_path),
     );
 
     vec![goal_411, goal_412, goal_413, goal_414, goal_415, goal_416, goal_417, goal_418, goal_419]
@@ -957,17 +796,10 @@ fn collect_metric_registry_gate_check(
 ) -> CrateShapeGateCheckReport {
     let metric_registry_path = cwd.join(DEFAULT_METRIC_REGISTRY_PATH);
     let metric_registry_report = write_metric_registry_report(cwd, &metric_registry_path);
-    let metric_registry_contract = run_gate_cargo_test(
+    let metric_registry_contract = run_gate_proof(
         cwd,
         cargo_target_dir,
-        "bijux-dna-domain-vcf",
-        &[
-            "--test",
-            "contracts",
-            "vcf_metric_registry_rejects_unregistered_stage_metrics",
-            "--",
-            "--nocapture",
-        ],
+        ProofId::VcfMetricRegistry,
         METRIC_REGISTRY_PROOF_TEST_COMMAND,
     );
     match (metric_registry_report, metric_registry_contract) {
@@ -1006,204 +838,11 @@ fn collect_metric_registry_gate_check(
     }
 }
 
-fn collect_yaml_sources(dir: &Path, files: &mut Vec<PathBuf>) -> Result<()> {
-    if !dir.exists() {
-        return Ok(());
-    }
-    for entry in std::fs::read_dir(dir).with_context(|| format!("read {}", dir.display()))? {
-        let entry = entry?;
-        let path = entry.path();
-        if path.is_dir() {
-            collect_yaml_sources(&path, files)?;
-            continue;
-        }
-        if path.extension().and_then(|extension| extension.to_str()) == Some("yaml") {
-            files.push(path);
-        }
-    }
-    Ok(())
-}
-
-fn load_domain_metric_vocabulary(path: &Path) -> Result<BTreeSet<String>> {
-    let payload =
-        std::fs::read_to_string(path).with_context(|| format!("read {}", path.display()))?;
-    let doc: MetricRegistryVocabularyDoc =
-        serde_yaml::from_str(&payload).with_context(|| format!("parse {}", path.display()))?;
-    let mut metric_ids = doc
-        .metric_ids
-        .into_iter()
-        .chain(doc.metrics.into_iter().map(|entry| entry.id))
-        .filter(|metric_id| !metric_id.trim().is_empty())
-        .collect::<BTreeSet<_>>();
-    if metric_ids.is_empty() {
-        bail!("metric vocabulary `{}` is empty", path.display());
-    }
-    Ok(std::mem::take(&mut metric_ids))
-}
-
-fn collect_stage_yaml_metric_registry_rows(
-    cwd: &Path,
-    domain: &str,
-) -> Result<Vec<MetricRegistryRow>> {
-    let domain_root = cwd.join("domain").join(domain);
-    let vocabulary_path = domain_root.join("metrics.yaml");
-    let registered_metric_ids = load_domain_metric_vocabulary(&vocabulary_path)?;
-
-    let mut stage_paths = Vec::new();
-    collect_yaml_sources(&domain_root.join("stages"), &mut stage_paths)?;
-    stage_paths.sort();
-
-    let mut rows = Vec::new();
-    for stage_path in stage_paths {
-        if stage_path.file_name().and_then(|name| name.to_str()) == Some("_schema.yaml") {
-            continue;
-        }
-        let payload = std::fs::read_to_string(&stage_path)
-            .with_context(|| format!("read {}", stage_path.display()))?;
-        let stage_doc: MetricRegistryStageDoc = serde_yaml::from_str(&payload)
-            .with_context(|| format!("parse {}", stage_path.display()))?;
-        if stage_doc.stage_id.trim().is_empty() {
-            continue;
-        }
-        let mut stage_metric_ids = BTreeSet::new();
-        for metric in stage_doc.metrics {
-            if metric.name.trim().is_empty() {
-                bail!(
-                    "stage metric declaration in `{}` is missing a metric name",
-                    stage_path.display()
-                );
-            }
-            if !stage_metric_ids.insert(metric.name.clone()) {
-                bail!(
-                    "stage `{}` declares duplicate metric `{}` in `{}`",
-                    stage_doc.stage_id,
-                    metric.name,
-                    stage_path.display()
-                );
-            }
-            if !registered_metric_ids.contains(&metric.name) {
-                bail!(
-                    "stage `{}` declares unregistered metric `{}` in `{}`",
-                    stage_doc.stage_id,
-                    metric.name,
-                    stage_path.display()
-                );
-            }
-            rows.push(MetricRegistryRow {
-                domain: domain.to_string(),
-                stage_id: stage_doc.stage_id.clone(),
-                metric_id: metric.name,
-                meaning: metric.meaning,
-                contract_kind: "yaml_stage_metrics".to_string(),
-                stage_contract_surface: relative_display(&stage_path, cwd),
-                domain_registry_surface: relative_display(&vocabulary_path, cwd),
-            });
-        }
-    }
-    Ok(rows)
-}
-
-fn collect_vcf_metric_registry_rows(cwd: &Path) -> Result<Vec<MetricRegistryRow>> {
-    let vocabulary_path = cwd.join("domain").join("vcf").join("metrics.yaml");
-    let registered_metric_ids = load_domain_metric_vocabulary(&vocabulary_path)?;
-    let mut rows = Vec::new();
-
-    for stage in VcfDomainStage::all() {
-        let contract = stage_metrics_contract(*stage);
-        let mut stage_metric_ids = BTreeSet::new();
-        for metric_id in contract.required_metrics {
-            if !stage_metric_ids.insert((*metric_id).to_string()) {
-                bail!(
-                    "VCF stage `{}` declares duplicate metric `{metric_id}` in the Rust contract",
-                    stage.as_str()
-                );
-            }
-            if !registered_metric_ids.contains(*metric_id) {
-                bail!(
-                    "VCF stage `{}` references unregistered metric `{metric_id}` in `domain/vcf/metrics.yaml`",
-                    stage.as_str()
-                );
-            }
-            rows.push(MetricRegistryRow {
-                domain: "vcf".to_string(),
-                stage_id: stage.as_str().to_string(),
-                metric_id: (*metric_id).to_string(),
-                meaning: String::new(),
-                contract_kind: "rust_stage_metrics_contract".to_string(),
-                stage_contract_surface:
-                    "crates/bijux-dna-domain-vcf/src/contracts/stage_metrics.rs".to_string(),
-                domain_registry_surface: relative_display(&vocabulary_path, cwd),
-            });
-        }
-    }
-
-    Ok(rows)
-}
-
-fn collect_metric_registry_rows(cwd: &Path) -> Result<Vec<MetricRegistryRow>> {
-    let mut rows = Vec::new();
-    rows.extend(collect_stage_yaml_metric_registry_rows(cwd, "fastq")?);
-    rows.extend(collect_stage_yaml_metric_registry_rows(cwd, "bam")?);
-    rows.extend(collect_vcf_metric_registry_rows(cwd)?);
-    rows.sort_by(|left, right| {
-        left.domain
-            .cmp(&right.domain)
-            .then_with(|| left.stage_id.cmp(&right.stage_id))
-            .then_with(|| left.metric_id.cmp(&right.metric_id))
-    });
-
-    let mut row_keys = BTreeSet::new();
-    for row in &rows {
-        let key = (row.domain.clone(), row.stage_id.clone(), row.metric_id.clone());
-        if !row_keys.insert(key) {
-            bail!(
-                "metric registry produced duplicate row for `{}` / `{}` / `{}`",
-                row.domain,
-                row.stage_id,
-                row.metric_id
-            );
-        }
-    }
-
-    Ok(rows)
-}
-
-fn render_metric_registry_tsv(rows: &[MetricRegistryRow]) -> String {
-    let mut rendered = String::from(
-        "domain\tstage_id\tmetric_id\tmeaning\tcontract_kind\tstage_contract_surface\tdomain_registry_surface\n",
-    );
-    for row in rows {
-        let _ = writeln!(
-            rendered,
-            "{}\t{}\t{}\t{}\t{}\t{}\t{}",
-            sanitize_tsv(&row.domain),
-            sanitize_tsv(&row.stage_id),
-            sanitize_tsv(&row.metric_id),
-            sanitize_tsv(&row.meaning),
-            sanitize_tsv(&row.contract_kind),
-            sanitize_tsv(&row.stage_contract_surface),
-            sanitize_tsv(&row.domain_registry_surface),
-        );
-    }
-    rendered
-}
-
 const MICRO_RESULT_ID_SUBSET: &[&str] = &[
     "fastq:corpus-02-edna-mini:fastq.screen_taxonomy:sample-set:kraken2",
     "bam:corpus-01-kinship-mini:bam.kinship:sample-set:king",
     "vcf:vcf_production_regression:vcf.call:bam_bundle:bcftools",
 ];
-
-#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
-struct CanonicalResultIdRow {
-    result_id: String,
-    domain: String,
-    stage_id: String,
-    tool_id: String,
-    corpus_id: String,
-    scope_kind: crate::commands::benchmark::benchmark_result_ids::BenchmarkResultScopeKind,
-    scope_id: String,
-}
 
 fn result_scope_kind_label(
     kind: crate::commands::benchmark::benchmark_result_ids::BenchmarkResultScopeKind,
@@ -1317,60 +956,18 @@ fn validate_canonical_result_id_rows(
     rows: &[CanonicalResultIdRow],
     violations: &mut Vec<ResultIdStabilityViolation>,
 ) -> Result<()> {
-    let mut canonical_by_result = BTreeMap::new();
-    for row in rows {
-        if canonical_by_result.insert(row.result_id.clone(), row.clone()).is_some() {
-            push_result_id_violation(
-                violations,
-                &row.result_id,
-                "canonical_result_builder",
-                "canonical result-id builder produced a duplicate binding",
-            );
-        }
-    }
+    let mut identity_violations = Vec::new();
+    let canonical = index_canonical_benchmark_result_bindings(rows, &mut identity_violations);
+    violations.extend(identity_violations.drain(..).map(ResultIdStabilityViolation::from));
 
     let all_domain_rows = crate::commands::benchmark::readiness::all_domain_expected_benchmark_results::collect_all_domain_expected_benchmark_result_rows(cwd)?;
-    if all_domain_rows.len() != rows.len() {
-        push_result_id_violation(
-            violations,
-            "all-domain-expected-row-count",
-            "all_domain_expected_benchmark_results",
-            format!(
-                "all-domain expected rows drifted from canonical benchmark rows: expected {}, found {}",
-                rows.len(),
-                all_domain_rows.len()
-            ),
-        );
-    }
-    for row in &all_domain_rows {
-        let Some(canonical) = canonical_by_result.get(&row.result_id) else {
-            push_result_id_violation(
-                violations,
-                &row.result_id,
-                "all_domain_expected_benchmark_results",
-                "all-domain expected row is missing from the canonical result-id builder",
-            );
-            continue;
-        };
-        let parsed = crate::commands::benchmark::benchmark_result_ids::parse_benchmark_result_id(
-            &row.result_id,
-        )?;
-        if canonical.domain != row.domain
-            || canonical.stage_id != row.stage_id.as_str()
-            || canonical.tool_id != row.tool_id.as_str()
-            || canonical.corpus_id != row.corpus_id
-            || canonical.scope_kind != parsed.scope_kind
-            || canonical.scope_id != parsed.scope_id
-        {
-            push_result_id_violation(
-                violations,
-                &row.result_id,
-                "all_domain_expected_benchmark_results",
-                "all-domain expected row drifted from the canonical result-id identity",
-            );
-        }
-    }
-    Ok(())
+    let result = reconcile_canonical_benchmark_result_identities(
+        &canonical,
+        &all_domain_rows,
+        &mut identity_violations,
+    );
+    violations.extend(identity_violations.into_iter().map(ResultIdStabilityViolation::from));
+    result.map_err(Into::into)
 }
 
 fn validate_optional_result_id_surface<T>(
@@ -1588,37 +1185,6 @@ macro_rules! collect_result_id_stability_rows {
     }};
 }
 
-fn workspace_members(cwd: &Path) -> Result<Vec<WorkspaceMember>> {
-    let workspace_manifest_path = cwd.join("Cargo.toml");
-    let manifest = std::fs::read_to_string(&workspace_manifest_path)
-        .with_context(|| format!("read {}", workspace_manifest_path.display()))?;
-    let value: Value = toml::from_str(&manifest)
-        .with_context(|| format!("parse {}", workspace_manifest_path.display()))?;
-    let members = value
-        .get("workspace")
-        .and_then(|workspace| workspace.get("members"))
-        .and_then(Value::as_array)
-        .context("workspace.members missing from root Cargo.toml")?;
-
-    let mut resolved = Vec::new();
-    for member in members {
-        let member = member.as_str().context("workspace.members must contain only string paths")?;
-        let manifest_path = cwd.join(member).join("Cargo.toml");
-        let crate_manifest = std::fs::read_to_string(&manifest_path)
-            .with_context(|| format!("read {}", manifest_path.display()))?;
-        let crate_value: Value = toml::from_str(&crate_manifest)
-            .with_context(|| format!("parse {}", manifest_path.display()))?;
-        let crate_name = crate_value
-            .get("package")
-            .and_then(|package| package.get("name"))
-            .and_then(Value::as_str)
-            .with_context(|| format!("package.name missing from {}", manifest_path.display()))?;
-        resolved.push(WorkspaceMember { crate_name: crate_name.to_string(), manifest_path });
-    }
-    resolved.sort_by(|left, right| left.crate_name.cmp(&right.crate_name));
-    Ok(resolved)
-}
-
 fn collect_rust_sources(dir: &Path, files: &mut Vec<PathBuf>) -> Result<()> {
     if !dir.exists() {
         return Ok(());
@@ -1673,48 +1239,13 @@ fn push_source_hits(
     path: &Path,
     root: &Path,
     content: &str,
-    patterns: &[&str],
+    rule: WorkspaceSourceRule,
 ) {
-    for (line_number, line) in content.lines().enumerate() {
-        let trimmed = line.trim_start();
-        if trimmed.starts_with("//") || trimmed.starts_with("/*") || trimmed.starts_with('*') {
-            continue;
-        }
-        for pattern in patterns {
-            if line.contains(pattern) {
-                hits.push(SourcePatternHit {
-                    path: relative_display(path, root),
-                    line: line_number + 1,
-                    pattern: (*pattern).to_string(),
-                });
-            }
-        }
-    }
-}
-
-fn collect_manifest_dependency_hits(
-    manifest: &Value,
-    section_name: &str,
-    patterns: &[&str],
-    category: &str,
-) -> Vec<ForbiddenDependencyHit> {
-    let Some(table) = manifest.get(section_name).and_then(Value::as_table) else {
-        return Vec::new();
-    };
-    let mut hits = table
-        .keys()
-        .filter(|dependency| {
-            let normalized = dependency.to_ascii_lowercase();
-            patterns.iter().any(|pattern| normalized.contains(pattern))
-        })
-        .map(|dependency| ForbiddenDependencyHit {
-            section: section_name.to_string(),
-            dependency: dependency.clone(),
-            category: category.to_string(),
-        })
-        .collect::<Vec<_>>();
-    hits.sort_by(|left, right| left.dependency.cmp(&right.dependency));
-    hits
+    hits.extend(workspace_source_matches(content, rule).into_iter().map(|hit| SourcePatternHit {
+        path: relative_display(path, root),
+        line: hit.line,
+        pattern: hit.pattern.to_string(),
+    }));
 }
 
 fn audit_domain_crate(
@@ -1749,53 +1280,35 @@ fn audit_domain_crate(
             rust_file,
             cwd,
             &content,
-            PROCESS_EXECUTION_PATTERNS,
+            WorkspaceSourceRule::ProcessExecution,
         );
         push_source_hits(
             &mut container_execution_refs,
             rust_file,
             cwd,
             &content,
-            CONTAINER_EXECUTION_PATTERNS,
+            WorkspaceSourceRule::ContainerExecution,
         );
         push_source_hits(
             &mut slurm_execution_refs,
             rust_file,
             cwd,
             &content,
-            SLURM_EXECUTION_PATTERNS,
+            WorkspaceSourceRule::SlurmExecution,
         );
     }
 
-    let mut forbidden_direct_dependencies = Vec::new();
-    for (patterns, category) in [
-        (RUNNER_DEPENDENCY_PATTERNS, "runner"),
-        (CONTAINER_DEPENDENCY_PATTERNS, "container"),
-        (SLURM_DEPENDENCY_PATTERNS, "slurm"),
-    ] {
-        for section_name in ["dependencies", "dev-dependencies", "build-dependencies"] {
-            forbidden_direct_dependencies.extend(collect_manifest_dependency_hits(
-                &manifest_value,
-                section_name,
-                patterns,
-                category,
-            ));
-        }
-    }
-    forbidden_direct_dependencies.sort_by(|left, right| {
-        left.category
-            .cmp(&right.category)
-            .then_with(|| left.section.cmp(&right.section))
-            .then_with(|| left.dependency.cmp(&right.dependency))
-    });
+    let forbidden_direct_dependencies = collect_forbidden_direct_dependencies(&manifest_value);
 
     let scanned_rust_files =
         rust_files.iter().map(|path| relative_display(path, cwd)).collect::<Vec<_>>();
 
-    let ok = forbidden_direct_dependencies.is_empty()
-        && process_execution_refs.is_empty()
-        && container_execution_refs.is_empty()
-        && slurm_execution_refs.is_empty();
+    let ok = evaluate_workspace_source_audit(WorkspaceSourceAuditInput::Domain {
+        forbidden_dependencies: forbidden_direct_dependencies.len(),
+        process_execution: process_execution_refs.len(),
+        container_execution: container_execution_refs.len(),
+        slurm_execution: slurm_execution_refs.len(),
+    });
 
     Ok(DomainNoExecutionCrateReport {
         crate_name: member.crate_name.clone(),
@@ -1889,12 +1402,14 @@ fn audit_parser_surface(
         .iter()
         .map(|path| relative_display(&crate_root.join(path), cwd))
         .collect::<Vec<_>>();
-    let ok = !parser_entrypoints.is_empty()
-        && forbidden_direct_dependencies.is_empty()
-        && input_mutation_refs.is_empty()
-        && process_execution_refs.is_empty()
-        && container_execution_refs.is_empty()
-        && slurm_execution_refs.is_empty();
+    let ok = evaluate_workspace_source_audit(WorkspaceSourceAuditInput::Parser {
+        parser_entrypoints: parser_entrypoints.len(),
+        forbidden_dependencies: forbidden_direct_dependencies.len(),
+        input_mutations: input_mutation_refs.len(),
+        process_execution: process_execution_refs.len(),
+        container_execution: container_execution_refs.len(),
+        slurm_execution: slurm_execution_refs.len(),
+    });
 
     Ok(ParserSurfaceAuditReport {
         crate_name: member.crate_name.clone(),
@@ -1933,42 +1448,42 @@ fn collect_parser_surface_hits(
             &absolute,
             cwd,
             &content,
-            PARSER_ENTRYPOINT_PATTERNS,
+            WorkspaceSourceRule::ParserEntrypoint,
         );
         push_source_hits(
             &mut raw_input_read_refs,
             &absolute,
             cwd,
             &content,
-            RAW_INPUT_READ_PATTERNS,
+            WorkspaceSourceRule::RawInputRead,
         );
         push_source_hits(
             &mut input_mutation_refs,
             &absolute,
             cwd,
             &content,
-            INPUT_MUTATION_PATTERNS,
+            WorkspaceSourceRule::InputMutation,
         );
         push_source_hits(
             &mut process_execution_refs,
             &absolute,
             cwd,
             &content,
-            PROCESS_EXECUTION_PATTERNS,
+            WorkspaceSourceRule::ProcessExecution,
         );
         push_source_hits(
             &mut container_execution_refs,
             &absolute,
             cwd,
             &content,
-            CONTAINER_EXECUTION_PATTERNS,
+            WorkspaceSourceRule::ContainerExecution,
         );
         push_source_hits(
             &mut slurm_execution_refs,
             &absolute,
             cwd,
             &content,
-            SLURM_EXECUTION_PATTERNS,
+            WorkspaceSourceRule::SlurmExecution,
         );
     }
     Ok((
@@ -1982,28 +1497,14 @@ fn collect_parser_surface_hits(
 }
 
 fn collect_forbidden_direct_dependencies(manifest_value: &Value) -> Vec<ForbiddenDependencyHit> {
-    let mut forbidden_direct_dependencies = Vec::new();
-    for (patterns, category) in [
-        (RUNNER_DEPENDENCY_PATTERNS, "runner"),
-        (CONTAINER_DEPENDENCY_PATTERNS, "container"),
-        (SLURM_DEPENDENCY_PATTERNS, "slurm"),
-    ] {
-        for section_name in ["dependencies", "dev-dependencies", "build-dependencies"] {
-            forbidden_direct_dependencies.extend(collect_manifest_dependency_hits(
-                manifest_value,
-                section_name,
-                patterns,
-                category,
-            ));
-        }
-    }
-    forbidden_direct_dependencies.sort_by(|left, right| {
-        left.category
-            .cmp(&right.category)
-            .then_with(|| left.section.cmp(&right.section))
-            .then_with(|| left.dependency.cmp(&right.dependency))
-    });
-    forbidden_direct_dependencies
+    forbidden_workspace_execution_dependencies(manifest_value)
+        .into_iter()
+        .map(|hit| ForbiddenDependencyHit {
+            section: hit.section,
+            dependency: hit.dependency,
+            category: hit.category,
+        })
+        .collect()
 }
 
 fn audit_planner_crate(
@@ -2038,7 +1539,13 @@ fn audit_planner_crate(
         let content = std::fs::read_to_string(rust_file)
             .with_context(|| format!("read {}", rust_file.display()))?;
         let mut read_refs = Vec::new();
-        push_source_hits(&mut read_refs, rust_file, cwd, &content, RAW_INPUT_READ_PATTERNS);
+        push_source_hits(
+            &mut read_refs,
+            rust_file,
+            cwd,
+            &content,
+            WorkspaceSourceRule::RawInputRead,
+        );
         for hit in read_refs {
             if allowed_input_read_files.contains(hit.path.as_str()) {
                 planner_input_read_refs.push(hit);
@@ -2051,13 +1558,16 @@ fn audit_planner_crate(
             rust_file,
             cwd,
             &content,
-            PLANNER_PARSER_API_PATTERNS,
+            WorkspaceSourceRule::PlannerParserApi,
         );
     }
 
     let scanned_rust_files =
         rust_files.iter().map(|path| relative_display(path, cwd)).collect::<Vec<_>>();
-    let ok = unexpected_input_read_refs.is_empty() && forbidden_parser_api_refs.is_empty();
+    let ok = evaluate_workspace_source_audit(WorkspaceSourceAuditInput::Planner {
+        unexpected_input_reads: unexpected_input_read_refs.len(),
+        forbidden_parser_api: forbidden_parser_api_refs.len(),
+    });
 
     Ok(PlannerNoParserCrateReport {
         crate_name: member.crate_name.clone(),
@@ -2075,23 +1585,10 @@ fn collect_execution_owner_dependency_hits(
     manifest: &Value,
     section_name: &str,
 ) -> Vec<ExecutionOwnerDependencyHit> {
-    let Some(table) = manifest.get(section_name).and_then(Value::as_table) else {
-        return Vec::new();
-    };
-    let mut hits = table
-        .keys()
-        .filter(|dependency| {
-            matches!(dependency.as_str(), "bijux-dna-runner" | "bijux-dna-runtime")
-        })
-        .map(|dependency| ExecutionOwnerDependencyHit {
-            section: section_name.to_string(),
-            dependency: dependency.clone(),
-        })
-        .collect::<Vec<_>>();
-    hits.sort_by(|left, right| {
-        left.section.cmp(&right.section).then_with(|| left.dependency.cmp(&right.dependency))
-    });
-    hits
+    workspace_execution_owner_dependencies(manifest, section_name)
+        .into_iter()
+        .map(|hit| ExecutionOwnerDependencyHit { section: hit.section, dependency: hit.dependency })
+        .collect()
 }
 
 fn audit_runner_owned_process_execution_crate(
@@ -2126,21 +1623,21 @@ fn audit_runner_owned_process_execution_crate(
             rust_file,
             cwd,
             &content,
-            PROCESS_EXECUTION_PATTERNS,
+            WorkspaceSourceRule::ProcessExecution,
         );
         push_source_hits(
             &mut container_execution_refs,
             rust_file,
             cwd,
             &content,
-            CONTAINER_EXECUTION_PATTERNS,
+            WorkspaceSourceRule::ContainerExecution,
         );
         push_source_hits(
             &mut slurm_execution_refs,
             rust_file,
             cwd,
             &content,
-            SLURM_EXECUTION_PATTERNS,
+            WorkspaceSourceRule::SlurmExecution,
         );
     }
 
@@ -2155,9 +1652,11 @@ fn audit_runner_owned_process_execution_crate(
 
     let scanned_rust_files =
         rust_files.iter().map(|path| relative_display(path, cwd)).collect::<Vec<_>>();
-    let ok = process_execution_refs.is_empty()
-        && container_execution_refs.is_empty()
-        && slurm_execution_refs.is_empty();
+    let ok = evaluate_workspace_source_audit(WorkspaceSourceAuditInput::ExecutionOwner {
+        process_execution: process_execution_refs.len(),
+        container_execution: container_execution_refs.len(),
+        slurm_execution: slurm_execution_refs.len(),
+    });
 
     Ok(RunnerOwnedProcessExecutionCrateReport {
         crate_name: member.crate_name.clone(),
@@ -2172,68 +1671,6 @@ fn audit_runner_owned_process_execution_crate(
         slurm_execution_refs,
         ok,
     })
-}
-
-/// # Errors
-/// Returns an error if the workspace crate graph cannot be resolved or written.
-pub fn write_dependency_map(cwd: &Path, output_path: &Path) -> Result<CrateDependencyMapReport> {
-    let members = workspace_members(cwd)?;
-    let member_names =
-        members.iter().map(|member| member.crate_name.clone()).collect::<BTreeSet<_>>();
-    let edges = bijux_dna_api::v1::api::workspace_edges().context("load workspace edges")?;
-
-    let mut direct_deps = BTreeMap::<String, BTreeSet<String>>::new();
-    let mut direct_dependents = BTreeMap::<String, BTreeSet<String>>::new();
-    for crate_name in &member_names {
-        direct_deps.insert(crate_name.clone(), BTreeSet::new());
-        direct_dependents.insert(crate_name.clone(), BTreeSet::new());
-    }
-
-    let mut edge_rows = Vec::new();
-    for (from, to) in edges {
-        if !member_names.contains(&from) || !member_names.contains(&to) {
-            continue;
-        }
-        direct_deps.entry(from.clone()).or_default().insert(to.clone());
-        direct_dependents.entry(to.clone()).or_default().insert(from.clone());
-        edge_rows.push(CrateDependencyEdge { from, to });
-    }
-    edge_rows
-        .sort_by(|left, right| left.from.cmp(&right.from).then_with(|| left.to.cmp(&right.to)));
-
-    let nodes = members
-        .into_iter()
-        .map(|member| CrateDependencyNode {
-            direct_workspace_dependencies: direct_deps
-                .remove(&member.crate_name)
-                .unwrap_or_default()
-                .into_iter()
-                .collect(),
-            direct_workspace_dependents: direct_dependents
-                .remove(&member.crate_name)
-                .unwrap_or_default()
-                .into_iter()
-                .collect(),
-            crate_name: member.crate_name,
-            manifest_path: relative_display(&member.manifest_path, cwd),
-        })
-        .collect::<Vec<_>>();
-
-    let report = CrateDependencyMapReport {
-        schema_version: "bijux.crates.dependency_map.v1",
-        workspace_manifest: relative_display(&cwd.join("Cargo.toml"), cwd),
-        output_path: relative_display(output_path, cwd),
-        crate_count: nodes.len(),
-        edge_count: edge_rows.len(),
-        crates: nodes,
-        edges: edge_rows,
-    };
-
-    if let Some(parent) = output_path.parent() {
-        bijux_dna_infra::ensure_dir(parent)?;
-    }
-    bijux_dna_infra::atomic_write_json(output_path, &report)?;
-    Ok(report)
 }
 
 /// # Errors
@@ -2257,7 +1694,7 @@ pub fn write_no_crate_cycles_report(cwd: &Path, output_path: &Path) -> Result<No
         );
     }
 
-    let edges = bijux_dna_api::v1::api::workspace_edges().context("load workspace edges")?;
+    let edges = bijux_dna_api::v1::api::workspace_edges_at(cwd).context("load workspace edges")?;
     let mut direct_deps = configured_names
         .iter()
         .map(|crate_name| (crate_name.clone(), BTreeSet::<String>::new()))
@@ -2390,30 +1827,6 @@ pub fn write_benchmarking_ready_crate_shape_gate_report(
     if !report.ok {
         bail!("benchmarking-ready crate-shape gate failed; see {}", output_path.display());
     }
-    Ok(report)
-}
-
-/// # Errors
-/// Returns an error if the governed stage metric registry cannot be resolved or written.
-pub fn write_metric_registry_report(
-    cwd: &Path,
-    output_path: &Path,
-) -> Result<MetricRegistryReport> {
-    let rows = collect_metric_registry_rows(cwd)?;
-    let report = MetricRegistryReport {
-        schema_version: "bijux.crates.metric_registry.v1",
-        workspace_manifest: relative_display(&cwd.join("Cargo.toml"), cwd),
-        output_path: relative_display(output_path, cwd),
-        domain_count: rows.iter().map(|row| row.domain.as_str()).collect::<BTreeSet<_>>().len(),
-        stage_count: rows.iter().map(|row| row.stage_id.as_str()).collect::<BTreeSet<_>>().len(),
-        row_count: rows.len(),
-        rows: rows.clone(),
-    };
-
-    if let Some(parent) = output_path.parent() {
-        bijux_dna_infra::ensure_dir(parent)?;
-    }
-    bijux_dna_infra::atomic_write_bytes(output_path, render_metric_registry_tsv(&rows).as_bytes())?;
     Ok(report)
 }
 
@@ -2701,5 +2114,123 @@ mod tests {
         );
 
         assert_eq!(resolved, Path::new("/tmp/custom-target"));
+    }
+
+    fn private_domain_audit_workspace(source: &str) -> anyhow::Result<tempfile::TempDir> {
+        let root = tempfile::tempdir()?;
+        let crate_root = root.path().join("crates/bijux-dna-domain-fastq");
+        std::fs::create_dir_all(crate_root.join("src"))?;
+        std::fs::write(
+            root.path().join("Cargo.toml"),
+            "[workspace]\nmembers = [\"crates/bijux-dna-domain-fastq\"]\nresolver = \"2\"\n",
+        )?;
+        std::fs::write(
+            crate_root.join("Cargo.toml"),
+            "[package]\nname = \"bijux-dna-domain-fastq\"\nversion = \"0.1.0\"\nedition = \"2021\"\n",
+        )?;
+        std::fs::write(crate_root.join("src/lib.rs"), source)?;
+        Ok(root)
+    }
+
+    #[test]
+    fn crate_gate_refuses_persisted_failed_domain_audit() -> anyhow::Result<()> {
+        let source = "pub fn forbidden_effect() { let _ = std::process::Command::new(\"sh\"); }\n";
+        let root = private_domain_audit_workspace(source)?;
+        let output = root.path().join("artifacts/domain-no-execution.json");
+        let audit = super::write_domain_no_execution_report(root.path(), &output)?;
+        assert_eq!(audit.audited_crate_count, 1);
+        assert_eq!(audit.crates[0].crate_name, "bijux-dna-domain-fastq");
+        assert!(!audit.ok, "the real writer must expose the admitted source violation");
+        assert!(!audit.crates[0].process_execution_refs.is_empty());
+        let persisted_before = std::fs::read(&output)?;
+        let persisted: serde_json::Value = serde_json::from_slice(&persisted_before)?;
+        assert_eq!(persisted["ok"], false);
+        let expected_detail = audit.output_path.clone();
+        let command = "domain-no-execution".to_string();
+        let check = super::crate_shape_gate_check_from_result(
+            "412",
+            command.clone(),
+            Ok(audit),
+            |report| (report.ok, report.output_path),
+        );
+        assert!(!check.ok, "an Ok audit with ok=false must fail the crate gate");
+        assert_eq!(check.goal_id, "412");
+        assert_eq!(check.command, command);
+        assert_eq!(check.detail, expected_detail);
+        let gate = super::build_benchmarking_ready_crate_shape_gate_report(
+            root.path(),
+            &root.path().join("artifacts/gate.json"),
+            &root.path().join("artifacts/gate-target"),
+            vec![check],
+        );
+        assert!(!gate.ok);
+        assert!(gate.passed_goal_ids.is_empty());
+        assert_eq!(gate.failed_goal_ids, ["412"]);
+        assert_eq!(std::fs::read(&output)?, persisted_before, "failed audit remains published");
+        assert_eq!(
+            std::fs::read_to_string(root.path().join("crates/bijux-dna-domain-fastq/src/lib.rs"))?,
+            source
+        );
+        Ok(())
+    }
+
+    #[test]
+    fn crate_gate_accepts_persisted_clean_domain_audit() -> anyhow::Result<()> {
+        let root = private_domain_audit_workspace("pub fn pure_value() -> u64 { 7 }\n")?;
+        let output = root.path().join("artifacts/domain-no-execution.json");
+        let audit = super::write_domain_no_execution_report(root.path(), &output)?;
+        assert_eq!(audit.audited_crate_count, 1);
+        assert!(audit.ok);
+        let expected_detail = audit.output_path.clone();
+        let check = super::crate_shape_gate_check_from_result(
+            "412",
+            "domain-no-execution".to_string(),
+            Ok(audit),
+            |report| (report.ok, report.output_path),
+        );
+        assert!(check.ok);
+        assert_eq!(check.detail, expected_detail);
+        let gate = super::build_benchmarking_ready_crate_shape_gate_report(
+            root.path(),
+            &root.path().join("artifacts/gate.json"),
+            &root.path().join("artifacts/gate-target"),
+            vec![check],
+        );
+        assert!(gate.ok);
+        assert_eq!(gate.passed_goal_ids, ["412"]);
+        assert!(gate.failed_goal_ids.is_empty());
+        let persisted: serde_json::Value = serde_json::from_slice(&std::fs::read(output)?)?;
+        assert_eq!(persisted["ok"], true);
+        Ok(())
+    }
+
+    #[test]
+    fn crate_gate_refuses_domain_audit_acquisition_error() -> anyhow::Result<()> {
+        let root = private_domain_audit_workspace("pub fn pure_value() -> u64 { 7 }\n")?;
+        std::fs::write(root.path().join("Cargo.toml"), "[workspace\n")?;
+        let output = root.path().join("artifacts/domain-no-execution.json");
+        let result = super::write_domain_no_execution_report(root.path(), &output);
+        let expected_error = match &result {
+            Err(error) => error.to_string(),
+            Ok(_) => anyhow::bail!("malformed manifest unexpectedly produced an audit"),
+        };
+        let check = super::crate_shape_gate_check_from_result(
+            "412",
+            "domain-no-execution".to_string(),
+            result,
+            |report| (report.ok, report.output_path),
+        );
+        assert!(!check.ok);
+        assert_eq!(check.detail, expected_error);
+        assert!(!output.exists(), "failed acquisition does not publish a fabricated audit");
+        let gate = super::build_benchmarking_ready_crate_shape_gate_report(
+            root.path(),
+            &root.path().join("artifacts/gate.json"),
+            &root.path().join("artifacts/gate-target"),
+            vec![check],
+        );
+        assert!(!gate.ok);
+        assert_eq!(gate.failed_goal_ids, ["412"]);
+        Ok(())
     }
 }

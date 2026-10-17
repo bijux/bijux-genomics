@@ -14,3 +14,10 @@ mod expected_results;
 pub use expected_results::validate_all_domain_expected_result_rows;
 
 pub(crate) use rendered_commands::validate_rendered_command_observations;
+
+mod result_identity;
+pub use result_identity::{
+    index_canonical_benchmark_result_bindings, reconcile_canonical_benchmark_result_identities,
+    CanonicalBenchmarkResultBinding, CanonicalBenchmarkResultIndex,
+    CanonicalResultIdentityViolation,
+};

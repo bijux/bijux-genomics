@@ -1,4 +1,5 @@
 mod adapters;
+use super::local_all_domain_slurm_submit_manifest::BenchLocalAllDomainSlurmSubmitJob;
 use super::path_resolution::BenchmarkPathResolver;
 use crate::commands::cli::{parse, render};
 use anyhow::{Context, Result};
@@ -57,14 +58,15 @@ pub(crate) fn validate_hpc_candidate_run_manifest_path(
         manifest_path,
     )
 }
-pub(crate) fn collect_hpc_candidate_run_manifest(
+pub(crate) fn collect_hpc_candidate_run_manifest_with_jobs<'jobs>(
     repo_root: &Path,
+    selected_jobs: &dyn Fn() -> Result<&'jobs [BenchLocalAllDomainSlurmSubmitJob]>,
 ) -> Result<LocalHpcCandidateRunManifest> {
     let benchmark_paths = BenchmarkPathResolver::new(repo_root, None);
     let output_path =
         benchmark_paths.benchmark_hpc_readiness_root().join("FIRST_HPC_CANDIDATE_RUN.json");
-    bijux_dna_bench_hpc::candidate::collect_hpc_candidate_run_manifest(
-        &adapters::context(repo_root),
-        &output_path,
-    )
+    let evidence = adapters::SelectedJobsEvidence { selected_jobs };
+    let context =
+        bijux_dna_bench_hpc::candidate::CandidateContext { repo_root, evidence: &evidence };
+    bijux_dna_bench_hpc::candidate::collect_hpc_candidate_run_manifest(&context, &output_path)
 }

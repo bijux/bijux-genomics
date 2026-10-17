@@ -12,10 +12,10 @@ report rendering.
 
 | Operation | Rust entrypoint | Purpose |
 | --- | --- | --- |
-| `canonicalize-json` | `contract::canonical::canonicalize_json_value` | Sort and normalize JSON contract values deterministically. |
+| `canonicalize-json` | `contract::canonical::canonicalize_json_value` | Sort object keys recursively while preserving array order and scalar values. |
 | `canonicalize-parameters-json` | `contract::canonical::parameters_json_canonicalization` | Normalize parameter JSON before hashing. |
-| `canonicalize-truth-json` | `contract::canonical::canonicalize_truth_json` | Normalize manifest, record, and report JSON before serialization. |
-| `canonical-json-bytes` | `contract::canonical::to_canonical_json_bytes` | Serialize contract values to stable canonical JSON bytes. |
+| `canonicalize-truth-json` | `contract::canonical::canonicalize_truth_json` | Apply the declared path and privacy normalization to truth JSON. |
+| `canonical-json-bytes` | `contract::canonical::to_canonical_json_bytes` | Serialize truth-normalized JSON under the declared normalization environment. |
 | `params-hash` | `prelude::params_hash` | Hash normalized parameter JSON. |
 | `parameters-fingerprint` | `prelude::parameters_fingerprint` | Build deterministic parameter fingerprints. |
 | `input-fingerprint` | `prelude::input_fingerprint` | Build deterministic input fingerprints from input hashes. |

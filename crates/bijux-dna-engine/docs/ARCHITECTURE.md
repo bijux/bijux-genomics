@@ -35,12 +35,11 @@ tools, interpret domain semantics, or perform backend effects directly.
 
 ## Test Map
 
-- `tests/boundaries.rs` checks source layout, dependencies, docs placement, and
-  effect boundaries.
+- `tests/boundaries.rs` checks dependency declarations and effect boundaries.
 - `tests/contracts.rs` checks execution orchestration and recording contracts.
 - `tests/determinism.rs` checks replay and manifest stability.
 - `tests/support/` contains reusable execution fixtures.
-- `tests/guardrails.rs` runs shared policy guardrails for the crate.
+- `tests/guardrails.rs` runs shared source policy checks for the crate.
 
 ## Boundaries
 

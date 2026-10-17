@@ -1,10 +1,11 @@
 //! Owner: bijux-dna-bench-vcf
 //! Tool-specific phasing command projection from declared inputs and destinations.
-use super::{anyhow, MaterializedPanelInputs, Result, GOVERNED_COHORT_VCF_PATH};
+use super::{anyhow, MaterializedPanelInputs, Result};
 
 pub(super) fn build(
     tool_id: &str,
     output_prefix: &str,
+    input_vcf_path: &str,
     materialized_inputs: &MaterializedPanelInputs,
     phased_vcf_path: &str,
     logs_path: &str,
@@ -17,7 +18,7 @@ pub(super) fn build(
                 "-lc".to_string(),
                 format!(
                     "shapeit5 phase_common --input '{}' --reference '{}' --map '{}' --region 1:1-1000000 --thread 8 --seed 42 --output '{}' > '{}' 2>&1",
-                    GOVERNED_COHORT_VCF_PATH,
+                    input_vcf_path,
                     materialized_inputs.panel_vcf_path,
                     materialized_inputs.genetic_map_path,
                     phased_vcf_path,
@@ -32,7 +33,7 @@ pub(super) fn build(
                 "-lc".to_string(),
                 format!(
                     "shapeit --input '{}' --reference '{}' --map '{}' --region 1:1-1000000 --thread 8 --seed 42 --output '{}' > '{}' 2>&1",
-                    GOVERNED_COHORT_VCF_PATH,
+                    input_vcf_path,
                     materialized_inputs.panel_vcf_path,
                     materialized_inputs.genetic_map_path,
                     phased_vcf_path,
@@ -47,7 +48,7 @@ pub(super) fn build(
                 "-lc".to_string(),
                 format!(
                     "eagle --vcfTarget '{}' --vcfRef '{}' --geneticMapFile '{}' --outPrefix '{}' --numThreads 8 > '{}' 2>&1",
-                    GOVERNED_COHORT_VCF_PATH,
+                    input_vcf_path,
                     materialized_inputs.panel_vcf_path,
                     materialized_inputs.genetic_map_path,
                     output_prefix,
@@ -62,7 +63,7 @@ pub(super) fn build(
                 "-lc".to_string(),
                 format!(
                     "beagle gt='{}' ref='{}' map='{}' out='{}' nthreads=8 seed=42 > '{}' 2>&1",
-                    GOVERNED_COHORT_VCF_PATH,
+                    input_vcf_path,
                     materialized_inputs.panel_vcf_path,
                     materialized_inputs.genetic_map_path,
                     output_prefix,

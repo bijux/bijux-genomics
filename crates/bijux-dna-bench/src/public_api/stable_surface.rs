@@ -8,21 +8,21 @@ pub use bijux_dna_bench_model::{
     stage_tool_resources_report_schema, validate_all_domain_expected_result_rows,
     validate_all_domain_output_declaration_rows, validate_all_domain_output_declarations_report,
     validate_all_domain_rendered_command_rows, validate_all_domain_stage_tool_table_rows,
-    validate_stage_tool_assets_config, validate_stage_tool_assets_report,
-    validate_stage_tool_containers_config, validate_stage_tool_containers_report,
-    validate_stage_tool_resources_config, validate_stage_tool_resources_report,
-    AllDomainOutputDeclarationRow, AllDomainOutputDeclarationStatus,
-    AllDomainOutputDeclarationsReport, AllDomainStageToolTableAdmissionContext,
-    ReadinessStageToolBinding, StageToolAssetRow, StageToolAssetsConfig, StageToolAssetsReport,
-    StageToolContainerRow, StageToolContainersConfig, StageToolContainersReport,
-    StageToolResourceRow, StageToolResourcesConfig, StageToolResourcesReport,
-    ALL_DOMAIN_OUTPUT_DECLARATIONS_SCHEMA_V1, BAM_STAGE_TOOL_RESOURCE_ORIGIN,
-    FASTQ_STAGE_TOOL_RESOURCE_ORIGIN, LOCAL_STAGE_TOOL_ASSETS_SCHEMA_V1,
-    LOCAL_STAGE_TOOL_CONTAINERS_SCHEMA_V1, LOCAL_STAGE_TOOL_RESOURCES_SCHEMA_V1,
-    STAGE_TOOL_ASSETS_DECLARATION_ORIGIN, STAGE_TOOL_ASSETS_REPORT_SCHEMA_V1,
-    STAGE_TOOL_ASSETS_SCOPE, STAGE_TOOL_CONTAINERS_DECLARATION_ORIGIN,
-    STAGE_TOOL_CONTAINERS_REPORT_SCHEMA_V1, STAGE_TOOL_CONTAINERS_SCOPE,
-    STAGE_TOOL_RESOURCES_REPORT_SCHEMA_V1, STAGE_TOOL_RESOURCES_SCOPE,
+    validate_governed_stage_tool_asset_coverage, validate_stage_tool_assets_config,
+    validate_stage_tool_assets_report, validate_stage_tool_containers_config,
+    validate_stage_tool_containers_report, validate_stage_tool_resources_config,
+    validate_stage_tool_resources_report, AllDomainOutputDeclarationRow,
+    AllDomainOutputDeclarationStatus, AllDomainOutputDeclarationsReport,
+    AllDomainStageToolTableAdmissionContext, ReadinessStageToolBinding, StageToolAssetRow,
+    StageToolAssetsConfig, StageToolAssetsReport, StageToolContainerRow, StageToolContainersConfig,
+    StageToolContainersReport, StageToolResourceRow, StageToolResourcesConfig,
+    StageToolResourcesReport, ALL_DOMAIN_OUTPUT_DECLARATIONS_SCHEMA_V1,
+    BAM_STAGE_TOOL_RESOURCE_ORIGIN, FASTQ_STAGE_TOOL_RESOURCE_ORIGIN,
+    LOCAL_STAGE_TOOL_ASSETS_SCHEMA_V1, LOCAL_STAGE_TOOL_CONTAINERS_SCHEMA_V1,
+    LOCAL_STAGE_TOOL_RESOURCES_SCHEMA_V1, STAGE_TOOL_ASSETS_DECLARATION_ORIGIN,
+    STAGE_TOOL_ASSETS_REPORT_SCHEMA_V1, STAGE_TOOL_ASSETS_SCOPE,
+    STAGE_TOOL_CONTAINERS_DECLARATION_ORIGIN, STAGE_TOOL_CONTAINERS_REPORT_SCHEMA_V1,
+    STAGE_TOOL_CONTAINERS_SCOPE, STAGE_TOOL_RESOURCES_REPORT_SCHEMA_V1, STAGE_TOOL_RESOURCES_SCOPE,
     VCF_STAGE_TOOL_RESOURCE_ORIGIN,
 };
 pub use bijux_dna_bench_model::{
@@ -92,8 +92,10 @@ pub use crate::workflow::{
     build_full_benchmark_stage_rows, build_full_benchmark_tool_rows,
     build_full_benchmark_unsupported_pair_rows, build_vcf_stage_catalog_rows,
     build_vcf_stage_matrix_rows, choose_canonical_tool_id, current_benchmark_matrix_timestamp,
-    derive_bam_benchmark_campaign, derive_benchmark_local_corpus_skip_report,
-    derive_benchmark_matrix, derive_cross_benchmark_campaign, derive_fastq_benchmark_campaign,
+    derive_all_domain_retained_tool_rows, derive_bam_benchmark_campaign,
+    derive_benchmark_local_corpus_skip_report, derive_benchmark_matrix,
+    derive_benchmark_stage_tool_alias_violations, derive_benchmark_tool_alias_clusters,
+    derive_cross_benchmark_campaign, derive_fastq_benchmark_campaign,
     derive_hardening_benchmark_campaign, derive_vcf_benchmark_campaign,
     evaluate_full_benchmark_dashboard, expand_benchmark_config_env_placeholders,
     hardening_queue_from_appraisal, legacy_benchmark_stage_alias_target,
@@ -118,8 +120,9 @@ pub use crate::workflow::{
     validate_benchmark_stage_result_path, validate_vcf_stage_matrix,
     BenchmarkConfigValidationRequest, BenchmarkConfigValidationSummary,
     BenchmarkLocalCorpusSkipPublicationRequest, BenchmarkMatrixRequest,
-    FullBenchmarkDashboardEvidence, FullBenchmarkDashboardPaths, LegacyBenchmarkStageAlias,
-    PipelineProfileEvidence, DEFAULT_VCF_STAGE_CATALOG_PATH, DEFAULT_VCF_STAGE_MATRIX_PATH,
+    BenchmarkStageToolAliasViolation, BenchmarkToolAliasCluster, FullBenchmarkDashboardEvidence,
+    FullBenchmarkDashboardPaths, LegacyBenchmarkStageAlias, PipelineProfileEvidence,
+    DEFAULT_VCF_STAGE_CATALOG_PATH, DEFAULT_VCF_STAGE_MATRIX_PATH,
 };
 pub use bijux_dna_bench_model::{
     admit_real_smoke_core_subset_report, all_domain_active_stage_tool_matrix_schema,
@@ -818,7 +821,10 @@ pub use crate::workflow::hpc_array::pipeline::{
 };
 
 pub use crate::repo::hpc_resources::{load_hpc_job_resources, HPC_JOB_RESOURCE_CONFIG_PATH};
-pub use bijux_dna_bench_model::{resolve_hpc_job_resources, HpcJobResourceHints};
+pub use bijux_dna_bench_model::{
+    fastq_benchmark_walltime_minutes, resolve_hpc_job_resources, vcf_benchmark_walltime_minutes,
+    HpcJobResourceHints,
+};
 
 pub use crate::repo::hpc_inputs::{
     collect_hpc_job_source_inputs, materialize_stage_id, HpcDiscoveredSourceInput,
@@ -871,3 +877,17 @@ pub use bijux_dna_bench_model::{
 pub use crate::repo::alignment_fixture as alignment_fixtures;
 
 pub use crate::repo::simulation::parser::load_all_domain_simulation_parser_row;
+
+pub use crate::repo::taxonomy_judgment::{
+    judge_edna_taxonomy_outputs, judge_edna_taxonomy_outputs_with_expected_rows,
+    publish_edna_taxonomy_output_judgment, TaxonomyObservedReportArg,
+};
+pub use bijux_dna_bench_model::{
+    BenchmarkTaxonomyExpectationRowJudgment, BenchmarkTaxonomyObservedTaxon,
+    BenchmarkTaxonomyOutputJudgmentReport, BenchmarkTaxonomySampleJudgment,
+    BENCHMARK_TAXONOMY_OUTPUT_JUDGMENT_SCHEMA_VERSION,
+};
+
+pub use bijux_dna_bench_model::{
+    derive_fastq_scientific_acceptance_threshold, derive_vcf_scientific_acceptance_threshold,
+};

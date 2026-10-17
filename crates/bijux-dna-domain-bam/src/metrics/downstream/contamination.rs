@@ -102,7 +102,16 @@ impl Default for ContaminationReconciliationV1 {
 /// Returns an error if the contamination JSON cannot be read or parsed.
 pub fn parse_contamination_json(path: &std::path::Path) -> anyhow::Result<ContaminationMetricsV1> {
     let raw = std::fs::read_to_string(path).context("read contamination json")?;
-    let value: serde_json::Value = serde_json::from_str(&raw)?;
+    parse_contamination_json_contents(&raw)
+}
+
+/// Decode an acquired contamination JSON document without reopening its source.
+///
+/// Preserves the path parser's defaults and legacy field interpretation.
+/// # Errors
+/// Returns an error when the acquired document is malformed JSON.
+pub fn parse_contamination_json_contents(raw: &str) -> anyhow::Result<ContaminationMetricsV1> {
+    let value: serde_json::Value = serde_json::from_str(raw)?;
     Ok(ContaminationMetricsV1 {
         method: value
             .get("method")

@@ -450,13 +450,35 @@ mod tests {
     fn render_stage_tool_containers_rejects_external_output_before_write() {
         use super::render_stage_tool_containers;
 
-        let root = repo_root();
-        let external_root = tempfile::tempdir().expect("external output root");
+        let source_root = repo_root();
+        let root = crate::commands::benchmark::scratch_repository::materialize_read_only_repository(
+            "stage-tool-containers-output-refusal",
+        );
+        // BAM registry admission requires the workspace and CLI package identities.
+        std::fs::create_dir_all(root.join("crates/bijux-dna"))
+            .expect("create repository marker parent");
+        for relative in ["Cargo.toml", "Cargo.lock", "crates/bijux-dna/Cargo.toml"] {
+            let source = source_root.join(relative);
+            let destination = root.join(relative);
+            #[cfg(unix)]
+            std::os::unix::fs::symlink(&source, &destination).expect("link repository marker");
+            #[cfg(windows)]
+            std::os::windows::fs::symlink_file(&source, &destination)
+                .expect("link repository marker");
+        }
+        let external_root = tempfile::Builder::new()
+            .prefix("stage-tool-containers-external-")
+            .tempdir_in(root.parent().expect("private repository fixture parent"))
+            .expect("external output root");
         let output_path = external_root.path().join("stage-tool-containers.toml");
+        assert!(!output_path.starts_with(&root), "refusal fixture must be outside its repository");
         let error = render_stage_tool_containers(&root, output_path.clone())
             .expect_err("external output path must be rejected");
 
-        assert!(error.to_string().contains("report identity or path is invalid"));
+        assert!(
+            error.to_string().contains("report identity or path is invalid"),
+            "expected invalid output path refusal, got: {error:#}"
+        );
         assert!(!output_path.exists());
     }
 

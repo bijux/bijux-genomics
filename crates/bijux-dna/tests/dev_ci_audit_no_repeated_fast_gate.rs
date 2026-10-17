@@ -14,7 +14,7 @@ fn dev_ci_audit_no_repeated_fast_gate_routes_to_the_governed_ci_surface() {
     let temp = tempfile::tempdir().expect("tempdir");
     let out = temp.path().join("no-repeated-fast-gate.json");
 
-    let output = Command::new(env!("CARGO_BIN_EXE_bijux-dna"))
+    let output = Command::new(support::cli_binary_path())
         .current_dir(&repo_root)
         .arg("dev")
         .arg("ci")

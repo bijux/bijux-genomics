@@ -214,7 +214,7 @@
       "influencing_params": [],
       "metric_id": "runtime_s",
       "missing_data_policy": "treat_as_infinite",
-      "range": ">= 0",
+      "range": "\u003e= 0",
       "units": "seconds"
     },
     {
@@ -222,7 +222,7 @@
       "influencing_params": [],
       "metric_id": "memory_mb",
       "missing_data_policy": "treat_as_infinite",
-      "range": ">= 0",
+      "range": "\u003e= 0",
       "units": "MB"
     },
     {
@@ -586,7 +586,25 @@
         }
       ]
     },
-    "metric_provenance": {},
+    "metric_provenance": {
+      "fastq.trim_reads": {
+        "metric_provenance": {
+          "input_artifact_hashes": [
+            "input"
+          ],
+          "params_hash": "params",
+          "run_id": "run-1",
+          "stage_id": "fastq.trim_reads",
+          "tool_id": "fastp",
+          "tool_version": "0.23.4"
+        },
+        "normalized_params_excerpt": {
+          "min_len": 20
+        },
+        "params_hash": "params",
+        "tool_id": "fastp"
+      }
+    },
     "pipeline_defaults": {
       "defaults_ledger": {
         "assumptions": [],
@@ -819,26 +837,26 @@
         <div class="section">
           <h3>reproducibility</h3>
           <pre>{
-  "command": "unknown",
-  "determinism_policy": {
-    "float_format": "fixed_3",
-    "html_table_order": "stage_id,tool_id",
-    "json_canonicalization": "sorted_keys",
-    "timestamp_format": "rfc3339_utc"
+  &quot;command&quot;: &quot;unknown&quot;,
+  &quot;determinism_policy&quot;: {
+    &quot;float_format&quot;: &quot;fixed_3&quot;,
+    &quot;html_table_order&quot;: &quot;stage_id,tool_id&quot;,
+    &quot;json_canonicalization&quot;: &quot;sorted_keys&quot;,
+    &quot;timestamp_format&quot;: &quot;rfc3339_utc&quot;
   },
-  "finished_at": null,
-  "image_digests": [
-    "sha256:img"
+  &quot;finished_at&quot;: null,
+  &quot;image_digests&quot;: [
+    &quot;sha256:img&quot;
   ],
-  "input_hashes": [
-    "input"
+  &quot;input_hashes&quot;: [
+    &quot;input&quot;
   ],
-  "params_hashes": [
-    "params"
+  &quot;params_hashes&quot;: [
+    &quot;params&quot;
   ],
-  "started_at": null,
-  "tool_versions": [
-    "0.23.4"
+  &quot;started_at&quot;: null,
+  &quot;tool_versions&quot;: [
+    &quot;0.23.4&quot;
   ]
 }</pre>
           <div>
@@ -850,445 +868,463 @@
       <section id="stages" class="section">
         <h2>stages</h2>
         <div class="stage-tabs">
-<button class=\"stage-tab active\" data-stage=\"fastq.trim_reads\">fastq.trim_reads</button>
+<button class="stage-tab active" data-stage="fastq.trim_reads">fastq.trim_reads</button>
         </div>
-<div class=\"stage-panel active\" data-stage=\"fastq.trim_reads\">
+<div class="stage-panel active" data-stage="fastq.trim_reads">
   <h3>fastq.trim_reads</h3>
-  <div class=\"stage-meta\">
+  <div class="stage-meta">
     <span>tool: fastp</span>
     <span>version: 0.23.4</span>
     <span>params: params</span>
   </div>
-  <div class=\"stage-meta\">
+  <div class="stage-meta">
     <span>exit_code: 0</span>
     <span>runtime_s: 1.00</span>
     <span>memory_mb: 64.0</span>
   </div>
-  <div class=\"stage-artifacts\">
+  <div class="stage-artifacts">
     <h4>Artifacts</h4>
-    <ul><li><a href=\"stage_report.json\">stage_report</a></li><li><a href=\"metrics.json\">metrics</a></li><li><a href=\"retention_report.json\">retention_report</a></li><li><a href=\"bank_report.json\">bank_report</a></li><li><a href=\"tool_invocation.json\">tool_invocation</a></li></ul>
+    <ul><li><a href="stage_report.json">stage_report</a></li><li><a href="metrics.json">metrics</a></li><li><a href="retention_report.json">retention_report</a></li><li><a href="bank_report.json">bank_report</a></li><li><a href="tool_invocation.json">tool_invocation</a></li></ul>
   </div>
-  <div class=\"stage-plots\" data-stage=\"fastq.trim_reads\"></div>
+  <div class="stage-plots" data-stage="fastq.trim_reads"></div>
 </div>
       </section>
-<details id=\"section-accounting\" class=\"section\"><summary>accounting</summary><pre>{
-  "stages": [
+<details id="section-accounting" class="section"><summary>accounting</summary><pre>{
+  &quot;stages&quot;: [
     {
-      "bases": 800,
-      "reads": 80,
-      "stage_id": "fastq.trim_reads",
-      "tool_id": "fastp"
+      &quot;bases&quot;: 800,
+      &quot;reads&quot;: 80,
+      &quot;stage_id&quot;: &quot;fastq.trim_reads&quot;,
+      &quot;tool_id&quot;: &quot;fastp&quot;
     }
   ]
-}</pre></details><details id=\"section-adapter_config\" class=\"section\"><summary>adapter_config</summary><pre>{}</pre></details><details id=\"section-analysis_selection_contract\" class=\"section\"><summary>analysis_selection_contract</summary><pre>{
-  "criteria": [
-    "runtime_s",
-    "memory_mb",
-    "retention_ratio"
+}</pre></details><details id="section-adapter_config" class="section"><summary>adapter_config</summary><pre>{}</pre></details><details id="section-analysis_selection_contract" class="section"><summary>analysis_selection_contract</summary><pre>{
+  &quot;criteria&quot;: [
+    &quot;runtime_s&quot;,
+    &quot;memory_mb&quot;,
+    &quot;retention_ratio&quot;
   ],
-  "notes": "Selection uses bench medians per tool and the configured objective weights.",
-  "objectives": [
+  &quot;notes&quot;: &quot;Selection uses bench medians per tool and the configured objective weights.&quot;,
+  &quot;objectives&quot;: [
     {
-      "objective": "speed",
-      "ranking": "lower score is better",
-      "scoring": "weighted_sum(runtime, memory, retention)",
-      "weights": {
-        "memory": 0.0,
-        "retention": 0.0,
-        "runtime": 1.0
+      &quot;objective&quot;: &quot;speed&quot;,
+      &quot;ranking&quot;: &quot;lower score is better&quot;,
+      &quot;scoring&quot;: &quot;weighted_sum(runtime, memory, retention)&quot;,
+      &quot;weights&quot;: {
+        &quot;memory&quot;: 0.0,
+        &quot;retention&quot;: 0.0,
+        &quot;runtime&quot;: 1.0
       }
     },
     {
-      "objective": "memory",
-      "ranking": "lower score is better",
-      "scoring": "weighted_sum(runtime, memory, retention)",
-      "weights": {
-        "memory": 1.0,
-        "retention": 0.0,
-        "runtime": 0.0
+      &quot;objective&quot;: &quot;memory&quot;,
+      &quot;ranking&quot;: &quot;lower score is better&quot;,
+      &quot;scoring&quot;: &quot;weighted_sum(runtime, memory, retention)&quot;,
+      &quot;weights&quot;: {
+        &quot;memory&quot;: 1.0,
+        &quot;retention&quot;: 0.0,
+        &quot;runtime&quot;: 0.0
       }
     },
     {
-      "objective": "retention",
-      "ranking": "lower score is better",
-      "scoring": "weighted_sum(runtime, memory, retention)",
-      "weights": {
-        "memory": 0.0,
-        "retention": -1.0,
-        "runtime": 0.0
+      &quot;objective&quot;: &quot;retention&quot;,
+      &quot;ranking&quot;: &quot;lower score is better&quot;,
+      &quot;scoring&quot;: &quot;weighted_sum(runtime, memory, retention)&quot;,
+      &quot;weights&quot;: {
+        &quot;memory&quot;: 0.0,
+        &quot;retention&quot;: -1.0,
+        &quot;runtime&quot;: 0.0
       }
     },
     {
-      "objective": "balanced",
-      "ranking": "lower score is better",
-      "scoring": "weighted_sum(runtime, memory, retention)",
-      "weights": {
-        "memory": 1.0,
-        "retention": -100.0,
-        "runtime": 1.0
+      &quot;objective&quot;: &quot;balanced&quot;,
+      &quot;ranking&quot;: &quot;lower score is better&quot;,
+      &quot;scoring&quot;: &quot;weighted_sum(runtime, memory, retention)&quot;,
+      &quot;weights&quot;: {
+        &quot;memory&quot;: 1.0,
+        &quot;retention&quot;: -100.0,
+        &quot;runtime&quot;: 1.0
       }
     }
   ],
-  "selection_strategy": "objective_weights"
-}</pre></details><details id=\"section-assertions\" class=\"section\"><summary>assertions</summary><pre>{
-  "entries": [
+  &quot;selection_strategy&quot;: &quot;objective_weights&quot;
+}</pre></details><details id="section-assertions" class="section"><summary>assertions</summary><pre>{
+  &quot;entries&quot;: [
     {
-      "results": [],
-      "stage_id": "fastq.trim_reads",
-      "tool_id": "fastp"
+      &quot;results&quot;: [],
+      &quot;stage_id&quot;: &quot;fastq.trim_reads&quot;,
+      &quot;tool_id&quot;: &quot;fastp&quot;
     }
   ]
-}</pre></details><details id=\"section-bench_summary\" class=\"section\"><summary>bench_summary</summary><pre>{}</pre></details><details id=\"section-claims_registry\" class=\"section\"><summary>claims_registry</summary><pre>{
-  "claims": []
-}</pre></details><details id=\"section-comparison_view\" class=\"section\"><summary>comparison_view</summary><pre>{
-  "stages": []
-}</pre></details><details id=\"section-contaminant_summary\" class=\"section\"><summary>contaminant_summary</summary><pre>{
-  "kmer_percent_removed": null,
-  "kmer_reads_removed": null,
-  "percent_removed": null,
-  "reads_removed": null,
-  "top_taxa": {}
-}</pre></details><details id=\"section-contamination\" class=\"section\"><summary>contamination</summary><pre>{
-  "assets": [
+}</pre></details><details id="section-bench_summary" class="section"><summary>bench_summary</summary><pre>{}</pre></details><details id="section-claims_registry" class="section"><summary>claims_registry</summary><pre>{
+  &quot;claims&quot;: []
+}</pre></details><details id="section-comparison_view" class="section"><summary>comparison_view</summary><pre>{
+  &quot;stages&quot;: []
+}</pre></details><details id="section-contaminant_summary" class="section"><summary>contaminant_summary</summary><pre>{
+  &quot;kmer_percent_removed&quot;: null,
+  &quot;kmer_reads_removed&quot;: null,
+  &quot;percent_removed&quot;: null,
+  &quot;reads_removed&quot;: null,
+  &quot;top_taxa&quot;: {}
+}</pre></details><details id="section-contamination" class="section"><summary>contamination</summary><pre>{
+  &quot;assets&quot;: [
     {
-      "banks": {
-        "adapters": {
-          "entries": [
+      &quot;banks&quot;: {
+        &quot;adapters&quot;: {
+          &quot;entries&quot;: [
             {
-              "enabled": true,
-              "id": "A1",
-              "sequence": "ACGT"
+              &quot;enabled&quot;: true,
+              &quot;id&quot;: &quot;A1&quot;,
+              &quot;sequence&quot;: &quot;ACGT&quot;
             }
           ],
-          "hash": "sha256:adapters",
-          "preset": "default"
+          &quot;hash&quot;: &quot;sha256:adapters&quot;,
+          &quot;preset&quot;: &quot;default&quot;
         },
-        "contaminants": {
-          "entries": [
+        &quot;contaminants&quot;: {
+          &quot;entries&quot;: [
             {
-              "enabled": true,
-              "id": "phix"
+              &quot;enabled&quot;: true,
+              &quot;id&quot;: &quot;phix&quot;
             }
           ],
-          "hash": "sha256:contam",
-          "preset": "illumina_default"
+          &quot;hash&quot;: &quot;sha256:contam&quot;,
+          &quot;preset&quot;: &quot;illumina_default&quot;
         },
-        "polyx": {
-          "entries": [
+        &quot;polyx&quot;: {
+          &quot;entries&quot;: [
             {
-              "enabled": true,
-              "id": "polyG"
+              &quot;enabled&quot;: true,
+              &quot;id&quot;: &quot;polyG&quot;
             }
           ],
-          "hash": "sha256:polyx",
-          "preset": "illumina_twocolor"
+          &quot;hash&quot;: &quot;sha256:polyx&quot;,
+          &quot;preset&quot;: &quot;illumina_twocolor&quot;
         }
       },
-      "stage_id": "fastq.trim_reads",
-      "tool_id": "fastp"
+      &quot;stage_id&quot;: &quot;fastq.trim_reads&quot;,
+      &quot;tool_id&quot;: &quot;fastp&quot;
     }
   ]
-}</pre></details><details id=\"section-data_contract_validation\" class=\"section\"><summary>data_contract_validation</summary><pre>{
-  "missing_metrics": [],
-  "missing_reports": [],
-  "status": "complete"
-}</pre></details><details id=\"section-decision_config\" class=\"section\"><summary>decision_config</summary><pre>{
-  "bootstrap_policy": {
-    "enabled": false,
-    "min_samples": 5,
-    "samples": null
+}</pre></details><details id="section-data_contract_validation" class="section"><summary>data_contract_validation</summary><pre>{
+  &quot;missing_metrics&quot;: [],
+  &quot;missing_reports&quot;: [],
+  &quot;status&quot;: &quot;complete&quot;
+}</pre></details><details id="section-decision_config" class="section"><summary>decision_config</summary><pre>{
+  &quot;bootstrap_policy&quot;: {
+    &quot;enabled&quot;: false,
+    &quot;min_samples&quot;: 5,
+    &quot;samples&quot;: null
   },
-  "compare_objective": "balanced_default",
-  "objective_spec": {
-    "name": "balanced",
-    "weights": {
-      "memory": 1.0,
-      "retention": -100.0,
-      "runtime": 1.0
+  &quot;compare_objective&quot;: &quot;balanced_default&quot;,
+  &quot;objective_spec&quot;: {
+    &quot;name&quot;: &quot;balanced&quot;,
+    &quot;weights&quot;: {
+      &quot;memory&quot;: 1.0,
+      &quot;retention&quot;: -100.0,
+      &quot;runtime&quot;: 1.0
     }
   },
-  "outlier_policy": {
-    "method": "mad",
-    "threshold": 3.5
+  &quot;outlier_policy&quot;: {
+    &quot;method&quot;: &quot;mad&quot;,
+    &quot;threshold&quot;: 3.5
   },
-  "schema_version": "bijux.decision_config.v1",
-  "tie_break_policy": [
-    "tool_id"
+  &quot;schema_version&quot;: &quot;bijux.decision_config.v1&quot;,
+  &quot;tie_break_policy&quot;: [
+    &quot;tool_id&quot;
   ]
-}</pre></details><details id=\"section-decision_trace\" class=\"section\"><summary>decision_trace</summary><pre>{
-  "entries": [
+}</pre></details><details id="section-decision_trace" class="section"><summary>decision_trace</summary><pre>{
+  &quot;entries&quot;: [
     {
-      "adapter_validation": {},
-      "contaminant_action": false,
-      "input_hash": "input",
-      "missing_metrics": [],
-      "missing_reports": [],
-      "params_hash": "params",
-      "quality_gate": {},
-      "stage_id": "fastq.trim_reads",
-      "telemetry_decisions": [],
-      "tool_id": "fastp",
-      "tool_version": "0.23.4"
+      &quot;adapter_validation&quot;: {},
+      &quot;contaminant_action&quot;: false,
+      &quot;input_hash&quot;: &quot;input&quot;,
+      &quot;missing_metrics&quot;: [],
+      &quot;missing_reports&quot;: [],
+      &quot;params_hash&quot;: &quot;params&quot;,
+      &quot;quality_gate&quot;: {},
+      &quot;stage_id&quot;: &quot;fastq.trim_reads&quot;,
+      &quot;telemetry_decisions&quot;: [],
+      &quot;tool_id&quot;: &quot;fastp&quot;,
+      &quot;tool_version&quot;: &quot;0.23.4&quot;
     }
   ]
-}</pre></details><details id=\"section-failure_hints\" class=\"section\"><summary>failure_hints</summary><pre>{
-  "count": 0,
-  "failures": []
-}</pre></details><details id=\"section-failures\" class=\"section\"><summary>failures</summary><pre>{
-  "completeness": {
-    "missing_metrics": [],
-    "missing_reports": [],
-    "status": "complete"
+}</pre></details><details id="section-failure_hints" class="section"><summary>failure_hints</summary><pre>{
+  &quot;count&quot;: 0,
+  &quot;failures&quot;: []
+}</pre></details><details id="section-failures" class="section"><summary>failures</summary><pre>{
+  &quot;completeness&quot;: {
+    &quot;missing_metrics&quot;: [],
+    &quot;missing_reports&quot;: [],
+    &quot;status&quot;: &quot;complete&quot;
   }
-}</pre></details><details id=\"section-fastq\" class=\"section\"><summary>fastq</summary><pre>{
-  "schema_version": "bijux.report.section.fastq.v1",
-  "stages": 1
-}</pre></details><details id=\"section-filtering\" class=\"section\"><summary>filtering</summary><pre>{}</pre></details><details id=\"section-final_qc_summary\" class=\"section\"><summary>final_qc_summary</summary><pre>{
-  "adapter_inference": {
-    "rationale": "Adapter detection ran before trimming.",
-    "safety": "Inference only applies when adapters are not explicitly set.",
-    "suggested_adapters": {}
+}</pre></details><details id="section-fastq" class="section"><summary>fastq</summary><pre>{
+  &quot;schema_version&quot;: &quot;bijux.report.section.fastq.v1&quot;,
+  &quot;stages&quot;: 1
+}</pre></details><details id="section-filtering" class="section"><summary>filtering</summary><pre>{}</pre></details><details id="section-final_qc_summary" class="section"><summary>final_qc_summary</summary><pre>{
+  &quot;adapter_inference&quot;: {
+    &quot;rationale&quot;: &quot;Adapter detection ran before trimming.&quot;,
+    &quot;safety&quot;: &quot;Inference only applies when adapters are not explicitly set.&quot;,
+    &quot;suggested_adapters&quot;: {}
   },
-  "qc": {}
-}</pre></details><details id=\"section-findings\" class=\"section\"><summary>findings</summary><pre>{
-  "claims": [],
-  "recommendations": [],
-  "suspected_issues": [],
-  "warnings": []
-}</pre></details><details id=\"section-handoff\" class=\"section\"><summary>handoff</summary><pre>{}</pre></details><details id=\"section-impact_metrics\" class=\"section\"><summary>impact_metrics</summary><pre>{
-  "impact": [
+  &quot;qc&quot;: {}
+}</pre></details><details id="section-findings" class="section"><summary>findings</summary><pre>{
+  &quot;claims&quot;: [],
+  &quot;recommendations&quot;: [],
+  &quot;suspected_issues&quot;: [],
+  &quot;warnings&quot;: []
+}</pre></details><details id="section-handoff" class="section"><summary>handoff</summary><pre>{}</pre></details><details id="section-impact_metrics" class="section"><summary>impact_metrics</summary><pre>{
+  &quot;impact&quot;: [
     {
-      "bases_dropped": 200,
-      "reads_dropped": 20,
-      "stage_id": "fastq.trim_reads",
-      "tool_id": "fastp"
+      &quot;bases_dropped&quot;: 200,
+      &quot;reads_dropped&quot;: 20,
+      &quot;stage_id&quot;: &quot;fastq.trim_reads&quot;,
+      &quot;tool_id&quot;: &quot;fastp&quot;
     }
   ]
-}</pre></details><details id=\"section-key_findings\" class=\"section\"><summary>key_findings</summary><pre>[]</pre></details><details id=\"section-method_assumptions\" class=\"section\"><summary>method_assumptions</summary><pre>{
-  "assumptions": [
-    "compare_objective defaults to balanced when not specified",
-    "effect_size uses absolute/relative thresholds for practical significance",
-    "outliers use MAD threshold 3.5",
-    "bootstrap confidence intervals are disabled by default",
-    "tie-breaks are resolved by tool_id when scores are equal"
+}</pre></details><details id="section-key_findings" class="section"><summary>key_findings</summary><pre>[]</pre></details><details id="section-method_assumptions" class="section"><summary>method_assumptions</summary><pre>{
+  &quot;assumptions&quot;: [
+    &quot;compare_objective defaults to balanced when not specified&quot;,
+    &quot;effect_size uses absolute/relative thresholds for practical significance&quot;,
+    &quot;outliers use MAD threshold 3.5&quot;,
+    &quot;bootstrap confidence intervals are disabled by default&quot;,
+    &quot;tie-breaks are resolved by tool_id when scores are equal&quot;
   ],
-  "bootstrap_policy": {
-    "enabled": false,
-    "min_samples": 5,
-    "samples": null
+  &quot;bootstrap_policy&quot;: {
+    &quot;enabled&quot;: false,
+    &quot;min_samples&quot;: 5,
+    &quot;samples&quot;: null
   },
-  "compare_objective": "balanced_default",
-  "decision_policy_version": "bijux.decision_policy.v1",
-  "effect_thresholds": {
-    "absolute": 0.05,
-    "relative": 0.05
+  &quot;compare_objective&quot;: &quot;balanced_default&quot;,
+  &quot;decision_policy_version&quot;: &quot;bijux.decision_policy.v1&quot;,
+  &quot;effect_thresholds&quot;: {
+    &quot;absolute&quot;: 0.05,
+    &quot;relative&quot;: 0.05
   },
-  "objective_spec": {
-    "name": "balanced",
-    "weights": {
-      "memory": 1.0,
-      "retention": -100.0,
-      "runtime": 1.0
+  &quot;objective_spec&quot;: {
+    &quot;name&quot;: &quot;balanced&quot;,
+    &quot;weights&quot;: {
+      &quot;memory&quot;: 1.0,
+      &quot;retention&quot;: -100.0,
+      &quot;runtime&quot;: 1.0
     }
   },
-  "outlier_policy": {
-    "method": "mad",
-    "threshold": 3.5
+  &quot;outlier_policy&quot;: {
+    &quot;method&quot;: &quot;mad&quot;,
+    &quot;threshold&quot;: 3.5
   },
-  "presets": [
+  &quot;presets&quot;: [
     {
-      "effective_config_path": "effective_config.json",
-      "params_hash": "params",
-      "stage_id": "fastq.trim_reads",
-      "tool_id": "fastp",
-      "tool_version": "0.23.4"
+      &quot;effective_config_path&quot;: &quot;effective_config.json&quot;,
+      &quot;params_hash&quot;: &quot;params&quot;,
+      &quot;stage_id&quot;: &quot;fastq.trim_reads&quot;,
+      &quot;tool_id&quot;: &quot;fastp&quot;,
+      &quot;tool_version&quot;: &quot;0.23.4&quot;
     }
   ],
-  "tie_break_policy": [
-    "tool_id"
+  &quot;tie_break_policy&quot;: [
+    &quot;tool_id&quot;
   ],
-  "tools": [
+  &quot;tools&quot;: [
     {
-      "image_digest": "sha256:img",
-      "params_hash": "params",
-      "stage_id": "fastq.trim_reads",
-      "tool_id": "fastp",
-      "tool_version": "0.23.4"
+      &quot;image_digest&quot;: &quot;sha256:img&quot;,
+      &quot;params_hash&quot;: &quot;params&quot;,
+      &quot;stage_id&quot;: &quot;fastq.trim_reads&quot;,
+      &quot;tool_id&quot;: &quot;fastp&quot;,
+      &quot;tool_version&quot;: &quot;0.23.4&quot;
     }
   ]
-}</pre></details><details id=\"section-metric_provenance\" class=\"section\"><summary>metric_provenance</summary><pre>{}</pre></details><details id=\"section-pipeline_defaults\" class=\"section\"><summary>pipeline_defaults</summary><pre>{
-  "defaults_ledger": {
-    "assumptions": [],
-    "citations": {},
-    "param_provenance": {},
-    "params": {},
-    "pipeline_id": "fastq-to-fastq__default__v1",
-    "thresholds": {},
-    "tool_provenance": {},
-    "tools": {}
-  },
-  "overrides": []
-}</pre></details><details id=\"section-pipeline_overview\" class=\"section\"><summary>pipeline_overview</summary><pre>{
-  "stages": [
-    {
-      "image_digest": "sha256:img",
-      "input_hash": "input",
-      "output_hashes": [
-        "out"
+}</pre></details><details id="section-metric_provenance" class="section"><summary>metric_provenance</summary><pre>{
+  &quot;fastq.trim_reads&quot;: {
+    &quot;metric_provenance&quot;: {
+      &quot;input_artifact_hashes&quot;: [
+        &quot;input&quot;
       ],
-      "params_hash": "params",
-      "scientific_preset": null,
-      "stage_id": "fastq.trim_reads",
-      "tier_rationale": "curated_default",
-      "tool_id": "fastp",
-      "tool_tier": "gold",
-      "tool_version": "0.23.4"
-    }
-  ]
-}</pre></details><details id=\"section-pipeline_verdict\" class=\"section\"><summary>pipeline_verdict</summary><pre>{
-  "aggregation_policy": {
-    "fail_condition": "any stage fail",
-    "pass_condition": "all stages pass",
-    "rule": "worst_status",
-    "schema_version": "bijux.pipeline_verdict_policy.v1",
-    "warn_condition": "any stage warn and no stage fail"
+      &quot;params_hash&quot;: &quot;params&quot;,
+      &quot;run_id&quot;: &quot;run-1&quot;,
+      &quot;stage_id&quot;: &quot;fastq.trim_reads&quot;,
+      &quot;tool_id&quot;: &quot;fastp&quot;,
+      &quot;tool_version&quot;: &quot;0.23.4&quot;
+    },
+    &quot;normalized_params_excerpt&quot;: {
+      &quot;min_len&quot;: 20
+    },
+    &quot;params_hash&quot;: &quot;params&quot;,
+    &quot;tool_id&quot;: &quot;fastp&quot;
+  }
+}</pre></details><details id="section-pipeline_defaults" class="section"><summary>pipeline_defaults</summary><pre>{
+  &quot;defaults_ledger&quot;: {
+    &quot;assumptions&quot;: [],
+    &quot;citations&quot;: {},
+    &quot;param_provenance&quot;: {},
+    &quot;params&quot;: {},
+    &quot;pipeline_id&quot;: &quot;fastq-to-fastq__default__v1&quot;,
+    &quot;thresholds&quot;: {},
+    &quot;tool_provenance&quot;: {},
+    &quot;tools&quot;: {}
   },
-  "reasons": [],
-  "verdict": "pass"
-}</pre></details><details id=\"section-qc\" class=\"section\"><summary>qc</summary><pre>{}</pre></details><details id=\"section-qc_artifacts\" class=\"section\"><summary>qc_artifacts</summary><pre>{}</pre></details><details id=\"section-qc_delta\" class=\"section\"><summary>qc_delta</summary><pre>{
-  "mean_q_delta": null,
-  "qc_post_mean_q": null,
-  "validate_reads_mean_q": null
-}</pre></details><details id=\"section-reproducibility\" class=\"section\"><summary>reproducibility</summary><pre>{
-  "command": "unknown",
-  "determinism_policy": {
-    "float_format": "fixed_3",
-    "html_table_order": "stage_id,tool_id",
-    "json_canonicalization": "sorted_keys",
-    "timestamp_format": "rfc3339_utc"
-  },
-  "finished_at": null,
-  "image_digests": [
-    "sha256:img"
-  ],
-  "input_hashes": [
-    "input"
-  ],
-  "params_hashes": [
-    "params"
-  ],
-  "started_at": null,
-  "tool_versions": [
-    "0.23.4"
-  ]
-}</pre></details><details id=\"section-retention\" class=\"section\"><summary>retention</summary><pre>{
-  "contexts": [
+  &quot;overrides&quot;: []
+}</pre></details><details id="section-pipeline_overview" class="section"><summary>pipeline_overview</summary><pre>{
+  &quot;stages&quot;: [
     {
-      "conditions": {
-        "min_len": 20
-      },
-      "definition": "{\"bases_out\":800,\"reads_out\":80} / {\"bases_in\":1000,\"reads_in\":100} (reads)",
-      "stage_id": "fastq.trim_reads",
-      "tool_id": "fastp"
-    }
-  ],
-  "definitions": [
-    {
-      "conditions": {
-        "min_len": 20
-      },
-      "denominator": "{\"bases_in\":1000,\"reads_in\":100}",
-      "numerator": "{\"bases_out\":800,\"reads_out\":80}",
-      "stage_id": "fastq.trim_reads",
-      "tool_id": "fastp"
-    }
-  ]
-}</pre></details><details id=\"section-run_provenance\" class=\"section\"><summary>run_provenance</summary><pre>{
-  "domain_snapshot_hash": "d615bdcd8a9d3e50d69c0bd08ae22e59d2858a5d",
-  "graph_hash": "unknown",
-  "input_hashes": [],
-  "manifest_signature_sha256": "unknown",
-  "stage_contracts": {}
-}</pre></details><details id=\"section-scientific_provenance\" class=\"section\"><summary>scientific_provenance</summary><pre>{
-  "entries": [
-    {
-      "effective_params": {
-        "adapter_policy": "bank",
-        "min_len": 20,
-        "paired_mode": "single_end",
-        "threads": 1
-      },
-      "image_digest": "sha256:img",
-      "input_hash": "input",
-      "output_hashes": [
-        "out"
+      &quot;image_digest&quot;: &quot;sha256:img&quot;,
+      &quot;input_hash&quot;: &quot;input&quot;,
+      &quot;output_hashes&quot;: [
+        &quot;out&quot;
       ],
-      "params_hash": "params",
-      "raw_params": {
-        "min_len": 20
+      &quot;params_hash&quot;: &quot;params&quot;,
+      &quot;scientific_preset&quot;: null,
+      &quot;stage_id&quot;: &quot;fastq.trim_reads&quot;,
+      &quot;tier_rationale&quot;: &quot;curated_default&quot;,
+      &quot;tool_id&quot;: &quot;fastp&quot;,
+      &quot;tool_tier&quot;: &quot;gold&quot;,
+      &quot;tool_version&quot;: &quot;0.23.4&quot;
+    }
+  ]
+}</pre></details><details id="section-pipeline_verdict" class="section"><summary>pipeline_verdict</summary><pre>{
+  &quot;aggregation_policy&quot;: {
+    &quot;fail_condition&quot;: &quot;any stage fail&quot;,
+    &quot;pass_condition&quot;: &quot;all stages pass&quot;,
+    &quot;rule&quot;: &quot;worst_status&quot;,
+    &quot;schema_version&quot;: &quot;bijux.pipeline_verdict_policy.v1&quot;,
+    &quot;warn_condition&quot;: &quot;any stage warn and no stage fail&quot;
+  },
+  &quot;reasons&quot;: [],
+  &quot;verdict&quot;: &quot;pass&quot;
+}</pre></details><details id="section-qc" class="section"><summary>qc</summary><pre>{}</pre></details><details id="section-qc_artifacts" class="section"><summary>qc_artifacts</summary><pre>{}</pre></details><details id="section-qc_delta" class="section"><summary>qc_delta</summary><pre>{
+  &quot;mean_q_delta&quot;: null,
+  &quot;qc_post_mean_q&quot;: null,
+  &quot;validate_reads_mean_q&quot;: null
+}</pre></details><details id="section-reproducibility" class="section"><summary>reproducibility</summary><pre>{
+  &quot;command&quot;: &quot;unknown&quot;,
+  &quot;determinism_policy&quot;: {
+    &quot;float_format&quot;: &quot;fixed_3&quot;,
+    &quot;html_table_order&quot;: &quot;stage_id,tool_id&quot;,
+    &quot;json_canonicalization&quot;: &quot;sorted_keys&quot;,
+    &quot;timestamp_format&quot;: &quot;rfc3339_utc&quot;
+  },
+  &quot;finished_at&quot;: null,
+  &quot;image_digests&quot;: [
+    &quot;sha256:img&quot;
+  ],
+  &quot;input_hashes&quot;: [
+    &quot;input&quot;
+  ],
+  &quot;params_hashes&quot;: [
+    &quot;params&quot;
+  ],
+  &quot;started_at&quot;: null,
+  &quot;tool_versions&quot;: [
+    &quot;0.23.4&quot;
+  ]
+}</pre></details><details id="section-retention" class="section"><summary>retention</summary><pre>{
+  &quot;contexts&quot;: [
+    {
+      &quot;conditions&quot;: {
+        &quot;min_len&quot;: 20
       },
-      "resolved_tool_version": "0.23.4",
-      "stage_id": "fastq.trim_reads",
-      "tool_id": "fastp",
-      "tool_version": "0.23.4"
-    }
-  ]
-}</pre></details><details id=\"section-stage_completeness\" class=\"section\"><summary>stage_completeness</summary><pre>{
-  "rows": [
-    {
-      "missing_metrics": [],
-      "missing_reports": [],
-      "stage_id": "fastq.trim_reads",
-      "status": "complete"
-    }
-  ]
-}</pre></details><details id=\"section-stage_confidence\" class=\"section\"><summary>stage_confidence</summary><pre>{
-  "entries": [
-    {
-      "bucket": "high",
-      "reasons": [],
-      "score": 1.0,
-      "stage_id": "fastq.trim_reads",
-      "tool_id": "fastp"
-    }
-  ]
-}</pre></details><details id=\"section-stage_plots\" class=\"section\"><summary>stage_plots</summary><pre>{
-  "entries": [
-    {
-      "base_retention": 0.8,
-      "gc_delta": null,
-      "mean_q_delta": null,
-      "read_retention": 0.8,
-      "stage_id": "fastq.trim_reads",
-      "tool_id": "fastp"
+      &quot;definition&quot;: &quot;{\&quot;bases_out\&quot;:800,\&quot;reads_out\&quot;:80} / {\&quot;bases_in\&quot;:1000,\&quot;reads_in\&quot;:100} (reads)&quot;,
+      &quot;stage_id&quot;: &quot;fastq.trim_reads&quot;,
+      &quot;tool_id&quot;: &quot;fastp&quot;
     }
   ],
-  "waterfall": [
+  &quot;definitions&quot;: [
     {
-      "read_retention": 0.8,
-      "stage_id": "fastq.trim_reads"
+      &quot;conditions&quot;: {
+        &quot;min_len&quot;: 20
+      },
+      &quot;denominator&quot;: &quot;{\&quot;bases_in\&quot;:1000,\&quot;reads_in\&quot;:100}&quot;,
+      &quot;numerator&quot;: &quot;{\&quot;bases_out\&quot;:800,\&quot;reads_out\&quot;:80}&quot;,
+      &quot;stage_id&quot;: &quot;fastq.trim_reads&quot;,
+      &quot;tool_id&quot;: &quot;fastp&quot;
     }
   ]
-}</pre></details><details id=\"section-trimming\" class=\"section\"><summary>trimming</summary><pre>{
-  "retention_context": [
+}</pre></details><details id="section-run_provenance" class="section"><summary>run_provenance</summary><pre>{
+  &quot;domain_snapshot_hash&quot;: &quot;d615bdcd8a9d3e50d69c0bd08ae22e59d2858a5d&quot;,
+  &quot;graph_hash&quot;: &quot;unknown&quot;,
+  &quot;input_hashes&quot;: [],
+  &quot;manifest_signature_sha256&quot;: &quot;unknown&quot;,
+  &quot;stage_contracts&quot;: {}
+}</pre></details><details id="section-scientific_provenance" class="section"><summary>scientific_provenance</summary><pre>{
+  &quot;entries&quot;: [
     {
-      "conditions": {
-        "min_len": 20
+      &quot;effective_params&quot;: {
+        &quot;adapter_policy&quot;: &quot;bank&quot;,
+        &quot;min_len&quot;: 20,
+        &quot;paired_mode&quot;: &quot;single_end&quot;,
+        &quot;threads&quot;: 1
       },
-      "definition": "{\"bases_out\":800,\"reads_out\":80} / {\"bases_in\":1000,\"reads_in\":100} (reads)",
-      "stage_id": "fastq.trim_reads",
-      "tool_id": "fastp"
+      &quot;image_digest&quot;: &quot;sha256:img&quot;,
+      &quot;input_hash&quot;: &quot;input&quot;,
+      &quot;output_hashes&quot;: [
+        &quot;out&quot;
+      ],
+      &quot;params_hash&quot;: &quot;params&quot;,
+      &quot;raw_params&quot;: {
+        &quot;min_len&quot;: 20
+      },
+      &quot;resolved_tool_version&quot;: &quot;0.23.4&quot;,
+      &quot;stage_id&quot;: &quot;fastq.trim_reads&quot;,
+      &quot;tool_id&quot;: &quot;fastp&quot;,
+      &quot;tool_version&quot;: &quot;0.23.4&quot;
+    }
+  ]
+}</pre></details><details id="section-stage_completeness" class="section"><summary>stage_completeness</summary><pre>{
+  &quot;rows&quot;: [
+    {
+      &quot;missing_metrics&quot;: [],
+      &quot;missing_reports&quot;: [],
+      &quot;stage_id&quot;: &quot;fastq.trim_reads&quot;,
+      &quot;status&quot;: &quot;complete&quot;
+    }
+  ]
+}</pre></details><details id="section-stage_confidence" class="section"><summary>stage_confidence</summary><pre>{
+  &quot;entries&quot;: [
+    {
+      &quot;bucket&quot;: &quot;high&quot;,
+      &quot;reasons&quot;: [],
+      &quot;score&quot;: 1.0,
+      &quot;stage_id&quot;: &quot;fastq.trim_reads&quot;,
+      &quot;tool_id&quot;: &quot;fastp&quot;
+    }
+  ]
+}</pre></details><details id="section-stage_plots" class="section"><summary>stage_plots</summary><pre>{
+  &quot;entries&quot;: [
+    {
+      &quot;base_retention&quot;: 0.8,
+      &quot;gc_delta&quot;: null,
+      &quot;mean_q_delta&quot;: null,
+      &quot;read_retention&quot;: 0.8,
+      &quot;stage_id&quot;: &quot;fastq.trim_reads&quot;,
+      &quot;tool_id&quot;: &quot;fastp&quot;
     }
   ],
-  "retention_definition": [
+  &quot;waterfall&quot;: [
     {
-      "conditions": {
-        "min_len": 20
+      &quot;read_retention&quot;: 0.8,
+      &quot;stage_id&quot;: &quot;fastq.trim_reads&quot;
+    }
+  ]
+}</pre></details><details id="section-trimming" class="section"><summary>trimming</summary><pre>{
+  &quot;retention_context&quot;: [
+    {
+      &quot;conditions&quot;: {
+        &quot;min_len&quot;: 20
       },
-      "denominator": "{\"bases_in\":1000,\"reads_in\":100}",
-      "numerator": "{\"bases_out\":800,\"reads_out\":80}",
-      "stage_id": "fastq.trim_reads",
-      "tool_id": "fastp"
+      &quot;definition&quot;: &quot;{\&quot;bases_out\&quot;:800,\&quot;reads_out\&quot;:80} / {\&quot;bases_in\&quot;:1000,\&quot;reads_in\&quot;:100} (reads)&quot;,
+      &quot;stage_id&quot;: &quot;fastq.trim_reads&quot;,
+      &quot;tool_id&quot;: &quot;fastp&quot;
+    }
+  ],
+  &quot;retention_definition&quot;: [
+    {
+      &quot;conditions&quot;: {
+        &quot;min_len&quot;: 20
+      },
+      &quot;denominator&quot;: &quot;{\&quot;bases_in\&quot;:1000,\&quot;reads_in\&quot;:100}&quot;,
+      &quot;numerator&quot;: &quot;{\&quot;bases_out\&quot;:800,\&quot;reads_out\&quot;:80}&quot;,
+      &quot;stage_id&quot;: &quot;fastq.trim_reads&quot;,
+      &quot;tool_id&quot;: &quot;fastp&quot;
     }
   ]
 }</pre></details>
@@ -1316,7 +1352,16 @@
       plots.forEach(plot => {
         const wrapper = document.createElement('div');
         wrapper.className = 'section';
-        wrapper.innerHTML = `<h4>${plot.title}</h4><div class="plot-bar"><span style="width:${plot.value}%"></span></div><small>${plot.label}</small>`;
+        const title = document.createElement('h4');
+        title.textContent = plot.title;
+        const bar = document.createElement('div');
+        bar.className = 'plot-bar';
+        const span = document.createElement('span');
+        span.style.width = `${plot.value}%`;
+        bar.appendChild(span);
+        const label = document.createElement('small');
+        label.textContent = plot.label;
+        wrapper.append(title, bar, label);
         container.appendChild(wrapper);
       });
     });

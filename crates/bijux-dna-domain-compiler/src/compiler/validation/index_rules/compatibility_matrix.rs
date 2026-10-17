@@ -173,6 +173,13 @@ pub(super) fn validate_index_matrix_and_pipelines(
                 stage_id
             );
         }
+        if !resource_hints.memory_gb.is_finite() {
+            bail!(
+                "{} stage {} requires finite stage_resource_hints memory_gb",
+                index_path.display(),
+                stage_id
+            );
+        }
         let output_sizes = index.stage_output_size_estimates_mb.get(stage_id).ok_or_else(|| {
             anyhow!(
                 "{} stage {} missing stage_output_size_estimates_mb entry",
@@ -183,6 +190,13 @@ pub(super) fn validate_index_matrix_and_pipelines(
         if output_sizes.is_empty() || output_sizes.values().any(|value| *value < 0.0) {
             bail!(
                 "{} stage {} has invalid stage_output_size_estimates_mb",
+                index_path.display(),
+                stage_id
+            );
+        }
+        if output_sizes.values().any(|value| !value.is_finite()) {
+            bail!(
+                "{} stage {} requires finite stage_output_size_estimates_mb",
                 index_path.display(),
                 stage_id
             );

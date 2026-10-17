@@ -4,7 +4,7 @@ Purpose: enforce deterministic Apptainer SIF rebuild behavior on HPC frontend no
 
 [FRONTEND_BUILD_AUTHORITY.md](FRONTEND_BUILD_AUTHORITY.md),
 [../../docs/30-operations/HPC_FRONTEND_RUNBOOK.md](../../docs/30-operations/HPC_FRONTEND_RUNBOOK.md),
-and [APPTAINER_FRONTEND_REPRODUCIBILITY_REPORT.md](APPTAINTER_FRONTEND_REPRODUCIBILITY_REPORT.md)
+and [APPTAINER_FRONTEND_REPRODUCIBILITY_REPORT.md](APPTAINER_FRONTEND_REPRODUCIBILITY_REPORT.md)
 define the adjacent control and reporting surfaces for this reproducibility
 gate.
 
@@ -51,7 +51,7 @@ gate.
 - Machine summary:
   - `artifacts/containers/hpc/frontend-reproducibility/<run_id>/summary.json`
 - Human report:
-  - [containers/docs/APPTAINTER_FRONTEND_REPRODUCIBILITY_REPORT.md](APPTAINTER_FRONTEND_REPRODUCIBILITY_REPORT.md)
+  - [containers/docs/APPTAINER_FRONTEND_REPRODUCIBILITY_REPORT.md](APPTAINER_FRONTEND_REPRODUCIBILITY_REPORT.md)
 
 ## Nondeterminism Cause Labels
 - `timestamp_or_timezone`

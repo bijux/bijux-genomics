@@ -4,7 +4,8 @@ The canonical runtime contract lives in `RUNTIME_CONTRACT.md`. This file maps th
 
 ## Module map
 - `lib.rs` exports public modules and a curated stable root facade.
-- `environment.rs` owns environment fingerprint contracts.
+- `attempt_sequence/` owns immutable attempt identity reservation, retained reservation admission, and supersession recovery.
+- `environment.rs` retains the `ExecutionEnvironment` compatibility marker. Environment fingerprints use `RunEnvironment` in `run_layout/contracts.rs` and `run_layout::write_environment`.
 - `run/` owns profile loading, run-id generation, run-base path resolution, and stable run exports.
 - `run_layout/` owns run-layout contracts, layout creation, run-layout writers, run-journal persistence, and stable run-layout exports.
 - `recording/` owns runtime file emitters for manifests, metrics, envelopes, provenance, telemetry, canonical JSON, checksums, logs, append-only benchmark attempt transitions, and stable recording exports.

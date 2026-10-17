@@ -16,6 +16,13 @@ use bijux_dna_domain_fastq::stage_semantics::stage_kind;
 use bijux_dna_domain_fastq::stage_semantics::stage_semantics;
 use bijux_dna_domain_fastq::stages::semantics::STAGES;
 use std::collections::BTreeMap;
+
+/// Metadata and support admissions from the same request observation.
+pub(super) struct ReportStageObservations {
+    pub(super) metadata: BTreeMap<String, FastqReportStageMetadata>,
+    pub(super) admissions: BTreeMap<String, Vec<StageAdmission>>,
+}
+
 /// Collect canonical FASTQ declaration evidence.
 ///
 /// # Errors
@@ -23,6 +30,12 @@ use std::collections::BTreeMap;
 pub fn collect_fastq_report_stage_metadata(
     context: &ReportContext<'_>,
 ) -> Result<BTreeMap<String, FastqReportStageMetadata>> {
+    Ok(collect_report_stage_observations(context)?.metadata)
+}
+
+pub(super) fn collect_report_stage_observations(
+    context: &ReportContext<'_>,
+) -> Result<ReportStageObservations> {
     let repo_root = context.repo_root;
     let inventory = context.evidence.inventory(repo_root)?;
     let stage_admissions = context.evidence.admissions(repo_root)?;
@@ -85,7 +98,7 @@ pub fn collect_fastq_report_stage_metadata(
         );
     }
 
-    Ok(rows)
+    Ok(ReportStageObservations { metadata: rows, admissions: stage_admissions })
 }
 
 pub(super) fn admission_support_status<'a>(

@@ -362,6 +362,7 @@ dependencies = [
  "schemars",
  "serde",
  "serde_json",
+ "serde_yaml",
  "sha2",
  "tempfile",
  "toml",
@@ -598,6 +599,7 @@ name = "bijux-dna-bench-population"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "bijux-dna-bench-artifacts",
  "bijux-dna-bench-corpus",
  "bijux-dna-bench-model",
  "bijux-dna-bench-vcf-evidence",
@@ -732,6 +734,7 @@ dependencies = [
  "bijux-dna-domain-fastq",
  "bijux-dna-infra",
  "bijux-dna-policies",
+ "bijux-dna-process",
  "bijux-dna-runtime",
  "bijux-dna-stage-contract",
  "bijux-dna-testkit",
@@ -822,6 +825,7 @@ dependencies = [
  "serde_json",
  "serde_yaml",
  "sha2",
+ "syn 2.0.117",
  "tempfile",
  "toml",
  "twox-hash",
@@ -856,6 +860,7 @@ dependencies = [
  "bijux-dna-domain-vcf",
  "bijux-dna-infra",
  "bijux-dna-policies",
+ "bijux-dna-testkit",
  "clap",
  "serde",
  "serde_json",
@@ -2315,6 +2320,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "nix"
+version = "0.31.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "cf20d2fde8ff38632c426f1165ed7436270b44f199fc55284c38276f9db47c3d"
+dependencies = [
+ "bitflags",
+ "cfg-if",
+ "cfg_aliases",
+ "libc",
+]
+
+[[package]]
 name = "noodles-bam"
 version = "0.90.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2877,9 +2894,9 @@ dependencies = [
 
 [[package]]
 name = "rustls"
-version = "0.23.45"
+version = "0.23.46"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0d41d731c7d2f962d1ccc364cec258de3c0e93b38c2fb3ba97ac74513048d634"
+checksum = "48e13bd8c0e9365c43cfa5c9e8f9ad49d3c8444926c9aac819e0e4dc503c8fdf"
 dependencies = [
  "once_cell",
  "ring",
@@ -4217,14 +4234,15 @@ dependencies = [
 
 [[package]]
 name = "zip"
-version = "8.6.0"
+version = "9.0.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2d04a6b5381502aa6087c94c669499eb1602eb9c5e8198e534de571f7154809b"
+checksum = "a954114b47a54df49f83d2722814e86b23d4bb1b54a1b90fb7d92b41619ddc22"
 dependencies = [
  "crc32fast",
  "flate2",
  "indexmap",
  "memchr",
+ "nix",
  "typed-path",
  "zopfli",
 ]

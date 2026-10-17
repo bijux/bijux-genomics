@@ -57,7 +57,10 @@ entrypoints, runner behavior, or environment provisioning commands.
 | --- | --- | --- |
 | `read-policy-text` | `read_policy_text` | Read repository policy or fixture text with path-aware panic messages. |
 | `resolve-workspace-root-from-manifest` | `workspace_root_from_manifest` | Prefer the declared runtime repository root and otherwise resolve from a crate manifest directory. |
+| `resolve-workspace-binary-path` | `workspace_support::workspace_binary_path` | Validate an explicit finalized executable binding, falling back to the caller's Cargo-provided path only when no binding is set. |
 | `strip-rust-test-modules` | `workspace_support::strip_rust_test_modules` | Remove inline `#[cfg(test)]` modules before production-source policy scans. |
+| `select-rust-test-modules` | `workspace_support::select_rust_test_modules` | Select inline or explicitly test-only source for test-effect policy scans. |
+| `locate-rust-block-scopes` | `workspace_support::rust_block_ranges` | Locate braced scopes while ignoring literal and comment braces; unclosed scopes extend to the input end. |
 
 ## Commands Owned Elsewhere
 

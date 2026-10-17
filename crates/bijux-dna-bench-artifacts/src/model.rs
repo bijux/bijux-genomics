@@ -48,3 +48,17 @@ pub struct PublicationSchema {
     pub inventory_name: &'static str,
     pub schema_version: &'static str,
 }
+
+impl PublicationSchema {
+    pub(super) fn admit(&self, owner: &ReportOwner<'_>) -> anyhow::Result<()> {
+        super::paths::admit_relative(Path::new(self.inventory_name))?;
+        anyhow::ensure!(
+            Path::new(self.inventory_name).components().count() == 1
+                && ![EXECUTIONS, "stage-result.json", owner.report_name]
+                    .contains(&self.inventory_name)
+                && !self.schema_version.trim().is_empty(),
+            "invalid benchmark publication schema"
+        );
+        Ok(())
+    }
+}

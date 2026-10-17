@@ -4,7 +4,7 @@ use anyhow::{anyhow, Result};
 use bijux_dna_analyze::load::sqlite::reports::image_qa_passed;
 
 use crate::api::{PlatformSpec, ToolImageSpec};
-use crate::image_qa::support::resolve_image_for_run;
+use crate::image_qa::support::{resolve_image_for_run, resolved_image_evidence_identity};
 use crate::image_qa::QaStage;
 
 pub(crate) fn qa_already_passed(
@@ -18,8 +18,7 @@ pub(crate) fn qa_already_passed(
     let stage_id = stage.stage_id();
     let spec = catalog.get(tool).ok_or_else(|| anyhow!("tool {tool} missing from images.toml"))?;
     let image = resolve_image_for_run(spec, platform)?;
-    let image_digest =
-        spec.digest.as_ref().map_or_else(|| image.full_name.clone(), ToString::to_string);
+    let image_digest = resolved_image_evidence_identity(spec, platform, &image)?;
     image_qa_passed(
         conn,
         tool,

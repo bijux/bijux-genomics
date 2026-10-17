@@ -56,6 +56,7 @@ pub(super) fn build_phasing_family_row(
         registry_tool.tool_id.as_str(),
         &output_root,
         &output_prefix,
+        &indexed_input_vcf_path,
         &materialized_inputs,
     )?;
     let argv_validation_passed =
@@ -124,6 +125,7 @@ pub(super) fn build_stage_contract(
     tool_id: &str,
     output_root: &str,
     output_prefix: &str,
+    input_vcf_path: &str,
     materialized_inputs: &MaterializedPanelInputs,
 ) -> Result<StageContract> {
     let phased_vcf_path = format!("{output_root}/phased.vcf.gz");
@@ -136,6 +138,7 @@ pub(super) fn build_stage_contract(
     let (command_contract_source, phase_step_argv) = super::invocation::build(
         tool_id,
         output_prefix,
+        input_vcf_path,
         materialized_inputs,
         &phased_vcf_path,
         &logs_path,

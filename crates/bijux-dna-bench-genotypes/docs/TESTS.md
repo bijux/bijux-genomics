@@ -1,7 +1,10 @@
 # Genotype benchmark contracts
 
-The owner retains all fifteen original scientific and fixture cases. Private
-assertions are compiled with the owner; public command behavior stays in the CLI.
+Scientific and fixture contracts stay with their capability owners. The governed
+VCF sample-cardinality parser assertion lives once under `bam::tests`;
+`call::tests` retains its distinct call-stage matrix and BAM fixture binding.
+Private assertions are compiled with the owner; public command behavior stays
+in the CLI.
 
 Additional cases reject declaration/adapter/parser/output drift before effects,
 preserve an unowned report, and execute all five workflows twice using native local

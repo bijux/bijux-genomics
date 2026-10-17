@@ -35,3 +35,18 @@ fn vcf_mini_manifest_path_validates_fixture_assets() {
         .iter()
         .any(|row| row.variant_role == "phased" && row.phased_genotypes_only));
 }
+
+#[path = "vcf/filter_truth.rs"]
+mod filter_truth;
+
+#[path = "vcf/genotype_truth.rs"]
+mod genotype_truth;
+
+#[path = "vcf/phasing_imputation_truth.rs"]
+mod phasing_imputation_truth;
+
+#[path = "vcf/population_structure_truth.rs"]
+mod population_structure_truth;
+
+#[path = "vcf/segments_demography_truth.rs"]
+mod segments_demography_truth;

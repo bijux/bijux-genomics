@@ -15,7 +15,7 @@ fn run_cli(args: &[&str]) -> std::process::Output {
     let repo_root = support::repo_root().expect("repo root");
     let home = tempfile::tempdir().expect("tempdir");
 
-    let mut command = Command::new(env!("CARGO_BIN_EXE_bijux-dna"));
+    let mut command = Command::new(support::cli_binary_path());
 
     command
         .current_dir(&repo_root)

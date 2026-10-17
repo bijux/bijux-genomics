@@ -18,6 +18,7 @@ Top-level workspace paths only.
 
 | Path | Kind | Owner | Purpose |
 |---|---|---|---|
+| `CHANGELOG.md` | `file` | `-` | - |
 | `Cargo.lock` | `file` | `-` | - |
 | `Cargo.toml` | `file` | `-` | - |
 | `LICENSE` | `file` | `-` | - |
@@ -34,7 +35,9 @@ Top-level workspace paths only.
 | `domain` | `dir` | `-` | - |
 | `examples` | `dir` | `-` | - |
 | `makes` | `dir` | `-` | - |
+| `mkdocs.shared.yml` | `file` | `-` | - |
 | `mkdocs.yml` | `file` | `-` | - |
+| `pyproject.toml` | `file` | `-` | - |
 | `rust-toolchain.toml` | `file` | `-` | - |
 | `rustfmt.toml` | `file` | `-` | - |
 | `science` | `dir` | `-` | - |

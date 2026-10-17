@@ -6,30 +6,6 @@ mod standardized_metrics;
 
 use self::standardized_metrics::discover_screen_taxonomy_report_path;
 
-#[allow(clippy::cast_possible_truncation, clippy::cast_precision_loss, clippy::cast_sign_loss)]
-fn derive_screen_taxonomy_read_counts(
-    report: &bijux_dna_domain_fastq::ScreenTaxonomyReportV1,
-) -> (Option<u64>, Option<u64>) {
-    let total_reads = report.reads_in.or(report.reads_out);
-    match (total_reads, report.unclassified_fraction, report.classified_fraction) {
-        (Some(total_reads), Some(unclassified_fraction), _) => {
-            let unclassified_reads = ((total_reads as f64) * unclassified_fraction)
-                .round()
-                .clamp(0.0, total_reads as f64) as u64;
-            let classified_reads = total_reads.saturating_sub(unclassified_reads);
-            (Some(classified_reads), Some(unclassified_reads))
-        }
-        (Some(total_reads), None, Some(classified_fraction)) => {
-            let classified_reads = ((total_reads as f64) * classified_fraction)
-                .round()
-                .clamp(0.0, total_reads as f64) as u64;
-            let unclassified_reads = total_reads.saturating_sub(classified_reads);
-            (Some(classified_reads), Some(unclassified_reads))
-        }
-        _ => (None, None),
-    }
-}
-
 fn insert_json_value<T: serde::Serialize>(
     object: &mut serde_json::Map<String, serde_json::Value>,
     key: &str,
@@ -612,11 +588,11 @@ pub(super) fn emit_fastq_stage_extra_artifacts(
                 "database_artifact_id": governed.as_ref().map(|report| report.database_artifact_id.clone()),
                 "database_digest": governed.as_ref().and_then(|report| report.database_digest.clone()),
                 "classified_reads": governed.as_ref().and_then(|report| {
-                    let (classified_reads, _) = derive_screen_taxonomy_read_counts(report);
+                    let (classified_reads, _) = report.derived_read_counts();
                     classified_reads
                 }),
                 "unclassified_reads": governed.as_ref().and_then(|report| {
-                    let (_, unclassified_reads) = derive_screen_taxonomy_read_counts(report);
+                    let (_, unclassified_reads) = report.derived_read_counts();
                     unclassified_reads
                 }),
                 "classified_fraction": governed.as_ref().and_then(|report| report.classified_fraction),

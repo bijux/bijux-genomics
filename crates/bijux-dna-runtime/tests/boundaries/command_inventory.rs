@@ -32,17 +32,34 @@ fn command_inventory_documents_no_runtime_commands() {
     assert_eq!(
         documented_entrypoints(&content),
         entries([
-            "build_telemetry_adapter",
             "create_run_layout",
-            "prepare_tool_run_dirs",
-            "write_checkpoint",
-            "write_canonical_json",
+            "reserve_attempt_sequence",
+            "supersede_attempt_sequence",
+            "write_run_state",
+            "write_runtime_policy",
             "write_executor_descriptor",
+            "write_checkpoint",
             "write_failure_record",
             "write_manifest",
-            "write_run_state",
             "write_run_manifest",
-            "write_runtime_policy",
+            "write_canonical_json",
+            "prepare_tool_run_dirs",
+            "write_profile_and_lock_manifests",
+            "ensure_attempt_lifecycle",
+            "initialize_attempt_lifecycle",
+            "append_attempt_lifecycle_transition",
+            "load_attempt_lifecycle",
+            "load_attempt_scheduler_observations",
+            "benchmark_attempt_directory",
+            "record_attempt_ready",
+            "record_attempt_submission",
+            "record_attempt_running",
+            "record_attempt_scheduler_observation",
+            "record_attempt_accounting",
+            "record_attempt_acceptance",
+            "record_attempt_blocked_external",
+            "record_attempt_superseded",
+            "build_telemetry_adapter",
         ]),
         "COMMANDS.md must list runtime entrypoints without treating them as shell commands"
     );
@@ -61,28 +78,37 @@ fn command_inventory_documents_no_runtime_commands() {
 }
 
 fn documented_entrypoints(content: &str) -> BTreeSet<String> {
-    content
-        .split('`')
-        .filter(|segment| {
-            matches!(
-                *segment,
-                "build_telemetry_adapter"
-                    | "create_run_layout"
-                    | "prepare_tool_run_dirs"
-                    | "write_checkpoint"
-                    | "write_canonical_json"
-                    | "write_executor_descriptor"
-                    | "write_failure_record"
-                    | "write_manifest"
-                    | "write_run_state"
-                    | "write_run_manifest"
-                    | "write_runtime_policy"
-            )
-        })
+    let Some((_, entries_section)) = content.split_once("### Runtime Entry Points\n") else {
+        return BTreeSet::new();
+    };
+    entries_section
+        .split("\n## ")
+        .next()
+        .unwrap_or_default()
+        .lines()
+        .filter_map(|line| line.trim().strip_prefix("- `")?.strip_suffix('`'))
         .map(str::to_string)
         .collect()
 }
 
 fn entries<const N: usize>(items: [&str; N]) -> BTreeSet<String> {
     items.into_iter().map(str::to_string).collect()
+}
+
+#[test]
+fn command_inventory_observes_declared_attempt_entrypoints() {
+    let root = Path::new(env!("CARGO_MANIFEST_DIR"));
+    let content = fs::read_to_string(root.join("docs/COMMANDS.md"))
+        .unwrap_or_else(|err| panic!("read command inventory: {err}"));
+    let baseline = documented_entrypoints(&content);
+    for required in ["write_run_manifest", "reserve_attempt_sequence"] {
+        let line = format!("- `{required}`\n");
+        assert!(content.contains(&line), "required entrypoint must be a real current declaration");
+        let missing = content.replacen(&line, "", 1);
+        assert_ne!(
+            documented_entrypoints(&missing),
+            baseline,
+            "runtime entrypoint inventory must observe removal of declared operation {required}"
+        );
+    }
 }

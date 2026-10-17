@@ -1,5 +1,6 @@
 mod active_scope;
 mod active_scope_tsv;
+mod adapter_fixture;
 mod adapters;
 mod adapters_tsv;
 mod expected_results;

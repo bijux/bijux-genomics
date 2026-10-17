@@ -20,20 +20,13 @@ fn workspace_dir_paths(path: &str) -> Vec<PathBuf> {
 }
 
 fn markdown_link_targets(path: &str) -> BTreeSet<String> {
-    let raw = workspace_file(path);
-    let mut targets = BTreeSet::new();
-    for line in raw.lines() {
-        let mut rest = line;
-        while let Some((_, suffix)) = rest.split_once("](") {
-            if let Some((target, tail)) = suffix.split_once(')') {
-                targets.insert(target.to_string());
-                rest = tail;
-            } else {
-                break;
-            }
-        }
-    }
-    targets
+    crate::document_references::markdown_targets(&support::workspace_root(), path)
+        .unwrap_or_else(|error| panic!("invalid references in {path}: {error}"))
+}
+
+fn expected_link_targets(path: &str, expected: &BTreeSet<String>) -> BTreeSet<String> {
+    crate::document_references::expected_targets(&support::workspace_root(), path, expected)
+        .unwrap_or_else(|error| panic!("invalid governed references for {path}: {error}"))
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -388,6 +381,7 @@ fn policy__contracts__bam_science_docs_policy__bam_index_links_governed_bam_doc_
         "STAGE_TAXONOMY.md".to_string(),
         "TOOLS_ROSTER.md".to_string(),
     ]);
+    let expected = expected_link_targets("docs/20-science/bam/index.md", &expected);
     let documented = markdown_link_targets("docs/20-science/bam/index.md");
     assert_eq!(
         documented, expected,
@@ -403,6 +397,7 @@ fn policy__contracts__bam_science_docs_policy__methodological_intent_links_gover
         "STAGE_ASSUMPTIONS.md".to_string(),
         "STAGE_CATALOG.md".to_string(),
     ]);
+    let expected = expected_link_targets("docs/20-science/bam/METHODOLOGICAL_INTENT.md", &expected);
     let documented = markdown_link_targets("docs/20-science/bam/METHODOLOGICAL_INTENT.md");
     assert_eq!(
         documented, expected,
@@ -419,6 +414,7 @@ fn policy__contracts__bam_science_docs_policy__metric_semantics_links_governed_b
         "OPERATIONAL_CONTRACT.md".to_string(),
         "STAGE_CATALOG.md".to_string(),
     ]);
+    let expected = expected_link_targets("docs/20-science/bam/METRIC_SEMANTICS.md", &expected);
     let documented = markdown_link_targets("docs/20-science/bam/METRIC_SEMANTICS.md");
     assert_eq!(
         documented, expected,
@@ -434,6 +430,7 @@ fn policy__contracts__bam_science_docs_policy__operational_contract_links_govern
         "METHODOLOGICAL_INTENT.md".to_string(),
         "STAGE_CATALOG.md".to_string(),
     ]);
+    let expected = expected_link_targets("docs/20-science/bam/OPERATIONAL_CONTRACT.md", &expected);
     let documented = markdown_link_targets("docs/20-science/bam/OPERATIONAL_CONTRACT.md");
     assert_eq!(
         documented, expected,
@@ -449,6 +446,7 @@ fn policy__contracts__bam_science_docs_policy__stage_assumptions_link_governed_b
         "STAGE_CATALOG.md".to_string(),
         "TOOLS_ROSTER.md".to_string(),
     ]);
+    let expected = expected_link_targets("docs/20-science/bam/STAGE_ASSUMPTIONS.md", &expected);
     let documented = markdown_link_targets("docs/20-science/bam/STAGE_ASSUMPTIONS.md");
     assert_eq!(
         documented, expected,
@@ -464,6 +462,7 @@ fn policy__contracts__bam_science_docs_policy__stage_catalog_links_governed_bam_
         "../../../domain/bam/index.yaml".to_string(),
         "TOOLS_ROSTER.md".to_string(),
     ]);
+    let expected = expected_link_targets("docs/20-science/bam/STAGE_CATALOG.md", &expected);
     let documented = markdown_link_targets("docs/20-science/bam/STAGE_CATALOG.md");
     assert_eq!(
         documented, expected,
@@ -479,6 +478,7 @@ fn policy__contracts__bam_science_docs_policy__stage_taxonomy_links_governed_bam
         "STAGE_CATALOG.md".to_string(),
         "TOOLS_ROSTER.md".to_string(),
     ]);
+    let expected = expected_link_targets("docs/20-science/bam/STAGE_TAXONOMY.md", &expected);
     let documented = markdown_link_targets("docs/20-science/bam/STAGE_TAXONOMY.md");
     assert_eq!(
         documented, expected,
@@ -494,6 +494,7 @@ fn policy__contracts__bam_science_docs_policy__tools_roster_links_governed_bam_t
         "../../../domain/bam/stages/".to_string(),
         "../../../domain/bam/tools/".to_string(),
     ]);
+    let expected = expected_link_targets("docs/20-science/bam/TOOLS_ROSTER.md", &expected);
     let documented = markdown_link_targets("docs/20-science/bam/TOOLS_ROSTER.md");
     assert_eq!(
         documented, expected,
@@ -510,6 +511,7 @@ fn policy__contracts__bam_science_docs_policy__references_link_governed_bam_evid
         "../../../science/docs/upstream/github-repos/README.md".to_string(),
         "../../../science/docs/upstream/papers/TOOL_PAPER_MAP.tsv".to_string(),
     ]);
+    let expected = expected_link_targets("docs/20-science/bam/REFERENCES.md", &expected);
     let documented = markdown_link_targets("docs/20-science/bam/REFERENCES.md");
     assert_eq!(
         documented, expected,
@@ -524,6 +526,7 @@ fn policy__contracts__bam_science_docs_policy__reference_governance_links_govern
         "../../../domain/bam/docs/DEFAULT_SETTINGS.md".to_string(),
         "../../../domain/bam/stages/".to_string(),
     ]);
+    let expected = expected_link_targets("docs/20-science/bam/REFERENCE_GOVERNANCE.md", &expected);
     let documented = markdown_link_targets("docs/20-science/bam/REFERENCE_GOVERNANCE.md");
     assert_eq!(
         documented, expected,

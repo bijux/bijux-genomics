@@ -108,11 +108,9 @@ fn policy__boundaries__dev_deps_policy__dev_dependencies_are_allowlisted() {
         let manifest = crate_dir.join("Cargo.toml");
         let deps = parse_dev_dependencies(&manifest);
         for dep in deps {
-            // Manifest snapshot tests exercise the container owner without the CLI facade.
-            let container_snapshot_owner = crate_dir.file_name().and_then(|name| name.to_str())
-                == Some("bijux-dna-policies")
-                && dep == "bijux-dna-containers";
-            if !allowlist.contains(dep.as_str()) && !container_snapshot_owner {
+            if !allowlist.contains(dep.as_str())
+                && !is_owner_specific_dev_dependency(&crate_dir, &dep)
+            {
                 offenders.push(format!("{} dev-dep not allowlisted: {}", manifest.display(), dep));
             }
         }
@@ -122,4 +120,33 @@ fn policy__boundaries__dev_deps_policy__dev_dependencies_are_allowlisted() {
         "dev-dependencies must be allowlisted:\n{}",
         offenders.join("\n")
     );
+}
+
+fn is_owner_specific_dev_dependency(crate_dir: &Path, dependency: &str) -> bool {
+    // Snapshot fixtures and bounded child-probe fixtures consume their actual owners.
+    matches!(
+        (crate_dir.file_name().and_then(|name| name.to_str()), dependency),
+        (Some("bijux-dna-policies"), "bijux-dna-containers")
+            | (Some("bijux-dna-containers-qa"), "bijux-dna-process")
+    )
+}
+
+#[test]
+fn policy__boundaries__dev_deps_policy__owner_specific_dependencies_reject_foreign_pairs() {
+    for (owner, dependency) in [
+        ("bijux-dna-policies", "bijux-dna-containers"),
+        ("bijux-dna-containers-qa", "bijux-dna-process"),
+    ] {
+        assert!(is_owner_specific_dev_dependency(Path::new(owner), dependency));
+    }
+    for (owner, dependency) in [
+        ("bijux-dna-containers-qa", "unknown-runtime"),
+        ("foreign-owner", "bijux-dna-process"),
+        ("bijux-dna-containers-qa-adjacent", "bijux-dna-process"),
+        ("bijux-dna-process", "bijux-dna-containers-qa"),
+        ("bijux-dna-containers-qa", "bijux-dna-process-adjacent"),
+        ("bijux-dna-policies", "bijux-dna-process"),
+    ] {
+        assert!(!is_owner_specific_dev_dependency(Path::new(owner), dependency));
+    }
 }

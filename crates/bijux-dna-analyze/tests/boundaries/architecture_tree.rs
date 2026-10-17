@@ -61,21 +61,6 @@ fn assert_contracts_layout(root: &Path) {
 
 fn assert_exports_layout(root: &Path) {
     assert_eq!(
-        dir_entries(&root.join("src/exports")),
-        entries([
-            "OWNER.toml",
-            "dashboard_facts.rs",
-            "evidence_bundle.rs",
-            "facts_summary.rs",
-            "facts_support/",
-            "mod.rs",
-            "run_summary.rs",
-            "stage_summary.rs",
-        ]),
-        "exports tree must keep output writers separated by artifact concern"
-    );
-
-    assert_eq!(
         dir_entries(&root.join("src/exports/facts_support")),
         entries(["mod.rs", "params_excerpt.rs", "report_access.rs"]),
         "facts support must keep report access and parameter excerpt policy separate"

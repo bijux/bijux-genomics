@@ -21,7 +21,7 @@ fn plan(stage: &str, tool: &str, inputs: &[Value]) -> Result<StagePlanV1> {
         "resources":{"runtime":"local","mem_gb":1,"tmp_gb":1,"threads":1},
         "io":{"inputs":inputs,"outputs":[]},"out_dir":"fixture","params":{},
         "effective_params":{
-            "schema_version":"bijux.fastq.params.screen_taxonomy.v1","paired_mode":"paired_end",
+            "schema_version":bijux_dna_domain_fastq::params::quality::screen::SCREEN_TAXONOMY_SCHEMA_VERSION,"paired_mode":"paired_end",
             "threads":1,"database_catalog_id":"fixture","database_artifact_id":"fixture",
             "database_scope":"read_screening","classifier":"kraken2","report_format":"kraken_report",
             "assignment_format":"kraken_assignments","emit_unclassified":true,

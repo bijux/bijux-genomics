@@ -19,8 +19,7 @@ use std::{
 };
 
 fn source_path() -> PathBuf {
-    Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("../../benchmarks/corpora/human-short-read-diversity.toml")
+    crate::support::repo_root().join("benchmarks/corpora/human-short-read-diversity.toml")
 }
 
 fn corpus() -> Result<(tempfile::TempDir, CorpusSpec, BTreeMap<String, String>)> {
@@ -371,5 +370,39 @@ fn rejects_symlinked_manifest_reads_and_raw_directories() -> Result<()> {
             .expect_err("invalid corpus evidence must be rejected");
         assert!(err.to_string().contains("symlink"), "{err:#}");
     }
+    Ok(())
+}
+
+#[test]
+fn normalized_fixture_source_matches_declared_runtime_checkout() -> Result<()> {
+    let declared = crate::support::repo_root()
+        .join("benchmarks/corpora/human-short-read-diversity.toml")
+        .canonicalize()?;
+    assert_eq!(
+        source_path().canonicalize()?,
+        declared,
+        "normalized fixture source must follow the declared runtime checkout"
+    );
+    Ok(())
+}
+
+#[test]
+fn source_cohort_target_overflow_is_a_typed_refusal() -> Result<()> {
+    let (_scratch, mut spec, _files) = corpus()?;
+    bijux_dna_bench_corpus::source::validate_fastq_corpus_source_spec(&spec)?;
+    assert_eq!(spec.target_total, 4);
+    spec.target_ancient_se = Some(usize::MAX);
+    spec.target_ancient_pe = Some(1);
+    spec.target_modern_se = Some(2);
+    spec.target_modern_pe = Some(2);
+    let observed = std::panic::catch_unwind(|| {
+        bijux_dna_bench_corpus::source::validate_fastq_corpus_source_spec(&spec)
+    });
+    let error = observed
+        .ok()
+        .context("cohort target aggregation must return a typed error without unwinding")?
+        .err()
+        .context("cohort targets beyond usize must not wrap to the declared four samples")?;
+    assert!(error.to_string().contains("cohort"), "{error}");
     Ok(())
 }

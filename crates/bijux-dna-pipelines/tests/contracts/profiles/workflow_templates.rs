@@ -703,3 +703,111 @@ fn vcf_workflow_templates_index_by_pipeline_ids() {
         ],
     );
 }
+
+#[test]
+fn canonical_batch_graph_passes_its_own_declared_fan_admission() -> Result<()> {
+    let template = cross_workflow_template_by_id("cross.fastq_to_vcf_minimal")
+        .expect("cross template must exist");
+    let sheet = parse_sample_sheet(
+        &template.template_id,
+        "run_id,batch_id,sample_id,library_id,lane_id,layout_mode,reference_id,workflow_mode,r1,r2,expected_outputs\nRUN01,BATCH_A,S1,LIB1,L001,paired_end,GRCh38,minimal,reads/S1_R1.fastq.gz,reads/S1_R2.fastq.gz,bam;vcf\nRUN02,BATCH_A,S2,LIB2,L002,paired_end,GRCh38,minimal,reads/S2_R1.fastq.gz,reads/S2_R2.fastq.gz,bam;vcf",
+    )?;
+    assert_eq!(sheet.records.len(), 2);
+    let graph = build_batch_workflow_graph(&template, &sheet);
+    assert!(graph.nodes.iter().any(|node| node.node_id == "shared::core.prepare_reference"));
+    assert!(graph.nodes.iter().any(|node| node.node_id == "sample::S1::bam.genotyping"));
+    let report = evaluate_batch_fan_semantics(&template, &graph);
+    eprintln!("unmodified batch graph admission={report:?}");
+    assert!(
+        report.valid,
+        "canonical builder rejected by its own fan contract: {:?}",
+        report.refusal_codes
+    );
+    Ok(())
+}
+
+fn two_sample_batch_contract(
+) -> Result<(bijux_dna_pipelines::CrossWorkflowTemplateV1, bijux_dna_pipelines::SampleSheetV1)> {
+    let template = cross_workflow_template_by_id("cross.fastq_to_vcf_minimal")
+        .expect("cross template must exist");
+    let sheet = parse_sample_sheet(
+        &template.template_id,
+        "run_id,batch_id,sample_id,library_id,lane_id,layout_mode,reference_id,workflow_mode,r1,r2,expected_outputs\nRUN01,BATCH_A,S1,LIB1,L001,paired_end,GRCh38,minimal,reads/S1_R1.fastq.gz,reads/S1_R2.fastq.gz,bam;vcf\nRUN02,BATCH_A,S2,LIB2,L002,paired_end,GRCh38,minimal,reads/S2_R1.fastq.gz,reads/S2_R2.fastq.gz,bam;vcf",
+    )?;
+    Ok((template, sheet))
+}
+
+#[test]
+fn declared_fan_links_preserve_sample_scope_and_existing_graph_identity() -> Result<()> {
+    let (mut template, sheet) = two_sample_batch_contract()?;
+    let baseline = build_batch_workflow_graph(&template, &sheet);
+    let reference_rule = template.fan_artifact_rules[0].clone();
+    template.fan_artifact_rules.push(reference_rule);
+    let branch_rule = bijux_dna_pipelines::FanArtifactRuleV1 {
+        source_stage: "fastq.validate_reads".to_string(),
+        target_stage: "bam.genotyping".to_string(),
+        fan_pattern: bijux_dna_pipelines::FanPatternV1::FanOut,
+        artifact_scope: "sample_branch_bundle".to_string(),
+        lineage_fields: vec!["library_id".to_string()],
+        overwrite_strategy: "sample_scoped_outputs".to_string(),
+    };
+    template.fan_artifact_rules.push(branch_rule.clone());
+    template.fan_artifact_rules.push(branch_rule);
+    let graph = build_batch_workflow_graph(&template, &sheet);
+    assert_eq!(graph.nodes, baseline.nodes);
+    assert_eq!(&graph.edges[..baseline.edges.len()], baseline.edges.as_slice());
+    for sample in ["S1", "S2"] {
+        let matching = graph
+            .edges
+            .iter()
+            .filter(|edge| {
+                edge.from == format!("sample::{sample}::fastq.validate_reads")
+                    && edge.to == format!("sample::{sample}::bam.genotyping")
+                    && edge.artifact_scope == "sample_branch_bundle"
+            })
+            .collect::<Vec<_>>();
+        assert_eq!(matching.len(), 1, "duplicate declarations must not duplicate a link");
+        assert_eq!(
+            matching[0].lineage_fields,
+            vec!["library_id".to_string(), "sample_id".to_string()]
+        );
+    }
+    assert!(!graph.edges.iter().any(|edge| {
+        (edge.from == "sample::S1::fastq.validate_reads" && edge.to == "sample::S2::bam.genotyping")
+            || (edge.from == "sample::S2::fastq.validate_reads"
+                && edge.to == "sample::S1::bam.genotyping")
+    }));
+    assert!(evaluate_batch_fan_semantics(&template, &graph).valid);
+    Ok(())
+}
+
+#[test]
+fn absent_declared_fan_endpoints_and_removed_links_remain_refused() -> Result<()> {
+    let (mut template, sheet) = two_sample_batch_contract()?;
+    let mut graph = build_batch_workflow_graph(&template, &sheet);
+    assert!(evaluate_batch_fan_semantics(&template, &graph).valid);
+    graph.edges.retain(|edge| {
+        !(edge.from == "shared::core.prepare_reference"
+            && edge.to.ends_with("::bam.align")
+            && edge.artifact_scope == "shared_reference_bundle")
+    });
+    let removed = evaluate_batch_fan_semantics(&template, &graph);
+    assert!(!removed.valid);
+    assert!(removed.refusal_codes.contains(&"missing_fan_rule_coverage".to_string()));
+
+    template.fan_artifact_rules.push(bijux_dna_pipelines::FanArtifactRuleV1 {
+        source_stage: "unavailable.producer".to_string(),
+        target_stage: "bam.align".to_string(),
+        fan_pattern: bijux_dna_pipelines::FanPatternV1::FanOut,
+        artifact_scope: "unavailable_bundle".to_string(),
+        lineage_fields: vec!["sample_id".to_string()],
+        overwrite_strategy: "write_once_reuse_many".to_string(),
+    });
+    let unavailable = build_batch_workflow_graph(&template, &sheet);
+    assert!(!unavailable.nodes.iter().any(|node| node.stage_id == "unavailable.producer"));
+    assert!(!unavailable.edges.iter().any(|edge| edge.from.contains("unavailable.producer")));
+    let report = evaluate_batch_fan_semantics(&template, &unavailable);
+    assert!(!report.valid);
+    assert!(report.refusal_codes.contains(&"missing_fan_rule_coverage".to_string()));
+    Ok(())
+}

@@ -367,7 +367,8 @@ fn fastq_stats(path: &Path) -> Result<bijux_dna_core::prelude::measure::SeqkitMe
             }
         }
     }
-    let mean_q = if reads > 0 { f64_from_u64(q_sum) / f64_from_u64(reads) } else { 0.0 };
+    // Phred scores belong to individual bases, independent of read lengths.
+    let mean_q = if bases > 0 { f64_from_u64(q_sum) / f64_from_u64(bases) } else { 0.0 };
     let gc_percent = if bases > 0 { (f64_from_u64(gc) / f64_from_u64(bases)) * 100.0 } else { 0.0 };
     Ok(bijux_dna_core::prelude::measure::SeqkitMetrics { reads, bases, mean_q, gc_percent })
 }

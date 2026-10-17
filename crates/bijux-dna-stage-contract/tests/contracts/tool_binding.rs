@@ -2836,3 +2836,7 @@ fn registry_admission_and_runtime_expansion_share_sidecar_rejection() -> Result<
     }
     Ok(())
 }
+
+#[cfg(unix)]
+#[path = "tool_binding/shell_values.rs"]
+mod shell_values;

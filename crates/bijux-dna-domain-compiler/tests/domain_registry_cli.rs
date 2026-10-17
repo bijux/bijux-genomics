@@ -35,9 +35,12 @@ fn help_output(command: &mut Command) -> anyhow::Result<String> {
 fn domain_registry_bundle_binary_emits_release_bundle_json() -> anyhow::Result<()> {
     let root = support::repo_root();
     let json = command_output(
-        Command::new(env!("CARGO_BIN_EXE_domain_registry_bundle"))
-            .arg("--domain-dir")
-            .arg(root.join("domain")),
+        Command::new(bijux_dna_testkit::workspace_support::workspace_binary_path(
+            "domain_registry_bundle",
+            std::path::Path::new(env!("CARGO_BIN_EXE_domain_registry_bundle")),
+        )?)
+        .arg("--domain-dir")
+        .arg(root.join("domain")),
     )?;
     let domains = json
         .get("domains")
@@ -57,15 +60,18 @@ fn domain_registry_bundle_binary_emits_release_bundle_json() -> anyhow::Result<(
 fn domain_registry_query_binary_filters_stage_registry_rows() -> anyhow::Result<()> {
     let root = support::repo_root();
     let json = command_output(
-        Command::new(env!("CARGO_BIN_EXE_domain_registry_query"))
-            .arg("--domain-dir")
-            .arg(root.join("domain"))
-            .arg("--kind")
-            .arg("stages")
-            .arg("--domain")
-            .arg("fastq")
-            .arg("--stage-id")
-            .arg("fastq.trim_reads"),
+        Command::new(bijux_dna_testkit::workspace_support::workspace_binary_path(
+            "domain_registry_query",
+            std::path::Path::new(env!("CARGO_BIN_EXE_domain_registry_query")),
+        )?)
+        .arg("--domain-dir")
+        .arg(root.join("domain"))
+        .arg("--kind")
+        .arg("stages")
+        .arg("--domain")
+        .arg("fastq")
+        .arg("--stage-id")
+        .arg("fastq.trim_reads"),
     )?;
     let rows = json.as_array().expect("query must return array");
     assert_eq!(rows.len(), 1);
@@ -84,13 +90,16 @@ fn domain_registry_query_binary_filters_stage_registry_rows() -> anyhow::Result<
 fn domain_registry_query_binary_exposes_evidence_contracts() -> anyhow::Result<()> {
     let root = support::repo_root();
     let json = command_output(
-        Command::new(env!("CARGO_BIN_EXE_domain_registry_query"))
-            .arg("--domain-dir")
-            .arg(root.join("domain"))
-            .arg("--kind")
-            .arg("evidence")
-            .arg("--stage-id")
-            .arg("vcf.call"),
+        Command::new(bijux_dna_testkit::workspace_support::workspace_binary_path(
+            "domain_registry_query",
+            std::path::Path::new(env!("CARGO_BIN_EXE_domain_registry_query")),
+        )?)
+        .arg("--domain-dir")
+        .arg(root.join("domain"))
+        .arg("--kind")
+        .arg("evidence")
+        .arg("--stage-id")
+        .arg("vcf.call"),
     )?;
     let rows = json.as_array().expect("evidence query must return array");
     assert_eq!(rows.len(), 1);
@@ -110,7 +119,12 @@ fn domain_registry_query_binary_exposes_evidence_contracts() -> anyhow::Result<(
 
 #[test]
 fn domain_registry_bundle_binary_help_lists_generated_bundle_flags() -> anyhow::Result<()> {
-    let help = help_output(&mut Command::new(env!("CARGO_BIN_EXE_domain_registry_bundle")))?;
+    let help = help_output(&mut Command::new(
+        bijux_dna_testkit::workspace_support::workspace_binary_path(
+            "domain_registry_bundle",
+            std::path::Path::new(env!("CARGO_BIN_EXE_domain_registry_bundle")),
+        )?,
+    ))?;
     for expected in ["--domain-dir", "--configs-dir", "--bundle", "--write-generated"] {
         assert!(help.contains(expected), "bundle help must advertise `{expected}`");
     }
@@ -119,7 +133,12 @@ fn domain_registry_bundle_binary_help_lists_generated_bundle_flags() -> anyhow::
 
 #[test]
 fn domain_registry_query_binary_help_lists_query_filters() -> anyhow::Result<()> {
-    let help = help_output(&mut Command::new(env!("CARGO_BIN_EXE_domain_registry_query")))?;
+    let help = help_output(&mut Command::new(
+        bijux_dna_testkit::workspace_support::workspace_binary_path(
+            "domain_registry_query",
+            std::path::Path::new(env!("CARGO_BIN_EXE_domain_registry_query")),
+        )?,
+    ))?;
     for expected in [
         "--bundle",
         "--domain-dir",

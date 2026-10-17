@@ -77,7 +77,7 @@ pub(super) fn execute_preprocess_batch(
     } else {
         let total = pending.len();
         let queue = std::sync::Arc::new(std::sync::Mutex::new(std::collections::VecDeque::from(
-            pending.clone(),
+            pending.iter().map(|(_, request)| request.clone()).enumerate().collect::<Vec<_>>(),
         )));
         let results: std::sync::Arc<std::sync::Mutex<Vec<Option<Result<StageResultV1>>>>> =
             std::sync::Arc::new(std::sync::Mutex::new(Vec::with_capacity(total)));
@@ -138,3 +138,8 @@ pub(super) fn execute_preprocess_batch(
         .map(|result| result.ok_or_else(|| anyhow!("missing batch execution result")))
         .collect()
 }
+
+#[cfg(all(test, unix))]
+#[allow(clippy::expect_used)]
+#[path = "batch_contracts.rs"]
+mod tests;

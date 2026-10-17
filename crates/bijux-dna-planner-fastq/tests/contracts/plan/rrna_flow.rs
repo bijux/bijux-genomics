@@ -126,3 +126,6 @@ fn rrna_stage_recovers_retained_reads_from_sortmerna_readb_fallbacks() -> Result
     assert!(single_script.contains("out/sortmerna_workdir/readb/fwd_*.fq.gz"));
     Ok(())
 }
+
+#[path = "rrna_output_collection.rs"]
+mod output_collection;

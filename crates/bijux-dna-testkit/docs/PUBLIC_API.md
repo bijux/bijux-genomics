@@ -38,10 +38,30 @@ explicit namespace.
 - `read_policy_text`
 - `workspace_root_from_manifest`
 
+## Workspace Executable Binding
+
+`workspace_support::workspace_binary_path(binary, compiled_path)` resolves
+`NEXTEST_BIN_EXE_<binary>` before the caller's compiled executable path. The
+selected path must be absolute, point to a regular file, and have executable
+permission on Unix. An invalid configured binding returns an error instead of
+falling back. The helper reads metadata and constructs no process.
+
+Parallel runners must finalize executable provenance and feature compatibility
+before binding worker environments. An unbound Cargo path requires exclusive
+ownership of its build output for the duration of execution.
+
+## Lexical Source Policy Helpers
+
+`workspace_support::{strip_rust_test_modules, select_rust_test_modules, rust_block_ranges}`
+partition declared test modules and locate braced scopes while ignoring comments
+and literals. A leading inner `#![cfg(test)]` governs a whole test-only file.
+These helpers support lexical repository scans; they do not parse Rust semantics.
+They remain module exports rather than expanding the curated root mirror.
+
 ## Compatibility Rules
 
 - Removing or renaming a stable root export is breaking.
 - Changing snapshot normalization semantics is breaking unless covered by
   explicit snapshot updates and release notes.
-- Adding a public helper requires `docs/COMMANDS.md`, this file, public API
-  tests, and snapshot updates.
+- Adding a public helper requires `docs/COMMANDS.md`, this file, and public API
+  tests. Changes to root exports also require root API snapshot updates.

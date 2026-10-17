@@ -1,7 +1,5 @@
 #![allow(clippy::expect_used, clippy::too_many_lines)]
 
-use std::process::Command;
-
 use crate::support;
 
 #[test]
@@ -12,7 +10,7 @@ fn bench_readiness_bam_local_container_smoke_writes_governed_tsv_file() {
     let repo_root = support::repo_root().expect("repo root");
     let home = tempfile::tempdir().expect("tempdir");
 
-    let output = Command::new(env!("CARGO_BIN_EXE_bijux-dna"))
+    let output = support::bijux_dna_command(&repo_root)
         .current_dir(&repo_root)
         .env("HOME", home.path())
         .env("BIJUX_SKIP_QA", "1")

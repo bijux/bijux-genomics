@@ -58,6 +58,18 @@ pub(crate) fn parse_admixture_rows(
             let value = columns[column_index + 1].parse::<f64>().with_context(|| {
                 format!("parse {} for `{sample_id}` from {}", cluster_header, path.display())
             })?;
+            if !value.is_finite() {
+                bail!(
+                    "admixture ancestry component `{cluster_header}` for `{sample_id}` in {} must be finite",
+                    path.display()
+                );
+            }
+            if !(0.0..=1.0).contains(&value) {
+                bail!(
+                    "admixture ancestry component `{cluster_header}` for `{sample_id}` in {} must be within [0, 1]",
+                    path.display()
+                );
+            }
             clusters.insert(cluster_header.clone(), value);
             ancestry_sum += value;
         }

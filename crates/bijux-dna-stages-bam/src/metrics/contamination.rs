@@ -1,11 +1,12 @@
-use std::path::Path;
-
 use bijux_dna_domain_bam::metrics::BamMetricsV1;
 
 use super::discovery;
 
-pub(super) fn parse_contamination_and_sex(out_dir: &Path, metrics: &mut BamMetricsV1) {
-    let contamination_path = discovery::first_existing(out_dir, &["contamination.json"]);
+pub(super) fn parse_contamination_and_sex(
+    inputs: &discovery::MetricInputs<'_>,
+    metrics: &mut BamMetricsV1,
+) {
+    let contamination_path = discovery::first_existing(inputs, &["contamination.json"]);
     if let Some(path) = contamination_path {
         if let Ok(contamination) = bijux_dna_domain_bam::metrics::parse_contamination_json(&path) {
             metrics.contamination = contamination;
@@ -20,7 +21,7 @@ pub(super) fn parse_contamination_and_sex(out_dir: &Path, metrics: &mut BamMetri
         }
     }
 
-    let sex_path = discovery::first_existing(out_dir, &["sex.json"]);
+    let sex_path = discovery::first_existing(inputs, &["sex.json"]);
     if let Some(path) = sex_path {
         if let Ok(sex) = bijux_dna_domain_bam::metrics::parse_sex_json(&path) {
             metrics.sex = sex;

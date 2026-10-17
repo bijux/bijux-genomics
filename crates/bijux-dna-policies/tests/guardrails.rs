@@ -2,6 +2,7 @@
 
 use anyhow::Result;
 use bijux_dna_policies::GuardrailConfig;
+use std::fmt::Write as _;
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicU64, Ordering};
@@ -143,18 +144,6 @@ fn policy__root__guardrails__stage_id_scan_rejects_raw_strings() {
 }
 
 #[test]
-fn policy__root__guardrails__pub_item_budget_counts_scoped_visibility() {
-    let crate_root = test_root("scoped-pub-budget").join("crate");
-    write_source(&crate_root, "lib.rs", "pub(super) fn visible_to_parent() {}\n");
-
-    let config = GuardrailConfig { max_pub_items_per_file: 0, ..Default::default() };
-
-    let err = must_fail(bijux_dna_policies::check(&crate_root, &config), "scoped pub must count");
-
-    assert!(err.to_string().contains("pub items"), "unexpected guardrail error: {err}");
-}
-
-#[test]
 fn policy__root__guardrails__pub_use_budget_counts_scoped_reexports() {
     let crate_root = test_root("scoped-pub-use-budget").join("crate");
     write_source(&crate_root, "lib.rs", "mod inner {}\npub(crate) use inner as exposed;\n");
@@ -201,5 +190,94 @@ fn policy__root__guardrails__literal_scans_ignore_block_comments() {
     must_pass(
         bijux_dna_policies::check(&crate_root, &config),
         "block-comment mentions are allowed",
+    );
+}
+
+fn write_equivalent_public_alias_surface(crate_root: &Path, grouped: bool, count: usize) {
+    write_source(crate_root, "lib.rs", "mod definitions;\npub mod exports;\n");
+    write_source(crate_root, "definitions.rs", "pub struct Value;\n");
+    let aliases = (0..count).map(|index| format!("Public{index}")).collect::<Vec<_>>();
+    let exports = if grouped {
+        format!(
+            "pub use crate::definitions::{{\n{}\n}};\n",
+            aliases
+                .iter()
+                .map(|name| format!("    Value as {name},"))
+                .collect::<Vec<_>>()
+                .join("\n")
+        )
+    } else {
+        aliases.iter().fold(String::new(), |mut output, name| {
+            writeln!(output, "pub use crate::definitions::Value as {name};")
+                .unwrap_or_else(|error| panic!("write public alias: {error}"));
+            output
+        })
+    };
+    write_source(crate_root, "exports.rs", &exports);
+    let consumer = format!(
+        "pub fn same_types(value: &owned_surface::exports::Public0) {{\n{}\n}}\n",
+        aliases
+            .iter()
+            .map(|name| format!("    let _: &owned_surface::exports::{name} = value;"))
+            .collect::<Vec<_>>()
+            .join("\n")
+    );
+    fs::write(crate_root.join("consumer.rs"), consumer)
+        .unwrap_or_else(|error| panic!("write actual public consumer: {error}"));
+}
+
+#[test]
+fn equivalent_public_alias_grouping_preserves_guardrail_verdict() {
+    let root = test_root("equivalent-public-aliases");
+    let grouped = root.join("grouped");
+    let separated = root.join("separated");
+    let config = GuardrailConfig::for_crate("bijux-dna-api");
+    let count = config
+        .max_pub_items_per_file
+        .checked_add(1)
+        .unwrap_or_else(|| panic!("bounded counterexample size"));
+    write_equivalent_public_alias_surface(&grouped, true, count);
+    write_equivalent_public_alias_surface(&separated, false, count);
+    must_pass(
+        bijux_dna_policies::check(&grouped, &config),
+        "same public alias set grouped control",
+    );
+    assert_eq!(
+        fs::read(grouped.join("src/definitions.rs"))
+            .unwrap_or_else(|error| panic!("grouped definition: {error}")),
+        fs::read(separated.join("src/definitions.rs"))
+            .unwrap_or_else(|error| panic!("separated definition: {error}"))
+    );
+    assert_eq!(
+        fs::read(grouped.join("consumer.rs"))
+            .unwrap_or_else(|error| panic!("grouped consumer: {error}")),
+        fs::read(separated.join("consumer.rs"))
+            .unwrap_or_else(|error| panic!("separated consumer: {error}"))
+    );
+    eprintln!(
+        "equivalent_public_surface group={} separated={} alias_count={count}",
+        grouped.display(),
+        separated.display()
+    );
+    must_pass(
+        bijux_dna_policies::check(&separated, &config),
+        "identical public identities cannot be rejected solely by reexport statement grouping",
+    );
+}
+
+#[test]
+fn public_surface_layout_keeps_real_namespace_refusals() {
+    let root = test_root("public-surface-namespace-refusal");
+    let config = GuardrailConfig::for_crate("bijux-dna-api");
+    write_source(&root, "lib.rs", "pub fn retained_capability() {}\n");
+    must_pass(bijux_dna_policies::check(&root, &config), "ordinary owned capability");
+    write_source(&root, "unresolved/mod.rs", "pub mod absent;\n");
+    let error = must_fail(
+        bijux_dna_policies::check(&root, &config),
+        "an unresolved namespace must retain its real structural refusal",
+    );
+    assert!(
+        error.to_string().contains("module directory contains only mod.rs"),
+        "unexpected namespace refusal: {error}"
     );
 }

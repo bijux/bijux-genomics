@@ -1,7 +1,7 @@
 # PATHS
 
-Path normalization is owned by bijux-dna-core.
-Infra can only construct paths via stable path helpers.
+Semantic path normalization is owned by bijux-dna-core.
+Infra constructs paths through stable helpers and admits physical evidence-root custody.
 
 ## Stability guarantees
 - `RUN_LAYOUT_CONTRACT` segment names are stable across releases.
@@ -16,4 +16,7 @@ Infra can only construct paths via stable path helpers.
 - Attempt archives and rollback receipts remain under hidden owner-local roots and preserve the
   permanent run/tool/campaign/attempt identity without crossing container/benchmark ownership.
 
-No independent normalization allowed outside bijux-dna-core `contract::canonical`.
+`validate_attempt_owner_roots` resolves an existing ancestor and retains the missing path suffix
+before checking owner-root equality or nesting. That physical alias/overlap check stays in infra;
+it does not change domain identifiers, canonical JSON or the lexical construction guarantees above.
+Semantic contract canonicalization remains in bijux-dna-core `contract::canonical`.

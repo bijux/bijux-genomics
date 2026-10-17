@@ -13,7 +13,7 @@ fn bench_readiness_essential_pipeline_rendered_commands_write_bash_parseable_scr
     let repo_root = support::repo_root().expect("repo root");
     let home = tempfile::tempdir().expect("tempdir");
 
-    let output = Command::new(env!("CARGO_BIN_EXE_bijux-dna"))
+    let output = support::bijux_dna_command(&repo_root)
         .current_dir(&repo_root)
         .env("HOME", home.path())
         .env("BIJUX_SKIP_QA", "1")

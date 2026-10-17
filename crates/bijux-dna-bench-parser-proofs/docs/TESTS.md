@@ -13,3 +13,7 @@ rooted alignment provenance and kinship's declared-fixture-only contract.
 
 BAM native parser selection and seven synthetic producers are also checked with
 the BAM proof owner. These checks do not replace domain scientific evaluation.
+
+`tests/contracts/report_observation.rs` exercises all seven VCF report kinds,
+exact returned JSON and projected fields, missing-key order, lenient values and
+read/parse diagnostics. These are representation checks, not backend accuracy.

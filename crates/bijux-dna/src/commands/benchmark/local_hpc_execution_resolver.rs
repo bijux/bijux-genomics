@@ -137,6 +137,23 @@ fn build_hpc_execution_resolver(
     build_hpc_execution_resolver_for_jobs(repo_root, absolute_output, &selected_jobs)
 }
 
+pub(crate) fn collect_hpc_execution_resolver_report_with_jobs<
+    J: AsRef<[BenchmarkLocalAllDomainSlurmSubmitJob]>,
+>(
+    repo_root: &Path,
+    acquire_jobs: impl FnOnce() -> Result<J>,
+) -> Result<LocalHpcExecutionResolverReport> {
+    let paths = BenchmarkPathResolver::new(repo_root, None);
+    let output_path = paths.benchmark_hpc_dry_run_root().join("execution-resolver.tsv");
+    ensure_path_stays_within_benchmark_runs_root(
+        repo_root,
+        &output_path,
+        "HPC execution resolver output",
+    )?;
+    let jobs = acquire_jobs()?;
+    build_hpc_execution_resolver_for_jobs(repo_root, &output_path, jobs.as_ref())
+}
+
 pub(crate) fn collect_hpc_execution_resolver_report_for_jobs(
     repo_root: &Path,
     selected_jobs: &[BenchmarkLocalAllDomainSlurmSubmitJob],

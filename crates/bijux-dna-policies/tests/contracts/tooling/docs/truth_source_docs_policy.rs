@@ -1,6 +1,8 @@
 #![allow(non_snake_case)]
 use std::path::{Path, PathBuf};
 
+use crate::document_references;
+
 fn workspace_root() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR"))
         .parent()
@@ -12,8 +14,11 @@ fn workspace_root() -> PathBuf {
 #[test]
 fn policy__contracts__truth_source_docs_policy__operations_docs_point_to_governed_truth() {
     let root = workspace_root();
-    let command_map = std::fs::read_to_string(root.join("docs/30-operations/COMMAND_MAP.md"))
-        .expect("read command map");
+    let command_map_path = "docs/30-operations/COMMAND_MAP.md";
+    let command_map =
+        std::fs::read_to_string(root.join(command_map_path)).expect("read command map");
+    let command_targets = document_references::markdown_targets(&root, command_map_path)
+        .unwrap_or_else(|error| panic!("invalid command-map references: {error}"));
     let scoreboard = std::fs::read_to_string(root.join("docs/30-operations/BACKLOG_SCOREBOARD.md"))
         .expect("read backlog scoreboard doc");
 
@@ -21,7 +26,9 @@ fn policy__contracts__truth_source_docs_policy__operations_docs_point_to_governe
     for needle in
         ["../cli/command_snapshot.txt", "../../examples/index.yaml", "BACKLOG_SCOREBOARD.md"]
     {
-        if !command_map.contains(needle) {
+        let target = document_references::repository_target(&root, command_map_path, needle)
+            .unwrap_or_else(|error| panic!("invalid governed command-map reference: {error}"));
+        if !command_targets.contains(&target) {
             offenders.push(format!("docs/30-operations/COMMAND_MAP.md missing `{needle}`"));
         }
     }

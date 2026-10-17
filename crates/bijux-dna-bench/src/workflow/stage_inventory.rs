@@ -1,3 +1,4 @@
+//! Owner: bijux-dna-bench
 //! Compose domain matrix adapters before owner publication.
 use crate::repo::{load_benchmark_local_stage_inventory, BenchmarkLocalStageInventoryDomain};
 use anyhow::Result;

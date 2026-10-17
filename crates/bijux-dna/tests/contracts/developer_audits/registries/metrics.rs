@@ -13,7 +13,7 @@ fn dev_crates_metric_registry_writes_the_governed_stage_metric_table() {
     let temp = tempfile::tempdir().expect("tempdir");
     let out = temp.path().join("metric-registry.tsv");
 
-    let output = Command::new(env!("CARGO_BIN_EXE_bijux-dna"))
+    let output = Command::new(support::cli_binary_path())
         .current_dir(&repo_root)
         .arg("dev")
         .arg("crates")

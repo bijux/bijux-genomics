@@ -13,7 +13,7 @@ fn bench_readiness_version_probes_writes_governed_json_file() {
     let home = tempfile::tempdir().expect("tempdir");
     let runtime_root = tempfile::tempdir().expect("runtime tempdir");
 
-    let mut command = Command::new(env!("CARGO_BIN_EXE_bijux-dna"));
+    let mut command = Command::new(support::cli_binary_path());
     support::configure_isolated_runtime_resolution(&mut command, runtime_root.path());
     let output = command
         .current_dir(&repo_root)

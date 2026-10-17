@@ -31,6 +31,22 @@ src/
 ├── main.rs
 ├── model/
 └── runtime/
+    ├── compilation_cache.rs
+    ├── compiled_products.rs
+    ├── compiled_products/
+    ├── crate_gate_inputs.rs
+    ├── crate_gate_inputs/
+    ├── gate_receipt.rs
+    ├── local_tests/
+    ├── mod.rs
+    ├── owned_artifacts.rs
+    ├── process.rs
+    ├── process/
+    ├── source_snapshot.rs
+    ├── source_snapshot/
+    │   └── isolation.rs
+    ├── workspace.rs
+    └── workspace_root.rs
 ```
 
 Layer responsibilities:
@@ -40,6 +56,15 @@ Layer responsibilities:
 - `application/` coordinates catalogs, commands, and runtime adapters into stable workflows.
 - `catalog/` and `model/` define the durable command vocabulary and typed outcomes.
 - `runtime/` owns workspace discovery, artifact path admission, and process boundaries. Environment-selected output roots and declared CI destinations share the same workspace boundary checks.
+  `compiled_products/` admits native executable inventories and seals finalized products.
+  `crate_gate_inputs.rs` and its contracts capture immutable proof inputs, preserve producer
+  provenance, and publish exact source-bound consumer bindings. `local_tests/` owns physical
+  inputs, pinned tools, capacity observations, and typed resource requests. `process/` owns
+  dependency-aware launches, weighted admission, terminal collection, and process evidence.
+  `source_snapshot.rs` captures and materializes admitted tracked source snapshots.
+  `source_snapshot/isolation.rs` admits and revalidates Git HEAD, tree, and tracked patch
+  identity for isolated native execution. It rejects nonignored untracked inputs and records
+  postconditions against the original identity instead of accepting changed worker source.
 - `commands/` owns repository-scoped effects and enforcement logic. New side effects belong there behind typed catalog entries, not in `cli/` or `application/`.
 
 Command boundaries:
@@ -61,7 +86,21 @@ Test ownership is detailed in [TESTS.md](TESTS.md):
 - `tests/boundaries/dependencies.rs` protects the dependency graph so
   development automation remains outside production crates.
 
+`application/checks/policy_observations.rs` owns observations for one checks request. It shares
+only exact `bijux-dna-policies` / `contracts` commands for the audited read-only groups
+`assets_governance_policy`, `generated_configs_policy`, `contract_authority_policy`,
+`tool_registry_reproducibility_policy`, `vcf_support_gate_policy`,
+`examples_golden_hygiene_policy`, `examples_cli_command_policy`, `stage_executor_parity_policy`,
+`opentelemetry_version_policy`, and `error_boundary_policy`. Every native operation, process,
+unknown Cargo group and composite clears observations before and after dispatch. Each new
+request starts fresh; the catalog IDs, primary and alias modes, result order, composite children,
+failed statuses and per-check diagnostics remain intact. This reduces duplicate requests without
+caching effectful policy work or changing Cargo resource provisioning. Its maintained contracts
+live once in the private test-only `checks/request_observation_contracts.rs` module.
+
 `application/ci/` separates expected test inventory admission, pinned Nextest event admission, and exact cross-shard coverage reconciliation. These modules have no filesystem or process effects. The tooling CI command owns producer/shard execution, logs, hashes and receipt publication.
+
+`commands/ops/tooling/ci.rs` is the registered command facade. `ci/fast.rs` composes the fast graph with private contract, compiler-cache and timing owners; its execution adapter uses the existing dependency-process runner. `ci/sharded.rs` keeps the full source/product transaction together, with contract, storage, archive and preflight owners beneath it. `ci/full_execution.rs` and `ci/full_execution/native_chunks.rs` retain bounded partition execution; `ci/complete.rs` owns the complete local-lane coordinator.
 
 `runtime/source_snapshot.rs` captures the tracked worktree once as a pinned commit plus a binary Git patch. Archive and shard workspaces materialize that same input with one checkout and, only for changed sources, one patch application. Untracked evidence is excluded. CI commands own scratch lifetimes; snapshot materialization refuses existing destinations.
 
@@ -73,6 +112,8 @@ Archived test consumers receive their remapped workspace as repository authority
 
 The partition adapter follows the [pinned Nextest 0.9.100 implementation](https://github.com/nextest-rs/nextest/blob/cargo-nextest-0.9.100/nextest-runner/src/partition.rs); executor upgrades require fresh protocol qualification.
 
-Local compiled test discovery partitions the complete native binary metadata into at most five disjoint groups, bounded by the configured build job count. `application/ci/discovery.rs` admits exact selected binary identities, unfiltered case counts, empty suites, ignored flags and unchanged build metadata. `runtime/compiled_products.rs` owns the concurrent processes and logs; the command handler consumes their admitted union. Archive extraction keeps its existing single inventory owner.
+Local compiled test discovery groups the complete native binary metadata under the admitted worker budget. The pinned executor can launch two listing children for each binary; the planner accounts for that demand before dispatch. Discovery explicitly includes ordinary and ignored tests. `application/ci/discovery.rs` admits exact selected binary identities, unfiltered case counts, empty suites, ignored flags and unchanged build metadata. `runtime/compiled_products/native_inventory.rs` owns bounded processes, immutable metadata subsets and terminal source checks. Partition execution sequences native binary chunks within each private source root and interleaves ready partitions within the same budget.
+
+`application/ci/events.rs` retains case start/result lifetimes across the pinned reporter's ignored-test frame restarts. Per-frame passed and failed counters remain exact, every started case must finally terminate, and final planned case membership governs coverage. A successful child exit or suite summary cannot replace missing case evidence. Its focused lifecycle contracts live in `events/pinned_frames.rs`.
 
 Private CI discovery tests live under `tests/boundaries/ci/` and compile into their owning developer binary. They do not add an integration executable or a second public test facade.

@@ -22,6 +22,7 @@ bijux-dna-containers = { path = "../bijux-dna-containers" }
 bijux-dna-bench-model = { path = "../bijux-dna-bench-model", default-features = false }
 bijux-dna-analyze = { path = "../bijux-dna-analyze", features = ["sqlite"], optional = true }
 bijux-dna-core = { path = "../bijux-dna-core" }
+bijux-dna-process = { path = "../bijux-dna-process", optional = true }
 bijux-dna-domain-fastq = { path = "../bijux-dna-domain-fastq", optional = true }
 bijux-dna-infra = { path = "../bijux-dna-infra", features = ["yaml"] }
 bijux-dna-runtime = { path = "../bijux-dna-runtime", optional = true }
@@ -30,6 +31,7 @@ chrono.workspace = true
 walkdir.workspace = true
 
 [dev-dependencies]
+bijux-dna-process.workspace = true
 bijux-dna-policies.workspace = true
 bijux-dna-testkit = { path = "../bijux-dna-testkit" }
 
@@ -42,6 +44,7 @@ verification-tools = [
   "dep:bijux-dna-analyze",
   "dep:bijux-dna-domain-fastq",
   "dep:bijux-dna-runtime",
+  "dep:bijux-dna-process",
   "dep:clap",
   "dep:rusqlite",
   "dep:tracing",

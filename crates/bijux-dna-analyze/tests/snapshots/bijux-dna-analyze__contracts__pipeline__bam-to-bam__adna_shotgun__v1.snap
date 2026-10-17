@@ -88,35 +88,20 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
   "completeness": {
     "missing_metrics": [],
     "missing_reports": [
-      "bam.authenticity:metrics_path",
       "bam.authenticity:retention_report",
-      "bam.complexity:metrics_path",
       "bam.complexity:retention_report",
-      "bam.contamination:metrics_path",
       "bam.contamination:retention_report",
-      "bam.coverage:metrics_path",
       "bam.coverage:retention_report",
-      "bam.damage:metrics_path",
       "bam.damage:retention_report",
-      "bam.duplication_metrics:metrics_path",
       "bam.duplication_metrics:retention_report",
-      "bam.endogenous_content:metrics_path",
       "bam.endogenous_content:retention_report",
-      "bam.filter:metrics_path",
       "bam.filter:retention_report",
-      "bam.length_filter:metrics_path",
       "bam.length_filter:retention_report",
-      "bam.mapping_summary:metrics_path",
       "bam.mapping_summary:retention_report",
-      "bam.mapq_filter:metrics_path",
       "bam.mapq_filter:retention_report",
-      "bam.overlap_correction:metrics_path",
       "bam.overlap_correction:retention_report",
-      "bam.qc_pre:metrics_path",
       "bam.qc_pre:retention_report",
-      "bam.sex:metrics_path",
       "bam.sex:retention_report",
-      "bam.validate:metrics_path",
       "bam.validate:retention_report"
     ],
     "status": "incomplete"
@@ -1762,35 +1747,20 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
     "data_contract_validation": {
       "missing_metrics": [],
       "missing_reports": [
-        "bam.authenticity:metrics_path",
         "bam.authenticity:retention_report",
-        "bam.complexity:metrics_path",
         "bam.complexity:retention_report",
-        "bam.contamination:metrics_path",
         "bam.contamination:retention_report",
-        "bam.coverage:metrics_path",
         "bam.coverage:retention_report",
-        "bam.damage:metrics_path",
         "bam.damage:retention_report",
-        "bam.duplication_metrics:metrics_path",
         "bam.duplication_metrics:retention_report",
-        "bam.endogenous_content:metrics_path",
         "bam.endogenous_content:retention_report",
-        "bam.filter:metrics_path",
         "bam.filter:retention_report",
-        "bam.length_filter:metrics_path",
         "bam.length_filter:retention_report",
-        "bam.mapping_summary:metrics_path",
         "bam.mapping_summary:retention_report",
-        "bam.mapq_filter:metrics_path",
         "bam.mapq_filter:retention_report",
-        "bam.overlap_correction:metrics_path",
         "bam.overlap_correction:retention_report",
-        "bam.qc_pre:metrics_path",
         "bam.qc_pre:retention_report",
-        "bam.sex:metrics_path",
         "bam.sex:retention_report",
-        "bam.validate:metrics_path",
         "bam.validate:retention_report"
       ],
       "status": "incomplete"
@@ -1827,7 +1797,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "input_hash": "input",
           "missing_metrics": [],
           "missing_reports": [
-            "metrics_path",
             "retention_report"
           ],
           "params_hash": "params",
@@ -1843,7 +1812,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "input_hash": "input",
           "missing_metrics": [],
           "missing_reports": [
-            "metrics_path",
             "retention_report"
           ],
           "params_hash": "params",
@@ -1859,7 +1827,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "input_hash": "input",
           "missing_metrics": [],
           "missing_reports": [
-            "metrics_path",
             "retention_report"
           ],
           "params_hash": "params",
@@ -1875,7 +1842,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "input_hash": "input",
           "missing_metrics": [],
           "missing_reports": [
-            "metrics_path",
             "retention_report"
           ],
           "params_hash": "params",
@@ -1891,7 +1857,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "input_hash": "input",
           "missing_metrics": [],
           "missing_reports": [
-            "metrics_path",
             "retention_report"
           ],
           "params_hash": "params",
@@ -1907,7 +1872,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "input_hash": "input",
           "missing_metrics": [],
           "missing_reports": [
-            "metrics_path",
             "retention_report"
           ],
           "params_hash": "params",
@@ -1923,7 +1887,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "input_hash": "input",
           "missing_metrics": [],
           "missing_reports": [
-            "metrics_path",
             "retention_report"
           ],
           "params_hash": "params",
@@ -1939,7 +1902,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "input_hash": "input",
           "missing_metrics": [],
           "missing_reports": [
-            "metrics_path",
             "retention_report"
           ],
           "params_hash": "params",
@@ -1955,7 +1917,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "input_hash": "input",
           "missing_metrics": [],
           "missing_reports": [
-            "metrics_path",
             "retention_report"
           ],
           "params_hash": "params",
@@ -1971,7 +1932,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "input_hash": "input",
           "missing_metrics": [],
           "missing_reports": [
-            "metrics_path",
             "retention_report"
           ],
           "params_hash": "params",
@@ -1987,7 +1947,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "input_hash": "input",
           "missing_metrics": [],
           "missing_reports": [
-            "metrics_path",
             "retention_report"
           ],
           "params_hash": "params",
@@ -2003,7 +1962,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "input_hash": "input",
           "missing_metrics": [],
           "missing_reports": [
-            "metrics_path",
             "retention_report"
           ],
           "params_hash": "params",
@@ -2019,7 +1977,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "input_hash": "input",
           "missing_metrics": [],
           "missing_reports": [
-            "metrics_path",
             "retention_report"
           ],
           "params_hash": "params",
@@ -2035,7 +1992,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "input_hash": "input",
           "missing_metrics": [],
           "missing_reports": [
-            "metrics_path",
             "retention_report"
           ],
           "params_hash": "params",
@@ -2051,7 +2007,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
           "input_hash": "input",
           "missing_metrics": [],
           "missing_reports": [
-            "metrics_path",
             "retention_report"
           ],
           "params_hash": "params",
@@ -2071,35 +2026,20 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "completeness": {
         "missing_metrics": [],
         "missing_reports": [
-          "bam.authenticity:metrics_path",
           "bam.authenticity:retention_report",
-          "bam.complexity:metrics_path",
           "bam.complexity:retention_report",
-          "bam.contamination:metrics_path",
           "bam.contamination:retention_report",
-          "bam.coverage:metrics_path",
           "bam.coverage:retention_report",
-          "bam.damage:metrics_path",
           "bam.damage:retention_report",
-          "bam.duplication_metrics:metrics_path",
           "bam.duplication_metrics:retention_report",
-          "bam.endogenous_content:metrics_path",
           "bam.endogenous_content:retention_report",
-          "bam.filter:metrics_path",
           "bam.filter:retention_report",
-          "bam.length_filter:metrics_path",
           "bam.length_filter:retention_report",
-          "bam.mapping_summary:metrics_path",
           "bam.mapping_summary:retention_report",
-          "bam.mapq_filter:metrics_path",
           "bam.mapq_filter:retention_report",
-          "bam.overlap_correction:metrics_path",
           "bam.overlap_correction:retention_report",
-          "bam.qc_pre:metrics_path",
           "bam.qc_pre:retention_report",
-          "bam.sex:metrics_path",
           "bam.sex:retention_report",
-          "bam.validate:metrics_path",
           "bam.validate:retention_report"
         ],
         "status": "incomplete"
@@ -2126,37 +2066,22 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
     },
     "key_findings": [
       {
-        "count": 30,
+        "count": 15,
         "items": [
-          "bam.authenticity:metrics_path",
           "bam.authenticity:retention_report",
-          "bam.complexity:metrics_path",
           "bam.complexity:retention_report",
-          "bam.contamination:metrics_path",
           "bam.contamination:retention_report",
-          "bam.coverage:metrics_path",
           "bam.coverage:retention_report",
-          "bam.damage:metrics_path",
           "bam.damage:retention_report",
-          "bam.duplication_metrics:metrics_path",
           "bam.duplication_metrics:retention_report",
-          "bam.endogenous_content:metrics_path",
           "bam.endogenous_content:retention_report",
-          "bam.filter:metrics_path",
           "bam.filter:retention_report",
-          "bam.length_filter:metrics_path",
           "bam.length_filter:retention_report",
-          "bam.mapping_summary:metrics_path",
           "bam.mapping_summary:retention_report",
-          "bam.mapq_filter:metrics_path",
           "bam.mapq_filter:retention_report",
-          "bam.overlap_correction:metrics_path",
           "bam.overlap_correction:retention_report",
-          "bam.qc_pre:metrics_path",
           "bam.qc_pre:retention_report",
-          "bam.sex:metrics_path",
           "bam.sex:retention_report",
-          "bam.validate:metrics_path",
           "bam.validate:retention_report"
         ],
         "kind": "missing_reports"
@@ -2195,105 +2120,105 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       },
       "presets": [
         {
-          "effective_config_path": "",
+          "effective_config_path": "effective_config.json",
           "params_hash": "params",
           "stage_id": "bam.authenticity",
           "tool_id": "authenticct",
           "tool_version": "99.99.99+fixture"
         },
         {
-          "effective_config_path": "",
+          "effective_config_path": "effective_config.json",
           "params_hash": "params",
           "stage_id": "bam.complexity",
           "tool_id": "preseq",
           "tool_version": "99.99.99+fixture"
         },
         {
-          "effective_config_path": "",
+          "effective_config_path": "effective_config.json",
           "params_hash": "params",
           "stage_id": "bam.contamination",
           "tool_id": "schmutzi",
           "tool_version": "99.99.99+fixture"
         },
         {
-          "effective_config_path": "",
+          "effective_config_path": "effective_config.json",
           "params_hash": "params",
           "stage_id": "bam.coverage",
           "tool_id": "mosdepth",
           "tool_version": "99.99.99+fixture"
         },
         {
-          "effective_config_path": "",
+          "effective_config_path": "effective_config.json",
           "params_hash": "params",
           "stage_id": "bam.damage",
           "tool_id": "mapdamage2",
           "tool_version": "99.99.99+fixture"
         },
         {
-          "effective_config_path": "",
+          "effective_config_path": "effective_config.json",
           "params_hash": "params",
           "stage_id": "bam.duplication_metrics",
           "tool_id": "samtools",
           "tool_version": "99.99.99+fixture"
         },
         {
-          "effective_config_path": "",
+          "effective_config_path": "effective_config.json",
           "params_hash": "params",
           "stage_id": "bam.endogenous_content",
           "tool_id": "samtools",
           "tool_version": "99.99.99+fixture"
         },
         {
-          "effective_config_path": "",
+          "effective_config_path": "effective_config.json",
           "params_hash": "params",
           "stage_id": "bam.filter",
           "tool_id": "samtools",
           "tool_version": "99.99.99+fixture"
         },
         {
-          "effective_config_path": "",
+          "effective_config_path": "effective_config.json",
           "params_hash": "params",
           "stage_id": "bam.length_filter",
           "tool_id": "samtools",
           "tool_version": "99.99.99+fixture"
         },
         {
-          "effective_config_path": "",
+          "effective_config_path": "effective_config.json",
           "params_hash": "params",
           "stage_id": "bam.mapping_summary",
           "tool_id": "samtools",
           "tool_version": "99.99.99+fixture"
         },
         {
-          "effective_config_path": "",
+          "effective_config_path": "effective_config.json",
           "params_hash": "params",
           "stage_id": "bam.mapq_filter",
           "tool_id": "samtools",
           "tool_version": "99.99.99+fixture"
         },
         {
-          "effective_config_path": "",
+          "effective_config_path": "effective_config.json",
           "params_hash": "params",
           "stage_id": "bam.overlap_correction",
           "tool_id": "bamutil",
           "tool_version": "99.99.99+fixture"
         },
         {
-          "effective_config_path": "",
+          "effective_config_path": "effective_config.json",
           "params_hash": "params",
           "stage_id": "bam.qc_pre",
           "tool_id": "samtools",
           "tool_version": "99.99.99+fixture"
         },
         {
-          "effective_config_path": "",
+          "effective_config_path": "effective_config.json",
           "params_hash": "params",
           "stage_id": "bam.sex",
           "tool_id": "rxy",
           "tool_version": "99.99.99+fixture"
         },
         {
-          "effective_config_path": "",
+          "effective_config_path": "effective_config.json",
           "params_hash": "params",
           "stage_id": "bam.validate",
           "tool_id": "samtools",
@@ -3391,7 +3316,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         {
           "missing_metrics": [],
           "missing_reports": [
-            "metrics_path",
             "retention_report"
           ],
           "stage_id": "bam.authenticity",
@@ -3400,7 +3324,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         {
           "missing_metrics": [],
           "missing_reports": [
-            "metrics_path",
             "retention_report"
           ],
           "stage_id": "bam.complexity",
@@ -3409,7 +3332,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         {
           "missing_metrics": [],
           "missing_reports": [
-            "metrics_path",
             "retention_report"
           ],
           "stage_id": "bam.contamination",
@@ -3418,7 +3340,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         {
           "missing_metrics": [],
           "missing_reports": [
-            "metrics_path",
             "retention_report"
           ],
           "stage_id": "bam.coverage",
@@ -3427,7 +3348,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         {
           "missing_metrics": [],
           "missing_reports": [
-            "metrics_path",
             "retention_report"
           ],
           "stage_id": "bam.damage",
@@ -3436,7 +3356,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         {
           "missing_metrics": [],
           "missing_reports": [
-            "metrics_path",
             "retention_report"
           ],
           "stage_id": "bam.duplication_metrics",
@@ -3445,7 +3364,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         {
           "missing_metrics": [],
           "missing_reports": [
-            "metrics_path",
             "retention_report"
           ],
           "stage_id": "bam.endogenous_content",
@@ -3454,7 +3372,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         {
           "missing_metrics": [],
           "missing_reports": [
-            "metrics_path",
             "retention_report"
           ],
           "stage_id": "bam.filter",
@@ -3463,7 +3380,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         {
           "missing_metrics": [],
           "missing_reports": [
-            "metrics_path",
             "retention_report"
           ],
           "stage_id": "bam.length_filter",
@@ -3472,7 +3388,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         {
           "missing_metrics": [],
           "missing_reports": [
-            "metrics_path",
             "retention_report"
           ],
           "stage_id": "bam.mapping_summary",
@@ -3481,7 +3396,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         {
           "missing_metrics": [],
           "missing_reports": [
-            "metrics_path",
             "retention_report"
           ],
           "stage_id": "bam.mapq_filter",
@@ -3490,7 +3404,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         {
           "missing_metrics": [],
           "missing_reports": [
-            "metrics_path",
             "retention_report"
           ],
           "stage_id": "bam.overlap_correction",
@@ -3499,7 +3412,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         {
           "missing_metrics": [],
           "missing_reports": [
-            "metrics_path",
             "retention_report"
           ],
           "stage_id": "bam.qc_pre",
@@ -3508,7 +3420,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         {
           "missing_metrics": [],
           "missing_reports": [
-            "metrics_path",
             "retention_report"
           ],
           "stage_id": "bam.sex",
@@ -3517,7 +3428,6 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
         {
           "missing_metrics": [],
           "missing_reports": [
-            "metrics_path",
             "retention_report"
           ],
           "stage_id": "bam.validate",
@@ -3828,242 +3738,242 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
   "stages": [
     {
       "bank_report_path": null,
-      "effective_config_path": "",
+      "effective_config_path": "effective_config.json",
       "exit_code": 0,
       "input_hash": "input",
       "memory_mb": 64.0,
-      "metrics_path": "",
+      "metrics_path": "metrics.json",
       "params_hash": "params",
       "retention_report_path": null,
       "runtime_s": 1.0,
       "stage_id": "bam.authenticity",
       "stage_report_path": "bam.authenticity/stage_report.json",
       "tool_id": "authenticct",
-      "tool_invocation_path": "",
+      "tool_invocation_path": "tool_invocation.json",
       "tool_version": "99.99.99+fixture"
     },
     {
       "bank_report_path": null,
-      "effective_config_path": "",
+      "effective_config_path": "effective_config.json",
       "exit_code": 0,
       "input_hash": "input",
       "memory_mb": 64.0,
-      "metrics_path": "",
+      "metrics_path": "metrics.json",
       "params_hash": "params",
       "retention_report_path": null,
       "runtime_s": 1.0,
       "stage_id": "bam.complexity",
       "stage_report_path": "bam.complexity/stage_report.json",
       "tool_id": "preseq",
-      "tool_invocation_path": "",
+      "tool_invocation_path": "tool_invocation.json",
       "tool_version": "99.99.99+fixture"
     },
     {
       "bank_report_path": null,
-      "effective_config_path": "",
+      "effective_config_path": "effective_config.json",
       "exit_code": 0,
       "input_hash": "input",
       "memory_mb": 64.0,
-      "metrics_path": "",
+      "metrics_path": "metrics.json",
       "params_hash": "params",
       "retention_report_path": null,
       "runtime_s": 1.0,
       "stage_id": "bam.contamination",
       "stage_report_path": "bam.contamination/stage_report.json",
       "tool_id": "schmutzi",
-      "tool_invocation_path": "",
+      "tool_invocation_path": "tool_invocation.json",
       "tool_version": "99.99.99+fixture"
     },
     {
       "bank_report_path": null,
-      "effective_config_path": "",
+      "effective_config_path": "effective_config.json",
       "exit_code": 0,
       "input_hash": "input",
       "memory_mb": 64.0,
-      "metrics_path": "",
+      "metrics_path": "metrics.json",
       "params_hash": "params",
       "retention_report_path": null,
       "runtime_s": 1.0,
       "stage_id": "bam.coverage",
       "stage_report_path": "bam.coverage/stage_report.json",
       "tool_id": "mosdepth",
-      "tool_invocation_path": "",
+      "tool_invocation_path": "tool_invocation.json",
       "tool_version": "99.99.99+fixture"
     },
     {
       "bank_report_path": null,
-      "effective_config_path": "",
+      "effective_config_path": "effective_config.json",
       "exit_code": 0,
       "input_hash": "input",
       "memory_mb": 64.0,
-      "metrics_path": "",
+      "metrics_path": "metrics.json",
       "params_hash": "params",
       "retention_report_path": null,
       "runtime_s": 1.0,
       "stage_id": "bam.damage",
       "stage_report_path": "bam.damage/stage_report.json",
       "tool_id": "mapdamage2",
-      "tool_invocation_path": "",
+      "tool_invocation_path": "tool_invocation.json",
       "tool_version": "99.99.99+fixture"
     },
     {
       "bank_report_path": null,
-      "effective_config_path": "",
+      "effective_config_path": "effective_config.json",
       "exit_code": 0,
       "input_hash": "input",
       "memory_mb": 64.0,
-      "metrics_path": "",
+      "metrics_path": "metrics.json",
       "params_hash": "params",
       "retention_report_path": null,
       "runtime_s": 1.0,
       "stage_id": "bam.duplication_metrics",
       "stage_report_path": "bam.duplication_metrics/stage_report.json",
       "tool_id": "samtools",
-      "tool_invocation_path": "",
+      "tool_invocation_path": "tool_invocation.json",
       "tool_version": "99.99.99+fixture"
     },
     {
       "bank_report_path": null,
-      "effective_config_path": "",
+      "effective_config_path": "effective_config.json",
       "exit_code": 0,
       "input_hash": "input",
       "memory_mb": 64.0,
-      "metrics_path": "",
+      "metrics_path": "metrics.json",
       "params_hash": "params",
       "retention_report_path": null,
       "runtime_s": 1.0,
       "stage_id": "bam.endogenous_content",
       "stage_report_path": "bam.endogenous_content/stage_report.json",
       "tool_id": "samtools",
-      "tool_invocation_path": "",
+      "tool_invocation_path": "tool_invocation.json",
       "tool_version": "99.99.99+fixture"
     },
     {
       "bank_report_path": null,
-      "effective_config_path": "",
+      "effective_config_path": "effective_config.json",
       "exit_code": 0,
       "input_hash": "input",
       "memory_mb": 64.0,
-      "metrics_path": "",
+      "metrics_path": "metrics.json",
       "params_hash": "params",
       "retention_report_path": null,
       "runtime_s": 1.0,
       "stage_id": "bam.filter",
       "stage_report_path": "bam.filter/stage_report.json",
       "tool_id": "samtools",
-      "tool_invocation_path": "",
+      "tool_invocation_path": "tool_invocation.json",
       "tool_version": "99.99.99+fixture"
     },
     {
       "bank_report_path": null,
-      "effective_config_path": "",
+      "effective_config_path": "effective_config.json",
       "exit_code": 0,
       "input_hash": "input",
       "memory_mb": 64.0,
-      "metrics_path": "",
+      "metrics_path": "metrics.json",
       "params_hash": "params",
       "retention_report_path": null,
       "runtime_s": 1.0,
       "stage_id": "bam.length_filter",
       "stage_report_path": "bam.length_filter/stage_report.json",
       "tool_id": "samtools",
-      "tool_invocation_path": "",
+      "tool_invocation_path": "tool_invocation.json",
       "tool_version": "99.99.99+fixture"
     },
     {
       "bank_report_path": null,
-      "effective_config_path": "",
+      "effective_config_path": "effective_config.json",
       "exit_code": 0,
       "input_hash": "input",
       "memory_mb": 64.0,
-      "metrics_path": "",
+      "metrics_path": "metrics.json",
       "params_hash": "params",
       "retention_report_path": null,
       "runtime_s": 1.0,
       "stage_id": "bam.mapping_summary",
       "stage_report_path": "bam.mapping_summary/stage_report.json",
       "tool_id": "samtools",
-      "tool_invocation_path": "",
+      "tool_invocation_path": "tool_invocation.json",
       "tool_version": "99.99.99+fixture"
     },
     {
       "bank_report_path": null,
-      "effective_config_path": "",
+      "effective_config_path": "effective_config.json",
       "exit_code": 0,
       "input_hash": "input",
       "memory_mb": 64.0,
-      "metrics_path": "",
+      "metrics_path": "metrics.json",
       "params_hash": "params",
       "retention_report_path": null,
       "runtime_s": 1.0,
       "stage_id": "bam.mapq_filter",
       "stage_report_path": "bam.mapq_filter/stage_report.json",
       "tool_id": "samtools",
-      "tool_invocation_path": "",
+      "tool_invocation_path": "tool_invocation.json",
       "tool_version": "99.99.99+fixture"
     },
     {
       "bank_report_path": null,
-      "effective_config_path": "",
+      "effective_config_path": "effective_config.json",
       "exit_code": 0,
       "input_hash": "input",
       "memory_mb": 64.0,
-      "metrics_path": "",
+      "metrics_path": "metrics.json",
       "params_hash": "params",
       "retention_report_path": null,
       "runtime_s": 1.0,
       "stage_id": "bam.overlap_correction",
       "stage_report_path": "bam.overlap_correction/stage_report.json",
       "tool_id": "bamutil",
-      "tool_invocation_path": "",
+      "tool_invocation_path": "tool_invocation.json",
       "tool_version": "99.99.99+fixture"
     },
     {
       "bank_report_path": null,
-      "effective_config_path": "",
+      "effective_config_path": "effective_config.json",
       "exit_code": 0,
       "input_hash": "input",
       "memory_mb": 64.0,
-      "metrics_path": "",
+      "metrics_path": "metrics.json",
       "params_hash": "params",
       "retention_report_path": null,
       "runtime_s": 1.0,
       "stage_id": "bam.qc_pre",
       "stage_report_path": "bam.qc_pre/stage_report.json",
       "tool_id": "samtools",
-      "tool_invocation_path": "",
+      "tool_invocation_path": "tool_invocation.json",
       "tool_version": "99.99.99+fixture"
     },
     {
       "bank_report_path": null,
-      "effective_config_path": "",
+      "effective_config_path": "effective_config.json",
       "exit_code": 0,
       "input_hash": "input",
       "memory_mb": 64.0,
-      "metrics_path": "",
+      "metrics_path": "metrics.json",
       "params_hash": "params",
       "retention_report_path": null,
       "runtime_s": 1.0,
       "stage_id": "bam.sex",
       "stage_report_path": "bam.sex/stage_report.json",
       "tool_id": "rxy",
-      "tool_invocation_path": "",
+      "tool_invocation_path": "tool_invocation.json",
       "tool_version": "99.99.99+fixture"
     },
     {
       "bank_report_path": null,
-      "effective_config_path": "",
+      "effective_config_path": "effective_config.json",
       "exit_code": 0,
       "input_hash": "input",
       "memory_mb": 64.0,
-      "metrics_path": "",
+      "metrics_path": "metrics.json",
       "params_hash": "params",
       "retention_report_path": null,
       "runtime_s": 1.0,
       "stage_id": "bam.validate",
       "stage_report_path": "bam.validate/stage_report.json",
       "tool_id": "samtools",
-      "tool_invocation_path": "",
+      "tool_invocation_path": "tool_invocation.json",
       "tool_version": "99.99.99+fixture"
     }
   ],

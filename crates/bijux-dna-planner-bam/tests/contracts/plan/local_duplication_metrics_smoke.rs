@@ -430,3 +430,6 @@ fn duplication_metrics_plan_accepts_picard_governed_planning_contract() -> Resul
 
     Ok(())
 }
+
+#[path = "local_duplication_metrics_smoke/generated_command.rs"]
+mod generated_command;

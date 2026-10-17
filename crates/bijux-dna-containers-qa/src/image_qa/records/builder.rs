@@ -1,10 +1,14 @@
+#[cfg(all(test, unix))]
+#[path = "builder/image_identity.rs"]
+mod image_identity;
+
 use std::collections::HashMap;
 
 use anyhow::{anyhow, Result};
 use bijux_dna_analyze::{ImageQaOutcome, ImageQaRecord};
 
 use crate::api::{PlatformSpec, ToolImageSpec};
-use crate::image_qa::support::resolve_image_for_run;
+use crate::image_qa::support::{resolve_image_for_run, resolved_image_evidence_identity};
 use crate::image_qa::QaStage;
 
 pub(crate) fn build_qa_record(
@@ -19,8 +23,7 @@ pub(crate) fn build_qa_record(
     let spec = catalog.get(tool).ok_or_else(|| anyhow!("tool {tool} missing from images.toml"))?;
     let image = resolve_image_for_run(spec, platform)?;
     let tool_version = spec.version.clone();
-    let image_digest =
-        spec.digest.as_ref().map_or_else(|| image.full_name.clone(), ToString::to_string);
+    let image_digest = resolved_image_evidence_identity(spec, platform, &image)?;
     Ok(ImageQaRecord {
         tool: tool.to_string(),
         stage: stage_id.as_str().to_string(),

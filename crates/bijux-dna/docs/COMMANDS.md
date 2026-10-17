@@ -55,6 +55,8 @@ Commands listed here are owned by this crate even when their durable behavior is
   `artifacts/fixtures/vcf-mini-regeneration/manifest.json`. It fails closed if the regenerated
   fixture or truth bundle does not validate or if the regenerated sample, population, interval,
   variant, or cohort-pair counts drift from the governed fixture.
+  The governed source is validated before an existing generated directory is replaced.
+  Output paths that resolve to the repository root or an ancestor are refused before removal.
 - `bijux-dna fixtures validate`
   `fixtures validate --corpus vcf-mini` validates the governed
   `benchmarks/tests/fixtures/corpora/vcf-mini/manifest.toml` contract against the owned reference
@@ -164,6 +166,8 @@ Visible aliases are part of the operator surface:
 - `bijux-dna run validate` aliases `bijux-dna run validate-pre`.
 - `bijux-dna run stats` aliases `bijux-dna run stats-neutral`.
 
+- `bijux-dna run estimate-library-complexity-prealign`
+
 ### Pipeline Profiles
 - `bijux-dna plan list`
 - `bijux-dna plan explain`
@@ -192,6 +196,11 @@ Visible aliases are part of the operator surface:
 - `bijux-dna explain report`
 - `bijux-dna explain metrics`
 - `bijux-dna explain bench`
+
+- `bijux-dna analyze evidence compare`
+- `bijux-dna analyze evidence verify`
+- `bijux-dna explain evidence compare`
+- `bijux-dna explain evidence verify`
 
 ### Benchmarking
 - `bijux-dna bench config validate`
@@ -1902,6 +1911,11 @@ Visible aliases are part of the operator surface:
   `artifacts/benchmark-smoke/readiness/local-ready/corpus-02-edna-taxonomy-judgment.json` by default, and fails when any
   declared sample is missing an observed report or any expected present or absent taxon does not
   match the observed classifier summary.
+  Classifier-summary JSON and grammar refusals retain typed `ParseError` identity, exit code `4`
+  and the `observer.parse` hint independently of the report path text. File acquisition and
+  report mapping errors retain their existing precedence; invalid judgments still publish their
+  report before returning the existing contract refusal.
+
 - `bijux-dna bench local validate-corpus-stage-compatibility`
   `validate-corpus-stage-compatibility` checks
   `configs/bench/local/corpus-stage-compatibility.toml` against the governed 51-stage local FASTQ
@@ -2360,6 +2374,35 @@ should prefer the long names above:
 - `stats` for `profile-reads`
 - `overrepresented` for `profile-overrepresented-sequences`
 
+- `bijux-dna bench cases admit`
+- `bijux-dna bench cases aggregate`
+- `bijux-dna bench cases plan`
+- `bijux-dna bench cycle admit`
+- `bijux-dna bench cycle advance`
+- `bijux-dna bench cycle book`
+- `bijux-dna bench cycle cite`
+- `bijux-dna bench cycle collect`
+- `bijux-dna bench cycle plan`
+- `bijux-dna bench cycle publish`
+- `bijux-dna bench cycle receipt`
+- `bijux-dna bench cycle replay`
+- `bijux-dna bench cycle retry`
+- `bijux-dna bench cycle select`
+- `bijux-dna bench cycle status`
+- `bijux-dna bench cycle supersede`
+- `bijux-dna bench local run-vcf-postprocess-smoke`
+- `bijux-dna bench local validate-cross-domain-sample-consistency`
+- `bijux-dna bench readiness render-all-domain-local-operational-benchmark-complete`
+- `bijux-dna bench readiness render-bam-tool-scores`
+- `bijux-dna bench readiness render-fastq-commands`
+- `bijux-dna bench readiness render-fastq-parser-fixture-coverage`
+- `bijux-dna bench readiness render-fastq-tool-scores`
+- `bijux-dna bench readiness render-vcf-imputation-metrics-ready`
+- `bijux-dna bench readiness render-vcf-tool-scores`
+- `bijux-dna bench readiness validate-bam-tool-scores`
+- `bijux-dna bench readiness validate-fastq-tool-scores`
+- `bijux-dna bench readiness validate-vcf-tool-scores`
+
 ## Debug And Repository-Control Commands
 
 These commands are hidden in non-debug builds or exist for repository control-plane work:
@@ -2383,6 +2426,20 @@ These commands are hidden in non-debug builds or exist for repository control-pl
   `write-campaign-profiles` defaults to `benchmarks/configs/hpc/campaign/`, so the generated
   local-ready and fixture campaign profiles stay in the tracked benchmark config root rather than
   the runtime HPC config tree.
+- `bijux-dna config appraise-matrix`
+- `bijux-dna config bam-benchmark-campaign`
+- `bijux-dna config benchmark-matrix`
+- `bijux-dna config cleanup-preparation`
+- `bijux-dna config cross-benchmark-campaign`
+- `bijux-dna config fastq-benchmark-campaign`
+- `bijux-dna config hardening-benchmark-campaign`
+- `bijux-dna config hardening-queue`
+- `bijux-dna config materialize-pipeline-assets`
+- `bijux-dna config pipeline-operations-report`
+- `bijux-dna config preparation-graph`
+- `bijux-dna config prepare-foundation`
+- `bijux-dna config vcf-benchmark-campaign`
+
 - `bijux-dna slurm submit-stage-benchmark`
 - `bijux-dna slurm submit-domain-benchmark`
 - `bijux-dna slurm submit-cross-benchmark`
@@ -2396,6 +2453,9 @@ These commands are hidden in non-debug builds or exist for repository control-pl
 - `bijux-dna slurm export-failure-bundle`
 - `bijux-dna slurm share-bundle`
 - `bijux-dna slurm verify-results-policy`
+- `bijux-dna slurm cancel`
+- `bijux-dna slurm monitor`
+
 - `bijux-dna bam run`
 - `bijux-dna bam list-stages`
 - `bijux-dna bam explain`
@@ -2409,6 +2469,12 @@ These commands are hidden in non-debug builds or exist for repository control-pl
 - `bijux-dna compare`
 - `bijux-dna policies audit`
 - `bijux-dna ci validate`
+- `bijux-dna ci audit`
+- `bijux-dna ci audit-features`
+- `bijux-dna ci budget-check`
+- `bijux-dna ci changed-paths`
+- `bijux-dna ci gate`
+
 - `bijux-dna dev ci validate`
 - `bijux-dna dev ci audit`
 - `bijux-dna dev ci changed-paths`
@@ -2450,3 +2516,16 @@ CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna --test contracts
 ```text
 CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna --test boundaries --no-default-features
 ```
+
+## Image QA Compatibility Command
+
+In debug builds, `bijux-dna image-qa` invokes the API compatibility hook and
+returns success without loading the selected platform, running probes, or
+publishing QA evidence. That success does not certify an image or tool. This
+command is hidden and its debug handler is absent in release builds.
+
+For explicit image QA, use the `image_qa` binary owned by
+`bijux-dna-containers-qa`, for example
+`cargo run -p bijux-dna-containers-qa --bin image_qa -- --platform <platform>`.
+This operation executes the QA owner's configured probes and may require its
+container runtime and datasets.

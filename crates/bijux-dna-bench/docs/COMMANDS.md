@@ -9,6 +9,9 @@ These operations are exported through the crate root and `public_api`.
 
 | Operation | Rust entrypoint | Purpose |
 | --- | --- | --- |
+| `judge-edna-taxonomy-outputs` | `judge_edna_taxonomy_outputs(repo_root, manifest_path, reports)` | Acquire corpus truth and observed classifier summaries before pure evaluation. |
+| `judge-edna-taxonomy-with-expected-rows` | `judge_edna_taxonomy_outputs_with_expected_rows(repo_root, manifest_path, manifest, expected_taxa_path, expected_rows, reports)` | Acquire summaries using the caller-admitted corpus matrix. |
+| `publish-edna-taxonomy-output-judgment` | `publish_edna_taxonomy_output_judgment(repo_root, manifest_path, reports, output_path)` | Publish the existing JSON judgment, including invalid semantic verdicts. |
 | `validate-pipeline-profiles` | `validate_benchmark_pipeline_profiles(config, evidence)` | Check selected scientific benchmark profile handoffs against a typed evidence provider. |
 | `load-fastq-tool-score-evidence` | `load_fastq_tool_score_evidence(repository_root)` | Read optional observed FASTQ reports into typed evidence without inferring successful observations from truth fixture references. |
 | `load-suite` | `load_suite(path)` | Load and validate a benchmark suite TOML file. |
@@ -163,3 +166,5 @@ The CLI local stage-list commands delegate matrix admission to `load_benchmark_l
 `collect_hpc_scratch_layout(HpcScratchRequest)` derives current scratch evidence without publication. `publish_hpc_scratch_layout(root, output, manifest)` binds an admitted manifest to its normalized destination; `load_hpc_scratch_layout(root, path)` admits the stored schema and path identity. CLI command producers still publish their command artifacts, while scratch collection consumes their typed rows directly.
 
 `render_all_domain_completion_check(root, output, expected, commands, outputs)` owns the illustrative completion workflow. The CLI acquires source rows, delegates, and presents the admitted report.
+
+`derive_benchmark_tool_alias_clusters(tool_ids)` groups an explicit benchmark tool scope without IO. It returns `BenchmarkToolAliasCluster` records using the existing canonical spelling policy, distinct sorted aliases and deterministic group order. It does not acquire declarations, expand the caller's domain scope or reject stale stage aliases.

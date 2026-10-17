@@ -1,13 +1,14 @@
-use std::path::Path;
-
 use bijux_dna_domain_bam::metrics::{BamMetricsV1, DamageMetricsV1};
 
 use super::discovery;
 
-pub(super) fn parse_damage_metrics(out_dir: &Path, metrics: &mut BamMetricsV1) {
+pub(super) fn parse_damage_metrics(
+    inputs: &discovery::MetricInputs<'_>,
+    metrics: &mut BamMetricsV1,
+) {
     let mut damage_sources: Vec<(String, DamageMetricsV1)> = Vec::new();
     let pydamage_path =
-        discovery::first_existing(out_dir, &["damage.pydamage.json", "pydamage.json"]);
+        discovery::first_existing(inputs, &["damage.pydamage.json", "pydamage.json"]);
     if let Some(path) = pydamage_path {
         if let Ok(damage) = bijux_dna_domain_bam::metrics::parse_pydamage_json(&path) {
             metrics.damage = damage.clone();
@@ -15,7 +16,7 @@ pub(super) fn parse_damage_metrics(out_dir: &Path, metrics: &mut BamMetricsV1) {
         }
     }
     let mapdamage2_path =
-        discovery::first_existing(out_dir, &["damage.mapdamage2.txt", "mapdamage2.txt"]);
+        discovery::first_existing(inputs, &["damage.mapdamage2.txt", "mapdamage2.txt"]);
     if let Some(path) = mapdamage2_path {
         if let Ok(damage) = bijux_dna_domain_bam::metrics::parse_mapdamage2_misincorporation(&path)
         {
@@ -26,7 +27,7 @@ pub(super) fn parse_damage_metrics(out_dir: &Path, metrics: &mut BamMetricsV1) {
         }
     }
     let damageprofiler_path =
-        discovery::first_existing(out_dir, &["damage.profiler.json", "damageprofiler.json"]);
+        discovery::first_existing(inputs, &["damage.profiler.json", "damageprofiler.json"]);
     if let Some(path) = damageprofiler_path {
         if let Ok(damage) = bijux_dna_domain_bam::metrics::parse_damageprofiler_json(&path) {
             if damage_sources.is_empty() {

@@ -4,6 +4,7 @@ use super::{baseline, presets};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GuardrailConfig {
+    /// Retained serialized compatibility value; mandatory guardrails do not count public items.
     pub max_pub_items_per_file: usize,
     pub max_pub_use_per_file: usize,
     pub forbid_pub_use_spam: bool,

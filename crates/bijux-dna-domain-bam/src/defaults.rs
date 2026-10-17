@@ -1,6 +1,6 @@
 use crate::params::{
-    BamEffectiveParams, ContaminationEffectiveParams, ContaminationScope, DamageEffectiveParams,
-    FilterEffectiveParams, UdgModel,
+    AlignEffectiveParams, BamEffectiveParams, ContaminationEffectiveParams, ContaminationScope,
+    DamageEffectiveParams, FilterEffectiveParams, UdgModel,
 };
 use crate::stage_specs::stage_spec;
 use crate::BamStage;
@@ -17,12 +17,10 @@ pub fn adna_shotgun_params_json(stage: BamStage) -> serde_json::Value {
     let mut value = default_params_json(stage);
     match stage {
         BamStage::Align => {
-            if let Ok(mut params) = serde_json::from_value::<BamEffectiveParams>(value.clone()) {
-                if let BamEffectiveParams::Align(ref mut align) = params {
-                    align.preset = "adna_short".to_string();
-                    align.strategy_id = "bwa_aln_adna_short".to_string();
-                    align.mode = "seeded_short_read".to_string();
-                }
+            if let Ok(mut params) = serde_json::from_value::<AlignEffectiveParams>(value.clone()) {
+                params.preset = "adna_short".to_string();
+                params.strategy_id = "bwa_aln_adna_short".to_string();
+                params.mode = "seeded_short_read".to_string();
                 if let Ok(updated) = serde_json::to_value(params) {
                     value = updated;
                 }

@@ -12,7 +12,7 @@ fn bench_readiness_render_commands_writes_bash_parseable_script() {
     let repo_root = support::repo_root().expect("repo root");
     let home = tempfile::tempdir().expect("tempdir");
 
-    let output = Command::new(env!("CARGO_BIN_EXE_bijux-dna"))
+    let output = Command::new(support::cli_binary_path())
         .current_dir(&repo_root)
         .env("HOME", home.path())
         .env("BIJUX_SKIP_QA", "1")
@@ -35,9 +35,8 @@ fn bench_readiness_render_commands_writes_bash_parseable_script() {
 
     let script = std::fs::read_to_string(&script_path).expect("read rendered command script");
     assert!(script.starts_with("#!/usr/bin/env bash\nset -euo pipefail\n"));
-    assert!(
-        script.contains("repo_root=\"$(cd \"$(dirname \"${BASH_SOURCE[0]}\")/../..\" && pwd)\"")
-    );
+    // The renderer's real-shell contract verifies admitted CWD and literal argv at each depth.
+    // This public route retains the complete governed roster and Bash syntax checks.
     assert!(script.contains("# fastq.detect_adapters / "));
     assert!(script.contains("# bam.damage / mapdamage2"));
 

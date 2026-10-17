@@ -50,6 +50,10 @@
           {
             "context": "std / report",
             "integration_id": 15368
+          },
+          {
+            "context": "tests / complete",
+            "integration_id": 15368
           }
         ],
         "do_not_enforce_on_create": false

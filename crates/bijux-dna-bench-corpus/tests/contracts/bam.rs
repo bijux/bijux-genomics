@@ -346,10 +346,28 @@ fn corpus_01_kinship_mini_fixture_manifest_validates_governed_pair_samples() {
 fn corpus_01_bam_mini_fixture_validation_refuses_header_sample_id_drift() {
     let root = repo_root();
     let fixture_root = root.join("benchmarks/tests/fixtures/corpora/corpus-01-bam-mini");
+    let output_root = root.join("artifacts/testing/corpus-header-sample-id");
+    fs::create_dir_all(&output_root).expect("create isolated manifest parent");
+    let isolated = tempfile::Builder::new()
+        .prefix("header-sample-id-")
+        .tempdir_in(&output_root)
+        .expect("isolated corpus fixture");
+    let declared = bijux_dna_bench_corpus::bam::load_bam_corpus_fixture_manifest_path(
+        &root.join(DEFAULT_CORPUS_01_BAM_MINI_MANIFEST_PATH),
+    )
+    .expect("read governed fixture paths");
+    for relative in std::iter::once(&declared.reference_fasta).chain(
+        declared.samples.iter().flat_map(|sample| [&sample.alignment_path, &sample.index_path]),
+    ) {
+        let destination = isolated.path().join(relative);
+        fs::create_dir_all(destination.parent().expect("fixture path parent"))
+            .expect("create isolated fixture directories");
+        fs::copy(fixture_root.join(relative), destination).expect("copy declared fixture bytes");
+    }
     let temp = tempfile::Builder::new()
         .prefix("broken-corpus-01-bam-mini-")
         .suffix(".toml")
-        .tempfile_in(&fixture_root)
+        .tempfile_in(isolated.path())
         .expect("temp manifest");
     let manifest_path = temp.path().to_path_buf();
     let broken = fs::read_to_string(root.join(DEFAULT_CORPUS_01_BAM_MINI_MANIFEST_PATH))
@@ -367,4 +385,33 @@ fn corpus_01_bam_mini_fixture_validation_refuses_header_sample_id_drift() {
         error.to_string().contains("expected header sample IDs"),
         "validation error should explain sample-id drift: {error:#}"
     );
+    assert!(
+        manifest_path.starts_with(root.join("artifacts")),
+        "the header drift oracle must keep its physical manifest under owned artifacts: {}",
+        manifest_path.display()
+    );
 }
+
+#[path = "bam/alignment_truth.rs"]
+mod alignment_truth;
+
+#[path = "bam/damage_truth.rs"]
+mod damage_truth;
+
+#[path = "bam/contamination_truth.rs"]
+mod contamination_truth;
+
+#[path = "bam/duplicate_insert_truth.rs"]
+mod duplicate_insert_truth;
+
+#[path = "bam/endogenous_truth.rs"]
+mod endogenous_truth;
+
+#[path = "bam/coverage_gc_truth.rs"]
+mod coverage_gc_truth;
+
+#[path = "bam/haplogroup_truth.rs"]
+mod haplogroup_truth;
+
+#[path = "bam/sex_truth.rs"]
+mod sex_truth;

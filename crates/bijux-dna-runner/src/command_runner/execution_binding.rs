@@ -1,4 +1,5 @@
 use std::collections::{BTreeMap, BTreeSet};
+use std::ffi::{OsStr, OsString};
 use std::path::{Path, PathBuf};
 
 use anyhow::{bail, Context, Result};
@@ -81,10 +82,22 @@ pub(super) struct ResolvedCommand {
     pub args: Vec<String>,
 }
 
+#[cfg(test)]
 pub(super) fn resolve_command(
     command: &str,
     args: &[String],
     envs: Option<&BTreeMap<String, String>>,
+) -> Result<ResolvedCommand> {
+    let environment = envs.map(|values| {
+        values.iter().map(|(key, value)| (OsString::from(key), OsString::from(value))).collect()
+    });
+    resolve_command_with_environment(command, args, environment.as_ref())
+}
+
+pub(super) fn resolve_command_with_environment(
+    command: &str,
+    args: &[String],
+    envs: Option<&BTreeMap<OsString, OsString>>,
 ) -> Result<ResolvedCommand> {
     if command.trim().is_empty() {
         bail!("command executable must not be empty");
@@ -112,9 +125,11 @@ pub(super) fn resolve_command(
     Ok(ResolvedCommand { program: binding.program.clone(), args: bound_args })
 }
 
-fn configured_manifest_path(envs: Option<&BTreeMap<String, String>>) -> Result<Option<PathBuf>> {
+fn configured_manifest_path(
+    envs: Option<&BTreeMap<OsString, OsString>>,
+) -> Result<Option<PathBuf>> {
     let configured = envs
-        .and_then(|values| values.get(RUNNER_EXECUTION_BINDINGS_ENV).cloned())
+        .and_then(|values| values.get(OsStr::new(RUNNER_EXECUTION_BINDINGS_ENV)).cloned())
         .map(PathBuf::from)
         .or_else(|| std::env::var_os(RUNNER_EXECUTION_BINDINGS_ENV).map(PathBuf::from));
     let Some(path) = configured else {
@@ -301,11 +316,15 @@ fn bind_argument_insertion_index(binding: &LoadedExecutionBinding) -> Result<usi
         .context("bind-root environments require an artifact path in the argument prefix")
 }
 
-fn resolve_bind_root(variable: &str, envs: Option<&BTreeMap<String, String>>) -> Result<String> {
-    let value = envs
-        .and_then(|values| values.get(variable).cloned())
-        .or_else(|| std::env::var(variable).ok())
-        .with_context(|| format!("bind-root environment {variable} is not set"))?;
+fn resolve_bind_root(
+    variable: &str,
+    envs: Option<&BTreeMap<OsString, OsString>>,
+) -> Result<String> {
+    let value = match envs.and_then(|values| values.get(OsStr::new(variable))) {
+        Some(value) => value.to_str().map(str::to_owned),
+        None => std::env::var(variable).ok(),
+    }
+    .with_context(|| format!("bind-root environment {variable} is not set"))?;
     require_nonempty(&value, &format!("bind-root environment {variable}"))?;
     if value.contains([':', ',']) {
         bail!("bind-root environment {variable} contains an Apptainer bind delimiter");
@@ -570,5 +589,36 @@ mod tests {
         assert_eq!(resolved.program, "git");
         assert_eq!(resolved.args, ["status"]);
         Ok(())
+    }
+}
+
+#[cfg(test)]
+#[cfg(unix)]
+mod native_environment_contracts {
+    use super::*;
+    use std::os::unix::ffi::OsStringExt as _;
+
+    #[test]
+    fn native_manifest_path_keeps_its_original_bytes() -> Result<()> {
+        let root = bijux_dna_testkit::tempdir_for("native-binding-path");
+        let path = root.path().join(OsString::from_vec(b"manifest-\xff.json".to_vec()));
+        let environment = BTreeMap::from([(
+            OsString::from(RUNNER_EXECUTION_BINDINGS_ENV),
+            path.as_os_str().to_os_string(),
+        )]);
+        assert_eq!(configured_manifest_path(Some(&environment))?, Some(path));
+        Ok(())
+    }
+
+    #[test]
+    fn owned_nontext_bind_root_keeps_the_existing_missing_text_refusal() {
+        let environment = BTreeMap::from([(
+            OsString::from("HOME"),
+            OsString::from_vec(b"owned-home-\xff".to_vec()),
+        )]);
+        let Err(error) = resolve_bind_root("HOME", Some(&environment)) else {
+            panic!("an owned non-text bind root must not expose an ambient HOME");
+        };
+        assert!(error.to_string().contains("bind-root environment HOME is not set"));
     }
 }

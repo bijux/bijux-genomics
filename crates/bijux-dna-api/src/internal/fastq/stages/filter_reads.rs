@@ -24,6 +24,7 @@ use bijux_dna_core::prelude::measure::{ExecutionMetrics, SeqkitMetrics};
 use bijux_dna_core::prelude::ToolExecutionSpecV1;
 use bijux_dna_domain_fastq::{
     params::{filter::FilterEffectiveParams, PairedMode},
+    stages::read_filtering::{local_read_filter_rejection, ReadFilterRejection},
     FilterReadsReportV1, FILTER_READS_REPORT_SCHEMA_VERSION,
 };
 use bijux_dna_planner_fastq::scale_tool_spec_for_jobs;
@@ -73,16 +74,10 @@ struct LocalFastqRecord {
     quality: String,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-enum LocalFilterDropReason {
-    TooManyN,
-    LowComplexity,
-}
-
 #[derive(Debug, Clone)]
 struct LocalFilterDecision {
     record: LocalFastqRecord,
-    drop_reason: Option<LocalFilterDropReason>,
+    drop_reason: Option<ReadFilterRejection>,
 }
 
 fn apply_thread_override(
@@ -165,7 +160,7 @@ fn materialize_local_filter_reads_smoke_case(
         .iter()
         .cloned()
         .map(|record| LocalFilterDecision {
-            drop_reason: local_filter_drop_reason(&record, &effective_params),
+            drop_reason: local_read_filter_rejection(&record.sequence, &effective_params),
             record,
         })
         .collect::<Vec<_>>();
@@ -174,7 +169,7 @@ fn materialize_local_filter_reads_smoke_case(
             .iter()
             .cloned()
             .map(|record| LocalFilterDecision {
-                drop_reason: local_filter_drop_reason(&record, &effective_params),
+                drop_reason: local_read_filter_rejection(&record.sequence, &effective_params),
                 record,
             })
             .collect::<Vec<_>>()
@@ -219,12 +214,12 @@ fn materialize_local_filter_reads_smoke_case(
     let reads_removed_by_n = decisions
         .iter()
         .chain(mate_decisions.as_deref().unwrap_or(&[]).iter())
-        .filter(|decision| decision.drop_reason == Some(LocalFilterDropReason::TooManyN))
+        .filter(|decision| decision.drop_reason == Some(ReadFilterRejection::TooManyN))
         .count() as u64;
     let reads_removed_low_complexity = decisions
         .iter()
         .chain(mate_decisions.as_deref().unwrap_or(&[]).iter())
-        .filter(|decision| decision.drop_reason == Some(LocalFilterDropReason::LowComplexity))
+        .filter(|decision| decision.drop_reason == Some(ReadFilterRejection::LowComplexity))
         .count() as u64;
     let reads_in = u64::try_from(input_records.len() + mate_records.as_ref().map_or(0, Vec::len))
         .context("count local filter input reads")?;
@@ -332,42 +327,6 @@ fn materialize_local_filter_reads_smoke_case(
 fn write_governed_filter_report(report_path: &Path, report: &FilterReadsReportV1) -> Result<()> {
     bijux_dna_infra::atomic_write_json(report_path, report)
         .with_context(|| format!("write governed filter report {}", report_path.display()))
-}
-
-#[allow(clippy::cast_possible_truncation)]
-fn local_filter_drop_reason(
-    record: &LocalFastqRecord,
-    effective_params: &FilterEffectiveParams,
-) -> Option<LocalFilterDropReason> {
-    let max_n_count = effective_params.max_n_count.or(effective_params.max_n);
-    if let Some(limit) = max_n_count {
-        let n_count =
-            record.sequence.bytes().filter(|base| matches!(*base, b'N' | b'n')).count() as u32;
-        if n_count > limit {
-            return Some(LocalFilterDropReason::TooManyN);
-        }
-    }
-
-    if let Some(threshold) =
-        effective_params.low_complexity_threshold.or(effective_params.entropy_threshold)
-    {
-        let complexity = local_complexity_score(&record.sequence);
-        if complexity < threshold {
-            return Some(LocalFilterDropReason::LowComplexity);
-        }
-    }
-
-    None
-}
-
-#[allow(clippy::cast_precision_loss)]
-fn local_complexity_score(sequence: &str) -> f64 {
-    let bytes = sequence.as_bytes();
-    if bytes.len() <= 1 {
-        return 0.0;
-    }
-    let transitions = bytes.windows(2).filter(|window| window[0] != window[1]).count() as f64;
-    (transitions / (bytes.len() as f64 - 1.0)) * 100.0
 }
 
 fn total_bases(records: &[LocalFastqRecord]) -> u64 {

@@ -11,7 +11,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
     "fastq.deplete_rrna": "2081e59faaf522c01e3d3a227e980e765f4d778c839d454e2bbf659dafe05e03",
     "fastq.detect_adapters": "686a4bd9ef18c0738f3030d5b56d85f59eeb02f273864e92eab4b7c3c3d88c45",
     "fastq.extract_umis": "ba648deb124c4462aca4a1652e5265eddd408aeb6a64f07ea28dc00d5ce9bbd3",
-    "fastq.filter_low_complexity": "9f87c0a7b5bd23cfe60b142cce2543a36e028dc02c5b5353d6c7971772c4eb50",
+    "fastq.filter_low_complexity": "98e324ae1084bc877b266c68b4e9de0a049807ac31512e8ac7f24e4d045857c1",
     "fastq.filter_reads": "578cf743a57ec9554533b5b78fca6c48138b36cf39d1e953ea2e9dcea35b3df3",
     "fastq.infer_asvs": "ff18b72ecfa2af299cf5f6f5e51a297a895f3e67c1b5a3e818dcc72e6b106ea3",
     "fastq.merge_pairs": "50728c1c310af1925ed4edde213010ba15a1d7c0e1a553247d63176d13e29bb6",

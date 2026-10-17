@@ -18,7 +18,7 @@ fn bench_readiness_all_domain_no_declared_only_rows_writes_governed_json_file() 
         fs::remove_file(&output_path).expect("remove stale output");
     }
 
-    let output = Command::new(env!("CARGO_BIN_EXE_bijux-dna"))
+    let output = Command::new(support::cli_binary_path())
         .current_dir(&repo_root)
         .env("HOME", home.path())
         .env("BIJUX_SKIP_QA", "1")

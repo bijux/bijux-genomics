@@ -13,11 +13,47 @@ pub(crate) struct ShardDiscoveryPlan {
     pub(crate) filterset: String,
     pub(crate) expected_case_count: usize,
     selected_binary_count: usize,
+    case_universe_sha256: String,
     #[serde(skip)]
     pub(super) expected: BTreeSet<TestIdentity>,
 }
 
 impl ShardDiscoveryPlan {
+    pub(crate) fn verify_inventory(&self, inventory: &ExpectedTestInventory) -> Result<()> {
+        self.require_partition(inventory, &self.partition)
+    }
+
+    pub(crate) fn require_partition(
+        &self,
+        inventory: &ExpectedTestInventory,
+        partition: &str,
+    ) -> Result<()> {
+        let expected = Self::from_inventory(inventory, partition, "0.9.100")?;
+        ensure!(
+            self.partition == expected.partition
+                && self.case_universe_sha256 == expected.case_universe_sha256
+                && self.expected == expected.expected
+                && self.filterset == expected.filterset
+                && self.expected_case_count == expected.expected_case_count
+                && self.selected_binary_count == expected.selected_binary_count,
+            "partition plan differs from admitted case inventory or assignment"
+        );
+        Ok(())
+    }
+
+    pub(crate) fn selected_binary_ids(&self) -> BTreeSet<String> {
+        self.expected.iter().map(|case| case.binary_id.clone()).collect()
+    }
+
+    /// Selected case counts retain the already-admitted partition and binary identities.
+    pub(crate) fn selected_binary_case_counts(&self) -> std::collections::BTreeMap<String, usize> {
+        let mut counts = std::collections::BTreeMap::new();
+        for case in &self.expected {
+            *counts.entry(case.binary_id.clone()).or_default() += 1;
+        }
+        counts
+    }
+
     pub(crate) fn from_inventory(
         inventory: &ExpectedTestInventory,
         partition: &str,
@@ -56,6 +92,9 @@ impl ShardDiscoveryPlan {
             filterset,
             expected_case_count: expected.len(),
             selected_binary_count: binaries.len(),
+            case_universe_sha256: bijux_dna_infra::hash_bytes_sha256(&serde_json::to_vec(
+                &inventory.cases.values().map(|(case, _)| case).collect::<Vec<_>>(),
+            )?),
             expected,
         })
     }
@@ -83,7 +122,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn hash_matches_captured_pinned_executor_case_partitions() {
+    fn hash_matches_captured_pinned_executor_case_partitions() -> Result<()> {
         for (name, hash, partition) in [
             ("ordinary", 5_165_241_260_839_206_075, 1),
             ("ignored", 3_808_214_212_173_381_903, 4),
@@ -92,6 +131,36 @@ mod tests {
             assert_eq!(XxHash64::oneshot(0, name.as_bytes()), hash);
             assert_eq!(hash % 5 + 1, partition);
         }
+        let suite = |id: &str, names: &[(&str, bool)]| {
+            serde_json::json!({
+                "package-name":"owner", "binary-id":id, "binary-name":id, "kind":"test", "status":"listed",
+                "testcases":names.iter().map(|(name, ignored)| ((*name).to_owned(), serde_json::json!({
+                    "ignored":ignored, "filter-match":{"status":"matches"}
+                }))).collect::<std::collections::BTreeMap<_, _>>()
+            })
+        };
+        let inventory = ExpectedTestInventory::parse(&serde_json::to_vec(&serde_json::json!({
+            "test-count":3, "rust-suites":{
+                "first":suite("first", &[("ordinary", false)]),
+                "second":suite("second", &[("ordinary", false), ("ignored", true)])
+            }
+        }))?)?;
+        let first = ShardDiscoveryPlan::from_inventory(&inventory, "hash:1/5", "0.9.100")?;
+        assert_eq!(
+            first.selected_binary_case_counts(),
+            [("first".to_owned(), 1), ("second".to_owned(), 1)].into()
+        );
+        first.verify_inventory(&inventory)?;
+        let ignored = ShardDiscoveryPlan::from_inventory(&inventory, "hash:4/5", "0.9.100")?;
+        assert_eq!(ignored.selected_binary_case_counts(), [("second".to_owned(), 1)].into());
+        assert_eq!(
+            ignored.selected_binary_case_counts().values().sum::<usize>(),
+            ignored.expected_case_count
+        );
+        let empty = ShardDiscoveryPlan::from_inventory(&inventory, "hash:5/5", "0.9.100")?;
+        assert!(empty.selected_binary_case_counts().is_empty());
+        assert!(!ignored.selected_binary_case_counts().contains_key("foreign"));
+        Ok(())
     }
 
     #[test]

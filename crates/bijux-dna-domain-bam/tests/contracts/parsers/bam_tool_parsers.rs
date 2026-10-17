@@ -74,3 +74,96 @@ fn parse_sex_json_honors_explicit_r_y_classification() -> anyhow::Result<()> {
     assert_eq!(sex.x_to_y_ratio.to_bits(), 0.0_f64.to_bits());
     Ok(())
 }
+
+#[test]
+fn acquired_downstream_json_is_independent_of_later_path_observations() -> anyhow::Result<()> {
+    use bijux_dna_domain_bam::metrics::downstream::{
+        contamination::parse_contamination_json_contents, sex::parse_sex_json_contents,
+    };
+    let owner = bijux_dna_infra::temp_dir("bam-acquired-json-")?;
+    let path = owner.path().join("report.json");
+    let raw = r#"{"method":"rxy","estimate":0.12,"x_to_y_ratio":0.4,"confidence":0.8}"#;
+    std::fs::write(&path, raw)?;
+    let first_contamination = serde_json::to_value(parse_contamination_json(&path)?)?;
+    let first_sex = serde_json::to_value(parse_sex_json(&path)?)?;
+    let acquired = std::fs::read_to_string(&path)?;
+    std::fs::write(
+        &path,
+        r#"{"method":"replacement","estimate":0.8,"x_to_y_ratio":2.0,"confidence":0.9}"#,
+    )?;
+    assert_eq!(
+        serde_json::to_value(parse_contamination_json_contents(&acquired)?)?,
+        first_contamination
+    );
+    assert_eq!(serde_json::to_value(parse_sex_json_contents(&acquired)?)?, first_sex);
+    assert_ne!(serde_json::to_value(parse_contamination_json(&path)?)?, first_contamination);
+    assert_ne!(serde_json::to_value(parse_sex_json(&path)?)?, first_sex);
+    std::fs::remove_file(&path)?;
+    assert_eq!(
+        serde_json::to_value(parse_contamination_json_contents(&acquired)?)?,
+        first_contamination
+    );
+    assert_eq!(serde_json::to_value(parse_sex_json_contents(&acquired)?)?, first_sex);
+    assert!(parse_contamination_json(&path).is_err());
+    assert!(parse_sex_json(&path).is_err());
+    assert!(parse_contamination_json_contents("{").is_err());
+    assert!(parse_sex_json_contents("{").is_err());
+    Ok(())
+}
+
+#[test]
+fn contamination_contents_preserve_defaults_and_filtered_assumptions() -> anyhow::Result<()> {
+    use bijux_dna_domain_bam::metrics::downstream::contamination::parse_contamination_json_contents;
+    for raw in
+        ["{}", "[]", "7", r#"{"foreign":true,"method":7,"estimate":"unknown","assumptions":false}"#]
+    {
+        assert_eq!(
+            serde_json::to_value(parse_contamination_json_contents(raw)?)?,
+            serde_json::json!({
+                "method":"unknown", "estimate":0.0, "ci_low":0.0, "ci_high":0.0, "assumptions":[]
+            })
+        );
+    }
+    let observed = parse_contamination_json_contents(
+        r#"{"method":"first","method":"last","estimate":0.12,"assumptions":["retained",7,null]}"#,
+    )?;
+    assert_eq!(observed.method, "last");
+    assert_eq!(observed.assumptions, ["retained"]);
+    Ok(())
+}
+
+#[test]
+fn sex_contents_preserve_explicit_and_legacy_classification() -> anyhow::Result<()> {
+    use bijux_dna_domain_bam::metrics::downstream::sex::parse_sex_json_contents;
+    for (raw, expected_class, expected_sufficient) in [
+        ("{}", SexConfidenceClass::Insufficient, false),
+        (r#"{"x_to_y_ratio":0.4,"confidence":0.8}"#, SexConfidenceClass::Male, true),
+        (r#"{"x_to_y_ratio":1.6,"confidence":0.8}"#, SexConfidenceClass::Female, true),
+        (r#"{"x_to_y_ratio":1.0,"confidence":0.8}"#, SexConfidenceClass::Ambiguous, true),
+        (
+            r#"{"x_to_y_ratio":0.4,"confidence":0.8,"sufficient_data":false}"#,
+            SexConfidenceClass::Insufficient,
+            false,
+        ),
+        (
+            r#"{"x_to_y_ratio":0.0,"confidence":0.0,"classification":"female","sufficient_data":true}"#,
+            SexConfidenceClass::Female,
+            true,
+        ),
+        (
+            r#"{"x_to_y_ratio":0.4,"confidence":0.8,"classification":"foreign"}"#,
+            SexConfidenceClass::Male,
+            true,
+        ),
+        (
+            r#"{"x_to_y_ratio":0.4,"confidence":0.8,"classification":"ambiguous","sufficient_data":false}"#,
+            SexConfidenceClass::Ambiguous,
+            false,
+        ),
+    ] {
+        let observed = parse_sex_json_contents(raw)?;
+        assert_eq!(observed.classification, expected_class);
+        assert_eq!(observed.sufficient_data, expected_sufficient);
+    }
+    Ok(())
+}

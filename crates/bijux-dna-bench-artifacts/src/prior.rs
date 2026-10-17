@@ -1,4 +1,5 @@
 //! Admit prior ownership without claiming unrelated files.
+use super::admission::admit_report_identity;
 use super::model::{ArtifactOwnership, PublicationSchema, ReportOwner};
 use super::paths::{admit_ancestry, admit_relative, read_bounded};
 use anyhow::{bail, Result};
@@ -31,13 +32,7 @@ pub(super) fn admit_prior(
     if !report.exists() {
         return Ok(BTreeSet::new());
     }
-    let previous: serde_json::Value = serde_json::from_slice(&read_bounded(&report)?)?;
-    if previous.get("schema_version").and_then(serde_json::Value::as_str) != Some(owner.schema)
-        || previous.get("stage_id").and_then(serde_json::Value::as_str) != Some(owner.stage)
-        || previous.get("tool_id").and_then(serde_json::Value::as_str) != Some(owner.tool)
-    {
-        bail!("benchmark publication report has a foreign owner");
-    }
+    admit_report_identity(&report, owner)?;
     // Legacy reports predate file inventories. Their admitted stage/tool owns only
     // the exact paths produced by this invocation; all other legacy files survive.
     Ok(current.clone())

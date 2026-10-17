@@ -10,7 +10,14 @@ const WORKFLOW_PATH: &str = ".github/workflows/ci.yml";
 const RUNNER_PATH: &str = "makes/bin/run_github_workflow_gate.sh";
 const CARGO_MAKE_PATH: &str = "makes/cargo.mk";
 const FAST_GROUP_PATH: &str = "configs/ci/fast-groups.json";
-const LEGACY_BUILD_AUTHORITY_PATH: &str = "configs/runtime/cargo_build.toml";
+
+fn ensure_no_legacy_build_authority(workspace: &Workspace) -> Result<()> {
+    ensure!(
+        !workspace.path("configs/runtime").join("cargo_build.toml").exists(),
+        "legacy runtime Cargo build authority must not coexist with {AUTHORITY_PATH}"
+    );
+    Ok(())
+}
 
 pub(crate) fn check_ci_build_authority(
     workspace: &Workspace,
@@ -21,10 +28,7 @@ pub(crate) fn check_ci_build_authority(
     let authority: CiBuildAuthority =
         serde_json::from_str(&raw).with_context(|| format!("parse {AUTHORITY_PATH}"))?;
     validate_ci_build_authority(&authority)?;
-    ensure!(
-        !workspace.path(LEGACY_BUILD_AUTHORITY_PATH).exists(),
-        "legacy runtime Cargo build authority must not coexist with {AUTHORITY_PATH}"
-    );
+    ensure_no_legacy_build_authority(workspace)?;
 
     let toolchain_raw = std::fs::read_to_string(workspace.path(&authority.toolchain.manifest))
         .context("read CI toolchain manifest")?;
@@ -98,18 +102,14 @@ pub(crate) fn check_ci_build_authority(
 
     let workflow = std::fs::read_to_string(workspace.path(WORKFLOW_PATH))
         .with_context(|| format!("read {WORKFLOW_PATH}"))?;
-    ensure!(
-        workflow.contains(&format!("RUST_TOOLCHAIN_VERSION: {}", authority.toolchain.channel)),
-        "GitHub workflow toolchain differs from the build authority"
-    );
-    ensure!(
-        workflow.contains(&format!("RUSTC_WRAPPER: {}", authority.cache.compiler_wrapper)),
-        "GitHub workflow compiler wrapper differs from the build authority"
-    );
-    ensure!(
-        workflow.contains(&format!("CARGO_NEXTEST_VERSION: {}", authority.test_executor.version)),
-        "GitHub workflow nextest version differs from the build authority"
-    );
+    validate_workflow_environment(
+        &workflow,
+        &[
+            ("RUST_TOOLCHAIN_VERSION", authority.toolchain.channel.as_str()),
+            ("RUSTC_WRAPPER", authority.cache.compiler_wrapper.as_str()),
+            ("CARGO_NEXTEST_VERSION", authority.test_executor.version.as_str()),
+        ],
+    )?;
 
     let runner = std::fs::read_to_string(workspace.path(RUNNER_PATH))
         .with_context(|| format!("read {RUNNER_PATH}"))?;
@@ -158,6 +158,26 @@ pub(crate) fn check_ci_build_authority(
     )
 }
 
+fn validate_workflow_environment(source: &str, required: &[(&str, &str)]) -> Result<()> {
+    let workflow: serde_yaml::Value =
+        serde_yaml::from_str(source).context("parse GitHub workflow YAML")?;
+    let environment = workflow
+        .get("env")
+        .and_then(serde_yaml::Value::as_mapping)
+        .context("GitHub workflow omits its global env mapping")?;
+    for (name, expected) in required {
+        let declared =
+            environment.get(*name).and_then(serde_yaml::Value::as_str).with_context(|| {
+                format!("GitHub workflow env omits string {name} required by {AUTHORITY_PATH}")
+            })?;
+        ensure!(
+            declared == *expected,
+            "GitHub workflow env {name} differs from the build authority: expected {expected}, observed {declared}"
+        );
+    }
+    Ok(())
+}
+
 fn make_target_body(source: &str, target: &str) -> Result<String> {
     let marker = format!("{target}:");
     let mut lines = source.lines();
@@ -168,4 +188,76 @@ fn make_target_body(source: &str, target: &str) -> Result<String> {
         .join("\n");
     ensure!(!body.trim().is_empty(), "Make target {target} has no recipe");
     Ok(body)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn legacy_build_authority_must_remain_absent() -> Result<()> {
+        let root = tempfile::tempdir()?;
+        let workspace = Workspace { root: root.path().to_path_buf() };
+        ensure_no_legacy_build_authority(&workspace)?;
+        let legacy = workspace.path("configs/runtime").join("cargo_build.toml");
+        std::fs::create_dir_all(legacy.parent().context("legacy parent")?)?;
+        std::fs::write(&legacy, "preserved obsolete authority")?;
+        let error = ensure_no_legacy_build_authority(&workspace)
+            .err()
+            .context("legacy authority must fail")?;
+        assert_eq!(
+            error.to_string(),
+            "legacy runtime Cargo build authority must not coexist with configs/ci/build-authority.json"
+        );
+        assert_eq!(std::fs::read_to_string(legacy)?, "preserved obsolete authority");
+        Ok(())
+    }
+
+    const REQUIRED_ENV: &[(&str, &str)] = &[
+        ("RUST_TOOLCHAIN_VERSION", "1.95.0"),
+        ("RUSTC_WRAPPER", "sccache"),
+        ("CARGO_NEXTEST_VERSION", "0.9.100"),
+    ];
+
+    #[test]
+    fn workflow_environment_accepts_equivalent_yaml_quoting() -> Result<()> {
+        for yaml in [
+            "env:\n  RUST_TOOLCHAIN_VERSION: 1.95.0\n  RUSTC_WRAPPER: sccache\n  CARGO_NEXTEST_VERSION: 0.9.100\n",
+            "\"env\":\n  \"RUST_TOOLCHAIN_VERSION\": \"1.95.0\"\n  \"RUSTC_WRAPPER\": \"sccache\"\n  \"CARGO_NEXTEST_VERSION\": \"0.9.100\"\n",
+            "'env':\n  'RUST_TOOLCHAIN_VERSION': '1.95.0'\n  'RUSTC_WRAPPER': 'sccache'\n  'CARGO_NEXTEST_VERSION': '0.9.100'\n",
+        ] {
+            validate_workflow_environment(yaml, REQUIRED_ENV)?;
+        }
+        Ok(())
+    }
+
+    #[test]
+    fn workflow_environment_rejects_wrong_missing_or_non_string_authority() -> Result<()> {
+        for &(changed, expected) in REQUIRED_ENV {
+            let mut yaml = format!("# {changed}: {expected}\nenv:\n");
+            for &(name, value) in REQUIRED_ENV {
+                let actual = if name == changed { "incorrect" } else { value };
+                yaml.push_str(&format!("  {name}: {actual}\n"));
+            }
+            let error = validate_workflow_environment(&yaml, REQUIRED_ENV)
+                .err()
+                .context("wrong value must fail")?;
+            assert!(error.to_string().contains(changed));
+            assert!(error.to_string().contains("differs from the build authority"));
+        }
+        let base = "env:\n  RUST_TOOLCHAIN_VERSION: 1.95.0\n  RUSTC_WRAPPER: sccache\n";
+        for suffix in [
+            "",
+            "jobs:\n  test:\n    env:\n      CARGO_NEXTEST_VERSION: 0.9.100\n",
+            "  CARGO_NEXTEST_VERSION: 100\n",
+        ] {
+            let error = validate_workflow_environment(&format!("{base}{suffix}"), REQUIRED_ENV)
+                .err()
+                .context("missing global string pin must fail")?;
+            assert!(error.to_string().contains("CARGO_NEXTEST_VERSION"));
+        }
+        assert!(validate_workflow_environment("env: [", REQUIRED_ENV).is_err());
+        assert!(validate_workflow_environment("env: scalar", REQUIRED_ENV).is_err());
+        Ok(())
+    }
 }

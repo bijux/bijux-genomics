@@ -1,3 +1,7 @@
+#[cfg(unix)]
+#[path = "resolve_runtime/reference_indexes.rs"]
+mod reference_indexes;
+
 use std::collections::HashMap;
 use std::path::{Path, PathBuf};
 use std::str::FromStr;
@@ -262,6 +266,10 @@ fn load_platform_prefers_cache_root_for_apptainer_platforms() -> anyhow::Result<
     let _env = env_lock();
     let temp = bijux_dna_testkit::tempdir_for("environment-platform-cache-root");
     let _cache_root = EnvVarGuard::capture("BIJUX_CACHE_ROOT");
+    let _hpc_root = EnvVarGuard::capture("BIJUX_HPC_ROOT");
+    let _apptainer_dir = EnvVarGuard::capture("BIJUX_APPTAINER_CONTAINER_DIR");
+    std::env::remove_var("BIJUX_HPC_ROOT");
+    std::env::remove_var("BIJUX_APPTAINER_CONTAINER_DIR");
     write_runtime_platform_fixture(
         temp.path(),
         br#"

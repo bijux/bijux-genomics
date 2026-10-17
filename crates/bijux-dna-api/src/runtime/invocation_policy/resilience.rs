@@ -1,3 +1,5 @@
+use std::collections::BTreeMap;
+use std::ffi::{OsStr, OsString};
 use std::path::{Path, PathBuf};
 
 use anyhow::anyhow;
@@ -130,6 +132,7 @@ pub(crate) fn write_crash_bundle(
     stderr_tail: Option<&str>,
     exit_code: i32,
     command: &str,
+    environment: &BTreeMap<OsString, OsString>,
 ) -> Result<PathBuf> {
     let crash_path = req.context.stage_root.join("crash_provenance.json");
     let mut input_list = Vec::new();
@@ -156,11 +159,11 @@ pub(crate) fn write_crash_bundle(
         })
         .unwrap_or_default();
     let env_subset = serde_json::json!({
-        "LC_ALL": std::env::var("LC_ALL").ok(),
-        "LANG": std::env::var("LANG").ok(),
-        "TZ": std::env::var("TZ").ok(),
-        "TMPDIR": std::env::var("TMPDIR").ok(),
-        "HOME": std::env::var("HOME").ok(),
+        "LC_ALL": environment.get(OsStr::new("LC_ALL")).and_then(|value| value.to_str()),
+        "LANG": environment.get(OsStr::new("LANG")).and_then(|value| value.to_str()),
+        "TZ": environment.get(OsStr::new("TZ")).and_then(|value| value.to_str()),
+        "TMPDIR": environment.get(OsStr::new("TMPDIR")).and_then(|value| value.to_str()),
+        "HOME": environment.get(OsStr::new("HOME")).and_then(|value| value.to_str()),
     });
     let payload = serde_json::json!({
         "schema_version": "bijux.stage_crash.v1",

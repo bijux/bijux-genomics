@@ -33,6 +33,11 @@ pub(super) fn validate_stage_definitions(
         validate_stage_param_contracts(stage, catalog)?;
         validate_stage_upstream_contracts(stage)?;
     }
+    if let Some(node_id) = seen_stage_nodes.intersection(&seen_stage_tool_nodes).next() {
+        return Err(BenchError::InvalidPolicy(format!(
+            "suite graph stage and stage-tool nodes must have distinct identities: {node_id}"
+        )));
+    }
     Ok(declared_stage_nodes)
 }
 

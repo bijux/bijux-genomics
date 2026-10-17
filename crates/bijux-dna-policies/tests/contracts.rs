@@ -104,6 +104,8 @@ mod mod_contracts_tooling_crate_responsibility_matrix_policy_rs;
 mod mod_contracts_tooling_default_profile_binding_policy_rs;
 #[path = "contracts/tooling/docs/docs_links.rs"]
 mod mod_contracts_tooling_docs_links_rs;
+#[path = "contracts/tooling/docs/document_reference_policy.rs"]
+mod mod_contracts_tooling_document_reference_policy_rs;
 #[path = "contracts/tooling/governance_core/domain_catalog_symmetry_policy.rs"]
 mod mod_contracts_tooling_domain_catalog_symmetry_policy_rs;
 #[path = "contracts/tooling/governance_core/domain_truth_fixture_policy.rs"]
@@ -244,3 +246,12 @@ mod workspace_binary_policy;
 
 #[path = "contracts/workspace_dependencies.rs"]
 mod workspace_dependencies;
+
+#[path = "support/docs/references.rs"]
+mod document_references;
+
+#[path = "support/rust_source/tokens.rs"]
+mod rust_source_tokens;
+
+#[path = "support/rust_source/scratch_paths.rs"]
+mod rust_source_scratch_paths;

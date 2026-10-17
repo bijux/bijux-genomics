@@ -1,7 +1,8 @@
 use super::contracts::ensure_fastq_report_map_contract;
 use super::inventory::admission_support_status;
-use super::inventory::collect_fastq_report_stage_metadata;
+use super::inventory::{collect_report_stage_observations, ReportStageObservations};
 use super::models::FastqReportMapRow;
+use crate::readiness::declarations::observations::ExpectedResultBinding;
 use crate::readiness::declarations::ReportContext;
 use anyhow::anyhow;
 use anyhow::Result;
@@ -13,17 +14,31 @@ pub fn collect_fastq_report_map_rows(
     context: &ReportContext<'_>,
 ) -> Result<Vec<FastqReportMapRow>> {
     let repo_root = context.repo_root;
-    let stage_metadata = collect_fastq_report_stage_metadata(context)?;
-    let stage_admissions = context.evidence.admissions(repo_root)?;
+    let observations = collect_report_stage_observations(context)?;
     let expected_rows = context
         .evidence
         .expected(repo_root)?
         .into_iter()
         .filter(|row| row.domain == "fastq")
         .collect::<Vec<_>>();
+    project_report_map_rows(&observations, &expected_rows)
+}
+
+pub(super) fn collect_report_map_rows_for_expected(
+    context: &ReportContext<'_>,
+    expected_rows: &[ExpectedResultBinding],
+) -> Result<Vec<FastqReportMapRow>> {
+    let observations = collect_report_stage_observations(context)?;
+    project_report_map_rows(&observations, expected_rows)
+}
+
+fn project_report_map_rows(
+    ReportStageObservations { metadata: stage_metadata, admissions: stage_admissions }: &ReportStageObservations,
+    expected_rows: &[ExpectedResultBinding],
+) -> Result<Vec<FastqReportMapRow>> {
     let mut rows = Vec::new();
 
-    for row in &expected_rows {
+    for row in expected_rows {
         let metadata = stage_metadata.get(&row.stage_id).ok_or_else(|| {
             anyhow!(
                 "FASTQ report map is missing stage metadata for expected result `{}` / `{}`",
@@ -76,7 +91,7 @@ pub fn collect_fastq_report_map_rows(
             .then_with(|| left.stage_id.cmp(&right.stage_id))
             .then_with(|| left.tool_id.cmp(&right.tool_id))
     });
-    ensure_fastq_report_map_contract(&rows, &expected_rows)?;
+    ensure_fastq_report_map_contract(&rows, expected_rows)?;
     Ok(rows)
 }
 

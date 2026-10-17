@@ -2,12 +2,13 @@
 #[allow(clippy::too_many_lines)]
 fn policy__boundaries__workspace__workspace_dependency_graph_contract() {
     let crates = collect_workspace_crates();
+    let authority = CargoDependencySnapshot::capture(&workspace_root().join("Cargo.toml"));
     let known: BTreeSet<String> = crates.keys().cloned().collect();
     let deps_for = |name: &str| -> BTreeSet<String> {
         let path = crates
             .get(name)
             .unwrap_or_else(|| bijux_dna_policies::policy_panic!("missing crate {name}"));
-        parse_dependencies(&path.join("Cargo.toml"), &known)
+        authority.known_names(&path.join("Cargo.toml"), &known)
     };
     let is_guardrails = |dep: &str| dep == "bijux-dna-policies" || dep == "bijux-dna-testkit";
     let cli_allowed: BTreeSet<&str> = BTreeSet::from([
@@ -67,7 +68,7 @@ fn policy__boundaries__workspace__workspace_dependency_graph_contract() {
     }
 
     if let Some(cli_dir) = crates.get("bijux-dna") {
-        let cli_deps = parse_dependencies(&cli_dir.join("Cargo.toml"), &known);
+        let cli_deps = authority.known_names(&cli_dir.join("Cargo.toml"), &known);
         bijux_dna_policies::policy_assert!(
             cli_deps.contains("bijux-dna-api"),
             "bijux-dna must depend on bijux-dna-api"

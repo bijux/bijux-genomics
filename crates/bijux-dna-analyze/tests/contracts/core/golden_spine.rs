@@ -1,3 +1,6 @@
+#[path = "report_projection.rs"]
+mod report_projection;
+
 use std::path::{Path, PathBuf};
 
 use anyhow::Result;
@@ -205,6 +208,10 @@ fn run_pipeline_case(domain: Domain, pipeline_id: &str) -> Result<(String, Strin
     let report_path = output.report_json.ok_or_else(|| anyhow::anyhow!("missing report.json"))?;
     let bundle_index = layout.artifacts_dir.join("report_bundle").join("index.html");
     assert!(bundle_index.exists(), "missing report bundle index for {pipeline_id}");
+    report_projection::require_canonical_sections(
+        &report_path,
+        &layout.artifacts_dir.join("report_bundle"),
+    )?;
 
     Ok((hash_file(&report_path)?, hash_file(&bundle_index)?))
 }

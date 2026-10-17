@@ -155,11 +155,33 @@ fn synthetic_runtime_source_identity(
 
 #[test]
 fn recipe_evidence_chain_recomputes_selected_image_freshness() -> Result<()> {
-    let root = repository_root()?;
-    let commit = bijux_dna_containers::evidence::repository_head_commit(&root)?;
-    let mut catalog = bijux_dna_containers::evidence::load_container_catalog(&root)?;
+    let source_root = repository_root()?;
+    let source_commit = bijux_dna_containers::evidence::repository_head_commit(&source_root)?;
+    let mut catalog = bijux_dna_containers::evidence::load_container_catalog(&source_root)?;
     catalog.tools.retain(|tool| tool.id == "ibdhap");
     let tool = catalog.tools.first().context("catalog omits ibdhap")?;
+    let source_recipe = bijux_dna_containers::evidence::apptainer_recipe_identity_at_commit(
+        &source_root,
+        &source_commit,
+        &tool.apptainer_definition,
+    )?;
+    let fixture = bijux_dna_testkit::tempdir_for("container-recipe-history");
+    let root = fixture.path().to_path_buf();
+    for relative in std::iter::once(tool.apptainer_definition.as_str())
+        .chain(source_recipe.build_context.iter().map(|input| input.path.as_str()))
+    {
+        let destination = root.join(relative);
+        std::fs::create_dir_all(destination.parent().context("recipe input parent")?)?;
+        std::fs::copy(source_root.join(relative), destination)?;
+    }
+    recipe_fixture_git(&root, &["init", "--quiet"])?;
+    recipe_fixture_git(&root, &["add", "containers"])?;
+    recipe_fixture_git(&root, &["commit", "--quiet", "-m", "record recipe authority"])?;
+    let parent_commit = bijux_dna_containers::evidence::repository_head_commit(&root)?;
+    std::fs::write(root.join("evidence-context.txt"), b"independent source change\n")?;
+    recipe_fixture_git(&root, &["add", "evidence-context.txt"])?;
+    recipe_fixture_git(&root, &["commit", "--quiet", "-m", "record evidence context"])?;
+    let commit = bijux_dna_containers::evidence::repository_head_commit(&root)?;
     let recipe = bijux_dna_containers::evidence::apptainer_recipe_identity_at_commit(
         &root,
         &commit,
@@ -167,7 +189,7 @@ fn recipe_evidence_chain_recomputes_selected_image_freshness() -> Result<()> {
     )?;
 
     let mut inventory = bijux_dna_containers::evidence::load_image_inventory_publication(
-        &root.join("containers/reports/image-inventory.json"),
+        &source_root.join("containers/reports/image-inventory.json"),
     )?;
     inventory.repository_commit.clone_from(&commit);
     inventory.tools.retain(|inventory_tool| inventory_tool.tool == "ibdhap");
@@ -194,13 +216,6 @@ fn recipe_evidence_chain_recomputes_selected_image_freshness() -> Result<()> {
         &root, &commit, &catalog, &inventory,
     )?;
 
-    let parent_output = std::process::Command::new("git")
-        .arg("-C")
-        .arg(&root)
-        .args(["rev-parse", &format!("{commit}^")])
-        .output()?;
-    assert!(parent_output.status.success());
-    let parent_commit = String::from_utf8(parent_output.stdout)?.trim().to_string();
     let parent_recipe = bijux_dna_containers::evidence::apptainer_recipe_identity_at_commit(
         &root,
         &parent_commit,
@@ -235,6 +250,30 @@ fn recipe_evidence_chain_recomputes_selected_image_freshness() -> Result<()> {
         &root, &commit, &catalog, &inventory,
     )
     .is_err_and(|error| error.to_string().contains("lacks current recipe")));
+    Ok(())
+}
+
+fn recipe_fixture_git(root: &std::path::Path, args: &[&str]) -> Result<()> {
+    let output = std::process::Command::new("git")
+        .arg("-C")
+        .arg(root)
+        .args(args)
+        .env_remove("GIT_DIR")
+        .env_remove("GIT_WORK_TREE")
+        .env_remove("GIT_INDEX_FILE")
+        .env_remove("GIT_CONFIG_COUNT")
+        .env("GIT_CONFIG_NOSYSTEM", "1")
+        .env("GIT_CONFIG_GLOBAL", "/dev/null")
+        .env("GIT_AUTHOR_NAME", "Bijux Tests")
+        .env("GIT_AUTHOR_EMAIL", "tests@bijux.invalid")
+        .env("GIT_COMMITTER_NAME", "Bijux Tests")
+        .env("GIT_COMMITTER_EMAIL", "tests@bijux.invalid")
+        .output()?;
+    anyhow::ensure!(
+        output.status.success(),
+        "owned recipe Git fixture: {}",
+        String::from_utf8_lossy(&output.stderr)
+    );
     Ok(())
 }
 

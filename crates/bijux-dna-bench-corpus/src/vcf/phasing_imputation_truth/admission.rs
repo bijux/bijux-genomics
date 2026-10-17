@@ -1,0 +1,209 @@
+//! Reference and supported-case admission precede native observations.
+use std::collections::BTreeSet;
+use std::fs;
+use std::path::Path;
+
+use anyhow::{anyhow, Context, Result};
+use bijux_dna_domain_vcf::VcfDomainStage;
+
+use super::model::{
+    PhasingImputationTruthBundle, PhasingImputationTruthCase, PhasingImputationTruthKind,
+    PhasingImputationTruthManifest,
+};
+use super::{
+    resolve_repo_relative_path, PHASING_IMPUTATION_TRUTH_BUNDLE_SCHEMA_VERSION,
+    PHASING_IMPUTATION_TRUTH_FIXTURE_ID, PHASING_IMPUTATION_TRUTH_MANIFEST_SCHEMA_VERSION,
+};
+
+pub(super) fn load_manifest(manifest_path: &Path) -> Result<PhasingImputationTruthManifest> {
+    let raw = fs::read_to_string(manifest_path)
+        .with_context(|| format!("read {}", manifest_path.display()))?;
+    toml::from_str(&raw).with_context(|| format!("parse {}", manifest_path.display()))
+}
+
+pub(super) fn validate_manifest_contract(
+    repo_root: &Path,
+    manifest: &PhasingImputationTruthManifest,
+    manifest_path: &Path,
+) -> Result<()> {
+    if manifest.schema_version != PHASING_IMPUTATION_TRUTH_MANIFEST_SCHEMA_VERSION {
+        return Err(anyhow!(
+            "phasing/imputation truth manifest `{}` uses schema `{}` instead of `{}`",
+            manifest_path.display(),
+            manifest.schema_version,
+            PHASING_IMPUTATION_TRUTH_MANIFEST_SCHEMA_VERSION
+        ));
+    }
+    if manifest.fixture_id != PHASING_IMPUTATION_TRUTH_FIXTURE_ID {
+        return Err(anyhow!(
+            "phasing/imputation truth manifest fixture_id `{}` must equal `{}`",
+            manifest.fixture_id,
+            PHASING_IMPUTATION_TRUTH_FIXTURE_ID
+        ));
+    }
+    if manifest.description.trim().is_empty() {
+        return Err(anyhow!(
+            "phasing/imputation truth manifest `{}` must declare a description",
+            manifest_path.display()
+        ));
+    }
+    if manifest.source_paths.is_empty() {
+        return Err(anyhow!(
+            "phasing/imputation truth manifest `{}` must declare governed source paths",
+            manifest_path.display()
+        ));
+    }
+    for source_path in &manifest.source_paths {
+        let resolved = resolve_repo_relative_path(repo_root, source_path);
+        if !resolved.is_file() {
+            return Err(anyhow!(
+                "phasing/imputation truth source path is missing: {}",
+                resolved.display()
+            ));
+        }
+    }
+    if manifest.cases.is_empty() {
+        return Err(anyhow!(
+            "phasing/imputation truth manifest `{}` must declare at least one case",
+            manifest_path.display()
+        ));
+    }
+
+    let mut case_ids = BTreeSet::new();
+    for case in &manifest.cases {
+        validate_case_contract(repo_root, case, manifest_path)?;
+        if !case_ids.insert(case.case_id.clone()) {
+            return Err(anyhow!(
+                "phasing/imputation truth manifest repeats case_id `{}`",
+                case.case_id
+            ));
+        }
+    }
+    Ok(())
+}
+
+fn validate_case_contract(
+    repo_root: &Path,
+    case: &PhasingImputationTruthCase,
+    manifest_path: &Path,
+) -> Result<()> {
+    if case.case_id.trim().is_empty()
+        || case.stage_id.trim().is_empty()
+        || case.tool_id.trim().is_empty()
+    {
+        return Err(anyhow!(
+            "phasing/imputation truth manifest `{}` contains a case with empty identity fields",
+            manifest_path.display()
+        ));
+    }
+    let artifact_root = resolve_repo_relative_path(repo_root, &case.artifact_root_path);
+    if !artifact_root.is_dir() {
+        return Err(anyhow!(
+            "phasing/imputation truth case `{}` artifact root is missing: {}",
+            case.case_id,
+            artifact_root.display()
+        ));
+    }
+    let output_vcf = resolve_repo_relative_path(repo_root, &case.output_vcf_path);
+    if !output_vcf.is_file() {
+        return Err(anyhow!(
+            "phasing/imputation truth case `{}` output VCF is missing: {}",
+            case.case_id,
+            output_vcf.display()
+        ));
+    }
+    let stage = parse_supported_stage(&case.stage_id)?;
+    match (case.tool_id.as_str(), stage, case.truth_kind) {
+        (
+            "shapeit5" | "eagle" | "beagle",
+            VcfDomainStage::Phasing,
+            PhasingImputationTruthKind::PhasingOutput,
+        ) => {
+            if case.truth_vcf_path.is_some() {
+                return Err(anyhow!(
+                    "phasing/imputation truth case `{}` must not declare truth_vcf_path for phasing output",
+                    case.case_id
+                ));
+            }
+        }
+        (
+            "beagle" | "glimpse" | "impute5" | "minimac4",
+            VcfDomainStage::Impute | VcfDomainStage::ImputationMetrics,
+            PhasingImputationTruthKind::ImputationOutput,
+        ) => {
+            let truth_vcf_path = case.truth_vcf_path.as_ref().ok_or_else(|| {
+                anyhow!(
+                    "phasing/imputation truth case `{}` must declare truth_vcf_path for imputation output",
+                    case.case_id
+                )
+            })?;
+            let truth_vcf = resolve_repo_relative_path(repo_root, truth_vcf_path);
+            if !truth_vcf.is_file() {
+                return Err(anyhow!(
+                    "phasing/imputation truth case `{}` truth VCF is missing: {}",
+                    case.case_id,
+                    truth_vcf.display()
+                ));
+            }
+        }
+        _ => {
+            return Err(anyhow!(
+                "phasing/imputation truth case `{}` uses unsupported tool/stage/truth combination `{}` / `{}` / {:?}",
+                case.case_id,
+                case.tool_id,
+                case.stage_id,
+                case.truth_kind
+            ));
+        }
+    }
+    Ok(())
+}
+
+pub(super) fn load_bundle(expected_path: &Path) -> Result<PhasingImputationTruthBundle> {
+    let raw = fs::read_to_string(expected_path)
+        .with_context(|| format!("read {}", expected_path.display()))?;
+    serde_json::from_str(&raw).with_context(|| format!("parse {}", expected_path.display()))
+}
+
+pub(super) fn validate_bundle_contract(
+    manifest: &PhasingImputationTruthManifest,
+    bundle: &PhasingImputationTruthBundle,
+    expected_path: &Path,
+) -> Result<()> {
+    if bundle.schema_version != PHASING_IMPUTATION_TRUTH_BUNDLE_SCHEMA_VERSION {
+        return Err(anyhow!(
+            "phasing/imputation truth bundle `{}` uses schema `{}` instead of `{}`",
+            expected_path.display(),
+            bundle.schema_version,
+            PHASING_IMPUTATION_TRUTH_BUNDLE_SCHEMA_VERSION
+        ));
+    }
+    if bundle.fixture_id != manifest.fixture_id {
+        return Err(anyhow!(
+            "phasing/imputation truth bundle `{}` fixture_id `{}` must equal `{}`",
+            expected_path.display(),
+            bundle.fixture_id,
+            manifest.fixture_id
+        ));
+    }
+    let expected_case_ids =
+        manifest.cases.iter().map(|case| case.case_id.as_str()).collect::<BTreeSet<_>>();
+    let bundle_case_ids =
+        bundle.cases.iter().map(|case| case.case_id.as_str()).collect::<BTreeSet<_>>();
+    if expected_case_ids != bundle_case_ids {
+        return Err(anyhow!(
+            "phasing/imputation truth bundle case ids do not match manifest `{}`",
+            expected_path.display()
+        ));
+    }
+    Ok(())
+}
+
+pub(super) fn parse_supported_stage(stage_id: &str) -> Result<VcfDomainStage> {
+    match stage_id {
+        "vcf.phasing" => Ok(VcfDomainStage::Phasing),
+        "vcf.impute" => Ok(VcfDomainStage::Impute),
+        "vcf.imputation_metrics" => Ok(VcfDomainStage::ImputationMetrics),
+        other => Err(anyhow!("unsupported phasing/imputation truth stage `{other}`")),
+    }
+}

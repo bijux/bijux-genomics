@@ -38,6 +38,7 @@ mod cargo_targets;
 mod certification;
 mod ci;
 mod config_docs;
+mod crate_gate_proofs;
 mod diagnostics;
 mod operator_workflow_maturity;
 mod policy_fast;
@@ -70,13 +71,14 @@ pub(super) use self::certification::{
 pub(super) use self::ci::{
     tooling_ci_audit, tooling_ci_clippy, tooling_ci_clippy_executors, tooling_ci_coverage,
     tooling_ci_fast, tooling_ci_fmt, tooling_ci_install_tools, tooling_ci_slow, tooling_ci_test,
-    tooling_ci_test_all_sharded, tooling_ci_test_slow,
+    tooling_ci_test_all_sharded, tooling_ci_test_complete, tooling_ci_test_slow,
 };
 pub(super) use self::config_docs::{
     tooling_check_config_paths, tooling_check_config_snapshot, tooling_clean_docs,
     tooling_flake_hunt, tooling_generate_config_tree_snapshot, tooling_generate_tool_index,
     tooling_lint_fast,
 };
+pub(super) use self::crate_gate_proofs::tooling_crate_gate_proofs;
 pub(super) use self::diagnostics::{
     tooling_architecture_report, tooling_config_inventory, tooling_coverage_summary,
     tooling_crash_triage, tooling_deprecate_vcf_knob, tooling_deprecate_vcf_panel,

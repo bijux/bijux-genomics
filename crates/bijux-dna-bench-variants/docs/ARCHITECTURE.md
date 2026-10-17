@@ -21,3 +21,11 @@ for normalization and validation contracts. Neither representation is rewritten.
 Prior executions remain retained because downstream reports may refer to them.
 Individual file replacements are atomic; publication is not a multi-file
 transaction. Concurrent writers to one publication root are unsupported.
+
+## Readiness records
+
+Readiness flags observe independent proof surfaces, and incomplete combinations
+remain valid diagnostic data. Flat serialized row fields preserve the existing
+report contract. Pure field projections stay explicit in their capability owner;
+scientific admission remains in coverage/science modules. Scoped lint allowances
+document these boundaries without changing field identities or assessment behavior.

@@ -71,6 +71,15 @@ pub fn run_provenance_section(base_dir: &Path) -> serde_json::Value {
     base
 }
 
+pub(super) fn resolve_report_path(base_dir: &Path, raw: &str) -> String {
+    let path = Path::new(raw);
+    if raw.is_empty() || path.is_absolute() {
+        raw.to_string()
+    } else {
+        base_dir.join(path).display().to_string()
+    }
+}
+
 pub fn normalize_report_path(base_dir: &Path, raw: &str) -> String {
     let path = Path::new(raw);
     if path.is_absolute() {

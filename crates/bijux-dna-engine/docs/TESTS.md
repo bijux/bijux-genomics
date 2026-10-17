@@ -2,21 +2,25 @@
 
 ## Intent
 The test tree is organized by the contract each suite protects. Boundary tests
-guard the crate shape and dependency graph, contract tests guard observable
+guard dependencies and effects, contract tests guard observable
 engine behavior, and determinism tests guard replayable output.
 
 ## Suite map
-- `tests/boundaries.rs`: architecture tree, command inventory, documentation placement,
-  dependency graph, and effect-boundary enforcement.
+
+- `tests/boundaries.rs`: dependency declarations and effect-boundary enforcement.
 - `tests/contracts.rs`: public behavior for orchestration, runner retries, cancellation, params
   hashing, recording truth-set contracts, and helper naming.
 - `tests/determinism.rs`: replay determinism and manifest layout stability.
-- `tests/guardrails.rs`: repository policy guardrails shared with generated policy tests.
+- `tests/guardrails.rs`: shared source policy checks run against this crate.
 
 ## Important directories
-- `tests/boundaries/`: crate-tree, dependency, and side-effect boundary assertions.
-- `tests/boundaries/command_inventory.rs`: `docs/COMMANDS.md` operation inventory contract.
+
+- `tests/boundaries/`: dependency and side-effect boundary assertions.
 - `tests/contracts/`: engine-facing behavior and documentation contracts.
+- `tests/contracts/architecture.rs`: resolved engine dependency checks bound to an
+  explicit repository, including independent workspace and invalid-root cases.
+- `tests/contracts/runner_tests.rs`: DAG order, retries, failure stopping, and
+  actual invocation and returned-record contracts for a two-step chain.
 - `tests/contracts/recording.rs`: execution truth-set documentation and recording completeness checks.
 - `tests/determinism/`: replay and run-manifest stability assertions.
 - `tests/support/`: shared engine fixtures, graph builders, and runner stubs.
@@ -37,9 +41,16 @@ CARGO_TARGET_DIR=artifacts/cargo-target cargo test -p bijux-dna-engine --no-defa
 ```
 
 ## Failure interpretation
-- Boundary failures mean the source tree, docs layout, dependency graph, or effect boundary
-  changed.
+
+- Boundary failures mean dependency declarations or the effect boundary changed.
 - Contract failures mean public execution behavior or recorded artifacts changed.
 - Determinism failures mean stable ordering or repeatable output changed.
 
-Shared guardrail parser regressions are owned and executed by the policy crate. This boundary suite retains its crate-specific architecture checks; it does not compile another crate's test source. Constructor-only guardrail wrappers provide no source-check coverage and are retired.
+Shared guardrail parser regressions are owned and executed by the policy crate.
+Engine boundary cases retain dependency and effect checks, while
+`tests/guardrails.rs` calls the shared source policy implementation against the
+engine source tree.
+
+The engine suite does not enforce an exact source or documentation tree or a
+managed-operation inventory. Keep the documented owner boundaries and operation
+list accurate when changing them.

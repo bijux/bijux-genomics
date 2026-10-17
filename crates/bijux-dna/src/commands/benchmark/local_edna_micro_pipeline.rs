@@ -26,11 +26,11 @@ use super::local_stage_result_manifest::path_relative_to_repo;
 use super::local_taxonomy_database_fixture::{
     validate_taxonomy_database_fixture_manifest_path, DEFAULT_TAXONOMY_MINI_MANIFEST_PATH,
 };
-use super::local_taxonomy_output_judgment::{
-    render_edna_taxonomy_output_judgment, LocalTaxonomyObservedReportArg,
-};
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
+use bijux_dna_api::v1::api::bench::{
+    publish_edna_taxonomy_output_judgment, TaxonomyObservedReportArg,
+};
 
 pub(crate) const DEFAULT_EDNA_MICRO_PIPELINE_PATH: &str =
     "artifacts/benchmark-smoke/micro/pipelines/edna/MICRO_EDNA_SUMMARY.json";
@@ -174,7 +174,7 @@ struct EdnaScreenStageArtifacts {
     row: EdnaMicroPipelineRow,
     tool_id: String,
     classifier_backend_path: PathBuf,
-    report_paths: Vec<LocalTaxonomyObservedReportArg>,
+    report_paths: Vec<TaxonomyObservedReportArg>,
 }
 
 #[derive(Debug, Clone)]
@@ -612,7 +612,7 @@ fn run_fastq_screen_taxonomy_stage(
         };
         bijux_dna_infra::atomic_write_json(&classification_report_json, &report)?;
 
-        report_paths.push(LocalTaxonomyObservedReportArg {
+        report_paths.push(TaxonomyObservedReportArg {
             sample_id: sample.sample_id.clone(),
             report_path: classification_report_json.clone(),
         });
@@ -706,12 +706,12 @@ fn run_taxonomy_output_judgment_stage(
     output_root: &Path,
     corpus_manifest_path: &Path,
     expected_taxa_path: &Path,
-    reports: &[LocalTaxonomyObservedReportArg],
+    reports: &[TaxonomyObservedReportArg],
 ) -> Result<EdnaMicroPipelineRow> {
     let stage_root = output_root.join("artifacts/benchmark.taxonomy_output_judgment");
     fs::create_dir_all(&stage_root).with_context(|| format!("create {}", stage_root.display()))?;
     let evidence_path = stage_root.join("report.json");
-    let report = render_edna_taxonomy_output_judgment(
+    let report = publish_edna_taxonomy_output_judgment(
         repo_root,
         corpus_manifest_path.to_path_buf(),
         reports.to_vec(),

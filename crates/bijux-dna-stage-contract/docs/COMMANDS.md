@@ -46,6 +46,28 @@ management commands.
 | `has-stage-executor` | `executor_registry::has_executor` | Check whether a stage has a code-backed executor. |
 | `stage-executor-entry` | `executor_registry::entry` | Return the executor entry for a stage ID. |
 
+### Binding, Admission And Consumer Operations
+
+| Operation | Rust entrypoint | Purpose |
+| --- | --- | --- |
+| `evaluate-stage-admission` | `evaluate_stage_admission` | Evaluate declared stage/reference admission and preserve typed refusals. |
+| `validate-stage-contract` | `validate_stage_contract` | Validate agreement between a stage specification and its tool manifest. |
+| `validate-report-parts` | `validate_report_parts` | Validate report identity and declared required payload fields. |
+| `canonical-tool-bindings` | `canonical_tool_bindings` | Return the complete validated canonical binding registry. |
+| `canonical-retained-tool-bindings` | `canonical_retained_tool_bindings` | Return canonical retained tool bindings. |
+| `canonical-external-artifact-tool-bindings` | `canonical_external_artifact_tool_bindings` | Declare restricted external artifact integrations without admitting or executing artifacts. |
+| `validate-tool-binding` | `validate_tool_binding` | Validate a binding declaration and its projection/output authorities. |
+| `render-tool-command` | `render_tool_command` | Render declared values into argv without execution. |
+| `project-tool-parameters` | `project_tool_parameters` | Resolve scientific defaults, input-derived values and operator overrides with resource authority. |
+| `validate-effective-tool-parameters` | `validate_effective_tool_parameters` | Validate effective parameter identity, schema and resource consistency. |
+| `build-binding-stage-plan` | `build_binding_stage_plan` | Build an immutable stage plan from admitted binding, parameter and artifact authority. |
+| `required-binding-output-paths` | `required_binding_output_paths` | Expand exact primary/sidecar paths without filesystem IO. |
+| `canonical-downstream-probes` | `canonical_downstream_probes` | Derive canonical tool-independent consumer declarations. |
+| `downstream-probes-for-bindings` | `downstream_probes_for_bindings` | Derive consistent consumer declarations for an explicit binding registry. |
+| `evaluate-downstream-probe` | `evaluate_downstream_probe` | Evaluate normalized output and preserve failed checks as typed outcomes. |
+
+Registry lookup methods and typed field accessors support these operations; they do not add execution authority.
+
 ## Forbidden Command Surfaces
 
 - No Cargo binary targets or `src/bin` command modules.

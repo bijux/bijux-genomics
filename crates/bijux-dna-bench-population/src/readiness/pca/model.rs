@@ -3,6 +3,10 @@ use serde::Serialize;
 use std::collections::BTreeMap;
 #[derive(Debug, Clone, Serialize)]
 // The compatible report records independent observed evidence surfaces.
+#[allow(
+    clippy::struct_excessive_bools,
+    reason = "Independent readiness facts retain their established flat serialized field identities."
+)]
 pub struct VcfPcaReadyRow {
     pub result_id: String,
     pub stage_id: String,

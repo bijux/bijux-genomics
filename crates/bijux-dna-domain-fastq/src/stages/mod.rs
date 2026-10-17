@@ -1,9 +1,13 @@
 //! Owner: bijux-dna-domain-fastq
 //! Declarative stage definitions. See `docs/DOMAIN_MODEL.md` for stage authority.
 
+pub mod abundance_normalization;
 pub mod contract;
 pub mod ids;
+pub(crate) mod otu_clustering;
 pub mod ports;
+pub(crate) mod primer_normalization;
+pub mod read_filtering;
 pub mod semantics;
 pub mod specs;
 

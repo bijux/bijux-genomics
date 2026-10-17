@@ -36,7 +36,8 @@ use super::essential_pipelines_ready::{
     render_essential_pipelines_ready, DEFAULT_ESSENTIAL_PIPELINES_READY_PATH,
 };
 use super::full_benchmark_dashboard::{
-    render_full_benchmark_dashboard_from_report, DEFAULT_FULL_BENCHMARK_DASHBOARD_MARKDOWN_PATH,
+    render_full_benchmark_dashboard_with_dependencies, DashboardReportDependencies,
+    DEFAULT_FULL_BENCHMARK_DASHBOARD_MARKDOWN_PATH,
 };
 use super::full_benchmark_report::{
     render_full_benchmark_report_from_collector, DEFAULT_FULL_BENCHMARK_REPORT_MARKDOWN_PATH,
@@ -601,10 +602,16 @@ pub(crate) fn render_operational_benchmark_ready(
             let dependency = full_report
                 .as_ref()
                 .context("full benchmark report must succeed before dashboard construction")?;
-            render_full_benchmark_dashboard_from_report(
+            render_full_benchmark_dashboard_with_dependencies(
                 repo_root,
                 PathBuf::from(DEFAULT_FULL_BENCHMARK_DASHBOARD_MARKDOWN_PATH),
-                dependency,
+                DashboardReportDependencies {
+                    stage_tools: stage_tool_table.as_ref(),
+                    expected_results: expected_results.as_ref(),
+                    commands: rendered_commands.as_ref(),
+                    parser: parser_collector.as_ref(),
+                    full_report: Some(dependency),
+                },
             )
         },
         |report| {

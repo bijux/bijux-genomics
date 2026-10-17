@@ -27,7 +27,7 @@ fn bench_readiness_stage_scoring_writes_and_validates_governed_toml_file() {
     let config_arg = config_path.to_string_lossy().into_owned();
     let reported_path = support::path_relative_to_repo(&repo_root, &config_path);
 
-    let render_output = Command::new(env!("CARGO_BIN_EXE_bijux-dna"))
+    let render_output = Command::new(support::cli_binary_path())
         .current_dir(&repo_root)
         .env("HOME", home.path())
         .env("BIJUX_SKIP_QA", "1")
@@ -54,7 +54,7 @@ fn bench_readiness_stage_scoring_writes_and_validates_governed_toml_file() {
         Some("bijux.bench.local_stage_scoring.v1")
     );
 
-    let validate_output = Command::new(env!("CARGO_BIN_EXE_bijux-dna"))
+    let validate_output = Command::new(support::cli_binary_path())
         .current_dir(&repo_root)
         .env("HOME", home.path())
         .env("BIJUX_SKIP_QA", "1")
@@ -85,7 +85,7 @@ fn bench_readiness_stage_scoring_validation_rejects_stale_toml_file() {
     let config_path = render_config_path(&repo_root, "stage-scoring-stale-");
     let config_arg = config_path.to_string_lossy().into_owned();
 
-    let render_output = Command::new(env!("CARGO_BIN_EXE_bijux-dna"))
+    let render_output = Command::new(support::cli_binary_path())
         .current_dir(&repo_root)
         .env("HOME", home.path())
         .env("BIJUX_SKIP_QA", "1")
@@ -106,7 +106,7 @@ fn bench_readiness_stage_scoring_validation_rejects_stale_toml_file() {
     let stale = rendered.replacen("correctness = 0.35", "correctness = 0.34", 1);
     fs::write(&config_path, stale).expect("write stale TOML");
 
-    let validate_output = Command::new(env!("CARGO_BIN_EXE_bijux-dna"))
+    let validate_output = Command::new(support::cli_binary_path())
         .current_dir(&repo_root)
         .env("HOME", home.path())
         .env("BIJUX_SKIP_QA", "1")

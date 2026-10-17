@@ -4,6 +4,7 @@ mod catalog;
 mod catalog_lock;
 mod catalog_observation;
 mod catalog_validation;
+mod definition_lint;
 mod inspection;
 mod labels;
 mod model;
@@ -26,6 +27,8 @@ pub use catalog_lock::{
     CONTAINER_CATALOG_LOCK_PATH, CONTAINER_CATALOG_LOCK_SCHEMA_V1, CONTAINER_CATALOG_PATH,
 };
 pub use catalog_validation::{validate_container_catalog, ContainerCatalogValidation};
+
+pub use definition_lint::{inspect_apptainer_definition, ApptainerDefinitionIssue};
 
 pub use inspection::verify_apptainer_tool_contract;
 pub use labels::{tool_contract_labels, validate_tool_contract_labels, ToolContractLabels};

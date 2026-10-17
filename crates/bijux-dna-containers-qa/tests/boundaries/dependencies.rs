@@ -16,6 +16,7 @@ fn dependency_graph_matches_environment_qa_boundary() {
         "bijux-dna-domain-fastq",
         "bijux-dna-containers",
         "bijux-dna-infra",
+        "bijux-dna-process",
         "bijux-dna-runtime",
         "bijux-dna-stage-contract",
         "chrono",
@@ -39,7 +40,10 @@ fn dependency_graph_matches_environment_qa_boundary() {
 
     let dev_dependencies = section_keys(&manifest, "[dev-dependencies]");
     let expected_dev_dependencies: BTreeSet<_> =
-        ["bijux-dna-policies", "bijux-dna-testkit"].into_iter().map(str::to_string).collect();
+        ["bijux-dna-policies", "bijux-dna-process", "bijux-dna-testkit"]
+            .into_iter()
+            .map(str::to_string)
+            .collect();
     assert_eq!(dev_dependencies, expected_dev_dependencies, "unexpected dev dependency shape");
     assert!(
         manifest.contains("bijux-dna-policies.workspace = true"),

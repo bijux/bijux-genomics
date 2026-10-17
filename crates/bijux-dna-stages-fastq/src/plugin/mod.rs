@@ -40,12 +40,16 @@ impl StagePlugin for FastqStagePlugin {
             .io
             .inputs
             .iter()
-            .filter(|input| input.role == bijux_dna_core::contract::ArtifactRole::Reads)
+            .filter(|input| {
+                input.role.family() == bijux_dna_core::contract::ArtifactRoleFamily::Reads
+            })
             .map(|input| input.path.clone())
             .collect();
         let output_paths: Vec<std::path::PathBuf> = output_refs
             .iter()
-            .filter(|output| output.role == bijux_dna_core::contract::ArtifactRole::Reads)
+            .filter(|output| {
+                output.role.family() == bijux_dna_core::contract::ArtifactRoleFamily::Reads
+            })
             .map(|output| output.path.clone())
             .collect();
         let envelope = metrics::build_metrics_envelope(plan, &input_paths, &output_paths)?;

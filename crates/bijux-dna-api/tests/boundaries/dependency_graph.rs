@@ -32,6 +32,7 @@ const NORMAL_DEPS: &[&str] = &[
     "schemars",
     "serde",
     "serde_json",
+    "serde_yaml",
     "sha2",
     "toml",
     "tracing",

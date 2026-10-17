@@ -3,9 +3,10 @@ use std::path::{Component, Path, PathBuf};
 
 use anyhow::{bail, Context, Result};
 
+use super::super::load::observe_image_inventory_publication;
 use super::super::{
     load_image_inventory_publication, ContainerImageInventoryPublication, ContainerImageState,
-    DetachedImageDisposition, EvidenceSourceIdentity, ImageCandidateDisposition,
+    DetachedImageDisposition, ImageCandidateDisposition,
 };
 use super::model::{
     ImageStorageMove, ImageStorageMoveCategory, ImageStoragePlan, ImageStoragePlanState,
@@ -30,23 +31,20 @@ pub fn create_image_storage_plan(
     output: &Path,
 ) -> Result<ImageStoragePlan> {
     require_timestamp(request.created_at_utc, "image storage plan")?;
-    let inventory = load_image_inventory_publication(request.inventory_path)?;
+    let inventory = observe_image_inventory_publication(request.inventory_path)?;
     let image_root =
         request.image_root.canonicalize().context("canonicalize image-storage root")?;
     let study_root = request.study_root.canonicalize().context("canonicalize study root")?;
     let quarantine_root =
         governed_quarantine_root(&image_root, request.image_root, request.quarantine_root)?;
-    let mut records = collect_moves(&inventory, &study_root, &image_root, &quarantine_root)?;
+    let mut records =
+        collect_moves(&inventory.publication, &study_root, &image_root, &quarantine_root)?;
     records.sort_by(|left, right| left.source.cmp(&right.source));
     let plan = ImageStoragePlan {
         schema_version: IMAGE_STORAGE_PLAN_SCHEMA_V1.to_string(),
         state: ImageStoragePlanState::Previewed,
         created_at_utc: request.created_at_utc.to_string(),
-        inventory: EvidenceSourceIdentity {
-            path: request.inventory_path.display().to_string(),
-            sha256: bijux_dna_infra::hash_file_sha256(request.inventory_path)
-                .context("hash image-storage inventory")?,
-        },
+        inventory: inventory.source,
         image_root: image_root.display().to_string(),
         quarantine_root: quarantine_root.display().to_string(),
         file_count: u64::try_from(records.len()).context("count image-storage moves")?,

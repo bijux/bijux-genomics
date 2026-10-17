@@ -29,7 +29,7 @@ LUNARC_APPTAINER_BASE_SEED_DIR ?= $(BENCHMARK_REMOTE_CONTAINERS_ROOT)/base
 _benchmark-sync-push: ## Push the governed benchmark repo checkout to the remote frontend
 	@BENCHMARK_SYNC_CLEAN_CONTEXT="$(CLEAN_CONTEXT)" \
 	BENCHMARK_SYNC_ALLOW_DIRTY="$(ALLOW_DIRTY)" \
-	cargo run -q -p bijux-dna-dev -- hpc run lunarc/push
+	cargo run -q -p bijux-dna-dev -- hpc run benchmark-sync-push
 
 benchmark-sync-push: _benchmark-sync-push ## Push the governed benchmark repo checkout to the remote frontend
 
@@ -38,7 +38,7 @@ push-lunarc: benchmark-sync-push ## Compatibility alias for benchmark-sync-push
 benchmark-sync-push-confirm: ## Push the governed benchmark repo checkout to the remote frontend with --confirm
 	@BENCHMARK_SYNC_CLEAN_CONTEXT="$(CLEAN_CONTEXT)" \
 	BENCHMARK_SYNC_ALLOW_DIRTY="$(ALLOW_DIRTY)" \
-	cargo run -q -p bijux-dna-dev -- hpc run lunarc/push --confirm
+	cargo run -q -p bijux-dna-dev -- hpc run benchmark-sync-push --confirm
 
 push-lunarc-confirm: benchmark-sync-push-confirm ## Compatibility alias for benchmark-sync-push-confirm
 
@@ -47,7 +47,7 @@ _benchmark-sync-pull: ## Pull the governed benchmark mirror into the default loc
 	BENCHMARK_SYNC_INCLUDE_CONTAINERS_MANIFEST="$(INCLUDE_CONTAINERS_MANIFEST)" \
 	BENCHMARK_SYNC_DATA_MANIFEST_GLOB="$(DATA_MANIFEST_GLOB)" \
 	BENCHMARK_SYNC_MODE="$(BENCHMARK_PULL_MODE_DEFAULT)" \
-	cargo run -q -p bijux-dna-dev -- hpc run lunarc/pull \
+	cargo run -q -p bijux-dna-dev -- hpc run benchmark-sync-pull \
 		--include-profile "$(BENCHMARK_INCLUDE_PROFILE_DEFAULT)" \
 		--exclude-profile "$(BENCHMARK_EXCLUDE_PROFILE_DEFAULT)"
 
@@ -61,7 +61,7 @@ _benchmark-sync-pull-results: ## Pull governed benchmark results and optional ma
 	BENCHMARK_SYNC_INCLUDE_CONTAINERS_MANIFEST="$(INCLUDE_CONTAINERS_MANIFEST)" \
 	BENCHMARK_SYNC_DATA_MANIFEST_GLOB="$(DATA_MANIFEST_GLOB)" \
 	BENCHMARK_SYNC_MODE="results" \
-	cargo run -q -p bijux-dna-dev -- hpc run lunarc/pull \
+	cargo run -q -p bijux-dna-dev -- hpc run benchmark-sync-pull \
 		--include-profile "$(BENCHMARK_INCLUDE_PROFILE_DEFAULT)" \
 		--exclude-profile "$(BENCHMARK_EXCLUDE_PROFILE_DEFAULT)"
 
@@ -250,9 +250,12 @@ apptainer-hpc-test: ## Run contract smoke test directly on HPC frontend (no ssh)
 		cargo run -q -p bijux-dna-dev -- containers run check-apptainer-frontend-smoke-proof -- "$(LUNARC_APPTAINER_DIR)"; \
 		tail -n 20 "$(LUNARC_APPTAINER_DIR)/logs/apptainer/summary.txt"
 
-apptainer-hpc-clean: ## Remove frontend apptainer output dir
+apptainer-hpc-clean: ## Remove an owned frontend Apptainer output directory
 	@set -euo pipefail; \
-		rm -rf "$(LUNARC_APPTAINER_DIR)"; \
-		echo "removed $(LUNARC_APPTAINER_DIR)"
+		test -d "$(LUNARC_FRONTEND_SENTINEL)" || { echo "refusing HPC-native cleanup off frontend" >&2; exit 2; }; \
+		python3 -c 'from pathlib import Path; import sys; base, selected = map(Path, sys.argv[1:]); all(value.is_absolute() for value in [base, selected]) or sys.exit("cleanup roots must be absolute"); not selected.is_symlink() or sys.exit("cleanup output must not be a symlink"); boundary, destination = base.resolve(), selected.resolve(); boundary != Path("/") and boundary in destination.parents or sys.exit("cleanup output must stay strictly inside the declared container root")' \
+			"$(BENCHMARK_REMOTE_CONTAINERS_ROOT)" "$(LUNARC_APPTAINER_DIR)"; \
+		rm -rf -- "$(LUNARC_APPTAINER_DIR)"; \
+		printf 'removed %s\n' "$(LUNARC_APPTAINER_DIR)"
 
 .PHONY: _benchmark-sync-push benchmark-sync-push push-lunarc benchmark-sync-push-confirm push-lunarc-confirm _benchmark-sync-pull benchmark-sync-pull pull-lunarc _benchmark-sync-pull-results benchmark-sync-pull-results pull-lunarc-results benchmark-sync-pull-results-prune pull-lunarc-results-prune benchmark-publication-refresh benchmark-lunarc-publication-refresh lunarc-footprint lunarc-prune-code apptainer-lunarc-build apptainer-lunarc-test apptainer-lunarc-pull apptainer-hpc-build apptainer-hpc-test apptainer-hpc-clean

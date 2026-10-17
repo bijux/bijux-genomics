@@ -11,6 +11,7 @@ artifacts, parameters, metrics, invariants, banks, observer semantics, and bench
 - Own adapter, contaminant, and polyX bank models, presets, selection, and provenance.
 - Expose observer parser contracts and stage/tool governance metadata without executing tools.
 - Provide FASTQ input discovery and benchmark corpus descriptors as domain metadata.
+- Retain path-based library operations that acquire FASTQ/table/report inputs and publish caller-selected outputs; see `docs/EFFECTS.md` for their filesystem scope.
 
 ## Boundaries
 

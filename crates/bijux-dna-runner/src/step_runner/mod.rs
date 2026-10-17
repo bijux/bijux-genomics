@@ -1,3 +1,5 @@
+use std::collections::BTreeMap;
+use std::ffi::OsString;
 use std::path::{Path, PathBuf};
 use std::time::Duration;
 
@@ -39,6 +41,7 @@ use identity::hash_inputs;
 use inputs::{common_parent, input_bind_roots, preserve_absolute_input_paths};
 pub use observer::execute_observer_command;
 use records::materialize_execution_records;
+use runtime_policy::StepRuntimeContext;
 
 /// Execute a single step using docker.
 ///
@@ -49,20 +52,32 @@ pub fn execute_step(
     runner: RuntimeKind,
     timeout: Option<Duration>,
 ) -> Result<StageResultV1> {
+    execute_step_with_context(step, runner, timeout, None)
+}
+
+/// Execute one step with invocation-owned child environment overrides.
+///
+/// The process environment is inherited for values absent from the supplied map.
+/// This does not change command binding or restricted-artifact admission semantics.
+///
+/// # Errors
+/// Returns the same admission, execution and artifact-publication errors as `execute_step`.
+pub fn execute_step_with_context(
+    step: &ExecutionStep,
+    runner: RuntimeKind,
+    timeout: Option<Duration>,
+    environment: Option<&BTreeMap<OsString, OsString>>,
+) -> Result<StageResultV1> {
     if let Some(tool_id) = bijux_dna_containers::api::external_artifact_tool_id(&step.image.image) {
         anyhow::bail!(
             "external artifact plan for {tool_id} requires execute_external_artifact_step"
         );
     }
-    execute_verified_step(step, runner, timeout)
-}
-
-fn execute_verified_step(
-    step: &ExecutionStep,
-    runner: RuntimeKind,
-    timeout: Option<Duration>,
-) -> Result<StageResultV1> {
-    execute_verified_step_with_runtime_executable(step, runner, timeout, None)
+    execute_verified_step_in_context(
+        step,
+        runner,
+        StepRuntimeContext { timeout, environment, executable: None },
+    )
 }
 
 fn execute_verified_step_with_runtime_executable(
@@ -71,21 +86,26 @@ fn execute_verified_step_with_runtime_executable(
     timeout: Option<Duration>,
     runtime_executable: Option<&Path>,
 ) -> Result<StageResultV1> {
+    execute_verified_step_in_context(
+        step,
+        runner,
+        StepRuntimeContext { timeout, environment: None, executable: runtime_executable },
+    )
+}
+
+fn execute_verified_step_in_context(
+    step: &ExecutionStep,
+    runner: RuntimeKind,
+    context: StepRuntimeContext<'_>,
+) -> Result<StageResultV1> {
     let out_dir = &step.out_dir;
     bijux_dna_infra::ensure_dir(out_dir)
         .map_err(|err| runner_failure(RunnerEffectKind::Filesystem, err.to_string()))?;
     let inputs: Vec<PathBuf> = step.io.inputs.iter().map(|input| input.path.clone()).collect();
     let input_root = common_parent(&inputs).unwrap_or_else(|| out_dir.clone());
-    let outcome = execute_step_outcome(
-        step,
-        runner,
-        &inputs,
-        &input_root,
-        out_dir,
-        timeout,
-        runtime_executable,
-    )?;
-    let (run_id, outputs) = materialize_step_records(step, runner, &outcome, &inputs)?;
+    let outcome = execute_step_outcome(step, runner, &inputs, &input_root, out_dir, context)?;
+    let (run_id, outputs) =
+        materialize_step_records(step, runner, &outcome, &inputs, context.environment)?;
 
     Ok(StageResultV1 {
         run_id,
@@ -105,6 +125,7 @@ fn materialize_step_records(
     runner: RuntimeKind,
     outcome: &StepExecutionOutcome,
     inputs: &[PathBuf],
+    environment: Option<&BTreeMap<OsString, OsString>>,
 ) -> Result<(String, Vec<PathBuf>)> {
     let outputs: Vec<PathBuf> = step.io.outputs.iter().map(|output| output.path.clone()).collect();
     let input_hashes = hash_inputs(inputs)?;
@@ -128,6 +149,7 @@ fn materialize_step_records(
         &outcome.stdout,
         &outcome.stderr,
         &params_fingerprint,
+        environment,
     )?;
     Ok((run_id, outputs))
 }

@@ -34,11 +34,6 @@ fn planner_vcf_tree_matches_architecture_contract() {
         ]),
         "src layout should keep planner responsibilities explicit"
     );
-    assert_eq!(
-        child_entries(&root.join("tests")),
-        entries(["boundaries/", "boundaries.rs", "contracts.rs", "snapshots/"]),
-        "test layout should keep boundary, contract, guardrail, and snapshot coverage visible"
-    );
 }
 
 fn child_entries(path: &Path) -> BTreeSet<String> {

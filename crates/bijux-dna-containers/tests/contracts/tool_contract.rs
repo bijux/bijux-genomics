@@ -470,3 +470,66 @@ fn hex_digest(bytes: &[u8]) -> String {
         output
     })
 }
+
+#[cfg(unix)]
+#[test]
+fn runtime_verification_rejects_changed_retained_images_with_original_error_priority() -> Result<()>
+{
+    use std::os::unix::fs::PermissionsExt as _;
+    let (output, prepared) = prepare("samtools")?;
+    for observation in ["exec", "inspect"] {
+        let fixture = output.path().join(observation);
+        fs::create_dir(&fixture)?;
+        let image = fixture.join("image.sif");
+        let image_bytes = b"immutable-image-A";
+        fs::write(&image, image_bytes)?;
+        let image_sha256 = hex_digest(&Sha256::digest(image_bytes));
+        let contract_path = fixture.join("contract.json");
+        bijux_dna_infra::atomic_write_json(&contract_path, &prepared.contract)?;
+        let original_contract_bytes = fs::read(&contract_path)?;
+        let labels_path = fixture.join("labels.json");
+        let labels = tool_contract_labels(&prepared.contract);
+        let provider = fixture.join("inspection-provider");
+        fs::write(&provider, format!("#!/bin/sh\ncase \"$1\" in exec) image=$4;; inspect) image=$3;; *) exit 64;; esac\nbase=${{image%/*}}\nprintf '%s\\n' \"$1\" >> \"$base/calls.txt\"\nif [ \"$1\" = {observation} ]; then printf substituted-image-B > \"$image\"; fi\ncase \"$1\" in exec) /bin/cat \"$base/contract.json\";; inspect) /bin/cat \"$base/labels.json\";; esac\n"))?;
+        fs::set_permissions(&provider, fs::Permissions::from_mode(0o700))?;
+        let calls = fixture.join("calls.txt");
+        let error =
+            verify_apptainer_tool_contract(&provider, &image, &"d".repeat(64), &prepared.contract)
+                .err()
+                .ok_or_else(|| anyhow::anyhow!("initial digest mismatch was admitted"))?;
+        assert!(error.to_string().contains("image digest mismatch"));
+        assert!(!calls.exists());
+        assert_eq!(fs::read(&image)?, image_bytes);
+        let mut stale_labels = labels.clone();
+        stale_labels.insert("io.bijux.tool-contract.version".to_string(), "stale".to_string());
+        bijux_dna_infra::atomic_write_json(
+            &labels_path,
+            &serde_json::json!({"data": {"attributes": {"labels": stale_labels}}}),
+        )?;
+        let error =
+            verify_apptainer_tool_contract(&provider, &image, &image_sha256, &prepared.contract)
+                .err()
+                .ok_or_else(|| anyhow::anyhow!("label mismatch was admitted"))?;
+        assert!(error.to_string().contains("mismatches embedded contract"));
+        assert_eq!(fs::read_to_string(&calls)?, "exec\ninspect\n");
+        assert_ne!(hex_digest(&Sha256::digest(fs::read(&image)?)), image_sha256);
+        fs::write(&image, image_bytes)?;
+        fs::remove_file(&calls)?;
+        bijux_dna_infra::atomic_write_json(
+            &labels_path,
+            &serde_json::json!({"data": {"attributes": {"labels": labels}}}),
+        )?;
+        let error =
+            verify_apptainer_tool_contract(&provider, &image, &image_sha256, &prepared.contract)
+                .err()
+                .ok_or_else(|| anyhow::anyhow!("changed retained image was admitted"))?;
+        assert!(error.to_string().contains("image digest changed during tool-contract inspection"));
+        assert_eq!(fs::read_to_string(&calls)?, "exec\ninspect\n");
+        assert_ne!(hex_digest(&Sha256::digest(fs::read(&image)?)), image_sha256);
+        assert_eq!(fs::read(&contract_path)?, original_contract_bytes);
+    }
+    Ok(())
+}
+
+#[path = "tool_contract/definition_lint.rs"]
+mod definition_lint;

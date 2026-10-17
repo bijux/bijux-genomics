@@ -47,6 +47,24 @@ The docs allowance is exactly 10 files:
 - `src/report/`: report construction, benchmark views, sections, render model, and renderers
 - `src/semantics/`: metric semantics and missing-data policy
 
+## Evidence bundle ownership
+`src/exports/evidence_bundle.rs` retains the stable evidence export surface through private
+responsibility owners:
+
+- `evidence_bundle/model.rs`: versioned evidence, profile, comparison, and reviewer records
+- `evidence_bundle/construction.rs`: completed-run acquisition and evidence projection construction
+- `evidence_bundle/verification.rs`: typed profile validation and live evidence/file verification
+- `evidence_bundle/publication.rs`: evidence, methods, and profile composition and publication
+- `evidence_bundle/reviewer_challenges.rs`: reference validation and the clocked reviewer journal
+- `evidence_bundle/comparison.rs`: bundle acquisition and deterministic evidence comparison
+
+The records do not depend on acquisition or publication. Construction, verification, comparison,
+and the reviewer journal depend on those records. Publication composes construction and verification;
+it does not coordinate workflow execution or scheduler state. Typed profile validation remains free
+of acquisition, while file verification and publication keep their existing effects and order.
+`exports/mod.rs`, the public API, and API/CLI callers keep their existing exports. Existing evidence
+contracts remain registered once in `tests/contracts.rs`; see `docs/TESTS.md` for the suite map.
+
 ## Test Layout
 - `tests/boundaries.rs`: source tree, docs layout, public surface, ownership, and layering
 - `tests/contracts.rs`: report, facts, metrics, pipeline, dashboard, loader, and API contracts

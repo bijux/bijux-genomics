@@ -23,9 +23,6 @@ pub const VCF_EAGLE_ADAPTER_SCHEMA_VERSION: &str = "bijux.bench.readiness.vcf_ea
 
 pub const VCF_BEAGLE_ADAPTER_SCHEMA_VERSION: &str = "bijux.bench.readiness.vcf_beagle_adapter.v1";
 
-pub(super) const GOVERNED_COHORT_VCF_PATH: &str =
-    "benchmarks/tests/fixtures/corpora/vcf-mini/variants/vcf_mini_multisample.vcf";
-
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub struct VcfPhasingFamilyAdapterArtifact {
     pub artifact_id: String,

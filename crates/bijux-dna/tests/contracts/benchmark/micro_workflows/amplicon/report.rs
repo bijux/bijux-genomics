@@ -12,7 +12,7 @@ fn bench_local_amplicon_micro_pipeline_reports_validated_amplicon_outputs() {
     let _crate_root = support::crate_root("bijux-dna").expect("crate root");
     let repo_root = support::repo_root().expect("repo root");
 
-    let output = Command::new(env!("CARGO_BIN_EXE_bijux-dna"))
+    let output = Command::new(support::cli_binary_path())
         .current_dir(&repo_root)
         .env("BIJUX_SKIP_QA", "1")
         .env("BIJUX_ALLOW_SILVER", "1")

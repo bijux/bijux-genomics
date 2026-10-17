@@ -7,7 +7,10 @@ use std::time::Duration;
 
 use anyhow::{bail, Context, Result};
 
-use super::apptainer_smoke::{run_apptainer_smoke, ApptainerSmokeManifest, ApptainerSmokeRequest};
+use super::apptainer_smoke::{
+    run_apptainer_smoke, validate_successful_manifest, ApptainerSmokeManifest,
+    ApptainerSmokeRequest,
+};
 use bijux_dna_containers::api::{
     clean_repository_head_commit, derive_apptainer_tool_contract, load_container_catalog,
     load_image_inventory_publication, load_runtime_verification_publication,
@@ -227,7 +230,13 @@ fn partition_runtime_tasks(
             pending.push(task.clone());
             continue;
         }
-        verify_reused_evidence(request, &task.tool_id, evidence)?;
+        verify_reused_evidence(
+            request,
+            task,
+            &baseline.repository_commit,
+            catalog_sha256,
+            evidence,
+        )?;
         reused.insert(task.tool_id.clone(), evidence.clone());
     }
     Ok((reused, pending))
@@ -235,9 +244,12 @@ fn partition_runtime_tasks(
 
 fn verify_reused_evidence(
     request: &RuntimeVerificationRequest,
-    tool_id: &str,
+    task: &ToolTask,
+    commit: &str,
+    catalog_sha256: &str,
     evidence: &ContainerRuntimeEvidence,
 ) -> Result<()> {
+    let tool_id = &task.tool_id;
     for (label, source) in
         [("identity", evidence.identity.as_ref()), ("manifest", evidence.manifest.as_ref())]
     {
@@ -250,8 +262,18 @@ fn verify_reused_evidence(
         if metadata.file_type().is_symlink() || !metadata.is_file() {
             bail!("runtime baseline {label} for {tool_id} is not a regular file");
         }
-        if bijux_dna_infra::hash_file_sha256(&path)? != source.sha256 {
+        let bytes = fs::read(&path)
+            .with_context(|| format!("read runtime baseline {label} for {tool_id}"))?;
+        if bijux_dna_infra::hash_bytes_sha256(&bytes) != source.sha256 {
             bail!("runtime baseline {label} digest differs for {tool_id}");
+        }
+        if label == "manifest" {
+            let manifest: ApptainerSmokeManifest = serde_json::from_slice(&bytes)
+                .with_context(|| format!("parse runtime baseline manifest for {tool_id}"))?;
+            validate_manifest(request, &manifest, task, commit, catalog_sha256)?;
+            if manifest.status != "ok" {
+                bail!("runtime baseline manifest is not successful for {tool_id}");
+            }
         }
     }
     Ok(())
@@ -349,33 +371,12 @@ fn execute_tool(
             .with_context(|| format!("read runtime manifest {}", manifest_path.display()))?;
         let manifest: ApptainerSmokeManifest = serde_json::from_slice(&bytes)
             .with_context(|| format!("parse runtime manifest {}", manifest_path.display()))?;
-        validate_manifest(&manifest, task, commit, catalog_sha256)?;
+        validate_manifest(request, &manifest, task, commit, catalog_sha256)?;
         manifest
     } else {
         let results_root = request.evidence_root.join("results").join(&task.tool_id);
-        let log_root = request.evidence_root.join("logs").join(&task.tool_id);
         bijux_dna_infra::ensure_dir(&results_root)?;
-        let manifest = run_apptainer_smoke(&ApptainerSmokeRequest {
-            executable: request.apptainer_executable.clone(),
-            image_path: task.image_path.clone(),
-            data_root: request.data_root.clone(),
-            results_root,
-            tool_id: task.tool_id.clone(),
-            stage_id: "catalog.retained".to_string(),
-            build_evidence_id: task.contract.build_evidence_id.clone(),
-            repository_commit: commit.to_string(),
-            registry_digest: catalog_sha256.to_string(),
-            image_sha256: task.image_sha256.clone(),
-            version_command: task.contract.version_command.clone(),
-            expected_version_regex: task.contract.expected_version_regex.clone(),
-            help_command: task.help_command.clone(),
-            require_help: true,
-            probe_commands: Vec::new(),
-            java_heap_mb: None,
-            upstream: task.upstream.clone(),
-            evidence_root: Some(log_root),
-            timeout: request.timeout,
-        })?;
+        let manifest = run_apptainer_smoke(&smoke_request(request, task, commit, catalog_sha256))?;
         ensure_immutable_json(&manifest_path, &manifest)?;
         manifest
     };
@@ -400,7 +401,37 @@ fn execute_tool(
     })
 }
 
+fn smoke_request(
+    request: &RuntimeVerificationRequest,
+    task: &ToolTask,
+    commit: &str,
+    catalog_sha256: &str,
+) -> ApptainerSmokeRequest {
+    ApptainerSmokeRequest {
+        executable: request.apptainer_executable.clone(),
+        image_path: task.image_path.clone(),
+        data_root: request.data_root.clone(),
+        results_root: request.evidence_root.join("results").join(&task.tool_id),
+        tool_id: task.tool_id.clone(),
+        stage_id: "catalog.retained".to_string(),
+        build_evidence_id: task.contract.build_evidence_id.clone(),
+        repository_commit: commit.to_string(),
+        registry_digest: catalog_sha256.to_string(),
+        image_sha256: task.image_sha256.clone(),
+        version_command: task.contract.version_command.clone(),
+        expected_version_regex: task.contract.expected_version_regex.clone(),
+        help_command: task.help_command.clone(),
+        require_help: true,
+        probe_commands: Vec::new(),
+        java_heap_mb: None,
+        upstream: task.upstream.clone(),
+        evidence_root: Some(request.evidence_root.join("logs").join(&task.tool_id)),
+        timeout: request.timeout,
+    }
+}
+
 fn validate_manifest(
+    request: &RuntimeVerificationRequest,
     manifest: &ApptainerSmokeManifest,
     task: &ToolTask,
     commit: &str,
@@ -416,6 +447,12 @@ fn validate_manifest(
         || manifest.expected_version_regex != task.contract.expected_version_regex
     {
         bail!("runtime manifest identity differs from requested tool evidence");
+    }
+    if manifest.status == "ok" {
+        validate_successful_manifest(
+            manifest,
+            &smoke_request(request, task, commit, catalog_sha256),
+        )?;
     }
     Ok(())
 }

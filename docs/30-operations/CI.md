@@ -139,3 +139,93 @@ time remain part of the measured command; no hosted timing claim follows from
 using local products.
 
 The full profile starts the seven isolated readiness/report suites at priority 100. Their long workflows begin early in the existing worker pool; ordinary cases remain priority 0. Prioritization preserves exact case selection, worker limits, retries and isolation groups, and expresses no dependency between tests. Full source-bound timings still include compilation, discovery and cleanup.
+
+## Complete local test acceptance
+
+`make test-complete` (or `bijux-dna-dev tooling run ci-test-complete`) runs the complete
+local test catalog in `configs/ci/local-test-lanes.json`: full Nextest membership including
+ignored cases, all Cargo doctest targets and examples, ordinary pytest cases, workflow
+unittest cases, and developer/docs-asset unittest cases. `test-all` retains its Rust-only
+meaning. This command does not include lint, release, remote HPC or site qualification.
+
+Run from committed clean source. The command refuses uncaptured untracked product inputs,
+records the candidate source and exact native membership, and replaces stale successful
+aggregate evidence before source/catalog/runtime/budget admission. Its terminal aggregate
+is `artifacts/ci/local-test-gate.json`; unique run logs and case receipts remain under
+`artifacts/ci/local-tests/source/artifacts/ci/local-tests/`. Missing, duplicated, skipped,
+failed, truncated, changed or unqualified lane evidence prevents successful acceptance.
+A failed Nextest assertion remains failed while its terminal dependency permits doctests.
+
+The default CPU budget reserves one hardware worker for foreground work.
+`BIJUX_CI_COMPLETE_WORKER_BUDGET` may reduce that positive budget and must remain below
+hardware capacity. Every effective lane allocation must fit it. Full Nextest defaults to
+eight native worker units, four commands with two case threads, and the configured eight
+compiler jobs. Existing full-shard and Cargo controls can explicitly reduce those allocations
+without changing the five partitions or case roster. The five-lane process limit and weighted
+admission bound active known worker demand. The default records CPU-only admission.
+
+For six complete worker units, admit four native units, two Nextest commands with two case
+threads each, and two compiler jobs:
+
+```sh
+BIJUX_CI_COMPLETE_WORKER_BUDGET=6 \
+BIJUX_CI_FULL_WORKER_BUDGET=4 \
+BIJUX_CI_FULL_SHARD_JOBS=2 \
+BIJUX_CI_FULL_SHARD_TEST_THREADS=2 \
+CARGO_BUILD_JOBS=2 bijux-dna-dev tooling run ci-test-complete
+```
+
+A provisioned request for this invocation must also declare six CPU worker units and bind
+the current clean source and catalog. If native capacity is explicitly reduced and command
+count is absent, the default command count is reduced to fit; explicit conflicting settings
+are refused. Positive decimal controls are captured before setup, sealed in the execution
+plan and lane inputs, forwarded to the native executor, and compared with terminal receipts.
+An inherited eight-unit native control is refused under a six-unit complete budget.
+Command count is a ceiling for weighted admission: commands wait until their startup
+reservation fits. For example, four native units can admit a ceiling of three commands
+with two requested case threads each. Every chunk reserves its paired listing demand;
+its case threads are capped by its exact selected case count. A single-binary chunk with
+one case thread releases the spare listing unit only after its admitted suite starts.
+This permits at most three simultaneous one-thread case processes under four native units;
+it does not promise that every workload reaches the worker ceiling. Workspace dependencies
+and complete lane RAM, disk and IO reservations remain in force.
+Compiler overrides apply to local products, cannot exceed the configured producer authority
+or native allocation, and leave archive transport controls unchanged. Python fixture builds
+retain their separate two-job allocation. Known native demand includes two listing children
+per binary and declared case slots; parent runtimes and threads spawned inside test bodies
+are not a hard OS CPU or process guarantee.
+
+For explicit resource accounting, pass `--resource-request artifacts/ci/provisioned-resources.json`
+to the developer command. The request binds the clean candidate SHA, tree, empty-patch digest
+and actual catalog digest to caller-provisioned allocations for every required lane.
+
+Provisioned admission checks available RAM and free artifact disk, reserves foreground and
+coordinator capacity plus retained cache/output growth, and delays CPU-ready work until its
+RAM, scratch and IO allocation fits. Top-level process slots include the coordinator.
+The request must use `bijux.ci.provisioned_resources.v1`, set `measurement_claim` to false,
+and name its provision authority; declared allocations are not measured workload peaks.
+Source/catalog drift, missing or duplicate lanes, arithmetic overflow, unavailable capacity
+and a changed request prevent acceptance. Regenerate the request after source/catalog changes.
+
+These reservations provide logical admission. They do not impose hard limits on actual RSS,
+disk writes, IO rates or nested OS processes; external load can change observed capacity.
+Cargo/test worker bounds remain separate. Qualify chosen allocations under the declared runner
+conditions, including possible cold doctest rebuilds and persistent logs and products.
+
+A command-wide lease protects the stable input checkout. Nextest and doctests take successive
+exclusive leases on the same retained compilation cache. Source and executable manifests
+must qualify reuse independently of assertion outcomes. If Nextest producer admission fails,
+doctests may rebuild under their own admitted lease; the reason and elapsed cost are recorded.
+The five-minute clock includes admission, source/runtime hashing, setup, compilation,
+execution and aggregation. A warm cache alone does not establish a five-minute result.
+
+Python discovery uses actual test files and native case identities; the roster is not a fixed
+count. The command binds the configured `PYTHON` interpreter or an existing repository-owned
+checks environment, and the configured `BIJUX_GATE_TEST_BASH` or an existing owned Bash.
+It does not install global tools. Ruby/Psych, compiler, interpreter packages, dynamic providers
+and operating-system build identities are recorded. Disable ambient pytest plugin/addopts
+selection and use a fresh owned bytecode/scratch root. Successful Python receipts can be
+adopted across unrelated source changes only when current native discovery, source/environment/
+provider manifests and unchanged native outcome artifacts establish equivalence. The original
+source receipt remains unchanged; candidate equivalence is a separate artifact. Older receipts
+without the required closure and provider evidence are rerun.

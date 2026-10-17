@@ -26,7 +26,7 @@ fn slow__policy__contracts__toy_golden_runs_policy__toy_inputs_and_goldens_are_d
 #[test]
 fn slow__policy__contracts__toy_golden_runs_policy__golden_refresh_requires_accept_flag() {
     let root = support::workspace_root();
-    let status = support::workspace_binary_command(&root, "bijux-dna-dev", "bijux-dna-dev")
+    let output = support::workspace_binary_command(&root, "bijux-dna-dev", "bijux-dna-dev")
         .unwrap_or_else(|error| panic!("resolve developer executable: {error}"))
         .arg("test")
         .arg("run")
@@ -37,11 +37,16 @@ fn slow__policy__contracts__toy_golden_runs_policy__golden_refresh_requires_acce
         .arg("all")
         .arg("--out")
         .arg(root.join("artifacts/toy_policy_check_refresh"))
-        .status()
+        .output()
         .unwrap_or_else(|err| {
             panic!("run bijux-dna-dev test run toy-runs refresh without accept: {err}")
         });
-    assert!(!status.success(), "toy golden refresh must fail without --accept");
+    assert!(!output.status.success(), "toy golden refresh must fail without --accept");
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        stderr.contains("golden refresh refused: pass --accept"),
+        "refresh must reach the actual --accept refusal, stderr={stderr}"
+    );
 }
 
 #[test]

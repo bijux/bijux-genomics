@@ -26,7 +26,9 @@ Short playbooks reduce triage time and keep enforcement consistent.
 6. **no_serde_json_writer**: raw JSON write → use canonical writer.
 7. **id_literal_policy**: string IDs → use core IDs.
 8. **no_helpers_policy**: helpers.rs found → rename.
-9. **no_thin_modules_policy**: mod.rs only dir → collapse/expand.
+9. **no_empty_dirs_policy**: empty directory or unresolved compact namespace → remove
+   the empty directory or make each module declaration resolve to a real source file.
+   If a fixture directory contains only `.keep`, record its purpose in that file.
 10. **ssot_catalog_authority**: duplicate IDs → move to owner.
 
 Each failure summary stays aligned with those authorities instead of re-describing the

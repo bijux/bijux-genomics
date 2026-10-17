@@ -12,6 +12,7 @@ use bijux_dna_domain_fastq::params::filter::FilterEffectiveParams;
 use bijux_dna_domain_fastq::params::merge::MergeEffectiveParams;
 use bijux_dna_domain_fastq::params::preprocess::PreprocessEffectiveParams;
 use bijux_dna_domain_fastq::params::qc_post::QcPostEffectiveParams;
+use bijux_dna_domain_fastq::params::quality::filter_low_complexity::FilterLowComplexityEffectiveParams;
 use bijux_dna_domain_fastq::params::screen::{
     HostDepletionEffectiveParams, ReferenceContaminantEffectiveParams, RrnaEffectiveParams,
     ScreenEffectiveParams,
@@ -40,6 +41,7 @@ pub enum DefaultParams {
     FastqTrimTerminalDamage(TrimTerminalDamageParams),
     FastqTrimPolygTails(TrimPolygTailsParams),
     FastqFilter(FilterEffectiveParams),
+    FastqFilterLowComplexity(FilterLowComplexityEffectiveParams),
     FastqOverrepresentedProfile(FastqOverrepresentedProfileParams),
     FastqQcPost(QcPostEffectiveParams),
     FastqPreprocess(PreprocessEffectiveParams),

@@ -46,7 +46,7 @@ pub mod stage_api {
         load_bam_domain_tool_planning_spec, load_bam_domain_tool_stage_output_contract,
         BamDomainToolContractMetadata, BamDomainToolDefinition, BamDomainToolStageOutputContract,
         BamDomainToolSupportLevel, BamOutputDeclarationAssessment, BamToolAdapterStatus,
-        BamToolContractStatus, BamToolDefinitionReadiness,
+        BamToolContractStatus, BamToolDefinitionReadiness, BamToolRegistryObservation,
     };
     pub use crate::stage_dispatch::plan_stage_at;
     pub use crate::stages::stage_registry;

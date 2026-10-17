@@ -2,6 +2,10 @@ use serde::Serialize;
 use std::collections::BTreeMap;
 // Compatible readiness wire records expose independent observed surfaces and smoke facts.
 #[derive(Debug, Clone, Serialize)]
+#[allow(
+    clippy::struct_excessive_bools,
+    reason = "Independent readiness facts retain their established flat serialized field identities."
+)]
 pub struct VcfCallReadyRow {
     pub result_id: String,
     pub stage_id: String,

@@ -25,6 +25,19 @@ Contracts:
   - Must document commands that already exist in the shipped CLI surface.
 - Corpora directories are input assets, not runnable examples, and must not be added to `examples/index.yaml`.
 
+## Bundle execution scope
+
+`examples run run` assembles a deterministic bundle from the example's governed
+golden files. Success means those inputs were copied, the archive was created,
+and the copied plan, explanation, and report match their golden bytes. The command
+does not execute the illustrated pipeline, build images, or establish scientific
+truth. Stage and container lists in example READMEs describe the illustrated
+workflow; they are not execution receipts from this bundle command.
+
+The existing `run_report.json` `steps` labels describe that workflow. Its `status`
+applies to bundle assembly. Use actual pipeline command outputs and their governed
+verification surfaces for claims about executed stages or external providers.
+
 ## Notebook Optional Path Rule
 - Notebooks are optional convenience artifacts only.
 - No example correctness contract may require `notebook.ipynb`.

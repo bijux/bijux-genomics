@@ -1,11 +1,12 @@
-use std::path::Path;
-
 use bijux_dna_domain_bam::metrics::BamMetricsV1;
 
 use super::discovery;
 
-pub(super) fn parse_coverage_metrics(out_dir: &Path, metrics: &mut BamMetricsV1) {
-    let stats_path = discovery::first_existing(out_dir, &["samtools_stats.txt"]);
+pub(super) fn parse_coverage_metrics(
+    inputs: &discovery::MetricInputs<'_>,
+    metrics: &mut BamMetricsV1,
+) {
+    let stats_path = discovery::first_existing(inputs, &["samtools_stats.txt"]);
     if let Some(path) = stats_path {
         if let Ok((fragment, mapq)) = bijux_dna_domain_bam::metrics::parse_samtools_stats(&path) {
             metrics.fragment_length = fragment;
@@ -13,7 +14,7 @@ pub(super) fn parse_coverage_metrics(out_dir: &Path, metrics: &mut BamMetricsV1)
         }
     }
     let mosdepth_path = discovery::first_existing(
-        out_dir,
+        inputs,
         &["coverage.mosdepth.summary.txt", "mosdepth.summary.txt"],
     );
     if let Some(path) = mosdepth_path {
@@ -21,7 +22,7 @@ pub(super) fn parse_coverage_metrics(out_dir: &Path, metrics: &mut BamMetricsV1)
             metrics.coverage = coverage;
         }
     } else {
-        let depth_path = discovery::first_existing(out_dir, &["coverage.depth.txt", "depth.txt"]);
+        let depth_path = discovery::first_existing(inputs, &["coverage.depth.txt", "depth.txt"]);
         if let Some(path) = depth_path {
             if let Ok((coverage, uniformity)) =
                 bijux_dna_domain_bam::metrics::parse_samtools_depth_with_uniformity(&path)

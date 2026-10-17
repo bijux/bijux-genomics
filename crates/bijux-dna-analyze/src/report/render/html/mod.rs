@@ -6,7 +6,9 @@ mod template;
 use crate::report::render_model::ReportModel;
 use anyhow::Result;
 
-use sections::{build_nav_items, build_section_blocks, build_stage_panels, build_stage_tabs};
+use sections::{
+    build_nav_items, build_section_blocks, build_stage_panels, build_stage_tabs, escape_html,
+};
 use template::build_html_template;
 
 #[allow(dead_code)]
@@ -38,7 +40,7 @@ pub fn render_report_html(model: &ReportModel) -> Result<String> {
             }
         }
     }
-    let report_json = serde_json::to_string_pretty(&report_json_value)?;
+    let report_json = escape_script_json(&serde_json::to_string_pretty(&report_json_value)?);
     let sections = report.sections.as_object().cloned().unwrap_or_default();
     let mut section_keys: Vec<String> = sections.keys().cloned().collect();
     section_keys.sort();
@@ -54,10 +56,10 @@ pub fn render_report_html(model: &ReportModel) -> Result<String> {
     let stage_panels = build_stage_panels(&stages);
 
     let stage_plots = sections.get("stage_plots").cloned().unwrap_or_else(|| serde_json::json!({}));
-    let stage_plots_json = serde_json::to_string(&stage_plots)?;
+    let stage_plots_json = escape_script_json(&serde_json::to_string(&stage_plots)?);
     let reproducibility =
         sections.get("reproducibility").cloned().unwrap_or_else(|| serde_json::json!({}));
-    let repro_json = serde_json::to_string_pretty(&reproducibility)?;
+    let repro_json = escape_html(&serde_json::to_string_pretty(&reproducibility)?);
     let command =
         reproducibility.get("command").and_then(serde_json::Value::as_str).unwrap_or("unknown");
 
@@ -69,8 +71,18 @@ pub fn render_report_html(model: &ReportModel) -> Result<String> {
         &stage_panels,
         &stage_plots_json,
         &repro_json,
-        command,
+        &escape_html(command),
+        &escape_script_json(&serde_json::to_string(command)?),
     ))
+}
+
+fn escape_script_json(value: &str) -> String {
+    value
+        .replace('<', r"\u003c")
+        .replace('>', r"\u003e")
+        .replace('&', r"\u0026")
+        .replace('\u{2028}', r"\u2028")
+        .replace('\u{2029}', r"\u2029")
 }
 
 #[allow(dead_code)]

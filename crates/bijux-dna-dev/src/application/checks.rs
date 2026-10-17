@@ -8,6 +8,48 @@ use crate::model::check::{
 use crate::runtime::workspace::Workspace;
 
 mod execution_adapters;
+mod policy_observations;
+
+use policy_observations::{CargoTestKey, CargoTestObservation, RequestPolicyObservations};
+
+trait CheckExecutor {
+    fn observe_cargo(
+        &mut self,
+        workspace: &Workspace,
+        key: CargoTestKey,
+    ) -> Result<CargoTestObservation>;
+    fn execute_effect(
+        &mut self,
+        workspace: &Workspace,
+        check: &CheckDefinition,
+    ) -> Result<CheckOutcome>;
+}
+
+struct ProductionExecution;
+
+impl CheckExecutor for ProductionExecution {
+    fn observe_cargo(
+        &mut self,
+        workspace: &Workspace,
+        key: CargoTestKey,
+    ) -> Result<CargoTestObservation> {
+        execution_adapters::observe_cargo_test(workspace, key.package, key.test_bin, key.filter)
+    }
+
+    fn execute_effect(
+        &mut self,
+        workspace: &Workspace,
+        check: &CheckDefinition,
+    ) -> Result<CheckOutcome> {
+        match &check.command {
+            CommandSpec::Process { program, args } => {
+                execution_adapters::run_process(workspace, check, program, args)
+            }
+            CommandSpec::Native { key } => run_native_check(*key, workspace, check),
+            _ => Err(anyhow!("expected an effectful check `{}`", check.id)),
+        }
+    }
+}
 
 #[derive(Debug)]
 pub struct CheckApplication {
@@ -29,12 +71,21 @@ impl CheckApplication {
     /// # Errors
     /// Returns an error if registry resolution or check execution fails.
     pub fn run_selection(&self, selection: CheckSelection) -> Result<Vec<CheckOutcome>> {
-        let registry = Self::registry();
+        self.run_selection_with(&Self::registry(), selection, &mut ProductionExecution)
+    }
+
+    fn run_selection_with<E: CheckExecutor>(
+        &self,
+        registry: &[CheckDefinition],
+        selection: CheckSelection,
+        executor: &mut E,
+    ) -> Result<Vec<CheckOutcome>> {
+        let mut observations = RequestPolicyObservations::default();
         match selection {
             CheckSelection::All => registry
                 .iter()
                 .filter(|check| check.execution_mode == ExecutionMode::Primary)
-                .map(|check| self.run_check(&registry, check))
+                .map(|check| self.run_check(registry, check, executor, &mut observations))
                 .collect(),
             CheckSelection::Single(id) => {
                 let check = registry
@@ -43,39 +94,42 @@ impl CheckApplication {
                         candidate.id == id || candidate.aliases.contains(&id.as_str())
                     })
                     .ok_or_else(|| anyhow!("unknown check id `{id}`"))?;
-                Ok(vec![self.run_check(&registry, check)?])
+                Ok(vec![self.run_check(registry, check, executor, &mut observations)?])
             }
         }
     }
 
-    fn run_check(
+    fn run_check<E: CheckExecutor>(
         &self,
         registry: &[CheckDefinition],
         check: &CheckDefinition,
+        executor: &mut E,
+        observations: &mut RequestPolicyObservations,
     ) -> Result<CheckOutcome> {
         let outcome = match &check.command {
             CommandSpec::CargoTest { package, test_bin, filter } => {
-                execution_adapters::run_cargo_test(
-                    &self.workspace,
-                    check,
-                    package,
-                    test_bin,
-                    filter,
-                )
+                let key = CargoTestKey { package, test_bin, filter };
+                Ok(observations
+                    .observe(key, || executor.observe_cargo(&self.workspace, key))
+                    .for_check(check.id))
             }
-            CommandSpec::Process { program, args } => {
-                execution_adapters::run_process(&self.workspace, check, program, args)
+            CommandSpec::Process { .. } | CommandSpec::Native { .. } => {
+                observations.clear();
+                let result = executor.execute_effect(&self.workspace, check);
+                observations.clear();
+                result
             }
-            CommandSpec::Native { key } => run_native_check(*key, &self.workspace, check),
             CommandSpec::Composite { members } => {
+                observations.clear();
                 let mut children = Vec::new();
                 for member in *members {
                     let nested = registry
                         .iter()
                         .find(|candidate| candidate.id == *member)
                         .ok_or_else(|| anyhow!("missing composite member `{member}`"))?;
-                    children.push(self.run_check(registry, nested)?);
+                    children.push(self.run_check(registry, nested, executor, observations)?);
                 }
+                observations.clear();
                 let status = if children.iter().all(|child| child.status == CheckStatus::Passed) {
                     CheckStatus::Passed
                 } else {
@@ -130,3 +184,6 @@ mod tests {
         }
     }
 }
+
+#[cfg(test)]
+mod request_observation_contracts;

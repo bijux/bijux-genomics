@@ -37,9 +37,21 @@
 - `src/runtime/run/reporting/` owns dry-run, execute, status, replay, report
   rendering, plan response materialization, summary artifacts, and workspace
   audit output.
+- `src/runtime/run/reporting/workspace_audit/` separates declared member-manifest
+  acquisition from typed dependency-map composition and publication. Cargo metadata
+  acquisition stays in `workspace_audit.rs`; source-bound callers supply a root and
+  reject metadata resolved from another workspace. Crate-cycle policy remains in
+  `bijux-dna-policies`; the CLI retains cycle-report and effect-audit entrypoints.
+- `src/runtime/run/reporting/workspace_audit/metric_registry.rs` owns governed
+  FASTQ/BAM YAML metric acquisition, the domain-owned VCF metric-contract projection,
+  reconciliation, and atomic TSV publication. The CLI retains command dispatch and
+  the separate VCF proof invocation. Report DTOs remain beside their publication
+  owner, as with the workspace dependency map, and are curated through the v1 front door.
 - `src/support/` contains API-local support for benchmark runtime selection,
-  QA gates, reference resolution, tool selection, and workspace registry/root
-  resolution.
+  QA compatibility hooks, reference resolution, tool selection, and workspace
+  registry/root resolution. The compatibility hooks validate a nonempty stage
+  identity but do not enforce image or tool QA records. Explicit QA probes and
+  their persisted evidence belong to `bijux-dna-containers-qa`.
 - `src/internal/` contains private cross-domain and FASTQ handler wiring.
 
 ## Test Layout

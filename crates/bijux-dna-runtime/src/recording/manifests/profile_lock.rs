@@ -2,7 +2,7 @@ use std::path::Path;
 
 use anyhow::{anyhow, Context, Result};
 
-use super::super::io::{hash_file_sha256, write_canonical_json};
+use super::super::io::write_canonical_json;
 use super::manifest_identity::{canonical_sha256, declared_json_array};
 
 /// # Errors
@@ -39,7 +39,7 @@ pub fn write_profile_and_lock_manifests(run_manifest_path: &Path) -> Result<()> 
         }
     });
     let profile_manifest_hash = canonical_sha256(&profile_manifest)?;
-    let run_manifest_hash = hash_file_sha256(run_manifest_path)?;
+    let run_manifest_hash = bijux_dna_infra::hash_bytes_sha256(raw.as_bytes());
     let mut resolved_tools = declared_json_array(&run_manifest, "tool_invocations")?
         .iter()
         .map(|inv| {

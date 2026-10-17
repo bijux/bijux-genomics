@@ -28,13 +28,13 @@ pub(in crate::readiness) fn build_bam_damage_authenticity_ready_report(
     let published = PublishedSources::acquire(context)?;
     let schema_contracts =
         collect_bam_stage_schema_contracts(&context.declarations.schema()?, expected_stage_ids())?;
-    let local_smoke_by_stage = collect_local_smoke_proofs(context)?;
 
     let scope = RetainedScope::new(
         "BAM damage/authenticity",
         BAM_BINDING_SPECS.iter().map(|spec| (spec.stage_id, spec.tool_id)),
     );
     let indexed = IndexedSources::admit(&scope, published, schema_contracts)?;
+    let local_smoke_by_stage = collect_local_smoke_proofs(context)?;
 
     let mut rows = Vec::with_capacity(BAM_BINDING_SPECS.len());
     for spec in BAM_BINDING_SPECS {

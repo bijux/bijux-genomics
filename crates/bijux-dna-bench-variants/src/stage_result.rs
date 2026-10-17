@@ -1,4 +1,4 @@
-//! Owner: bijux-dna-bench-haplotypes
+//! Owner: bijux-dna-bench-variants
 //! Persisted stage-result contracts belong to the benchmark model crate.
 use std::path::Path;
 

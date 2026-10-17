@@ -19,6 +19,14 @@ Accepted schema constants are exported from `schema`:
 - `bijux.science.binding.v1`
 - `bijux.science.release.v1`
 
+Typed science IDs are JSON/YAML strings whose required prefixes are `source.`,
+`evidence.`, `claim.`, `assumption.`, `reasoning.`, `decision.`, `binding.`, and
+`release.`. Parsing and deserialization both require a nonempty suffix, reject
+`..`, and allow only lowercase ASCII letters, digits, `.` and `-`. Accepted
+spelling is preserved during serialization, including a trailing `.` or `-`.
+Identifiers use domain names such as `source.science.docs.github-repo-manifest`;
+logical archive locators such as `science/docs/**` remain separate fields.
+
 ## Compiled Model
 
 `compile::compile_workspace` loads authored specs, validates cross references, and

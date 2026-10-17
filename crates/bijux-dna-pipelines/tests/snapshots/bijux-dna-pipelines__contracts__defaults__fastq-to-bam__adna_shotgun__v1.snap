@@ -480,8 +480,8 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "aligner": "bwa",
       "build_indices": false,
       "emit_stats": true,
-      "mode": "end_to_end",
-      "preset": "default",
+      "mode": "seeded_short_read",
+      "preset": "adna_short",
       "read_group": {
         "id": "sample.rg1",
         "lane_id": "L001",
@@ -496,7 +496,7 @@ expression: "bijux_dna_testkit::snapshot_normalize_json(&json)"
       "rg_policy": "regenerate",
       "seed_length": null,
       "sensitivity_profile": "default",
-      "strategy_id": "bwa_mem_default",
+      "strategy_id": "bwa_aln_adna_short",
       "threads": 1
     },
     "bam.authenticity": {

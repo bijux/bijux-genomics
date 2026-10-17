@@ -6,7 +6,6 @@ mod alias_resolution;
 mod appraisal;
 mod attempt_migration;
 mod bam_alignment;
-mod bam_campaign;
 mod bam_coverage;
 mod bam_damage;
 mod bam_diversity_catalog;
@@ -77,13 +76,18 @@ mod workspace_layout;
 
 pub use pipeline_profiles::{validate_benchmark_pipeline_profiles, PipelineProfileEvidence};
 
+pub use crate::repo::bam_campaign::{
+    load_bam_benchmark_campaign_report, publish_bam_benchmark_campaign_report,
+};
 pub use crate::repo::hardening_campaign::{
     load_hardening_benchmark_campaign_report, publish_hardening_benchmark_campaign_report,
 };
 pub use alias_resolution::{
-    choose_canonical_tool_id, legacy_benchmark_stage_alias_target, legacy_benchmark_stage_aliases,
-    normalize_tool_id, required_migration_stage_ids,
-    stage_set_contains_canonical_or_migration_alias, LegacyBenchmarkStageAlias,
+    choose_canonical_tool_id, derive_benchmark_stage_tool_alias_violations,
+    derive_benchmark_tool_alias_clusters, legacy_benchmark_stage_alias_target,
+    legacy_benchmark_stage_aliases, normalize_tool_id, required_migration_stage_ids,
+    stage_set_contains_canonical_or_migration_alias, BenchmarkStageToolAliasViolation,
+    BenchmarkToolAliasCluster, LegacyBenchmarkStageAlias,
 };
 pub use appraisal::{
     appraise_matrix_report, hardening_queue_from_appraisal, load_appraisal_report,
@@ -97,10 +101,6 @@ pub use attempt_migration::{
 pub use bam_alignment::{
     prepare_bam_alignment_material, publish_bam_alignment_stage_report, BamAlignmentMaterial,
     BamAlignmentStageReportPublication,
-};
-pub use bam_campaign::{
-    derive_bam_benchmark_campaign, load_bam_benchmark_campaign_report,
-    publish_bam_benchmark_campaign_report,
 };
 pub use bam_coverage::{
     prepare_bam_coverage_material, prepare_bam_coverage_material_from_corpus,
@@ -152,6 +152,7 @@ pub use benchmark_matrix::{
     current_benchmark_matrix_timestamp, derive_benchmark_matrix, load_benchmark_matrix_report,
     publish_benchmark_matrix, BenchmarkMatrixRequest,
 };
+pub use bijux_dna_bench_model::derive_bam_benchmark_campaign;
 pub use bijux_dna_bench_model::derive_hardening_benchmark_campaign;
 pub use bijux_dna_runtime::{
     append_attempt_lifecycle_transition, benchmark_attempt_directory, initialize_attempt_lifecycle,
@@ -390,6 +391,7 @@ pub(crate) mod hpc_campaign;
 
 pub(crate) mod simulation;
 
+pub use readiness::derive_all_domain_retained_tool_rows;
 pub use readiness::evaluate_tool_execution_modes;
 pub use readiness::write_recorded_command_audit;
 

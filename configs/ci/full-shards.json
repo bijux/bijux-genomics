@@ -47,5 +47,6 @@
       "id": "hash-5-of-5",
       "partition": "hash:5/5"
     }
-  ]
+  ],
+  "ci_partition_count": 20
 }

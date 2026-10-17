@@ -430,3 +430,198 @@ fn locator(study: &Path, path: &Path) -> String {
     let relative = path.strip_prefix(study).map_or(path, |relative| relative);
     format!("study://{}", relative.display())
 }
+
+#[cfg(unix)]
+#[path = "image_storage/inventory_observation.rs"]
+mod inventory_observation;
+#[cfg(unix)]
+use inventory_observation::{write_inventory_child_request, InventoryCapture, InventoryWriter};
+
+#[cfg(unix)]
+#[test]
+fn plan_inventory_identity_matches_captured_bytes_after_path_replacement() -> Result<()> {
+    if write_inventory_child_request()? {
+        return Ok(());
+    }
+    let fixture = Fixture::new()?;
+    let captured = std::fs::read(&fixture.inventory)?;
+    let mut writer = InventoryWriter::start(&fixture, &captured, InventoryCapture::Valid)?;
+    let planned = fixture.create_plan();
+    writer.finish()?;
+    let plan = planned?;
+    assert_eq!(plan.file_count, 6);
+    assert_fixture_images_unchanged(&fixture)?;
+    assert_eq!(plan.inventory.sha256, bijux_dna_infra::hash_bytes_sha256(&captured));
+    assert_eq!(load_image_storage_plan(&fixture.plan)?, plan);
+
+    let replacement = std::fs::read(&fixture.inventory)?;
+    assert_ne!(captured, replacement);
+    let fresh_output = fixture.plan.with_file_name("fresh-inventory-plan.json");
+    let fresh = create_fixture_plan(&fixture, &fresh_output, "2026-08-05T08:00:00Z")?;
+    assert_eq!(fresh.file_count, 0);
+    assert_eq!(fresh.inventory.sha256, bijux_dna_infra::hash_bytes_sha256(&replacement));
+    let persisted = std::fs::read(&fixture.plan)?;
+    let refusal = apply_image_storage_plan(&fixture.plan, &fixture.images, "2026-08-05T08:01:00Z")
+        .err()
+        .context("replacement inventory cannot authorize captured moves")?;
+    assert!(refusal.to_string().contains("source inventory changed"));
+    assert_eq!(std::fs::read(&fixture.plan)?, persisted);
+    assert_fixture_images_unchanged(&fixture)?;
+    Ok(())
+}
+
+#[cfg(unix)]
+#[test]
+fn plan_inventory_refuses_malformed_capture_after_path_replacement() -> Result<()> {
+    for (captured, scenario, context) in [
+        (
+            &b"{malformed\n"[..],
+            InventoryCapture::MalformedJson,
+            "parse image-inventory publication",
+        ),
+        (&b"\xff\xfe"[..], InventoryCapture::NonUtf8, "read image-inventory publication"),
+    ] {
+        let fixture = Fixture::new()?;
+        let mut writer = InventoryWriter::start(&fixture, captured, scenario)?;
+        let planned = fixture.create_plan();
+        writer.finish()?;
+        let refusal = planned.err().context("captured malformed input must remain rejected")?;
+        assert!(refusal.to_string().contains(context), "{refusal:#}");
+        assert!(refusal.to_string().contains(&fixture.inventory.display().to_string()));
+        assert!(!fixture.plan.exists());
+        bijux_dna_containers::api::load_image_inventory_publication(&fixture.inventory)?;
+        let fresh = fixture.create_plan()?;
+        assert_eq!(fresh.file_count, 0);
+        assert_fixture_images_unchanged(&fixture)?;
+    }
+    Ok(())
+}
+
+#[test]
+fn plan_inventory_digest_preserves_legacy_source_bytes() -> Result<()> {
+    for schema in [
+        "bijux.container.image_inventory_publication.v1",
+        "bijux.container.image_inventory_publication.v2",
+    ] {
+        let fixture = Fixture::new()?;
+        let mut legacy: serde_json::Value =
+            serde_json::from_slice(&std::fs::read(&fixture.inventory)?)?;
+        legacy["schema_version"] = schema.into();
+        let tools = legacy["tools"].as_array_mut().context("inventory tools")?;
+        for tool in tools {
+            let fields = tool.as_object_mut().context("inventory tool fields")?;
+            let disposition = if fields["artifact_delivery"] == "redistributable_image" {
+                "retained"
+            } else {
+                "unsupported"
+            };
+            fields.insert("support_disposition".into(), disposition.into());
+            fields.remove("product_support");
+            fields.remove("artifact_delivery");
+            fields.remove("redistribution_permitted");
+            if fields["state"] == "not_applicable" {
+                fields.insert("state".into(), "unsupported".into());
+            }
+        }
+        let states = legacy["summary"]["states"].as_object_mut().context("inventory states")?;
+        let count = states.remove("not_applicable").context("legacy unsupported state count")?;
+        states.insert("unsupported".into(), count);
+        let captured = format!(" \n{}\n", serde_json::to_string_pretty(&legacy)?).into_bytes();
+        std::fs::write(&fixture.inventory, &captured)?;
+        let normalized =
+            bijux_dna_containers::api::load_image_inventory_publication(&fixture.inventory)?;
+        assert_eq!(normalized.schema_version, CONTAINER_IMAGE_INVENTORY_PUBLICATION_SCHEMA_V3);
+        let plan = fixture.create_plan()?;
+        assert_eq!(plan.file_count, 6);
+        assert_eq!(plan.inventory.sha256, bijux_dna_infra::hash_bytes_sha256(&captured));
+        assert_ne!(
+            plan.inventory.sha256,
+            bijux_dna_infra::hash_bytes_sha256(&serde_json::to_vec(&normalized)?)
+        );
+        assert_fixture_images_unchanged(&fixture)?;
+    }
+    Ok(())
+}
+
+#[test]
+fn plan_inventory_rejection_preserves_error_priority_and_existing_output() -> Result<()> {
+    let fixture = Fixture::new()?;
+    let mut invalid_identity: serde_json::Value =
+        serde_json::from_slice(&std::fs::read(&fixture.inventory)?)?;
+    invalid_identity["repository_commit"] = "invalid".into();
+    let invalid_identity_bytes = serde_json::to_vec(&invalid_identity)?;
+    let output = b"existing plan must remain intact";
+    std::fs::write(&fixture.plan, output)?;
+    std::fs::remove_file(&fixture.inventory)?;
+    let refusal = create_fixture_plan(&fixture, &fixture.plan, "invalid")
+        .err()
+        .context("timestamp admission precedes inventory acquisition")?;
+    assert!(refusal.to_string().contains("timestamp"));
+    let missing = create_fixture_plan(&fixture, &fixture.plan, "2026-08-05T08:00:00Z")
+        .err()
+        .context("missing inventory remains an acquisition error")?;
+    assert!(missing.to_string().contains("read image-inventory publication"));
+    for (captured, context) in [
+        (&b"\xff\xfe"[..], "read image-inventory publication"),
+        (&b"{malformed"[..], "parse image-inventory publication"),
+        (
+            &b"{\"schema_version\":\"unknown\"}"[..],
+            "unsupported image-inventory publication schema",
+        ),
+        (
+            &b"{\"schema_version\":\"bijux.container.image_inventory_publication.v3\"}"[..],
+            "parse image-inventory publication",
+        ),
+        (invalid_identity_bytes.as_slice(), "validate image-inventory publication"),
+    ] {
+        std::fs::write(&fixture.inventory, captured)?;
+        let refusal = create_image_storage_plan(
+            &ImageStoragePlanRequest {
+                inventory_path: &fixture.inventory,
+                image_root: &fixture.images.join("missing"),
+                quarantine_root: &fixture.images.join(".quarantine"),
+                study_root: &fixture.study.join("missing"),
+                created_at_utc: "2026-08-05T08:00:00Z",
+            },
+            &fixture.plan,
+        )
+        .err()
+        .context("captured source refusal precedes root/output handling")?;
+        assert!(refusal.to_string().contains(context), "{refusal:#}");
+        assert_eq!(std::fs::read(&fixture.plan)?, output);
+        assert_fixture_images_unchanged(&fixture)?;
+    }
+    Ok(())
+}
+
+fn create_fixture_plan(
+    fixture: &Fixture,
+    output: &Path,
+    timestamp: &str,
+) -> Result<bijux_dna_containers::api::ImageStoragePlan> {
+    create_image_storage_plan(
+        &ImageStoragePlanRequest {
+            inventory_path: &fixture.inventory,
+            image_root: &fixture.images,
+            quarantine_root: &fixture.images.join(".quarantine").join("a".repeat(40)),
+            study_root: &fixture.study,
+            created_at_utc: timestamp,
+        },
+        output,
+    )
+}
+
+fn assert_fixture_images_unchanged(fixture: &Fixture) -> Result<()> {
+    for (path, bytes) in [
+        (&fixture.canonical, &b"canonical"[..]),
+        (&fixture.obsolete, &b"obsolete"[..]),
+        (&fixture.interrupted, &b"interrupted"[..]),
+        (&fixture.detached, &b"detached"[..]),
+        (&fixture.historical, &b"historical"[..]),
+        (&fixture.detached_historical, &b"detached-historical"[..]),
+        (&fixture.stale_selected, &b"stale-selected"[..]),
+    ] {
+        assert_eq!(std::fs::read(path)?, bytes);
+    }
+    Ok(())
+}

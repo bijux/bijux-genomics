@@ -21,10 +21,10 @@ pub(super) fn prepare_reference_indices(
             &["CreateSequenceDictionary", "-R", path_str(fasta_target)?, "-O", path_str(dict)?],
         )?;
     }
-    if request.build_bwa_index && !bwa_prefix.with_extension("bwt").exists() {
+    if request.build_bwa_index && !bwa_prefix.with_added_extension("bwt").exists() {
         commands::run_command("bwa", &["index", path_str(fasta_target)?])?;
     }
-    if request.build_bowtie2_index && !bowtie2_prefix.with_extension("1.bt2").exists() {
+    if request.build_bowtie2_index && !bowtie2_prefix.with_added_extension("1.bt2").exists() {
         commands::run_command(
             "bowtie2-build",
             &[path_str(fasta_target)?, path_str(bowtie2_prefix)?],

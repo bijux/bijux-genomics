@@ -3,19 +3,25 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 
-use anyhow::{ensure, Context, Result};
+use anyhow::{ensure, Result};
 use serde_json::{json, Value};
 
-use crate::application::ci::{
-    admit_compiled_executable_paths, BinaryDiscoveryPlan, NextestReuseInputs,
-};
+use crate::application::ci::{admit_compiled_executable_paths, NextestReuseInputs};
 use crate::runtime::process::{ParallelProcessOutput, ParallelProcessSpec, ProcessRunner};
+use crate::runtime::source_snapshot::IsolatedSourceIdentity;
 use crate::runtime::workspace::Workspace;
+
+mod executable_seal;
+mod native_inventory;
+pub(crate) use executable_seal::ExecutableSeal;
+pub(crate) use native_inventory::{
+    discover_native_inventory, native_child_records, publish_native_metadata, MetadataInput,
+};
 
 pub(crate) struct LocalCompiledProducts {
     pub(crate) reuse: NextestReuseInputs,
     pub(crate) receipt: Value,
-    fingerprints: BTreeMap<PathBuf, String>,
+    seal: ExecutableSeal,
 }
 
 impl LocalCompiledProducts {
@@ -86,89 +92,52 @@ impl LocalCompiledProducts {
             target,
         )?;
         paths.extend([cargo.clone(), binaries.clone()]);
-        let fingerprints = fingerprint_files(&paths)?;
+        let mut seal = ExecutableSeal::capture(&paths)?;
         receipt["fingerprint_scope"] = json!("test_and_workspace_executables_and_metadata");
-        receipt["file_sha256"] = json!(fingerprints);
+        receipt["file_sha256"] = json!(seal.digest_manifest());
+        receipt["input_manifest"] =
+            seal.publish_manifest(&reports.join("compiled-inputs.manifest.json"))?;
         bijux_dna_infra::write_bytes(&receipt_path, &serde_json::to_vec_pretty(&receipt)?)?;
         Ok(Self {
             reuse: NextestReuseInputs::new(cargo, binaries, target.to_owned())?,
             receipt,
-            fingerprints,
+            seal,
         })
-    }
-
-    pub(crate) fn inventory_arguments(&self, source: &Path) -> Result<Vec<String>> {
-        inventory_arguments(&self.reuse, source)
     }
 
     pub(crate) fn discover_inventory(
         &self,
         workspace: &Workspace,
         source: &Path,
+        source_condition: &IsolatedSourceIdentity,
         envs: &[(String, String)],
         reports: &Path,
-        concurrency: usize,
+        native_worker_budget: usize,
     ) -> Result<(Vec<u8>, std::time::Duration)> {
-        let started = std::time::Instant::now();
-        let metadata = std::fs::read(reports.join("compiled-binaries.stdout.log"))?;
-        let plan = BinaryDiscoveryPlan::new(&metadata, concurrency)?;
-        let mut specs = Vec::with_capacity(plan.groups.len());
-        let mut metadata_inputs = BTreeMap::new();
-        for group in &plan.groups {
-            let path = reports.join(format!("{}.binaries.json", group.label));
-            bijux_dna_infra::write_bytes(&path, &group.metadata)?;
-            metadata_inputs
-                .insert(path.clone(), bijux_dna_infra::hash_bytes_sha256(&group.metadata));
-            let reuse = self.reuse.with_binaries_metadata(path)?;
-            let args = inventory_arguments(&reuse, source)?;
-            specs.push(ParallelProcessSpec {
-                label: group.label.clone(),
-                program: "cargo".to_owned(),
-                args,
-                envs: envs.to_vec(),
-                current_dir: Some(source.to_path_buf()),
-            });
-        }
-        let outputs = ProcessRunner::new(workspace).run_parallel_logged(specs, reports)?;
-        let observations = outputs.iter().map(producer_receipt).collect::<Vec<_>>();
-        let metadata_unchanged =
-            fingerprint_files(&metadata_inputs.keys().cloned().collect())? == metadata_inputs;
-        bijux_dna_infra::write_bytes(
-            reports.join("test-inventory-groups.receipt.json"),
-            &serde_json::to_vec_pretty(&json!({
-                "schema_version":"bijux.ci.parallel_test_discovery.v1",
-                "groups": observations,
-                "binary_metadata_sha256":metadata_inputs,
-                "binary_metadata_unchanged":metadata_unchanged,
-                "binary_selection":"disjoint_metadata",
-                "duration_milliseconds":started.elapsed().as_millis(),
-                "all_processes_passed":outputs.iter().all(|output| output.output.status.success()),
-            }))?,
-        )?;
-        ensure!(
-            outputs.iter().all(|output| output.output.status.success()),
-            "test inventory group failed; see test-inventory-group logs"
-        );
-        ensure!(metadata_unchanged, "discovery binary metadata changed during execution");
-        let merged = plan.merge(
-            outputs.iter().map(|output| (output.label.as_str(), output.output.stdout.as_slice())),
-        )?;
-        bijux_dna_infra::write_bytes(reports.join("test-inventory.stdout.log"), &merged)?;
-        bijux_dna_infra::write_bytes(reports.join("test-inventory.stderr.log"), b"")?;
-        Ok((merged, started.elapsed()))
+        discover_native_inventory(
+            workspace,
+            source,
+            source_condition,
+            &self.reuse,
+            envs,
+            reports,
+            native_worker_budget,
+        )
     }
 
-    pub(crate) fn verify_unchanged(&mut self) -> Result<bool> {
-        let paths = self.fingerprints.keys().cloned().collect();
-        let observed = fingerprint_files(&paths)?;
-        let stable = observed == self.fingerprints;
-        self.receipt["file_sha256_after_execution"] = json!(observed);
-        self.receipt["checksum_stable"] = json!(stable);
-        Ok(stable)
+    pub(crate) fn verify_unchanged(&mut self) -> bool {
+        let observed = self.seal.verify();
+        self.receipt["file_sha256_after_execution"] = json!(observed.file_sha256);
+        self.receipt["input_verification"] = observed.receipt;
+        self.receipt["checksum_stable"] = json!(observed.unchanged);
+        observed.unchanged
     }
 }
 
-fn inventory_arguments(reuse: &NextestReuseInputs, source: &Path) -> Result<Vec<String>> {
+pub(crate) fn inventory_arguments(
+    reuse: &NextestReuseInputs,
+    source: &Path,
+) -> Result<Vec<String>> {
     let mut args = [
         "nextest",
         "list",
@@ -178,6 +147,8 @@ fn inventory_arguments(reuse: &NextestReuseInputs, source: &Path) -> Result<Vec<
         "full",
         "--message-format",
         "json",
+        "--run-ignored",
+        "all",
     ]
     .map(str::to_owned)
     .to_vec();
@@ -190,25 +161,7 @@ fn producer_receipt(output: &ParallelProcessOutput) -> Value {
 }
 
 fn fingerprint_files(paths: &BTreeSet<PathBuf>) -> Result<BTreeMap<PathBuf, String>> {
-    paths
-        .iter()
-        .map(|path| {
-            let metadata = path
-                .symlink_metadata()
-                .with_context(|| format!("inspect compiled product {}", path.display()))?;
-            ensure!(
-                metadata.is_file() && !metadata.file_type().is_symlink(),
-                "compiled product must be an ordinary file: {}",
-                path.display()
-            );
-            ensure!(
-                path.canonicalize()? == *path,
-                "compiled product traverses a symbolic path alias: {}",
-                path.display()
-            );
-            Ok((path.clone(), bijux_dna_infra::hash_file_sha256(path)?))
-        })
-        .collect()
+    Ok(ExecutableSeal::capture(paths)?.digest_manifest())
 }
 
 #[cfg(test)]

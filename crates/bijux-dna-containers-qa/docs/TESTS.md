@@ -19,9 +19,12 @@ TEST_TMP_DIR=artifacts/test-tmp CARGO_TARGET_DIR=artifacts/cargo-target cargo te
 
 ## Contracts Suite
 
+- `src/image_qa/records/builder/image_identity.rs`: real resolution, persisted record and cache/gate identity contracts in an isolated fixture child; synthetic pass rows do not qualify image execution.
+
 - `tests/contracts/qualification.rs`: source admission, required outputs, content identity, metrics and failure classes.
 - `tests/contracts/qa_contracts.rs`: shared QA support behavior with `verification-tools` enabled.
-- `tests/contracts/apptainer_smoke.rs` and `runtime_verification.rs`: verification tool behavior with the default feature enabled.
+- `tests/contracts/apptainer_smoke.rs` and `runtime_verification.rs`: verification tool behavior with the default feature enabled. The timeout case retains finite descendant-pipe control and real partial stream custody under a bounded isolated child.
+- `src/security_verification/workflow/current_result_admission.rs`: current-result payload closure against real publication admission and restored complete controls; synthetic raw fixtures do not certify scanner execution or a security policy pass.
 
 Run the default suite to retain every verification capability:
 

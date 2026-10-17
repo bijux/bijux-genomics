@@ -30,12 +30,12 @@ reason about directly.
 - Keep one source file per stable support concern unless a module needs a
   deliberate submodule split.
 - Keep public re-exports curated in `src/lib.rs` and `src/public_api/surface.rs`.
-- Update `tests/boundaries/architecture_tree.rs` with intentional tree changes.
+- Keep tests focused on public helper behavior and forbidden dependency or effect boundaries; repository policy checks own general source and documentation placement.
 
 ## Test Layout
 
-- `tests/boundaries/` protects architecture, command inventory, dependency
-  shape, dev-dependency boundaries, docs layout, effects, and guardrails.
+- `tests/boundaries/` protects dependency shape, dev-dependency use, effects,
+  documented environment inputs, and temporary path containment.
 - `tests/contracts/` exercises helper behavior through public contracts.
 - `tests/schemas/` locks the public API mirror and lightweight documentation
   expectations.

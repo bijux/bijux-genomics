@@ -32,7 +32,11 @@ pub(crate) mod hpc_array;
 
 pub(crate) mod hpc_resources;
 
+pub(crate) mod bam_campaign;
+pub(crate) mod cross_campaign;
+pub(crate) mod fastq_campaign;
 pub(crate) mod hardening_campaign;
+pub(crate) mod vcf_campaign;
 
 pub(crate) mod hpc_asset_staging;
 
@@ -46,3 +50,7 @@ pub(crate) mod tool_execution_validation;
 pub(crate) mod bundle_redaction;
 
 pub(crate) mod hpc_submission;
+
+pub(crate) mod taxonomy_judgment;
+
+pub(crate) mod scientific_acceptance;

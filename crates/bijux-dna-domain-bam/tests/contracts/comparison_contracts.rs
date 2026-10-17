@@ -171,3 +171,128 @@ fn bam_comparable_metrics_carry_governed_scientific_threshold_contracts() {
         BamScientificInsufficiencyPolicy::RefuseStageComparison
     );
 }
+
+fn write_observation_admission_sam(
+    root: &std::path::Path,
+    name: &str,
+    records: &[&str],
+) -> anyhow::Result<std::path::PathBuf> {
+    let path = root.join(name);
+    let mut content = "@HD\tVN:1.6\tSO:coordinate\n@SQ\tSN:chr1\tLN:100\n@RG\tID:a\tSM:sample_a\n@RG\tID:b\tSM:sample_b\n".to_string();
+    for record in records {
+        content.push_str(record);
+        content.push('\n');
+    }
+    std::fs::write(&path, content)?;
+    Ok(path)
+}
+
+#[test]
+fn acquired_overlap_outputs_refuse_incomplete_or_foreign_records() -> anyhow::Result<()> {
+    use bijux_dna_domain_bam::{
+        correct_tiny_bam_overlaps, summarize_tiny_bam_overlap_correction_outputs,
+    };
+    let root = bijux_dna_infra::temp_dir("overlap-record-admission")?;
+    let left = "pair\t99\tchr1\t10\t60\t12M\t=\t15\t17\tACGTACGTACGT\tFFFFFFFFFFFF\tRG:Z:a";
+    let right = "pair\t147\tchr1\t15\t60\t12M\t=\t10\t-17\tTTTTCCCCAAAA\tFFFFFFFFFFFF\tRG:Z:a";
+    let input = write_observation_admission_sam(root.path(), "input.sam", &[left, right])?;
+    let output = root.path().join("corrected.sam");
+    let positive = correct_tiny_bam_overlaps(&input, &output, "bamutil")?;
+    assert_eq!(positive.pair_count, Some(1));
+    assert_eq!(positive.corrected_overlap_bases, Some(7));
+    let observed = summarize_tiny_bam_overlap_correction_outputs(&input, &output, "bamutil")?;
+    assert_eq!(observed.corrected_overlap_bases, Some(7));
+    let before = std::fs::read(&input)?;
+    let missing = write_observation_admission_sam(root.path(), "missing.sam", &[left])?;
+    let foreign_left = left.replacen("pair", "foreign", 1);
+    let foreign_right = right.replacen("pair", "foreign", 1);
+    let foreign = write_observation_admission_sam(
+        root.path(),
+        "foreign.sam",
+        &[&foreign_left, &foreign_right],
+    )?;
+    let mut refusals = Vec::new();
+    for path in [&missing, &foreign] {
+        let result = std::panic::catch_unwind(|| {
+            summarize_tiny_bam_overlap_correction_outputs(&input, path, "bamutil")
+        });
+        eprintln!("overlap_output_admission {}: {result:?}", path.display());
+        refusals.push(matches!(result, Ok(Err(_))));
+    }
+    assert_eq!(std::fs::read(input)?, before);
+    assert!(refusals.into_iter().all(|refused| refused),
+        "incomplete or foreign output membership must return an error without panic or invented pair truth");
+    Ok(())
+}
+
+#[test]
+fn duplicate_action_refuses_before_replacing_output_for_every_input_shape() -> anyhow::Result<()> {
+    use bijux_dna_domain_bam::apply_duplicate_policy_tiny_bam;
+    let root = bijux_dna_infra::temp_dir("duplicate-action-admission")?;
+    let first = "first\t0\tchr1\t1\t60\t4M\t*\t0\t0\tACGT\tFFFF\tRG:Z:a";
+    let duplicate = "second\t0\tchr1\t1\t60\t4M\t*\t0\t0\tACGT\tFFFF\tRG:Z:a";
+    let unmapped = "unmapped\t4\t*\t0\t0\t*\t*\t0\t0\tACGT\tFFFF\tRG:Z:a";
+    let unique = write_observation_admission_sam(root.path(), "unique.sam", &[first])?;
+    let output = root.path().join("output.sam");
+    for action in ["mark", "remove"] {
+        apply_duplicate_policy_tiny_bam(&unique, &output, action, None)?;
+        assert!(std::fs::read_to_string(&output)?.contains("first\t0\tchr1"));
+    }
+    let mut observations = Vec::new();
+    for (name, rows) in [
+        ("duplicate.sam", vec![first, duplicate]),
+        ("unique.sam", vec![first]),
+        ("empty.sam", Vec::new()),
+        ("unmapped.sam", vec![unmapped]),
+    ] {
+        let input = write_observation_admission_sam(root.path(), name, &rows)?;
+        let input_before = std::fs::read(&input)?;
+        std::fs::write(&output, b"retained previous output\n")?;
+        let before = std::fs::metadata(&output)?.permissions();
+        let result = apply_duplicate_policy_tiny_bam(&input, &output, "unsupported-action", None);
+        let retained = std::fs::read(&output)? == b"retained previous output\n"
+            && std::fs::metadata(&output)?.permissions() == before;
+        assert_eq!(std::fs::read(&input)?, input_before);
+        eprintln!(
+            "duplicate_action_admission {name}: refused={} output_retained={retained}",
+            result.is_err()
+        );
+        observations.push(result.is_err() && retained);
+    }
+    assert!(
+        observations.into_iter().all(|refused| refused),
+        "unsupported duplicate action must refuse before publication independently of record shape"
+    );
+    Ok(())
+}
+
+#[test]
+fn conflicting_kinship_site_calls_do_not_reappear_under_row_permutation() -> anyhow::Result<()> {
+    use bijux_dna_domain_bam::summarize_tiny_bam_kinship;
+    let root = bijux_dna_infra::temp_dir("kinship-conflict-admission")?;
+    let a = "a\t0\tchr1\t1\t60\t1M\t*\t0\t0\tA\tF\tRG:Z:a";
+    let conflict = "c\t0\tchr1\t1\t60\t1M\t*\t0\t0\tC\tF\tRG:Z:a";
+    let b = "b\t0\tchr1\t1\t60\t1M\t*\t0\t0\tA\tF\tRG:Z:b";
+    let positive_path = write_observation_admission_sam(root.path(), "positive.sam", &[a, b])?;
+    let positive =
+        summarize_tiny_bam_kinship(&positive_path, "king", "panel", "build", "diploid", 1, true)?;
+    assert_eq!(positive.pair_count, 1);
+    assert_eq!(positive.observed_max_overlap_snps, 1);
+    let mut observations = Vec::new();
+    for (name, rows) in
+        [("conflict-repeated.sam", [a, conflict, a, b]), ("conflict-last.sam", [a, a, conflict, b])]
+    {
+        let path = write_observation_admission_sam(root.path(), name, &rows)?;
+        let report =
+            summarize_tiny_bam_kinship(&path, "king", "panel", "build", "diploid", 1, true)?;
+        eprintln!("kinship_conflict_admission {name}: {report:?}");
+        observations.push((report.pair_count, report.observed_max_overlap_snps, report.status));
+    }
+    assert!(
+        observations.iter().all(|(pairs, overlap, status)| *pairs == 0
+            && *overlap == 0
+            && status == "insufficient"),
+        "a conflicting site stays unavailable independently of later duplicate observations"
+    );
+    Ok(())
+}

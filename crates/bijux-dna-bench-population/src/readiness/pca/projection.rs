@@ -8,6 +8,10 @@ use bijux_dna_bench_vcf_evidence::model::pca::PcaAdapterOutputProof;
 use bijux_dna_bench_vcf_evidence::model::reports::DEFAULT_VCF_REPORT_MAP_PATH;
 use bijux_dna_bench_vcf_evidence::snapshot::VcfStageReadinessBinding;
 // The compatible flat wire record projects assessed surfaces and scientific smoke fields.
+#[allow(
+    clippy::too_many_lines,
+    reason = "The flat persisted readiness row requires explicit field-for-field projection."
+)]
 pub(super) fn build_vcf_pca_ready_row(
     command_report: &ReadinessCommandPaths,
     binding: VcfStageReadinessBinding,

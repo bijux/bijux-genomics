@@ -122,13 +122,16 @@ pub(crate) fn render_hpc_result_collection_simulation(
     Ok(report)
 }
 
-pub(crate) fn collect_hpc_result_collection_simulation(
+pub(crate) fn collect_hpc_result_collection_simulation_with_jobs<
+    J: AsRef<[BenchLocalAllDomainSlurmSubmitJob]>,
+>(
     repo_root: &Path,
+    acquire_jobs: impl FnOnce() -> Result<J>,
 ) -> Result<LocalHpcResultCollectionSimulationReport> {
     let benchmark_paths = BenchmarkPathResolver::new(repo_root, None);
     let output_path = benchmark_paths
         .resolve_repo_relative(Path::new(DEFAULT_HPC_RESULT_COLLECTION_SIMULATION_PATH));
-    build_hpc_result_collection_simulation(repo_root, &output_path)
+    build_hpc_result_collection_simulation_with_jobs(repo_root, &output_path, acquire_jobs)
 }
 
 pub(crate) fn validate_hpc_result_collection_simulation_path(
@@ -159,6 +162,18 @@ fn build_hpc_result_collection_simulation(
     repo_root: &Path,
     absolute_output_path: &Path,
 ) -> Result<LocalHpcResultCollectionSimulationReport> {
+    build_hpc_result_collection_simulation_with_jobs(repo_root, absolute_output_path, || {
+        load_local_hpc_selected_jobs(repo_root)
+    })
+}
+
+fn build_hpc_result_collection_simulation_with_jobs<
+    J: AsRef<[BenchLocalAllDomainSlurmSubmitJob]>,
+>(
+    repo_root: &Path,
+    absolute_output_path: &Path,
+    acquire_jobs: impl FnOnce() -> Result<J>,
+) -> Result<LocalHpcResultCollectionSimulationReport> {
     ensure_path_stays_within_benchmark_runs_root(
         repo_root,
         absolute_output_path,
@@ -186,7 +201,8 @@ fn build_hpc_result_collection_simulation(
     fs::create_dir_all(&simulation_root)
         .with_context(|| format!("create {}", simulation_root.display()))?;
 
-    let selected_jobs = load_local_hpc_selected_jobs(repo_root)?;
+    let selected_jobs = acquire_jobs()?;
+    let selected_jobs = selected_jobs.as_ref();
     let jobs_by_id = selected_jobs
         .iter()
         .cloned()
@@ -194,7 +210,7 @@ fn build_hpc_result_collection_simulation(
         .collect::<BTreeMap<_, _>>();
     validate_seeded_job_presence(&jobs_by_id)?;
     let execution_resolver_report =
-        collect_hpc_execution_resolver_report_for_jobs(repo_root, &selected_jobs)?;
+        collect_hpc_execution_resolver_report_for_jobs(repo_root, selected_jobs)?;
     let unavailable_result_job_id =
         select_unavailable_result_job_id(&execution_resolver_report, &jobs_by_id)?;
 

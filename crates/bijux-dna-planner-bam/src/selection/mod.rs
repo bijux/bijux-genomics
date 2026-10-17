@@ -2,6 +2,7 @@ mod domain_tool_output_contracts;
 mod domain_tool_specs;
 mod readiness;
 mod registry;
+pub use registry::BamToolRegistryObservation;
 pub mod tool_selection;
 
 pub use domain_tool_output_contracts::{

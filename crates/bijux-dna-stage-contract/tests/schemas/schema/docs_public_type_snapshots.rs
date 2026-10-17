@@ -49,6 +49,13 @@ fn public_api_doc_uses_current_root_type_names() {
         "StageDomain",
         "ArtifactRef",
         "StageIO",
+        "BindingInputSourceV1",
+        "OutputSidecarDiscoveryV1",
+        "BindingStagePlanRequest",
+        "ToolParameterProjectionRequest",
+        "EffectiveToolParameterSourceV1",
+        "EffectiveToolParameterV1",
+        "EffectiveToolParametersV1",
     ] {
         assert!(
             content.contains(&format!("`{current_type}`")),
@@ -89,4 +96,46 @@ fn contract_doc_points_to_executable_stage_contract_fixtures() {
         assert_eq!(contract.backend_tool_id.as_str(), backend_tool_id);
         assert_ne!(contract.stage_id.as_str(), contract.backend_tool_id.as_str());
     }
+}
+
+#[test]
+fn published_execution_plan_example_matches_public_contract() -> anyhow::Result<()> {
+    use anyhow::Context as _;
+    use bijux_dna_stage_contract::{ExecutionPlan, PlanValidationContext};
+
+    let root = crate::support::crate_root("bijux-dna-stage-contract")?;
+    let context = PlanValidationContext { allowed_id_catalog: None, allowed_tool_ids: None };
+    let control_bytes =
+        fs::read(root.join("tests/fixtures/public_types/default/execution_plan.json"))?;
+    let control: ExecutionPlan = serde_json::from_slice(&control_bytes)?;
+    control.validate_strict(&context)?;
+    assert_eq!(control.schema_version(), "bijux.execution_plan.v1");
+    let mut unknown: serde_json::Value = serde_json::from_slice(&control_bytes)?;
+    unknown
+        .as_object_mut()
+        .context("control plan object")?
+        .insert("contract_version".to_string(), serde_json::json!({"major":1,"minor":0}));
+    assert!(serde_json::from_value::<ExecutionPlan>(unknown).is_err());
+
+    let bytes = fs::read(root.join("docs/EXAMPLE_PLAN.json"))?;
+    let example: ExecutionPlan = serde_json::from_slice(&bytes)
+        .context("published bijux.execution_plan.v1 must decode as public ExecutionPlan")?;
+    example.validate_strict(&context)?;
+    assert_eq!(example.schema_version(), "bijux.execution_plan.v1");
+    assert_eq!(example.pipeline_id(), "fastq-to-fastq__default__v1");
+    assert_eq!(example.planner_version(), "planner.fastq.v1");
+    assert_eq!(example.stages().len(), 1);
+    let stage = example.stages().first().context("published trimming stage")?;
+    assert_eq!(stage.stage_id.as_str(), "fastq.trim_reads");
+    assert_eq!(stage.tool_id.as_str(), "fastp");
+    assert_eq!(stage.params["min_len"], 30);
+    assert_eq!(
+        stage.io.inputs.first().context("published reads")?.path,
+        std::path::Path::new("reads_R1.fastq.gz")
+    );
+    assert_eq!(
+        stage.io.outputs.first().context("published trimmed reads")?.path,
+        std::path::Path::new("trimmed_R1.fastq.gz")
+    );
+    Ok(())
 }

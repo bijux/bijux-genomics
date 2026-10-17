@@ -1,3 +1,6 @@
+#[path = "contracts/typed_identifiers/mod.rs"]
+mod typed_identifiers;
+
 #[path = "contracts/archive_sync.rs"]
 mod archive_sync;
 

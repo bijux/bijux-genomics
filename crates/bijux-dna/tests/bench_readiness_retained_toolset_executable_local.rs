@@ -4,7 +4,7 @@
 mod support;
 
 pub(crate) fn seed_tool_smoke_manifests(repo_root: &std::path::Path) {
-    let output = std::process::Command::new(env!("CARGO_BIN_EXE_bijux-dna"))
+    let output = std::process::Command::new(support::cli_binary_path())
         .current_dir(repo_root)
         .env("BIJUX_SKIP_QA", "1")
         .env("BIJUX_ALLOW_SILVER", "1")
@@ -193,7 +193,7 @@ fn bench_readiness_retained_toolset_executable_local_reports_goal_430_gate() {
         .env("BIJUX_SKIP_QA", "1")
         .env("BIJUX_ALLOW_SILVER", "1")
         .env("BIJUX_SKIP_IMAGE_CHECK", "1")
-        .args(["bench", "readiness", "render-retained-toolset-executable-local", "--json"])
+        .args(["bench", "readiness", "render-retained-toolset-executable-local"])
         .output()
         .expect("run cli");
 
@@ -205,8 +205,16 @@ fn bench_readiness_retained_toolset_executable_local_reports_goal_430_gate() {
         String::from_utf8_lossy(&output.stderr)
     );
 
-    let payload: serde_json::Value =
-        serde_json::from_slice(&output.stdout).expect("parse stdout as json");
+    let rendered_path = String::from_utf8(output.stdout).expect("stdout utf8");
+    assert_eq!(
+        rendered_path.trim(),
+        "artifacts/benchmark-smoke/readiness/tools/RETAINED_TOOLSET_EXECUTABLE_LOCAL.json"
+    );
+
+    let payload: serde_json::Value = serde_json::from_slice(
+        &std::fs::read(repo_root.join(rendered_path.trim())).expect("read retained gate"),
+    )
+    .expect("parse retained gate");
     assert_eq!(
         payload.get("schema_version").and_then(serde_json::Value::as_str),
         Some("bijux.bench.readiness.retained_toolset_executable_local.v1")
@@ -279,49 +287,96 @@ fn bench_readiness_retained_toolset_executable_local_reports_goal_430_gate() {
 }
 
 #[test]
-fn bench_readiness_retained_toolset_executable_local_writes_gate_file() {
-    let _cwd_guard = support::CWD_LOCK.lock().expect("cwd lock");
-    let _env_guard = support::EnvGuard::new().expect("capture env");
-    let _crate_root = support::crate_root("bijux-dna").expect("crate root");
-    let sandbox =
-        support::RepoSandbox::new("retained-toolset-executable-file-").expect("repo sandbox");
+fn bench_readiness_retained_toolset_executable_local_refuses_failed_report() -> anyhow::Result<()> {
+    use anyhow::Context;
+
+    let sandbox = tempfile::tempdir().context("create private retained gate root")?;
     let repo_root = sandbox.path();
-    let home = tempfile::tempdir().expect("tempdir");
-    seed_tool_smoke_manifests(repo_root);
+    for directory in ["crates", "configs/runtime", "configs/ci/tools", "home", "scratch", "bin"] {
+        std::fs::create_dir_all(repo_root.join(directory))?;
+    }
+    std::fs::write(repo_root.join("Cargo.lock"), b"version = 4\n")?;
+    let platforms: &[u8] = include_bytes!("../../../configs/runtime/platforms.toml");
+    let images: &[u8] = include_bytes!("../../../configs/ci/tools/images.toml");
+    std::fs::write(repo_root.join("configs/runtime/platforms.toml"), platforms)?;
+    std::fs::write(repo_root.join("configs/ci/tools/images.toml"), images)?;
 
-    let output = sandbox
-        .bijux_dna_command()
-        .env("HOME", home.path())
-        .env("BIJUX_SKIP_QA", "1")
-        .env("BIJUX_ALLOW_SILVER", "1")
-        .env("BIJUX_SKIP_IMAGE_CHECK", "1")
-        .args(["bench", "readiness", "render-retained-toolset-executable-local"])
-        .output()
-        .expect("run cli");
+    let mut outcomes = Vec::new();
+    for (format, json) in [("json", true), ("text", false)] {
+        let report_relative = format!("artifacts/readiness/{format}-gate.json");
+        let mut command = support::bijux_dna_command(repo_root);
+        command
+            .env("BIJUX_REPO_ROOT", repo_root)
+            .env("BIJUX_BENCHMARK_ROOT", repo_root.join("benchmarks"))
+            .env("ARTIFACT_ROOT", repo_root.join("artifacts"))
+            .env("ISO_ROOT", repo_root.join("artifacts"))
+            .env("HOME", repo_root.join("home"))
+            .env("TMPDIR", repo_root.join("scratch"))
+            .env("TMP", repo_root.join("scratch"))
+            .env("TEMP", repo_root.join("scratch"))
+            .env("PATH", repo_root.join("bin"))
+            .env("BIJUX_ALLOW_NETWORK", "0")
+            .env_remove("BIJUX_TELEMETRY_JSONL")
+            .args([
+                "bench",
+                "readiness",
+                "render-retained-toolset-executable-local",
+                "--output",
+                &report_relative,
+            ]);
+        if json {
+            command.arg("--json");
+        }
+        let output = command.output().context("render failed retained gate")?;
+        let payload: serde_json::Value = serde_json::from_slice(
+            &std::fs::read(repo_root.join(&report_relative))
+                .with_context(|| {
+                    let status = output.status;
+                    let stdout = String::from_utf8_lossy(&output.stdout);
+                    let stderr = String::from_utf8_lossy(&output.stderr);
+                    format!(
+                        "failed gate must persist its diagnostic report for {format}; status={status}; stdout={stdout}; stderr={stderr}"
+                    )
+                })?,
+        )?;
+        assert_eq!(
+            payload.get("schema_version").and_then(serde_json::Value::as_str),
+            Some("bijux.bench.readiness.retained_toolset_executable_local.v1")
+        );
+        assert_eq!(payload.get("ok").and_then(serde_json::Value::as_bool), Some(false));
+        assert!(payload
+            .get("failed_goal_count")
+            .and_then(serde_json::Value::as_u64)
+            .is_some_and(|count| count > 0));
+        assert!(payload
+            .get("failing_goal_ids")
+            .and_then(serde_json::Value::as_array)
+            .is_some_and(|ids| !ids.is_empty()));
+        assert!(payload.get("checks").and_then(serde_json::Value::as_array).is_some_and(
+            |checks| checks.iter().any(|check| {
+                check.get("ok").and_then(serde_json::Value::as_bool) == Some(false)
+                    && check
+                        .get("detail")
+                        .and_then(serde_json::Value::as_str)
+                        .is_some_and(|detail| !detail.is_empty())
+            })
+        ));
+        if json {
+            let printed: serde_json::Value = serde_json::from_slice(&output.stdout)?;
+            assert_eq!(printed, payload);
+        } else {
+            assert_eq!(std::str::from_utf8(&output.stdout)?.trim(), report_relative);
+        }
+        outcomes.push((format, output.status, payload));
+    }
 
+    assert_eq!(std::fs::read(repo_root.join("Cargo.lock"))?, b"version = 4\n");
+    assert_eq!(std::fs::read(repo_root.join("configs/runtime/platforms.toml"))?, platforms);
+    assert_eq!(std::fs::read(repo_root.join("configs/ci/tools/images.toml"))?, images);
+    assert!(!repo_root.join("configs/ci/registry").exists());
     assert!(
-        output.status.success(),
-        "command failed: {}\nstdout:\n{}\nstderr:\n{}",
-        output.status,
-        String::from_utf8_lossy(&output.stdout),
-        String::from_utf8_lossy(&output.stderr)
+        outcomes.iter().all(|(_, status, _)| !status.success()),
+        "failed retained gate reports must produce failing command statuses: {outcomes:#?}"
     );
-
-    let rendered_path = String::from_utf8(output.stdout).expect("stdout utf8");
-    assert_eq!(
-        rendered_path.trim(),
-        "artifacts/benchmark-smoke/readiness/tools/RETAINED_TOOLSET_EXECUTABLE_LOCAL.json"
-    );
-
-    let payload: serde_json::Value = serde_json::from_slice(
-        &std::fs::read(repo_root.join(rendered_path.trim())).expect("read retained gate"),
-    )
-    .expect("parse retained gate");
-
-    assert_eq!(
-        payload.get("schema_version").and_then(serde_json::Value::as_str),
-        Some("bijux.bench.readiness.retained_toolset_executable_local.v1")
-    );
-    assert_eq!(payload.get("ok").and_then(serde_json::Value::as_bool), Some(true));
-    assert_eq!(payload.get("failed_goal_count").and_then(serde_json::Value::as_u64), Some(0));
+    Ok(())
 }

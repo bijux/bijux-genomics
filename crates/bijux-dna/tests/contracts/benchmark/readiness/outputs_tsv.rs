@@ -1,7 +1,5 @@
 #![allow(clippy::expect_used, clippy::too_many_lines)]
 
-use std::process::Command;
-
 use crate::support;
 
 #[test]
@@ -12,7 +10,7 @@ fn bench_readiness_all_domain_output_declarations_writes_governed_tsv_file() {
     let repo_root = support::repo_root().expect("repo root");
     let home = tempfile::tempdir().expect("tempdir");
 
-    let output = Command::new(env!("CARGO_BIN_EXE_bijux-dna"))
+    let output = support::bijux_dna_command(&repo_root)
         .current_dir(&repo_root)
         .env("HOME", home.path())
         .env("BIJUX_SKIP_QA", "1")
@@ -116,14 +114,56 @@ fn bench_readiness_all_domain_output_declarations_rejects_outside_path_before_wr
     let _cwd_guard = support::CWD_LOCK.lock().expect("cwd lock");
     let _env_guard = support::EnvGuard::new().expect("capture env");
     let _crate_root = support::crate_root("bijux-dna").expect("crate root");
-    let repo_root = support::repo_root().expect("repo root");
-    let home = tempfile::tempdir().expect("tempdir");
-    let outside = tempfile::tempdir().expect("outside tempdir");
-    let output_path = outside.path().join("must-not-exist.tsv");
+    let source_root = support::repo_root().expect("repo root");
+    let fixture_parent = source_root.join("artifacts/tests/output-declaration-boundary");
+    std::fs::create_dir_all(&fixture_parent).expect("create output declaration fixture parent");
+    let fixture = tempfile::Builder::new()
+        .prefix("output-declaration-refusal-")
+        .tempdir_in(fixture_parent)
+        .expect("output declaration fixture");
+    let repo_root = fixture.path().join("repository");
+    std::fs::create_dir(&repo_root).expect("create private repository root");
+    // Collection reads governed declarations before validating the output path.
+    for relative in [
+        "Cargo.toml",
+        "Cargo.lock",
+        ".git",
+        "assets",
+        "benchmarks",
+        "configs",
+        "containers",
+        "domain",
+        "science",
+        "crates",
+        "docs",
+    ] {
+        let source = source_root.join(relative);
+        let destination = repo_root.join(relative);
+        #[cfg(unix)]
+        std::os::unix::fs::symlink(&source, &destination).expect("link repository input");
+        #[cfg(windows)]
+        if source.is_dir() {
+            std::os::windows::fs::symlink_dir(&source, &destination)
+                .expect("link repository input directory");
+        } else {
+            std::os::windows::fs::symlink_file(&source, &destination)
+                .expect("link repository input file");
+        }
+    }
+    let home = fixture.path().join("home");
+    let outside = fixture.path().join("outside");
+    std::fs::create_dir(&home).expect("create private child home");
+    std::fs::create_dir(&outside).expect("create external output directory");
+    let output_path = outside.join("must-not-exist.tsv");
+    assert!(!output_path.starts_with(&repo_root), "output must be outside private repository");
 
-    let output = Command::new(env!("CARGO_BIN_EXE_bijux-dna"))
+    let output = support::bijux_dna_command(&repo_root)
         .current_dir(&repo_root)
-        .env("HOME", home.path())
+        .env("BIJUX_REPO_ROOT", &repo_root)
+        .env("BIJUX_BENCHMARK_ROOT", repo_root.join("benchmarks"))
+        .env("ARTIFACT_ROOT", repo_root.join("artifacts"))
+        .env("ISO_ROOT", repo_root.join("artifacts"))
+        .env("HOME", &home)
         .env("BIJUX_SKIP_QA", "1")
         .env("BIJUX_ALLOW_SILVER", "1")
         .env("BIJUX_SKIP_IMAGE_CHECK", "1")
@@ -133,5 +173,10 @@ fn bench_readiness_all_domain_output_declarations_rejects_outside_path_before_wr
         .expect("run cli");
 
     assert!(!output.status.success(), "outside output path must be rejected");
+    let stderr = String::from_utf8_lossy(&output.stderr);
+    assert!(
+        stderr.contains("all-domain output declaration report identity or path is invalid"),
+        "expected invalid output path refusal, got: {stderr}"
+    );
     assert!(!output_path.exists(), "invalid output path must not be created");
 }

@@ -1,3 +1,4 @@
+use super::local_all_domain_slurm_submit_manifest::BenchLocalAllDomainSlurmSubmitJob;
 use super::local_hpc_execution_resolver::collect_hpc_execution_resolver_report_for_jobs;
 use super::local_hpc_scratch_layout::collect_hpc_scratch_layout_for_jobs;
 use super::local_hpc_selected_jobs::load_local_hpc_selected_jobs;
@@ -52,14 +53,18 @@ pub(crate) fn render_hpc_stage_benchmark_array(
     root: &Path,
     path: PathBuf,
 ) -> Result<LocalHpcStageBenchmarkArrayReport> {
-    with_observations(root, &path, publish_hpc_stage_array)
+    with_observations(root, &path, || load_local_hpc_selected_jobs(root), publish_hpc_stage_array)
 }
-pub(crate) fn collect_hpc_stage_benchmark_array(
+pub(crate) fn collect_hpc_stage_benchmark_array_with_jobs<
+    J: AsRef<[BenchLocalAllDomainSlurmSubmitJob]>,
+>(
     root: &Path,
+    acquire_jobs: impl FnOnce() -> Result<J>,
 ) -> Result<LocalHpcStageBenchmarkArrayReport> {
     with_observations(
         root,
         Path::new(DEFAULT_HPC_STAGE_BENCHMARK_ARRAY_SCRIPT_PATH),
+        acquire_jobs,
         collect_hpc_stage_array,
     )
 }
@@ -67,21 +72,23 @@ pub(crate) fn validate_hpc_stage_benchmark_array_path(
     root: &Path,
     path: &Path,
 ) -> Result<LocalHpcStageBenchmarkArrayReport> {
-    with_observations(root, path, validate_hpc_stage_array)
+    with_observations(root, path, || load_local_hpc_selected_jobs(root), validate_hpc_stage_array)
 }
-fn with_observations(
+fn with_observations<J: AsRef<[BenchLocalAllDomainSlurmSubmitJob]>>(
     root: &Path,
     path: &Path,
+    acquire_jobs: impl FnOnce() -> Result<J>,
     service: impl FnOnce(HpcStageArrayRequest<'_>) -> Result<LocalHpcStageBenchmarkArrayReport>,
 ) -> Result<LocalHpcStageBenchmarkArrayReport> {
     let destination = HpcStageArrayDestination::prepare(root, path)?;
-    let jobs = load_local_hpc_selected_jobs(root)?;
-    let scratch = collect_hpc_scratch_layout_for_jobs(root, &jobs)?;
-    let executions = collect_hpc_execution_resolver_report_for_jobs(root, &jobs)?;
+    let jobs = acquire_jobs()?;
+    let jobs = jobs.as_ref();
+    let scratch = collect_hpc_scratch_layout_for_jobs(root, jobs)?;
+    let executions = collect_hpc_execution_resolver_report_for_jobs(root, jobs)?;
     service(HpcStageArrayRequest {
         repo_root: root,
         destination,
-        jobs: &jobs,
+        jobs,
         scratch: &scratch.jobs,
         executions: &executions.rows,
     })

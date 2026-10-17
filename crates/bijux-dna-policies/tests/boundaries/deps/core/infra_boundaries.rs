@@ -1,7 +1,14 @@
 #![allow(non_snake_case)]
 #![allow(clippy::expect_used, clippy::unwrap_used)]
-
+use anyhow::{Context, Result};
 use cargo_metadata::MetadataCommand;
+use std::io::Write as _;
+use std::path::{Path, PathBuf};
+
+#[path = "infra_boundaries/source_admission.rs"]
+mod source_admission;
+#[path = "../../../support/rust_source_intake.rs"]
+mod source_intake;
 
 #[test]
 fn policy__boundaries__infra_boundaries__infra_has_no_domain_semantics() {
@@ -34,29 +41,48 @@ Offenders: {offenders:?}"
     );
 }
 
-#[test]
-fn policy__boundaries__infra_boundaries__no_id_catalog_literals_in_infra() {
-    let root = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).parent().unwrap().parent().unwrap();
-    let infra_src = root.join("../../../../bijux-dna-infra/src");
+#[derive(Debug)]
+struct SourceObservation {
+    files: Vec<PathBuf>,
+    offenders: Vec<String>,
+}
+
+fn infra_source_directory(root: &Path) -> PathBuf {
+    root.join("crates/bijux-dna-infra/src")
+}
+
+fn inspect_infra(source: &Path) -> Result<SourceObservation> {
+    let files = source_intake::collect_rs_files(source)?;
     let mut offenders = Vec::new();
-    for entry in walkdir::WalkDir::new(infra_src).into_iter().filter_map(Result::ok) {
-        if !entry.file_type().is_file() {
-            continue;
-        }
-        if entry.path().extension().and_then(|e| e.to_str()) != Some("rs") {
-            continue;
-        }
-        let content = std::fs::read_to_string(entry.path()).unwrap_or_default();
+    for file in &files {
+        let content =
+            std::fs::read_to_string(file).with_context(|| format!("read {}", file.display()))?;
         if content.contains("StageId::new(\"") || content.contains("ToolId::new(\"") {
-            offenders.push(entry.path().display().to_string());
+            offenders.push(file.display().to_string());
         }
     }
+    Ok(SourceObservation { files, offenders })
+}
+
+#[test]
+fn policy__boundaries__infra_boundaries__no_id_catalog_literals_in_infra() {
+    let root = bijux_dna_testkit::workspace_root_from_manifest(env!("CARGO_MANIFEST_DIR"));
+    let source = infra_source_directory(&root);
+    let observation = inspect_infra(&source)
+        .unwrap_or_else(|error| panic!("infra source acquisition failed: {error:#}"));
+    writeln!(
+        std::io::stderr().lock(),
+        "infra source observation: root={} inspected Rust sources={}",
+        source.display(),
+        observation.files.len()
+    )
+    .unwrap_or_else(|error| panic!("record infra source observation: {error}"));
     bijux_dna_policies::policy_assert!(
-        offenders.is_empty(),
+        observation.offenders.is_empty(),
         "bijux-dna-infra must not define StageId/ToolId catalogs or literals.\n\
 Move semantics to domain/planner/core.\n\
 See docs/40-policies/STYLE.md.\n\
 Offenders:\n{}",
-        offenders.join("\n")
+        observation.offenders.join("\n")
     );
 }

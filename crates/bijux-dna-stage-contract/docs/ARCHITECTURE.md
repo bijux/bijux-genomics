@@ -38,11 +38,18 @@ src/
 │   ├── mod.rs              # stage-plan public module surface
 │   └── reason.rs           # decision reason vocabulary
 ├── tool_binding/
+│   ├── catalog/            # BAM, FASTQ and VCF binding families
+│   │   ├── bam.rs
+│   │   ├── fastq.rs
+│   │   └── vcf.rs
+│   ├── catalog.rs          # retained and external binding assembly
 │   ├── mod.rs              # tool-binding public module surface
 │   ├── model.rs            # binding interface and serialized model
 │   ├── output_closure.rs   # shared output declaration admission and exact native paths
+│   ├── projection.rs       # effective parameter authority and precedence
 │   ├── registry.rs         # deterministic stage/tool registry
 │   ├── rendering.rs        # pure generic argv projection
+│   ├── stage_plan.rs       # immutable binding-backed plan construction
 │   └── validation.rs       # binding conformance validation
 ├── lib.rs                  # crate public exports
 └── stage_plugin.rs         # stage-plugin invocation and output contracts

@@ -45,3 +45,23 @@ private implementation details.
 - Generated registry output changes must update the committed config artifact in the same change.
 - Internal helper modules should stay private unless a downstream consumer needs a stable domain
   contract.
+
+## Strict mini-fixture genotype observations
+
+`summarize_fixture_genotypes(VcfFixtureGenotypeInput)` accepts caller-acquired
+text and a diagnostic source path, returning `VcfFixtureGenotypeSummary` with
+`VcfFixtureSampleGenotypes` and `VcfFixtureAlleleFrequency` observations. These
+Rust rows have no persisted schema. The operation does not acquire the path or
+publish expected-truth JSON. Sample/record order, duplicate sample aggregation,
+last-seen site frequencies and existing strict fixture errors are preserved.
+Malformed allele tokens and partial numeric calls such as `0/.` are refused;
+recognized missing encodings remain missing observations. The broader aggregate
+genotype summary remains a distinct contract.
+
+`VcfFixtureSampleGenotypes::homozygous_run_count()` counts per-contig runs of
+at least two adjacent true homozygosity flags. `shared_homozygous_run_count(other)`
+counts runs of paired true flags, truncating at the shorter vector and treating
+an absent counterpart contig as zero. Both methods preserve record order and
+return the existing fixture counts. They do not acquire files, match physical
+intervals or assert dosage/allele identity; the expected-truth wire fields remain
+owned by their document caller.

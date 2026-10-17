@@ -1,5 +1,9 @@
+mod receipt_reuse;
+
+pub use receipt_reuse::can_reuse_apptainer_smoke;
+pub(super) use receipt_reuse::validate_successful_manifest;
+
 use std::fmt::Write as _;
-use std::io::Read;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 use std::time::{Duration, SystemTime};
@@ -9,7 +13,6 @@ use regex::Regex;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
-use wait_timeout::ChildExt as _;
 
 pub const APPTAINER_SMOKE_MANIFEST_SCHEMA_V5: &str = "bijux.apptainer.smoke_manifest.v5";
 pub const APPTAINER_SMOKE_MANIFEST_SCHEMA_V6: &str = "bijux.apptainer.smoke_manifest.v6";
@@ -230,30 +233,23 @@ fn run_apptainer_probe(
     if banks_root.exists() {
         process.args(["--bind", &format!("{}:/bijux/db:ro", banks_root.display())]);
     }
+    process.arg(&request.image_path).args(["sh", "-lc", command]);
+    bijux_dna_process::isolate_process_group(&mut process);
     let mut child = process
-        .arg(&request.image_path)
-        .args(["sh", "-lc", command])
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
         .spawn()
         .with_context(|| format!("execute Apptainer probe for {}", request.tool_id))?;
-    let stdout = child.stdout.take().context("capture Apptainer probe stdout")?;
-    let stderr = child.stderr.take().context("capture Apptainer probe stderr")?;
-    let stdout_reader = std::thread::spawn(move || read_stream(stdout));
-    let stderr_reader = std::thread::spawn(move || read_stream(stderr));
-    let (exit_code, timed_out) = if let Some(status) =
-        child.wait_timeout(request.timeout).context("wait for Apptainer probe")?
-    {
-        (status.code(), false)
-    } else {
-        child.kill().context("terminate timed-out Apptainer probe")?;
-        let status = child.wait().context("reap timed-out Apptainer probe")?;
-        (status.code(), true)
-    };
-    let stdout =
-        stdout_reader.join().map_err(|_| anyhow!("Apptainer stdout reader panicked"))??;
-    let stderr =
-        stderr_reader.join().map_err(|_| anyhow!("Apptainer stderr reader panicked"))??;
+    let observed = bijux_dna_process::wait_for_output(
+        &mut child,
+        request.timeout,
+        None,
+        &format!("Apptainer probe for {}", request.tool_id),
+    )?;
+    let stdout = observed.stdout;
+    let stderr = observed.stderr;
+    let exit_code = observed.status.code();
+    let timed_out = observed.timed_out;
     let (stdout_path, stderr_path) = if let Some(root) = &request.evidence_root {
         bijux_dna_infra::ensure_dir(root)?;
         let stem = format!("{}-{probe_index:02}", request.tool_id);
@@ -266,12 +262,6 @@ fn run_apptainer_probe(
         (None, None)
     };
     Ok(ProbeExecution { stdout, stderr, exit_code, timed_out, stdout_path, stderr_path })
-}
-
-fn read_stream(mut stream: impl Read) -> Result<Vec<u8>> {
-    let mut bytes = Vec::new();
-    stream.read_to_end(&mut bytes).context("read Apptainer probe output")?;
-    Ok(bytes)
 }
 
 fn ensure_immutable_bytes(path: &Path, bytes: &[u8]) -> Result<()> {

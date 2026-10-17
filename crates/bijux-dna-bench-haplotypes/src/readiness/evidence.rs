@@ -4,6 +4,10 @@ pub use bijux_dna_bench_vcf_evidence::model::command_reports::VcfCommandPublicat
 use bijux_dna_bench_vcf_evidence::snapshot::{VcfEvidenceSnapshot, VcfStageReadinessBinding};
 
 // Independent evidence surfaces admit incomplete combinations.
+#[allow(
+    clippy::struct_excessive_bools,
+    reason = "Each flag observes an independent evidence surface; incomplete combinations are valid."
+)]
 pub(super) struct SurfaceAssessment {
     pub result_id: String,
     pub required_metric_names: Vec<String>,

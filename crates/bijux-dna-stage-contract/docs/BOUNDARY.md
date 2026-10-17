@@ -31,7 +31,7 @@ Normal dependencies stay limited to:
 
 - `bijux-dna-core` for the low-level artifact model implementation, typed IDs,
   metrics envelopes, command specs, and canonical JSON helpers.
-- `anyhow`, `serde`, `serde_json`, and `sha2` for contract validation,
+- `anyhow`, `schemars`, `serde`, `serde_json`, and `sha2` for contract validation,
   serialization, and deterministic plan hashing.
 
 Dev dependencies may use `bijux-dna-policies`, `bijux-dna-testkit`, `toml`, and

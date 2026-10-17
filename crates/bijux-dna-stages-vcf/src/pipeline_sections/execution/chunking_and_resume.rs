@@ -113,7 +113,7 @@ pub fn plan_regions_deterministic(
         let mut start = 1u64;
         let mut idx = 0usize;
         while start <= contig.length_bp {
-            let end = std::cmp::min(start + params.window_size_bp - 1, contig.length_bp);
+            let end = std::cmp::min(start.saturating_add(params.window_size_bp - 1), contig.length_bp);
             chunks.push(RegionChunk {
                 chunk_id: format!("{}:{idx:05}", contig.name),
                 contig: contig.name.clone(),

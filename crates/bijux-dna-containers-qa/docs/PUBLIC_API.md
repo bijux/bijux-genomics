@@ -18,7 +18,8 @@
 - `qualification`: generic checksum-bound specification compilation and coverage, typed
   pipeline-derived probe plans, and classified output and metric verdicts.
 - `runtime_verification`: bounded changed-image Apptainer probe execution, digest-verified baseline
-  reuse, and immutable full-catalog evidence publication.
+  reuse, request-bound weekly smoke receipt admission through `can_reuse_apptainer_smoke`, and
+  immutable full-catalog evidence publication.
 - `security_verification`: bounded changed-image security probe execution and admitted
   unchanged-image evidence reuse using container-owned raw publication types; policy and release
   verdicts remain outside this crate.

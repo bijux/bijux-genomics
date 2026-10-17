@@ -466,7 +466,25 @@
         }
       ]
     },
-    "metric_provenance": {},
+    "metric_provenance": {
+      "fastq.trim_reads": {
+        "metric_provenance": {
+          "input_artifact_hashes": [
+            "input"
+          ],
+          "params_hash": "params",
+          "run_id": "run-1",
+          "stage_id": "fastq.trim_reads",
+          "tool_id": "fastp",
+          "tool_version": "0.23.4"
+        },
+        "normalized_params_excerpt": {
+          "min_len": 20
+        },
+        "params_hash": "params",
+        "tool_id": "fastp"
+      }
+    },
     "pipeline_defaults": {
       "defaults_ledger": {
         "assumptions": [],

@@ -1,9 +1,6 @@
 #![allow(clippy::expect_used, clippy::too_many_lines)]
 
 #[cfg(feature = "bam_downstream")]
-use std::process::Command;
-
-#[cfg(feature = "bam_downstream")]
 use crate::support;
 
 #[cfg(feature = "bam_downstream")]
@@ -17,7 +14,7 @@ fn bench_local_collect_runtime_metrics_rejects_stage_manifest_missing_runtime() 
 
     let fake_run_root =
         "artifacts/benchmark-smoke/simulated-runs/stages-runtime-metrics-missing-runtime-cli";
-    let fake_run_output = Command::new(env!("CARGO_BIN_EXE_bijux-dna"))
+    let fake_run_output = support::bijux_dna_command(&repo_root)
         .current_dir(&repo_root)
         .env("HOME", home.path())
         .env("BIJUX_SKIP_QA", "1")
@@ -58,7 +55,7 @@ fn bench_local_collect_runtime_metrics_rejects_stage_manifest_missing_runtime() 
     )
     .expect("write broken stage manifest");
 
-    let output = Command::new(env!("CARGO_BIN_EXE_bijux-dna"))
+    let output = support::bijux_dna_command(&repo_root)
         .current_dir(&repo_root)
         .env("HOME", home.path())
         .env("BIJUX_SKIP_QA", "1")

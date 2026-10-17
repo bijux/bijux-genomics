@@ -1,3 +1,5 @@
+#![cfg(test)]
+
 use super::identity::{
     execution_pipeline_identity, execution_sample_identity, hash_path,
     infer_tool_version_from_image, runtime_platform_identity,
@@ -145,6 +147,7 @@ fn apptainer_exec_defaults_workdir_to_output_mount() -> anyhow::Result<()> {
         Path::new("/artifacts/runtime/input"),
         Path::new("/artifacts/runtime/out"),
         RuntimeKind::Apptainer,
+        None,
     )?;
 
     let pwd_index = args
@@ -429,4 +432,312 @@ fn execution_step_fixture(
         "metrics_schema_ids": []
     }))
     .unwrap_or_else(|err| panic!("execution step fixture must deserialize: {err}"))
+}
+
+#[cfg(unix)]
+#[test]
+fn container_stage_deadlines_refuse_live_providers_and_inherited_pipes() -> anyhow::Result<()> {
+    use super::runtime_policy::StepRuntimeContext;
+    use crate::command_runner::{
+        CommandExecutionBindingV1, ExecutionBindingManifestV1, RUNNER_EXECUTION_BINDINGS_ENV,
+        RUNNER_EXECUTION_BINDINGS_SCHEMA_V1,
+    };
+    use std::collections::BTreeMap;
+    use std::ffi::OsString;
+    use std::time::Duration;
+
+    let root = bijux_dna_testkit::tempdir_for("container-stage-deadline");
+    let provider = root.path().join("runtime-provider");
+    let binding_path = root.path().join("provider-bindings.json");
+    let provider_name = provider.to_str().ok_or_else(|| anyhow!("provider is not UTF-8"))?;
+    // Invoke the existing shell directly; a newly written executable's admission is
+    // unrelated to the runner's one-second lifetime and inherited-pipe contract.
+    let bindings = ExecutionBindingManifestV1 {
+        schema_version: RUNNER_EXECUTION_BINDINGS_SCHEMA_V1.to_string(),
+        bindings: vec![CommandExecutionBindingV1 {
+            command: provider_name.to_string(),
+            program: "/bin/sh".to_string(),
+            prefix_args: vec![
+                "-c".to_string(),
+                "for last do :; done\nprintf provider-ready >&2\ncase \"$last\" in hold) exec /bin/sleep 2;; inherited) /bin/sleep 2 & exit 0;; *) printf completed; exit 0;; esac\n".to_string(),
+                provider_name.to_string(),
+            ],
+            required_files: Vec::new(),
+        }],
+    };
+    std::fs::write(&binding_path, serde_json::to_vec(&bindings)?)?;
+    let environment = BTreeMap::from([(
+        OsString::from(RUNNER_EXECUTION_BINDINGS_ENV),
+        binding_path.into_os_string(),
+    )]);
+    for runtime in [RuntimeKind::Apptainer, RuntimeKind::Singularity] {
+        for mode in ["hold", "inherited"] {
+            let out_dir = root.path().join(format!("{runtime:?}-{mode}"));
+            let step = execution_step_fixture(
+                "deadline-probe",
+                "fastq.trim_reads",
+                &[mode.to_string()],
+                "private-provider-fixture.sif",
+                Vec::new(),
+                Vec::new(),
+                out_dir.to_str().ok_or_else(|| anyhow!("fixture root is not UTF-8"))?,
+            );
+            // Keep the deadline below the finite provider lifetime while allowing process startup.
+            let error = super::execute_verified_step_in_context(
+                &step,
+                runtime,
+                StepRuntimeContext {
+                    timeout: Some(Duration::from_secs(1)),
+                    environment: Some(&environment),
+                    executable: Some(&provider),
+                },
+            )
+            .err()
+            .ok_or_else(|| anyhow!("stage deadline accepted {runtime:?} {mode}"))?;
+            let message = format!("{error:#}");
+            assert!(message.contains("[runner_effect:container_lifecycle]"), "{message}");
+            assert!(message.contains("provider-ready"), "{message}");
+            assert!(message.contains("local command exceeded timeout"), "{message}");
+            assert!(!out_dir.join("run_artifacts").exists());
+        }
+        let out_dir = root.path().join(format!("{runtime:?}-completed"));
+        let step = execution_step_fixture(
+            "completed-probe",
+            "fastq.trim_reads",
+            &["complete".to_string()],
+            "private-provider-fixture.sif",
+            Vec::new(),
+            Vec::new(),
+            out_dir.to_str().ok_or_else(|| anyhow!("fixture root is not UTF-8"))?,
+        );
+        for timeout in [None, Some(Duration::from_secs(5))] {
+            let completed = super::execute_verified_step_in_context(
+                &step,
+                runtime,
+                StepRuntimeContext {
+                    timeout,
+                    environment: Some(&environment),
+                    executable: Some(&provider),
+                },
+            )?;
+            assert!(completed.command.starts_with("/bin/sh -c "));
+            assert_eq!(completed.exit_code, 0);
+            assert_eq!(completed.stdout, "completed");
+            assert_eq!(completed.stderr, "provider-ready");
+            assert!(completed
+                .command
+                .contains(provider.to_str().ok_or_else(|| anyhow!("provider is not UTF-8"))?));
+        }
+    }
+    Ok(())
+}
+
+#[test]
+fn owned_environment_drives_container_policy_without_global_overrides() -> anyhow::Result<()> {
+    use super::runtime_policy::{
+        configured_memory_mb, network_allowed_with_context, runtime_env_exports,
+    };
+    use std::collections::BTreeMap;
+    use std::ffi::OsString;
+    let mut environment = BTreeMap::from([
+        ("BIJUX_STAGE_WORKDIR".to_string(), "/artifacts/runtime/out/private/work".to_string()),
+        ("BIJUX_STAGE_MEMORY_MB".to_string(), "1536".to_string()),
+        ("BIJUX_ALLOW_NETWORK".to_string(), "0".to_string()),
+        ("LC_ALL".to_string(), "C".to_string()),
+    ])
+    .into_iter()
+    .map(|(key, value)| (OsString::from(key), OsString::from(value)))
+    .collect::<BTreeMap<_, _>>();
+    let step = execution_step_fixture(
+        "context",
+        "vcf.qc",
+        &["true".to_string()],
+        "context.sif",
+        Vec::new(),
+        Vec::new(),
+        "/artifacts/runtime/out",
+    );
+    let args = build_apptainer_exec_args(
+        &step,
+        &[],
+        Path::new("/input"),
+        Path::new("/artifacts/runtime/out"),
+        RuntimeKind::Apptainer,
+        Some(&environment),
+    )?;
+    assert!(args.windows(2).any(|values| values == ["--pwd", "/data/output/private/work"]));
+    assert!(
+        runtime_env_exports(Some(&environment)).contains(&("LC_ALL".to_string(), "C".to_string()))
+    );
+    assert!(!network_allowed_with_context(Some(&environment)));
+    assert!((configured_memory_mb(&step, Some(&environment)) - 1536.0).abs() < f64::EPSILON);
+    for value in ["NaN", "inf", "-1", "0", "invalid"] {
+        environment.insert(OsString::from("BIJUX_STAGE_MEMORY_MB"), OsString::from(value));
+        assert!((configured_memory_mb(&step, Some(&environment)) - 1024.0).abs() < f64::EPSILON);
+    }
+    Ok(())
+}
+
+#[cfg(unix)]
+#[test]
+fn local_context_reaches_child_and_provenance_without_binding_resolution() -> anyhow::Result<()> {
+    use std::collections::BTreeMap;
+    use std::ffi::OsString;
+    let root = bijux_dna_testkit::tempdir_for("local-owned-environment");
+    let temporary = root.path().join("owned-temp");
+    let environment = BTreeMap::from([
+        ("TMPDIR".to_string(), temporary.display().to_string()),
+        ("BIJUX_STAGE_THREADS".to_string(), "3".to_string()),
+        (
+            "BIJUX_DNA_RUNNER_BINDINGS".to_string(),
+            root.path().join("absent-bindings.json").display().to_string(),
+        ),
+    ])
+    .into_iter()
+    .map(|(key, value)| (OsString::from(key), OsString::from(value)))
+    .collect::<BTreeMap<_, _>>();
+    let step = execution_step_fixture(
+        "context",
+        "vcf.qc",
+        &[
+            "sh".to_string(),
+            "-c".to_string(),
+            "printf '%s|%s' \"$TMPDIR\" \"$BIJUX_STAGE_THREADS\"".to_string(),
+        ],
+        "bijux/context-provider:1",
+        Vec::new(),
+        Vec::new(),
+        root.path().to_str().ok_or_else(|| anyhow!("fixture root is not UTF-8"))?,
+    );
+    let result =
+        super::execute_step_with_context(&step, RuntimeKind::Local, None, Some(&environment))?;
+    assert_eq!(result.exit_code, 0);
+    assert_eq!(result.stdout, format!("{}|3", temporary.display()));
+    let invocation: serde_json::Value = serde_json::from_slice(&std::fs::read(
+        root.path().join("run_artifacts/tool_invocation.json"),
+    )?)?;
+    assert_eq!(invocation["environment"]["TMPDIR"], temporary.display().to_string());
+    Ok(())
+}
+
+#[cfg(unix)]
+#[test]
+fn docker_lifecycle_uses_owned_host_environment_without_new_binding_admission() -> anyhow::Result<()>
+{
+    use super::super::backend::docker::executor::{
+        docker_logs_with_context, docker_wait_timeout_with_context, docker_wait_with_context,
+    };
+    use std::collections::BTreeMap;
+    use std::ffi::OsString;
+    use std::os::unix::fs::PermissionsExt as _;
+    let root = bijux_dna_testkit::tempdir_for("docker-lifecycle-environment");
+    let executable = root.path().join("docker");
+    std::fs::write(&executable, b"#!/bin/sh\ncase \"$1\" in wait) printf '0\\n';; logs) printf '%s' \"$BIJUX_STAGE_THREADS\";; *) exit 64;; esac\n")?;
+    std::fs::set_permissions(&executable, std::fs::Permissions::from_mode(0o700))?;
+    let environment = BTreeMap::from([
+        ("PATH".to_string(), root.path().display().to_string()),
+        ("BIJUX_STAGE_THREADS".to_string(), "5".to_string()),
+        (
+            "BIJUX_DNA_RUNNER_BINDINGS".to_string(),
+            root.path().join("absent-bindings.json").display().to_string(),
+        ),
+    ])
+    .into_iter()
+    .map(|(key, value)| (OsString::from(key), OsString::from(value)))
+    .collect::<BTreeMap<_, _>>();
+    assert_eq!(docker_wait_with_context("owned", Some(&environment))?, 0);
+    assert_eq!(
+        docker_wait_timeout_with_context(
+            "owned",
+            std::time::Duration::from_secs(2),
+            Some(&environment)
+        )?,
+        0
+    );
+    assert_eq!(docker_logs_with_context("owned", Some(&environment))?, "5");
+    Ok(())
+}
+
+#[cfg(unix)]
+#[test]
+fn native_environment_bytes_reach_local_children_without_text_fallback() -> anyhow::Result<()> {
+    use std::collections::BTreeMap;
+    use std::ffi::OsString;
+    use std::os::unix::ffi::OsStringExt as _;
+    let root = bijux_dna_testkit::tempdir_for("local-native-environment");
+    let observation = root.path().join("native-env.bytes");
+    let raw_home = OsString::from_vec(b"owned-home-\xff".to_vec());
+    let raw_temporary = OsString::from_vec(b"owned-temporary-\xfe".to_vec());
+    let environment = BTreeMap::from([
+        (OsString::from("HOME"), raw_home.clone()),
+        (OsString::from("TMPDIR"), raw_temporary.clone()),
+    ]);
+    let step = execution_step_fixture(
+        "native-context",
+        "vcf.qc",
+        &[
+            "sh".to_string(),
+            "-c".to_string(),
+            "printf '%s\\000%s' \"$HOME\" \"$TMPDIR\" > \"$1\"".to_string(),
+            "bijux-native-env".to_string(),
+            observation.display().to_string(),
+        ],
+        "bijux/context-provider:1",
+        Vec::new(),
+        Vec::new(),
+        root.path().to_str().ok_or_else(|| anyhow!("ASCII fixture root required"))?,
+    );
+    let result =
+        super::execute_step_with_context(&step, RuntimeKind::Local, None, Some(&environment))?;
+    assert_eq!(result.exit_code, 0);
+    let mut expected = raw_home.into_vec();
+    expected.push(0);
+    expected.extend(raw_temporary.into_vec());
+    assert_eq!(std::fs::read(observation)?, expected);
+    let invocation: serde_json::Value = serde_json::from_slice(&std::fs::read(
+        root.path().join("run_artifacts/tool_invocation.json"),
+    )?)?;
+    assert!(invocation["environment"].get("TMPDIR").is_none());
+    Ok(())
+}
+
+#[cfg(target_os = "linux")]
+#[test]
+fn inherited_local_entrypoint_keeps_native_output_directory_bytes() -> anyhow::Result<()> {
+    use std::os::unix::ffi::{OsStrExt as _, OsStringExt as _};
+    let root = bijux_dna_testkit::tempdir_for("native-local-output");
+    let output = root.path().join(std::ffi::OsString::from_vec(b"owned-out-\xff".to_vec()));
+    std::fs::create_dir(&output)?;
+    let observation = root.path().join("working-directory.bytes");
+    let mut step = execution_step_fixture(
+        "native-output",
+        "vcf.qc",
+        &[
+            "sh".to_string(),
+            "-c".to_string(),
+            "pwd -P > \"$1\"".to_string(),
+            "bijux-native-output".to_string(),
+            observation.display().to_string(),
+        ],
+        "bijux/context-provider:1",
+        Vec::new(),
+        Vec::new(),
+        root.path().to_str().ok_or_else(|| anyhow!("ASCII fixture parent required"))?,
+    );
+    step.out_dir.clone_from(&output);
+    let result = execute_step(&step, RuntimeKind::Local, None)?;
+    assert_eq!(result.exit_code, 0);
+    let mut expected = output.canonicalize()?.as_os_str().as_bytes().to_vec();
+    expected.push(b'\n');
+    assert_eq!(std::fs::read(observation)?, expected);
+    let report: serde_json::Value =
+        serde_json::from_slice(&std::fs::read(output.join("run_artifacts/stage_report.json"))?)?;
+    assert_eq!(
+        report["log_paths"],
+        serde_json::json!([
+            output.join("run_artifacts/stdout.log").display().to_string(),
+            output.join("run_artifacts/stderr.log").display().to_string(),
+        ])
+    );
+    Ok(())
 }

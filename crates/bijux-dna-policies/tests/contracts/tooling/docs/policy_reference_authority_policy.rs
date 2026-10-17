@@ -3,25 +3,15 @@
 mod support;
 
 use std::collections::BTreeSet;
-use std::fs;
 
 fn markdown_link_targets(path: &str) -> BTreeSet<String> {
-    let root = support::workspace_root();
-    let raw =
-        fs::read_to_string(root.join(path)).unwrap_or_else(|err| panic!("read {path}: {err}"));
-    let mut targets = BTreeSet::new();
-    for line in raw.lines() {
-        let mut rest = line;
-        while let Some((_, suffix)) = rest.split_once("](") {
-            if let Some((target, tail)) = suffix.split_once(')') {
-                targets.insert(target.to_string());
-                rest = tail;
-            } else {
-                break;
-            }
-        }
-    }
-    targets
+    crate::document_references::markdown_targets(&support::workspace_root(), path)
+        .unwrap_or_else(|error| panic!("invalid references in {path}: {error}"))
+}
+
+fn expected_link_targets(path: &str, expected: &BTreeSet<String>) -> BTreeSet<String> {
+    crate::document_references::expected_targets(&support::workspace_root(), path, expected)
+        .unwrap_or_else(|error| panic!("invalid governed references for {path}: {error}"))
 }
 
 fn assert_required_links(path: &str, expected: &BTreeSet<String>, documented: &BTreeSet<String>) {
@@ -39,6 +29,7 @@ fn policy__contracts__policy_reference_authority_policy__policy_index_links_gove
         "POLICY_MATRIX.md".to_string(),
         "../../crates/bijux-dna-policies/tests/".to_string(),
     ]);
+    let expected = expected_link_targets("docs/40-policies/POLICY_INDEX.md", &expected);
     let documented = markdown_link_targets("docs/40-policies/POLICY_INDEX.md");
     assert_eq!(
         expected, documented,
@@ -53,6 +44,7 @@ fn policy__contracts__policy_reference_authority_policy__style_links_governed_su
         "../../crates/bijux-dna-policies/tests/contracts/tooling/docs/boundary_docs_policy.rs"
             .to_string(),
     ]);
+    let expected = expected_link_targets("docs/40-policies/STYLE.md", &expected);
     let documented = markdown_link_targets("docs/40-policies/STYLE.md");
     assert_eq!(
         expected, documented,
@@ -69,6 +61,7 @@ fn policy__contracts__policy_reference_authority_policy__example_template_links_
         "../../examples/RECIPE_ONLY.txt".to_string(),
         "EXAMPLE_RUNNER_CONTRACT.md".to_string(),
     ]);
+    let expected = expected_link_targets("docs/50-reference/EXAMPLE_TEMPLATE.md", &expected);
     let documented = markdown_link_targets("docs/50-reference/EXAMPLE_TEMPLATE.md");
     assert_eq!(
         expected, documented,
@@ -84,6 +77,7 @@ fn policy__contracts__policy_reference_authority_policy__example_runner_contract
         "../30-operations/RUN_ARTIFACTS.md".to_string(),
         "../30-operations/REPORT_CONTRACT.md".to_string(),
     ]);
+    let expected = expected_link_targets("docs/50-reference/EXAMPLE_RUNNER_CONTRACT.md", &expected);
     let documented = markdown_link_targets("docs/50-reference/EXAMPLE_RUNNER_CONTRACT.md");
     assert_eq!(
         expected, documented,
@@ -100,6 +94,7 @@ fn policy__contracts__policy_reference_authority_policy__example_failure_triage_
         "../../crates/bijux-dna-dev/docs/COMMANDS.md".to_string(),
         "../30-operations/TEST_FAILURE_TRIAGE.md".to_string(),
     ]);
+    let expected = expected_link_targets("docs/50-reference/EXAMPLE_FAILURE_TRIAGE.md", &expected);
     let documented = markdown_link_targets("docs/50-reference/EXAMPLE_FAILURE_TRIAGE.md");
     assert_eq!(
         expected, documented,
@@ -114,6 +109,7 @@ fn policy__contracts__policy_reference_authority_policy__bijux_analyze_contract_
         "../30-operations/REPORT_CONTRACT.md".to_string(),
         "../30-operations/EXPLAINABILITY.md".to_string(),
     ]);
+    let expected = expected_link_targets("docs/50-reference/BIJUX_ANALYZE_CONTRACT.md", &expected);
     let documented = markdown_link_targets("docs/50-reference/BIJUX_ANALYZE_CONTRACT.md");
     assert_eq!(
         expected, documented,
@@ -128,6 +124,7 @@ fn policy__contracts__policy_reference_authority_policy__bijux_contract_links_go
         "../30-operations/RUN_ARTIFACTS.md".to_string(),
         "../30-operations/REPRODUCIBILITY.md".to_string(),
     ]);
+    let expected = expected_link_targets("docs/50-reference/BIJUX_CONTRACT.md", &expected);
     let documented = markdown_link_targets("docs/50-reference/BIJUX_CONTRACT.md");
     assert_eq!(
         expected, documented,
@@ -143,6 +140,7 @@ fn policy__contracts__policy_reference_authority_policy__pipelines_links_governe
         "../../crates/bijux-dna-core/src/id_catalog/pipeline/".to_string(),
         "COMPATIBILITY_MATRIX.md".to_string(),
     ]);
+    let expected = expected_link_targets("docs/50-reference/PIPELINES.md", &expected);
     let documented = markdown_link_targets("docs/50-reference/PIPELINES.md");
     assert_eq!(
         expected, documented,
@@ -155,6 +153,7 @@ fn policy__contracts__policy_reference_authority_policy__contract_versioning_lin
 ) {
     let expected =
         BTreeSet::from(["SCHEMAS_INDEX.md".to_string(), "COMPATIBILITY_MATRIX.md".to_string()]);
+    let expected = expected_link_targets("docs/50-reference/CONTRACT_VERSIONING.md", &expected);
     let documented = markdown_link_targets("docs/50-reference/CONTRACT_VERSIONING.md");
     assert_eq!(
         expected, documented,
@@ -169,6 +168,7 @@ fn policy__contracts__policy_reference_authority_policy__contract_compatibility_
         "CONTRACT_VERSIONING.md".to_string(),
         "COMPATIBILITY_MATRIX.md".to_string(),
     ]);
+    let expected = expected_link_targets("docs/50-reference/CONTRACT_COMPATIBILITY.md", &expected);
     let documented = markdown_link_targets("docs/50-reference/CONTRACT_COMPATIBILITY.md");
     assert_required_links("docs/50-reference/CONTRACT_COMPATIBILITY.md", &expected, &documented);
 }
@@ -181,6 +181,7 @@ fn policy__contracts__policy_reference_authority_policy__design_authority_links_
         "../10-architecture/CONTRACT_AUTHORITY_LADDER.md".to_string(),
         "../40-policies/POLICY_INDEX.md".to_string(),
     ]);
+    let expected = expected_link_targets("docs/50-reference/DESIGN_AUTHORITY.md", &expected);
     let documented = markdown_link_targets("docs/50-reference/DESIGN_AUTHORITY.md");
     assert_eq!(
         expected, documented,
@@ -196,6 +197,7 @@ fn policy__contracts__policy_reference_authority_policy__policies_explained_link
         "POLICY_MATRIX.md".to_string(),
         "FAILURE_PLAYBOOKS.md".to_string(),
     ]);
+    let expected = expected_link_targets("docs/40-policies/POLICIES_EXPLAINED.md", &expected);
     let documented = markdown_link_targets("docs/40-policies/POLICIES_EXPLAINED.md");
     assert_eq!(
         expected, documented,
@@ -211,6 +213,7 @@ fn policy__contracts__policy_reference_authority_policy__policy_ownership_links_
         "POLICY_INDEX.md".to_string(),
         "../10-architecture/CONTRACT_INDEX.md".to_string(),
     ]);
+    let expected = expected_link_targets("docs/40-policies/POLICY_OWNERSHIP.md", &expected);
     let documented = markdown_link_targets("docs/40-policies/POLICY_OWNERSHIP.md");
     assert_eq!(
         expected, documented,
@@ -225,6 +228,7 @@ fn policy__contracts__policy_reference_authority_policy__policy_stability_links_
         "POLICY_INDEX.md".to_string(),
         "../50-reference/CONTRACT_VERSIONING.md".to_string(),
     ]);
+    let expected = expected_link_targets("docs/40-policies/POLICY_STABILITY.md", &expected);
     let documented = markdown_link_targets("docs/40-policies/POLICY_STABILITY.md");
     assert_eq!(
         expected, documented,
@@ -239,6 +243,7 @@ fn policy__contracts__policy_reference_authority_policy__policy_matrix_links_gov
         "POLICY_INDEX.md".to_string(),
         "../../crates/bijux-dna-policies/tests/".to_string(),
     ]);
+    let expected = expected_link_targets("docs/40-policies/POLICY_MATRIX.md", &expected);
     let documented = markdown_link_targets("docs/40-policies/POLICY_MATRIX.md");
     assert_eq!(
         expected, documented,
@@ -254,6 +259,7 @@ fn policy__contracts__policy_reference_authority_policy__failure_playbooks_links
         "POLICY_MATRIX.md".to_string(),
         "../../crates/bijux-dna-policies/docs/ENFORCEMENT.md".to_string(),
     ]);
+    let expected = expected_link_targets("docs/40-policies/FAILURE_PLAYBOOKS.md", &expected);
     let documented = markdown_link_targets("docs/40-policies/FAILURE_PLAYBOOKS.md");
     assert_eq!(
         expected, documented,
@@ -269,6 +275,7 @@ fn policy__contracts__policy_reference_authority_policy__tests_style_links_gover
         "../../crates/bijux-dna-policies/tests/support/".to_string(),
         "../../crates/bijux-dna-testkit/README.md".to_string(),
     ]);
+    let expected = expected_link_targets("docs/40-policies/TESTS_STYLE.md", &expected);
     let documented = markdown_link_targets("docs/40-policies/TESTS_STYLE.md");
     assert_eq!(
         expected, documented,
@@ -284,6 +291,7 @@ fn policy__contracts__policy_reference_authority_policy__crate_map_links_governe
         "../10-architecture/BOUNDARY_MAP.md".to_string(),
         "../40-policies/MATURITY_LADDER.md".to_string(),
     ]);
+    let expected = expected_link_targets("docs/50-reference/CRATE_MAP.md", &expected);
     let documented = markdown_link_targets("docs/50-reference/CRATE_MAP.md");
     assert_eq!(
         expected, documented,
@@ -299,6 +307,7 @@ fn policy__contracts__policy_reference_authority_policy__maturity_ladder_links_g
         "POLICY_STABILITY.md".to_string(),
         "../../crates/bijux-dna-policies/README.md".to_string(),
     ]);
+    let expected = expected_link_targets("docs/40-policies/MATURITY_LADDER.md", &expected);
     let documented = markdown_link_targets("docs/40-policies/MATURITY_LADDER.md");
     assert_eq!(
         expected, documented,

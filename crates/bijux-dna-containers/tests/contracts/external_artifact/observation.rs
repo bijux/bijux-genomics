@@ -52,7 +52,8 @@ impl ExternalArtifactProbeTransport for Observer {
 
 #[test]
 fn version_evidence_is_published_only_for_an_unchanged_external_artifact() -> Result<()> {
-    let root = repository_root();
+    let (fixture, repository) = external_artifact_fixture()?;
+    let root = repository.as_path();
     let commit = repository_head_commit(root)?;
     for kind in [ExternalArtifactKind::Binary, ExternalArtifactKind::ApptainerSif] {
         for drift in [
@@ -63,7 +64,9 @@ fn version_evidence_is_published_only_for_an_unchanged_external_artifact() -> Re
             Drift::Directory,
             Drift::Redirected,
         ] {
-            let scratch = tempfile::tempdir()?;
+            let scratch = tempfile::Builder::new()
+                .prefix("version-observation-")
+                .tempdir_in(fixture.path())?;
             let artifact = scratch.path().join("operator artifact");
             std::fs::write(&artifact, b"initial")?;
             let artifact = artifact.canonicalize()?;

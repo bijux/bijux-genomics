@@ -1,8 +1,13 @@
 mod alignment;
+mod observation;
+mod transformation;
+
 use alignment::{
     parse_tiny_alignment, parse_tiny_sam, write_tiny_sam_document, write_tiny_sam_from_document,
     TinySamDocument, TinySamRecord,
 };
+pub use observation::{inspect_tiny_alignment, summarize_tiny_bam_alignment_truth};
+pub use transformation::sort_and_index_tiny_bam;
 
 use std::collections::{BTreeSet, HashMap};
 use std::path::{Path, PathBuf};
@@ -17,44 +22,40 @@ use crate::params::{BqsrMode, FilterEffectiveParams, ReadGroupSpec, Recalibratio
 use crate::types::artifact_reports::{
     BamAdnaContaminationTruthSummaryV1, BamAdnaDamageTruthSummaryV1, BamAdnaWorkflowV1,
     BamAdvisoryBoundaryV1, BamAlignmentProvenanceV1, BamAlignmentStrategyV1,
-    BamAlignmentSuitabilityV1, BamAlignmentTruthCigarClassV1, BamAlignmentTruthMapqClassV1,
-    BamAlignmentTruthPositionV1, BamAlignmentTruthRecordV1, BamAlignmentTruthSummaryV1,
-    BamArtifactEntryV1, BamArtifactInventoryV1, BamAuthenticityAdvisoryV1,
-    BamBenchCorpusDatasetManifestEntryV1, BamBenchCorpusManifestV1, BamBenchDatasetScenarioV1,
-    BamBiasMitigationSummaryV1, BamComplexitySummaryV1, BamContaminationEvidenceV1,
-    BamContaminationToolContractV1, BamContaminationWorkflowV1, BamCoverageRegimeClassV1,
-    BamCoverageRegimeV1, BamCoverageRegionSummaryV1, BamCoverageSummaryV1,
-    BamCoverageTruthSummaryV1, BamDamageEvidenceV1, BamDuplicateComparisonV1,
+    BamAlignmentSuitabilityV1, BamArtifactEntryV1, BamArtifactInventoryV1,
+    BamAuthenticityAdvisoryV1, BamBenchCorpusDatasetManifestEntryV1, BamBenchCorpusManifestV1,
+    BamBenchDatasetScenarioV1, BamBiasMitigationSummaryV1, BamComplexitySummaryV1,
+    BamContaminationEvidenceV1, BamContaminationToolContractV1, BamContaminationWorkflowV1,
+    BamCoverageRegimeClassV1, BamCoverageRegimeV1, BamCoverageRegionSummaryV1,
+    BamCoverageSummaryV1, BamCoverageTruthSummaryV1, BamDamageEvidenceV1, BamDuplicateComparisonV1,
     BamDuplicateFamilyHistogramBinV1, BamDuplicateInsertTruthSummaryV1,
     BamDuplicateMethodMetricsV1, BamDuplicatePolicyV1, BamDuplicationMetricsSummaryV1,
     BamEndogenousContentEstimateV1, BamEndogenousTruthSummaryV1, BamFilterSummaryV1,
     BamFlagstatCountsV1, BamGcBiasBinSummaryV1, BamGcBiasSummaryV1, BamGcBiasTruthSummaryV1,
     BamHaplogroupReadinessV1, BamHaplogroupTruthSummaryV1, BamInputOriginV1, BamInputScaleV1,
-    BamInsertSizeHistogramBinV1, BamInsertSizeSummaryV1, BamKinshipPairResultV1,
-    BamKinshipPrerequisitesV1, BamKinshipSummaryV1, BamLengthFilterSummaryV1, BamMappingSummaryV1,
-    BamMapqFilterSummaryV1, BamMapqRegimeV1, BamMarkdupSummaryV1, BamMergeCompatibilityV1,
-    BamMergeInputIdentityV1, BamOverlapCorrectionSummaryV1, BamPostAlignmentChainV1,
-    BamQcPreSummaryV1, BamReadGroupMappingCountV1, BamRecalibrationCoverageGateV1,
-    BamRecalibrationSummaryV1, BamSampleIdentityV1, BamScientificReportContractV1,
-    BamScientificReportIdV1, BamSexInferenceEvidenceV1, BamSexSummaryV1, BamStageResourcePlanV1,
-    BamTinyAlignmentInspectionV1, BamValidationSummaryV1, BamWorkflowModeV1, BamWorkflowTemplateV1,
-    BAM_ADNA_CONTAMINATION_TRUTH_SUMMARY_SCHEMA_VERSION,
+    BamInsertSizeHistogramBinV1, BamInsertSizeSummaryV1, BamKinshipPrerequisitesV1,
+    BamKinshipSummaryV1, BamLengthFilterSummaryV1, BamMappingSummaryV1, BamMapqFilterSummaryV1,
+    BamMapqRegimeV1, BamMarkdupSummaryV1, BamMergeCompatibilityV1, BamMergeInputIdentityV1,
+    BamOverlapCorrectionSummaryV1, BamPostAlignmentChainV1, BamQcPreSummaryV1,
+    BamReadGroupMappingCountV1, BamRecalibrationCoverageGateV1, BamRecalibrationSummaryV1,
+    BamSampleIdentityV1, BamScientificReportContractV1, BamScientificReportIdV1,
+    BamSexInferenceEvidenceV1, BamSexSummaryV1, BamStageResourcePlanV1, BamValidationSummaryV1,
+    BamWorkflowModeV1, BamWorkflowTemplateV1, BAM_ADNA_CONTAMINATION_TRUTH_SUMMARY_SCHEMA_VERSION,
     BAM_ADNA_DAMAGE_TRUTH_SUMMARY_SCHEMA_VERSION, BAM_ADNA_WORKFLOW_SCHEMA_VERSION,
     BAM_ADVISORY_BOUNDARY_SCHEMA_VERSION, BAM_ALIGNMENT_PROVENANCE_SCHEMA_VERSION,
-    BAM_ALIGNMENT_STRATEGY_SCHEMA_VERSION, BAM_ALIGNMENT_TRUTH_SUMMARY_SCHEMA_VERSION,
-    BAM_ARTIFACT_INVENTORY_SCHEMA_VERSION, BAM_AUTHENTICITY_ADVISORY_SCHEMA_VERSION,
-    BAM_BENCH_CORPUS_MANIFEST_SCHEMA_VERSION, BAM_BIAS_MITIGATION_SUMMARY_SCHEMA_VERSION,
-    BAM_COMPLEXITY_SUMMARY_SCHEMA_VERSION, BAM_CONTAMINATION_EVIDENCE_SCHEMA_VERSION,
-    BAM_CONTAMINATION_WORKFLOW_SCHEMA_VERSION, BAM_COVERAGE_REGIME_SCHEMA_VERSION,
-    BAM_COVERAGE_SUMMARY_SCHEMA_VERSION, BAM_COVERAGE_TRUTH_SUMMARY_SCHEMA_VERSION,
-    BAM_DAMAGE_EVIDENCE_SCHEMA_VERSION, BAM_DUPLICATE_COMPARISON_SCHEMA_VERSION,
-    BAM_DUPLICATE_INSERT_TRUTH_SUMMARY_SCHEMA_VERSION, BAM_DUPLICATE_POLICY_SCHEMA_VERSION,
-    BAM_DUPLICATION_METRICS_SUMMARY_SCHEMA_VERSION, BAM_ENDOGENOUS_CONTENT_SCHEMA_VERSION,
-    BAM_ENDOGENOUS_TRUTH_SUMMARY_SCHEMA_VERSION, BAM_FILTER_SUMMARY_SCHEMA_VERSION,
-    BAM_GC_BIAS_SUMMARY_SCHEMA_VERSION, BAM_GC_BIAS_TRUTH_SUMMARY_SCHEMA_VERSION,
-    BAM_HAPLOGROUP_READINESS_SCHEMA_VERSION, BAM_HAPLOGROUP_TRUTH_SUMMARY_SCHEMA_VERSION,
-    BAM_INSERT_SIZE_SUMMARY_SCHEMA_VERSION, BAM_KINSHIP_PREREQUISITES_SCHEMA_VERSION,
-    BAM_KINSHIP_SUMMARY_SCHEMA_VERSION, BAM_LENGTH_FILTER_SUMMARY_SCHEMA_VERSION,
+    BAM_ALIGNMENT_STRATEGY_SCHEMA_VERSION, BAM_ARTIFACT_INVENTORY_SCHEMA_VERSION,
+    BAM_AUTHENTICITY_ADVISORY_SCHEMA_VERSION, BAM_BENCH_CORPUS_MANIFEST_SCHEMA_VERSION,
+    BAM_BIAS_MITIGATION_SUMMARY_SCHEMA_VERSION, BAM_COMPLEXITY_SUMMARY_SCHEMA_VERSION,
+    BAM_CONTAMINATION_EVIDENCE_SCHEMA_VERSION, BAM_CONTAMINATION_WORKFLOW_SCHEMA_VERSION,
+    BAM_COVERAGE_REGIME_SCHEMA_VERSION, BAM_COVERAGE_SUMMARY_SCHEMA_VERSION,
+    BAM_COVERAGE_TRUTH_SUMMARY_SCHEMA_VERSION, BAM_DAMAGE_EVIDENCE_SCHEMA_VERSION,
+    BAM_DUPLICATE_COMPARISON_SCHEMA_VERSION, BAM_DUPLICATE_INSERT_TRUTH_SUMMARY_SCHEMA_VERSION,
+    BAM_DUPLICATE_POLICY_SCHEMA_VERSION, BAM_DUPLICATION_METRICS_SUMMARY_SCHEMA_VERSION,
+    BAM_ENDOGENOUS_CONTENT_SCHEMA_VERSION, BAM_ENDOGENOUS_TRUTH_SUMMARY_SCHEMA_VERSION,
+    BAM_FILTER_SUMMARY_SCHEMA_VERSION, BAM_GC_BIAS_SUMMARY_SCHEMA_VERSION,
+    BAM_GC_BIAS_TRUTH_SUMMARY_SCHEMA_VERSION, BAM_HAPLOGROUP_READINESS_SCHEMA_VERSION,
+    BAM_HAPLOGROUP_TRUTH_SUMMARY_SCHEMA_VERSION, BAM_INSERT_SIZE_SUMMARY_SCHEMA_VERSION,
+    BAM_KINSHIP_PREREQUISITES_SCHEMA_VERSION, BAM_LENGTH_FILTER_SUMMARY_SCHEMA_VERSION,
     BAM_MAPPING_SUMMARY_SCHEMA_VERSION, BAM_MAPQ_FILTER_SUMMARY_SCHEMA_VERSION,
     BAM_MARKDUP_SUMMARY_SCHEMA_VERSION, BAM_MERGE_COMPATIBILITY_SCHEMA_VERSION,
     BAM_OVERLAP_CORRECTION_SUMMARY_SCHEMA_VERSION, BAM_POST_ALIGNMENT_CHAIN_SCHEMA_VERSION,
@@ -64,136 +65,6 @@ use crate::types::artifact_reports::{
     BAM_SEX_SUMMARY_SCHEMA_VERSION, BAM_VALIDATION_SUMMARY_SCHEMA_VERSION,
     BAM_WORKFLOW_TEMPLATE_SCHEMA_VERSION,
 };
-
-/// Inspect a tiny BAM/SAM fixture and expose the normalized alignment header footprint.
-///
-/// # Errors
-/// Returns an error when the alignment fixture cannot be parsed.
-pub fn inspect_tiny_alignment(path: &Path) -> Result<BamTinyAlignmentInspectionV1> {
-    let document = parse_tiny_alignment(path)?;
-    let mut header_contigs = document.references.clone();
-    header_contigs.sort();
-    header_contigs.dedup();
-
-    let mut header_sample_ids = document.read_group_samples.clone();
-    header_sample_ids.sort();
-    header_sample_ids.dedup();
-
-    let mut read_group_ids = document.read_groups.clone();
-    read_group_ids.sort();
-    read_group_ids.dedup();
-
-    let mut mapped_record_contigs = document
-        .records
-        .iter()
-        .filter(|record| record.is_mapped())
-        .map(|record| record.rname.clone())
-        .collect::<Vec<_>>();
-    mapped_record_contigs.sort();
-    mapped_record_contigs.dedup();
-
-    Ok(BamTinyAlignmentInspectionV1 {
-        sort_order: document.sort_order,
-        header_contigs,
-        header_sample_ids,
-        read_group_ids,
-        mapped_record_contigs,
-        record_count: document.records.len() as u64,
-    })
-}
-
-/// Summarize exact tiny-alignment truth for governed BAM/SAM fixtures.
-///
-/// # Errors
-/// Returns an error when the alignment fixture cannot be parsed.
-pub fn summarize_tiny_bam_alignment_truth(input_bam: &Path) -> Result<BamAlignmentTruthSummaryV1> {
-    let document = parse_tiny_alignment(input_bam)?;
-
-    let total_reads = document.records.len() as u64;
-    let mapped_reads = document.records.iter().filter(|record| record.is_mapped()).count() as u64;
-    let unmapped_reads = total_reads.saturating_sub(mapped_reads);
-
-    let mut mapped_contigs = document
-        .records
-        .iter()
-        .filter(|record| record.is_mapped())
-        .map(|record| record.rname.clone())
-        .collect::<Vec<_>>();
-    mapped_contigs.sort();
-    mapped_contigs.dedup();
-
-    let mut mapped_positions = HashMap::<(String, u64), u64>::new();
-    let mut mapped_mapq_classes = HashMap::<u8, u64>::new();
-    let mut cigar_classes = HashMap::<String, u64>::new();
-    let mut records = document
-        .records
-        .iter()
-        .map(|record| {
-            *cigar_classes.entry(record.cigar.clone()).or_insert(0) += 1;
-            if record.is_mapped() {
-                *mapped_positions.entry((record.rname.clone(), record.pos)).or_insert(0) += 1;
-                *mapped_mapq_classes.entry(record.mapq).or_insert(0) += 1;
-            }
-            BamAlignmentTruthRecordV1 {
-                qname: record.qname.clone(),
-                mapped: record.is_mapped(),
-                reference_name: record.is_mapped().then(|| record.rname.clone()),
-                position: record.is_mapped().then_some(record.pos),
-                mapq: record.mapq,
-                cigar: record.cigar.clone(),
-            }
-        })
-        .collect::<Vec<_>>();
-    records.sort_by(|left, right| {
-        left.mapped
-            .cmp(&right.mapped)
-            .reverse()
-            .then(left.reference_name.cmp(&right.reference_name))
-            .then(left.position.cmp(&right.position))
-            .then(left.qname.cmp(&right.qname))
-            .then(left.cigar.cmp(&right.cigar))
-            .then(left.mapq.cmp(&right.mapq))
-    });
-
-    let mut mapped_positions = mapped_positions
-        .into_iter()
-        .map(|((reference_name, position), read_count)| BamAlignmentTruthPositionV1 {
-            reference_name,
-            position,
-            read_count,
-        })
-        .collect::<Vec<_>>();
-    mapped_positions.sort_by(|left, right| {
-        left.reference_name
-            .cmp(&right.reference_name)
-            .then(left.position.cmp(&right.position))
-            .then(left.read_count.cmp(&right.read_count))
-    });
-
-    let mut mapped_mapq_classes = mapped_mapq_classes
-        .into_iter()
-        .map(|(mapq, read_count)| BamAlignmentTruthMapqClassV1 { mapq, read_count })
-        .collect::<Vec<_>>();
-    mapped_mapq_classes.sort_by_key(|row| row.mapq);
-
-    let mut cigar_classes = cigar_classes
-        .into_iter()
-        .map(|(cigar, read_count)| BamAlignmentTruthCigarClassV1 { cigar, read_count })
-        .collect::<Vec<_>>();
-    cigar_classes.sort_by(|left, right| left.cigar.cmp(&right.cigar));
-
-    Ok(BamAlignmentTruthSummaryV1 {
-        schema_version: BAM_ALIGNMENT_TRUTH_SUMMARY_SCHEMA_VERSION.to_string(),
-        total_reads,
-        mapped_reads,
-        unmapped_reads,
-        mapped_contigs,
-        mapped_positions,
-        mapped_mapq_classes,
-        cigar_classes,
-        records,
-    })
-}
 
 /// Summarize duplicate burden and insert-size geometry for a tiny BAM/SAM fixture.
 ///
@@ -853,67 +724,6 @@ pub fn align_fastq_to_bam_bowtie2_style(
     )
 }
 
-/// Sort tiny SAM/BAM fixtures by coordinate and emit a deterministic index sidecar.
-///
-/// # Errors
-/// Returns an error if input parsing or output materialization fails.
-pub fn sort_and_index_tiny_bam(
-    input_bam: &Path,
-    output_bam: &Path,
-    output_bai: &Path,
-) -> Result<BamArtifactInventoryV1> {
-    let mut document = parse_tiny_sam(input_bam)?;
-    let mut reference_rank = HashMap::<String, usize>::new();
-    for (index, reference) in document.references.iter().enumerate() {
-        reference_rank.insert(reference.clone(), index);
-    }
-    let fallback_rank = reference_rank.len() + 1;
-    document.records.sort_by(|left, right| {
-        let left_rank = if left.is_mapped() {
-            *reference_rank.get(&left.rname).unwrap_or(&fallback_rank)
-        } else {
-            fallback_rank
-        };
-        let right_rank = if right.is_mapped() {
-            *reference_rank.get(&right.rname).unwrap_or(&fallback_rank)
-        } else {
-            fallback_rank
-        };
-        (left_rank, left.pos, left.qname.as_str()).cmp(&(
-            right_rank,
-            right.pos,
-            right.qname.as_str(),
-        ))
-    });
-    write_tiny_sam_from_document(output_bam, &document, "coordinate")?;
-
-    let mut mapped_by_reference = HashMap::<String, u64>::new();
-    for record in document.records.iter().filter(|entry| entry.is_mapped()) {
-        *mapped_by_reference.entry(record.rname.clone()).or_insert(0) += 1;
-    }
-    let mut index_payload = String::new();
-    for reference in &document.references {
-        let count = mapped_by_reference.get(reference).copied().unwrap_or(0);
-        index_payload.push_str(&format!("{reference}\t{count}\n"));
-    }
-    std::fs::write(output_bai, index_payload)?;
-
-    let output_root = output_bam.parent().unwrap_or_else(|| Path::new("."));
-    let outputs = vec![
-        ArtifactRef::required(
-            ArtifactId::from_static("sorted_bam"),
-            output_bam.to_path_buf(),
-            ArtifactRole::Bam,
-        ),
-        ArtifactRef::required(
-            ArtifactId::from_static("sorted_bai"),
-            output_bai.to_path_buf(),
-            ArtifactRole::Index,
-        ),
-    ];
-    Ok(bam_artifact_inventory_from_outputs("bam.sort_index", output_root, &outputs))
-}
-
 #[must_use]
 pub fn bam_artifact_inventory_from_outputs(
     stage_id: &str,
@@ -1231,6 +1041,11 @@ pub fn apply_duplicate_policy_tiny_bam(
     umi_policy: Option<&str>,
 ) -> Result<(BamDuplicatePolicyV1, BamDuplicateComparisonV1)> {
     let input = parse_tiny_sam(input_bam)?;
+    if !matches!(duplicate_action, "mark" | "remove") {
+        return Err(anyhow!(
+            "unsupported duplicate action {duplicate_action}; expected mark or remove"
+        ));
+    }
     let mut observed = HashMap::<String, usize>::new();
     let mut output_records = Vec::<TinySamRecord>::new();
     let mut additional_marked = 0_u64;
@@ -3616,177 +3431,18 @@ pub fn summarize_tiny_bam_kinship(
     requires_cohort_context: bool,
 ) -> Result<BamKinshipSummaryV1> {
     let document = parse_tiny_sam(input_bam)?;
-    let sample_site_calls = tiny_kinship_site_calls(&document);
-    let mut sample_ids = sample_site_calls.keys().cloned().collect::<Vec<_>>();
-    sample_ids.sort();
-    sample_ids.dedup();
-
-    let mut observed_max_overlap_snps = 0_u32;
-    let mut pairwise_results = Vec::new();
-    for (left_index, sample_a) in sample_ids.iter().enumerate() {
-        for sample_b in sample_ids.iter().skip(left_index + 1) {
-            let Some(calls_a) = sample_site_calls.get(sample_a) else {
-                continue;
-            };
-            let Some(calls_b) = sample_site_calls.get(sample_b) else {
-                continue;
-            };
-            let (overlap_snps, result) = build_tiny_kinship_pair_result(
-                sample_a,
-                sample_b,
-                calls_a,
-                calls_b,
-                min_overlap_snps,
-            );
-            observed_max_overlap_snps = observed_max_overlap_snps.max(overlap_snps);
-            if let Some(result) = result {
-                pairwise_results.push(result);
-            }
-        }
-    }
-
-    let insufficiency_reason = if pairwise_results.is_empty() {
-        if sample_ids.len() < 2 {
-            Some("insufficient_pair_manifest".to_string())
-        } else if observed_max_overlap_snps < min_overlap_snps {
-            Some("insufficient_overlap_snps".to_string())
-        } else {
-            Some("no_pairwise_results".to_string())
-        }
-    } else {
-        None
-    };
-
-    Ok(BamKinshipSummaryV1 {
-        schema_version: BAM_KINSHIP_SUMMARY_SCHEMA_VERSION.to_string(),
-        stage_id: "bam.kinship".to_string(),
-        method: method.to_string(),
-        input_bam: input_bam.to_path_buf(),
-        reference_panel: reference_panel.to_string(),
-        reference_build: reference_build.to_string(),
-        population_scope: population_scope.to_string(),
-        min_overlap_snps,
-        requires_cohort_context,
-        sample_count: sample_ids.len() as u32,
-        observed_max_overlap_snps,
-        pair_count: pairwise_results.len() as u32,
-        status: if pairwise_results.is_empty() {
-            "insufficient".to_string()
-        } else {
-            "ok".to_string()
+    Ok(observation::project_kinship(
+        &document,
+        observation::KinshipContext {
+            input_bam,
+            method,
+            reference_panel,
+            reference_build,
+            population_scope,
+            min_overlap_snps,
+            requires_cohort_context,
         },
-        insufficiency_reason,
-        pairwise_results,
-    })
-}
-
-fn tiny_kinship_site_calls(
-    document: &TinySamDocument,
-) -> HashMap<String, HashMap<(String, u64), Option<char>>> {
-    let mut calls = HashMap::<String, HashMap<(String, u64), Option<char>>>::new();
-    for record in document
-        .records
-        .iter()
-        .filter(|record| record.is_mapped() && record.pos > 0 && record.seq != "*")
-    {
-        let sample_id = kinship_sample_id_for_record(document, record);
-        let sample_calls = calls.entry(sample_id).or_default();
-        for (offset, base) in record.seq.chars().enumerate() {
-            let normalized = normalize_called_base(base);
-            let site = (record.rname.clone(), record.pos + offset as u64);
-            match sample_calls.get(&site).copied().flatten() {
-                Some(existing) if existing != normalized => {
-                    sample_calls.insert(site, None);
-                }
-                Some(_) => {}
-                None => {
-                    sample_calls.insert(site, Some(normalized));
-                }
-            }
-        }
-    }
-    calls
-}
-
-fn kinship_sample_id_for_record(document: &TinySamDocument, record: &TinySamRecord) -> String {
-    record
-        .read_group_id
-        .as_ref()
-        .and_then(|read_group_id| document.read_group_sample_map.get(read_group_id))
-        .cloned()
-        .or_else(|| document.read_group_samples.first().cloned())
-        .unwrap_or_else(|| "unknown".to_string())
-}
-
-fn normalize_called_base(base: char) -> char {
-    match base.to_ascii_uppercase() {
-        'A' | 'C' | 'G' | 'T' => base.to_ascii_uppercase(),
-        _ => 'N',
-    }
-}
-
-fn build_tiny_kinship_pair_result(
-    sample_a: &str,
-    sample_b: &str,
-    calls_a: &HashMap<(String, u64), Option<char>>,
-    calls_b: &HashMap<(String, u64), Option<char>>,
-    min_overlap_snps: u32,
-) -> (u32, Option<BamKinshipPairResultV1>) {
-    let mut overlap_snps = 0_u32;
-    let mut matching_sites = 0_u32;
-    for (site, base_a) in calls_a {
-        let Some(base_a) = *base_a else {
-            continue;
-        };
-        if base_a == 'N' {
-            continue;
-        }
-        let Some(Some(base_b)) = calls_b.get(site).copied() else {
-            continue;
-        };
-        if base_b == 'N' {
-            continue;
-        }
-        overlap_snps = overlap_snps.saturating_add(1);
-        if base_a == base_b {
-            matching_sites = matching_sites.saturating_add(1);
-        }
-    }
-
-    if overlap_snps < min_overlap_snps {
-        return (overlap_snps, None);
-    }
-
-    let mismatch_sites = overlap_snps.saturating_sub(matching_sites);
-    let concordance = round_metric(matching_sites as f64 / overlap_snps as f64);
-    let kinship_coefficient = round_metric(concordance / 2.0);
-    let relationship_label = classify_tiny_kinship_relationship(kinship_coefficient).to_string();
-
-    (
-        overlap_snps,
-        Some(BamKinshipPairResultV1 {
-            sample_a: sample_a.to_string(),
-            sample_b: sample_b.to_string(),
-            overlap_snps,
-            matching_sites,
-            mismatch_sites,
-            concordance,
-            kinship_coefficient,
-            relationship_label,
-        }),
-    )
-}
-
-fn classify_tiny_kinship_relationship(kinship_coefficient: f64) -> &'static str {
-    if kinship_coefficient >= 0.45 {
-        "duplicate_or_monozygotic"
-    } else if kinship_coefficient >= 0.177 {
-        "first_degree"
-    } else if kinship_coefficient >= 0.0884 {
-        "second_degree"
-    } else {
-        "unrelated"
-    }
+    ))
 }
 
 fn find_named_contig(
@@ -3993,7 +3649,8 @@ pub fn correct_tiny_bam_overlaps(
 /// Summarize an existing tiny overlap-correction output bundle by comparing input/output pairs.
 ///
 /// # Errors
-/// Returns an error if either tiny alignment fixture cannot be parsed.
+/// Returns an error if either tiny alignment fixture cannot be parsed or the output does not
+/// retain the input record identities and order. Sequence and CIGAR changes are permitted.
 pub fn summarize_tiny_bam_overlap_correction_outputs(
     input_bam: &Path,
     output_bam: &Path,
@@ -4001,6 +3658,19 @@ pub fn summarize_tiny_bam_overlap_correction_outputs(
 ) -> Result<BamOverlapCorrectionSummaryV1> {
     let input = parse_tiny_sam(input_bam)?;
     let output = parse_tiny_sam(output_bam)?;
+    if input.records.len() != output.records.len()
+        || input.records.iter().zip(&output.records).any(|(before, after)| {
+            before.qname != after.qname
+                || before.flag != after.flag
+                || before.rname != after.rname
+                || before.pos != after.pos
+                || before.read_group_id != after.read_group_id
+        })
+    {
+        return Err(anyhow!(
+            "overlap correction output must retain input record identities and order"
+        ));
+    }
     let metrics = overlap_correction_metrics(&input.records, &output.records);
     let insufficiency_reason =
         if metrics.pair_count == 0 { Some("paired_read_pairs_required") } else { None };
@@ -5326,109 +4996,6 @@ r001\t99\tchr1\n",
     }
 
     #[test]
-    fn inspect_tiny_alignment_accepts_governed_binary_bam_fixture() {
-        let repo_root = workspace_root();
-        let bam = repo_root.join("assets/toy/core-v1/bam/validation_pass.bam");
-
-        let inspection = inspect_tiny_alignment(&bam).expect("inspect BAM fixture");
-        assert_eq!(inspection.sort_order.as_deref(), Some("coordinate"));
-        assert_eq!(inspection.header_contigs, vec!["chr1".to_string()]);
-        assert_eq!(inspection.header_sample_ids, vec!["core-v1-pass".to_string()]);
-        assert_eq!(inspection.read_group_ids.len(), 1);
-        assert_eq!(inspection.mapped_record_contigs, vec!["chr1".to_string()]);
-        assert_eq!(inspection.record_count, 2);
-    }
-
-    #[test]
-    fn summarize_tiny_bam_alignment_truth_accepts_governed_binary_bam_fixture() {
-        let repo_root = workspace_root();
-        let bam = repo_root.join("assets/toy/core-v1/bam/validation_pass.bam");
-
-        let summary = summarize_tiny_bam_alignment_truth(&bam).expect("summarize BAM fixture");
-        assert_eq!(summary.schema_version, BAM_ALIGNMENT_TRUTH_SUMMARY_SCHEMA_VERSION);
-        assert_eq!(summary.total_reads, 2);
-        assert_eq!(summary.mapped_reads, 2);
-        assert_eq!(summary.unmapped_reads, 0);
-        assert_eq!(summary.mapped_contigs, vec!["chr1".to_string()]);
-        assert_eq!(
-            summary.mapped_positions,
-            vec![
-                BamAlignmentTruthPositionV1 {
-                    reference_name: "chr1".to_string(),
-                    position: 1,
-                    read_count: 1,
-                },
-                BamAlignmentTruthPositionV1 {
-                    reference_name: "chr1".to_string(),
-                    position: 7,
-                    read_count: 1,
-                },
-            ]
-        );
-        assert_eq!(
-            summary.mapped_mapq_classes,
-            vec![BamAlignmentTruthMapqClassV1 { mapq: 60, read_count: 2 }]
-        );
-        assert_eq!(
-            summary.cigar_classes,
-            vec![BamAlignmentTruthCigarClassV1 { cigar: "6M".to_string(), read_count: 2 }]
-        );
-    }
-
-    #[test]
-    fn summarize_tiny_bam_alignment_truth_tracks_mapped_unmapped_positions_and_classes() {
-        let repo_root = workspace_root();
-        let sam = repo_root.join("assets/toy/core-v1/bam/filter_mixed_constraints.sam");
-
-        let summary = summarize_tiny_bam_alignment_truth(&sam).expect("summarize SAM fixture");
-        assert_eq!(summary.schema_version, BAM_ALIGNMENT_TRUTH_SUMMARY_SCHEMA_VERSION);
-        assert_eq!(summary.total_reads, 5);
-        assert_eq!(summary.mapped_reads, 4);
-        assert_eq!(summary.unmapped_reads, 1);
-        assert_eq!(summary.mapped_contigs, vec!["chr1".to_string()]);
-        assert_eq!(
-            summary.mapped_positions,
-            vec![
-                BamAlignmentTruthPositionV1 {
-                    reference_name: "chr1".to_string(),
-                    position: 1,
-                    read_count: 1,
-                },
-                BamAlignmentTruthPositionV1 {
-                    reference_name: "chr1".to_string(),
-                    position: 10,
-                    read_count: 1,
-                },
-                BamAlignmentTruthPositionV1 {
-                    reference_name: "chr1".to_string(),
-                    position: 20,
-                    read_count: 1,
-                },
-                BamAlignmentTruthPositionV1 {
-                    reference_name: "chr1".to_string(),
-                    position: 30,
-                    read_count: 1,
-                },
-            ]
-        );
-        assert_eq!(
-            summary.mapped_mapq_classes,
-            vec![
-                BamAlignmentTruthMapqClassV1 { mapq: 10, read_count: 1 },
-                BamAlignmentTruthMapqClassV1 { mapq: 60, read_count: 3 },
-            ]
-        );
-        assert_eq!(
-            summary.cigar_classes,
-            vec![
-                BamAlignmentTruthCigarClassV1 { cigar: "*".to_string(), read_count: 1 },
-                BamAlignmentTruthCigarClassV1 { cigar: "6M".to_string(), read_count: 1 },
-                BamAlignmentTruthCigarClassV1 { cigar: "8M".to_string(), read_count: 3 },
-            ]
-        );
-    }
-
-    #[test]
     fn summarize_tiny_bam_duplicate_insert_truth_reports_governed_duplicate_cluster() {
         let repo_root = workspace_root();
         let sam = repo_root.join(
@@ -5528,29 +5095,6 @@ pair003\t147\tchr1\t50\t60\t5M\t=\t40\t-15\tGGGGG\tFFFFF\tRG:Z:rg1\n",
     }
 
     #[test]
-    fn inspect_tiny_alignment_accepts_text_sam_fixture() {
-        let temp = unique_temp_dir("inspect-tiny-alignment-sam");
-        let sam = temp.join("fixture.sam");
-        std::fs::write(
-            &sam,
-            "@HD\tVN:1.6\tSO:coordinate\n\
-@SQ\tSN:chranc\tLN:64\n\
-@RG\tID:rg-adna\tSM:adna_like_damage\n\
-read1\t99\tchranc\t5\t42\t8M\t=\t13\t8\tCCTTCCAA\tFFFFFFFF\tRG:Z:rg-adna\n\
-read1\t147\tchranc\t13\t42\t8M\t=\t5\t-8\tTTCCAAGG\tFFFFFFFF\tRG:Z:rg-adna\n",
-        )
-        .expect("write SAM fixture");
-
-        let inspection = inspect_tiny_alignment(&sam).expect("inspect SAM fixture");
-        assert_eq!(inspection.sort_order.as_deref(), Some("coordinate"));
-        assert_eq!(inspection.header_contigs, vec!["chranc".to_string()]);
-        assert_eq!(inspection.header_sample_ids, vec!["adna_like_damage".to_string()]);
-        assert_eq!(inspection.read_group_ids, vec!["rg-adna".to_string()]);
-        assert_eq!(inspection.mapped_record_contigs, vec!["chranc".to_string()]);
-        assert_eq!(inspection.record_count, 2);
-    }
-
-    #[test]
     fn execute_bam_validation_refuses_governed_malformed_bam_fixture() {
         let repo_root = workspace_root();
         let bam = repo_root.join("assets/toy/core-v1/bam/validation_malformed.bam");
@@ -5627,37 +5171,6 @@ read1\t147\tchranc\t13\t42\t8M\t=\t5\t-8\tTTCCAAGG\tFFFFFFFF\tRG:Z:rg-adna\n",
         assert_eq!(provenance.sensitivity_profile.as_deref(), Some("very_sensitive_local"));
         assert_eq!(summary.flagstat.total_reads, Some(2));
         assert_eq!(summary.flagstat.mapped_reads, Some(1));
-    }
-
-    #[test]
-    fn sort_and_index_tiny_bam_produces_coordinate_order_and_index() {
-        let temp = unique_temp_dir("bam-sort-index");
-        let input = temp.join("unsorted.sam");
-        let output = temp.join("sorted.bam");
-        let index = temp.join("sorted.bam.bai");
-        std::fs::write(
-            &input,
-            "@HD\tVN:1.6\tSO:unsorted\n\
-@SQ\tSN:chr1\tLN:50\n\
-@RG\tID:rg1\tSM:sample1\n\
-r10\t0\tchr1\t10\t40\t6M\t*\t0\t0\tACGTAC\tFFFFFF\tRG:Z:rg1\n\
-r01\t0\tchr1\t1\t40\t6M\t*\t0\t0\tGTACGT\tFFFFFF\tRG:Z:rg1\n",
-        )
-        .expect("write unsorted SAM fixture");
-
-        let inventory = sort_and_index_tiny_bam(&input, &output, &index).expect("sort and index");
-        assert_eq!(inventory.stage_id, "bam.sort_index");
-        assert!(output.exists());
-        assert!(index.exists());
-
-        let sorted_payload = std::fs::read_to_string(&output).expect("read sorted output");
-        let record_lines =
-            sorted_payload.lines().filter(|line| !line.starts_with('@')).collect::<Vec<_>>();
-        assert!(record_lines[0].starts_with("r01\t"));
-        assert!(record_lines[1].starts_with("r10\t"));
-
-        let validation = execute_bam_validation(&output, Some(&index), None).expect("validate");
-        assert!(validation.validation_report_present);
     }
 
     #[test]
@@ -6672,40 +6185,6 @@ adna-y-snp2\tchrY\t15\tC\tT\tR1b1a\tscreening\n",
     }
 
     #[test]
-    fn bam_kinship_summary_round_trips() {
-        let summary = BamKinshipSummaryV1 {
-            schema_version: BAM_KINSHIP_SUMMARY_SCHEMA_VERSION.to_string(),
-            stage_id: "bam.kinship".to_string(),
-            method: "king".to_string(),
-            input_bam: PathBuf::from("input.sam"),
-            reference_panel: "human_like_relatedness_panel".to_string(),
-            reference_build: "grch38".to_string(),
-            population_scope: "human_diploid_panel".to_string(),
-            min_overlap_snps: 6,
-            requires_cohort_context: true,
-            sample_count: 2,
-            observed_max_overlap_snps: 6,
-            pair_count: 1,
-            status: "ok".to_string(),
-            insufficiency_reason: None,
-            pairwise_results: vec![BamKinshipPairResultV1 {
-                sample_a: "sample_a".to_string(),
-                sample_b: "sample_b".to_string(),
-                overlap_snps: 6,
-                matching_sites: 5,
-                mismatch_sites: 1,
-                concordance: 0.833_333,
-                kinship_coefficient: 0.416_667,
-                relationship_label: "first_degree".to_string(),
-            }],
-        };
-        let encoded = serde_json::to_string(&summary).expect("serialize kinship summary");
-        let decoded: BamKinshipSummaryV1 =
-            serde_json::from_str(&encoded).expect("deserialize kinship summary");
-        assert_eq!(decoded, summary);
-    }
-
-    #[test]
     fn summarize_tiny_bam_kinship_reports_valid_pairs_and_overlap_refusal() {
         let temp = unique_temp_dir("bam-kinship-summary");
         let insufficient_input = temp.join("insufficient.sam");
@@ -7186,5 +6665,43 @@ r03\t0\tchr2\t2\t45\t3M\t*\t0\t0\tGGA\tFFF\tRG:Z:rg1\n",
         assert_eq!(sort.io_profile, "io_heavy_sequential_plus_temp_shuffle");
         assert_eq!(coverage.io_profile, "mixed_random_and_streaming_reads");
         assert_eq!(damage.io_profile, "streaming_reads_with_sidecar_metrics");
+    }
+
+    #[test]
+    fn overlap_output_membership_refuses_reordering_and_changed_mate_identity() -> Result<()> {
+        let root = unique_temp_dir("bam-overlap-record-identity");
+        let input = root.join("input.sam");
+        let output = root.join("corrected.sam");
+        std::fs::write(
+            &input,
+            "@HD\tVN:1.6\tSO:coordinate\n\
+@SQ\tSN:chr1\tLN:100\n\
+@RG\tID:rg1\tSM:sampleA\n\
+pair\t99\tchr1\t10\t60\t12M\t=\t15\t17\tACGTACGTACGT\tFFFFFFFFFFFF\tRG:Z:rg1\n\
+pair\t147\tchr1\t15\t60\t12M\t=\t10\t-17\tTTTTCCCCAAAA\tFFFFFFFFFFFF\tRG:Z:rg1\n",
+        )?;
+        correct_tiny_bam_overlaps(&input, &output, "bamutil")?;
+        let retained_input = std::fs::read(&input)?;
+        let retained_output = std::fs::read(&output)?;
+        let accepted = summarize_tiny_bam_overlap_correction_outputs(&input, &output, "bamutil")?;
+        assert_eq!(accepted.corrected_overlap_bases, Some(7));
+
+        let mut observation = parse_tiny_sam(&output)?;
+        observation.records.reverse();
+        let reordered = root.join("reordered.sam");
+        write_tiny_sam_from_document(&reordered, &observation, "coordinate")?;
+        assert!(
+            summarize_tiny_bam_overlap_correction_outputs(&input, &reordered, "bamutil").is_err()
+        );
+
+        observation.records.reverse();
+        observation.records[1].flag = observation.records[0].flag;
+        let changed_mate = root.join("changed-mate.sam");
+        write_tiny_sam_from_document(&changed_mate, &observation, "coordinate")?;
+        assert!(summarize_tiny_bam_overlap_correction_outputs(&input, &changed_mate, "bamutil")
+            .is_err());
+        assert_eq!(std::fs::read(input)?, retained_input);
+        assert_eq!(std::fs::read(output)?, retained_output);
+        Ok(())
     }
 }

@@ -110,3 +110,35 @@ fn symbolic_destination_is_rejected_without_touching_external_files() -> Result<
     assert_eq!(fs::read_to_string(external)?, "external");
     Ok(())
 }
+
+#[test]
+fn malformed_current_report_preserves_stable_population_artifacts() -> Result<()> {
+    let root = tempfile::tempdir()?;
+    let output = root.path().join("published");
+    let first = root.path().join("first");
+    stage(&first)?;
+    publish(&first, &output, &owner())?;
+    let original = ["pca.json", "artifacts/result.tsv", "population-artifact-ownership.json"]
+        .into_iter()
+        .map(|relative| {
+            let path = output.join(relative);
+            Ok((relative, fs::read(&path)?, fs::metadata(&path)?.permissions()))
+        })
+        .collect::<Result<Vec<_>>>()?;
+    let staged = root.path().join("second");
+    stage(&staged)?;
+    fs::write(staged.join("artifacts/result.tsv"), b"replacement result")?;
+    fs::write(staged.join("pca.json"), b"{invalid current report")?;
+    assert!(
+        publish(&staged, &output, &owner()).is_err(),
+        "malformed current population report must be refused before publication"
+    );
+    for (relative, bytes, permissions) in original {
+        let path = output.join(relative);
+        assert_eq!(fs::read(&path)?, bytes, "prior artifact {relative}");
+        assert_eq!(fs::metadata(path)?.permissions(), permissions);
+    }
+    assert_eq!(fs::read(staged.join("pca.json"))?, b"{invalid current report");
+    assert_eq!(fs::read(staged.join("artifacts/result.tsv"))?, b"replacement result");
+    Ok(())
+}

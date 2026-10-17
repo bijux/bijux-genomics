@@ -71,6 +71,12 @@ pub fn verify_apptainer_tool_contract(
         .with_context(|| format!("parse Apptainer inspection for {}", image.display()))?;
     let labels = collect_contract_labels(&inspection);
     validate_tool_contract_labels(&observed, &labels)?;
+    let retained_image_sha256 = sha256_file(image)?;
+    if retained_image_sha256 != image_sha256 {
+        bail!(
+            "Apptainer image digest changed during tool-contract inspection: expected {image_sha256}, observed {retained_image_sha256}"
+        );
+    }
     Ok(ToolImageIdentityEvidence {
         schema_version: TOOL_IMAGE_IDENTITY_EVIDENCE_SCHEMA_V3.to_string(),
         image_sha256,

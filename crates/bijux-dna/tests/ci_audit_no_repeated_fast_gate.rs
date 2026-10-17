@@ -14,7 +14,7 @@ fn ci_audit_no_repeated_fast_gate_accepts_make_selector_and_writes_report() {
     let temp = tempfile::tempdir().expect("tempdir");
     let out = temp.path().join("no-repeated-fast-gate.json");
 
-    let output = Command::new(env!("CARGO_BIN_EXE_bijux-dna"))
+    let output = Command::new(support::cli_binary_path())
         .current_dir(&repo_root)
         .arg("ci")
         .arg("audit")

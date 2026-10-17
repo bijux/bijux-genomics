@@ -3,25 +3,15 @@
 mod support;
 
 use std::collections::BTreeSet;
-use std::fs;
 
 fn markdown_link_targets(path: &str) -> BTreeSet<String> {
-    let root = support::workspace_root();
-    let raw =
-        fs::read_to_string(root.join(path)).unwrap_or_else(|err| panic!("read {path}: {err}"));
-    let mut targets = BTreeSet::new();
-    for line in raw.lines() {
-        let mut rest = line;
-        while let Some((_, suffix)) = rest.split_once("](") {
-            if let Some((target, tail)) = suffix.split_once(')') {
-                targets.insert(target.to_string());
-                rest = tail;
-            } else {
-                break;
-            }
-        }
-    }
-    targets
+    crate::document_references::markdown_targets(&support::workspace_root(), path)
+        .unwrap_or_else(|error| panic!("invalid references in {path}: {error}"))
+}
+
+fn expected_link_targets(path: &str, expected: &BTreeSet<String>) -> BTreeSet<String> {
+    crate::document_references::expected_targets(&support::workspace_root(), path, expected)
+        .unwrap_or_else(|error| panic!("invalid governed references for {path}: {error}"))
 }
 
 fn assert_required_links(path: &str, expected: &BTreeSet<String>, documented: &BTreeSet<String>) {
@@ -45,6 +35,7 @@ fn policy__contracts__root_docs_navigation_policy__intro_index_links_governed_su
         "REFUSALS.md".to_string(),
         "DOCS_MAP.md".to_string(),
     ]);
+    let expected = expected_link_targets("docs/00-intro/index.md", &expected);
     let documented = markdown_link_targets("docs/00-intro/index.md");
     assert_eq!(
         expected, documented,
@@ -60,6 +51,7 @@ fn policy__contracts__root_docs_navigation_policy__what_is_bijux_links_governed_
         "../10-architecture/ARCHITECTURE_OVERVIEW.md".to_string(),
         "../50-reference/LICENSING.md".to_string(),
     ]);
+    let expected = expected_link_targets("docs/00-intro/WHAT_IS_BIJUX.md", &expected);
     let documented = markdown_link_targets("docs/00-intro/WHAT_IS_BIJUX.md");
     assert_eq!(
         expected, documented,
@@ -73,6 +65,7 @@ fn policy__contracts__root_docs_navigation_policy__quickstart_links_governed_sur
         "../50-reference/PIPELINES.md".to_string(),
         "../30-operations/RUN_ARTIFACTS.md".to_string(),
     ]);
+    let expected = expected_link_targets("docs/00-intro/QUICKSTART.md", &expected);
     let documented = markdown_link_targets("docs/00-intro/QUICKSTART.md");
     assert_eq!(
         expected, documented,
@@ -88,6 +81,7 @@ fn policy__contracts__root_docs_navigation_policy__scope_links_governed_surfaces
         "../30-operations/index.md".to_string(),
         "../50-reference/index.md".to_string(),
     ]);
+    let expected = expected_link_targets("docs/00-intro/SCOPE.md", &expected);
     let documented = markdown_link_targets("docs/00-intro/SCOPE.md");
     assert_eq!(
         expected, documented,
@@ -104,6 +98,7 @@ fn policy__contracts__root_docs_navigation_policy__glossary_links_governed_surfa
         "../50-reference/PIPELINES.md".to_string(),
         "../40-policies/STYLE.md".to_string(),
     ]);
+    let expected = expected_link_targets("docs/00-intro/GLOSSARY.md", &expected);
     let documented = markdown_link_targets("docs/00-intro/GLOSSARY.md");
     assert_eq!(
         expected, documented,
@@ -118,6 +113,7 @@ fn policy__contracts__root_docs_navigation_policy__refusals_links_governed_surfa
         "../../domain/fastq/route_policies.toml".to_string(),
         "../20-science/fastq/STAGE_CATALOG.md".to_string(),
     ]);
+    let expected = expected_link_targets("docs/00-intro/REFUSALS.md", &expected);
     let documented = markdown_link_targets("docs/00-intro/REFUSALS.md");
     assert_eq!(
         expected, documented,
@@ -137,6 +133,7 @@ fn policy__contracts__root_docs_navigation_policy__doc_promises_links_governed_s
         "../40-policies/POLICY_INDEX.md".to_string(),
         "../10-architecture/SNAPSHOT_GOLDEN_CONTRACT.md".to_string(),
     ]);
+    let expected = expected_link_targets("docs/00-intro/DOC_PROMISES.md", &expected);
     let documented = markdown_link_targets("docs/00-intro/DOC_PROMISES.md");
     assert_eq!(
         expected, documented,
@@ -159,6 +156,7 @@ fn policy__contracts__root_docs_navigation_policy__docs_map_links_governed_surfa
         "../decisions/TOOL_BINDING_DECISIONS.md".to_string(),
         "REPO_ROOT_MAP.generated.md".to_string(),
     ]);
+    let expected = expected_link_targets("docs/00-intro/DOCS_MAP.md", &expected);
     let documented = markdown_link_targets("docs/00-intro/DOCS_MAP.md");
     assert_eq!(
         expected, documented,
@@ -178,6 +176,7 @@ fn policy__contracts__root_docs_navigation_policy__architecture_index_links_gove
         "CONTRACT_AUTHORITY_LADDER.md".to_string(),
         "SSOT.md".to_string(),
     ]);
+    let expected = expected_link_targets("docs/10-architecture/index.md", &expected);
     let documented = markdown_link_targets("docs/10-architecture/index.md");
     assert_required_links("docs/10-architecture/index.md", &expected, &documented);
 }
@@ -192,6 +191,8 @@ fn policy__contracts__root_docs_navigation_policy__architecture_overview_links_g
         "BOUNDARY_DIAGRAM.md".to_string(),
         "CONTRACT_SPINE.md".to_string(),
     ]);
+    let expected =
+        expected_link_targets("docs/10-architecture/ARCHITECTURE_OVERVIEW.md", &expected);
     let documented = markdown_link_targets("docs/10-architecture/ARCHITECTURE_OVERVIEW.md");
     assert_eq!(
         expected, documented,
@@ -213,6 +214,7 @@ fn policy__contracts__root_docs_navigation_policy__architecture_doc_links_govern
         "../../configs/ci/tools/images.toml".to_string(),
         "TARGET_ARCHITECTURE.md".to_string(),
     ]);
+    let expected = expected_link_targets("docs/10-architecture/ARCHITECTURE.md", &expected);
     let documented = markdown_link_targets("docs/10-architecture/ARCHITECTURE.md");
     assert_eq!(
         expected, documented,
@@ -229,6 +231,7 @@ fn policy__contracts__root_docs_navigation_policy__architecture_litmus_links_gov
         "SSOT.md".to_string(),
         "TARGET_ARCHITECTURE.md".to_string(),
     ]);
+    let expected = expected_link_targets("docs/10-architecture/ARCHITECTURE_LITMUS.md", &expected);
     let documented = markdown_link_targets("docs/10-architecture/ARCHITECTURE_LITMUS.md");
     assert_eq!(
         expected, documented,
@@ -239,13 +242,14 @@ fn policy__contracts__root_docs_navigation_policy__architecture_litmus_links_gov
 #[test]
 fn policy__contracts__root_docs_navigation_policy__anti_patterns_links_governed_surfaces_exactly() {
     let expected = BTreeSet::from([
-        "../../crates/bijux-dna-policies/tests/boundaries/surface/structure_guards/no_policy_duplication.rs".to_string(),
+        "../../crates/bijux-dna-policies/docs/ARCHITECTURE.md".to_string(),
         "../../crates/bijux-dna-policies/tests/boundaries/surface/policy/id_literal_policy.rs"
             .to_string(),
         "../../crates/bijux-dna-policies/tests/boundaries/surface/structure_guards/no_serde_json_writer.rs".to_string(),
         "../../crates/bijux-dna-policies/tests/boundaries/surface/purity/domain_purity.rs"
             .to_string(),
     ]);
+    let expected = expected_link_targets("docs/10-architecture/ANTI_PATTERNS.md", &expected);
     let documented = markdown_link_targets("docs/10-architecture/ANTI_PATTERNS.md");
     assert_eq!(
         expected, documented,
@@ -263,6 +267,7 @@ fn policy__contracts__root_docs_navigation_policy__boundary_diagram_links_govern
         "../../crates/bijux-dna-policies/tests/boundaries/deps/graph/effect_boundary_map.rs"
             .to_string(),
     ]);
+    let expected = expected_link_targets("docs/10-architecture/BOUNDARY_DIAGRAM.md", &expected);
     let documented = markdown_link_targets("docs/10-architecture/BOUNDARY_DIAGRAM.md");
     assert_eq!(
         expected, documented,
@@ -280,6 +285,7 @@ fn policy__contracts__root_docs_navigation_policy__dependency_rules_links_govern
         "../../crates/bijux-dna-policies/tests/boundaries/deps/core/dependency_boundaries.rs"
             .to_string(),
     ]);
+    let expected = expected_link_targets("docs/10-architecture/DEPENDENCY_RULES.md", &expected);
     let documented = markdown_link_targets("docs/10-architecture/DEPENDENCY_RULES.md");
     assert_eq!(
         expected, documented,
@@ -298,6 +304,7 @@ fn policy__contracts__root_docs_navigation_policy__dataflow_links_governed_surfa
         "../30-operations/REPORT_CONTRACT.md".to_string(),
         "../50-reference/PIPELINES.md".to_string(),
     ]);
+    let expected = expected_link_targets("docs/10-architecture/DATAFLOW.md", &expected);
     let documented = markdown_link_targets("docs/10-architecture/DATAFLOW.md");
     assert_eq!(
         expected, documented,
@@ -312,6 +319,8 @@ fn policy__contracts__root_docs_navigation_policy__dry_run_effects_contract_link
         "../../crates/bijux-dna/tests/contracts/dry_run.rs".to_string(),
         "../30-operations/RUN_ARTIFACTS.md".to_string(),
     ]);
+    let expected =
+        expected_link_targets("docs/10-architecture/DRY_RUN_EFFECTS_CONTRACT.md", &expected);
     let documented = markdown_link_targets("docs/10-architecture/DRY_RUN_EFFECTS_CONTRACT.md");
     assert_eq!(
         expected, documented,
@@ -329,6 +338,8 @@ fn policy__contracts__root_docs_navigation_policy__generated_files_contract_link
         "../50-reference/CONFIGS_GUIDE.md".to_string(),
         "../../crates/bijux-dna-policies/tests/contracts/tooling/governance_quality/generated_configs_policy.rs".to_string(),
     ]);
+    let expected =
+        expected_link_targets("docs/10-architecture/GENERATED_FILES_CONTRACT.md", &expected);
     let documented = markdown_link_targets("docs/10-architecture/GENERATED_FILES_CONTRACT.md");
     assert_eq!(
         expected, documented,
@@ -343,6 +354,8 @@ fn policy__contracts__root_docs_navigation_policy__snapshot_golden_contract_link
         "../../crates/bijux-dna-policies/tests/contracts/snapshots/snapshot_hygiene.rs".to_string(),
         "../30-operations/TEST_FAILURE_TRIAGE.md".to_string(),
     ]);
+    let expected =
+        expected_link_targets("docs/10-architecture/SNAPSHOT_GOLDEN_CONTRACT.md", &expected);
     let documented = markdown_link_targets("docs/10-architecture/SNAPSHOT_GOLDEN_CONTRACT.md");
     assert_eq!(
         expected, documented,
@@ -358,6 +371,8 @@ fn policy__contracts__root_docs_navigation_policy__crate_boundary_contracts_link
         "../../crates/bijux-dna-policies/tests/contracts/tooling/docs/boundary_docs_policy.rs"
             .to_string(),
     ]);
+    let expected =
+        expected_link_targets("docs/10-architecture/CRATE_BOUNDARY_CONTRACTS.md", &expected);
     let documented = markdown_link_targets("docs/10-architecture/CRATE_BOUNDARY_CONTRACTS.md");
     assert_eq!(
         expected, documented,
@@ -378,6 +393,7 @@ fn policy__contracts__root_docs_navigation_policy__contract_authority_links_gove
         "../../configs/ci/params/param_registry_vcf.toml".to_string(),
         "../../crates/bijux-dna-pipelines/src/contract/profile_manifest.rs".to_string(),
     ]);
+    let expected = expected_link_targets("docs/10-architecture/CONTRACT_AUTHORITY.md", &expected);
     let documented = markdown_link_targets("docs/10-architecture/CONTRACT_AUTHORITY.md");
     assert_eq!(
         expected, documented,
@@ -396,6 +412,7 @@ fn policy__contracts__root_docs_navigation_policy__policies_index_links_governed
         "DOCS_STYLE.md".to_string(),
         "STYLE.md".to_string(),
     ]);
+    let expected = expected_link_targets("docs/40-policies/index.md", &expected);
     let documented = markdown_link_targets("docs/40-policies/index.md");
     assert_eq!(
         expected, documented,
@@ -411,6 +428,7 @@ fn policy__contracts__root_docs_navigation_policy__docs_style_links_governed_sur
         "../DOCS_GRAPH.toml".to_string(),
         "../10-architecture/CONTRACT_AUTHORITY_LADDER.md".to_string(),
     ]);
+    let expected = expected_link_targets("docs/40-policies/DOCS_STYLE.md", &expected);
     let documented = markdown_link_targets("docs/40-policies/DOCS_STYLE.md");
     assert_eq!(
         expected, documented,
@@ -437,6 +455,7 @@ fn policy__contracts__root_docs_navigation_policy__operations_index_links_govern
         "SCOPE_CLOSURE_CHECKLIST.generated.md".to_string(),
         "CERTIFICATION_SCOPE.md".to_string(),
     ]);
+    let expected = expected_link_targets("docs/30-operations/index.md", &expected);
     let documented = markdown_link_targets("docs/30-operations/index.md");
     assert_required_links("docs/30-operations/index.md", &expected, &documented);
 }
@@ -457,6 +476,7 @@ fn policy__contracts__root_docs_navigation_policy__reference_index_links_governe
         "PANEL_COMPATIBILITY_MATRIX.md".to_string(),
         "VCF_DOWNSTREAM_COMPATIBILITY_MATRIX.md".to_string(),
     ]);
+    let expected = expected_link_targets("docs/50-reference/index.md", &expected);
     let documented = markdown_link_targets("docs/50-reference/index.md");
     assert_required_links("docs/50-reference/index.md", &expected, &documented);
 }
@@ -474,6 +494,7 @@ fn policy__contracts__root_docs_navigation_policy__reference_contract_index_link
         "PIPELINES.md".to_string(),
         "CONTRACT_VERSIONING.md".to_string(),
     ]);
+    let expected = expected_link_targets("docs/50-reference/REFERENCE_INDEX.md", &expected);
     let documented = markdown_link_targets("docs/50-reference/REFERENCE_INDEX.md");
     assert_eq!(
         expected, documented,
@@ -491,6 +512,8 @@ fn policy__contracts__root_docs_navigation_policy__architecture_contract_links_g
         "CONTRACT_SPINE.md".to_string(),
         "CONTRACT_INDEX.md".to_string(),
     ]);
+    let expected =
+        expected_link_targets("docs/10-architecture/ARCHITECTURE_CONTRACT.md", &expected);
     let documented = markdown_link_targets("docs/10-architecture/ARCHITECTURE_CONTRACT.md");
     assert_eq!(
         expected, documented,
@@ -510,6 +533,7 @@ fn policy__contracts__root_docs_navigation_policy__target_architecture_links_gov
         "ROOT_TREE_CONTRACT.md".to_string(),
         "CONTRACT_INDEX.md".to_string(),
     ]);
+    let expected = expected_link_targets("docs/10-architecture/TARGET_ARCHITECTURE.md", &expected);
     let documented = markdown_link_targets("docs/10-architecture/TARGET_ARCHITECTURE.md");
     assert_eq!(
         expected, documented,
@@ -527,6 +551,7 @@ fn policy__contracts__root_docs_navigation_policy__boundary_map_links_governed_s
         "../../crates/bijux-dna-policies/tests/boundaries/deps/graph/effect_boundary_map.rs"
             .to_string(),
     ]);
+    let expected = expected_link_targets("docs/10-architecture/BOUNDARY_MAP.md", &expected);
     let documented = markdown_link_targets("docs/10-architecture/BOUNDARY_MAP.md");
     assert_eq!(
         expected, documented,
@@ -542,6 +567,8 @@ fn policy__contracts__root_docs_navigation_policy__contract_authority_ladder_lin
         "../20-science/TOOL_INDEX.md".to_string(),
         "../../configs/ci/registry/tool_registry.toml".to_string(),
     ]);
+    let expected =
+        expected_link_targets("docs/10-architecture/CONTRACT_AUTHORITY_LADDER.md", &expected);
     let documented = markdown_link_targets("docs/10-architecture/CONTRACT_AUTHORITY_LADDER.md");
     assert_eq!(
         expected, documented,
@@ -567,6 +594,7 @@ fn policy__contracts__root_docs_navigation_policy__crate_authority_map_links_gov
         "../../crates/bijux-dna-policies/tests/contracts/tooling/governance/purity_effects_responsibility_policy.rs"
             .to_string(),
     ]);
+    let expected = expected_link_targets("docs/10-architecture/CRATE_AUTHORITY_MAP.md", &expected);
     let documented = markdown_link_targets("docs/10-architecture/CRATE_AUTHORITY_MAP.md");
     assert_eq!(
         expected, documented,
@@ -606,6 +634,7 @@ fn policy__contracts__root_docs_navigation_policy__contract_index_links_governed
         "../50-reference/CONTRACT_VERSIONING.md".to_string(),
         "../40-policies/POLICY_OWNERSHIP.md".to_string(),
     ]);
+    let expected = expected_link_targets("docs/10-architecture/CONTRACT_INDEX.md", &expected);
     let documented = markdown_link_targets("docs/10-architecture/CONTRACT_INDEX.md");
     assert_eq!(
         expected, documented,
@@ -616,6 +645,7 @@ fn policy__contracts__root_docs_navigation_policy__contract_index_links_governed
 #[test]
 fn policy__contracts__root_docs_navigation_policy__configs_guide_links_governed_surfaces_exactly() {
     let expected = BTreeSet::from(["../../configs/OWNERS.toml".to_string()]);
+    let expected = expected_link_targets("docs/50-reference/CONFIGS_GUIDE.md", &expected);
     let documented = markdown_link_targets("docs/50-reference/CONFIGS_GUIDE.md");
     assert_eq!(
         expected, documented,
@@ -637,6 +667,7 @@ fn policy__contracts__root_docs_navigation_policy__examples_reference_links_gove
         "../../examples/POLICY.md".to_string(),
         "../../examples/RECIPE_ONLY.txt".to_string(),
     ]);
+    let expected = expected_link_targets("docs/50-reference/EXAMPLES.md", &expected);
     let documented = markdown_link_targets("docs/50-reference/EXAMPLES.md");
     assert_eq!(
         expected, documented,

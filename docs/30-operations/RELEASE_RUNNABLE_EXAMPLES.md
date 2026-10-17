@@ -2,6 +2,13 @@
 
 Release-facing runnable examples with governed manifests, expected outputs, caveats, and command paths.
 
+The example commands below assemble governed golden bundles. They do not execute
+the listed scientific stages or container providers. A successful example report
+qualifies bundle transport and byte parity only; its workflow step labels are not
+provider execution receipts. See [the example policy](../../examples/POLICY.md)
+for that boundary. Release claims about actual runs require the corresponding
+pipeline outputs and verification contracts.
+
 ## FASTQ essential QC
 
 | Field | Value |

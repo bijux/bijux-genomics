@@ -151,3 +151,30 @@ fn bam_truth_stage_parsers_have_fixtures() -> anyhow::Result<()> {
 
     Ok(())
 }
+
+#[test]
+fn ancient_alignment_presets_retain_inner_parameter_admission() -> anyhow::Result<()> {
+    use bijux_dna_domain_bam::defaults::{adna_capture_params_json, adna_shotgun_params_json};
+    let ordinary = default_params_json(BamStage::Align);
+    BamStage::Align.parse_effective_params(&ordinary)?;
+    assert!(ordinary.get("stage").is_none());
+    let presets =
+        [adna_shotgun_params_json(BamStage::Align), adna_capture_params_json(BamStage::Align)];
+    let mut observations = Vec::new();
+    for value in presets {
+        BamStage::Align.parse_effective_params(&value)?;
+        assert!(value.get("stage").is_none(), "the public preset remains an inner DTO");
+        eprintln!("ancient_alignment_preset {value}");
+        observations.push(
+            value["preset"] == "adna_short"
+                && value["strategy_id"] == "bwa_aln_adna_short"
+                && value["mode"] == "seeded_short_read",
+        );
+    }
+    assert!(
+        observations.into_iter().all(|applied| applied),
+        "declared ancient alignment values must reach the accepted inner DTO"
+    );
+    assert_eq!(default_params_json(BamStage::Align), ordinary);
+    Ok(())
+}

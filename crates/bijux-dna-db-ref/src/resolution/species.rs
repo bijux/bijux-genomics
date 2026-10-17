@@ -18,7 +18,7 @@ pub fn resolve_species_alias(
     alias: &str,
     requested_build: Option<&str>,
 ) -> Result<(String, String)> {
-    let path = workspace_root().join("configs/runtime/species_aliases.toml");
+    let path = workspace_root()?.join("configs/runtime/species_aliases.toml");
     let cfg: AliasesConfig = load_toml(&path)?;
     let normalized_alias = alias.trim().to_ascii_lowercase();
     let canonical_species = cfg
@@ -40,14 +40,14 @@ pub fn resolve_species_alias(
 /// # Errors
 /// Returns an error if species authority config cannot be read or species is not declared.
 pub fn resolve_species_authority(species: &str) -> Result<SpeciesAuthorityEntry> {
-    super::find_species_authority_at(&workspace_root(), species)?
+    super::find_species_authority_at(&workspace_root()?, species)?
         .ok_or_else(|| anyhow!("species authority entry missing for {species}"))
 }
 
 /// # Errors
 /// Returns an error if contig mapping config cannot be read or mapping entry is missing.
 pub fn resolve_contig_map(species: &str, build: &str) -> Result<ContigMap> {
-    let path = workspace_root().join("configs/runtime/species.toml");
+    let path = workspace_root()?.join("configs/runtime/species.toml");
     let cfg: SpeciesAuthorityConfig = load_toml(&path)?;
     cfg.contig_map
         .into_iter()
@@ -58,7 +58,7 @@ pub fn resolve_contig_map(species: &str, build: &str) -> Result<ContigMap> {
 /// # Errors
 /// Returns an error if sex chromosome rule cannot be loaded.
 pub fn resolve_sex_chromosome_rule(species: &str, build: &str) -> Result<SexChromosomeRule> {
-    let path = workspace_root().join("configs/runtime/species.toml");
+    let path = workspace_root()?.join("configs/runtime/species.toml");
     let cfg: SpeciesAuthorityConfig = load_toml(&path)?;
     cfg.sex_rule
         .into_iter()
@@ -170,7 +170,7 @@ fn known_contig_names(contig_map: &ContigMap) -> BTreeSet<&str> {
 /// # Errors
 /// Returns an error if coverage profile config cannot be read.
 pub fn resolve_coverage_profile(species: &str, build: &str) -> Result<Option<String>> {
-    let path = workspace_root().join("configs/runtime/coverage_regimes.toml");
+    let path = workspace_root()?.join("configs/runtime/coverage_regimes.toml");
     let cfg: CoverageRegimesConfig = load_toml(&path)?;
     let key = format!("{species}:{build}");
     Ok(cfg.species_profile.get(&key).cloned())

@@ -9,6 +9,10 @@ use bijux_dna_bench_vcf_evidence::model::reports::DEFAULT_VCF_REPORT_MAP_PATH;
 use bijux_dna_bench_vcf_evidence::snapshot::VcfStageReadinessBinding;
 use std::collections::BTreeSet;
 // The compatible flat wire record projects independently assessed surfaces and stage smoke fields.
+#[allow(
+    clippy::too_many_lines,
+    reason = "The flat persisted readiness row requires explicit field-for-field projection."
+)]
 pub(super) fn build_vcf_admixture_ready_row(
     command_report: &ReadinessCommandPaths,
     binding: &VcfStageReadinessBinding,

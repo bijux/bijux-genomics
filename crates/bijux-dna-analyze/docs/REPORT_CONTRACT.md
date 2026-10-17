@@ -48,6 +48,36 @@ requirements, and performance budgets owned by `bijux-dna-analyze`.
 - Optional additions must be backward compatible and absent-safe.
 - Breaking field removals, type changes, or semantic changes require a new schema version.
 
+- Count validation refuses sums outside the representable `u64` range with validation errors in
+  every build profile; representable boundary values retain their existing invariants.
+
+- Semantic integrity base counts project typed `bases_in` and `bases_out`; read counts and the
+  established retention formulas remain separate.
+
+- An explicit render output directory selects summary, report and ranking publication. Input
+  acquisition stays rooted at the input base. The HTML flag selects standalone `report.html`;
+  existing canonical JSON, Markdown and bundle publication remains unchanged.
+
+- Primary report assembly resolves its declared stage, retention and bank inputs against the report
+  base. It retains physical paths through invocation and telemetry acquisition, including
+  reproducibility timestamps, before normalizing displayed paths.
+
+- Completed sections are retained in canonical JSON, bundle-local JSON and embedded HTML report
+  data.
+
+- Scientific provenance resolves its stage report, invocation and configuration declarations
+  against the same explicit report base. Absolute paths retain their location; absent, empty or
+  malformed optional evidence retains the existing empty/null projection.
+- Typed trimming registries admit producer fields `trimmed_tail_count`, `trim_5p_bases`,
+  `trim_3p_bases`, `reads_retained` and `bases_removed` without accepting unknown fields.
+
+- Supported metadata remains literal HTML text, attributes and script-contained JSON data; metadata
+  cannot create markup or terminate the embedded report data script.
+
+- Profile verification re-observes current declared evidence, required-file membership and profile
+  policy. Retained success flags alone cannot qualify changed inputs; collaborator-redacted names
+  require unambiguous retained physical bindings.
+
 ## Determinism Rules
 - JSON output uses canonical ordering where the renderer owns canonicalization.
 - HTML table order is stable by stage and tool identity.

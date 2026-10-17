@@ -3,10 +3,14 @@ use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context, Result};
 use bijux_dna_api::v1::api::bench::{
-    build_benchmark_local_hpc_dependency_simulation, BenchmarkLocalHpcDependencySimulationReport,
+    build_benchmark_local_hpc_dependency_simulation, build_benchmark_local_hpc_job_graph,
+    BenchmarkLocalHpcDependencySimulationReport,
 };
 
-use super::local_hpc_job_graph::collect_local_hpc_job_graph;
+use super::local_all_domain_slurm_submit_manifest::{
+    BenchLocalAllDomainSlurmSubmitJob, DEFAULT_ALL_DOMAIN_SLURM_SUBMIT_MANIFEST_PATH,
+};
+use super::local_hpc_job_graph::{collect_local_hpc_job_graph, LocalHpcJobGraph};
 use super::path_resolution::{ensure_path_stays_within_benchmark_runs_root, BenchmarkPathResolver};
 use crate::commands::cli::parse;
 use crate::commands::cli::render;
@@ -64,13 +68,22 @@ pub(crate) fn render_hpc_dependency_simulation(
     Ok(report)
 }
 
-pub(crate) fn collect_hpc_dependency_simulation(
+pub(crate) fn collect_hpc_dependency_simulation_with_jobs<
+    J: AsRef<[BenchLocalAllDomainSlurmSubmitJob]>,
+>(
     repo_root: &Path,
+    acquire_jobs: impl FnOnce() -> Result<J>,
 ) -> Result<LocalHpcDependencySimulationReport> {
     let benchmark_paths = BenchmarkPathResolver::new(repo_root, None);
     let output_path =
         benchmark_paths.resolve_repo_relative(Path::new(DEFAULT_HPC_DEPENDENCY_SIMULATION_PATH));
-    build_hpc_dependency_simulation(repo_root, &output_path)
+    build_hpc_dependency_simulation_with_graph(repo_root, &output_path, || {
+        let jobs = acquire_jobs()?;
+        build_benchmark_local_hpc_job_graph(
+            DEFAULT_ALL_DOMAIN_SLURM_SUBMIT_MANIFEST_PATH,
+            jobs.as_ref().to_vec(),
+        )
+    })
 }
 
 pub(crate) fn validate_hpc_dependency_simulation_path(
@@ -101,12 +114,22 @@ fn build_hpc_dependency_simulation(
     repo_root: &Path,
     absolute_output_path: &Path,
 ) -> Result<LocalHpcDependencySimulationReport> {
+    build_hpc_dependency_simulation_with_graph(repo_root, absolute_output_path, || {
+        collect_local_hpc_job_graph(repo_root)
+    })
+}
+
+fn build_hpc_dependency_simulation_with_graph(
+    repo_root: &Path,
+    absolute_output_path: &Path,
+    acquire_graph: impl FnOnce() -> Result<LocalHpcJobGraph>,
+) -> Result<LocalHpcDependencySimulationReport> {
     ensure_path_stays_within_benchmark_runs_root(
         repo_root,
         absolute_output_path,
         "HPC dependency simulation output",
     )?;
-    let graph = collect_local_hpc_job_graph(repo_root)?;
+    let graph = acquire_graph()?;
     build_benchmark_local_hpc_dependency_simulation(
         &graph,
         &path_relative_to_repo(repo_root, absolute_output_path),

@@ -98,3 +98,55 @@ fn governed_vcf_admixture_smoke_reports_complete_cohort_rows() {
         "expected ancestry rows to stay normalized"
     );
 }
+
+#[test]
+fn admixture_rows_require_finite_bounded_ancestry_components() -> anyhow::Result<()> {
+    use anyhow::Context as _;
+    let workspace = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .ancestors()
+        .nth(2)
+        .context("population crate must be in the workspace")?;
+    let output_owner = workspace.join("artifacts/tests/ancestry-component-admission");
+    bijux_dna_infra::ensure_dir(&output_owner)?;
+    let fixture = bijux_dna_infra::temp_dir_in(&output_owner, "ancestry-observation-")?;
+    let table = fixture.path().join("admixture.tsv");
+    let metadata = BTreeMap::from([(
+        "sample_a".to_string(),
+        SampleMetadataRow {
+            sample_id: "sample_a".into(),
+            population_id: "cohort_alpha".into(),
+            sex: "female".into(),
+            role: "cohort".into(),
+            description: "sample a".into(),
+        },
+    )]);
+    let populations = BTreeMap::from([("cohort_alpha".to_string(), "Cohort Alpha".to_string())]);
+    let headers = ["cluster_1".to_string(), "cluster_2".to_string()];
+    for (first, second, diagnostic) in [
+        ("NaN", "0.0", "must be finite"),
+        ("inf", "-inf", "must be finite"),
+        ("1.2", "-0.2", "must be within [0, 1]"),
+        ("-0.2", "1.2", "must be within [0, 1]"),
+    ] {
+        let payload = format!("sample\tcluster_1\tcluster_2\nsample_a\t{first}\t{second}\n");
+        std::fs::write(&table, &payload)?;
+        let error = parse_admixture_rows(&table, &metadata, &populations, &headers, 2, "complete")
+            .err()
+            .context("invalid ancestry components were admitted")?;
+        assert!(format!("{error:#}").contains(diagnostic), "{error:#}");
+        assert_eq!(std::fs::read_to_string(&table)?, payload);
+    }
+    for (first, second) in [("0.4", "0.6"), ("0.0", "1.0"), ("1.0", "0.0")] {
+        std::fs::write(
+            &table,
+            format!("sample\tcluster_1\tcluster_2\nsample_a\t{first}\t{second}\n"),
+        )?;
+        let rows = parse_admixture_rows(&table, &metadata, &populations, &headers, 2, "complete")?;
+        assert_eq!(rows.len(), 1);
+        assert_eq!(rows[0].clusters["cluster_1"].to_bits(), first.parse::<f64>()?.to_bits());
+        assert_eq!(rows[0].clusters["cluster_2"].to_bits(), second.parse::<f64>()?.to_bits());
+        assert_eq!(rows[0].population_label, "Cohort Alpha");
+        assert_eq!(rows[0].status, "complete");
+    }
+    Ok(())
+}

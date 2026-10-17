@@ -1,14 +1,18 @@
 use bijux_dna_domain_bam::metrics::{BamInvariantEvaluation, BamMetricsV1};
 use bijux_dna_stage_contract::{ArtifactRef, StagePlanV1};
 
-use crate::metrics::bam_metrics_from_dir;
+use crate::metrics::{bam_metrics_from_dir, bam_metrics_from_files};
 
 pub(super) fn collect_output_metrics(
     plan: &StagePlanV1,
     outputs: &[ArtifactRef],
 ) -> (BamMetricsV1, BamInvariantEvaluation) {
-    let out_dir = metrics_source_dir(plan, outputs);
-    let metrics = bam_metrics_from_dir(&out_dir);
+    let metrics = if outputs.is_empty() {
+        bam_metrics_from_dir(&plan.out_dir)
+    } else {
+        let paths = outputs.iter().map(|output| output.path.clone()).collect::<Vec<_>>();
+        bam_metrics_from_files(&paths)
+    };
     let thresholds = bijux_dna_domain_bam::metrics::BamInvariantThresholds::default();
     let evaluation = bijux_dna_domain_bam::metrics::evaluate_bam_invariants(
         &plan.stage_id.0,
@@ -16,17 +20,4 @@ pub(super) fn collect_output_metrics(
         &thresholds,
     );
     (metrics, evaluation)
-}
-
-fn metrics_source_dir(plan: &StagePlanV1, outputs: &[ArtifactRef]) -> std::path::PathBuf {
-    let mut candidates = vec![plan.out_dir.clone()];
-    candidates.extend(
-        outputs.iter().filter_map(|output| output.path.parent()).map(std::path::PathBuf::from),
-    );
-    candidates.sort();
-    candidates.dedup();
-    candidates
-        .into_iter()
-        .find(|candidate| candidate.is_dir())
-        .unwrap_or_else(|| plan.out_dir.clone())
 }

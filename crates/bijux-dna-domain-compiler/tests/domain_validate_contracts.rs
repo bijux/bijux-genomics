@@ -9,3 +9,12 @@ fn validate_domain_accepts_governed_workspace_contracts() -> anyhow::Result<()> 
     validate_domain(&ValidateOptions { domain_dir: root.join(DEFAULT_DOMAIN_DIR) })?;
     Ok(())
 }
+
+#[path = "contracts/resource_quantities.rs"]
+mod resource_quantities;
+
+#[path = "support/domain_workspace.rs"]
+mod domain_workspace;
+
+#[path = "contracts/deprecations.rs"]
+mod deprecations;

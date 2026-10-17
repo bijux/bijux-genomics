@@ -1,3 +1,5 @@
+use std::collections::BTreeMap;
+use std::ffi::OsString;
 use std::process::Command;
 
 use anyhow::{anyhow, Context, Result};
@@ -7,8 +9,18 @@ use anyhow::{anyhow, Context, Result};
 /// # Errors
 /// Returns an error if docker wait fails or output cannot be parsed.
 pub fn docker_wait(container_id: &str) -> Result<i32> {
-    let output =
-        Command::new("docker").arg("wait").arg(container_id).output().context("docker wait")?;
+    docker_wait_with_context(container_id, None)
+}
+
+pub(crate) fn docker_wait_with_context(
+    container_id: &str,
+    environment: Option<&BTreeMap<OsString, OsString>>,
+) -> Result<i32> {
+    let output = command_with_context(environment)
+        .arg("wait")
+        .arg(container_id)
+        .output()
+        .context("docker wait")?;
     if !output.status.success() {
         return Err(anyhow!("docker wait failed for {container_id}"));
     }
@@ -24,7 +36,15 @@ pub fn docker_wait(container_id: &str) -> Result<i32> {
 /// # Errors
 /// Returns an error if the timeout is reached or `docker wait` fails.
 pub fn docker_wait_timeout(container_id: &str, timeout: std::time::Duration) -> Result<i32> {
-    let mut command = Command::new("docker");
+    docker_wait_timeout_with_context(container_id, timeout, None)
+}
+
+pub(crate) fn docker_wait_timeout_with_context(
+    container_id: &str,
+    timeout: std::time::Duration,
+    environment: Option<&BTreeMap<OsString, OsString>>,
+) -> Result<i32> {
+    let mut command = command_with_context(environment);
     command
         .arg("wait")
         .arg(container_id)
@@ -57,8 +77,18 @@ pub fn docker_wait_timeout(container_id: &str, timeout: std::time::Duration) -> 
 /// # Errors
 /// Returns an error if docker logs command fails.
 pub fn docker_logs(container_id: &str) -> Result<String> {
-    let output =
-        Command::new("docker").arg("logs").arg(container_id).output().context("docker logs")?;
+    docker_logs_with_context(container_id, None)
+}
+
+pub(crate) fn docker_logs_with_context(
+    container_id: &str,
+    environment: Option<&BTreeMap<OsString, OsString>>,
+) -> Result<String> {
+    let output = command_with_context(environment)
+        .arg("logs")
+        .arg(container_id)
+        .output()
+        .context("docker logs")?;
     if !output.status.success() {
         return Err(anyhow!("docker logs failed for {container_id}"));
     }
@@ -128,4 +158,12 @@ pub fn docker_rm(container_id: &str) -> Result<()> {
         return Err(anyhow!("docker rm failed for {container_id}"));
     }
     Ok(())
+}
+
+fn command_with_context(environment: Option<&BTreeMap<OsString, OsString>>) -> Command {
+    let mut command = Command::new("docker");
+    if let Some(environment) = environment {
+        command.envs(environment);
+    }
+    command
 }

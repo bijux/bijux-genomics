@@ -1,3 +1,7 @@
+#[cfg(test)]
+#[path = "workflow/current_result_admission.rs"]
+mod current_result_admission;
+
 use std::collections::BTreeMap;
 use std::ffi::{OsStr, OsString};
 use std::fs;
@@ -641,6 +645,19 @@ fn validate_resumed_result(
     let contract_sha256 = bijux_dna_infra::hash_bytes_sha256(&serde_json::to_vec(&task.contract)?);
     if result.tool_contract_sha256 != contract_sha256 {
         bail!("resumed security tool contract differs for {}", task.tool_id);
+    }
+    // Collected current results require every payload declared by publication admission.
+    if result.status == SecurityProbeStatus::Collected
+        && (result.error.is_some()
+            || result.sbom.is_none()
+            || result.vulnerability_report.is_none()
+            || result.secret_report.is_none()
+            || result.signature_stdout.is_none()
+            || result.signature_stderr.is_none()
+            || result.structural_report.is_none()
+            || result.runtime_report.is_none())
+    {
+        bail!("resumed collected security result is incomplete for {}", task.tool_id);
     }
     let artifacts = [
         result.sbom.as_ref(),

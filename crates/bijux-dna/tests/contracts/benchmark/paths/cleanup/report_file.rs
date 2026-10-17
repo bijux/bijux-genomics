@@ -106,7 +106,7 @@ fn bench_paths_cleanup_proof_writes_artifact_report_after_deleting_disposable_ro
     seed_disposable_root(&artifacts_sentinel);
     seed_disposable_root(&runs_sentinel);
 
-    let output = Command::new(env!("CARGO_BIN_EXE_bijux-dna"))
+    let output = Command::new(support::cli_binary_path())
         .current_dir(repo_root.path())
         .env("HOME", home.path())
         .env("BIJUX_SKIP_QA", "1")

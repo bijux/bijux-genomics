@@ -60,3 +60,9 @@ Primary catalogs:
 authored stage manifest, including optional companion outputs. Its immutable
 projection admits each stage identity and unique output names. The existing
 required-output API retains its narrower meaning. Neither view validates files.
+
+`metrics::downstream::contamination::parse_contamination_json_contents` and
+`metrics::downstream::sex::parse_sex_json_contents` decode previously acquired
+JSON text without filesystem reads. Their original path parsers still acquire
+text and delegate, retaining existing defaults, assumption filtering, explicit
+sex classification and legacy classification inference.

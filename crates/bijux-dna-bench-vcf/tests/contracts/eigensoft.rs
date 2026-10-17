@@ -54,3 +54,39 @@ fn vcf_eigensoft_adapter_tracks_governed_rows() {
         "eigensoft population structure row must keep smartpca execution"
     );
 }
+
+#[test]
+fn malformed_family_stage_members_refuse_before_report_replacement() -> anyhow::Result<()> {
+    let actual = repo_root();
+    let inputs = crate::support::inputs(&actual);
+    let mut outcomes = Vec::new();
+    for stages in ["[7]", "[\"vcf.pca\",7]"] {
+        let root = tempfile::tempdir()?;
+        let registry = root.path().join("configs/ci/registry/tool_registry_vcf_downstream.toml");
+        std::fs::create_dir_all(
+            registry.parent().ok_or_else(|| anyhow::anyhow!("registry parent"))?,
+        )?;
+        std::fs::write(
+            &registry,
+            format!("[[tools]]\ntool_id = \"eigensoft\"\nstatus = \"production\"\nstage_ids = {stages}\n"),
+        )?;
+        let output = root.path().join("eigensoft.json");
+        std::fs::write(&output, b"previous eigensoft evidence")?;
+        let result = render_vcf_eigensoft_adapter(&inputs, root.path(), &output);
+        outcomes.push((
+            stages,
+            result.err().map(|error| format!("{error:#}")),
+            std::fs::read(&output)?,
+            root.path().join("artifacts").exists(),
+        ));
+    }
+    for (stages, error, previous, artifacts_created) in outcomes {
+        assert!(
+            error.is_some_and(|error| error.contains("stage_ids")),
+            "malformed member must be admitted before fixture acquisition: {stages}"
+        );
+        assert_eq!(previous, b"previous eigensoft evidence");
+        assert!(!artifacts_created, "malformed registry must not materialize fixtures");
+    }
+    Ok(())
+}

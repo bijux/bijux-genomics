@@ -17,17 +17,10 @@ use crate::params::edna::{
 use crate::params::PairedMode;
 
 use super::fastq_io::{read_fastq_records, write_fastq_records, FastqRecord};
-
-const PRIMER_MOTIFS: &[&str] = &["CCTACGGG", "GACTAC"];
-
-fn trim_primer_prefix(sequence: &str, quality: &str, min_overlap: usize) -> (String, String, bool) {
-    for motif in PRIMER_MOTIFS {
-        if sequence.starts_with(motif) && motif.len() >= min_overlap {
-            return (sequence[motif.len()..].to_string(), quality[motif.len()..].to_string(), true);
-        }
-    }
-    (sequence.to_string(), quality.to_string(), false)
-}
+use crate::stages::otu_clustering::{cluster_otu_records, OtuClusters};
+use crate::stages::primer_normalization::{
+    normalize_primer_records, validate_primer_read_counts, PrimerNormalizationRequest,
+};
 
 /// Normalize primer orientation and trim primer prefixes for eDNA workflows.
 ///
@@ -43,62 +36,32 @@ pub fn normalize_primers(
     primer_stats_json: &Path,
     raw_backend_report: Option<&Path>,
 ) -> Result<NormalizePrimersReportV1> {
-    let mut left = read_fastq_records(r1)?;
-    let mut right = if let Some(path) = r2 { read_fastq_records(path)? } else { Vec::new() };
+    let left = read_fastq_records(r1)?;
+    let right = r2.map(read_fastq_records).transpose()?;
 
     let paired = r2.is_some();
-    if paired && left.len() != right.len() {
-        return Err(anyhow!(
-            "fastq.normalize_primers refused incoherent paired input: R1 count {} != R2 count {}",
-            left.len(),
-            right.len()
-        ));
-    }
+    validate_primer_read_counts(left.len(), right.as_ref().map(Vec::len))?;
     if paired && output_r2.is_none() {
         return Err(anyhow!("fastq.normalize_primers requires output_r2 for paired input"));
     }
 
-    let reads_in = if paired { (left.len() + right.len()) as u64 } else { left.len() as u64 };
-    let bases_in = left.iter().map(|r| r.sequence.len() as u64).sum::<u64>()
-        + right.iter().map(|r| r.sequence.len() as u64).sum::<u64>();
-
-    let mut trimmed_reads = 0_u64;
-    let mut forward_oriented = 0_u64;
-
-    for record in &mut left {
-        let (seq, qual, trimmed) =
-            trim_primer_prefix(&record.sequence, &record.quality, params.min_overlap_bp as usize);
-        if trimmed {
-            trimmed_reads += 1;
-            forward_oriented += 1;
-            record.sequence = seq;
-            record.quality = qual;
-        }
-    }
-
-    for record in &mut right {
-        let (seq, qual, trimmed) =
-            trim_primer_prefix(&record.sequence, &record.quality, params.min_overlap_bp as usize);
-        if trimmed {
-            trimmed_reads += 1;
-            record.sequence = seq;
-            record.quality = qual;
-        }
-    }
+    let normalized =
+        normalize_primer_records(PrimerNormalizationRequest { r1: left, r2: right, params })?;
+    let left = normalized.r1;
+    let right = normalized.r2.unwrap_or_default();
+    let summary = normalized.summary;
+    let reads_in = summary.reads_in;
+    let reads_out = summary.reads_out;
+    let bases_in = summary.bases_in;
+    let bases_out = summary.bases_out;
+    let trimmed_reads = summary.primer_trimmed_reads;
+    let orientation_forward_fraction = summary.orientation_forward_fraction;
+    let primer_trimmed_fraction = summary.primer_trimmed_fraction;
 
     write_fastq_records(output_r1, &left)?;
     if let Some(output_r2) = output_r2 {
         write_fastq_records(output_r2, &right)?;
     }
-
-    let reads_out = if paired { (left.len() + right.len()) as u64 } else { left.len() as u64 };
-    let bases_out = left.iter().map(|r| r.sequence.len() as u64).sum::<u64>()
-        + right.iter().map(|r| r.sequence.len() as u64).sum::<u64>();
-
-    let orientation_forward_fraction =
-        if reads_in == 0 { Some(0.0) } else { Some(forward_oriented as f64 / reads_in as f64) };
-    let primer_trimmed_fraction =
-        if reads_in == 0 { Some(0.0) } else { Some(trimmed_reads as f64 / reads_in as f64) };
 
     std::fs::write(
         primer_orientation_report,
@@ -332,15 +295,6 @@ pub fn infer_asvs(
     })
 }
 
-fn sequence_identity(a: &str, b: &str) -> f64 {
-    let min_len = a.len().min(b.len());
-    if min_len == 0 {
-        return 0.0;
-    }
-    let matches = a.chars().zip(b.chars()).take(min_len).filter(|(x, y)| x == y).count();
-    matches as f64 / min_len as f64
-}
-
 /// Cluster OTUs from reads at a configured identity threshold.
 ///
 /// # Errors
@@ -356,22 +310,7 @@ pub fn cluster_otus(
 ) -> Result<ClusterOtusReportV1> {
     let reads = read_fastq_records(input_reads)?;
 
-    let mut representatives = Vec::<String>::new();
-    let mut counts = Vec::<u64>::new();
-    for record in &reads {
-        let mut assigned = false;
-        for (idx, rep) in representatives.iter().enumerate() {
-            if sequence_identity(rep, &record.sequence) >= params.identity_threshold {
-                counts[idx] += 1;
-                assigned = true;
-                break;
-            }
-        }
-        if !assigned {
-            representatives.push(record.sequence.clone());
-            counts.push(1);
-        }
-    }
+    let OtuClusters { representatives, counts } = cluster_otu_records(&reads, params);
 
     let mut table = String::from("sample_id\tfeature_id\tabundance\n");
     let mut fasta = String::new();
@@ -455,14 +394,17 @@ pub fn normalize_abundance(
         *sample_sums.entry(sample.clone()).or_insert(0.0) += *value;
     }
 
+    let scale_factor = params.scale_factor.unwrap_or(1.0);
+    let mut normalized_sums = BTreeMap::<String, f64>::new();
     let mut normalized_rows = Vec::<(String, String, f64)>::new();
     let mut zero_count = 0_u64;
     for (sample, feature, value) in &rows {
         let sum = sample_sums.get(sample).copied().unwrap_or(0.0);
-        let norm = if sum == 0.0 { 0.0 } else { value / sum };
+        let norm = if sum == 0.0 { 0.0 } else { (value * scale_factor) / sum };
         if norm == 0.0 {
             zero_count += 1;
         }
+        *normalized_sums.entry(sample.clone()).or_insert(0.0) += norm;
         normalized_rows.push((sample.clone(), feature.clone(), norm));
     }
 
@@ -500,7 +442,7 @@ pub fn normalize_abundance(
         } else {
             zero_count as f64 / normalized_rows.len() as f64
         },
-        per_sample_sums: sample_sums.into_iter().map(|(s, _)| (s, 1.0)).collect(),
+        per_sample_sums: normalized_sums.into_iter().collect(),
         runtime_s: None,
         memory_mb: None,
         raw_backend_report: None,
@@ -530,6 +472,144 @@ mod tests {
             payload.push_str(&format!("@{header}\n{seq}\n+\n{qual}\n"));
         }
         std::fs::write(path, payload)?;
+        Ok(())
+    }
+
+    fn primer_parameters() -> PrimerNormalizationEffectiveParams {
+        PrimerNormalizationEffectiveParams {
+            schema_version: "v1".to_string(),
+            paired_mode: PairedMode::SingleEnd,
+            threads: Some(2),
+            orientation_policy: "normalize_to_forward_primer".to_string(),
+            primer_set_id: "16s".to_string(),
+            marker_id: Some("16S".to_string()),
+            primer_fasta: None,
+            max_mismatch_rate: 0.1,
+            min_overlap_bp: 6,
+            strict_5p_anchor: true,
+            allow_iupac_codes: true,
+        }
+    }
+
+    #[test]
+    fn primer_outputs_preserve_exact_fastq_tsv_and_stats_bytes() -> anyhow::Result<()> {
+        let temp = bijux_dna_infra::temp_dir("bijux-primer-publication")?;
+        let input = temp.path().join("input.fastq");
+        std::fs::write(&input, "@a/1 retained\nCCTACGGGACGT\n+identity\nabcdefghIJKL\n")?;
+        let output = temp.path().join("normalized.fastq");
+        let empty_mate = temp.path().join("optional-mate.fastq");
+        let orientation = temp.path().join("orientation.tsv");
+        let stats = temp.path().join("stats.json");
+        let report = normalize_primers(
+            &input,
+            None,
+            &primer_parameters(),
+            &output,
+            Some(&empty_mate),
+            &orientation,
+            &stats,
+            Some(&stats),
+        )?;
+        assert_eq!(std::fs::read_to_string(&output)?, "@a/1 retained\nACGT\n+identity\nIJKL\n");
+        assert_eq!(std::fs::read(&empty_mate)?, Vec::<u8>::new());
+        assert_eq!(
+            std::fs::read_to_string(&orientation)?,
+            "metric\tvalue\nforward_fraction\t1.000000\ntrimmed_fraction\t1.000000\n"
+        );
+        assert_eq!(
+            std::fs::read_to_string(&stats)?,
+            "{\n  \"primer_trimmed_reads\": 1,\n  \"reads_in\": 1,\n  \"reads_out\": 1\n}"
+        );
+        assert_eq!(report.paired_mode, PairedMode::SingleEnd);
+        assert_eq!(report.output_r2, Some(empty_mate.display().to_string()));
+        assert_eq!(report.pairs_in, None);
+        assert_eq!(report.bases_in, Some(12));
+        assert_eq!(report.bases_out, Some(4));
+        assert_eq!(report.tool_id, "bijux");
+        assert!(!report.used_fallback);
+        assert_eq!(report.raw_backend_report_format.as_deref(), Some("cutadapt_json"));
+        Ok(())
+    }
+
+    #[test]
+    fn primer_mate_count_error_precedes_missing_output_and_all_writes() -> anyhow::Result<()> {
+        let temp = bijux_dna_infra::temp_dir("bijux-primer-admission")?;
+        let r1 = temp.path().join("r1.fastq");
+        let r2 = temp.path().join("r2.fastq");
+        let output = temp.path().join("output.fastq");
+        let orientation = temp.path().join("orientation.tsv");
+        let stats = temp.path().join("stats.json");
+        write_fastq(&r1, &[("a", "ACGT", "IIII")])?;
+        write_fastq(&r2, &[])?;
+        let run = || {
+            normalize_primers(
+                &r1,
+                Some(&r2),
+                &primer_parameters(),
+                &output,
+                None,
+                &orientation,
+                &stats,
+                None,
+            )
+        };
+        assert_eq!(
+            run().expect_err("count mismatch rejected").to_string(),
+            "fastq.normalize_primers refused incoherent paired input: R1 count 1 != R2 count 0"
+        );
+        write_fastq(&r2, &[("a", "ACGT", "IIII")])?;
+        assert_eq!(
+            run().expect_err("missing paired output rejected").to_string(),
+            "fastq.normalize_primers requires output_r2 for paired input"
+        );
+        assert!(!output.exists());
+        assert!(!orientation.exists());
+        assert!(!stats.exists());
+        Ok(())
+    }
+
+    #[test]
+    fn primer_publication_failures_retain_declared_write_order() -> anyhow::Result<()> {
+        let temp = bijux_dna_infra::temp_dir("bijux-primer-write-order")?;
+        let input = temp.path().join("input.fastq");
+        write_fastq(&input, &[("a", "CCTACGGGACGT", "IIIIIIIIIIII")])?;
+        for blocked in ["r2", "orientation", "stats"] {
+            let root = temp.path().join(blocked);
+            std::fs::create_dir(&root)?;
+            let r1 = root.join("r1.fastq");
+            let r2 = root.join("r2.fastq");
+            let orientation = root.join("orientation.tsv");
+            let stats = root.join("stats.json");
+            let failure = match blocked {
+                "r2" => &r2,
+                "orientation" => &orientation,
+                _ => &stats,
+            };
+            std::fs::create_dir(failure)?;
+            assert!(normalize_primers(
+                &input,
+                Some(&input),
+                &primer_parameters(),
+                &r1,
+                Some(&r2),
+                &orientation,
+                &stats,
+                None,
+            )
+            .is_err());
+            assert!(r1.is_file(), "R1 publication precedes {blocked}");
+            if blocked == "r2" {
+                assert!(!orientation.exists());
+                assert!(!stats.exists());
+            } else {
+                assert!(r2.is_file(), "R2 publication precedes {blocked}");
+                if blocked == "orientation" {
+                    assert!(!stats.exists());
+                } else {
+                    assert!(orientation.is_file(), "orientation publication precedes stats");
+                }
+            }
+        }
         Ok(())
     }
 
@@ -714,6 +794,217 @@ mod tests {
         assert!(chimera_fasta.contains("AAACCTACGGGTTTGACTACCC"));
         let uchime = std::fs::read_to_string(temp.path().join("uchime.tsv"))?;
         assert!(uchime.contains("amplicon_chimera_1\tyes"));
+        Ok(())
+    }
+
+    fn otu_parameters() -> OtuClusteringEffectiveParams {
+        OtuClusteringEffectiveParams {
+            schema_version: "v1".to_string(),
+            identity_threshold: 2.0 / 3.0,
+            threads: 2,
+            output_table_kind: "otu_abundance_table".to_string(),
+            report_artifact: "cluster_otus_report".to_string(),
+            raw_backend_report_artifact: Some("declared-backend-report".to_string()),
+            raw_backend_report_format: Some("retained-backend-format".to_string()),
+        }
+    }
+
+    #[test]
+    fn otu_publication_preserves_exact_native_vectors_and_report_fields() -> anyhow::Result<()> {
+        let temp = bijux_dna_infra::temp_dir("bijux-otu-native-publication")?;
+        let input = temp.path().join("input.fastq");
+        write_fastq(&input, &[("a", "AAA", "!!!"), ("b", "AAT", "###"), ("c", "ATT", "$$$")])?;
+        let table = temp.path().join("table.tsv");
+        let representatives = temp.path().join("representatives.fasta");
+        let taxonomy_fasta = temp.path().join("taxonomy.fasta");
+        let taxonomy_fastq = temp.path().join("taxonomy.fastq");
+        let report_path = temp.path().join("report.json");
+        let original = std::fs::read(&input)?;
+        let params = otu_parameters();
+        let report = cluster_otus(
+            &input,
+            &params,
+            &table,
+            &representatives,
+            &taxonomy_fasta,
+            &taxonomy_fastq,
+            &report_path,
+        )?;
+        assert_eq!(
+            std::fs::read_to_string(&table)?,
+            "sample_id\tfeature_id\tabundance\nsample_1\tOTU00001\t2\nsample_1\tOTU00002\t1\n"
+        );
+        assert_eq!(std::fs::read_to_string(&representatives)?, ">OTU00001\nAAA\n>OTU00002\nATT\n");
+        assert_eq!(std::fs::read(&taxonomy_fasta)?, std::fs::read(&representatives)?);
+        assert_eq!(
+            std::fs::read_to_string(&taxonomy_fastq)?,
+            "@OTU00001\nAAA\n+\nIII\n@OTU00002\nATT\n+\nIII\n"
+        );
+        assert_eq!(
+            std::fs::read_to_string(&report_path)?,
+            "{\n  \"otu_count\": 2,\n  \"sample_count\": 1\n}"
+        );
+        assert_eq!(
+            serde_json::to_value(&report)?,
+            serde_json::json!({
+                "schema_version": "bijux.fastq.cluster_otus.report.v2",
+                "stage": "fastq.cluster_otus", "stage_id": "fastq.cluster_otus", "tool_id": "bijux",
+                "otu_identity": params.identity_threshold, "threads": 2,
+                "input_reads": input.display().to_string(), "otu_table": table.display().to_string(),
+                "otu_representatives": representatives.display().to_string(),
+                "taxonomy_ready_fasta": taxonomy_fasta.display().to_string(),
+                "taxonomy_ready_fastq": taxonomy_fastq.display().to_string(),
+                "report_json": report_path.display().to_string(),
+                "otu_count": 2, "sample_count": 1, "representative_sequence_count": 2,
+                "output_table_kind": "otu_abundance_table", "used_fallback": false,
+                "runtime_s": null, "memory_mb": null, "exit_code": 0,
+                "raw_backend_report": "declared-backend-report",
+                "raw_backend_report_format": "retained-backend-format",
+                "backend_metrics": {"cluster_memberships": 3}
+            })
+        );
+        assert_eq!(std::fs::read(&input)?, original);
+        Ok(())
+    }
+
+    #[test]
+    fn otu_acquisition_and_partial_publication_keep_existing_failure_order() -> anyhow::Result<()> {
+        let temp = bijux_dna_infra::temp_dir("bijux-otu-publication-order")?;
+        let input = temp.path().join("input.fastq");
+        let table = temp.path().join("table.tsv");
+        let representatives = temp.path().join("representatives.fasta");
+        let taxonomy_fasta = temp.path().join("taxonomy.fasta");
+        let taxonomy_fastq = temp.path().join("taxonomy.fastq");
+        let report_path = temp.path().join("report.json");
+        std::fs::create_dir(&taxonomy_fasta)?;
+        std::fs::write(&input, "invalid-header\nAAA\n+\nIII\n")?;
+        let error = cluster_otus(
+            &input,
+            &otu_parameters(),
+            &table,
+            &representatives,
+            &taxonomy_fasta,
+            &taxonomy_fastq,
+            &report_path,
+        )
+        .expect_err("FASTQ admission precedes every output");
+        assert_eq!(
+            error.to_string(),
+            format!("invalid FASTQ header at {} line 1", input.display())
+        );
+        assert!(!table.exists());
+        assert!(!representatives.exists());
+        write_fastq(&input, &[("a", "AAA", "III")])?;
+        assert!(cluster_otus(
+            &input,
+            &otu_parameters(),
+            &table,
+            &representatives,
+            &taxonomy_fasta,
+            &taxonomy_fastq,
+            &report_path
+        )
+        .is_err());
+        assert_eq!(
+            std::fs::read_to_string(&table)?,
+            "sample_id\tfeature_id\tabundance\nsample_1\tOTU00001\t1\n"
+        );
+        assert_eq!(std::fs::read_to_string(&representatives)?, ">OTU00001\nAAA\n");
+        assert!(!taxonomy_fastq.exists());
+        assert!(!report_path.exists());
+        Ok(())
+    }
+
+    fn abundance_parameters() -> AbundanceNormalizationEffectiveParams {
+        AbundanceNormalizationEffectiveParams {
+            schema_version: "bijux.params.edna.v1".to_string(),
+            method: "relative_abundance".to_string(),
+            expected_columns: vec!["sample_id".into(), "feature_id".into(), "abundance".into()],
+            input_value_column: "abundance".to_string(),
+            normalized_value_column: "normalized_abundance".to_string(),
+            compositional_rule: "per_sample_sum_to_one".to_string(),
+            scale_factor: None,
+            report_artifact: "report_json".to_string(),
+        }
+    }
+
+    #[test]
+    fn normalize_abundance_honors_declared_counts_per_million_units() -> anyhow::Result<()> {
+        let temp = bijux_dna_infra::temp_dir("bijux-abundance-declared-scale")?;
+        let input = temp.path().join("input.tsv");
+        let output = temp.path().join("normalized.tsv");
+        let original = "sample_id\tfeature_id\tabundance\ns\tf1\t25\ns\tf2\t75\n";
+        std::fs::write(&input, original)?;
+        let mut params = abundance_parameters();
+        params.method = "counts_per_million".to_string();
+        params.normalized_value_column = "counts_per_million".to_string();
+        params.compositional_rule = "per_sample_sum_to_one_million".to_string();
+        params.scale_factor = Some(1_000_000.0);
+
+        let report = normalize_abundance(&input, &params, &output)?;
+        assert_eq!(
+            std::fs::read_to_string(&output)?,
+            "sample_id\tfeature_id\tcounts_per_million\ns\tf1\t250000.00000000\ns\tf2\t750000.00000000\n"
+        );
+        assert_eq!(report.per_sample_sums, vec![("s".to_string(), 1_000_000.0)]);
+        assert_eq!(report.method, params.method);
+        assert_eq!(report.normalized_value_column, params.normalized_value_column);
+        assert_eq!(report.compositional_rule, params.compositional_rule);
+        assert_eq!(report.scale_factor, params.scale_factor);
+        assert_eq!(report.table_rows, 2);
+        assert_eq!(report.sample_count, 1);
+        assert_eq!(report.feature_count, 2);
+        assert_eq!(report.tool_id, "bijux");
+        assert_eq!(std::fs::read_to_string(&input)?, original);
+        Ok(())
+    }
+
+    #[test]
+    fn normalize_abundance_relative_output_retains_order_and_eight_decimal_format(
+    ) -> anyhow::Result<()> {
+        let temp = bijux_dna_infra::temp_dir("bijux-abundance-relative-order")?;
+        let input = temp.path().join("input.tsv");
+        let output = temp.path().join("normalized.tsv");
+        let original =
+            "sample_id\tfeature_id\tabundance\nb\tf1\t25\na\tf1\t1\nb\tf2\t75\na\tf2\t3\n";
+        std::fs::write(&input, original)?;
+        let params = abundance_parameters();
+
+        let report = normalize_abundance(&input, &params, &output)?;
+        assert_eq!(
+            std::fs::read_to_string(&output)?,
+            "sample_id\tfeature_id\tnormalized_abundance\nb\tf1\t0.25000000\na\tf1\t0.25000000\nb\tf2\t0.75000000\na\tf2\t0.75000000\n"
+        );
+        assert_eq!(report.per_sample_sums, vec![("a".to_string(), 1.0), ("b".to_string(), 1.0)]);
+        assert_eq!(report.table_rows, 4);
+        assert_eq!(report.sample_count, 2);
+        assert_eq!(report.feature_count, 2);
+        assert_eq!(report.method, "relative_abundance");
+        assert_eq!(report.scale_factor, None);
+        assert_eq!(report.input_table, input.display().to_string());
+        assert_eq!(report.normalized_abundance_tsv, output.display().to_string());
+        assert_eq!(std::fs::read_to_string(&input)?, original);
+        Ok(())
+    }
+
+    #[test]
+    fn normalize_abundance_zero_total_reports_observed_zero_sum() -> anyhow::Result<()> {
+        let temp = bijux_dna_infra::temp_dir("bijux-abundance-zero-total")?;
+        let input = temp.path().join("input.tsv");
+        let output = temp.path().join("normalized.tsv");
+        let original = "sample_id\tfeature_id\tabundance\nz\tf1\t0\nz\tf2\t0\n";
+        std::fs::write(&input, original)?;
+
+        let report = normalize_abundance(&input, &abundance_parameters(), &output)?;
+        assert_eq!(
+            std::fs::read_to_string(&output)?,
+            "sample_id\tfeature_id\tnormalized_abundance\nz\tf1\t0.00000000\nz\tf2\t0.00000000\n"
+        );
+        assert_eq!(report.per_sample_sums, vec![("z".to_string(), 0.0)]);
+        assert_eq!(report.zero_fraction, 1.0);
+        assert_eq!(report.table_rows, 2);
+        assert_eq!(report.sample_count, 1);
+        assert_eq!(std::fs::read_to_string(&input)?, original);
         Ok(())
     }
 }
