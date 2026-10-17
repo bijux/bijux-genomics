@@ -1978,10 +1978,11 @@
                 },
                 {
                   "name": "Restore the Rust cache",
-                  "uses": "Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6",
+                  "uses": "actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830",
                   "with": {
-                    "shared-key": "ci-fmt",
-                    "workspaces": ". -> artifacts/target"
+                    "path": "artifacts/cargo/home/registry\nartifacts/cargo/home/git\nartifacts/target",
+                    "key": "genomics-${{ runner.os }}-${{ runner.arch }}-rust-${{ env.RUST_TOOLCHAIN_VERSION }}-${{ hashFiles('Cargo.lock', 'Cargo.toml', 'crates/**/Cargo.toml', 'rust-toolchain.toml', '.cargo/config.toml', 'configs/ci/build-authority.json', 'configs/ci/full-shards.json') }}-fmt-dev-source-${{ github.sha }}",
+                    "restore-keys": "genomics-${{ runner.os }}-${{ runner.arch }}-rust-${{ env.RUST_TOOLCHAIN_VERSION }}-${{ hashFiles('Cargo.lock', 'Cargo.toml', 'crates/**/Cargo.toml', 'rust-toolchain.toml', '.cargo/config.toml', 'configs/ci/build-authority.json', 'configs/ci/full-shards.json') }}-fmt-dev-source-"
                   }
                 },
                 {
@@ -2022,10 +2023,11 @@
                 },
                 {
                   "name": "Restore the Rust cache",
-                  "uses": "Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6",
+                  "uses": "actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830",
                   "with": {
-                    "shared-key": "ci-lint",
-                    "workspaces": ". -> artifacts/target"
+                    "path": "artifacts/cargo/home/registry\nartifacts/cargo/home/git\nartifacts/target",
+                    "key": "genomics-${{ runner.os }}-${{ runner.arch }}-rust-${{ env.RUST_TOOLCHAIN_VERSION }}-${{ hashFiles('Cargo.lock', 'Cargo.toml', 'crates/**/Cargo.toml', 'rust-toolchain.toml', '.cargo/config.toml', 'configs/ci/build-authority.json', 'configs/ci/full-shards.json') }}-lint-dev-source-${{ github.sha }}",
+                    "restore-keys": "genomics-${{ runner.os }}-${{ runner.arch }}-rust-${{ env.RUST_TOOLCHAIN_VERSION }}-${{ hashFiles('Cargo.lock', 'Cargo.toml', 'crates/**/Cargo.toml', 'rust-toolchain.toml', '.cargo/config.toml', 'configs/ci/build-authority.json', 'configs/ci/full-shards.json') }}-lint-dev-source-"
                   }
                 },
                 {
@@ -2061,10 +2063,11 @@
                 },
                 {
                   "name": "Restore the Rust cache",
-                  "uses": "Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6",
+                  "uses": "actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830",
                   "with": {
-                    "shared-key": "ci-audit",
-                    "workspaces": ". -> artifacts/target"
+                    "path": "artifacts/cargo/home/registry\nartifacts/cargo/home/git\nartifacts/target",
+                    "key": "genomics-${{ runner.os }}-${{ runner.arch }}-rust-${{ env.RUST_TOOLCHAIN_VERSION }}-${{ hashFiles('Cargo.lock', 'Cargo.toml', 'crates/**/Cargo.toml', 'rust-toolchain.toml', '.cargo/config.toml', 'configs/ci/build-authority.json', 'configs/ci/full-shards.json') }}-audit-dev-source-${{ github.sha }}",
+                    "restore-keys": "genomics-${{ runner.os }}-${{ runner.arch }}-rust-${{ env.RUST_TOOLCHAIN_VERSION }}-${{ hashFiles('Cargo.lock', 'Cargo.toml', 'crates/**/Cargo.toml', 'rust-toolchain.toml', '.cargo/config.toml', 'configs/ci/build-authority.json', 'configs/ci/full-shards.json') }}-audit-dev-source-"
                   }
                 },
                 {
@@ -2150,10 +2153,11 @@
                 },
                 {
                   "name": "Restore the compilation cache",
-                  "uses": "Swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6",
+                  "uses": "actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830",
                   "with": {
-                    "shared-key": "genomics-ci-test-build",
-                    "workspaces": ". -> artifacts/ci/distributed/scratch/producer/compile-cache/cargo"
+                    "path": "artifacts/cargo/home/registry\nartifacts/cargo/home/git\nartifacts/target\nartifacts/ci/distributed/scratch/producer/compile-cache/cargo",
+                    "key": "genomics-${{ runner.os }}-${{ runner.arch }}-rust-${{ env.RUST_TOOLCHAIN_VERSION }}-${{ hashFiles('Cargo.lock', 'Cargo.toml', 'crates/**/Cargo.toml', 'rust-toolchain.toml', '.cargo/config.toml', 'configs/ci/build-authority.json', 'configs/ci/full-shards.json') }}-producer-ci-source-${{ github.sha }}",
+                    "restore-keys": "genomics-${{ runner.os }}-${{ runner.arch }}-rust-${{ env.RUST_TOOLCHAIN_VERSION }}-${{ hashFiles('Cargo.lock', 'Cargo.toml', 'crates/**/Cargo.toml', 'rust-toolchain.toml', '.cargo/config.toml', 'configs/ci/build-authority.json', 'configs/ci/full-shards.json') }}-producer-ci-source-"
                   }
                 },
                 {

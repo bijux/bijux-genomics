@@ -31,7 +31,7 @@
     ".github/scripts/workflow_execution/source_loading.py": "1b9b7707b98b06b677589ccdcbb2b3bbef46608ff0ffae1f13780d0f7139e3d7",
     ".github/scripts/workflow_execution/verification.py": "94ee88caecb282b74c42ba84b7978d4956482b10631c3c9aa7978145dfae288f",
     ".github/scripts/workflow_execution/yaml_io.py": "0ce0b2dcda55b4a1764b2e73dba510d44ff3af40961b142f91e91fed9fde68aa",
-    ".github/standards/repo-config.manifest.json": "7ac47cccad7f5a7ca206dfed8adde2bcb89c757d0123392101bd82c0e3264813",
+    ".github/standards/repo-config.manifest.json": "f3fca26eaf6f5f5531c997e4ed046c9ac1d563795543b96148b4c450e364a842",
     ".github/standards/workflow-inventory.json": "d9595c922cf3f18b9276b5b585071f65bb4d71780122bb21956a99a3b3dde6b6",
     ".github/standards/workflow-sources/bijux-std.yml": "514dae7e546a385233831f18243133134a1ca8d8cd4b844667c091063b296970",
     ".github/workflows/automerge-pr.yml": "6a406ea3f222d2c36243bea74b7fdf1416052213a20312f13cd5d5caee113e12",
