@@ -32,7 +32,7 @@
       - "name": "Check out the repository"
         "uses": "actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1"
       - "name": "Set up Rust"
-        "uses": "dtolnay/rust-toolchain@e2a55d2ffb04f378e9626c28d38b36d230d1e12f"
+        "uses": "dtolnay/rust-toolchain@683b588c487a69d01f6c6ddf40f036ff682cc2c8"
         "with":
           "toolchain": "${{ env.RUST_TOOLCHAIN_VERSION }}"
           "components": "rustfmt"
@@ -61,7 +61,7 @@
       - "name": "Install Linux build dependencies"
         "run": "sudo apt-get update && sudo apt-get install --yes pkg-config libfontconfig1-dev libfreetype6-dev"
       - "name": "Set up Rust"
-        "uses": "dtolnay/rust-toolchain@e2a55d2ffb04f378e9626c28d38b36d230d1e12f"
+        "uses": "dtolnay/rust-toolchain@683b588c487a69d01f6c6ddf40f036ff682cc2c8"
         "with":
           "toolchain": "${{ env.RUST_TOOLCHAIN_VERSION }}"
           "components": "clippy"
@@ -88,7 +88,7 @@
       - "name": "Check out the repository"
         "uses": "actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1"
       - "name": "Set up Rust"
-        "uses": "dtolnay/rust-toolchain@e2a55d2ffb04f378e9626c28d38b36d230d1e12f"
+        "uses": "dtolnay/rust-toolchain@683b588c487a69d01f6c6ddf40f036ff682cc2c8"
         "with":
           "toolchain": "${{ env.RUST_TOOLCHAIN_VERSION }}"
       - "name": "Set up sccache"
@@ -130,7 +130,7 @@
       - "name": "Install Linux test prerequisites"
         "run": "sudo apt-get update && sudo apt-get install --yes pkg-config libfontconfig1-dev libfreetype6-dev zlib1g-dev libbz2-dev liblzma-dev libcurl4-openssl-dev libssl-dev ruby"
       - "name": "Set up Rust"
-        "uses": "dtolnay/rust-toolchain@e2a55d2ffb04f378e9626c28d38b36d230d1e12f"
+        "uses": "dtolnay/rust-toolchain@683b588c487a69d01f6c6ddf40f036ff682cc2c8"
         "with":
           "toolchain": "${{ env.RUST_TOOLCHAIN_VERSION }}"
       - "name": "Install the pinned test executor"
@@ -200,7 +200,7 @@
       - "name": "Install Linux test prerequisites"
         "run": "sudo apt-get update && sudo apt-get install --yes pkg-config libfontconfig1-dev libfreetype6-dev zlib1g-dev libbz2-dev liblzma-dev libcurl4-openssl-dev libssl-dev ruby"
       - "name": "Set up Rust"
-        "uses": "dtolnay/rust-toolchain@e2a55d2ffb04f378e9626c28d38b36d230d1e12f"
+        "uses": "dtolnay/rust-toolchain@683b588c487a69d01f6c6ddf40f036ff682cc2c8"
         "with":
           "toolchain": "${{ env.RUST_TOOLCHAIN_VERSION }}"
       - "name": "Install the pinned test executor"
@@ -243,7 +243,7 @@
       - "name": "Check out the repository"
         "uses": "actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1"
       - "name": "Set up Rust"
-        "uses": "dtolnay/rust-toolchain@e2a55d2ffb04f378e9626c28d38b36d230d1e12f"
+        "uses": "dtolnay/rust-toolchain@683b588c487a69d01f6c6ddf40f036ff682cc2c8"
         "with":
           "toolchain": "${{ env.RUST_TOOLCHAIN_VERSION }}"
       - "name": "Set up Python"
