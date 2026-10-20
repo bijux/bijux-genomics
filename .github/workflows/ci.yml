@@ -39,7 +39,7 @@
       - "name": "Set up sccache"
         "uses": "mozilla/sccache-action@fc920bf0ec8de6ee65d409111f7ec508035751ba"
       - "name": "Restore the Rust cache"
-        "uses": "actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830"
+        "uses": "actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9"
         "with":
           "path": "artifacts/cargo/home/registry\nartifacts/cargo/home/git\nartifacts/target"
           "key": "genomics-${{ runner.os }}-${{ runner.arch }}-rust-${{ env.RUST_TOOLCHAIN_VERSION }}-${{ hashFiles('Cargo.lock', 'Cargo.toml', 'crates/**/Cargo.toml', 'rust-toolchain.toml', '.cargo/config.toml', 'configs/ci/build-authority.json', 'configs/ci/full-shards.json') }}-fmt-dev-source-${{ github.sha }}"
@@ -68,7 +68,7 @@
       - "name": "Set up sccache"
         "uses": "mozilla/sccache-action@fc920bf0ec8de6ee65d409111f7ec508035751ba"
       - "name": "Restore the Rust cache"
-        "uses": "actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830"
+        "uses": "actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9"
         "with":
           "path": "artifacts/cargo/home/registry\nartifacts/cargo/home/git\nartifacts/target"
           "key": "genomics-${{ runner.os }}-${{ runner.arch }}-rust-${{ env.RUST_TOOLCHAIN_VERSION }}-${{ hashFiles('Cargo.lock', 'Cargo.toml', 'crates/**/Cargo.toml', 'rust-toolchain.toml', '.cargo/config.toml', 'configs/ci/build-authority.json', 'configs/ci/full-shards.json') }}-lint-dev-source-${{ github.sha }}"
@@ -94,7 +94,7 @@
       - "name": "Set up sccache"
         "uses": "mozilla/sccache-action@fc920bf0ec8de6ee65d409111f7ec508035751ba"
       - "name": "Restore the Rust cache"
-        "uses": "actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830"
+        "uses": "actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9"
         "with":
           "path": "artifacts/cargo/home/registry\nartifacts/cargo/home/git\nartifacts/target"
           "key": "genomics-${{ runner.os }}-${{ runner.arch }}-rust-${{ env.RUST_TOOLCHAIN_VERSION }}-${{ hashFiles('Cargo.lock', 'Cargo.toml', 'crates/**/Cargo.toml', 'rust-toolchain.toml', '.cargo/config.toml', 'configs/ci/build-authority.json', 'configs/ci/full-shards.json') }}-audit-dev-source-${{ github.sha }}"
@@ -142,7 +142,7 @@
       - "name": "Verify the test executor version"
         "run": "set -euo pipefail\nobserved=\"$(cargo nextest --version)\"\nread -r tool version _ <<< \"${observed%%$'\\n'*}\"\n[[ \"$tool\" == \"cargo-nextest\" && \"$version\" == \"$CARGO_NEXTEST_VERSION\" ]] || { printf \"Unexpected test executor: %s\\n\" \"$observed\" >&2; exit 1; }"
       - "name": "Restore the exact native test runtime"
-        "uses": "actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830"
+        "uses": "actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9"
         "with":
           "path": "artifacts/runtime/bcftools/install"
           "key": "genomics-${{ runner.os }}-${{ runner.arch }}-bcftools-1.20-${{ hashFiles('configs/ci/full-shards.json', 'makes/bin/*runtime*') }}"
@@ -151,7 +151,7 @@
       - "name": "Set up sccache"
         "uses": "mozilla/sccache-action@fc920bf0ec8de6ee65d409111f7ec508035751ba"
       - "name": "Restore the compilation cache"
-        "uses": "actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830"
+        "uses": "actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9"
         "with":
           "path": "artifacts/cargo/home/registry\nartifacts/cargo/home/git\nartifacts/target\nartifacts/ci/distributed/scratch/producer/compile-cache/cargo"
           "key": "genomics-${{ runner.os }}-${{ runner.arch }}-rust-${{ env.RUST_TOOLCHAIN_VERSION }}-${{ hashFiles('Cargo.lock', 'Cargo.toml', 'crates/**/Cargo.toml', 'rust-toolchain.toml', '.cargo/config.toml', 'configs/ci/build-authority.json', 'configs/ci/full-shards.json') }}-producer-ci-source-${{ github.sha }}"
@@ -212,7 +212,7 @@
       - "name": "Verify the test executor version"
         "run": "set -euo pipefail\nobserved=\"$(cargo nextest --version)\"\nread -r tool version _ <<< \"${observed%%$'\\n'*}\"\n[[ \"$tool\" == \"cargo-nextest\" && \"$version\" == \"$CARGO_NEXTEST_VERSION\" ]] || { printf \"Unexpected test executor: %s\\n\" \"$observed\" >&2; exit 1; }"
       - "name": "Restore the exact native test runtime"
-        "uses": "actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830"
+        "uses": "actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9"
         "with":
           "path": "artifacts/runtime/bcftools/install"
           "key": "genomics-${{ runner.os }}-${{ runner.arch }}-bcftools-1.20-${{ hashFiles('configs/ci/full-shards.json', 'makes/bin/*runtime*') }}"
