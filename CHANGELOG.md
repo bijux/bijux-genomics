@@ -4,6 +4,11 @@
 
 ### Changed
 
+- Qualify compatible Rust dependency patches and current Autorefs while keeping
+  the Noodles type family and admitted Material templates consistent.
+- Patch certificate verification, Zstandard compression and asynchronous runtime
+  safety; consume accepted shared documentation security and workflow action pins.
+
 - Verify the complete native and Python test lanes through a build-once archive, independently rooted CI partitions and exact final coverage; reshape crate and CLI ownership and retain meaningful test contracts ([#175](https://github.com/bijux/bijux-genomics/pull/175)).
 
 - Preserve compatible compilation caches across CI runs while rebuilding and validating every source-bound test archive ([#175](https://github.com/bijux/bijux-genomics/pull/175)).
