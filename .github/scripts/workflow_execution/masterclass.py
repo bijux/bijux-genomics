@@ -23,11 +23,13 @@ ACTION_PIN_SOURCES = {
     'actions/upload-artifact': 'shared/bijux-gh/workflows/release-artifacts.yml',
     'actions/download-artifact': 'shared/bijux-gh/workflows/release-ghcr.yml',
     'actions/setup-node': 'shared/bijux-gh/workflows/deploy-docs.yml',
+    'astral-sh/setup-uv': '.github/workflows/bijux-std.yml',
+    'ruby/setup-ruby': 'shared/bijux-gh/workflows/github-policy.yml',
 }
 
 
 def action_pins(source_root: Path) -> dict[str, str]:
-    """Read only the three admitted action identities from canonical templates."""
+    """Read the admitted action identities from canonical templates."""
     def references(value):
         if isinstance(value, dict):
             for key, child in value.items():
