@@ -105,7 +105,7 @@ fn assert_runtime_tree(root: &std::path::Path) {
     );
     assert_dir_entries(
         &root.join("src/runtime/invocation_policy"),
-        &["config.rs", "contracts.rs", "models.rs", "resilience.rs"],
+        &["config.rs", "contracts.rs", "large_file_guard_tests.rs", "models.rs", "resilience.rs"],
         "api invocation policy support tree must stay explicit",
     );
     assert_dir_entries(

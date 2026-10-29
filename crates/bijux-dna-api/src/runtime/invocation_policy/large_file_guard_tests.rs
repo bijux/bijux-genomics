@@ -1,3 +1,5 @@
+#![cfg(test)]
+
 use anyhow::{bail, Context, Result};
 
 use super::unexpected_large_file_violation;
