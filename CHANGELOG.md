@@ -25,6 +25,8 @@
 
 ### Fixed
 
+- Keep parallel FASTQ jobs running when a peer removes an atomic-write file during the large-file scan; retain oversized-file refusal and report other filesystem errors.
+
 - Preserve doctest coverage in `make github-all` by mapping the hosted test graph to the complete local native, doctest and Python gate ([#177](https://github.com/bijux/bijux-genomics/pull/177)).
 
 - Keep compiler host probes inside their minimal-toolchain fixtures so caller toolchain component installation cannot prevent stale-artifact checks ([#176](https://github.com/bijux/bijux-genomics/pull/176)).
