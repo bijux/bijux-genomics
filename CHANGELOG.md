@@ -4,6 +4,8 @@
 
 ### Changed
 
+- Qualify ZIP 9.1.3 and Typed Path 0.13 for SnpEff asset extraction while preserving archive path traversal refusals.
+
 - Qualify compatible Rust dependency patches and current Autorefs while keeping
   the Noodles type family and admitted Material templates consistent.
 - Patch certificate verification, Zstandard compression and asynchronous runtime
