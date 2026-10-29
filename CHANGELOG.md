@@ -4,6 +4,8 @@
 
 ### Changed
 
+- Patch the ZIP dual-header parser differential ([GHSA-m665-v7pm-7grj](https://github.com/advisories/GHSA-m665-v7pm-7grj)) with ZIP 9.1.3 and Typed Path 0.13; qualify SnpEff asset extraction and archive path traversal refusals.
+
 - Qualify compatible Rust dependency patches and current Autorefs while keeping
   the Noodles type family and admitted Material templates consistent.
 - Patch certificate verification, Zstandard compression and asynchronous runtime
@@ -22,6 +24,8 @@
 - Qualify source-bound manual documentation publication with a frozen Linux media renderer, reviewed local MathJax assets and exact repository source links ([#161](https://github.com/bijux/bijux-genomics/pull/161)).
 
 ### Fixed
+
+- Keep parallel FASTQ jobs running when a peer removes an atomic-write file during the large-file scan; retain oversized-file refusal and report other filesystem errors.
 
 - Preserve doctest coverage in `make github-all` by mapping the hosted test graph to the complete local native, doctest and Python gate ([#177](https://github.com/bijux/bijux-genomics/pull/177)).
 

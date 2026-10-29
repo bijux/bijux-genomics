@@ -89,18 +89,24 @@ pub(crate) fn enforce_large_file_guard(
         .map(|artifact| canonicalize_existing(&artifact.path))
         .collect::<Result<Vec<_>>>()?;
     let mut violations = Vec::new();
-    for entry in walkdir::WalkDir::new(output_root)
-        .into_iter()
-        .filter_map(Result::ok)
-        .filter(|entry| entry.file_type().is_file())
-    {
-        let path = canonicalize_existing(entry.path())?;
-        if allowed.iter().any(|allowed_path| allowed_path == &path) {
+    for entry in walkdir::WalkDir::new(output_root) {
+        let entry = match entry {
+            Ok(entry) => entry,
+            Err(error)
+                if error
+                    .io_error()
+                    .is_some_and(|error| error.kind() == std::io::ErrorKind::NotFound) =>
+            {
+                continue;
+            }
+            Err(error) => return Err(error).context("scan output root for unexpected large files"),
+        };
+        if !entry.file_type().is_file() {
             continue;
         }
-        let size = entry.metadata().map_or(0, |metadata| metadata.len());
-        if size > max_bytes {
-            violations.push(format!("{} ({} bytes)", path.display(), size));
+        if let Some(violation) = unexpected_large_file_violation(entry.path(), &allowed, max_bytes)?
+        {
+            violations.push(violation);
         }
     }
     if !violations.is_empty() {
@@ -111,3 +117,34 @@ pub(crate) fn enforce_large_file_guard(
     }
     Ok(())
 }
+
+fn unexpected_large_file_violation(
+    path: &Path,
+    allowed: &[PathBuf],
+    max_bytes: u64,
+) -> Result<Option<String>> {
+    // Parallel stages can atomically replace a file after the directory walk observes it.
+    let metadata = match std::fs::metadata(path) {
+        Ok(metadata) => metadata,
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => return Ok(None),
+        Err(error) => return Err(error).with_context(|| format!("inspect {}", path.display())),
+    };
+    if metadata.len() <= max_bytes {
+        return Ok(None);
+    }
+    let canonical = match path.canonicalize() {
+        Ok(canonical) => canonical,
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => return Ok(None),
+        Err(error) => {
+            return Err(error).with_context(|| format!("canonicalize {}", path.display()))
+        }
+    };
+    if allowed.contains(&canonical) {
+        return Ok(None);
+    }
+    Ok(Some(format!("{} ({} bytes)", canonical.display(), metadata.len())))
+}
+
+#[cfg(test)]
+#[path = "large_file_guard_tests.rs"]
+mod tests;
