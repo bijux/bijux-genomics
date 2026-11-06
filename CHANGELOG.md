@@ -4,6 +4,10 @@
 
 ### Changed
 
+- Qualify Syn 3, SQLite 0.41, Parquet/Arrow 60.1 and ZIP 9.4 dependency updates,
+  remove the Arrow run-end array soundness advisory, and adopt accepted installer
+  action pins and glightbox 0.5.3.
+
 - Patch the ZIP dual-header parser differential ([GHSA-m665-v7pm-7grj](https://github.com/advisories/GHSA-m665-v7pm-7grj)) with ZIP 9.1.3 and Typed Path 0.13; qualify SnpEff asset extraction and archive path traversal refusals.
 
 - Qualify compatible Rust dependency patches and current Autorefs while keeping
