@@ -4,6 +4,10 @@
 
 ### Changed
 
+- Qualify Material 9.8.1 and compatible Syn, TOML, Flate2 and UUID patches;
+  consume accepted shared workflow action pins while preserving the independent
+  documentation publication source ([#211](https://github.com/bijux/bijux-genomics/pull/211)).
+
 - Qualify Syn 3, SQLite 0.41, Parquet/Arrow 60.1 and ZIP 9.4 dependency updates,
   remove the Arrow run-end array soundness advisory, and adopt accepted installer
   action pins and glightbox 0.5.3.
