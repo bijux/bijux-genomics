@@ -33,6 +33,10 @@
 
 ### Fixed
 
+- Patch QUIC Retry-token, stream-limit and truncated-datagram vulnerabilities
+  with Quinn Proto 0.11.19 and Quinn UDP 0.5.16 in the optional transport lock
+  ([#211](https://github.com/bijux/bijux-genomics/pull/211)).
+
 - Keep parallel FASTQ jobs running when a peer removes an atomic-write file during the large-file scan; retain oversized-file refusal and report other filesystem errors.
 
 - Preserve doctest coverage in `make github-all` by mapping the hosted test graph to the complete local native, doctest and Python gate ([#177](https://github.com/bijux/bijux-genomics/pull/177)).
