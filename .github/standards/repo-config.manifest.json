@@ -57,6 +57,11 @@
         "id": "dependency-notice",
         "source": "shared/bijux-gh/workflows/dependency-notice.yml",
         "consumer_runtime": ".github/workflows/dependency-notice.yml"
+      },
+      {
+        "id": "release-npm",
+        "source": "shared/bijux-gh/workflows/release-npm.yml",
+        "consumer_runtime": ".github/workflows/release-npm.yml"
       }
     ]
   },
@@ -92,7 +97,7 @@
         {
           "key": "BIJUX_RELEASE_RUST_TOOLCHAIN",
           "type": "string",
-          "value": "1.86.0"
+          "value": "1.89.0"
         },
         {
           "key": "BIJUX_RELEASE_BUILD_MATRIX_JSON",
@@ -161,7 +166,7 @@
         {
           "key": "BIJUX_CRATES_RELEASE_RUST_TOOLCHAIN",
           "type": "string",
-          "value": "1.86.0"
+          "value": "1.89.0"
         },
         {
           "key": "BIJUX_CRATES_RELEASE_VERIFY_TOKEN_COMMAND",
@@ -330,9 +335,9 @@
             "contents": "read"
           },
           "env": {
-            "RUST_TOOLCHAIN_VERSION": "1.86.0",
-            "CARGO_DENY_VERSION": "0.18.3",
-            "CARGO_AUDIT_VERSION": "0.22.0",
+            "RUST_TOOLCHAIN_VERSION": "1.89.0",
+            "CARGO_DENY_VERSION": "0.18.9",
+            "CARGO_AUDIT_VERSION": "0.22.2",
             "CARGO_NEXTEST_VERSION": "0.9.100"
           },
           "jobs": {
@@ -1031,7 +1036,7 @@
                   }
                 },
                 {
-                  "uses": "actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad",
+                  "uses": "actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78",
                   "if": "${{ contains(fromJson(inputs.api_toolchain_targets), matrix.target) }}",
                   "with": {
                     "distribution": "temurin",
@@ -1328,7 +1333,7 @@
                 {
                   "name": "Build and install the distribution family",
                   "shell": "bash",
-                  "run": "set -euo pipefail\nexport PYTHONDONTWRITEBYTECODE=1\nexport UV_CACHE_DIR=\"${RUNNER_TEMP}/bijux-installed-family-uv-cache\"\nfamily_dir=\"artifacts/installed-family/${RUNNER_OS}/py${{ matrix.python-version }}\"\nwheel_dir=\"${family_dir}/wheels\"\nvenv_dir=\"${family_dir}/venv\"\nuv build --all-packages --wheel --out-dir \"${wheel_dir}\"\ntest \"$(find \"${wheel_dir}\" -maxdepth 1 -name '*.whl' | wc -l | tr -d ' ')\" = 13\nuv venv \"${venv_dir}\" --python \"${{ matrix.python-version }}\" --clear\nuv pip install --python \"${venv_dir}/bin/python\" \"${wheel_dir}\"/*.whl\nuv pip check --python \"${venv_dir}/bin/python\"\n\"${venv_dir}/bin/python\" -I - <<'PY'\nimport importlib\nimport importlib.metadata as metadata\n\ndistributions = (\n    \"agentic-flows\",\n    \"bijux-agent\",\n    \"bijux-canon\",\n    \"bijux-canon-agent\",\n    \"bijux-canon-dev\",\n    \"bijux-canon-index\",\n    \"bijux-canon-ingest\",\n    \"bijux-canon-reason\",\n    \"bijux-canon-repository\",\n    \"bijux-canon-runtime\",\n    \"bijux-rag\",\n    \"bijux-rar\",\n    \"bijux-vex\",\n)\nmodules = (\n    \"agentic_flows\",\n    \"bijux_agent\",\n    \"bijux_canon\",\n    \"bijux_canon_agent\",\n    \"bijux_canon_dev\",\n    \"bijux_canon_index\",\n    \"bijux_canon_ingest\",\n    \"bijux_canon_reason\",\n    \"bijux_canon_runtime\",\n    \"bijux_rag\",\n    \"bijux_rar\",\n    \"bijux_vex\",\n)\nloaded = [importlib.import_module(name) for name in modules]\nassert all(\"site-packages\" in str(module.__file__) for module in loaded)\nversions = {name: metadata.version(name) for name in distributions}\nassert len(set(versions.values())) == 1\nPY\n\"${venv_dir}/bin/bijux\" --version\n"
+                  "run": "set -euo pipefail\nexport PYTHONDONTWRITEBYTECODE=1\nexport UV_CACHE_DIR=\"${RUNNER_TEMP}/bijux-installed-family-uv-cache\"\nfamily_dir=\"artifacts/installed-family/${RUNNER_OS}/py${{ matrix.python-version }}\"\nwheel_dir=\"${family_dir}/wheels\"\nvenv_dir=\"${family_dir}/venv\"\nuv build --all-packages --wheel --out-dir \"${wheel_dir}\"\ntest \"$(find \"${wheel_dir}\" -maxdepth 1 -name '*.whl' | wc -l | tr -d ' ')\" = 12\nuv venv \"${venv_dir}\" --python \"${{ matrix.python-version }}\" --clear\nuv pip install --python \"${venv_dir}/bin/python\" \"${wheel_dir}\"/*.whl\nuv pip check --python \"${venv_dir}/bin/python\"\n\"${venv_dir}/bin/python\" -I - <<'PY'\nimport importlib\nimport importlib.metadata as metadata\n\ndistributions = (\n    \"agentic-flows\",\n    \"bijux-agent\",\n    \"bijux-canon\",\n    \"bijux-canon-agent\",\n    \"bijux-canon-dev\",\n    \"bijux-canon-index\",\n    \"bijux-canon-ingest\",\n    \"bijux-canon-reason\",\n    \"bijux-canon-runtime\",\n    \"bijux-rag\",\n    \"bijux-rar\",\n    \"bijux-vex\",\n)\nmodules = (\n    \"agentic_flows\",\n    \"bijux_agent\",\n    \"bijux_canon\",\n    \"bijux_canon_agent\",\n    \"bijux_canon_dev\",\n    \"bijux_canon_index\",\n    \"bijux_canon_ingest\",\n    \"bijux_canon_reason\",\n    \"bijux_canon_runtime\",\n    \"bijux_rag\",\n    \"bijux_rar\",\n    \"bijux_vex\",\n)\nloaded = [importlib.import_module(name) for name in modules]\nassert all(\"site-packages\" in str(module.__file__) for module in loaded)\nversions = {name: metadata.version(name) for name in distributions}\nassert len(set(versions.values())) == 1\nPY\n\"${venv_dir}/bin/bijux\" --version\n"
                 },
                 {
                   "name": "Upload installed-family artifacts",
@@ -1770,10 +1775,19 @@
                 }
               ]
             },
-            "test": {
-              "name": "test",
+            "test_plan": {
+              "name": "Test / inventory",
               "runs-on": "ubuntu-24.04",
-              "timeout-minutes": 45,
+              "timeout-minutes": 5,
+              "env": {
+                "CARGO_HOME": "${{ github.workspace }}/artifacts/native-tests/cargo-home",
+                "CARGO_INCREMENTAL": "0"
+              },
+              "outputs": {
+                "manifest_sha256": "${{ steps.plan.outputs.manifest_sha256 }}",
+                "plan_sha256": "${{ steps.plan.outputs.plan_sha256 }}",
+                "matrix": "${{ steps.plan.outputs.matrix }}"
+              },
               "steps": [
                 {
                   "name": "Check out the repository",
@@ -1783,9 +1797,7 @@
                   "name": "Set up Python",
                   "uses": "actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0",
                   "with": {
-                    "python-version": 3.11,
-                    "cache": "pip",
-                    "cache-dependency-path": "crates/bijux-cli-python/pyproject.toml"
+                    "python-version": "3.11"
                   }
                 },
                 {
@@ -1796,16 +1808,513 @@
                   }
                 },
                 {
+                  "name": "Verify native coverage and refusal controls",
+                  "run": "python3 -B -m unittest discover -s .github/scripts/native_testing/tests -v"
+                },
+                {
+                  "name": "Inventory the committed Rust and Python test obligations",
+                  "run": "make gh-test TEST_CHECK=\"prepare\"",
+                  "id": "plan"
+                },
+                {
+                  "name": "Retain native-inputs",
+                  "uses": "actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9",
+                  "with": {
+                    "name": "native-inputs",
+                    "path": "artifacts/native-tests/manifest.json\nartifacts/native-tests/plan.json",
+                    "retention-days": 7,
+                    "compression-level": 0,
+                    "if-no-files-found": "error"
+                  }
+                }
+              ]
+            },
+            "test_libraries": {
+              "name": "Test / compile libraries",
+              "runs-on": "ubuntu-24.04",
+              "timeout-minutes": 5,
+              "env": {
+                "CARGO_HOME": "${{ github.workspace }}/artifacts/native-tests/cargo-home",
+                "CARGO_INCREMENTAL": "0",
+                "NATIVE_MANIFEST_SHA256": "${{ needs.test_plan.outputs.manifest_sha256 }}",
+                "NATIVE_PLAN_SHA256": "${{ needs.test_plan.outputs.plan_sha256 }}"
+              },
+              "needs": [
+                "test_plan"
+              ],
+              "outputs": {
+                "sha256": "${{ steps.compile.outputs.sha256 }}",
+                "seconds": "${{ steps.compile.outputs.elapsed_seconds }}"
+              },
+              "steps": [
+                {
+                  "name": "Check out the repository",
+                  "uses": "actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1"
+                },
+                {
+                  "name": "Set up Python",
+                  "uses": "actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0",
+                  "with": {
+                    "python-version": "3.11"
+                  }
+                },
+                {
+                  "name": "Set up Rust",
+                  "uses": "dtolnay/rust-toolchain@683b588c487a69d01f6c6ddf40f036ff682cc2c8",
+                  "with": {
+                    "toolchain": "${{ env.RUST_TOOLCHAIN_VERSION }}"
+                  }
+                },
+                {
+                  "name": "Download native-inputs",
+                  "uses": "actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333",
+                  "with": {
+                    "name": "native-inputs",
+                    "path": "artifacts/native-tests"
+                  }
+                },
+                {
                   "name": "Restore the Rust cache",
-                  "uses": "Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0"
+                  "uses": "Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0",
+                  "with": {
+                    "workspaces": ". -> artifacts/native-tests/target",
+                    "shared-key": "native-test-libraries",
+                    "cache-all-crates": true,
+                    "cache-workspace-crates": true
+                  }
                 },
                 {
-                  "name": "Install cargo-nextest",
-                  "run": "make gh-test-install-rust-tools"
+                  "name": "Compile source-bound libraries",
+                  "run": "make gh-test TEST_CHECK=\"libraries\"",
+                  "id": "compile"
                 },
                 {
-                  "name": "Run repository test gate",
-                  "run": "make test"
+                  "name": "Retain native-libraries",
+                  "uses": "actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9",
+                  "with": {
+                    "name": "native-libraries",
+                    "path": "artifacts/native-tests/libraries.tar.gz",
+                    "retention-days": 7,
+                    "compression-level": 0,
+                    "if-no-files-found": "error"
+                  }
+                }
+              ]
+            },
+            "test_binaries": {
+              "name": "Test / compile binaries",
+              "runs-on": "ubuntu-24.04",
+              "timeout-minutes": 5,
+              "env": {
+                "CARGO_HOME": "${{ github.workspace }}/artifacts/native-tests/cargo-home",
+                "CARGO_INCREMENTAL": "0",
+                "NATIVE_MANIFEST_SHA256": "${{ needs.test_plan.outputs.manifest_sha256 }}",
+                "NATIVE_PLAN_SHA256": "${{ needs.test_plan.outputs.plan_sha256 }}",
+                "NATIVE_LIBRARIES_SHA256": "${{ needs.test_libraries.outputs.sha256 }}"
+              },
+              "needs": [
+                "test_plan",
+                "test_libraries"
+              ],
+              "outputs": {
+                "sha256": "${{ steps.compile.outputs.sha256 }}",
+                "seconds": "${{ steps.compile.outputs.elapsed_seconds }}"
+              },
+              "steps": [
+                {
+                  "name": "Check out the repository",
+                  "uses": "actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1"
+                },
+                {
+                  "name": "Set up Python",
+                  "uses": "actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0",
+                  "with": {
+                    "python-version": "3.11"
+                  }
+                },
+                {
+                  "name": "Set up Rust",
+                  "uses": "dtolnay/rust-toolchain@683b588c487a69d01f6c6ddf40f036ff682cc2c8",
+                  "with": {
+                    "toolchain": "${{ env.RUST_TOOLCHAIN_VERSION }}"
+                  }
+                },
+                {
+                  "name": "Download native-inputs",
+                  "uses": "actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333",
+                  "with": {
+                    "name": "native-inputs",
+                    "path": "artifacts/native-tests"
+                  }
+                },
+                {
+                  "name": "Download native-libraries",
+                  "uses": "actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333",
+                  "with": {
+                    "name": "native-libraries",
+                    "path": "artifacts/native-tests"
+                  }
+                },
+                {
+                  "name": "Compile source-bound binaries",
+                  "run": "make gh-test TEST_CHECK=\"binaries\"",
+                  "id": "compile"
+                },
+                {
+                  "name": "Retain native-binaries",
+                  "uses": "actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9",
+                  "with": {
+                    "name": "native-binaries",
+                    "path": "artifacts/native-tests/binaries.tar.gz",
+                    "retention-days": 7,
+                    "compression-level": 0,
+                    "if-no-files-found": "error"
+                  }
+                }
+              ]
+            },
+            "test_tools": {
+              "name": "Test / compile tools",
+              "runs-on": "ubuntu-24.04",
+              "timeout-minutes": 5,
+              "env": {
+                "CARGO_HOME": "${{ github.workspace }}/artifacts/native-tests/cargo-home",
+                "CARGO_INCREMENTAL": "0",
+                "NATIVE_MANIFEST_SHA256": "${{ needs.test_plan.outputs.manifest_sha256 }}",
+                "NATIVE_PLAN_SHA256": "${{ needs.test_plan.outputs.plan_sha256 }}",
+                "NATIVE_LIBRARIES_SHA256": "${{ needs.test_libraries.outputs.sha256 }}"
+              },
+              "needs": [
+                "test_plan",
+                "test_libraries"
+              ],
+              "outputs": {
+                "sha256": "${{ steps.compile.outputs.sha256 }}",
+                "seconds": "${{ steps.compile.outputs.elapsed_seconds }}"
+              },
+              "steps": [
+                {
+                  "name": "Check out the repository",
+                  "uses": "actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1"
+                },
+                {
+                  "name": "Set up Python",
+                  "uses": "actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0",
+                  "with": {
+                    "python-version": "3.11"
+                  }
+                },
+                {
+                  "name": "Set up Rust",
+                  "uses": "dtolnay/rust-toolchain@683b588c487a69d01f6c6ddf40f036ff682cc2c8",
+                  "with": {
+                    "toolchain": "${{ env.RUST_TOOLCHAIN_VERSION }}"
+                  }
+                },
+                {
+                  "name": "Download native-inputs",
+                  "uses": "actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333",
+                  "with": {
+                    "name": "native-inputs",
+                    "path": "artifacts/native-tests"
+                  }
+                },
+                {
+                  "name": "Download native-libraries",
+                  "uses": "actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333",
+                  "with": {
+                    "name": "native-libraries",
+                    "path": "artifacts/native-tests"
+                  }
+                },
+                {
+                  "name": "Compile source-bound tools",
+                  "run": "make gh-test TEST_CHECK=\"tools\"",
+                  "id": "compile"
+                },
+                {
+                  "name": "Retain native-tools",
+                  "uses": "actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9",
+                  "with": {
+                    "name": "native-tools",
+                    "path": "artifacts/native-tests/tools.tar.gz",
+                    "retention-days": 7,
+                    "compression-level": 0,
+                    "if-no-files-found": "error"
+                  }
+                }
+              ]
+            },
+            "test_rust": {
+              "name": "Test / ${{ matrix.id }}",
+              "runs-on": "ubuntu-24.04",
+              "timeout-minutes": 5,
+              "env": {
+                "CARGO_HOME": "${{ github.workspace }}/artifacts/native-tests/cargo-home",
+                "CARGO_INCREMENTAL": "0",
+                "NATIVE_MANIFEST_SHA256": "${{ needs.test_plan.outputs.manifest_sha256 }}",
+                "NATIVE_PLAN_SHA256": "${{ needs.test_plan.outputs.plan_sha256 }}",
+                "CARGO_NEXTEST_VERSION": "0.9.100",
+                "NATIVE_LIBRARIES_SHA256": "${{ needs.test_libraries.outputs.sha256 }}",
+                "NATIVE_BINARIES_SHA256": "${{ needs.test_binaries.outputs.sha256 }}",
+                "NATIVE_TOOLS_SHA256": "${{ needs.test_tools.outputs.sha256 }}"
+              },
+              "needs": [
+                "test_plan",
+                "test_libraries",
+                "test_binaries",
+                "test_tools"
+              ],
+              "strategy": {
+                "fail-fast": false,
+                "max-parallel": 16,
+                "matrix": "${{ fromJSON(needs.test_plan.outputs.matrix) }}"
+              },
+              "steps": [
+                {
+                  "name": "Check out the repository",
+                  "uses": "actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1"
+                },
+                {
+                  "name": "Set up Python",
+                  "uses": "actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0",
+                  "with": {
+                    "python-version": "3.11"
+                  }
+                },
+                {
+                  "name": "Set up Rust",
+                  "uses": "dtolnay/rust-toolchain@683b588c487a69d01f6c6ddf40f036ff682cc2c8",
+                  "with": {
+                    "toolchain": "${{ env.RUST_TOOLCHAIN_VERSION }}"
+                  }
+                },
+                {
+                  "name": "Install the pinned test executor",
+                  "uses": "taiki-e/install-action@cfdb7ed4ccc7c7dce37759eae89dc5674b469b39",
+                  "with": {
+                    "tool": "cargo-nextest@${{ env.CARGO_NEXTEST_VERSION }}",
+                    "checksum": "true",
+                    "fallback": "none"
+                  }
+                },
+                {
+                  "name": "Authenticate the test executor version",
+                  "run": "set -euo pipefail\nobserved=\"$(cargo nextest --version)\"\nread -r tool version _ <<< \"${observed%%$'\\n'*}\"\n[[ \"$tool\" == \"cargo-nextest\" && \"$version\" == \"$CARGO_NEXTEST_VERSION\" ]] || { printf \"Unexpected test executor: %s\\n\" \"$observed\" >&2; exit 1; }"
+                },
+                {
+                  "name": "Download native-inputs",
+                  "uses": "actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333",
+                  "with": {
+                    "name": "native-inputs",
+                    "path": "artifacts/native-tests"
+                  }
+                },
+                {
+                  "name": "Download native-libraries",
+                  "uses": "actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333",
+                  "with": {
+                    "name": "native-libraries",
+                    "path": "artifacts/native-tests"
+                  }
+                },
+                {
+                  "name": "Download native-binaries",
+                  "uses": "actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333",
+                  "with": {
+                    "name": "native-binaries",
+                    "path": "artifacts/native-tests"
+                  }
+                },
+                {
+                  "name": "Download native-tools",
+                  "uses": "actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333",
+                  "with": {
+                    "name": "native-tools",
+                    "path": "artifacts/native-tests"
+                  }
+                },
+                {
+                  "name": "Run the complete assigned Nextest target partition",
+                  "run": "make gh-test TEST_CHECK=\"${{ matrix.id }}\""
+                },
+                {
+                  "name": "Retain native-proof-${{ strategy.job-index }}",
+                  "uses": "actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9",
+                  "with": {
+                    "name": "native-proof-${{ strategy.job-index }}",
+                    "path": "artifacts/native-tests/results/*.json",
+                    "retention-days": 7,
+                    "compression-level": 0,
+                    "if-no-files-found": "error"
+                  },
+                  "if": "${{ always() }}"
+                }
+              ]
+            },
+            "test_python": {
+              "name": "Test / python",
+              "runs-on": "ubuntu-24.04",
+              "timeout-minutes": 5,
+              "env": {
+                "CARGO_HOME": "${{ github.workspace }}/artifacts/native-tests/cargo-home",
+                "CARGO_INCREMENTAL": "0",
+                "NATIVE_MANIFEST_SHA256": "${{ needs.test_plan.outputs.manifest_sha256 }}",
+                "NATIVE_PLAN_SHA256": "${{ needs.test_plan.outputs.plan_sha256 }}",
+                "NATIVE_LIBRARIES_SHA256": "${{ needs.test_libraries.outputs.sha256 }}",
+                "NATIVE_TOOLS_SHA256": "${{ needs.test_tools.outputs.sha256 }}"
+              },
+              "needs": [
+                "test_plan",
+                "test_libraries",
+                "test_tools"
+              ],
+              "steps": [
+                {
+                  "name": "Check out the repository",
+                  "uses": "actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1"
+                },
+                {
+                  "name": "Set up Python",
+                  "uses": "actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0",
+                  "with": {
+                    "python-version": "3.11"
+                  }
+                },
+                {
+                  "name": "Set up Rust",
+                  "uses": "dtolnay/rust-toolchain@683b588c487a69d01f6c6ddf40f036ff682cc2c8",
+                  "with": {
+                    "toolchain": "${{ env.RUST_TOOLCHAIN_VERSION }}"
+                  }
+                },
+                {
+                  "name": "Download native-inputs",
+                  "uses": "actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333",
+                  "with": {
+                    "name": "native-inputs",
+                    "path": "artifacts/native-tests"
+                  }
+                },
+                {
+                  "name": "Download native-libraries",
+                  "uses": "actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333",
+                  "with": {
+                    "name": "native-libraries",
+                    "path": "artifacts/native-tests"
+                  }
+                },
+                {
+                  "name": "Download native-tools",
+                  "uses": "actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333",
+                  "with": {
+                    "name": "native-tools",
+                    "path": "artifacts/native-tests"
+                  }
+                },
+                {
+                  "name": "Run Python installation, parity tests and full coverage",
+                  "run": "make gh-test TEST_CHECK=\"python\""
+                },
+                {
+                  "name": "Retain native-python-proof",
+                  "uses": "actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9",
+                  "with": {
+                    "name": "native-python-proof",
+                    "path": "artifacts/native-tests/results/*.json",
+                    "retention-days": 7,
+                    "compression-level": 0,
+                    "if-no-files-found": "error"
+                  },
+                  "if": "${{ always() }}"
+                },
+                {
+                  "name": "Retain native-python-reports",
+                  "uses": "actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9",
+                  "with": {
+                    "name": "native-python-reports",
+                    "path": "artifacts/native-tests/python-test",
+                    "retention-days": 7,
+                    "compression-level": 0,
+                    "if-no-files-found": "error"
+                  },
+                  "if": "${{ always() }}"
+                }
+              ]
+            },
+            "test": {
+              "name": "test",
+              "runs-on": "ubuntu-24.04",
+              "timeout-minutes": 5,
+              "env": {
+                "CARGO_HOME": "${{ github.workspace }}/artifacts/native-tests/cargo-home",
+                "CARGO_INCREMENTAL": "0",
+                "NATIVE_MANIFEST_SHA256": "${{ needs.test_plan.outputs.manifest_sha256 }}",
+                "NATIVE_PLAN_SHA256": "${{ needs.test_plan.outputs.plan_sha256 }}",
+                "NATIVE_JOB_RESULTS": "${{ toJSON(needs.*.result) }}",
+                "NATIVE_LIBRARIES_SECONDS": "${{ needs.test_libraries.outputs.seconds }}",
+                "NATIVE_BINARIES_SECONDS": "${{ needs.test_binaries.outputs.seconds }}",
+                "NATIVE_TOOLS_SECONDS": "${{ needs.test_tools.outputs.seconds }}"
+              },
+              "needs": [
+                "test_plan",
+                "test_libraries",
+                "test_binaries",
+                "test_tools",
+                "test_rust",
+                "test_python"
+              ],
+              "if": "${{ always() }}",
+              "steps": [
+                {
+                  "name": "Check out the repository",
+                  "uses": "actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1"
+                },
+                {
+                  "name": "Set up Python",
+                  "uses": "actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0",
+                  "with": {
+                    "python-version": "3.11"
+                  }
+                },
+                {
+                  "name": "Set up Rust",
+                  "uses": "dtolnay/rust-toolchain@683b588c487a69d01f6c6ddf40f036ff682cc2c8",
+                  "with": {
+                    "toolchain": "${{ env.RUST_TOOLCHAIN_VERSION }}"
+                  }
+                },
+                {
+                  "name": "Download native-inputs",
+                  "uses": "actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333",
+                  "with": {
+                    "name": "native-inputs",
+                    "path": "artifacts/native-tests"
+                  }
+                },
+                {
+                  "name": "Download complete native worker evidence",
+                  "uses": "actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333",
+                  "with": {
+                    "pattern": "native-*proof*",
+                    "path": "artifacts/native-tests/results",
+                    "merge-multiple": true
+                  }
+                },
+                {
+                  "name": "Require every source-bound Rust and Python result",
+                  "run": "make gh-test TEST_CHECK=\"accept\""
+                },
+                {
+                  "name": "Retain native-acceptance",
+                  "uses": "actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9",
+                  "with": {
+                    "name": "native-acceptance",
+                    "path": "artifacts/native-tests/acceptance.json",
+                    "retention-days": 7,
+                    "compression-level": 0,
+                    "if-no-files-found": "error"
+                  }
                 }
               ]
             }
@@ -2072,7 +2581,7 @@
                 },
                 {
                   "name": "Install Rust audit tools",
-                  "uses": "taiki-e/install-action@68a389c788b2cd04016ce8c80ee23b80d2ab3d68",
+                  "uses": "taiki-e/install-action@cfdb7ed4ccc7c7dce37759eae89dc5674b469b39",
                   "with": {
                     "tool": "cargo-deny@${{ env.CARGO_DENY_VERSION }},cargo-audit@${{ env.CARGO_AUDIT_VERSION }}",
                     "checksum": "true",
@@ -2124,7 +2633,7 @@
                 },
                 {
                   "name": "Install the pinned test executor",
-                  "uses": "taiki-e/install-action@68a389c788b2cd04016ce8c80ee23b80d2ab3d68",
+                  "uses": "taiki-e/install-action@cfdb7ed4ccc7c7dce37759eae89dc5674b469b39",
                   "with": {
                     "tool": "cargo-nextest@${{ env.CARGO_NEXTEST_VERSION }}",
                     "checksum": "true",
@@ -2230,7 +2739,7 @@
                 },
                 {
                   "name": "Install the pinned test executor",
-                  "uses": "taiki-e/install-action@68a389c788b2cd04016ce8c80ee23b80d2ab3d68",
+                  "uses": "taiki-e/install-action@cfdb7ed4ccc7c7dce37759eae89dc5674b469b39",
                   "with": {
                     "tool": "cargo-nextest@${{ env.CARGO_NEXTEST_VERSION }}",
                     "checksum": "true",
@@ -2429,47 +2938,6 @@
           "workflow": "continuous integration"
         }
       ]
-    },
-    {
-      "name": "bijux-iac",
-      "release_env": [],
-      "workflow_allowlist": [
-        "dependency-notice",
-        "deploy-docs",
-        "github-policy",
-        "pr-approval-policy"
-      ],
-      "additional_required_status_checks": [
-        {
-          "context": "iac / contracts",
-          "workflow": "github-governance-plan"
-        },
-        {
-          "context": "iac / plan",
-          "workflow": "github-governance-plan"
-        },
-        {
-          "context": "iac / governance",
-          "workflow": "github-governance-plan"
-        }
-      ],
-      "workflow_execution_policy": {
-        "schema": 1,
-        "publication_entrypoints": {
-          "deploy-docs": {
-            "mode": "manual-only",
-            "controller": "iac",
-            "refs": "main-only",
-            "destination": {
-              "repository": "bijux.github.io",
-              "path": "/infrastructure/"
-            }
-          }
-        },
-        "dependency_pull_requests": "notification-only",
-        "dependency_merge": "owner-consolidation",
-        "main_verification": "accepted-pull-request"
-      }
     },
     {
       "name": "bijux-masterclass",
@@ -2872,7 +3340,7 @@
                   }
                 },
                 {
-                  "uses": "actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad",
+                  "uses": "actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78",
                   "if": "${{ contains(fromJson(inputs.api_toolchain_targets), matrix.target) }}",
                   "with": {
                     "distribution": "temurin",
@@ -3374,7 +3842,7 @@
                   }
                 },
                 {
-                  "uses": "actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad",
+                  "uses": "actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78",
                   "if": "${{ contains(fromJson(inputs.api_toolchain_targets), matrix.target) }}",
                   "with": {
                     "distribution": "temurin",
@@ -4117,7 +4585,7 @@
                   }
                 },
                 {
-                  "uses": "actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad",
+                  "uses": "actions/setup-java@77dd5b2ce225ea11469928ac317850245a74ae78",
                   "if": "${{ contains(fromJson(inputs.api_toolchain_targets), matrix.target) }}",
                   "with": {
                     "distribution": "temurin",
@@ -4960,6 +5428,177 @@
         "dependency_merge": "owner-consolidation",
         "main_verification": "accepted-pull-request"
       }
+    },
+    {
+      "name": "bijux-ro-crate-node",
+      "additional_required_status_checks": [
+        {
+          "context": "packages / node-22.23.4",
+          "workflow": "Validation"
+        },
+        {
+          "context": "packages / node-24.3.0",
+          "workflow": "Validation"
+        },
+        {
+          "context": "Python reference",
+          "workflow": "Validation"
+        },
+        {
+          "context": "Browser validation and draft lifecycle",
+          "workflow": "Validation"
+        }
+      ],
+      "release_env": [
+        {
+          "key": "BIJUX_NPM_ENABLED",
+          "type": "bool",
+          "value": false
+        },
+        {
+          "key": "BIJUX_NPM_RELEASE_VERSION",
+          "type": "string",
+          "value": "0.1.0"
+        },
+        {
+          "key": "BIJUX_NPM_PACKAGES_JSON",
+          "type": "json",
+          "value": [
+            {
+              "name": "@bijux/ro-crate-core",
+              "version": "0.1.0",
+              "directory": "core"
+            },
+            {
+              "name": "@bijux/ro-crate-validator",
+              "version": "0.1.0",
+              "directory": "validator"
+            }
+          ]
+        }
+      ],
+      "workflow_allowlist": [
+        "dependency-notice",
+        "github-policy",
+        "pr-approval-policy",
+        "release-npm"
+      ],
+      "workflow_execution_policy": {
+        "schema": 1,
+        "dependency_pull_requests": "notification-only",
+        "dependency_merge": "owner-consolidation",
+        "main_verification": "accepted-pull-request",
+        "publication_entrypoints": {
+          "release-npm": {
+            "mode": "manual-only",
+            "controller": "iac"
+          }
+        }
+      }
+    },
+    {
+      "name": "bijux-ontology",
+      "standard_capabilities": [
+        "common",
+        "python"
+      ],
+      "python_workspace": {
+        "manager": "uv",
+        "requires_python": ">=3.11,<4",
+        "packages": [
+          {
+            "name": "bijux-ontology",
+            "directory": "packages/bijux-ontology",
+            "responsibility": "vocabulary and structural declaration checks"
+          },
+          {
+            "name": "bijux-ontology-adapters",
+            "directory": "packages/bijux-ontology-adapters",
+            "responsibility": "optional framework and data-format bridges"
+          },
+          {
+            "name": "bijux-ontology-reasoning",
+            "directory": "packages/bijux-ontology-reasoning",
+            "responsibility": "optional OWL profile checks"
+          },
+          {
+            "name": "bijux-ontology-dev",
+            "directory": "packages/bijux-ontology-dev",
+            "responsibility": "internal repository tooling"
+          }
+        ]
+      },
+      "repository_owned_workflows": [
+        ".github/workflows/verify.yml"
+      ],
+      "additional_required_status_checks": [
+        {
+          "context": "python / 3.11",
+          "workflow": "repository verification"
+        },
+        {
+          "context": "python / 3.13",
+          "workflow": "repository verification"
+        }
+      ],
+      "release_env": [],
+      "workflow_allowlist": [
+        "dependency-notice",
+        "github-policy",
+        "pr-approval-policy"
+      ],
+      "workflow_execution_policy": {
+        "schema": 1,
+        "dependency_pull_requests": "notification-only",
+        "dependency_merge": "owner-consolidation",
+        "publication_entrypoints": {},
+        "main_verification": "existing-events"
+      }
+    },
+    {
+      "name": "bijux-iac",
+      "release_env": [],
+      "workflow_allowlist": [
+        "dependency-notice",
+        "deploy-docs",
+        "github-policy",
+        "pr-approval-policy"
+      ],
+      "additional_required_status_checks": [
+        {
+          "context": "iac / contracts",
+          "workflow": "github-governance-plan"
+        },
+        {
+          "context": "iac / plan",
+          "workflow": "github-governance-plan"
+        },
+        {
+          "context": "iac / governance",
+          "workflow": "github-governance-plan"
+        }
+      ],
+      "workflow_execution_policy": {
+        "schema": 1,
+        "publication_entrypoints": {
+          "deploy-docs": {
+            "mode": "manual-only",
+            "controller": "iac",
+            "refs": "main-only",
+            "destination": {
+              "repository": "bijux.github.io",
+              "path": "/infrastructure/"
+            }
+          }
+        },
+        "dependency_pull_requests": "notification-only",
+        "dependency_merge": "owner-consolidation",
+        "main_verification": "accepted-pull-request"
+      },
+      "standard_capabilities": [
+        "common",
+        "gitlab"
+      ]
     }
   ]
 }

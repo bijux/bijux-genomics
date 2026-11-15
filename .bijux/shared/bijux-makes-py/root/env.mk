@@ -3,7 +3,7 @@
 .SHELLFLAGS := -eu -o pipefail -c
 SHELL := bash
 
-PYTHON ?= python3.11
+PYTHON ?= $(shell command -v python3.11 || command -v python3)
 UV ?= uv
 RM ?= rm -rf
 
